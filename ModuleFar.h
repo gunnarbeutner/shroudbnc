@@ -36,6 +36,9 @@ struct CModuleFar {
 
 	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv) = 0;
 	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv) = 0;
+
+	virtual void AttachClient(const char* Client) = 0;
+	virtual void DetachClient(const char* Client) = 0;
 };
 
 #endif // !defined(AFX_MODULEFAR_H__898BF56F_427C_4FC5_8D8D_A68E48A0B426__INCLUDED_)

@@ -89,3 +89,25 @@ void CBouncerLog::Clear(void) {
 	if (Log)
 		fclose(Log);
 }
+
+bool CBouncerLog::IsEmpty(void) {
+	FILE* Log = fopen(m_File, "r");
+
+	if (Log) {
+		char Line[500];
+		while (!feof(Log)) {
+			char* n = fgets(Line, sizeof(Line), Log);
+
+			if (n) {
+				fclose(Log);
+
+				return false;
+			}
+				
+		}
+
+		fclose(Log);
+	}
+
+	return true;
+}

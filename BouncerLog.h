@@ -36,6 +36,7 @@ public:
 	virtual void InternalWriteLine(const char* Line);
 	virtual void WriteLine(const char* Format, ...);
 	virtual void PlayToUser(CBouncerUser* User);
+	virtual bool IsEmpty(void);
 };
 
 #endif // !defined(AFX_BOUNCERLOG_H__A6DB1C48_D094_400E_B622_10F193CF879C__INCLUDED_)

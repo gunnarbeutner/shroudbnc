@@ -46,6 +46,9 @@ public:
 
 	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv);
 	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv);
+
+	virtual void AttachClient(const char* Client);
+	virtual void DetachClient(const char* Client) ;
 };
 
 #endif // !defined(AFX_MODULE_H__E4E050DD_057C_4E38_BDB7_A875F73A9E8F__INCLUDED_)

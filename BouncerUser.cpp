@@ -27,6 +27,8 @@
 #include "BouncerCore.h"
 #include "BouncerLog.h"
 #include "Channel.h"
+#include "ModuleFar.h"
+#include "Module.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -101,9 +103,19 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	if (m_Client) {
 		m_Client->Kill("Another client has connected.");
+
+		SetClientConnection(NULL);
 	}
 
 	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
+
+	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+		CModule* M = g_Bouncer->GetModules()[i];
+
+		if (M) {
+			M->AttachClient(GetUsername());
+		}
+	}
 
 	g_Bouncer->Log(Out);
 	g_Bouncer->GlobalNotice(Out, true);
@@ -140,6 +152,9 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 			}
 		}
 	}
+
+	if (!GetLog()->IsEmpty())
+		Notice("You have new messages. Use /PLAYPRIVATELOG to view them.");
 }
 
 bool CBouncerUser::Validate(const char* Password) {
@@ -274,7 +289,7 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 
 void CBouncerUser::Notice(const char* Text) {
 	if (m_Client)
-		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG * :%s",  Text);
+		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG %s :%s", GetNick(), Text);
 }
 
 int CBouncerUser::IRCUptime(void) {
@@ -320,6 +335,14 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 
 		snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
 		g_Bouncer->GlobalNotice(Out, true);
+
+		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+			CModule* M = g_Bouncer->GetModules()[i];
+
+			if (M) {
+				M->DetachClient(GetUsername());
+			}
+		}
 
 		if (m_IRC) {
 			const char* Offnick = m_Config->ReadString("user.awaynick");

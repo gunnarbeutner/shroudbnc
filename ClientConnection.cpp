@@ -70,7 +70,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	const char* Args = argv[1];
 
 	if (!m_Owner || !m_Owner->IsConnectedToIRC()) {
-		if (strcmpi(Command, "nick") == 0) {
+		if (strcmpi(Command, "nick") == 0 && argc > 1) {
 			const char* Nick = Args;
 
 			if (m_Nick == NULL) {
@@ -86,12 +86,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			free(m_Nick);
 			m_Nick = strdup(Nick);
 		} else if (strcmpi(Command, "pass") == 0) {
-			if (!Args) {
+			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 			} else {
 				m_Password = strdup(Args);
 			}
-		} else if (strcmpi(Command, "user") == 0) {
+		} else if (strcmpi(Command, "user") == 0 && argc > 1) {
 			if (m_Username) {
 				WriteLine(":bouncer 462 %s :You may not reregister", m_Nick);
 			} else if (!m_Password) {
