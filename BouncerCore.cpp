@@ -64,6 +64,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	m_Log->Clear();
 	m_Log->WriteLine("Log system initialized.");
 
+	m_Listener = INVALID_SOCKET;
+
 	m_Startup = time(NULL);
 
 	m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
@@ -97,7 +99,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 }
 
 CBouncerCore::~CBouncerCore() {
-	closesocket(m_Listener);
+	if (m_Listener != INVALID_SOCKET)
+		closesocket(m_Listener);
 
 	delete m_Log;
 	delete m_Ident;
@@ -124,7 +127,25 @@ CBouncerCore::~CBouncerCore() {
 	free(m_OtherSockets);
 }
 
-void CBouncerCore::StartMainLoop() {
+void CBouncerCore::StartMainLoop(int argc, char** argv) {
+	bool b_DontDetach = false;
+
+	for (int a = 1; a < argc; a++) {
+		if (strcmp(argv[a], "-n") == 0)
+			b_DontDetach = true;
+		if (strcmp(argv[a], "--help") == 0) {
+			puts("sBNC" BNCVERSION " - an object-oriented IRC bouncer");
+			puts("");
+			printf("Syntax: %s [OPTION]", argv[0]);
+			puts("");
+			puts("Options:");
+			puts("\t-n\tdon't detach");
+			puts("\t--help\tdisplay this help and exit");
+
+			return;
+		}
+	}
+
 	int Port = m_Config->ReadInteger("system.port");
 
 	if (Port == 0)
@@ -144,6 +165,9 @@ void CBouncerCore::StartMainLoop() {
 	int last = time(NULL);
 
 	Log("Starting main loop.");
+
+	if (!b_DontDetach)
+		Daemonize();
 
 	m_Running = true;
 
@@ -407,6 +431,7 @@ void CBouncerCore::Log(const char* Format, ...) {
 	va_end(marker);
 
 	m_Log->InternalWriteLine(Out);
+	puts(Out);
 }
 
 CBouncerConfig* CBouncerCore::GetConfig(void) {
@@ -487,4 +512,39 @@ void CBouncerCore::UpdateUserConfig(void) {
 
 time_t CBouncerCore::GetStartup(void) {
 	return m_Startup;
+}
+
+bool CBouncerCore::Daemonize(void) {
+#ifndef _WIN32
+	pid_t pid;
+	pid_t sid;
+	int fd;
+
+	pid=fork();
+	if (pid==-1) {
+		puts("fork() returned -1 (failure)");
+		return false;
+	}
+
+	if (pid) {
+		exit(0);
+	}
+
+	fd = open("/dev/null", O_RDWR);
+	if (fd) {
+		if (fd != 0)
+			dup2(fd, 0);
+		if (fd != 1)
+			dup2(fd, 1);
+		if (fd != 2)
+			dup2(fd, 2);
+		if (fd > 2)
+			close(fd);
+	}
+
+	sid=setsid();
+	if (sid==-1)
+		return false;
+#endif
+	return true;
 }

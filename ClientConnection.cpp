@@ -330,7 +330,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		} else if (strcmpi(Command, "bhelp") == 0) {
 			CBouncerUser* User = m_Owner;
 
-			User->Notice("sBNC0.1 - an object-oriented IRC bouncer - Help");
+			User->Notice("sBNC" BNCVERSION " - an object-oriented IRC bouncer - Help");
 			User->Notice("------------");
 			User->Notice("Admin commands:");
 			User->Notice("ADDUSER - creates a new user");

@@ -66,11 +66,12 @@ class CBouncerCore {
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
+	bool Daemonize(void);
 public:
 	CBouncerCore(CBouncerConfig* Config);
 	virtual ~CBouncerCore();
 
-	virtual void StartMainLoop();
+	virtual void StartMainLoop(int argc, char** argv);
 
 	virtual CBouncerUser* GetUser(const char* Name);
 

@@ -26,7 +26,10 @@
 //////////////////////////////////////////////////////////////////////
 
 CBouncerLog::CBouncerLog(const char* Filename) {
-	m_File = strdup(Filename);
+	if (Filename)
+		m_File = strdup(Filename);
+	else
+		m_File = NULL;
 }
 
 CBouncerLog::~CBouncerLog() {
@@ -34,9 +37,9 @@ CBouncerLog::~CBouncerLog() {
 }
 
 void CBouncerLog::PlayToUser(CBouncerUser* User) {
-	FILE* Log = fopen(m_File, "r");
+	FILE* Log;
 
-	if (Log) {
+	if (m_File && (Log = fopen(m_File, "r"))) {
 		char Line[500];
 		while (!feof(Log)) {
 			char* n = fgets(Line, sizeof(Line), Log);
@@ -53,9 +56,9 @@ void CBouncerLog::PlayToUser(CBouncerUser* User) {
 
 void CBouncerLog::InternalWriteLine(const char* Line) {
 	char Out[1024];
-	FILE* Log = fopen(m_File, "a");
+	FILE* Log;
 
-	if (Log) {
+	if (m_File && (Log = fopen(m_File, "a"))) {
 		tm Now;
 		time_t tNow;
 		char strNow[100];
@@ -84,17 +87,18 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
 }
 
 void CBouncerLog::Clear(void) {
-	FILE* Log = fopen(m_File, "w");
+	FILE* Log;
 	
-	if (Log)
+	if (m_File && (Log = fopen(m_File, "w")))
 		fclose(Log);
 }
 
 bool CBouncerLog::IsEmpty(void) {
-	FILE* Log = fopen(m_File, "r");
+	FILE* Log;
 
-	if (Log) {
+	if (m_File && (Log = fopen(m_File, "r"))) {
 		char Line[500];
+
 		while (!feof(Log)) {
 			char* n = fgets(Line, sizeof(Line), Log);
 

@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 	g_Bouncer = new CBouncerCore(&Config);
 
-	g_Bouncer->StartMainLoop();
+	g_Bouncer->StartMainLoop(argc, argv);
 
 	delete g_Bouncer;
 

@@ -42,10 +42,14 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_IRC = NULL;
 	m_Name = strdup(Name);
 
+	assert(m_Name != NULL);
+
 	char Out[1024];
 	snprintf(Out, sizeof(Out), "users/%s.conf", Name);
 
 	m_Config = new CBouncerConfig(Out);
+
+	assert(m_Config != NULL);
 
 	m_IRC = NULL;
 
@@ -55,6 +59,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	snprintf(Out, sizeof(Out), "users/%s.log", Name);
 
 	m_Log = new CBouncerLog(Out);
+
+	assert(m_Log != NULL);
 
 	m_Locked = false;
 }
@@ -166,7 +172,7 @@ bool CBouncerUser::Validate(const char* Password) {
 	if (!RealPass || strlen(RealPass) == 0)
 		return false;
 
-	return (strcmpi(RealPass, Password) == 0);
+	return (strcmp(RealPass, Password) == 0);
 }
 
 const char* CBouncerUser::GetNick(void) {
@@ -372,13 +378,11 @@ bool CBouncerUser::IsAdmin(void) {
 }
 
 void CBouncerUser::SetPassword(const char* Password) {
-	if (Password)
-		m_Config->WriteString("user.password", Password);
+	m_Config->WriteString("user.password", Password);
 }
 
 void CBouncerUser::SetServer(const char* Server) {
-	if (Server)
-		m_Config->WriteString("user.server", Server);
+	m_Config->WriteString("user.server", Server);
 }
 
 const char* CBouncerUser::GetServer(void) {
@@ -388,14 +392,16 @@ const char* CBouncerUser::GetServer(void) {
 }
 
 void CBouncerUser::SetPort(int Port) {
-	if (Port)
-		m_Config->WriteInteger("user.port", Port);
+	m_Config->WriteInteger("user.port", Port);
 }
 
 int CBouncerUser::GetPort(void) {
 	int Port = m_Config->ReadInteger("user.port");
 
-	return Port;
+	if (!Port)
+		return 6667;
+	else
+		return Port;
 }
 
 bool CBouncerUser::IsLocked(void) {

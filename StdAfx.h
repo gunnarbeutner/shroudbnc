@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
+#include <assert.h>
+#include <fcntl.h>
 
 #include "snprintf.h"
 

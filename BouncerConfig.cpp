@@ -30,6 +30,8 @@ CBouncerConfig::CBouncerConfig(const char* Filename) {
 	m_WriteLock = false;
 	m_Settings = new CHashtable<char*, false>;
 
+	assert(m_Settings != NULL);
+
 	m_Settings->RegisterValueDestructor(string_free);
 
 	if (Filename) {
