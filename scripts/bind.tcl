@@ -76,7 +76,7 @@ proc sbnc:rawserver {client parameters} {
 
 		}
 		"wallops" {
-			sbnc:callbinds "wall" - $targ $source $targ
+			sbnc:callbinds "wall" - $targ $source [join [lrange $parameters 2 end]]
 		}
 	}
 
@@ -99,7 +99,11 @@ proc sbnc:callbinds {type flags mask args} {
 
 		# todo: match flags!
 		if {[string equal -nocase $t $type] && [string match -nocase $m $mask]} {
-			catch [list eval $p $args]
+			catch [list eval $p $args] error
+
+			foreach line [split $error \n] {
+				putserv "PRIVMSG #shroudtest :$line"
+			}
 		}
 	}
 }
