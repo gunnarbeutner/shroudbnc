@@ -154,8 +154,6 @@ proc unbind {type flags mask procname} {
 
 	upvar [getns]::binds binds
 
-	set newbinds ""
-
 	if {$procname == ""} {
 		set list ""
 
@@ -168,6 +166,7 @@ proc unbind {type flags mask procname} {
 		return $list
 	}
 
+	set newbinds ""
 
 	foreach bind $binds {
 		set t [lindex $bind 0]
@@ -176,12 +175,14 @@ proc unbind {type flags mask procname} {
 		set u [lindex $bind 3]
 		set p [lindex $bind 4]
 
-		if {![string equal -nocase $t $type] && ![string equal -nocase $f $flags] && ![string equal -nocase $m $mask] && ![string equal -nocase $p $procname]} {
+		if {![string equal -nocase $t $type] || ![string equal -nocase $f $flags] || ![string equal -nocase $m $mask] || ![string equal -nocase $p $procname]} {
 			lappend newbinds $bind
 		}
 	}
 
 	set binds $newbinds
+
+	puts $binds
 
 	return $mask
 }
