@@ -30,6 +30,8 @@
 #include "../BouncerUser.h"
 #include "../BouncerConfig.h"
 #include "../Nick.h"
+#include "../Queue.h"
+#include "../FloodControl.h"
 
 static char* g_Context = NULL;
 
@@ -1007,4 +1009,141 @@ const char* bncnumversion(void) {
 
 int bncuptime(void) {
 	return g_Bouncer->GetStartup();
+}
+
+int floodcontrol(const char* Function) {
+	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+
+	if (!User)
+		return NULL;
+
+	CIRCConnection* IRC = User->GetIRCConnection();
+
+	if (!IRC)
+		return NULL;
+
+	CFloodControl* FloodControl = IRC->GetFloodControl();
+
+	if (strcmpi(Function, "bytes") == 0)
+		return FloodControl->GetBytes();
+	else if (strcmpi(Function, "items") == 0)
+		return FloodControl->GetRealQueueSize();
+
+	throw "Function should be one of: bytes items";
+}
+
+int clearqueue(const char* Queue) {
+	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+
+	if (!User)
+		return 0;
+
+	CIRCConnection* IRC = User->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	CQueue* TheQueue = NULL;
+
+	if (strcmpi(Queue, "mode") == 0)
+		TheQueue = IRC->GetQueueHigh();
+	else if (strcmpi(Queue, "server") == 0)
+		TheQueue = IRC->GetQueueMiddle();
+	else if (strcmpi(Queue, "help") == 0)
+		TheQueue = IRC->GetQueueLow();
+	else if (strcmpi(Queue, "all") == 0)
+		TheQueue = (CQueue*)IRC->GetFloodControl();
+	else
+		throw "Queue should be one of: mode server help all";
+
+	int Size;
+
+	if (TheQueue == IRC->GetFloodControl())
+		Size = IRC->GetFloodControl()->GetRealQueueSize();
+	else
+		Size = TheQueue->GetQueueSize();
+
+	TheQueue->FlushQueue();
+
+	return Size;
+}
+
+int queuesize(const char* Queue) {
+	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+
+	if (!User)
+		return 0;
+
+	CIRCConnection* IRC = User->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	CQueue* TheQueue = NULL;
+
+	if (strcmpi(Queue, "mode") == 0)
+		TheQueue = IRC->GetQueueHigh();
+	else if (strcmpi(Queue, "server") == 0)
+		TheQueue = IRC->GetQueueMiddle();
+	else if (strcmpi(Queue, "help") == 0)
+		TheQueue = IRC->GetQueueLow();
+	else if (strcmpi(Queue, "all") == 0)
+		TheQueue = (CQueue*)IRC->GetFloodControl();
+	else
+		throw "Queue should be one of: mode server help all";
+
+	int Size;
+
+	if (TheQueue == IRC->GetFloodControl())
+		Size = IRC->GetFloodControl()->GetRealQueueSize();
+	else
+		Size = TheQueue->GetQueueSize();
+
+	return Size;
+}
+
+int puthelp(const char* text) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	IRC->GetQueueLow()->QueueItem(text);
+
+	return 1;
+}
+
+int putquick(const char* text) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	IRC->GetQueueHigh()->QueueItem(text);
+
+	return 1;
+}
+
+const char* getisupport(const char* Feature) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return NULL;
+
+	return IRC->GetISupport(Feature);
 }

@@ -1659,6 +1659,48 @@ _wrap_bncuptime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
 
 static int
+_wrap_floodcontrol(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:floodcontrol Function ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)floodcontrol((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getisupport(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:getisupport Feature ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)getisupport((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2033,6 +2075,90 @@ _wrap_rand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 }
 
 
+static int
+_wrap_clearqueue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:clearqueue Queue ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)clearqueue((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_queuesize(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:queuesize Queue ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)queuesize((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_puthelp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:puthelp text ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)puthelp((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_putquick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:putquick text ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)putquick((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
 
 static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
@@ -2052,6 +2178,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncversion", (swig_wrapper_func) _wrap_bncversion, NULL},
     { SWIG_prefix "bncnumversion", (swig_wrapper_func) _wrap_bncnumversion, NULL},
     { SWIG_prefix "bncuptime", (swig_wrapper_func) _wrap_bncuptime, NULL},
+    { SWIG_prefix "floodcontrol", (swig_wrapper_func) _wrap_floodcontrol, NULL},
+    { SWIG_prefix "getisupport", (swig_wrapper_func) _wrap_getisupport, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -2070,6 +2198,10 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "getchanidle", (swig_wrapper_func) _wrap_getchanidle, NULL},
     { SWIG_prefix "duration", (swig_wrapper_func) _wrap_duration, NULL},
     { SWIG_prefix "rand", (swig_wrapper_func) _wrap_rand, NULL},
+    { SWIG_prefix "clearqueue", (swig_wrapper_func) _wrap_clearqueue, NULL},
+    { SWIG_prefix "queuesize", (swig_wrapper_func) _wrap_queuesize, NULL},
+    { SWIG_prefix "puthelp", (swig_wrapper_func) _wrap_puthelp, NULL},
+    { SWIG_prefix "putquick", (swig_wrapper_func) _wrap_putquick, NULL},
     {0, 0, 0}
 };
 

@@ -68,6 +68,10 @@ const char* bncversion(void);
 const char* bncnumversion(void);
 int bncuptime(void);
 
+int floodcontrol(const char* Function);
+
+const char* getisupport(const char* Feature);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);
@@ -87,3 +91,7 @@ int getchanjoin(const char* Nick, const char* Channel);
 int getchanidle(const char* Nick, const char* Channel);
 const char* duration(int Interval);
 int ticklerand(int limit);
+int clearqueue(const char* Queue);
+int queuesize(const char* Queue);
+int puthelp(const char* text);
+int putquick(const char* text);
