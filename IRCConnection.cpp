@@ -90,14 +90,26 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	free(Nick);
 
 	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
-		WriteLine("NICK :%s`", GetOwningClient()->GetNick());
+		WriteLine("NICK :%s`", argv[3]);
 		return false;
 	} else if (argc > 3 && (strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection())) {
-		const char* Nick = argv[2];
+		const char* Dest = argv[2];
+		char* Nick = ::NickFromHostmask(Reply);
 
-		if (Nick && strcmpi(Nick, m_CurrentNick) == 0) {
+		if (Dest && strcmpi(Dest, m_CurrentNick) == 0) {
 			GetOwningClient()->Log("%s: %s", Reply, argv[3]);
 		}
+
+		CChannel* Chan = GetChannel(Dest);
+
+		if (Chan) {
+			CNick* User = Chan->GetNames()->Get(Nick);
+
+			if (User)
+				User->SetIdleSince(time(NULL));
+		}
+
+		free(Nick);
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 2 && strcmpi(Raw, "join") == 0) {
@@ -106,14 +118,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			if (!m_Owner->GetClientConnection())
 				WriteLine("MODE %s", argv[2]);
-		} else {
-			CChannel* Chan = GetChannel(argv[2]);
+		}
 
-			if (Chan) {
-				Nick = NickFromHostmask(Reply);
-				Chan->AddUser(Nick, '\0');
-				free(Nick);
-			}
+		CChannel* Chan = GetChannel(argv[2]);
+
+		if (Chan) {
+			Nick = NickFromHostmask(Reply);
+			Chan->AddUser(Nick, '\0');
+			free(Nick);
 		}
 
 		UpdateHostHelper(Reply);
@@ -174,9 +186,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 				CNick* NickObj;
 
-				NickObj = Nicks->Get(argv[2]);
+				NickObj = Nicks->Get(Nick);
 
 				if (NickObj) {
+					NickObj->SetNick(argv[2]);
+
 					Nicks->Add(argv[2], NickObj);
 
 					if (strcmpi(Nick, argv[2]) != 0)
@@ -186,14 +200,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		free(Nick);
-
-		UpdateHostHelper(Reply);
 	} else if (argc > 1 && strcmpi(Raw, "quit") == 0) {
 		Nick = NickFromHostmask(argv[0]);
 
 		for (int i = 0; i < m_ChannelCount; i++) {
-			if (m_Channels[i])
+			if (m_Channels[i]) {
+				CNick* P = m_Channels[i]->GetNames()->Get(Nick);
+
 				m_Channels[i]->GetNames()->Remove(Nick);
+
+				delete P;
+			}
 		}
 
 		free(Nick);

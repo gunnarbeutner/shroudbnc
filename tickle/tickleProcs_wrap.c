@@ -1311,20 +1311,6 @@ _wrap_setuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static int
-_wrap_channels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,":channels ") == TCL_ERROR) SWIG_fail;
-    result = (char *)channels();
-    
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_users(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *result;
     
@@ -1374,36 +1360,6 @@ _wrap_user(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 
 static int
-_wrap_gethost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s:gethost Nick ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)gethost((char const *)arg1);
-    
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
-_wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    int result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s:putserv text ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (int)putserv((char const *)arg1);
-    
-    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_putclient(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     int result;
@@ -1435,13 +1391,13 @@ _wrap_simul(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 
 static int
-_wrap_bind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
     int result;
     
-    if (SWIG_GetArgs(interp, objc, objv,"ss:bind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)ticklebind((char const *)arg1,(char const *)arg2);
+    if (SWIG_GetArgs(interp, objc, objv,"ss:internalbind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (int)internalbind((char const *)arg1,(char const *)arg2);
     
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
@@ -1451,15 +1407,214 @@ _wrap_bind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 
 static int
-_wrap_unbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
     int result;
     
-    if (SWIG_GetArgs(interp, objc, objv,"ss:unbind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)unbind((char const *)arg1,(char const *)arg2);
+    if (SWIG_GetArgs(interp, objc, objv,"ss:internalunbind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (int)internalunbind((char const *)arg1,(char const *)arg2);
     
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:setctx ctx ",&arg1) == TCL_ERROR) SWIG_fail;
+    setctx((char const *)arg1);
+    
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":getctx ") == TCL_ERROR) SWIG_fail;
+    result = (char *)getctx();
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:getbncuser User Type ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (char *)getbncuser((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:onchan Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (bool)onchan((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_topic(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:topic Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (char *)topic((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_topicnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:topicnick Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (char *)topicnick((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_topicstamp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:topicstamp Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (int)topicstamp((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getchanmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:getchanmode Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (char *)getchanmode((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_chanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:chanlist Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (char *)chanlist((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_isop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:isop Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (bool)isop((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_isvoice(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:isvoice Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (bool)isvoice((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_ishalfop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:ishalfop Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (bool)ishalfop((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getchanhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:getchanhost Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (char *)getchanhost((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -1503,13 +1658,14 @@ _wrap_die(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 
 static int
-_wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
+    int result;
     
-    if (SWIG_GetArgs(interp, objc, objv,"s:setctx ctx ",&arg1) == TCL_ERROR) SWIG_fail;
-    setctx((char const *)arg1);
+    if (SWIG_GetArgs(interp, objc, objv,"s:putserv text ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (int)putserv((char const *)arg1);
     
-    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -1517,13 +1673,45 @@ _wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 
 static int
-_wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_channels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *result;
     
-    if (SWIG_GetArgs(interp, objc, objv,":getctx ") == TCL_ERROR) SWIG_fail;
-    result = (char *)getctx();
+    if (SWIG_GetArgs(interp, objc, objv,":channels ") == TCL_ERROR) SWIG_fail;
+    result = (char *)channels();
     
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:getchanjoin Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (int)getchanjoin((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getchanidle(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:getchanidle Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    result = (int)getchanidle((char const *)arg1,(char const *)arg2);
+    
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -1534,21 +1722,33 @@ _wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 static swig_command_info swig_commands[] = {
     { SWIG_prefix "getuser", (swig_wrapper_func) _wrap_getuser, NULL},
     { SWIG_prefix "setuser", (swig_wrapper_func) _wrap_setuser, NULL},
-    { SWIG_prefix "channels", (swig_wrapper_func) _wrap_channels, NULL},
     { SWIG_prefix "users", (swig_wrapper_func) _wrap_users, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "user", (swig_wrapper_func) _wrap_user, NULL},
-    { SWIG_prefix "gethost", (swig_wrapper_func) _wrap_gethost, NULL},
-    { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
     { SWIG_prefix "simul", (swig_wrapper_func) _wrap_simul, NULL},
-    { SWIG_prefix "bind", (swig_wrapper_func) _wrap_bind, NULL},
-    { SWIG_prefix "unbind", (swig_wrapper_func) _wrap_unbind, NULL},
+    { SWIG_prefix "internalbind", (swig_wrapper_func) _wrap_internalbind, NULL},
+    { SWIG_prefix "internalunbind", (swig_wrapper_func) _wrap_internalunbind, NULL},
+    { SWIG_prefix "setctx", (swig_wrapper_func) _wrap_setctx, NULL},
+    { SWIG_prefix "getctx", (swig_wrapper_func) _wrap_getctx, NULL},
+    { SWIG_prefix "getbncuser", (swig_wrapper_func) _wrap_getbncuser, NULL},
+    { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
+    { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
+    { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
+    { SWIG_prefix "topicstamp", (swig_wrapper_func) _wrap_topicstamp, NULL},
+    { SWIG_prefix "getchanmode", (swig_wrapper_func) _wrap_getchanmode, NULL},
+    { SWIG_prefix "chanlist", (swig_wrapper_func) _wrap_chanlist, NULL},
+    { SWIG_prefix "isop", (swig_wrapper_func) _wrap_isop, NULL},
+    { SWIG_prefix "isvoice", (swig_wrapper_func) _wrap_isvoice, NULL},
+    { SWIG_prefix "ishalfop", (swig_wrapper_func) _wrap_ishalfop, NULL},
+    { SWIG_prefix "getchanhost", (swig_wrapper_func) _wrap_getchanhost, NULL},
     { SWIG_prefix "jump", (swig_wrapper_func) _wrap_jump, NULL},
     { SWIG_prefix "rehash", (swig_wrapper_func) _wrap_rehash, NULL},
     { SWIG_prefix "die", (swig_wrapper_func) _wrap_die, NULL},
-    { SWIG_prefix "setctx", (swig_wrapper_func) _wrap_setctx, NULL},
-    { SWIG_prefix "getctx", (swig_wrapper_func) _wrap_getctx, NULL},
+    { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
+    { SWIG_prefix "channels", (swig_wrapper_func) _wrap_channels, NULL},
+    { SWIG_prefix "getchanjoin", (swig_wrapper_func) _wrap_getchanjoin, NULL},
+    { SWIG_prefix "getchanidle", (swig_wrapper_func) _wrap_getchanidle, NULL},
     {0, 0, 0}
 };
 

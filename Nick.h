@@ -24,15 +24,22 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+class CNick;
+
+void DestroyCNick(CNick* P);
+
 class CNick {
 	char* m_Nick;
 	char* m_Prefixes;
 	char* m_Site;
+	time_t m_Creation;
+	time_t m_IdleSince;
 public:
 	CNick(const char* Nick);
 	virtual ~CNick();
 
 	virtual const char* GetNick(void);
+	virtual void SetNick(const char* Nick);
 
 	virtual bool IsOp(void);
 	virtual bool IsVoice(void);
@@ -47,6 +54,9 @@ public:
 	virtual void SetSite(const char* Site);
 	virtual const char* GetSite(void);
 
+	virtual time_t GetChanJoin(void);
+	virtual time_t GetIdleSince(void);
+	virtual void SetIdleSince(time_t Time);
 };
 
 void DestroyCNick(CNick* P);

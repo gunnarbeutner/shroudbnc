@@ -22,7 +22,6 @@
 %{
 #include "tickleProcs.h"
 %}
-%rename(bind) ticklebind;
 #else
 int Tcl_ProcInit(Tcl_Interp* interp);
 #endif
@@ -32,25 +31,37 @@ int Tcl_ProcInit(Tcl_Interp* interp);
 const char* getuser(const char* Option);
 int setuser(const char* Option, const char* Value);
 
-const char* channels(void);
 const char* users(void);
 
 const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
 const char* user(const char* Function, const char* User = 0, const char* Parameter = 0, const char* Parameter2 = 0);
 
-const char* gethost(const char* Nick);
-
-int putserv(const char* text);
 int putclient(const char* text);
 int simul(const char* User, const char* Command);
 
-int ticklebind(const char* type, const char* proc);
-int unbind(const char* type, const char* proc);
-
-void jump(void);
-
-void rehash(void);
-void die(void);
+int internalbind(const char* type, const char* proc);
+int internalunbind(const char* type, const char* proc);
 
 void setctx(const char* ctx);
 const char* getctx(void);
+
+const char* getbncuser(const char* User, const char* Type);
+
+// eggdrop compat
+bool onchan(const char* Nick, const char* Channel = 0);
+const char* topic(const char* Channel);
+const char* topicnick(const char* Channel);
+int topicstamp(const char* Channel);
+const char* getchanmode(const char* Channel);
+const char* chanlist(const char* Channel);
+bool isop(const char* Nick, const char* Channel = 0);
+bool isvoice(const char* Nick, const char* Channel = 0);
+bool ishalfop(const char* Nick, const char* Channel = 0);
+const char* getchanhost(const char* Nick, const char* Channel = 0);
+void jump(void);
+void rehash(void);
+void die(void);
+int putserv(const char* text);
+const char* channels(void);
+int getchanjoin(const char* Nick, const char* Channel);
+int getchanidle(const char* Nick, const char* Channel);

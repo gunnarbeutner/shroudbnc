@@ -89,7 +89,6 @@ public:
 				return;
 			}
 		}
-
 	}
 
 	virtual value_type Get(const char* Name) {
@@ -106,7 +105,7 @@ public:
 		int a = 0;
 
 		for (int i = 0; i < m_PairCount; i++) {
-			if (a == Index)
+			if (a == Index && m_Pairs[i].Valid)
 				return &m_Pairs[i];
 
 			if (m_Pairs[i].Valid)

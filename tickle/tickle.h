@@ -27,8 +27,9 @@ enum binding_type_e {
 };
 
 typedef struct binding_s {
+	bool valid;
 	binding_type_e type;
-	const char* proc;
+	char* proc;
 } binding_t;
 
 extern binding_t* g_Binds;

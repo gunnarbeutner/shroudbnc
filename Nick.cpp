@@ -20,6 +20,10 @@
 #include "StdAfx.h"
 #include "Nick.h"
 
+void DestroyCNick(CNick* P) {
+	delete P;
+}
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -29,6 +33,7 @@ CNick::CNick(const char* Nick) {
 	m_Prefixes = (char*)malloc(1);
 	m_Prefixes[0] = '\0';
 	m_Site = NULL;
+	m_IdleSince = m_Creation = time(NULL);
 }
 
 CNick::~CNick() {
@@ -62,8 +67,10 @@ bool CNick::HasPrefix(char Prefix) {
 void CNick::AddPrefix(char Prefix) {
 	m_Prefixes = (char*)realloc(m_Prefixes, strlen(m_Prefixes) + 2);
 
-	m_Prefixes[strlen(m_Prefixes) - 1] = Prefix;
-	m_Prefixes[strlen(m_Prefixes)] = '\0';
+	int n = strlen(m_Prefixes);
+
+	m_Prefixes[n] = Prefix;
+	m_Prefixes[n + 1] = '\0';
 }
 
 void CNick::RemovePrefix(char Prefix) {
@@ -76,6 +83,9 @@ void CNick::RemovePrefix(char Prefix) {
 	}
 
 	Copy[a] = '\0';
+
+	free(m_Prefixes);
+	m_Prefixes = Copy;
 }
 
 void CNick::SetPrefixes(const char* Prefixes) {
@@ -109,4 +119,22 @@ const char* CNick::GetSite(void) {
 		return Host + 1;
 	else
 		return m_Site;
+}
+
+void CNick::SetNick(const char* Nick) {
+	free(m_Nick);
+
+	m_Nick = strdup(Nick);
+}
+
+time_t CNick::GetChanJoin(void) {
+	return m_Creation;
+}
+
+time_t CNick::GetIdleSince(void) {
+	return m_IdleSince;
+}
+
+void CNick::SetIdleSince(time_t Time) {
+	m_IdleSince = Time;
 }

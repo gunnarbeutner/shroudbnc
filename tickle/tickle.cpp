@@ -150,31 +150,38 @@ void RehashInterpreter(void) {
 }
 
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
-//	DebugBreak();
+	Tcl_Obj** listv;
 
-	setctx(user);
+	//DebugBreak();
+
+	CBouncerUser* User = g_Bouncer->GetUser(user);
+
+	if (User)
+		setctx(user);
 
 	int objc = 3;
 	Tcl_Obj* objv[3];
 
 	objv[0] = NULL;
 
-	if (user)
+	if (user) {
 		objv[1] = Tcl_NewStringObj(user ? user : "", user ? strlen(user) : 0);
-	else {
+		Tcl_IncrRefCount(objv[1]);
+	} else {
 		objv[1] = NULL;
 		objc = 1;
 	}
 
 	if (argc) {
-		int listc = argc;
-		Tcl_Obj** listv = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * listc);
+		listv = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * argc);
 
-		for (int a = 0; a < listc; a++) {
+		for (int a = 0; a < argc; a++) {
 			listv[a] = Tcl_NewStringObj(argv[a], strlen(argv[a]));
+			Tcl_IncrRefCount(listv[a]);
 		}
 
-		objv[2] = Tcl_NewListObj(listc, listv);
+		objv[2] = Tcl_NewListObj(argc, listv);
+		Tcl_IncrRefCount(objv[2]);
 	} else {
 		objv[2] = NULL;
 
@@ -183,13 +190,26 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 	}
 
 	for (int i = 0; i < g_BindCount; i++) {
-		if (g_Binds[i].type == type) {
+		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			objv[0] = Tcl_NewStringObj(g_Binds[i].proc, strlen(g_Binds[i].proc));
+			Tcl_IncrRefCount(objv[0]);
 
 			Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+
+			Tcl_DecrRefCount(objv[0]);
 		}
 	}
 
+	if (user)
+		Tcl_DecrRefCount(objv[1]);
+
+	if (argc) {
+		for (int a = 0; a < argc; a++) {
+			Tcl_DecrRefCount(listv[a]);
+		}
+
+		Tcl_DecrRefCount(objv[2]);
+	}
 }
 
 void SetLatchedReturnValue(bool Ret) {
