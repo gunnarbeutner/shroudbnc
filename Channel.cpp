@@ -97,8 +97,6 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 			flip = false;
 			continue;
 		} else if (m_Owner->IsNickMode(Cur)) {
-			puts(pargv[p]);
-
 			CNick* P = m_Nicks->Get(pargv[p]);
 
 			if (P) {

@@ -209,6 +209,10 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_PreScript;
 	else if (strcmpi(type, "post") == 0)
 		g_Binds[n].type = Type_PostScript;
+	else if (strcmpi(type, "attach") == 0)
+		g_Binds[n].type = Type_Attach;
+	else if (strcmpi(type, "detach") == 0)
+		g_Binds[n].type = Type_Detach;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -233,6 +237,10 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_PreScript;
 	else if (strcmpi(type, "post") == 0)
 		bindtype = Type_PostScript;
+	else if (strcmpi(type, "attach") == 0)
+		bindtype = Type_Attach;
+	else if (strcmpi(type, "detach") == 0)
+		bindtype = Type_Detach;
 	else
 		return 0;
 

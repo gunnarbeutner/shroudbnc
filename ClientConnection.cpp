@@ -481,14 +481,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel* Chan = IRC->GetChannel(argv[2]);
 
-					if (Chan) {
-						if (Chan->GetCreationTime() != 0) {
-							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChanModes());
-							WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
-						} else {
-							IRC->WriteLine("MODE %s", argv[2]);
-						}
-					}
+					if (Chan && Chan->GetCreationTime() != 0) {
+						WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChanModes());
+						WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
+					} else
+						IRC->WriteLine("MODE %s", argv[2]);
 				}
 			} else if (strcmpi(argv[1], "topic") == 0 && argc > 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();

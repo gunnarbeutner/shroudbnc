@@ -239,6 +239,26 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			GetOwningClient()->ScheduleReconnect(50);
 		else
 			GetOwningClient()->ScheduleReconnect(5);
+
+		char Out[1024];
+
+		snprintf(Out, sizeof(Out), "Error received for %s: %s", GetOwningClient()->GetUsername(), argv[1]);
+
+		g_Bouncer->GlobalNotice(Out, true);
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+		if (!GetOwningClient()->GetClientConnection())
+			GetOwningClient()->GetLog()->InternalWriteLine(Out);
+	} else if (argc > 3 && atoi(Raw) == 465) {
+		char Out[1024];
+
+		snprintf(Out, sizeof(Out), "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
+
+		g_Bouncer->GlobalNotice(Out, true);
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+		if (!GetOwningClient()->GetClientConnection())
+			GetOwningClient()->GetLog()->InternalWriteLine(Out);
 	} else if (argc > 3 && atoi(Raw) == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);

@@ -141,6 +141,13 @@ class CTclSupport : public CModuleFar {
 		return g_Ret;
 	}
 
+	void AttachClient(const char* Client) {
+		CallBinds(Type_Attach, Client, 0, NULL);
+	}
+
+	void DetachClient(const char* Client) {
+		CallBinds(Type_Detach, Client, 0, NULL);
+	}
 public:
 	void RehashInterpreter(void) {
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");

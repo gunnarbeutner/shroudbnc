@@ -181,6 +181,9 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	bool HasQueuedData(void) {
 		return false;
 	}
+
+	void AttachClient(const char* Client) { }
+	void DetachClient(const char* Client) { }
 };
 
 extern "C" CModuleFar* bncGetObject(void) {

@@ -151,7 +151,8 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 				}
 			}
 		}
-	}
+	} else
+		ScheduleReconnect(0);
 
 	if (!GetLog()->IsEmpty())
 		Notice("You have new messages. Use /PLAYPRIVATELOG to view them.");

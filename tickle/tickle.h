@@ -25,7 +25,9 @@ enum binding_type_e {
 	Type_Server,
 	Type_Pulse,
 	Type_PreScript,
-	Type_PostScript
+	Type_PostScript,
+	Type_Attach,
+	Type_Detach
 };
 
 typedef struct binding_s {
