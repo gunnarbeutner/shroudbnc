@@ -65,9 +65,9 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 
 	m_ISupport = new CBouncerConfig(NULL);
 
-	m_ISupport->WriteString("CHANMODES", "b,l,ntis");
-	m_ISupport->WriteString("CHANTYPES", "#&");
-	m_ISupport->WriteString("PREFIX", "(ohv)@%+");
+	m_ISupport->WriteString("CHANMODES", "bIe,k,l");
+	m_ISupport->WriteString("CHANTYPES", "#&+");
+	m_ISupport->WriteString("PREFIX", "(ov)@+");
 
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
@@ -264,7 +264,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan)
 			Chan->ParseModeChange(argv[4], argc - 5, &argv[5]);
-	} else if (argc > 4 && strcmpi(Raw, "mode") == 0) {
+	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
 		CChannel* Chan = GetChannel(argv[2]);
 
 		if (Chan)
@@ -514,19 +514,37 @@ bool CIRCConnection::IsChanMode(char Mode) {
 	return strchr(Modes, Mode) != NULL;
 }
 
-bool CIRCConnection::RequiresParameter(char	Mode) {
-	const char* Modes = GetISupport("CHANMODES");
-	char* p = strchr(Modes, Mode);
+int CIRCConnection::RequiresParameter(char Mode) {
+	char* Modes = strdup(GetISupport("CHANMODES"));
 
-	if (p) {
-		if (*(p+1) == ',')
-			return true;
-		else
-			return false;
-	} else
-		return false;
+	for (unsigned int i = 0; i < strlen(Modes); i++) {
+		if (Modes[i] == ',')
+			Modes[i] = ' ';
+	}
 
-	return false;
+	const char* Args = ArgTokenize(Modes);
+
+	free(Modes);
+
+	const char** argv = ArgToArray(Args);
+	int argc = ArgCount(Args);
+	int RetVal = 0;
+
+	if (argc > 0 && strchr(argv[0], Mode) != NULL)
+		RetVal = 3;
+	else if (argc > 1 && strchr(argv[1], Mode) != NULL)
+		RetVal = 2;
+	else if (argc > 2 && strchr(argv[2], Mode) != NULL)
+		RetVal = 1;
+	else if (argc > 3 && strchr(argv[3], Mode) != NULL)
+		RetVal = 0;
+	else if (IsNickMode(Mode))
+		RetVal = 2;
+
+	ArgFree(Args);
+	ArgFreeArray(argv);
+	
+	return RetVal;
 }
 
 CChannel* CIRCConnection::GetChannel(const char* Name) {

@@ -203,6 +203,10 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_Server;
 	else if (strcmpi(type, "pulse") == 0)
 		g_Binds[n].type = Type_Pulse;
+	else if (strcmpi(type, "pre") == 0)
+		g_Binds[n].type = Type_PreScript;
+	else if (strcmpi(type, "post") == 0)
+		g_Binds[n].type = Type_PostScript;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -223,6 +227,10 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_Server;
 	else if (strcmpi(type, "pulse") == 0)
 		bindtype = Type_Pulse;
+	else if (strcmpi(type, "pre") == 0)
+		bindtype = Type_PreScript;
+	else if (strcmpi(type, "post") == 0)
+		bindtype = Type_PostScript;
 	else
 		return 0;
 
@@ -1028,8 +1036,15 @@ int floodcontrol(const char* Function) {
 		return FloodControl->GetBytes();
 	else if (strcmpi(Function, "items") == 0)
 		return FloodControl->GetRealQueueSize();
+	else if (strcmpi(Function, "on") == 0) {
+		FloodControl->Enable();
+		return 1;
+	} else if (strcmpi(Function, "off") == 0) {
+		FloodControl->Disable();
+		return 1;
+	}
 
-	throw "Function should be one of: bytes items";
+	throw "Function should be one of: bytes items on off";
 }
 
 int clearqueue(const char* Queue) {

@@ -89,7 +89,7 @@ public:
 	virtual CBouncerConfig* GetISupportAll(void);
 	virtual const char* GetISupport(const char* Feature);
 	virtual bool IsChanMode(char Mode);
-	virtual bool RequiresParameter(char Mode);
+	virtual int RequiresParameter(char Mode);
 
 	virtual bool IsNickPrefix(char Char);
 	virtual bool IsNickMode(char Char);

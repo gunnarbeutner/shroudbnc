@@ -1,4 +1,7 @@
 source "scripts/timers.tcl"
 source "scripts/misc.tcl"
 source "scripts/variables.tcl"
+source "scripts/usys.tcl"
+source "scripts/channel.tcl"
+source "scripts/pushmode.tcl"
 source "tickle.tcl"

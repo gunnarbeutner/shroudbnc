@@ -115,6 +115,8 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 
 		chanmode_t* Slot = FindSlot(Cur);
 
+		int ModeType = m_Owner->RequiresParameter(Cur);
+
 		if (flip) {
 			if (Slot)
 				free(Slot->Parameter);
@@ -123,7 +125,7 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 
 			Slot->Mode = Cur;
 			
-			if (m_Owner->RequiresParameter(Cur))
+			if (ModeType)
 				Slot->Parameter = strdup(pargv[p++]);
 			else
 				Slot->Parameter = NULL;
@@ -132,7 +134,7 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 				Slot->Mode = '\0';
 				free(Slot->Parameter);
 
-				if (m_Owner->RequiresParameter(Cur) && Cur != 'l')
+				if (ModeType && ModeType != 1)
 					p++;
 			}
 		}

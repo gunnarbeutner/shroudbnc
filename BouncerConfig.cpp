@@ -42,6 +42,9 @@ CBouncerConfig::CBouncerConfig(const char* Filename) {
 void CBouncerConfig::ParseConfig(const char* Filename) {
 	char Line[4096];
 
+	if (!Filename)
+		return;
+
 	FILE* Conf = fopen(Filename, "r");
 
 	if (!Conf)
@@ -84,10 +87,7 @@ const char* CBouncerConfig::ReadString(const char* Setting) {
 int CBouncerConfig::ReadInteger(const char* Setting) {
 	const char* Value = m_Settings->Get(Setting);
 
-	if (Value)
-		return atoi(Value);
-	else
-		return 0;
+	return Value ? atoi(Value) : 0;
 }
 
 void CBouncerConfig::WriteInteger(const char* Setting, const int Value) {

@@ -105,7 +105,9 @@ class CTclSupport : public CModuleFar {
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		g_Ret = true;
 
+		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Server, IRC->GetOwningClient()->GetUsername(), argc, argv);
+		CallBinds(Type_PostScript, NULL, 0, NULL);
 
 		return g_Ret;
 	}
@@ -132,7 +134,9 @@ class CTclSupport : public CModuleFar {
 
 		g_Ret = true;
 
+		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Client, Client->GetOwningClient() ? Client->GetOwningClient()->GetUsername() : NULL, argc, argv);
+		CallBinds(Type_PostScript, NULL, 0, NULL);
 
 		return g_Ret;
 	}

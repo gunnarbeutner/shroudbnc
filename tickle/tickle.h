@@ -23,7 +23,9 @@ enum binding_type_e {
 	Type_Invalid,
 	Type_Client,
 	Type_Server,
-	Type_Pulse
+	Type_Pulse,
+	Type_PreScript,
+	Type_PostScript
 };
 
 typedef struct binding_s {
