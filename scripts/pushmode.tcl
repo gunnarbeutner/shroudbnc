@@ -18,14 +18,16 @@
 internalbind post sbnc:pminternalflush
 
 proc sbnc:pminternalflush {} {
-	global sbnc:pmbuf
+	foreach user [bncuserlist] {
+		setctx $user
 
-	foreach chan [array names sbnc:pmbuf] {
-		flushmode $chan
-	}
+		namespace eval [getns] {
+			foreach chan [array names pmbuf] {
+				flushmode $chan
+			}
 
-	if {[string length [array get sbnc:pmbuf]] > 0} {
-		array unset sbnc:pmbuf
+			array unset pmbuf
+		}
 	}
 }
 
@@ -42,7 +44,12 @@ proc sbnc:uniq {list} {
 }
 
 proc flushmode {channel} {
-	upvar ::sbnc:pmbuf pmbuf
+	namespace eval [getns] {
+		if {![info exists pmbuf]} { array set pmbuf {} }
+	}
+
+	upvar [getns]::pmbuf pmbuf
+
 	set mc ""
 	set params ""
 
@@ -78,60 +85,23 @@ proc flushmode {channel} {
 	return
 }
 
-proc sbnc:requiresparam {chanmode} {
-	set modes [split [getisupport "chanmodes"] ","]
-	set modesA [lindex $modes 0]
-	set modesB [lindex $modes 1]
-	set modesC [lindex $modes 2]
-	set modesD [lindex $modes 3]
-
-	set prx [sbnc:isprefixmode $chanmode]
-
-	if {$prx != 0} {
-		return $prx
-	}
-
-	if {[string first $chanmode $modesA] != -1} {
-		return 3
-	} elseif {[string first $chanmode $modesB] != -1} {
-		return 2
-	} elseif {[string first $chanmode $modesC] != -1} {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-proc sbnc:isprefixmode {chanmode} {
-	set prefix [getisupport "prefix"]
-	set bracket [string first ")" $prefix]
-
-	if {$bracket == -1} {
-		return 0
-	}
-
-	set modes [string range $prefix 1 [expr $bracket - 1]]
-
-	if {[string first $chanmode $modes] != -1} {
-		return 2
-	} else {
-		return 0
-	}
-}
-
 proc pushmode {channel mode {arg ""}} {
-	upvar ::sbnc:pmbuf pmbuf
+	namespace eval [getns] {
+		if {![info exists pmbuf]} { array set pmbuf {} }
+	}
 
-	set mtype [sbnc:requiresparam [string map {"+" "" "-" ""} $mode]]
+	upvar [getns]::pmbuf pmbuf
 
-	if {$mtype != 0 && $arg == "" && ($mtype != 1 && [string first "-" $mode] != -1)} {
-		return -code error "Chanmode $mode requires a parameter."
+	set mtype [requiresparam [string map {"+" "" "-" ""} $mode]]
+
+	if {$arg == {} && ($mtype == 2 || ($mtype == 1 && [string first "-" $mode] == -1))} {
+			return -code error "Chanmode $mode requires a parameter."
 	}
 
 	if {[info exists pmbuf($channel)]} {
-		lappend pmbuf($channel) [list $mode $arg]
+			lappend pmbuf($channel) [list $mode $arg]
 	} else {
-		set pmbuf($channel) [list [list $mode $arg]]
+			set pmbuf($channel) [list [list $mode $arg]]
 	}
 
 	return

@@ -28,6 +28,7 @@ set isjuped "fish"
 set handlen "fish"
 set config "fish"
 set userfile "fish"
+set chanfile "fish"
 
 trace variable botnick rwu sbnc:tracevars-botnick
 trace variable botname rwu sbnc:tracevars-botname
@@ -42,6 +43,7 @@ trace variable isjuped rwu sbnc:tracevars-isjuped
 trace variable handlen rwu sbnc:tracevars-handlen
 trace variable config rwu sbnc:tracevars-config
 trace variable userfile rwu sbnc:tracevars-userfile
+trace variable chanfile rwu sbnc:tracevars-chanfile
 
 proc sbnc:tracevars-botnick {name item operation} {
 	if {$operation == "r"} {
@@ -143,6 +145,14 @@ proc sbnc:tracevars-config {name item operation} {
 proc sbnc:tracevars-userfile {name item operation} {
 	if {$operation == "r"} {
 		set ::userfile "[getctx].user"
+	} else {
+		return -code error "variable is read-only"
+	}
+}
+
+proc sbnc:tracevars-chanfile {name item operation} {
+	if {$operation == "r"} {
+		set ::chanfile "[getctx].chan"
 	} else {
 		return -code error "variable is read-only"
 	}

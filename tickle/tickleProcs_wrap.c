@@ -1701,6 +1701,68 @@ _wrap_getisupport(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
+_wrap_requiresparam(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char arg1 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"c:requiresparam Mode ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)requiresparam(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_isprefixmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char arg1 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"c:isprefixmode Mode ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (bool)isprefixmode(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_internalchannels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":internalchannels ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)internalchannels();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -1970,26 +2032,6 @@ _wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static int
-_wrap_channels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,":channels ") == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)channels();
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2180,6 +2222,9 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncuptime", (swig_wrapper_func) _wrap_bncuptime, NULL},
     { SWIG_prefix "floodcontrol", (swig_wrapper_func) _wrap_floodcontrol, NULL},
     { SWIG_prefix "getisupport", (swig_wrapper_func) _wrap_getisupport, NULL},
+    { SWIG_prefix "requiresparam", (swig_wrapper_func) _wrap_requiresparam, NULL},
+    { SWIG_prefix "isprefixmode", (swig_wrapper_func) _wrap_isprefixmode, NULL},
+    { SWIG_prefix "internalchannels", (swig_wrapper_func) _wrap_internalchannels, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -2193,7 +2238,6 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "rehash", (swig_wrapper_func) _wrap_rehash, NULL},
     { SWIG_prefix "die", (swig_wrapper_func) _wrap_die, NULL},
     { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
-    { SWIG_prefix "channels", (swig_wrapper_func) _wrap_channels, NULL},
     { SWIG_prefix "getchanjoin", (swig_wrapper_func) _wrap_getchanjoin, NULL},
     { SWIG_prefix "getchanidle", (swig_wrapper_func) _wrap_getchanidle, NULL},
     { SWIG_prefix "duration", (swig_wrapper_func) _wrap_duration, NULL},

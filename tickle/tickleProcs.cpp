@@ -103,7 +103,7 @@ const char* bncuserlist(void) {
 	return UserList;
 }
 
-const char* channels(void) {
+const char* internalchannels(void) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -1023,12 +1023,12 @@ int floodcontrol(const char* Function) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
-		return NULL;
+		return 0;
 
 	CIRCConnection* IRC = User->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return 0;
 
 	CFloodControl* FloodControl = IRC->GetFloodControl();
 
@@ -1153,7 +1153,7 @@ const char* getisupport(const char* Feature) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		return NULL;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1161,4 +1161,32 @@ const char* getisupport(const char* Feature) {
 		return NULL;
 
 	return IRC->GetISupport(Feature);
+}
+
+int requiresparam(char Mode) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	return IRC->RequiresParameter(Mode);
+}
+
+bool isprefixmode(char Mode) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	return IRC->IsNickMode(Mode);	
 }

@@ -71,6 +71,10 @@ int bncuptime(void);
 int floodcontrol(const char* Function);
 
 const char* getisupport(const char* Feature);
+int requiresparam(char Mode);
+bool isprefixmode(char Mode);
+
+const char* internalchannels(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
@@ -86,7 +90,6 @@ void jump(void);
 void rehash(void);
 void die(void);
 int putserv(const char* text);
-const char* channels(void);
 int getchanjoin(const char* Nick, const char* Channel);
 int getchanidle(const char* Nick, const char* Channel);
 const char* duration(int Interval);
