@@ -148,6 +148,18 @@ class CTclSupport : public CModuleFar {
 	void DetachClient(const char* Client) {
 		CallBinds(Type_Detach, Client, 0, NULL);
 	}
+
+	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
+		char ModeC[3];
+
+		ModeC[0] = Flip ? '+' : '-';
+		ModeC[1] = Mode;
+		ModeC[2] = '\0';
+
+		const char* argv[4] = { Source, Channel, ModeC, Parameter };
+
+		CallBinds(Type_SingleMode, IRC->GetOwningClient()->GetUsername(), Parameter ? 4 : 3, argv);
+	}
 public:
 	void RehashInterpreter(void) {
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");

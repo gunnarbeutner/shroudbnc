@@ -27,6 +27,11 @@ proc sbnc:channelpulse {time} {
 }
 
 proc channel {option chan args} {
+	namespace eval [getns] {
+		if {![info exists channels]} { array set channels {} }
+		if {![info exists chanoptions]} { array set chanoptions {} }
+	}
+
 	upvar [getns]::channels channels
 	upvar [getns]::chanoptions chanoptions
 
@@ -103,18 +108,28 @@ proc savechannels {} {
 }
 
 proc loadchannels {} {
-	array set [getns]::channels {}
+	namespace eval [getns] {
+		array set channels {}
+	}
 
 	catch [list source $::chanfile]
 }
 
 proc channels {} {
+	namespace eval [getns] {
+		if {![info exists channels]} { array set channels {} }
+	}
+
 	upvar [getns]::channels channels
 
 	return [array names channels]
 }
 
 proc validchan {channel} {
+	namespace eval [getns] {
+		if {![info exists channels]} { array set channels {} }
+	}
+
 	upvar [getns]::channels channels
 
 	if {[info exists channels([string tolower $channel])]} {
@@ -129,6 +144,10 @@ proc isdynamic {channel} {
 }
 
 proc setudef {type name} {
+	namespace eval [getns] {
+		if {![info exists chanoptions]} { array set chanoptions {} }
+	}
+
 	upvar [getns]::chanoptions chanoptions
 
 	set chanoptions($name) $type
@@ -137,6 +156,11 @@ proc setudef {type name} {
 }
 
 proc renudef {type oldname newname} {
+	namespace eval [getns] {
+		if {![info exists channels]} { array set channels {} }
+		if {![info exists chanoptions]} { array set chanoptions {} }
+	}
+
 	upvar [getns]::chanoptions chanoptions
 	upvar [getns]::channels channels
 
@@ -166,6 +190,10 @@ proc renudef {type oldname newname} {
 }
 
 proc deludef {type name} {
+	namespace eval [getns] {
+		if {![info exists chanoptions]} { array set chanoptions {} }
+	}
+
 	upvar [getns]::chanoptions chanoptions
 
 	if {[info exists chanoptions($name)]} {
@@ -177,12 +205,9 @@ proc deludef {type name} {
 
 if {![info exists sbnc:channelinit]} {
 	foreach user [bncuserlist] {
-		namespace eval [getns $user] {
-			array set channels {}
-		}
+		setctx $user
+		loadchannels
 	}
-
-	loadchannels
 
 	set sbnc:channelinit 1
 }

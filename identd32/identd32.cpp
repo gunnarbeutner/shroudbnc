@@ -184,6 +184,8 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 
 	void AttachClient(const char* Client) { }
 	void DetachClient(const char* Client) { }
+
+	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
 };
 
 extern "C" CModuleFar* bncGetObject(void) {

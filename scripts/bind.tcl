@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 internalbind server sbnc:rawserver
+internalbind modec sbnc:modechange
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -23,6 +24,36 @@ proc sbnc:nickfromhost {host} {
 
 proc sbnc:sitefromhost {host} {
 	return [lindex [split $host "!"] 1]
+}
+
+proc sbnc:modechange {client parameters} {
+	set source [lindex $parameters 0]
+	set channel [lindex $parameters 1]
+	set mode [lindex $parameters 2]
+	set targ [lindex $parameters 3]
+
+	# todo: implement
+	#set hand [finduser $source]
+	#set flags [chattr $hand]
+	set hand "shroud"
+	set flags "n"
+
+	set nick [sbnc:nickfromhost $source]
+	set host [sbnc:sitefromhost $source]
+
+	if {![onchan $nick $channel]} {
+		set nick ""
+		set host $source
+		set hand "*"
+	}
+
+	if {[llength $parameters] < 4} {
+		sbnc:callbinds "mode" $flags "$channel $mode" $nick $host $hand $channel $mode
+	} else {
+		sbnc:callbinds "mode" $flags "$channel $mode" $nick $host $hand $channel $mode $targ
+	}
+
+	puts "[join $parameters]"
 }
 
 proc sbnc:rawserver {client parameters} {
@@ -84,8 +115,8 @@ proc sbnc:rawserver {client parameters} {
 }
 
 proc sbnc:callbinds {type flags mask args} {
-	if {![info exists [getns]::binds]} {
-		set [getns]::binds ""
+	namespace eval [getns] {
+		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds
@@ -101,16 +132,16 @@ proc sbnc:callbinds {type flags mask args} {
 		if {[string equal -nocase $t $type] && [string match -nocase $m $mask]} {
 			catch [list eval $p $args] error
 
-			foreach line [split $error \n] {
-				putserv "PRIVMSG #shroudtest :$line"
-			}
+#			foreach line [split $error \n] {
+#				putserv "PRIVMSG #shroudtest :$line"
+#			}
 		}
 	}
 }
 
 proc bind {type flags mask {procname ""}} {
-	if {![info exists [getns]::binds]} {
-		set [getns]::binds ""
+	namespace eval [getns] {
+		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds
@@ -123,8 +154,8 @@ proc bind {type flags mask {procname ""}} {
 }
 
 proc unbind {type flags mask procname} {
-	if {![info exists [getns]::binds]} {
-		set [getns]::binds ""
+	namespace eval [getns] {
+		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds
@@ -162,8 +193,8 @@ proc unbind {type flags mask procname} {
 }
 
 proc binds {{mask ""}} {
-	if {![info exists [getns]::binds]} {
-		set [getns]::binds ""
+	namespace eval [getns] {
+		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds

@@ -19,27 +19,18 @@ package require bnc 0.2
 
 internalbind pulse sbnc:tcltimers
 
-proc sbnc:timerinit {} {
-	if {![info exists [getns]::timerinit]} {
-		set [getns]::timers {}
-		set [getns]::utimers {}
-
-		set [getns]::timeridx 0
-		set [getns]::utimeridx 0
-
-		set [getns]::timerinit 1
-	}
-}
-
 # entry point to sbnc's timer system
 proc sbnc:tcltimers {time} {
 	foreach user [bncuserlist] {
 		setctx $user
 
+		namespace eval [getns] {
+			if {![info exists utimers]} { set utimers "" }
+			if {![info exists timers]} { set timers "" }
+		}
+
 		upvar [getns]::utimers utimers
 		upvar [getns]::timers timers
-
-		sbnc:timerinit
 
 		foreach timer $utimers {
 			if {$time >= [lindex $timer 0]} {
@@ -58,7 +49,10 @@ proc sbnc:tcltimers {time} {
 }
 
 proc timer {minutes tclcommand} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists timers]} { set timers "" }
+		if {![info exists timeridx]} { set timeridx 0 }
+	}
 
 	upvar [getns]::timers timers
 	upvar [getns]::timeridx timeridx
@@ -75,7 +69,10 @@ proc timer {minutes tclcommand} {
 }
 
 proc utimer {seconds tclcommand} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists utimers]} { set utimers "" }
+		if {![info exists utimeridx]} { set utimeridx 0 }
+	}
 
 	upvar [getns]::utimers utimers
 	upvar [getns]::utimeridx utimeridx
@@ -92,7 +89,9 @@ proc utimer {seconds tclcommand} {
 }
 
 proc timers {} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists timers]} { set timers "" }
+	}
 
 	upvar [getns]::timers timers
 	set temptimers ""
@@ -105,7 +104,9 @@ proc timers {} {
 }
 
 proc utimers {} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists utimers]} { set utimers "" }
+	}
 
 	upvar [getns]::utimers utimers
 	set temptimers ""
@@ -118,7 +119,9 @@ proc utimers {} {
 }
 
 proc killtimer {timerID} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists timers]} { set timers "" }
+	}
 
 	upvar [getns]::timers timers
 
@@ -130,7 +133,9 @@ proc killtimer {timerID} {
 }
 
 proc killutimer {timerID} {
-	sbnc:timerinit
+	namespace eval [getns] {
+		if {![info exists utimers]} { set utimers "" }
+	}
 
 	upvar [getns]::utimers utimers
 

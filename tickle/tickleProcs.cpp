@@ -213,6 +213,8 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_Attach;
 	else if (strcmpi(type, "detach") == 0)
 		g_Binds[n].type = Type_Detach;
+	else if (strcmpi(type, "modec") == 0)
+		g_Binds[n].type = Type_SingleMode;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -241,6 +243,8 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_Attach;
 	else if (strcmpi(type, "detach") == 0)
 		bindtype = Type_Detach;
+	else if (strcmpi(type, "modec") == 0)
+		bindtype = Type_SingleMode;
 	else
 		return 0;
 
