@@ -75,6 +75,8 @@ int Tcl_AppInit(Tcl_Interp *interp) {
 
 class CTclSupport : public CModuleFar {
 	void Destroy(void) {
+		CallBinds(Type_Unload, NULL, 0, NULL);
+
 		Tcl_DeleteInterp(g_Interp);
 
 		delete this;

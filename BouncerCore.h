@@ -103,7 +103,7 @@ public:
 	virtual void Shutdown(void);
 
 	virtual CBouncerUser* CreateUser(const char* Username, const char* Password);
-	virtual bool RemoveUser(const char* Username);
+	virtual bool RemoveUser(const char* Username, bool RemoveConfig = true);
 
 	virtual time_t GetStartup(void);
 };

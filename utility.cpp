@@ -58,7 +58,6 @@ char* LastArg(char* Args) {
 // proc: ArgTokenize
 // purp: tokenizes the given Data (i.e. splits parameters into arguments)
 const char* ArgTokenize(const char* Data) {
-	int Count = 0;
 	char* Copy;
 
 	Copy = (char*)malloc(strlen(Data) + 2);

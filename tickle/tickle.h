@@ -28,7 +28,8 @@ enum binding_type_e {
 	Type_PostScript,
 	Type_Attach,
 	Type_Detach,
-	Type_SingleMode
+	Type_SingleMode,
+	Type_Unload
 };
 
 typedef struct binding_s {

@@ -287,6 +287,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 5 && atoi(Raw) == 324) {
 		CChannel* Chan = GetChannel(argv[3]);
 
+		Chan->ClearModes();
+
 		if (Chan)
 			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
 	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
@@ -514,8 +516,6 @@ bool CIRCConnection::HasQueuedData(void) {
 }
 
 void CIRCConnection::Write(void) {
-	char* p = NULL;
-
 	char* Line = m_FloodControl->DequeueItem();
 
 	if (!Line)
@@ -523,8 +523,6 @@ void CIRCConnection::Write(void) {
 
 	char* Copy = (char*)malloc(strlen(Line) + 2);
 	snprintf(Copy, strlen(Line) + 3, "%s\n", Line);
-
-	printf("%d bytes sent\n", m_FloodControl->GetBytes());
 
 	send(m_Socket, Copy, strlen(Copy), 0);
 

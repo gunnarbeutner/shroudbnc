@@ -76,7 +76,9 @@ const char* CChannel::GetChanModes(void) {
 	strcpy(m_TempModes, "+");
 
 	for (i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode != '\0') {
+		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+
+		if (m_Modes[i].Mode != '\0' && ModeType != 3) {
 			char m[2];
 			m[0] = m_Modes[i].Mode;
 			m[1] = '\0';
@@ -86,7 +88,9 @@ const char* CChannel::GetChanModes(void) {
 	}
 
 	for (i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter) {
+		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+
+		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
 			strcat(m_TempModes, " ");
 			strcat(m_TempModes, m_Modes[i].Parameter);
 		}
@@ -277,4 +281,19 @@ void CChannel::SetHasNames(void) {
 
 CHashtable<CNick*, false>* CChannel::GetNames(void) {
 	return m_Nicks;
+}
+
+void CChannel::ClearModes(void) {
+	for (int i = 0; i < m_ModeCount; i++) {
+		if (m_Modes[i].Mode != '\0') {
+			int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+
+			if (ModeType != 3) {
+				free(m_Modes[i].Parameter);
+
+				m_Modes[i].Mode = '\0';
+				m_Modes[i].Parameter = NULL;
+			}
+		}
+	}
 }

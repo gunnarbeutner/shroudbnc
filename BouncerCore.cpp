@@ -42,6 +42,8 @@ SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
+	int i;
+
 	m_Config = Config;
 
 	m_Users = NULL;
@@ -54,8 +56,20 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 
 	const char* Users = Config->ReadString("system.users");
 
-	const char* Args = ArgTokenize(Users);
-	int Count = ArgCount(Args);
+	if (Users) {
+		const char* Args = ArgTokenize(Users);
+		int Count = ArgCount(Args);
+
+		m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
+		m_UserCount = Count;
+
+		for (i = 0; i < Count; i++) {
+			m_Users[i] = new CBouncerUser(ArgGet(Args, i + 1));
+		}
+
+		ArgFree(Args);
+		Args = NULL;
+	}
 
 	m_OtherSockets = NULL;
 	m_OtherSocketCount = 0;
@@ -67,17 +81,6 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	m_Listener = INVALID_SOCKET;
 
 	m_Startup = time(NULL);
-
-	m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
-	m_UserCount = Count;
-
-	int i;
-	for (i = 0; i < Count; i++) {
-		m_Users[i] = new CBouncerUser(ArgGet(Args, i + 1));
-	}
-
-	ArgFree(Args);
-	Args = NULL;
 
 	char Out[1024];
 
@@ -130,11 +133,12 @@ CBouncerCore::~CBouncerCore() {
 void CBouncerCore::StartMainLoop(int argc, char** argv) {
 	bool b_DontDetach = false;
 
+	puts("sBNC" BNCVERSION " - an object-oriented IRC bouncer");
+
 	for (int a = 1; a < argc; a++) {
 		if (strcmp(argv[a], "-n") == 0)
 			b_DontDetach = true;
 		if (strcmp(argv[a], "--help") == 0) {
-			puts("sBNC" BNCVERSION " - an object-oriented IRC bouncer");
 			puts("");
 			printf("Syntax: %s [OPTION]", argv[0]);
 			puts("");
@@ -387,7 +391,6 @@ bool CBouncerCore::UnloadModule(CModule* Module) {
 void CBouncerCore::UpdateModuleConfig(void) {
 	char Out[1024];
 	int a = 0;
-	char ModBuf[1024] = "";
 
 	for (int i = 0; i < m_ModuleCount; i++) {
 		if (m_Modules[i]) {
@@ -472,9 +475,12 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	return m_Users[m_UserCount - 1];
 }
 
-bool CBouncerCore::RemoveUser(const char* Username) {
+bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
+			if (RemoveConfig)
+				unlink(m_Users[i]->GetConfig()->GetFilename());
+
 			delete m_Users[i];
 
 			char Out[1024];
@@ -520,6 +526,8 @@ bool CBouncerCore::Daemonize(void) {
 	pid_t sid;
 	int fd;
 
+	printf("Daemonizing... ");
+
 	pid=fork();
 	if (pid==-1) {
 		puts("fork() returned -1 (failure)");
@@ -527,6 +535,7 @@ bool CBouncerCore::Daemonize(void) {
 	}
 
 	if (pid) {
+		printf("DONE\n");
 		exit(0);
 	}
 
@@ -546,5 +555,6 @@ bool CBouncerCore::Daemonize(void) {
 	if (sid==-1)
 		return false;
 #endif
+
 	return true;
 }

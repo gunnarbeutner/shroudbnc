@@ -37,6 +37,7 @@
 #include <time.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "snprintf.h"
 

@@ -87,6 +87,8 @@ public:
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
 	virtual CHashtable<CNick*, false>* GetNames(void);
+
+	virtual void ClearModes(void);
 };
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

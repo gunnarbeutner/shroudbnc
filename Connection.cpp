@@ -57,8 +57,6 @@ bool CConnection::Read(void) {
 
 	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
-	printf("%d bytes read from socket\n", n);
-
 	if (n > 0) {
 		recvq_size += n;
 		recvq = (char*)realloc(recvq, recvq_size);
@@ -142,7 +140,7 @@ bool CConnection::ReadLine(char** Out) {
 void CConnection::InternalWriteLine(const char* In) {
 	sendq_size += strlen(In) + 2;
 	sendq = (char*)realloc(sendq, sendq_size);
-	memcpy(sendq + sendq_size - (strlen(In) + 1), In, strlen(In));
+	memcpy(sendq + sendq_size - (strlen(In) + 2), In, strlen(In));
 	memcpy(sendq + sendq_size - 2, "\r\n", 2);
 }
 

@@ -75,7 +75,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			const char* Nick = argv[1];
 
 			if (m_Nick == NULL) {
-				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC0.1");
+				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC" BNCVERSION);
 			} else {
 				if (strcmp(m_Nick, Nick) != 0) {
 					m_Owner->GetConfig()->WriteString("user.nick", Nick);
@@ -228,8 +228,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			return false;
 		} else if (strcmpi(Command, "bwho") == 0) {
-			CIRCConnection* IRC = m_Owner->GetIRCConnection();
-
 			CBouncerUser** Users = g_Bouncer->GetUsers();
 			int lUsers = g_Bouncer->GetUserCount();
 

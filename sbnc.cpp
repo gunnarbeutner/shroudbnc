@@ -33,16 +33,33 @@
 
 CBouncerCore* g_Bouncer;
 
+#ifndef _WIN32
+void sigint_handler(int code) {
+	puts("SIGINT received.");
+
+	g_Bouncer->Shutdown();
+}
+#endif
+
 int main(int argc, char* argv[]) {
 	Socket_Init();
 
-	CBouncerConfig Config("sbnc.conf");
+	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
-	g_Bouncer = new CBouncerCore(&Config);
+	g_Bouncer = new CBouncerCore(Config);
+
+#ifndef _WIN32
+	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
+#endif
 
 	g_Bouncer->StartMainLoop(argc, argv);
 
+#ifndef _WIN32
+	signal(SIGINT, oldhandler);
+#endif
+
 	delete g_Bouncer;
+	delete Config;
 
 	Socket_Final();
 

