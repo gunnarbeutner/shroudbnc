@@ -34,7 +34,7 @@ void CIdentSupport::SetIdent(const char* Ident) {
 	char* homedir = getenv("HOME");
 
 	if (homedir) {
-		snprintf(Out, sizeof(Out); "%s/.oidentd.conf");
+		snprintf(Out, sizeof(Out); "%s/.oidentd.conf", homedir);
 
 		FILE* identConfig = fopen(Out, "w");
 
