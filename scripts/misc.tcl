@@ -40,3 +40,11 @@ proc botisvoice {{channel ""}} {
 proc botonchan {{channel ""}} {
 	return [onchan [sbncnick] $channel]
 }
+
+proc unixtime {} {
+	return [clock seconds]
+}
+
+proc ctime {timeval} {
+	return [clock format $timeval]
+}
