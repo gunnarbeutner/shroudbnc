@@ -129,7 +129,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		if (IrcNick) {
 			Client->WriteLine(":%s!ident@sbnc NICK :%s", Client->GetNick(), IrcNick);
 
-			if (strcmp(Client->GetNick(), IrcNick) != 0)
+			if (Client->GetNick() && strcmp(Client->GetNick(), IrcNick) != 0)
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
@@ -268,7 +268,7 @@ void CBouncerUser::Reconnect(void) {
 }
 
 bool CBouncerUser::ShouldReconnect(void) {
-	if (!m_IRC && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > 10)
+	if (!m_IRC && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > 15)
 		return true;
 	else
 		return false;
