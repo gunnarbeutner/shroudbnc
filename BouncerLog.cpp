@@ -36,18 +36,17 @@ CBouncerLog::~CBouncerLog() {
 void CBouncerLog::PlayToUser(CBouncerUser* User) {
 	FILE* Log = fopen(m_File, "r");
 
-	if (!Log)
-		return;
+	if (Log) {
+		char Line[500];
+		while (!feof(Log)) {
+			char* n = fgets(Line, sizeof(Line), Log);
 
-	char Line[500];
-	while (!feof(Log)) {
-		char* n = fgets(Line, sizeof(Line), Log);
+			if (n)
+				User->Notice(Line);
+		}
 
-		if (n)
-			User->Notice(Line);
+		fclose(Log);
 	}
-
-	fclose(Log);
 
 	User->Notice("End of LOG.");
 }
