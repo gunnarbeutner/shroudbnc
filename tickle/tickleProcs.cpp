@@ -803,7 +803,14 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 	if (strcmpi(Type, "server") == 0)
 		return Context->GetServer();
-	else if (strcmpi(Type, "port") == 0) {
+	else if (strcmpi(Type, "realserver") == 0) {
+		CIRCConnection* IRC = Context->GetIRCConnection();;
+
+		if (IRC)
+			return IRC->GetServer();
+		else
+			return NULL;
+	} else if (strcmpi(Type, "port") == 0) {
 		sprintf(Buffer, "%d", Context->GetPort());
 
 		return Buffer;
@@ -988,4 +995,16 @@ int ticklerand(int limit) {
 		return limit - 1;
 	else
 		return val;
+}
+
+const char* bncversion(void) {
+	return "0.3 0030000";
+}
+
+const char* bncnumversion(void) {
+	return "0030000";
+}
+
+int bncuptime(void) {
+	return g_Bouncer->GetStartup();
 }

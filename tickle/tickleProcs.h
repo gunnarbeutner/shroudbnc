@@ -64,6 +64,10 @@ void delbncuser(const char* User);
 
 const char* internalchanlist(const char* Channel);
 
+const char* bncversion(void);
+const char* bncnumversion(void);
+int bncuptime(void);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

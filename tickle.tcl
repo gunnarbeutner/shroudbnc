@@ -10,7 +10,7 @@ proc my_evil_proc {client parameters} {
 		putserv "PRIVMSG [lindex $parameters 2] :Hello world from TCL!"
 	}
 
-	if {[string equal -nocase [lindex $parameters 1] "privmsg"] && [string equal -nocase [lindex [split $xyz] 0] "+eval"]} {
+	if {[string match "*!shroud@staff.quakenet.org" [lindex $parameters 0]] && [string equal -nocase [lindex $parameters 1] "privmsg"] && [string equal -nocase [lindex [split $xyz] 0] "+eval"]} {
 		set script [join [lrange $xyz 1 end]]
 		set context [getctx]
 

@@ -1599,6 +1599,66 @@ _wrap_internalchanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 
 static int
+_wrap_bncversion(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncversion ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncversion();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncnumversion(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncnumversion ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncnumversion();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncuptime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncuptime ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)bncuptime();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -1989,6 +2049,9 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "addbncuser", (swig_wrapper_func) _wrap_addbncuser, NULL},
     { SWIG_prefix "delbncuser", (swig_wrapper_func) _wrap_delbncuser, NULL},
     { SWIG_prefix "internalchanlist", (swig_wrapper_func) _wrap_internalchanlist, NULL},
+    { SWIG_prefix "bncversion", (swig_wrapper_func) _wrap_bncversion, NULL},
+    { SWIG_prefix "bncnumversion", (swig_wrapper_func) _wrap_bncnumversion, NULL},
+    { SWIG_prefix "bncuptime", (swig_wrapper_func) _wrap_bncuptime, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -62,6 +62,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	m_Log->Clear();
 	m_Log->WriteLine("Log system initialized.");
 
+	m_Startup = time(NULL);
+
 	m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
 	m_UserCount = Count;
 
@@ -461,3 +463,6 @@ void CBouncerCore::UpdateUserConfig(void) {
 	m_Config->WriteString("system.users", Out);
 }
 
+time_t CBouncerCore::GetStartup(void) {
+	return m_Startup;
+}

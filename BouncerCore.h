@@ -54,6 +54,8 @@ class CBouncerCore {
 	socket_s* m_OtherSockets;
 	int m_OtherSocketCount;
 
+	time_t m_Startup;
+
 	CBouncerLog* m_Log;
 
 	CIdentSupport* m_Ident;
@@ -100,6 +102,8 @@ public:
 
 	virtual CBouncerUser* CreateUser(const char* Username, const char* Password);
 	virtual bool RemoveUser(const char* Username);
+
+	virtual time_t GetStartup(void);
 };
 
 extern CBouncerCore* g_Bouncer;
