@@ -140,10 +140,10 @@ bool CConnection::ReadLine(char** Out) {
 }
 
 void CConnection::InternalWriteLine(const char* In) {
-	sendq_size += strlen(In) + 1;
+	sendq_size += strlen(In) + 2;
 	sendq = (char*)realloc(sendq, sendq_size);
 	memcpy(sendq + sendq_size - (strlen(In) + 1), In, strlen(In));
-	memcpy(sendq + sendq_size - 1, "\n", 1);
+	memcpy(sendq + sendq_size - 2, "\r\n", 2);
 }
 
 void CConnection::WriteLine(const char* Format, ...) {
