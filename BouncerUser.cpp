@@ -64,10 +64,12 @@ CBouncerUser::~CBouncerUser() {
 		delete m_Client;
 
 	delete m_Config;
+
 	free(m_Name);
 
 	if (m_IRC) {
 		m_IRC->Kill("fish go moo.");
+
 		delete m_IRC;
 	}
 
@@ -173,12 +175,17 @@ const char* CBouncerUser::GetNick(void) {
 	else if (m_IRC && m_IRC->GetCurrentNick())
 		return m_IRC->GetCurrentNick();
 	else {
-		const char* Out = m_Config->ReadString("user.nick");
+		const char* Nick = m_Config->ReadString("user.awaynick");
 
-		if (!Out)
-			return m_Name;
+		if (Nick)
+			return Nick;
+		
+		Nick = m_Config->ReadString("user.nick");
+
+		if (Nick)
+			return Nick;
 		else
-			return Out;
+			return m_Name;
 	}
 }
 

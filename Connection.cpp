@@ -71,6 +71,7 @@ bool CConnection::Read(void) {
 	}
 
 	char* Line;
+
 	while (ReadLine(&Line)) {
 		ParseLine(Line);
 
@@ -84,9 +85,9 @@ void CConnection::Write(void) {
 	if (sendq_size > 0) {
 		send(m_Socket, sendq, sendq_size, 0);
 
-		char* Copy = (char*)malloc(sendq_size + 1);
-		memcpy(Copy, sendq, sendq_size);
-		Copy[sendq_size] = 0;
+//		char* Copy = (char*)malloc(sendq_size + 1);
+//		memcpy(Copy, sendq, sendq_size);
+//		Copy[sendq_size] = 0;
 
 //		if (GetRole() == Role_IRC)
 //			printf("-> %s\n", Copy);
@@ -115,8 +116,13 @@ bool CConnection::ReadLine(char** Out) {
 		char* NewPtr = Pos + 1;
 
 		recvq_size -= NewPtr - recvq;
-		recvq = (char*)malloc(recvq_size);
-		memcpy(recvq, NewPtr, recvq_size);
+
+		if (recvq_size == 0)
+			recvq = NULL;
+		else {
+			recvq = (char*)malloc(recvq_size);
+			memcpy(recvq, NewPtr, recvq_size);
+		}
 
 		char* Line = (char*)malloc(strlen(old_recvq) + 1);
 		strcpy(Line, old_recvq);

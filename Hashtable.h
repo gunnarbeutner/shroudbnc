@@ -45,6 +45,13 @@ public:
 	}
 
 	virtual ~CHashtable() {
+		for (int i = 0; i < m_PairCount; i++) {
+			if (m_DestructorFunc && m_Pairs[i].Valid) {
+				m_DestructorFunc(m_Pairs[i].Value);
+				free(m_Pairs[i].Name);
+			}
+		}
+
 		free(m_Pairs);
 	}
 
@@ -77,6 +84,7 @@ public:
 		for (int i = 0; i < m_PairCount; i++) {
 			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
 				free(m_Pairs[i].Name);
+				m_Pairs[i].Name = NULL;
 				m_Pairs[i].Valid = false;
 
 				if (m_DestructorFunc)

@@ -63,7 +63,7 @@ public:
 	virtual const char* GetName(void);
 
 	virtual const char* GetChanModes(void);
-	virtual void ParseModeChange(const char* modes, int pargc, const char** pargv);
+	virtual void ParseModeChange(const char* source, const char* modes, int pargc, const char** pargv);
 
 	virtual time_t GetCreationTime(void);
 	virtual void SetCreationTime(time_t T);

@@ -39,6 +39,8 @@ struct CModuleFar {
 
 	virtual void AttachClient(const char* Client) = 0;
 	virtual void DetachClient(const char* Client) = 0;
+
+	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) = 0;
 };
 
 #endif // !defined(AFX_MODULEFAR_H__898BF56F_427C_4FC5_8D8D_A68E48A0B426__INCLUDED_)

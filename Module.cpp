@@ -94,3 +94,7 @@ void CModule::AttachClient(const char* Client) {
 void CModule::DetachClient(const char* Client) {
 	m_Far->DetachClient(Client);
 }
+
+void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
+	m_Far->SingleModeChange(Connection, Channel, Source, Flip, Mode, Parameter);
+}

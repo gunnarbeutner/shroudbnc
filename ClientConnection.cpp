@@ -47,6 +47,8 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 
 CClientConnection::~CClientConnection() {
 	free(m_Nick);
+	free(m_Password);
+	free(m_Username);
 }
 
 connection_role_e CClientConnection::GetRole(void) {
@@ -67,11 +69,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	}
 
 	const char* Command = argv[0];
-	const char* Args = argv[1];
 
 	if (!m_Owner || !m_Owner->IsConnectedToIRC()) {
 		if (strcmpi(Command, "nick") == 0 && argc > 1) {
-			const char* Nick = Args;
+			const char* Nick = argv[1];
 
 			if (m_Nick == NULL) {
 				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC0.1");
@@ -89,7 +90,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 			} else {
-				m_Password = strdup(Args);
+				m_Password = strdup(argv[1]);
 			}
 		} else if (strcmpi(Command, "user") == 0 && argc > 1) {
 			if (m_Username) {
@@ -97,7 +98,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			} else if (!m_Password) {
 				Kill("Use PASS first");
 			} else {
-				if (!Args) {
+				if (!argv[1]) {
 					WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 				} else {
 					const char* Username = argv[1];
@@ -153,7 +154,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			g_Bouncer->GlobalNotice(Args);
+			g_Bouncer->GlobalNotice(argv[1]);
 			return false;
 		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
 			if (argc < 3) {
@@ -161,12 +162,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			CBouncerUser* User = g_Bouncer->GetUser(Args);
+			CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 
 			if (User)
 				User->Simulate(argv[2]);
 			else {
-				snprintf(Out, sizeof(Out), "No such user: %s", Args);
+				snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
 				m_Owner->Notice(Out);
 			}
 
@@ -177,7 +178,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 			
-			snprintf(Out, sizeof(Out), "SIMUL %s :QUIT", Args);
+			snprintf(Out, sizeof(Out), "SIMUL %s :QUIT", argv[1]);
 			ParseLine(Out);
 
 			return false;
@@ -187,7 +188,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			snprintf(Out, sizeof(Out), "SIMUL %s :PERROR :Requested.", Args);
+			snprintf(Out, sizeof(Out), "SIMUL %s :PERROR :Requested.", argv[1]);
 			ParseLine(Out);
 
 			return false;
@@ -290,12 +291,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		} else if (strcmpi(Command, "nick") == 0) {
 			if (argc >= 2) {
 				free(m_Nick);
-				m_Nick = strdup(Args);
-				m_Owner->GetConfig()->WriteString("user.nick", Args);
+				m_Nick = strdup(argv[1]);
+				m_Owner->GetConfig()->WriteString("user.nick", argv[1]);
 			}
 		} else if (strcmpi(Command, "whois") == 0) {
 			if (argc >= 2) {
-				const char* Nick = Args;
+				const char* Nick = argv[1];
 
 				if (strcmpi("-sbnc", Nick) == 0) {
 					WriteLine(":bouncer 311 %s -sBNC core bnc.server * :shroudBNC", m_Nick);
@@ -306,7 +307,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 			}
-		} else if (strcmpi(Command, "privmsg") == 0 && Args && strcmpi(Args, "-sbnc") == 0) {
+		} else if (strcmpi(Command, "privmsg") == 0 && argv[1] && strcmpi(argv[1], "-sbnc") == 0) {
 			char* Cmd = strdup(argv[2]);
 			ParseLine(Cmd);
 			free(Cmd);
@@ -383,7 +384,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			CModule* Module = g_Bouncer->LoadModule(Args);
+			CModule* Module = g_Bouncer->LoadModule(argv[1]);
 
 			if (Module)
 				m_Owner->Notice("Module was loaded.");
@@ -397,7 +398,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			int idx = atoi(Args);
+			int idx = atoi(argv[1]);
 
 			if (idx < 1 || idx > g_Bouncer->GetModuleCount())
 				m_Owner->Notice("There is no such module.");
@@ -436,7 +437,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			m_Owner->GetConfig()->WriteString("user.realname", Args);
+			m_Owner->GetConfig()->WriteString("user.realname", argv[1]);
 
 			m_Owner->Notice("Done. Use JUMP to active your new gecos information.");
 
@@ -524,14 +525,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 							char outPref[2] = { Chan->GetHighestUserFlag(Prefix), '\0' };
 
-							Nicks = (char*)realloc(Nicks, (Nicks ? strlen(Nicks) : 0) + (*outPref ? strlen(Prefix) : 0) + strlen(Nick) + 2);
+							Nicks = (char*)realloc(Nicks, (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2);
 
 							if (*Nicks)
 								strcat(Nicks, " ");
 
-							if (*outPref)
-								strcat(Nicks, Prefix);
-
+							strcat(Nicks, outPref);
 							strcat(Nicks, Nick);
 
 							if (a % 50 == 0) {

@@ -76,8 +76,8 @@ void CBouncerConfig::ParseConfig(const char* Filename) {
 }
 
 CBouncerConfig::~CBouncerConfig() {
-	delete m_Settings;
 	free(m_File);
+	delete m_Settings;
 }
 
 const char* CBouncerConfig::ReadString(const char* Setting) {

@@ -57,6 +57,8 @@ public:
 	virtual time_t GetChanJoin(void);
 	virtual time_t GetIdleSince(void);
 	virtual void SetIdleSince(time_t Time);
+
+	virtual CNick* Clone(void);
 };
 
 void DestroyCNick(CNick* P);

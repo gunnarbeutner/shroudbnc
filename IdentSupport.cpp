@@ -28,6 +28,10 @@ CIdentSupport::CIdentSupport(void) {
 	m_Ident = NULL;
 }
 
+CIdentSupport::~CIdentSupport(void) {
+	free(m_Ident);
+}
+
 void CIdentSupport::SetIdent(const char* Ident) {
 #ifndef _WIN32
 	char Out[1024];

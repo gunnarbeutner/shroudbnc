@@ -28,6 +28,7 @@ class CIdentSupport {
 	char* m_Ident;
 public:
 	CIdentSupport(void);
+	~CIdentSupport(void);
 
 	void SetIdent(const char* Ident);
 	const char* GetIdent(void);

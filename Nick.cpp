@@ -30,15 +30,16 @@ void DestroyCNick(CNick* P) {
 
 CNick::CNick(const char* Nick) {
 	m_Nick = strdup(Nick);
-	m_Prefixes = (char*)malloc(1);
-	m_Prefixes[0] = '\0';
+	m_Prefixes = NULL;
 	m_Site = NULL;
+
 	m_IdleSince = m_Creation = time(NULL);
 }
 
 CNick::~CNick() {
 	free(m_Nick);
 	free(m_Prefixes);
+	free(m_Site);
 }
 
 const char* CNick::GetNick(void) {
@@ -65,9 +66,9 @@ bool CNick::HasPrefix(char Prefix) {
 }
 
 void CNick::AddPrefix(char Prefix) {
-	m_Prefixes = (char*)realloc(m_Prefixes, strlen(m_Prefixes) + 2);
+	int n = m_Prefixes ? strlen(m_Prefixes) : 0;
 
-	int n = strlen(m_Prefixes);
+	m_Prefixes = (char*)realloc(m_Prefixes, n + 2);
 
 	m_Prefixes[n] = Prefix;
 	m_Prefixes[n + 1] = '\0';
@@ -75,6 +76,10 @@ void CNick::AddPrefix(char Prefix) {
 
 void CNick::RemovePrefix(char Prefix) {
 	int a = 0;
+
+	if (!m_Prefixes)
+		return;
+
 	char* Copy = (char*)malloc(strlen(m_Prefixes) + 1);
 
 	for (unsigned int i = 0; i < strlen(m_Prefixes); i++) {
@@ -93,10 +98,8 @@ void CNick::SetPrefixes(const char* Prefixes) {
 
 	if (Prefixes)
 		m_Prefixes = strdup(Prefixes);
-	else {
-		m_Prefixes = (char*)malloc(1);
-		m_Prefixes[0] = '\0';
-	}
+	else
+		m_Prefixes = NULL;
 }
 
 const char* CNick::GetPrefixes(void) {
@@ -137,4 +140,15 @@ time_t CNick::GetIdleSince(void) {
 
 void CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
+}
+
+CNick* CNick::Clone(void) {
+	CNick* C = new CNick(m_Nick);
+
+	C->m_Creation = m_Creation;
+	C->m_IdleSince = m_IdleSince;
+	C->m_Prefixes = m_Prefixes ? strdup(m_Prefixes) : NULL;
+	C->m_Site = m_Site ? strdup(m_Site) : NULL;
+
+	return C;
 }

@@ -49,6 +49,8 @@ public:
 
 	virtual void AttachClient(const char* Client);
 	virtual void DetachClient(const char* Client) ;
+
+	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter);
 };
 
 #endif // !defined(AFX_MODULE_H__E4E050DD_057C_4E38_BDB7_A875F73A9E8F__INCLUDED_)

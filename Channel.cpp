@@ -26,6 +26,9 @@
 #include "BouncerConfig.h"
 #include "Hashtable.h"
 #include "Nick.h"
+#include "ModuleFar.h"
+#include "Module.h"
+#include "BouncerCore.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -42,16 +45,25 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
 	m_Nicks = new CHashtable<CNick*, false>();
+	m_Nicks->RegisterValueDestructor(DestroyCNick);
 	m_HasNames = false;
 }
 
 CChannel::~CChannel() {
 	free(m_Name);
-	free(m_Modes);
 
 	// TODO: free individiual modes
 	free(m_Topic);
 	free(m_TopicNick);
+
+	delete m_Nicks;
+
+	for (int i = 0; i < m_ModeCount; i++) {
+		if (m_Modes[i].Mode != '\0')
+			free(m_Modes[i].Parameter);
+	}
+
+	free(m_Modes);
 }
 
 const char* CChannel::GetName(void) {
@@ -83,9 +95,12 @@ const char* CChannel::GetChanModes(void) {
 	return m_TempModes;
 }
 
-void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv) {
+void CChannel::ParseModeChange(const char* source, const char* modes, int pargc, const char** pargv) {
 	bool flip = true;
 	int p = 0;
+
+	CModule** Modules = g_Bouncer->GetModules();
+	int Count = g_Bouncer->GetModuleCount();
 
 	for (unsigned int i = 0; i < strlen(modes); i++) {
 		char Cur = modes[i];
@@ -106,6 +121,12 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 					P->RemovePrefix(m_Owner->PrefixForChanMode(Cur));
 			}
 
+			for (int i = 0; i < Count; i++) {
+				if (Modules[i]) {
+					Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, pargv[p]);
+				}
+			}
+
 			p++;
 
 			continue;
@@ -114,6 +135,12 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 		chanmode_t* Slot = FindSlot(Cur);
 
 		int ModeType = m_Owner->RequiresParameter(Cur);
+
+		for (int i = 0; i < Count; i++) {
+			if (Modules[i]) {
+				Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, ((flip && ModeType) || (!flip && ModeType && ModeType != 1)) ? pargv[p] : NULL);
+			}
+		}
 
 		if (flip) {
 			if (Slot)
@@ -131,6 +158,8 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 			if (Slot) {
 				Slot->Mode = '\0';
 				free(Slot->Parameter);
+
+				Slot->Parameter = NULL;
 
 				if (ModeType && ModeType != 1)
 					p++;
@@ -219,6 +248,9 @@ void CChannel::RemoveUser(const char* Nick) {
 char CChannel::GetHighestUserFlag(const char* ModeChars) {
 	bool flip = false;
 	const char* Prefixes = m_Owner->GetISupport("PREFIX");
+
+	if (!ModeChars)
+		return '\0';
 
 	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
 		if (!flip) {

@@ -61,6 +61,7 @@ class CBouncerCore {
 	CIdentSupport* m_Ident;
 
 	bool m_LoadingModules;
+	bool m_Running;
 
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
 	void UpdateModuleConfig(void);

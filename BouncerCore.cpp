@@ -75,6 +75,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	}
 
 	ArgFree(Args);
+	Args = NULL;
 
 	char Out[1024];
 
@@ -98,7 +99,29 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 CBouncerCore::~CBouncerCore() {
 	closesocket(m_Listener);
 
+	delete m_Log;
 	delete m_Ident;
+
+	for (int i = 0; i < m_UserCount; i++) {
+		if (m_Users[i])
+			delete m_Users[i];
+	}
+
+	free(m_Users);
+
+	for (int a = 0; a < m_ModuleCount; a++) {
+		if (m_Modules[a])
+			delete m_Modules[a];
+	}
+
+	free(m_Modules);
+
+	for (int c = 0; c < m_OtherSocketCount; c++) {
+		if (m_OtherSockets[c].Socket != INVALID_SOCKET)
+			m_OtherSockets[c].Events->Destroy();
+	}
+
+	free(m_OtherSockets);
 }
 
 void CBouncerCore::StartMainLoop() {
@@ -122,7 +145,9 @@ void CBouncerCore::StartMainLoop() {
 
 	Log("Starting main loop.");
 
-	while (true) {
+	m_Running = true;
+
+	while (m_Running) {
 		FD_ZERO(&FDRead);
 		FD_SET(m_Listener, &FDRead);
 
@@ -393,15 +418,7 @@ CBouncerLog* CBouncerCore::GetLog(void) {
 }
 
 void CBouncerCore::Shutdown(void) {
-	for (int i = 0; i < m_OtherSocketCount; i++) {
-		if (m_OtherSockets[i].Socket != INVALID_SOCKET)
-			shutdown(m_OtherSockets[i].Socket, SD_BOTH);
-
-		if (m_OtherSockets[i].Events)
-			m_OtherSockets[i].Events->Destroy();
-	}
-
-	exit(0);
+	m_Running = false;
 }
 
 CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {

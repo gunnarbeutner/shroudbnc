@@ -83,6 +83,17 @@ CIRCConnection::~CIRCConnection() {
 		delete m_Channels[i];
 
 	free(m_Channels);
+
+	free(m_Server);
+	free(m_ServerVersion);
+	free(m_ServerFeat);
+
+	delete m_ISupport;
+
+	delete m_QueueLow;
+	delete m_QueueMiddle;
+	delete m_QueueHigh;
+	delete m_FloodControl;
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -200,12 +211,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				NickObj = Nicks->Get(Nick);
 
 				if (NickObj) {
-					NickObj->SetNick(argv[2]);
+					CNick* Clone = NickObj->Clone();
+					Clone->SetNick(argv[2]);
 
-					Nicks->Add(argv[2], NickObj);
-
-					if (strcmpi(Nick, argv[2]) != 0)
-						Nicks->Remove(Nick);
+					Nicks->Remove(Nick);
+					Nicks->Add(argv[2], Clone);
 				}
 			}
 		}
@@ -215,13 +225,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		Nick = NickFromHostmask(argv[0]);
 
 		for (int i = 0; i < m_ChannelCount; i++) {
-			if (m_Channels[i]) {
-				CNick* P = m_Channels[i]->GetNames()->Get(Nick);
-
+			if (m_Channels[i])
 				m_Channels[i]->GetNames()->Remove(Nick);
-
-				delete P;
-			}
 		}
 
 		free(Nick);
@@ -283,12 +288,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
-			Chan->ParseModeChange(argv[4], argc - 5, &argv[5]);
+			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
 	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
 		CChannel* Chan = GetChannel(argv[2]);
 
 		if (Chan)
-			Chan->ParseModeChange(argv[3], argc - 4, &argv[4]);
+			Chan->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 4 && atoi(Raw) == 329) {
@@ -348,8 +353,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 
 				Chan->AddUser(n, Modes);
+
+				free(Modes);
 			}
 		}
+
+		ArgFreeArray(nickv);
+		ArgFree(nicks);
 	} else if (argc > 3 && atoi(Raw) == 366) {
 		CChannel* Chan = GetChannel(argv[3]);
 

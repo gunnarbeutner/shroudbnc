@@ -46,5 +46,7 @@ int main(int argc, char* argv[]) {
 
 	Socket_Final();
 
+	puts("Shutting down...");
+
 	return 0;
 }
