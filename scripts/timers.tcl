@@ -19,68 +19,85 @@ package require bnc 0.2
 
 internalbind pulse sbnc:tcltimers
 
-if {![info exists sbnc:timerinit]} {
-	set sbnc:timers {}
-	set sbnc:utimers {}
+proc sbnc:timerinit {} {
+	if {![info exists [getns]::timerinit]} {
+		set [getns]::timers {}
+		set [getns]::utimers {}
 
-	set sbnc:timeridx 0
-	set sbnc:utimeridx 0
+		set [getns]::timeridx 0
+		set [getns]::utimeridx 0
 
-	set sbnc:timerinit 1
+		set [getns]::timerinit 1
+	}
 }
 
 # entry point to sbnc's timer system
 proc sbnc:tcltimers {time} {
-	global sbnc:utimers sbnc:timers
 
-	foreach timer ${sbnc:utimers} {
-		if {$time >= [lindex $timer 0]} {
-			catch {eval [lindex $timer 1]}
-			killutimer [lindex $timer 2]
+	foreach user [bncuserlist] {
+		setctx $user
+		upvar [getns]::utimers utimers
+		upvar [getns]::timers timers
+
+		sbnc:timerinit
+
+		foreach timer $utimers {
+			if {$time >= [lindex $timer 0]} {
+				catch {eval [lindex $timer 1]}
+				killutimer [lindex $timer 2]
+			}
 		}
-	}
 
-	foreach timer ${sbnc:timers} {
-		if {$time >= [lindex $timer 0]} {
-			catch {eval [lindex $timer 1]}
-			killtimer [lindex $timer 2]
+		foreach timer $timers {
+			if {$time >= [lindex $timer 0]} {
+				catch {eval [lindex $timer 1]}
+				killtimer [lindex $timer 2]
+			}
 		}
 	}
 }
 
 proc timer {minutes tclcommand} {
-	global sbnc:timers sbnc:timeridx
+	sbnc:timerinit
+
+	upvar [getns]::timers timers
+	upvar [getns]::timeridx timeridx
 
 	set time [expr [clock seconds] + $minutes * 60]
-	incr sbnc:timeridx
-	set id "timer${sbnc:timeridx}"
+	incr timeridx
+	set id "timer$timeridx"
 
 	set timer [list $time $tclcommand $id]
 
-	lappend sbnc:timers $timer
+	lappend timers $timer
 
 	return $id
 }
 
 proc utimer {seconds tclcommand} {
-	global sbnc:utimers sbnc:utimeridx
+	sbnc:timerinit
+
+	upvar [getns]::utimers utimers
+	upvar [getns]::utimeridx utimeridx
 
 	set time [expr [clock seconds] + $seconds]
-	incr sbnc:utimeridx
-	set id "timer${sbnc:utimeridx}"
+	incr utimeridx
+	set id "utimer$utimeridx"
 
 	set timer [list $time $tclcommand $id]
 
-	lappend sbnc:utimers $timer
+	lappend utimers $timer
 
 	return $id
 }
 
 proc timers {} {
-	global sbnc:timers
+	sbnc:timerinit
+
+	upvar [getns]::timers timers
 	set temptimers ""
 
-	foreach ut ${sbnc:timers} {
+	foreach ut $timers {
 		lappend temptimers [list [expr [lindex $ut 0] - [clock seconds]] [lindex $ut 1] [lindex $ut 2]]
 	}
 
@@ -88,10 +105,12 @@ proc timers {} {
 }
 
 proc utimers {} {
-	global sbnc:utimers
+	sbnc:timerinit
+
+	upvar [getns]::utimers utimers
 	set temptimers ""
 
-	foreach ut ${sbnc:utimers} {
+	foreach ut $utimers {
 		lappend temptimers [list [expr [lindex $ut 0] - [clock seconds]] [lindex $ut 1] [lindex $ut 2]]
 	}
 
@@ -99,21 +118,25 @@ proc utimers {} {
 }
 
 proc killtimer {timerID} {
-	global sbnc:timers
+	sbnc:timerinit
 
-	set idx [lsearch ${sbnc:timers} "* $timerID"]
+	upvar [getns]::timers timers
+
+	set idx [lsearch $timers "* $timerID"]
 
 	if {$idx != -1} {
-		set sbnc:timers [lreplace ${sbnc:timers} $idx $idx]
+		set timers [lreplace $timers $idx $idx]
 	}
 }
 
 proc killutimer {timerID} {
-	global sbnc:utimers
+	sbnc:timerinit
 
-	set idx [lsearch ${sbnc:utimers} "* $timerID"]
+	upvar [getns]::utimers utimers
+
+	set idx [lsearch $utimers "* $timerID"]
 
 	if {$idx != -1} {
-		set sbnc:utimers [lreplace ${sbnc:utimers} $idx $idx]
+		set utimers [lreplace $utimers $idx $idx]
 	}
 }

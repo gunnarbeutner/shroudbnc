@@ -39,6 +39,8 @@ proc sbnc:rawserver {client parameters} {
 	set hand "shroud"
 	set flags "n"
 
+	sbnc:callbinds "raw" - $verb $source $verb [join [lrange $parameters 2 end]]
+
 	switch $verb {
 		"privmsg" {
 			if {[validchan $targ] || [lsearch -exact [string tolower [internalchannels]] [string tolower $targ]] != -1} {
@@ -50,7 +52,7 @@ proc sbnc:rawserver {client parameters} {
 			}
 		}
 		"notice" {
-
+			sbnc:callbinds "notc" $flags $opt $nick $site $hand $opt $targ
 		}
 		"join" {
 			sbnc:callbinds "join" $flags "$targ $source" $nick $site $hand $targ
@@ -65,13 +67,16 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "topc" $flags "$targ $opt" $nick $site $hand $targ $opt
 		}
 		"kick" {
-
+			sbnc:callbinds "kick" $flags "$targ $opt" $nick $site $hand $targ $opt
 		}
 		"nick" {
 
 		}
 		"mode" {
 
+		}
+		"wallops" {
+			sbnc:callbinds "wall" - $targ $source $targ
 		}
 	}
 

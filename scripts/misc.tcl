@@ -48,3 +48,17 @@ proc unixtime {} {
 proc ctime {timeval} {
 	return [clock format $timeval]
 }
+
+proc strftime {formatstring {time ""}} {
+	if {$time == ""} {
+		return [clock format [clock seconds] -format $formatstring]
+	} else {
+		return [clock format $time -format $formatstring]
+	}
+}
+
+proc putkick {channel nicks {reason ""}} {
+	foreach nick [split $nicks ","] {
+		putquick "KICK $channel $nick :$reason"
+	}
+}
