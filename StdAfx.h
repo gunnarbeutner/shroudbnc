@@ -31,8 +31,6 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-// TODO: reference additional headers your program requires here
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -52,6 +50,7 @@
 	#include <string.h>
 	#include <unistd.h>
 	#include <netdb.h>
+	#include <sys/time.h>
 	#include <sys/types.h>
 	#include <netinet/in.h>
 	#include <sys/socket.h>
