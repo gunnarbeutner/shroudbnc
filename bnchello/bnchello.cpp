@@ -115,6 +115,9 @@ class CHelloClass : public CModuleFar {
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		return true;
 	}
+
+	void AttachClient(const char* Client) { }
+	void DetachClient(const char* Client) { }
 };
 
 extern "C" CModuleFar* bncGetObject(void) {
