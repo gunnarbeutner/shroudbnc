@@ -43,7 +43,7 @@ int Tcl_ProcInit(Tcl_Interp* interp);
 //const char* getuser(const char* Option);
 //int setuser(const char* Option, const char* Value);
 
-const char* users(void);
+const char* bncuserlist(void);
 
 const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
 const char* user(const char* Function, const char* User = 0, const char* Parameter = 0, const char* Parameter2 = 0);
@@ -62,13 +62,14 @@ int setbncuser(const char* User, const char* Type, const char* Value = 0, const 
 void addbncuser(const char* User, const char* Password);
 void delbncuser(const char* User);
 
+const char* internalchanlist(const char* Channel);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);
 const char* topicnick(const char* Channel);
 int topicstamp(const char* Channel);
 const char* getchanmode(const char* Channel);
-const char* chanlist(const char* Channel);
 bool isop(const char* Nick, const char* Channel = 0);
 bool isvoice(const char* Nick, const char* Channel = 0);
 bool ishalfop(const char* Nick, const char* Channel = 0);

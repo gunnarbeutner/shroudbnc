@@ -1296,13 +1296,13 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 extern "C" {
 #endif
 static int
-_wrap_users(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_bncuserlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *result;
     
-    if (SWIG_GetArgs(interp, objc, objv,":users ") == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,":bncuserlist ") == TCL_ERROR) SWIG_fail;
     {
         try {
-            result = (char *)users();
+            result = (char *)bncuserlist();
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -1578,6 +1578,27 @@ _wrap_delbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 
 static int
+_wrap_internalchanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:internalchanlist Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)internalchanlist((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -1671,27 +1692,6 @@ _wrap_getchanmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     {
         try {
             result = (char *)getchanmode((char const *)arg1);
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
-_wrap_chanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s:chanlist Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)chanlist((char const *)arg1);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -1975,7 +1975,7 @@ _wrap_rand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 
 static swig_command_info swig_commands[] = {
-    { SWIG_prefix "users", (swig_wrapper_func) _wrap_users, NULL},
+    { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "user", (swig_wrapper_func) _wrap_user, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
@@ -1988,12 +1988,12 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "setbncuser", (swig_wrapper_func) _wrap_setbncuser, NULL},
     { SWIG_prefix "addbncuser", (swig_wrapper_func) _wrap_addbncuser, NULL},
     { SWIG_prefix "delbncuser", (swig_wrapper_func) _wrap_delbncuser, NULL},
+    { SWIG_prefix "internalchanlist", (swig_wrapper_func) _wrap_internalchanlist, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
     { SWIG_prefix "topicstamp", (swig_wrapper_func) _wrap_topicstamp, NULL},
     { SWIG_prefix "getchanmode", (swig_wrapper_func) _wrap_getchanmode, NULL},
-    { SWIG_prefix "chanlist", (swig_wrapper_func) _wrap_chanlist, NULL},
     { SWIG_prefix "isop", (swig_wrapper_func) _wrap_isop, NULL},
     { SWIG_prefix "isvoice", (swig_wrapper_func) _wrap_isvoice, NULL},
     { SWIG_prefix "ishalfop", (swig_wrapper_func) _wrap_ishalfop, NULL},

@@ -57,7 +57,7 @@ proc timer {minutes tclcommand} {
 
 	set timer [list $time $tclcommand $id]
 
-	lappend sbnc:utimers $timer
+	lappend sbnc:timers $timer
 
 	return $id
 }
@@ -85,7 +85,6 @@ proc timers {} {
 	}
 
 	return $temptimers
-
 }
 
 proc utimers {} {

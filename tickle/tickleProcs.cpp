@@ -76,7 +76,7 @@ const char* getctx(void) {
 	return g_Context;
 }
 
-const char* users(void) {
+const char* bncuserlist(void) {
 	static char* UserList = NULL;
 
 	UserList = (char*)realloc(UserList, 1);
@@ -382,7 +382,7 @@ const char* getchanmode(const char* Channel) {
 	return Chan->GetChanModes();
 }
 
-const char* chanlist(const char* Channel) {
+const char* internalchanlist(const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
