@@ -42,7 +42,7 @@ int strcmpi(const char* a, const char* b) {
 }
 
 HMODULE LoadLibrary(const char* lpLibFileName) {
-	return dlopen(lpLibFileName, RTLD_LAZY | RTLD_GLOBAL);
+	return dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL);
 }
 
 BOOL FreeLibrary(HMODULE hLibModule) {
