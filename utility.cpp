@@ -24,6 +24,7 @@
 #include "Connection.h"
 #include "IRCConnection.h"
 #include "BouncerCore.h"
+#include "BouncerConfig.h"
 
 char* g_Args = NULL;
 char** g_ArgArray = NULL;
@@ -154,7 +155,36 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port) {
 	if (g_last_sock < sock)
 		g_last_sock = sock;
 
-	sockaddr_in sin;
+	sockaddr_in sin, sloc;
+
+	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+	if (BindIp) {
+		sloc.sin_family = AF_INET;
+		sloc.sin_port = 0;
+
+		hostent* hent = gethostbyname(BindIp);
+
+		if (hent) {
+			in_addr* peer = (in_addr*)hent->h_addr_list[0];
+
+	#ifdef _WIN32
+			sloc.sin_addr.S_un.S_addr = peer->S_un.S_addr;
+	#else
+			sloc.sin_addr.s_addr = peer->s_addr;
+	#endif
+		} else {
+			unsigned long addr = inet_addr(Host);
+
+	#ifdef _WIN32
+			sloc.sin_addr.S_un.S_addr = addr;
+	#else
+			sloc.sin_addr.s_addr = addr;
+	#endif
+		}
+
+		bind(sock, (sockaddr*)&sloc, sizeof(sloc));
+	}
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);

@@ -27,6 +27,9 @@ void Socket_Init(void) {}
 void Socket_Final(void) {}
 
 int strcmpi(const char* a, const char* b) {
+	if (!a || !b)
+		return 1;
+
 	while (*a && *b) {
 		if (tolower(*a) != tolower(*b))
 			return 1;
