@@ -30,8 +30,8 @@ void ArgFreeArray(const char** Array);
 const char* ArgGet(const char* Args, int Arg);
 int ArgCount(const char* Args);
 
-SOCKET SocketAndConnect(const char* Host, unsigned short Port);
-CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning);
+SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp = NULL);
+CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp = NULL);
 SOCKET CreateListener(unsigned short Port);
 
 char* NickFromHostmask(const char* Hostmask);

@@ -137,7 +137,7 @@ void ArgFreeArray(const char** Array) {
 	free(const_cast<char**>(Array));
 }
 
-SOCKET SocketAndConnect(const char* Host, unsigned short Port) {
+SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
 	if (!Host || !Port)
 		return INVALID_SOCKET;
 
@@ -146,17 +146,13 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port) {
 	if (sock == INVALID_SOCKET)
 		return INVALID_SOCKET;
 
-#ifdef _WIN32
 	unsigned long lTrue = 1;
 	ioctlsocket(sock, FIONBIO, &lTrue);
-#endif
 
 	if (g_last_sock < sock)
 		g_last_sock = sock;
 
 	sockaddr_in sin, sloc;
-
-	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 	if (BindIp) {
 		sloc.sin_family = AF_INET;
@@ -213,7 +209,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port) {
 #ifdef _WIN32
 	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else
-	if (code != 0) {
+	if (code != 0 && errno != EINPROGRESS) {
 #endif
 		closesocket(sock);
 		return INVALID_SOCKET;
@@ -224,8 +220,8 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port) {
 	return sock;
 }
 
-CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning) {
-	SOCKET Socket = SocketAndConnect(Host, Port);
+CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) {
+	SOCKET Socket = SocketAndConnect(Host, Port, BindIp);
 
 	if (Socket == INVALID_SOCKET)
 		return NULL;

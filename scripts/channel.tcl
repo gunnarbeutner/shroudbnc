@@ -16,13 +16,18 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 internalbind pulse sbnc:channelpulse
+internalbind unload sbnc:channelflush
+
+proc sbnc:channelflush {} {
+	foreach user [bncuserlist] {
+		setctx $user
+		savechannels
+	}
+}
 
 proc sbnc:channelpulse {time} {
 	if {[expr $time % 120] == 0} {
-		foreach user [bncuserlist] {
-			setctx $user
-			savechannels
-		}
+		sbnc:channelflush
 	}
 }
 

@@ -342,6 +342,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			User->Notice("BDISCONNECT - disconnects a user from the IRC server");
 			User->Notice("PLAYMAINLOG - plays the bouncer's log");
 			User->Notice("ERASEMAINLOG - erases the bouncer's log");
+			User->Notice("GVHOST - sets the default/global vhost");
+			User->Notice("BMOTD - sets the bouncer's MOTD");
 			User->Notice("BDIE - terminates the bouncer");
 			User->Notice("------------");
 			User->Notice("User commands:");
@@ -355,6 +357,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			User->Notice("SETSERVER - sets your default server");
 			User->Notice("SETGECOS - sets your realname");
 			User->Notice("SETAWAYNICK - sets your awaynick");
+			User->Notice("SETAWAY - sets your away reason");
+			User->Notice("BVHOST - sets your vhost");
 			User->Notice("JUMP - reconnects to the IRC server");
 			User->Notice("SYNTH - synthesizes the reply for an ordinary irc-command");
 			User->Notice("DIRECT - sends a raw command (bypassing SYNTH)");
@@ -531,7 +535,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							strcat(Nicks, outPref);
 							strcat(Nicks, Nick);
 
-							if (a % 50 == 0) {
+							if (strlen(Nicks) > 400) {
 								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 
 								Nicks = (char*)realloc(Nicks, 1);
@@ -629,6 +633,57 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 			IRC->InternalWriteLine(argv[1]);
+
+			return false;
+		} else if (strcmpi(Command, "bvhost") == 0) {
+			if (argc < 2) {
+				const char* Ip = m_Owner->GetConfig()->ReadString("user.ip");
+
+				if (!Ip)
+					Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+				snprintf(Out, sizeof(Out), "Current VHost: %s", Ip ? Ip : "(none)");
+				m_Owner->Notice(Out);
+			} else {
+				m_Owner->GetConfig()->WriteString("user.ip", argv[1]);
+				m_Owner->Notice("Done. Use JUMP to activate the new VHost.");
+			}
+
+			return false;
+		} else if (strcmpi(Command, "gvhost") == 0 && m_Owner->IsAdmin()) {
+			if (argc < 2) {
+				const char* Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+				snprintf(Out, sizeof(Out), "Current global VHost: %s", Ip ? Ip : "(none)");
+				m_Owner->Notice(Out);
+			} else {
+				g_Bouncer->GetConfig()->WriteString("system.ip", argv[1]);
+				m_Owner->Notice("Done.");
+			}
+
+			return false;
+		} else if (strcmpi(Command, "bmotd") == 0) {
+			if (argc < 2) {
+				const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
+
+				snprintf(Out, sizeof(Out), "Current MOTD: %s", Motd ? Motd : "(none)");
+				m_Owner->Notice(Out);
+			} else if (m_Owner->IsAdmin()) {
+				g_Bouncer->GetConfig()->WriteString("system.motd", argv[1]);
+				m_Owner->Notice("Done.");
+			}
+
+			return false;
+		} else if (strcmpi(Command, "setaway") == 0) {
+			if (argc < 2) {
+				const char* Away = m_Owner->GetConfig()->ReadString("user.away");
+
+				snprintf(Out, sizeof(Out), "Current away reason: %s", Away ? Away : "(none)");
+				m_Owner->Notice(Out);
+			} else {
+				m_Owner->GetConfig()->WriteString("user.away", argv[1]);
+				m_Owner->Notice("Done.");
+			}
 
 			return false;
 		}

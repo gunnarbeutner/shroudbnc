@@ -32,6 +32,7 @@ int strcmpi(const char* a, const char* b);
 #define wsprintf sprintf
 #define INVALID_SOCKET (-1)
 #define MAX_SOCKETS 1024
+#define ioctlsocket ioctl
 
 typedef void* HMODULE;
 typedef int BOOL;

@@ -159,8 +159,18 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 				}
 			}
 		}
+
+		m_IRC->InternalWriteLine("AWAY");
 	} else
 		ScheduleReconnect(0);
+
+	const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
+
+	if (Motd && *Motd) {
+		snprintf(Out, sizeof(Out), "Message of the day: %s", Motd);
+		
+		Notice(Out);
+	}
 
 	if (!GetLog()->IsEmpty())
 		Notice("You have new messages. Use /PLAYPRIVATELOG to view them.");
@@ -267,7 +277,12 @@ void CBouncerUser::Reconnect(void) {
 
 	g_Bouncer->SetIdent(m_Name);
 
-	m_IRC = CreateIRCConnection(Server, Port, this);
+	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
+
+	if (!BindIp)
+		BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+	m_IRC = CreateIRCConnection(Server, Port, this, BindIp);
 
 	if (!m_IRC) {
 		Notice("Can't connect..");
@@ -276,7 +291,6 @@ void CBouncerUser::Reconnect(void) {
 	} else {
 		g_Bouncer->Log("Connected!");
 		g_Bouncer->GlobalNotice("Connected!", true);
-
 	}
 }
 
@@ -363,6 +377,11 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 
 			if (Offnick)
 				m_IRC->WriteLine("NICK %s", Offnick);
+
+			const char* Away = m_Config->ReadString("user.away");
+
+			if (Away)
+				m_IRC->WriteLine("AWAY :%s", Away);
 		}
 	}
 }

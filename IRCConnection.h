@@ -27,7 +27,8 @@
 enum connection_state_e {
 	State_Unknown,
 	State_Connecting,
-	State_Pong
+	State_Pong,
+	State_Connected
 };
 
 class CBouncerUser;

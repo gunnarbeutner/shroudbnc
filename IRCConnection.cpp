@@ -233,12 +233,16 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
 		const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
 
-		if (Chans)
+		if (Chans && *Chans)
 			WriteLine("JOIN %s", Chans);
 
-		GetOwningClient()->Notice("Connected to an IRC server.");
+		if (m_State != State_Connected) {
+			GetOwningClient()->Notice("Connected to an IRC server.");
 
-		g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());
+			g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());
+		}
+
+		m_State = State_Connected;
 	} else if (argc > 1 && strcmpi(Reply, "error") == 0) {
 		if (strstr(Raw, "throttle") != NULL)
 			GetOwningClient()->ScheduleReconnect(50);
@@ -284,13 +288,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			free(Dup);
 		}
-	} else if (argc > 5 && atoi(Raw) == 324) {
+	} else if (argc > 4 && atoi(Raw) == 324) {
 		CChannel* Chan = GetChannel(argv[3]);
 
-		Chan->ClearModes();
-
-		if (Chan)
+		if (Chan) {
+			Chan->ClearModes();
 			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
+		}
 	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
 		CChannel* Chan = GetChannel(argv[2]);
 
@@ -403,6 +407,9 @@ void CIRCConnection::ParseLine(const char* Line) {
 	if (ParseLineArgV(argc, argv)) {
 		if (strcmpi(argv[0], "ping") == 0 && argc > 1) {
 			WriteLine("PONG :%s", argv[1]);
+
+			if (m_State != State_Connected)
+				m_State = State_Pong;
 		} else {
 			CBouncerUser* User = GetOwningClient();
 
