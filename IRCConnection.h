@@ -33,6 +33,8 @@ enum connection_state_e {
 class CBouncerUser;
 class CBouncerConfig;
 class CChannel;
+class CQueue;
+class CFloodControl;
 
 class CIRCConnection : public CConnection {
 	connection_state_e m_State;
@@ -50,6 +52,11 @@ class CIRCConnection : public CConnection {
 
 	time_t m_LastBurst;
 
+	CQueue* m_QueueLow;
+	CQueue* m_QueueMiddle;
+	CQueue* m_QueueHigh;
+	CFloodControl* m_FloodControl;
+
 	void AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
@@ -61,6 +68,7 @@ public:
 
 	virtual void Write(void);
 	virtual bool HasQueuedData(void);
+	virtual void InternalWriteLine(const char* In);
 
 	virtual connection_role_e GetRole(void);
 
@@ -92,6 +100,12 @@ public:
 
 	virtual const char* GetServerVersion(void);
 	virtual const char* GetServerFeat(void);
+
+	virtual CQueue* GetQueueHigh(void);
+	virtual CQueue* GetQueueMiddle(void);
+	virtual CQueue* GetQueueLow(void);
+
+	virtual CFloodControl* GetFloodControl(void);
 };
 
 #endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)

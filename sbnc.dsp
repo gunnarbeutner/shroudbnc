@@ -115,6 +115,10 @@ SOURCE=.\Connection.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\FloodControl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\IdentSupport.cpp
 # End Source File
 # Begin Source File
@@ -128,6 +132,10 @@ SOURCE=.\Module.cpp
 # Begin Source File
 
 SOURCE=.\Nick.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Queue.cpp
 # End Source File
 # Begin Source File
 
@@ -193,6 +201,10 @@ SOURCE=.\Connection.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\FloodControl.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Hashtable.h
 # End Source File
 # Begin Source File
@@ -214,6 +226,10 @@ SOURCE=.\ModuleFar.h
 # Begin Source File
 
 SOURCE=.\Nick.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Queue.h
 # End Source File
 # Begin Source File
 

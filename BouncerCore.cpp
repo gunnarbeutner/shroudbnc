@@ -30,6 +30,8 @@
 #include "ModuleFar.h"
 #include "Module.h"
 #include "Hashtable.h"
+#include "Queue.h"
+#include "FloodControl.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -243,6 +245,9 @@ void CBouncerCore::Pulse(time_t Now) {
 	for (i = 0; i < m_UserCount; i++) {
 		if (!m_Users[i])
 			continue;
+
+		if (m_Users[i]->GetIRCConnection())
+			m_Users[i]->GetIRCConnection()->GetFloodControl()->Pulse(Now);
 
 		if (m_Users[i]->ShouldReconnect()) {
 			m_Users[i]->Reconnect();

@@ -30,6 +30,8 @@
 #include "Module.h"
 #include "Channel.h"
 #include "Nick.h"
+#include "Queue.h"
+#include "FloodControl.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -40,6 +42,11 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
+
+	m_QueueHigh = new CQueue();
+	m_QueueMiddle = new CQueue();
+	m_QueueLow = new CQueue();
+	m_FloodControl = new CFloodControl(this);
 
 	WriteLine("NICK %s", Owning->GetNick());
 	WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
@@ -61,6 +68,10 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_ISupport->WriteString("CHANMODES", "b,l,ntis");
 	m_ISupport->WriteString("CHANTYPES", "#&");
 	m_ISupport->WriteString("PREFIX", "(ohv)@%+");
+
+	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
+	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
+	m_FloodControl->AttachInputQueue(m_QueueLow, 2);
 
 	g_Bouncer->RegisterSocket(Socket, (CSocketEvents*)this);
 }
@@ -466,43 +477,29 @@ void CIRCConnection::FreeNick(char* Nick) {
 }
 
 bool CIRCConnection::HasQueuedData(void) {
-	bool queued = CConnection::HasQueuedData();
-
-	if (m_Owner->GetClientConnection())
-		return queued;
-
-	if (queued && m_LastBurst < time(NULL) - 1) {
-		m_LastBurst = time(NULL);
+	if (m_FloodControl->GetQueueSize())
 		return true;
-	} else
+	else
 		return false;
 }
 
 void CIRCConnection::Write(void) {
 	char* p = NULL;
 
-	if (m_Owner->GetClientConnection()) {
-		CConnection::Write();
-	}
+	char* Line = m_FloodControl->DequeueItem();
 
-	for (int i = 0; i < sendq_size; i++) {
-		if (sendq[i] == '\n') {
-			p = sendq + i + 1;
-			break;
-		}
-	}
+	if (!Line)
+		return;
 
-	if (p) {
-		send(m_Socket, sendq, p - sendq, 0);
+	char* Copy = (char*)malloc(strlen(Line) + 2);
+	snprintf(Copy, strlen(Line) + 3, "%s\n", Line);
 
-		char* copy = (char*)malloc(sendq_size - (p - sendq));
-		memcpy(copy, p, sendq_size - (p - sendq));
+	printf("%d bytes sent\n", m_FloodControl->GetBytes());
 
-		free(sendq);
-		sendq_size -= (p - sendq);
-		sendq = copy;
-	} else
-		CConnection::Write();
+	send(m_Socket, Copy, strlen(Copy), 0);
+
+	free(Copy);
+	free(Line);
 }
 
 const char* CIRCConnection::GetISupport(const char* Feature) {
@@ -630,4 +627,24 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	}
 
 	free(Copy);
+}
+
+CFloodControl* CIRCConnection::GetFloodControl(void) {
+	return m_FloodControl;
+}
+
+void CIRCConnection::InternalWriteLine(const char* In) {
+	m_QueueMiddle->QueueItem(In);
+}
+
+CQueue* CIRCConnection::GetQueueHigh(void) {
+	return m_QueueHigh;
+}
+
+CQueue* CIRCConnection::GetQueueMiddle(void) {
+	return m_QueueMiddle;
+}
+
+CQueue* CIRCConnection::GetQueueLow(void) {
+	return m_QueueLow;
 }
