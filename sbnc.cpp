@@ -28,6 +28,7 @@
 #include "BouncerCore.h"
 #include "ModuleFar.h"
 #include "Module.h"
+#include "Hashtable.h"
 #include "utility.h"
 
 CBouncerCore* g_Bouncer;

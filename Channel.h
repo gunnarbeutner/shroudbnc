@@ -31,7 +31,8 @@ typedef struct chanmode_s {
 	char* Parameter;
 } chanmode_t;
 
-class CBouncerConfig;
+class CNick;
+template <typename value_type, bool casesensitive = false> class CHashtable;
 
 class CChannel {
 	char* m_Name;
@@ -47,7 +48,8 @@ class CChannel {
 
 	time_t m_Creation;
 
-	CBouncerConfig* m_Nicks;
+	CHashtable<CNick*>* m_Nicks;
+
 	bool m_HasNames;
 
 	CIRCConnection* m_Owner;
@@ -79,14 +81,12 @@ public:
 	virtual void SetNoTopic(void);
 
 	virtual void AddUser(const char* Nick, const char* ModeChar);
-	virtual void AddUserFlag(const char* Nick, const char ModeChar);
 	virtual void RemoveUser(const char* Nick);
-	virtual void RemoveUserFlag(const char* Nick, const char ModeChar);
 	virtual char GetHighestUserFlag(const char* ModeChars);
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CBouncerConfig* GetNames(void);
+	virtual CHashtable<CNick*>* GetNames(void);
 };
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

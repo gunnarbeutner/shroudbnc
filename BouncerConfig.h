@@ -20,9 +20,15 @@
 #if !defined(AFX_BOUNCERCONFIG_H__573EF68F_20D5_46A3_AE5D_311447241847__INCLUDED_)
 #define AFX_BOUNCERCONFIG_H__573EF68F_20D5_46A3_AE5D_311447241847__INCLUDED_
 
+#ifndef AFX_HASHTABLE_H__FA383811_CE36_4970_9236_9F1EAECC6998__INCLUDED_
+#include "Hashtable.h"
+#endif
+
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
+
+template <typename value_type, bool casesensitive = false> class CHashtable;
 
 typedef struct config_s {
 	char* Name;
@@ -30,26 +36,24 @@ typedef struct config_s {
 } config_t;
 
 class CBouncerConfig {
-	config_t* m_Settings;
-	int m_SettingsCount;
+	CHashtable<char*>* m_Settings;
+
 	char* m_File;
 	bool m_WriteLock;
 
 	void ParseConfig(const char* Filename);
-	config_t* FindSetting(const char* Setting);
-	config_t* NewConfigT(const char* Setting);
 	void Persist(void);
 public:
 	CBouncerConfig(const char* Filename);
 	virtual ~CBouncerConfig();
 
-	virtual void ReadInteger(const char* Setting, int* Out);
-	virtual void ReadString(const char* Setting, char** Out);
+	virtual int ReadInteger(const char* Setting);
+	virtual const char* ReadString(const char* Setting);
 
 	virtual void WriteInteger(const char* Setting, const int Value);
 	virtual void WriteString(const char* Setting, const char* Value);
 
-	virtual config_t* GetSettings(void);
+	virtual hash_t<char*>* GetSettings(void);
 	virtual int GetSettingCount(void);
 
 	virtual const char* GetFilename(void);

@@ -19,6 +19,9 @@
 
 char* LastArg(char* Args);
 
+class CIRCConnection;
+class CBouncerUser;
+
 const char* ArgParseServerLine(const char* Data);
 const char* ArgTokenize(const char* Data);
 const char** ArgToArray(const char* Args);
@@ -32,3 +35,4 @@ CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBoun
 SOCKET CreateListener(unsigned short Port);
 
 char* NickFromHostmask(const char* Hostmask);
+void string_free(char* string);

@@ -29,6 +29,7 @@
 #include "IdentSupport.h"
 #include "ModuleFar.h"
 #include "Module.h"
+#include "Hashtable.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -49,8 +50,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 
 	m_Ident = new CIdentSupport();
 
-	char* Users;
-	Config->ReadString("system.users", &Users);
+	const char* Users = Config->ReadString("system.users");
 
 	const char* Args = ArgTokenize(Users);
 	int Count = ArgCount(Args);
@@ -80,8 +80,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	while (true) {
 		snprintf(Out, sizeof(Out), "system.modules.mod%d", i++);
 
-		char* File;
-		m_Config->ReadString(Out, &File);
+		const char* File = m_Config->ReadString(Out);
 
 		if (File)
 			LoadModule(File);
@@ -99,8 +98,7 @@ CBouncerCore::~CBouncerCore() {
 }
 
 void CBouncerCore::StartMainLoop() {
-	int Port;
-	m_Config->ReadInteger("system.port", &Port);
+	int Port = m_Config->ReadInteger("system.port");
 
 	if (Port == 0)
 		Port = 9000;
@@ -461,4 +459,12 @@ void CBouncerCore::UpdateUserConfig(void) {
 	}
 
 	m_Config->WriteString("system.users", Out);
+}
+
+CHashtable<char*>* CBouncerCore::CreateStringTable(void) {
+	return new CHashtable<char*>;
+}
+
+CHashtable<void*>* CBouncerCore::CreateGenericTable(void) {
+	return new CHashtable<void*>;
 }

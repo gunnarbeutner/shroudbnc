@@ -18,16 +18,19 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "BouncerConfig.h"
+#include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 CBouncerConfig::CBouncerConfig(const char* Filename) {
-	m_Settings = NULL;
-	m_SettingsCount = 0;
 	m_WriteLock = false;
+	m_Settings = new CHashtable<char*>;
+
+	m_Settings->RegisterValueDestructor(string_free);
 
 	if (Filename) {
 		m_File = strdup(Filename);
@@ -60,7 +63,7 @@ void CBouncerConfig::ParseConfig(const char* Filename) {
 		if (Eq) {
 			*Eq = '\0';
 
-			WriteString(Line, ++Eq);
+			m_Settings->Add(Line, strdup(++Eq));
 		}
 	}
 
@@ -70,35 +73,21 @@ void CBouncerConfig::ParseConfig(const char* Filename) {
 }
 
 CBouncerConfig::~CBouncerConfig() {
-	for (int i = 0; i < m_SettingsCount; i++) {
-		free(m_Settings[i].Name);
-		free(m_Settings[i].Value);
-	}
-
-	free(m_Settings);
+	delete m_Settings;
 	free(m_File);
 }
 
-void CBouncerConfig::ReadString(const char* Setting, char** Out) {
-	config_t* Ptr = FindSetting(Setting);
-
-	if (Ptr)
-		*Out = Ptr->Value;
-	else
-		*Out = NULL;
+const char* CBouncerConfig::ReadString(const char* Setting) {
+	return m_Settings->Get(Setting);
 }
 
-void CBouncerConfig::ReadInteger(const char* Setting, int* Out) {
-	config_t* Ptr = FindSetting(Setting);
+int CBouncerConfig::ReadInteger(const char* Setting) {
+	const char* Value = m_Settings->Get(Setting);
 
-	if (!Ptr) {
-		*Out = 0;
-		return;
-	}
-
-	char* Val = Ptr->Value;
-
-	*Out = atoi(Val);
+	if (Value)
+		return atoi(Value);
+	else
+		return 0;
 }
 
 void CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
@@ -110,46 +99,19 @@ void CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
 }
 
 void CBouncerConfig::WriteString(const char* Setting, const char* Value) {
-	config_t* Ptr;
-
-	Ptr = FindSetting(Setting);
-
-	if (!Ptr)
-		Ptr = NewConfigT(Setting);
-	else
-		strcpy(Ptr->Name, Setting);
-
-	free(Ptr->Value);
-
 	if (Value)
-		Ptr->Value = strdup(Value);
+		m_Settings->Add(Setting, strdup(Value));
 	else {
-		Ptr->Name = NULL;
-		Ptr->Value = NULL;
+		char* Data = m_Settings->Get(Setting);
+
+		if (Data)
+			free(Data);
+
+		m_Settings->Remove(Setting);
 	}
 
 	if (!m_WriteLock)
 		Persist();
-}
-
-config_t* CBouncerConfig::FindSetting(const char* Setting) {
-	for (int i = 0; i < m_SettingsCount; i++) {
-		if (m_Settings[i].Name && strcmpi(m_Settings[i].Name, Setting) == 0) {
-			return &m_Settings[i];
-		}
-	}
-
-	return NULL;
-}
-
-config_t* CBouncerConfig::NewConfigT(const char* Setting) {
-	m_Settings = (config_t*)realloc(m_Settings, sizeof(config_t) * ++m_SettingsCount);
-
-	m_Settings[m_SettingsCount - 1].Name = (char*)malloc(strlen(Setting) + 1);
-	strcpy(m_Settings[m_SettingsCount - 1].Name, Setting);
-	m_Settings[m_SettingsCount - 1].Value = NULL;
-
-	return &m_Settings[m_SettingsCount - 1];
 }
 
 void CBouncerConfig::Persist(void) {
@@ -159,9 +121,10 @@ void CBouncerConfig::Persist(void) {
 	FILE* Config = fopen(m_File, "w");
 
 	if (Config) {
-		for (int i = 0; i < m_SettingsCount; i++) {
-			if (m_Settings[i].Name && m_Settings[i].Value) {
-				fprintf(Config, "%s=%s\n", m_Settings[i].Name, m_Settings[i].Value);
+		int i = 0;
+		while (hash_t<char*>* P = m_Settings->Iterate(i++)) {
+			if (P->Name && P->Value) {
+				fprintf(Config, "%s=%s\n", P->Name, P->Value);
 			}
 		}
 
@@ -174,10 +137,10 @@ const char* CBouncerConfig::GetFilename(void) {
 	return m_File;
 }
 
-config_t* CBouncerConfig::GetSettings(void) {
-	return m_Settings;
+hash_t<char*>* CBouncerConfig::GetSettings(void) {
+	return m_Settings->GetInnerData();
 }
 
 int CBouncerConfig::GetSettingCount(void) {
-	return m_SettingsCount;
+	return m_Settings->GetInnerDataCount();
 }

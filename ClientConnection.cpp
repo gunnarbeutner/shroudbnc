@@ -29,6 +29,8 @@
 #include "ModuleFar.h"
 #include "Module.h"
 #include "Channel.h"
+#include "Hashtable.h"
+#include "Nick.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -514,16 +516,15 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
-						config_t* Names = Chan->GetNames()->GetSettings();
+						CHashtable<CNick*>* H = Chan->GetNames();
 
 						int a = 0;
 
-						for (int i = 0; i < Chan->GetNames()->GetSettingCount(); i++) {
-							if (!Names[i].Name || !Names[i].Value)
-								continue;
+						while (hash_t<CNick*>* NickHash = H->Iterate(a++)) {
+							CNick* NickObj = NickHash->Value;
 
-							char* Prefix = Names[i].Value;
-							char* Nick = Names[i].Name;
+							const char* Prefix = NickObj->GetPrefixes();
+							const char* Nick = NickObj->GetNick();
 
 							char outPref[2] = { Chan->GetHighestUserFlag(Prefix), '\0' };
 
@@ -537,7 +538,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 							strcat(Nicks, Nick);
 
-							if (++a == 40) {
+							if (a == 40) {
 								WriteLine(":%s 353 %s @ %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 
 								Nicks = (char*)realloc(Nicks, 1);
@@ -567,7 +568,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					if (ServerVersion != NULL && ServerFeat != NULL) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
 
-						config_t* Features = IRC->GetISupportAll()->GetSettings();
+						hash_t<char*>* Features = IRC->GetISupportAll()->GetSettings();
 						int FeatureCount = IRC->GetISupportAll()->GetSettingCount();
 
 						char* Feats = (char*)malloc(1);

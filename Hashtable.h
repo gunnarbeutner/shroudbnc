@@ -30,7 +30,7 @@ template <typename value_type> struct hash_t {
 	value_type Value;
 };
 
-template <typename value_type> class CHashtable {
+template <typename value_type, bool casesensitive = false> class CHashtable {
 	typedef void (DestroyValue)(value_type P);
 
 	hash_t<value_type>* m_Pairs;
@@ -52,10 +52,17 @@ public:
 		for (int i = 0; i < m_PairCount; i++) {
 			if (!m_Pairs[i].Valid) {
 				m_Pairs[i].Name = strdup(Name);
+
+				if (m_DestructorFunc)
+					m_DestructorFunc(m_Pairs[i].Value);
+
 				m_Pairs[i].Value = Value;
 
 				return;
-			} else if (strcmp(m_Pairs[i].Name, Name) == 0) {
+			} else if ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0)) {
+				if (m_DestructorFunc)
+					m_DestructorFunc(m_Pairs[i].Value);
+
 				m_Pairs[i].Value = Value;
 
 				return;
@@ -71,9 +78,12 @@ public:
 
 	virtual void Remove(const char* Name) {
 		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid && strcmp(m_Pairs[i].Name, Name) == 0) {
+			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
 				free(m_Pairs[i].Name);
 				m_Pairs[i].Valid = false;
+
+				if (m_DestructorFunc)
+					m_DestructorFunc(m_Pairs[i].Value);
 
 				return;
 			}
@@ -83,7 +93,7 @@ public:
 
 	virtual value_type Get(const char* Name) {
 		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid && strcmp(m_Pairs[i].Name, Name) == 0) {
+			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
 				return m_Pairs[i].Value;
 			}
 		}
@@ -95,11 +105,11 @@ public:
 		int a = 0;
 
 		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid)
-				a++;
-
 			if (a == Index)
 				return &m_Pairs[i];
+
+			if (m_Pairs[i].Valid)
+				a++;
 		}
 
 		return NULL;

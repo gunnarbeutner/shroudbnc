@@ -24,6 +24,8 @@
 #include "ClientConnection.h"
 #include "IRCConnection.h"
 #include "BouncerConfig.h"
+#include "Hashtable.h"
+#include "Nick.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -39,7 +41,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CBouncerConfig(NULL);
+	m_Nicks = new CHashtable<CNick*>();
 	m_HasNames = false;
 }
 
@@ -97,10 +99,14 @@ void CChannel::ParseModeChange(const char* modes, int pargc, const char** pargv)
 		} else if (m_Owner->IsNickMode(Cur)) {
 			puts(pargv[p]);
 
-			if (flip)
-				AddUserFlag(pargv[p], m_Owner->PrefixForChanMode(Cur));
-			else
-				RemoveUserFlag(pargv[p], m_Owner->PrefixForChanMode(Cur));
+			CNick* P = m_Nicks->Get(pargv[p]);
+
+			if (P) {
+				if (flip)
+					P->AddPrefix(m_Owner->PrefixForChanMode(Cur));
+				else
+					P->RemovePrefix(m_Owner->PrefixForChanMode(Cur));
+			}
 
 			p++;
 
@@ -199,49 +205,20 @@ void CChannel::SetNoTopic(void) {
 }
 
 void CChannel::AddUser(const char* Nick, const char* ModeChars) {
-	m_Nicks->WriteString(Nick, ModeChars && *ModeChars ? ModeChars : "");
-}
+	CNick* N = new CNick(Nick);
 
-void CChannel::AddUserFlag(const char* Nick, const char ModeChar) {
-	char* Modes;
+	N->SetPrefixes(ModeChars);
 
-	m_Nicks->ReadString(Nick, &Modes);
-
-	char* New = (char*)malloc(strlen(Modes) + 2);
-	strcpy(New, Modes);
-
-	New[strlen(Modes)] = ModeChar;
-	New[strlen(Modes) + 1] = '\0';
-
-	AddUser(Nick, New);
-
-	free(New);
+	m_Nicks->Add(Nick, N);
 }
 
 void CChannel::RemoveUser(const char* Nick) {
-	m_Nicks->WriteString(Nick, NULL);
-}
-
-void CChannel::RemoveUserFlag(const char* Nick, const char ModeChar) {
-	char* Modes;
-
-	m_Nicks->ReadString(Nick, &Modes);
-
-	char* New = (char*)malloc(strlen(Modes) + 1);
-
-	for (unsigned int i = 0, a = 0; i <= strlen(Modes); i++) {
-		if (Modes[i] != ModeChar)
-			New[a++] = Modes[i];
-	}
-
-	AddUser(Nick, New);
-
-	free(New);
+	m_Nicks->Remove(Nick);
 }
 
 char CChannel::GetHighestUserFlag(const char* ModeChars) {
 	bool flip = false;
-	char* Prefixes = m_Owner->GetISupport("PREFIX");
+	const char* Prefixes = m_Owner->GetISupport("PREFIX");
 
 	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
 		if (!flip) {
@@ -266,6 +243,6 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CBouncerConfig* CChannel::GetNames(void) {
+CHashtable<CNick*>* CChannel::GetNames(void) {
 	return m_Nicks;
 }

@@ -171,20 +171,18 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		for (int i = 0; i < m_ChannelCount; i++) {
 			if (m_Channels[i]) {
-				char* Prefix;
-				CBouncerConfig* Nicks = m_Channels[i]->GetNames();
+				CHashtable<CNick*>* Nicks = m_Channels[i]->GetNames();
 
-				Nicks->ReadString(Nick, &Prefix);
+				CNick* NickObj;
 
-				if (Prefix) {
-					Prefix = strdup(Prefix);
-					Nicks->WriteString(argv[2], Prefix);
-					free(Prefix);
+				NickObj = Nicks->Get(argv[2]);
 
+				if (NickObj) {
+					Nicks->Add(argv[2], NickObj);
+
+					if (strcmpi(Nick, argv[2]) != 0)
+						Nicks->Remove(Nick);
 				}
-
-				if (strcmpi(Nick, argv[2]) != 0)
-					Nicks->WriteString(Nick, NULL);
 			}
 		}
 
@@ -193,18 +191,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		Nick = NickFromHostmask(argv[0]);
 
 		for (int i = 0; i < m_ChannelCount; i++) {
-			if (m_Channels[i]) {
-				CBouncerConfig* Nicks = m_Channels[i]->GetNames();
-
-				Nicks->WriteString(Nick, NULL);
-			}
+			if (m_Channels[i])
+				m_Channels[i]->GetNames()->Remove(Nick);
 		}
 
 		free(Nick);
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
-		char* Chans;
-
-		GetOwningClient()->GetConfig()->ReadString("user.channels", &Chans);
+		const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
 
 		if (Chans)
 			WriteLine("JOIN %s", Chans);
@@ -463,22 +456,20 @@ void CIRCConnection::Write(void) {
 		CConnection::Write();
 }
 
-char* CIRCConnection::GetISupport(const char* Feature) {
-	char* Val;
-
-	m_ISupport->ReadString(Feature, &Val);
+const char* CIRCConnection::GetISupport(const char* Feature) {
+	const char* Val = m_ISupport->ReadString(Feature);
 
 	return Val;
 }
 
 bool CIRCConnection::IsChanMode(char Mode) {
-	char* Modes = GetISupport("CHANMODES");
+	const char* Modes = GetISupport("CHANMODES");
 
 	return strchr(Modes, Mode) != NULL;
 }
 
 bool CIRCConnection::RequiresParameter(char	Mode) {
-	char* Modes = GetISupport("CHANMODES");
+	const char* Modes = GetISupport("CHANMODES");
 	char* p = strchr(Modes, Mode);
 
 	if (p) {

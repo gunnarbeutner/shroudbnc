@@ -29,6 +29,7 @@
 #include "../Channel.h"
 #include "../BouncerUser.h"
 #include "../BouncerConfig.h"
+#include "../Nick.h"
 
 static char* g_Context = NULL;
 
@@ -46,13 +47,8 @@ extern const char* getuser(const char* Option) {
 
 	if (!User)
 		return NULL;
-	else {
-		char* Out;
-		
-		User->GetConfig()->ReadString(Option, &Out);
-
-		return Out;
-	}
+	else
+		return User->GetConfig()->ReadString(Option);
 }
 
 extern int setuser(const char* Option, const char* Value) {
@@ -281,9 +277,7 @@ extern const char* channel(const char* Function, const char* Channel, const char
 			if (!Chan)
 				return "-1";
 			else {
-				char* Nick;
-				
-				Chan->GetNames()->ReadString(Parameter, &Nick);
+				CNick* Nick = Chan->GetNames()->Get(Parameter);
 
 				if (Nick)
 					return "1";
@@ -344,37 +338,36 @@ extern const char* channel(const char* Function, const char* Channel, const char
 		NickList = (char*)realloc(NickList, 1);
 		NickList[0] = '\0';
 
-		CBouncerConfig* Names = Chan->GetNames();
-		int Count = Names->GetSettingCount();
-		config_t* Nicks = Names->GetSettings();
+		CHashtable<CNick*>* Names = Chan->GetNames();
 
-		for (int i = 0; i < Count; i++) {
-			if (Nicks[i].Name && Nicks[i].Value) {
-				const char* Nick = Nicks[i].Name;
-				NickList = (char*)realloc(NickList, strlen(NickList) + strlen(Nick) + 4);
-				if (*NickList)
-					strcat(NickList, " ");
+		int a = 0;
 
-				strcat(NickList, "{");
-				strcat(NickList, Nick);
-				strcat(NickList, "}");
-			}
+		while (hash_t<CNick*>* NickHash = Names->Iterate(a++)) {
+			const char* Nick = NickHash->Value->GetNick();
+			NickList = (char*)realloc(NickList, strlen(NickList) + strlen(Nick) + 4);
+			if (*NickList)
+				strcat(NickList, " ");
+
+			strcat(NickList, "{");
+			strcat(NickList, Nick);
+			strcat(NickList, "}");
 		}
 
 		return NickList;
 	}
 
 	if (strcmpi(Function, "prefix") == 0) {
-		char* Prefixes;
-
-		Chan->GetNames()->ReadString(Parameter, &Prefixes);
+		CNick* Nick = Chan->GetNames()->Get(Parameter);
 
 		static char outPref[2];
 
-		outPref[0] = Chan->GetHighestUserFlag(Prefixes);
-		outPref[1] = '\0';
+		if (Nick) {
+			outPref[0] = Chan->GetHighestUserFlag(Nick->GetPrefixes());
+			outPref[1] = '\0';
 
-		return outPref;
+			return outPref;
+		} else
+			return "-1";
 	}
 
 	return "Function should be one of: ison join part mode topic topicnick topicstamp hastopic hasnames modes nicks prefix";
@@ -508,14 +501,10 @@ extern const char* user(const char* Function, const char* User, const char* Para
 	}
 
 	if (strcmpi(Function, "get") == 0) {
-		char* Out;
-
 		if (!Parameter)
 			return "-1";
-		else {
-			Context->GetConfig()->ReadString(Parameter, &Out);
-			return Out;
-		}
+		else
+			return Context->GetConfig()->ReadString(Parameter);
 	}
 
 	if (strcmpi(Function, "log") == 0) {

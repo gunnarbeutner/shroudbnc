@@ -78,7 +78,7 @@ public:
 	virtual void FreeNick(char* Nick);
 
 	virtual CBouncerConfig* GetISupportAll(void);
-	virtual char* GetISupport(const char* Feature);
+	virtual const char* GetISupport(const char* Feature);
 	virtual bool IsChanMode(char Mode);
 	virtual bool RequiresParameter(char Mode);
 

@@ -262,5 +262,9 @@ SOCKET CreateListener(unsigned short Port) {
 	}
 
 	return Listener;
+
 }
 
+void string_free(char* string) {
+	free(string);
+}

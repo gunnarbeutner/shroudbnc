@@ -127,6 +127,10 @@ SOURCE=.\Module.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Nick.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\sbnc.conf
 # End Source File
 # Begin Source File
@@ -202,6 +206,10 @@ SOURCE=.\Module.h
 # Begin Source File
 
 SOURCE=.\ModuleFar.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Nick.h
 # End Source File
 # Begin Source File
 

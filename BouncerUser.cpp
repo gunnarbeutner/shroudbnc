@@ -143,8 +143,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 }
 
 bool CBouncerUser::Validate(const char* Password) {
-	char* RealPass;
-	m_Config->ReadString("user.password", &RealPass);
+	const char* RealPass = m_Config->ReadString("user.password");
 
 	if (!RealPass || strlen(RealPass) == 0)
 		return false;
@@ -158,8 +157,7 @@ const char* CBouncerUser::GetNick(void) {
 	else if (m_IRC && m_IRC->GetCurrentNick())
 		return m_IRC->GetCurrentNick();
 	else {
-		char* Out;
-		m_Config->ReadString("user.nick", &Out);
+		const char* Out = m_Config->ReadString("user.nick");
 
 		if (!Out)
 			return m_Name;
@@ -173,9 +171,7 @@ const char* CBouncerUser::GetUsername(void) {
 }
 
 const char* CBouncerUser::GetRealname(void) {
-	char* Out;
-
-	m_Config->ReadString("user.realname", &Out);
+	const char* Out = m_Config->ReadString("user.realname");
 
 	if (!Out)
 		return "shroudBNC User";
@@ -216,11 +212,9 @@ void CBouncerUser::Reconnect(void) {
 	}
 
 	char Out[1024];
-	char* Server;
-	int Port;
 
-	m_Config->ReadString("user.server", &Server);
-	m_Config->ReadInteger("user.port", &Port);
+	const char* Server = m_Config->ReadString("user.server");
+	int Port = m_Config->ReadInteger("user.port");
 
 	if (!Server || !Port) {
 		snprintf(Out, sizeof(Out), "%s has no default server. Can't (re)connect.", m_Name);
@@ -328,9 +322,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 		g_Bouncer->GlobalNotice(Out, true);
 
 		if (m_IRC) {
-			char* Offnick;
-
-			m_Config->ReadString("user.awaynick", &Offnick);
+			const char* Offnick = m_Config->ReadString("user.awaynick");
 
 			if (Offnick)
 				m_IRC->WriteLine("NICK %s", Offnick);
@@ -343,9 +335,7 @@ void CBouncerUser::SetAdmin(bool Admin) {
 }
 
 bool CBouncerUser::IsAdmin(void) {
-	int Admin;
-
-	m_Config->ReadInteger("user.admin", &Admin);
+	int Admin = m_Config->ReadInteger("user.admin");
 
 	return Admin != 0;
 }
@@ -361,9 +351,7 @@ void CBouncerUser::SetServer(const char* Server) {
 }
 
 const char* CBouncerUser::GetServer(void) {
-	char* Ptr;
-
-	m_Config->ReadString("user.server", &Ptr);
+	const char* Ptr = m_Config->ReadString("user.server");
 
 	return Ptr;
 }
@@ -374,9 +362,7 @@ void CBouncerUser::SetPort(int Port) {
 }
 
 int CBouncerUser::GetPort(void) {
-	int Port;
-
-	m_Config->ReadInteger("user.port", &Port);
+	int Port = m_Config->ReadInteger("user.port");
 
 	return Port;
 }
