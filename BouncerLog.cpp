@@ -70,6 +70,7 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 		snprintf(Out, sizeof(Out), "%s %s\n", strNow, Line);
 
 		fputs(Out, Log);
+		printf("%s", Out);
 
 		fclose(Log);
 	}

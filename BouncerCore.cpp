@@ -123,8 +123,10 @@ CBouncerCore::~CBouncerCore() {
 	free(m_Modules);
 
 	for (int c = 0; c < m_OtherSocketCount; c++) {
-		if (m_OtherSockets[c].Socket != INVALID_SOCKET)
+		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
+			closesocket(m_OtherSockets[c].Socket);
+		}
 	}
 
 	free(m_OtherSockets);
@@ -174,13 +176,26 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 		Daemonize();
 
 	m_Running = true;
+	int m_ShutdownLoop = 5;
 
-	while (m_Running) {
+	while (m_Running || --m_ShutdownLoop) {
 		FD_ZERO(&FDRead);
 		FD_SET(m_Listener, &FDRead);
 
 		FD_ZERO(&FDWrite);
 		//FD_ZERO(&FDError);
+
+		if (!m_Running) {
+			for (int i = 0; i < m_UserCount; i++) {
+				CIRCConnection* IRC;
+
+				if (m_Users[i] && (IRC = m_Users[i]->GetIRCConnection()) && !IRC->IsLocked()) {
+					Log("Closing connection for %s", m_Users[i]->GetUsername());
+					IRC->InternalWriteLine("QUIT :Shutting down.");
+					IRC->Lock();
+				}
+			}
+		}
 
 		int i;
 
@@ -269,7 +284,7 @@ void CBouncerCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote) {
 	// destruction is controlled by the main loop
 	new CClientConnection(Client, Remote);
 
-	puts("bouncer client connecting...");
+	Log("Bouncer client connected...");
 }
 
 CBouncerUser* CBouncerCore::GetUser(const char* Name) {
@@ -434,7 +449,6 @@ void CBouncerCore::Log(const char* Format, ...) {
 	va_end(marker);
 
 	m_Log->InternalWriteLine(Out);
-	puts(Out);
 }
 
 CBouncerConfig* CBouncerCore::GetConfig(void) {
@@ -446,6 +460,9 @@ CBouncerLog* CBouncerCore::GetLog(void) {
 }
 
 void CBouncerCore::Shutdown(void) {
+	g_Bouncer->GlobalNotice("Shutdown requested.");
+	g_Bouncer->Log("Shutdown requested.");
+
 	m_Running = false;
 }
 
@@ -530,7 +547,7 @@ bool CBouncerCore::Daemonize(void) {
 
 	pid=fork();
 	if (pid==-1) {
-		puts("fork() returned -1 (failure)");
+		Log("fork() returned -1 (failure)");
 		return false;
 	}
 

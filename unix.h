@@ -23,7 +23,6 @@ void Socket_Init(void);
 void Socket_Final(void);
 
 typedef int SOCKET;
-typedef __sighandler_t sighandler_t;
 
 int strcmpi(const char* a, const char* b);
 

@@ -35,6 +35,8 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 
 	recvq = NULL;
 	recvq_size = 0;
+
+	m_Locked = false;
 }
 
 CConnection::~CConnection() {
@@ -138,6 +140,9 @@ bool CConnection::ReadLine(char** Out) {
 }
 
 void CConnection::InternalWriteLine(const char* In) {
+	if (m_Locked)
+		return;
+
 	sendq_size += strlen(In) + 2;
 	sendq = (char*)realloc(sendq, sendq_size);
 	memcpy(sendq + sendq_size - (strlen(In) + 2), In, strlen(In));
@@ -199,4 +204,12 @@ void CConnection::Error(void) {
 
 void CConnection::Destroy(void) {
 	delete this;
+}
+
+void CConnection::Lock(void) {
+	m_Locked = true;
+}
+
+bool CConnection::IsLocked(void) {
+	return m_Locked;
 }

@@ -1255,7 +1255,7 @@ static swig_type_info *swig_types[3];
 #define SWIG_init    Bnc_Init
 #define SWIG_name    "bnc"
 #define SWIG_prefix  ""
-#define SWIG_version "0.3"
+#define SWIG_version "0.4"
 
 
 #ifdef __cplusplus

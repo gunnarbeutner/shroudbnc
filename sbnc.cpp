@@ -31,11 +31,14 @@
 #include "Hashtable.h"
 #include "utility.h"
 
+typedef __sighandler_t sighandler_t;
+
 CBouncerCore* g_Bouncer;
 
 #ifndef _WIN32
 void sigint_handler(int code) {
-	puts("SIGINT received.");
+	g_Bouncer->Log("SIGINT received.");
+	g_Bouncer->GlobalNotice("SIGINT received.", true);
 
 	g_Bouncer->Shutdown();
 }
@@ -62,8 +65,6 @@ int main(int argc, char* argv[]) {
 	delete Config;
 
 	Socket_Final();
-
-	puts("Shutting down...");
 
 	return 0;
 }

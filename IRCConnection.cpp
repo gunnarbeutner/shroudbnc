@@ -687,7 +687,8 @@ CFloodControl* CIRCConnection::GetFloodControl(void) {
 }
 
 void CIRCConnection::InternalWriteLine(const char* In) {
-	m_QueueMiddle->QueueItem(In);
+	if (!m_Locked)
+		m_QueueMiddle->QueueItem(In);
 }
 
 CQueue* CIRCConnection::GetQueueHigh(void) {

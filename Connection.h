@@ -61,6 +61,9 @@ public:
 
 	virtual bool Read(void);
 	virtual void Write(void);
+
+	virtual void Lock(void);
+	virtual bool IsLocked(void);
 protected:
 	virtual void ParseLine(const char* Line);
 
@@ -73,6 +76,8 @@ protected:
 
 	char* recvq;
 	int recvq_size;
+
+	bool m_Locked;
 };
 
 #endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)
