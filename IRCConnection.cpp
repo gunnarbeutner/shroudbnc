@@ -493,6 +493,9 @@ bool CIRCConnection::RequiresParameter(char	Mode) {
 }
 
 CChannel* CIRCConnection::GetChannel(const char* Name) {
+	if (!Name)
+		return NULL;
+
 	for (int i = 0; i < m_ChannelCount; i++) {
 		if (m_Channels[i] && strcmpi(m_Channels[i]->GetName(), Name) == 0)
 			return m_Channels[i];
