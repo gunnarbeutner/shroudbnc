@@ -119,7 +119,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 
-			m_IRC->ParseLine("VERSION");
+			m_Client->ParseLine("VERSION");
 
 			CChannel** Chans = m_IRC->GetChannels();
 			int Count = m_IRC->GetChannelCount();
