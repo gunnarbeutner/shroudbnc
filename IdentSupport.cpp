@@ -30,15 +30,22 @@ CIdentSupport::CIdentSupport(void) {
 
 void CIdentSupport::SetIdent(const char* Ident) {
 #ifndef _WIN32
-	FILE* identConfig = fopen("~/.oidentd.conf", "w");
+	char Out[1024];
+	char* homedir = getenv("HOME");
 
-	if (identConfig) {
-		char Out[1024];
+	if (homedir) {
+		snprintf(Out, sizeof(Out); "%s/.oidentd.conf");
 
-		snprintf(Out, sizeof(Out), "global { reply \"%s\" }", Ident);
-		fputs(Out, identConfig);
+		FILE* identConfig = fopen(Out, "w");
 
-		fclose(identConfig);
+		if (identConfig) {
+			char Out[1024];
+
+			snprintf(Out, sizeof(Out), "global { reply \"%s\" }", Ident);
+			fputs(Out, identConfig);
+
+			fclose(identConfig);
+		}
 	}
 #endif
 
