@@ -117,7 +117,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		if (IrcNick) {
 			Client->WriteLine(":%s!ident@sbnc NICK :%s", Client->GetNick(), IrcNick);
 
-			if (strcmpi(Client->GetNick(), IrcNick) != 0)
+			if (strcmp(Client->GetNick(), IrcNick) != 0)
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
