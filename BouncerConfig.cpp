@@ -101,14 +101,8 @@ void CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
 void CBouncerConfig::WriteString(const char* Setting, const char* Value) {
 	if (Value)
 		m_Settings->Add(Setting, strdup(Value));
-	else {
-		char* Data = m_Settings->Get(Setting);
-
-		if (Data)
-			free(Data);
-
+	else
 		m_Settings->Remove(Setting);
-	}
 
 	if (!m_WriteLock)
 		Persist();

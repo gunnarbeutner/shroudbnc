@@ -1276,47 +1276,38 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 
 #include "tickleProcs.h"
 
+
+#define  SWIG_MemoryError    1
+#define  SWIG_IOError        2
+#define  SWIG_RuntimeError   3
+#define  SWIG_IndexError     4
+#define  SWIG_TypeError      5
+#define  SWIG_DivisionByZero 6
+#define  SWIG_OverflowError  7
+#define  SWIG_SyntaxError    8
+#define  SWIG_ValueError     9
+#define  SWIG_SystemError   10
+#define  SWIG_UnknownError  99
+
+
+#define SWIG_exception(a,b)   { Tcl_SetResult(interp,b,TCL_VOLATILE); SWIG_fail; }
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-static int
-_wrap_getuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s:getuser Option ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)getuser((char const *)arg1);
-    
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
-_wrap_setuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"ss:setuser Option Value ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)setuser((char const *)arg1,(char const *)arg2);
-    
-    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
 static int
 _wrap_users(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,":users ") == TCL_ERROR) SWIG_fail;
-    result = (char *)users();
-    
+    {
+        try {
+            result = (char *)users();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1332,8 +1323,14 @@ _wrap_channel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|ss:channel Function ?Channel? ?Parameter? ",&arg1,&arg2,&arg3) == TCL_ERROR) SWIG_fail;
-    result = (char *)channel((char const *)arg1,(char const *)arg2,(char const *)arg3);
-    
+    {
+        try {
+            result = (char *)channel((char const *)arg1,(char const *)arg2,(char const *)arg3);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1350,8 +1347,14 @@ _wrap_user(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|sss:user Function ?User? ?Parameter? ?Parameter2? ",&arg1,&arg2,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
-    result = (char *)user((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
-    
+    {
+        try {
+            result = (char *)user((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1365,8 +1368,14 @@ _wrap_putclient(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:putclient text ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (int)putclient((char const *)arg1);
-    
+    {
+        try {
+            result = (int)putclient((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1381,8 +1390,14 @@ _wrap_simul(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"ss:simul User Command ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)simul((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (int)simul((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1397,8 +1412,14 @@ _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"ss:internalbind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)internalbind((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (int)internalbind((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1413,8 +1434,14 @@ _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"ss:internalunbind type proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)internalunbind((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (int)internalunbind((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1427,8 +1454,14 @@ _wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     char *arg1 = (char *) 0 ;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:setctx ctx ",&arg1) == TCL_ERROR) SWIG_fail;
-    setctx((char const *)arg1);
-    
+    {
+        try {
+            setctx((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     
     return TCL_OK;
     fail:
@@ -1441,8 +1474,14 @@ _wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,":getctx ") == TCL_ERROR) SWIG_fail;
-    result = (char *)getctx();
-    
+    {
+        try {
+            result = (char *)getctx();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1454,12 +1493,84 @@ static int
 _wrap_getbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
     char *result;
     
-    if (SWIG_GetArgs(interp, objc, objv,"ss:getbncuser User Type ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (char *)getbncuser((char const *)arg1,(char const *)arg2);
-    
+    if (SWIG_GetArgs(interp, objc, objv,"ss|s:getbncuser User Type ?Parameter2? ",&arg1,&arg2,&arg3) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)getbncuser((char const *)arg1,(char const *)arg2,(char const *)arg3);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_setbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss|ss:setbncuser User Type ?Value? ?Parameter2? ",&arg1,&arg2,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)setbncuser((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_addbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:addbncuser User Password ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            addbncuser((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_delbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:delbncuser User ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            delbncuser((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -1473,8 +1584,14 @@ _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     bool result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|s:onchan Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (bool)onchan((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (bool)onchan((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1488,8 +1605,14 @@ _wrap_topic(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:topic Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)topic((char const *)arg1);
-    
+    {
+        try {
+            result = (char *)topic((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1503,8 +1626,14 @@ _wrap_topicnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:topicnick Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)topicnick((char const *)arg1);
-    
+    {
+        try {
+            result = (char *)topicnick((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1518,8 +1647,14 @@ _wrap_topicstamp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:topicstamp Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (int)topicstamp((char const *)arg1);
-    
+    {
+        try {
+            result = (int)topicstamp((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1533,8 +1668,14 @@ _wrap_getchanmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:getchanmode Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)getchanmode((char const *)arg1);
-    
+    {
+        try {
+            result = (char *)getchanmode((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1548,8 +1689,14 @@ _wrap_chanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:chanlist Channel ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (char *)chanlist((char const *)arg1);
-    
+    {
+        try {
+            result = (char *)chanlist((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1564,8 +1711,14 @@ _wrap_isop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     bool result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|s:isop Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (bool)isop((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (bool)isop((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1580,8 +1733,14 @@ _wrap_isvoice(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     bool result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|s:isvoice Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (bool)isvoice((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (bool)isvoice((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1596,8 +1755,14 @@ _wrap_ishalfop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     bool result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|s:ishalfop Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (bool)ishalfop((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (bool)ishalfop((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1612,8 +1777,14 @@ _wrap_getchanhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s|s:getchanhost Nick ?Channel? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (char *)getchanhost((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (char *)getchanhost((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1624,8 +1795,14 @@ _wrap_getchanhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 static int
 _wrap_jump(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     if (SWIG_GetArgs(interp, objc, objv,":jump ") == TCL_ERROR) SWIG_fail;
-    jump();
-    
+    {
+        try {
+            jump();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     
     return TCL_OK;
     fail:
@@ -1636,8 +1813,14 @@ _wrap_jump(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 static int
 _wrap_rehash(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     if (SWIG_GetArgs(interp, objc, objv,":rehash ") == TCL_ERROR) SWIG_fail;
-    rehash();
-    
+    {
+        try {
+            rehash();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     
     return TCL_OK;
     fail:
@@ -1648,8 +1831,14 @@ _wrap_rehash(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 static int
 _wrap_die(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     if (SWIG_GetArgs(interp, objc, objv,":die ") == TCL_ERROR) SWIG_fail;
-    die();
-    
+    {
+        try {
+            die();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     
     return TCL_OK;
     fail:
@@ -1663,8 +1852,14 @@ _wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"s:putserv text ",&arg1) == TCL_ERROR) SWIG_fail;
-    result = (int)putserv((char const *)arg1);
-    
+    {
+        try {
+            result = (int)putserv((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1677,8 +1872,14 @@ _wrap_channels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     char *result;
     
     if (SWIG_GetArgs(interp, objc, objv,":channels ") == TCL_ERROR) SWIG_fail;
-    result = (char *)channels();
-    
+    {
+        try {
+            result = (char *)channels();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
@@ -1693,8 +1894,14 @@ _wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"ss:getchanjoin Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)getchanjoin((char const *)arg1,(char const *)arg2);
-    
+    {
+        try {
+            result = (int)getchanjoin((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1709,8 +1916,56 @@ _wrap_getchanidle(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"ss:getchanidle Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    result = (int)getchanidle((char const *)arg1,(char const *)arg2);
+    {
+        try {
+            result = (int)getchanidle((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_duration(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    char *result;
     
+    if (SWIG_GetArgs(interp, objc, objv,"i:duration Interval ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)duration(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_rand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"i:rand limit ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)ticklerand(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
@@ -1720,8 +1975,6 @@ _wrap_getchanidle(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static swig_command_info swig_commands[] = {
-    { SWIG_prefix "getuser", (swig_wrapper_func) _wrap_getuser, NULL},
-    { SWIG_prefix "setuser", (swig_wrapper_func) _wrap_setuser, NULL},
     { SWIG_prefix "users", (swig_wrapper_func) _wrap_users, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "user", (swig_wrapper_func) _wrap_user, NULL},
@@ -1732,6 +1985,9 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "setctx", (swig_wrapper_func) _wrap_setctx, NULL},
     { SWIG_prefix "getctx", (swig_wrapper_func) _wrap_getctx, NULL},
     { SWIG_prefix "getbncuser", (swig_wrapper_func) _wrap_getbncuser, NULL},
+    { SWIG_prefix "setbncuser", (swig_wrapper_func) _wrap_setbncuser, NULL},
+    { SWIG_prefix "addbncuser", (swig_wrapper_func) _wrap_addbncuser, NULL},
+    { SWIG_prefix "delbncuser", (swig_wrapper_func) _wrap_delbncuser, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -1749,6 +2005,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "channels", (swig_wrapper_func) _wrap_channels, NULL},
     { SWIG_prefix "getchanjoin", (swig_wrapper_func) _wrap_getchanjoin, NULL},
     { SWIG_prefix "getchanidle", (swig_wrapper_func) _wrap_getchanidle, NULL},
+    { SWIG_prefix "duration", (swig_wrapper_func) _wrap_duration, NULL},
+    { SWIG_prefix "rand", (swig_wrapper_func) _wrap_rand, NULL},
     {0, 0, 0}
 };
 

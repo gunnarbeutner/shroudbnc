@@ -22,14 +22,26 @@
 %{
 #include "tickleProcs.h"
 %}
+
+%rename(rand) ticklerand;
+
+%include "exception.i"
+%exception {
+	try {
+		$function
+	} catch (const char* p) {
+		SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+	}
+}
+
 #else
 int Tcl_ProcInit(Tcl_Interp* interp);
 #endif
 
 // exported procs, which are accessible via tcl
 
-const char* getuser(const char* Option);
-int setuser(const char* Option, const char* Value);
+//const char* getuser(const char* Option);
+//int setuser(const char* Option, const char* Value);
 
 const char* users(void);
 
@@ -45,7 +57,10 @@ int internalunbind(const char* type, const char* proc);
 void setctx(const char* ctx);
 const char* getctx(void);
 
-const char* getbncuser(const char* User, const char* Type);
+const char* getbncuser(const char* User, const char* Type, const char* Parameter2 = 0);
+int setbncuser(const char* User, const char* Type, const char* Value = 0, const char* Parameter2 = 0);
+void addbncuser(const char* User, const char* Password);
+void delbncuser(const char* User);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
@@ -65,3 +80,5 @@ int putserv(const char* text);
 const char* channels(void);
 int getchanjoin(const char* Nick, const char* Channel);
 int getchanidle(const char* Nick, const char* Channel);
+const char* duration(int Interval);
+int ticklerand(int limit);

@@ -318,13 +318,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			if (strlen(Args) < 6 || strstr(Args, " ") || argv[2]) {
+			if (strlen(argv[1]) < 6 || argc > 2) {
 				m_Owner->Notice("Your password is too short or contains invalid characters.");
-				return false;
+			} else {
+				m_Owner->SetPassword(argv[1]);
+				m_Owner->Notice("Password changed.");
 			}
-
-			m_Owner->SetPassword(Args);
-			m_Owner->Notice("Password changed.");
 
 			return false;
 		} else if (strcmpi(Command, "bhelp") == 0) {

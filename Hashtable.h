@@ -52,10 +52,6 @@ public:
 		for (int i = 0; i < m_PairCount; i++) {
 			if (!m_Pairs[i].Valid) {
 				m_Pairs[i].Name = strdup(Name);
-
-				if (m_DestructorFunc)
-					m_DestructorFunc(m_Pairs[i].Value);
-
 				m_Pairs[i].Value = Value;
 				m_Pairs[i].Valid = true;
 

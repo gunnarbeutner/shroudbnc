@@ -115,11 +115,15 @@ class CTclSupport : public CModuleFar {
 			if (Client->GetOwningClient())
 				setctx(Client->GetOwningClient()->GetUsername());
 
-			Tcl_Eval(g_Interp, argv[1]);
+			int Code = Tcl_Eval(g_Interp, argv[1]);
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
 
 			const char* strResult = Tcl_GetString(Result);
+
+			if (Code == TCL_ERROR) {
+				Client->GetOwningClient()->Notice("An error occured in the tcl script:");
+			}
 
 			Client->GetOwningClient()->Notice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
 

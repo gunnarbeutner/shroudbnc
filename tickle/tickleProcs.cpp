@@ -42,7 +42,7 @@ int Tcl_ProcInit(Tcl_Interp* interp) {
 	return Bnc_Init(interp);
 }
 
-extern const char* getuser(const char* Option) {
+const char* getuser(const char* Option) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
@@ -51,7 +51,7 @@ extern const char* getuser(const char* Option) {
 		return User->GetConfig()->ReadString(Option);
 }
 
-extern int setuser(const char* Option, const char* Value) {
+int setuser(const char* Option, const char* Value) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
@@ -63,20 +63,20 @@ extern int setuser(const char* Option, const char* Value) {
 	}
 }
 
-extern void die(void) {
+void die(void) {
 	g_Bouncer->Shutdown();
 }
 
-extern void setctx(const char* ctx) {
+void setctx(const char* ctx) {
 	free(g_Context);
 	g_Context = ctx ? strdup(ctx) : NULL;
 }
 
-extern const char* getctx(void) {
+const char* getctx(void) {
 	return g_Context;
 }
 
-extern const char* users(void) {
+const char* users(void) {
 	static char* UserList = NULL;
 
 	UserList = (char*)realloc(UserList, 1);
@@ -101,7 +101,7 @@ extern const char* users(void) {
 	return UserList;
 }
 
-extern const char* channels(void) {
+const char* channels(void) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -136,7 +136,7 @@ extern const char* channels(void) {
 	return ChanList;
 }
 
-extern const char* gettopic(const char* Channel) {
+const char* gettopic(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -156,7 +156,7 @@ extern const char* gettopic(const char* Channel) {
 		return Chan->GetTopic();
 }
 
-extern const char* getchanmodes(const char* Channel) {
+const char* getchanmodes(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -176,7 +176,7 @@ extern const char* getchanmodes(const char* Channel) {
 		return Chan->GetChanModes();
 }
 
-extern void rehash(void) {
+void rehash(void) {
 	RehashInterpreter();
 
 	g_Bouncer->GlobalNotice("Rehashing TCL module", true);
@@ -185,7 +185,7 @@ extern void rehash(void) {
 
 int internalbind(const char* type, const char* proc) {
 	for (int i = 0; i < g_BindCount; i++) {
-		if (strcmp(g_Binds[i].proc, proc) == 0)
+		if (g_Binds[i].valid && strcmp(g_Binds[i].proc, proc) == 0)
 			return 0;
 	}
 
@@ -193,14 +193,18 @@ int internalbind(const char* type, const char* proc) {
 
 	int n = g_BindCount - 1;
 
+	g_Binds[n].valid = false;
+
 	if (strcmpi(type, "client") == 0)
 		g_Binds[n].type = Type_Client;
 	else if (strcmpi(type, "server") == 0)
 		g_Binds[n].type = Type_Server;
 	else if (strcmpi(type, "pulse") == 0)
 		g_Binds[n].type = Type_Pulse;
-	else
+	else {
 		g_Binds[n].type = Type_Invalid;
+		throw "Invalid bind type.";
+	}
 
 	g_Binds[n].proc = strdup(proc);
 	g_Binds[n].valid = true;
@@ -208,7 +212,7 @@ int internalbind(const char* type, const char* proc) {
 	return 1;
 }
 
-extern int internalunbind(const char* type, const char* proc) {
+int internalunbind(const char* type, const char* proc) {
 	binding_type_e bindtype;
 
 	if (strcmpi(type, "client") == 0)
@@ -230,7 +234,7 @@ extern int internalunbind(const char* type, const char* proc) {
 	return 1;
 }
 
-extern int putserv(const char* text) {
+int putserv(const char* text) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
@@ -246,7 +250,7 @@ extern int putserv(const char* text) {
 	return 1;
 }
 
-extern int putclient(const char* text) {
+int putclient(const char* text) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
@@ -262,7 +266,7 @@ extern int putclient(const char* text) {
 	return 1;
 }
 
-extern void jump(void) {
+void jump(void) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -272,7 +276,7 @@ extern void jump(void) {
 	SetLatchedReturnValue(false);
 }
 
-extern bool onchan(const char* Nick, const char* Channel) {
+bool onchan(const char* Nick, const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -302,7 +306,7 @@ extern bool onchan(const char* Nick, const char* Channel) {
 	}
 }
 
-extern const char* topic(const char* Channel) {
+const char* topic(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -321,7 +325,7 @@ extern const char* topic(const char* Channel) {
 	return Chan->GetTopic();
 }
 
-extern const char* topicnick(const char* Channel) {
+const char* topicnick(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -340,26 +344,26 @@ extern const char* topicnick(const char* Channel) {
 	return Chan->GetTopicNick();
 }
 
-extern int topicstamp(const char* Channel) {
+int topicstamp(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return 0;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return 0;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
-		return NULL;
+		return 0;
 
 	return Chan->GetTopicStamp();
 }
 
-extern const char* getchanmode(const char* Channel) {
+const char* getchanmode(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -378,7 +382,7 @@ extern const char* getchanmode(const char* Channel) {
 	return Chan->GetChanModes();
 }
 
-extern const char* chanlist(const char* Channel) {
+const char* chanlist(const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
@@ -416,17 +420,17 @@ extern const char* chanlist(const char* Channel) {
 	return NickList;
 }
 
-extern bool isop(const char* Nick, const char* Channel) {
+bool isop(const char* Nick, const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return false;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return false;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -446,17 +450,17 @@ extern bool isop(const char* Nick, const char* Channel) {
 	}
 }
 
-extern bool isvoice(const char* Nick, const char* Channel) {
+bool isvoice(const char* Nick, const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return false;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return false;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -476,17 +480,17 @@ extern bool isvoice(const char* Nick, const char* Channel) {
 	}
 }
 
-extern bool ishalfop(const char* Nick, const char* Channel) {
+bool ishalfop(const char* Nick, const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return false;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return false;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -506,7 +510,7 @@ extern bool ishalfop(const char* Nick, const char* Channel) {
 	}
 }
 
-extern const char* channel(const char* Function, const char* Channel, const char* Parameter) {
+const char* channel(const char* Function, const char* Channel, const char* Parameter) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -625,7 +629,7 @@ extern const char* channel(const char* Function, const char* Channel, const char
 	return "Function should be one of: ison join part mode topic topicnick topicstamp hastopic hasnames modes nicks prefix";
 }
 
-extern const char* user(const char* Function, const char* User, const char* Parameter, const char* Parameter2) {
+const char* user(const char* Function, const char* User, const char* Parameter, const char* Parameter2) {
 	static char Buffer[1024];
 
 	CBouncerUser* Context;
@@ -790,17 +794,17 @@ extern const char* user(const char* Function, const char* User, const char* Para
 	return "Function should be one of: add remove server port realname uptime lock admin hasserver hasclient nick set get log";
 }
 
-extern const char* getbncuser(const char* User, const char* Type) {
+const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
 	static char Buffer[1024];
 	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	if (strcmpi(Type, "server") == 0)
 		return Context->GetServer();
 	else if (strcmpi(Type, "port") == 0) {
-		itoa(Context->GetPort(), Buffer, 10);
+		sprintf(Buffer, "%d", Context->GetPort());
 
 		return Buffer;
 	} else if (strcmpi(Type, "realname") == 0)
@@ -808,7 +812,7 @@ extern const char* getbncuser(const char* User, const char* Type) {
 	else if (strcmpi(Type, "nick") == 0)
 		return Context->GetNick();
 	else if (strcmpi(Type, "uptime") == 0) {
-		itoa(Context->IRCUptime(), Buffer, 10);
+		sprintf(Buffer, "%d", Context->IRCUptime());
 
 		return Buffer;
 	} else if (strcmpi(Type, "lock") == 0)
@@ -819,15 +823,71 @@ extern const char* getbncuser(const char* User, const char* Type) {
 		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
-	else
-		return "Type should be one of: server port realname nick uptime lock admin hasserver hasclient";
+	else if (strcmpi(Type, "tag") == 0) {
+		if (!Parameter2)
+			return NULL;
+
+		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
+		sprintf(Buf, "tag.%s", Parameter2);
+
+		const char* ReturnValue = Context->GetConfig()->ReadString(Buf);
+
+		free(Buf);
+
+		return ReturnValue;
+	} else
+		throw "Type should be one of: server port realname nick uptime lock admin hasserver hasclient tag";
 }
 
-extern void setbncuser(const char* User, const char* Type, const char* Value) {
+int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
+	static char Buffer[1024];
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
+	if (!Context)
+		throw "Invalid user.";
+
+	if (strcmpi(Type, "server") == 0)
+		Context->SetServer(Value);
+	else if (strcmpi(Type, "port") == 0)
+		Context->SetPort(atoi(Value));
+	else if (strcmpi(Type, "realname") == 0)
+		Context->SetRealname(Value);
+	else if (strcmpi(Type, "nick") == 0)
+		Context->SetNick(Value);
+	else if (strcmpi(Type, "lock") == 0) {
+		if (atoi(Value))
+			Context->Lock();
+		else
+			Context->Unlock();
+	} else if (strcmpi(Type, "admin") == 0)
+		Context->SetAdmin(atoi(Value) ? true : false);
+	else if (strcmpi(Type, "tag") == 0 && Value) {
+		char* Buf = (char*)malloc(strlen(Value) + 5);
+		sprintf(Buf, "tag.%s", Value);
+
+		Context->GetConfig()->WriteString(Buf, Parameter2);
+
+		free(Buf);
+	} else
+		throw "Type should be one of: server port realname nick lock admin tag";
+
+
+	return 1;
 }
 
-extern int simul(const char* User, const char* Command) {
+void addbncuser(const char* User, const char* Password) {
+	CBouncerUser* U = g_Bouncer->CreateUser(User, Password);
+
+	if (!U)
+		throw "Could not create user.";
+}
+
+void delbncuser(const char* User) {
+	if (!g_Bouncer->RemoveUser(User))
+		throw "Could not remove user.";
+}
+
+int simul(const char* User, const char* Command) {
 	CBouncerUser* Context;
 
 	Context = g_Bouncer->GetUser(User);
@@ -841,7 +901,7 @@ extern int simul(const char* User, const char* Command) {
 	}
 }
 
-extern const char* getchanhost(const char* Nick, const char* Channel) {
+const char* getchanhost(const char* Nick, const char* Channel) {
 	CBouncerUser* Context;
 
 	Context = g_Bouncer->GetUser(g_Context);
@@ -876,12 +936,12 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return 0;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return 0;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -898,12 +958,12 @@ int getchanidle(const char* Nick, const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		return 0;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		return 0;
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -913,4 +973,19 @@ int getchanidle(const char* Nick, const char* Channel) {
 	CNick* User = Chan->GetNames()->Get(Nick);
 
 	return time(NULL) - User->GetIdleSince();
+}
+
+const char* duration(int Interval) {
+	// TODO: implement
+
+	return "not yet implemented.";
+}
+
+int ticklerand(int limit) {
+	int val = int(rand() / float(RAND_MAX) * limit);
+
+	if (val > limit - 1)
+		return limit - 1;
+	else
+		return val;
 }
