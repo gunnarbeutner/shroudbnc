@@ -75,6 +75,7 @@ int requiresparam(char Mode);
 bool isprefixmode(char Mode);
 
 const char* internalchannels(void);
+const char* bncmodules(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

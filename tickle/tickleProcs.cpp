@@ -32,6 +32,8 @@
 #include "../Nick.h"
 #include "../Queue.h"
 #include "../FloodControl.h"
+#include "../ModuleFar.h"
+#include "../Module.h"
 
 static char* g_Context = NULL;
 
@@ -1189,4 +1191,33 @@ bool isprefixmode(char Mode) {
 		return 0;
 
 	return IRC->IsNickMode(Mode);	
+}
+
+const char* bncmodules(void) {
+	static char* Buffer = NULL;
+
+	CModule** Modules = g_Bouncer->GetModules();
+	int ModuleCount = g_Bouncer->GetModuleCount();
+
+	if (Buffer)
+		*Buffer = '\0';
+
+	for (int i = 0; i < ModuleCount; i++) {
+		if (Modules[i]) {
+			const char* File = Modules[i]->GetFilename();
+			const void* Ptr = Modules[i]->GetHandle();
+			const void* ModPtr = Modules[i]->GetModule();
+
+			char* P = (char*)realloc(Buffer, (Buffer ? strlen(Buffer) : 0) + strlen(File) + 50);
+
+			if (!Buffer)
+				P[0] = '\0';
+
+			Buffer = P;
+
+			sprintf(Buffer + strlen(Buffer), "%s{{%d} {%s} {%p} {%p}}", *Buffer ? " " : "", i, File, Ptr, ModPtr);
+		}
+	}
+
+	return Buffer;
 }

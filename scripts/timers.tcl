@@ -33,9 +33,9 @@ proc sbnc:timerinit {} {
 
 # entry point to sbnc's timer system
 proc sbnc:tcltimers {time} {
-
 	foreach user [bncuserlist] {
 		setctx $user
+
 		upvar [getns]::utimers utimers
 		upvar [getns]::timers timers
 

@@ -1255,7 +1255,7 @@ static swig_type_info *swig_types[3];
 #define SWIG_init    Bnc_Init
 #define SWIG_name    "bnc"
 #define SWIG_prefix  ""
-#define SWIG_version "0.2"
+#define SWIG_version "0.3"
 
 
 #ifdef __cplusplus
@@ -1763,6 +1763,26 @@ _wrap_internalchannels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 
 static int
+_wrap_bncmodules(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncmodules ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncmodules();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2225,6 +2245,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "requiresparam", (swig_wrapper_func) _wrap_requiresparam, NULL},
     { SWIG_prefix "isprefixmode", (swig_wrapper_func) _wrap_isprefixmode, NULL},
     { SWIG_prefix "internalchannels", (swig_wrapper_func) _wrap_internalchannels, NULL},
+    { SWIG_prefix "bncmodules", (swig_wrapper_func) _wrap_bncmodules, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
