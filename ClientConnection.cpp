@@ -256,7 +256,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					if (hent)
 						ClientAddr = hent->h_name;
 					else
-						ClientAddr = "<unknown>";
+						ClientAddr = inet_ntoa(saddr.sin_addr);
 				} else
 					ClientAddr = NULL;
 
@@ -538,7 +538,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							strcat(Nicks, Nick);
 
 							if (++a == 40) {
-								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
+								WriteLine(":%s 353 %s @ %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 
 								Nicks = (char*)realloc(Nicks, 1);
 								*Nicks = '\0';

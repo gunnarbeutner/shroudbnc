@@ -103,7 +103,10 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		m_Client->Kill("Another client has connected.");
 	}
 
-	g_Bouncer->Log("User %s logged on.", GetUsername());
+	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
+
+	g_Bouncer->Log(Out);
+	g_Bouncer->GlobalNotice(Out, true);
 
 	m_Client = Client;
 	Client->m_Owner = this;
@@ -322,7 +325,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 		char Out[1024];
 
 		snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
-		g_Bouncer->GlobalNotice(Out);
+		g_Bouncer->GlobalNotice(Out, true);
 
 		if (m_IRC) {
 			char* Offnick;
