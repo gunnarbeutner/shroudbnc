@@ -1,7 +1,7 @@
 package require bnc 0.2
 
-bind server my_evil_proc
-bind pulse my_pulse_proc
+internalbind server my_evil_proc
+internalbind pulse my_pulse_proc
 
 proc my_evil_proc {client parameters} {
 	set xyz [split [lindex $parameters 3]]

@@ -53,9 +53,11 @@ CBouncerUser* CConnection::GetOwningClient(void) {
 }
 
 bool CConnection::Read(void) {
-	char Buffer[512];
+	char Buffer[8192];
 
 	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
+
+	printf("%d bytes read from socket\n", n);
 
 	if (n > 0) {
 		recvq_size += n;
@@ -86,8 +88,8 @@ void CConnection::Write(void) {
 		memcpy(Copy, sendq, sendq_size);
 		Copy[sendq_size] = 0;
 
-		if (GetRole() == Role_IRC)
-			printf("-> %s\n", Copy);
+//		if (GetRole() == Role_IRC)
+//			printf("-> %s\n", Copy);
 
 		sendq_size = 0;
 	}

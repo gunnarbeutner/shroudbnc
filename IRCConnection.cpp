@@ -307,6 +307,18 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan)
 			Chan->SetHasNames();
+	} else if (argc > 7 && atoi(Raw) == 352) {
+		const char* Ident = argv[4];
+		const char* Host = argv[5];
+		const char* Nick = argv[7];
+
+		char* Mask = (char*)malloc(strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1);
+
+		snprintf(Mask, strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1, "%s!%s@%s", Nick, Ident, Host);
+
+		UpdateHostHelper(Mask);
+
+		free(Mask);
 	}
 
 	CModule** Modules = g_Bouncer->GetModules();
@@ -343,10 +355,12 @@ void CIRCConnection::ParseLine(const char* Line) {
 		}
 	}
 
+#ifdef _WIN32
 	OutputDebugString(Line);
 	OutputDebugString("\n");
+#endif
 
-	puts(Line);
+	//puts(Line);
 
 	ArgFreeArray(argv);
 	ArgFree(Args);
