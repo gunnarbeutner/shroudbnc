@@ -461,10 +461,3 @@ void CBouncerCore::UpdateUserConfig(void) {
 	m_Config->WriteString("system.users", Out);
 }
 
-CHashtable<char*>* CBouncerCore::CreateStringTable(void) {
-	return new CHashtable<char*>;
-}
-
-CHashtable<void*>* CBouncerCore::CreateGenericTable(void) {
-	return new CHashtable<void*>;
-}

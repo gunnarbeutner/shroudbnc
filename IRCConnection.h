@@ -54,6 +54,7 @@ class CIRCConnection : public CConnection {
 	void RemoveChannel(const char* Channel);
 
 	void UpdateChannelConfig(void);
+	void UpdateHostHelper(const char* Host);
 public:
 	CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning);
 	virtual ~CIRCConnection();

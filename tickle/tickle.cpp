@@ -112,6 +112,9 @@ class CTclSupport : public CModuleFar {
 
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		if (argc > 1 && strcmpi(argv[0], "tcl") == 0 && Client->GetOwningClient()->IsAdmin()) {
+			if (Client->GetOwningClient())
+				setctx(Client->GetOwningClient()->GetUsername());
+
 			Tcl_Eval(g_Interp, argv[1]);
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);

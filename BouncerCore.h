@@ -33,7 +33,7 @@ class CIdentSupport;
 class CModule;
 struct CSocketEvents;
 struct sockaddr_in;
-template <typename value_type, bool casesensitive = false> class CHashtable;
+template <typename value_type, bool casesensitive> class CHashtable;
 
 typedef struct socket_s {
 	SOCKET Socket;
@@ -100,9 +100,6 @@ public:
 
 	virtual CBouncerUser* CreateUser(const char* Username, const char* Password);
 	virtual bool RemoveUser(const char* Username);
-
-	virtual CHashtable<char*>* CreateStringTable(void);
-	virtual CHashtable<void*>* CreateGenericTable(void);
 };
 
 extern CBouncerCore* g_Bouncer;

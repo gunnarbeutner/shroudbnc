@@ -28,6 +28,7 @@ CNick::CNick(const char* Nick) {
 	m_Nick = strdup(Nick);
 	m_Prefixes = (char*)malloc(1);
 	m_Prefixes[0] = '\0';
+	m_Site = NULL;
 }
 
 CNick::~CNick() {
@@ -90,4 +91,22 @@ void CNick::SetPrefixes(const char* Prefixes) {
 
 const char* CNick::GetPrefixes(void) {
 	return m_Prefixes;
+}
+
+void CNick::SetSite(const char* Site) {
+	free(m_Site);
+
+	m_Site = strdup(Site);
+}
+
+const char* CNick::GetSite(void) {
+	if (!m_Site)
+		return NULL;
+
+	char* Host = strstr(m_Site, "!");
+
+	if (Host)
+		return Host + 1;
+	else
+		return m_Site;
 }

@@ -1,1 +1,1 @@
-g++ -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp -g -lm /usr/local/lib/libtcl8.4.so
+g++ -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c -g -lm /usr/local/lib/libtcl8.4.so

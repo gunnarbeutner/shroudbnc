@@ -193,6 +193,10 @@ SOURCE=.\Connection.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Hashtable.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\IdentSupport.h
 # End Source File
 # Begin Source File

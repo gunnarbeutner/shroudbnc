@@ -38,6 +38,8 @@ const char* users(void);
 const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
 const char* user(const char* Function, const char* User = 0, const char* Parameter = 0, const char* Parameter2 = 0);
 
+const char* gethost(const char* Nick);
+
 int putserv(const char* text);
 int putclient(const char* text);
 int simul(const char* User, const char* Command);

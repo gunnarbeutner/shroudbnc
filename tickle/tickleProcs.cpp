@@ -216,7 +216,7 @@ extern int putserv(const char* text) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return NULL;
+		return 0;
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -232,7 +232,7 @@ extern int putclient(const char* text) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return NULL;
+		return 0;
 
 	CClientConnection* Client = Context->GetClientConnection();
 
@@ -338,7 +338,7 @@ extern const char* channel(const char* Function, const char* Channel, const char
 		NickList = (char*)realloc(NickList, 1);
 		NickList[0] = '\0';
 
-		CHashtable<CNick*>* Names = Chan->GetNames();
+		CHashtable<CNick*, false>* Names = Chan->GetNames();
 
 		int a = 0;
 
@@ -550,4 +550,34 @@ extern int simul(const char* User, const char* Command) {
 
 		return 1;
 	}
+}
+
+extern const char* gethost(const char* Nick) {
+	CBouncerUser* Context;
+
+	Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return NULL;
+	else {
+		CIRCConnection* IRC = Context->GetIRCConnection();
+
+		if (IRC) {
+			CChannel** Chans = IRC->GetChannels();
+			int ChanCount = IRC->GetChannelCount();
+
+			for (int i = 0; i < ChanCount; i++) {
+				if (Chans[i]) {
+					CNick* U = Chans[i]->GetNames()->Get(Nick);
+
+					if (U && U->GetSite() != NULL)
+						return U->GetSite();
+				}
+					
+			}
+		}
+
+		return NULL;
+	}
+
 }

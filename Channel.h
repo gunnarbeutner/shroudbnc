@@ -32,7 +32,7 @@ typedef struct chanmode_s {
 } chanmode_t;
 
 class CNick;
-template <typename value_type, bool casesensitive = false> class CHashtable;
+template <typename value_type, bool casesensitive> class CHashtable;
 
 class CChannel {
 	char* m_Name;
@@ -48,7 +48,7 @@ class CChannel {
 
 	time_t m_Creation;
 
-	CHashtable<CNick*>* m_Nicks;
+	CHashtable<CNick*, false>* m_Nicks;
 
 	bool m_HasNames;
 
@@ -86,7 +86,7 @@ public:
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick*>* GetNames(void);
+	virtual CHashtable<CNick*, false>* GetNames(void);
 };
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

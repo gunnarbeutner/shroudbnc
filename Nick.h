@@ -27,6 +27,7 @@
 class CNick {
 	char* m_Nick;
 	char* m_Prefixes;
+	char* m_Site;
 public:
 	CNick(const char* Nick);
 	virtual ~CNick();
@@ -42,6 +43,10 @@ public:
 	virtual void RemovePrefix(char Prefix);
 	virtual void SetPrefixes(const char* Prefixes);
 	virtual const char* GetPrefixes(void);
+
+	virtual void SetSite(const char* Site);
+	virtual const char* GetSite(void);
+
 };
 
 void DestroyCNick(CNick* P);

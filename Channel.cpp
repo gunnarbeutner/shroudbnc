@@ -41,7 +41,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CHashtable<CNick*>();
+	m_Nicks = new CHashtable<CNick*, false>();
 	m_HasNames = false;
 }
 
@@ -243,6 +243,6 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CHashtable<CNick*>* CChannel::GetNames(void) {
+CHashtable<CNick*, false>* CChannel::GetNames(void) {
 	return m_Nicks;
 }

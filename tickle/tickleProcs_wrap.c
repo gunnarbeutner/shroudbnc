@@ -1374,6 +1374,21 @@ _wrap_user(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 
 static int
+_wrap_gethost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:gethost Nick ",&arg1) == TCL_ERROR) SWIG_fail;
+    result = (char *)gethost((char const *)arg1);
+    
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     int result;
@@ -1523,6 +1538,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "users", (swig_wrapper_func) _wrap_users, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "user", (swig_wrapper_func) _wrap_user, NULL},
+    { SWIG_prefix "gethost", (swig_wrapper_func) _wrap_gethost, NULL},
     { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
     { SWIG_prefix "simul", (swig_wrapper_func) _wrap_simul, NULL},

@@ -30,7 +30,7 @@ template <typename value_type> struct hash_t {
 	value_type Value;
 };
 
-template <typename value_type, bool casesensitive = false> class CHashtable {
+template <typename value_type, bool casesensitive> class CHashtable {
 	typedef void (DestroyValue)(value_type P);
 
 	hash_t<value_type>* m_Pairs;
@@ -57,6 +57,7 @@ public:
 					m_DestructorFunc(m_Pairs[i].Value);
 
 				m_Pairs[i].Value = Value;
+				m_Pairs[i].Valid = true;
 
 				return;
 			} else if ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0)) {

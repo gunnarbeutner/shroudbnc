@@ -36,7 +36,7 @@ typedef struct config_s {
 } config_t;
 
 class CBouncerConfig {
-	CHashtable<char*>* m_Settings;
+	CHashtable<char*, false>* m_Settings;
 
 	char* m_File;
 	bool m_WriteLock;
