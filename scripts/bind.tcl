@@ -33,10 +33,8 @@ proc sbnc:modechange {client parameters} {
 	set targ [lindex $parameters 3]
 
 	# todo: implement
-	#set hand [finduser $source]
-	#set flags [chattr $hand]
-	set hand "shroud"
-	set flags "n"
+	set hand [finduser $source]
+	set flags $hand
 
 	set nick [sbnc:nickfromhost $source]
 	set host [sbnc:sitefromhost $source]
@@ -45,12 +43,13 @@ proc sbnc:modechange {client parameters} {
 		set nick ""
 		set host $source
 		set hand "*"
+		set flags $hand
 	}
 
 	if {[llength $parameters] < 4} {
-		sbnc:callbinds "mode" $flags "$channel $mode" $nick $host $hand $channel $mode
+		sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode
 	} else {
-		sbnc:callbinds "mode" $flags "$channel $mode" $nick $host $hand $channel $mode $targ
+		sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode $targ
 	}
 
 	puts "[join $parameters]"
@@ -65,56 +64,51 @@ proc sbnc:rawserver {client parameters} {
 	set opt [lindex $parameters 3]
 
 	# todo: implement
-	#set hand [finduser $source]
-	#set flags [chattr $hand]
-	set hand "shroud"
-	set flags "n"
+	set hand [finduser $source]
+	set flags $hand
 
-	sbnc:callbinds "raw" - $verb $source $verb [join [lrange $parameters 2 end]]
+	sbnc:callbinds "raw" - "" $verb $source $verb [join [lrange $parameters 2 end]]
 
 	switch $verb {
 		"privmsg" {
 			if {[validchan $targ] || [lsearch -exact [string tolower [internalchannels]] [string tolower $targ]] != -1} {
-				sbnc:callbinds "pub" $flags [lindex [split $opt] 0] $nick $site $hand $targ [join [lrange [split $opt] 1 end]]
-				sbnc:callbinds "pubm" $flags "$targ $opt" $nick $site $hand $targ $opt
+				sbnc:callbinds "pub" $flags $targ [lindex [split $opt] 0] $nick $site $hand $targ [join [lrange [split $opt] 1 end]]
+				sbnc:callbinds "pubm" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 			} else {
-				sbnc:callbinds "msg" $flags [lindex [split $opt] 0] $nick $site $hand [join [lrange [split $opt] 1 end]]
-				sbnc:callbinds "pubm" $flags $opt $nick $site $hand $opt
+				sbnc:callbinds "msg" $flags "" [lindex [split $opt] 0] $nick $site $hand [join [lrange [split $opt] 1 end]]
+				sbnc:callbinds "pubm" $flags "" $opt $nick $site $hand $opt
 			}
 		}
 		"notice" {
-			sbnc:callbinds "notc" $flags $opt $nick $site $hand $opt $targ
+			sbnc:callbinds "notc" $flags $targ $opt $nick $site $hand $opt $targ
 		}
 		"join" {
-			sbnc:callbinds "join" $flags "$targ $source" $nick $site $hand $targ
+			sbnc:callbinds "join" $flags $targ "$targ $source" $nick $site $hand $targ
 		}
 		"part" {
-			sbnc:callbinds "part" $flags "$targ $source" $nick $site $hand $targ $opt
+			sbnc:callbinds "part" $flags $targ "$targ $source" $nick $site $hand $targ $opt
 		}
 		"quit" {
 
 		}
 		"topic" {
-			sbnc:callbinds "topc" $flags "$targ $opt" $nick $site $hand $targ $opt
+			sbnc:callbinds "topc" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 		}
 		"kick" {
-			sbnc:callbinds "kick" $flags "$targ $opt" $nick $site $hand $targ $opt
+			sbnc:callbinds "kick" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 		}
 		"nick" {
 
 		}
-		"mode" {
-
-		}
 		"wallops" {
-			sbnc:callbinds "wall" - $targ $source [join [lrange $parameters 2 end]]
+			sbnc:callbinds "wall" - "" $targ $source [join [lrange $parameters 2 end]]
 		}
 	}
 
 	puts [join $parameters]
 }
 
-proc sbnc:callbinds {type flags mask args} {
+proc sbnc:callbinds {type flags chan mask args} {
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
 	}
@@ -129,7 +123,7 @@ proc sbnc:callbinds {type flags mask args} {
 		set p [lindex $bind 4]
 
 		# todo: match flags!
-		if {[string equal -nocase $t $type] && [string match -nocase $m $mask]} {
+		if {[string equal -nocase $t $type] && [string match -nocase $m $mask] && [matchattr $flags $f $chan]} {
 			catch [list eval $p $args] error
 
 #			foreach line [split $error \n] {
@@ -217,5 +211,5 @@ proc binds {{mask ""}} {
 }
 
 proc callevent {event} {
-	sbnc:callbinds "evnt" - {} $event
+	sbnc:callbinds "evnt" - {} {} $event
 }

@@ -15,20 +15,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-set botnick "fish"
-set botname "fish"
-set server "fish"
-set serveraddress "fish"
-set version "fish"
-set numversion "fish"
-set uptime "fish"
-set server-online "fish"
-set lastbind "fish"
-set isjuped "fish"
-set handlen "fish"
-set config "fish"
-set userfile "fish"
-set chanfile "fish"
+if {![info exists ::varinitonce]} {
+	set botnick "fish"
+	set botname "fish"
+	set server "fish"
+	set serveraddress "fish"
+	set version "fish"
+	set numversion "fish"
+	set uptime "fish"
+	set server-online "fish"
+	set lastbind "fish"
+	set isjuped "fish"
+	set handlen "fish"
+	set config "fish"
+	set userfile "fish"
+	set chanfile "fish"
+
+	set ::varinitonce 1
+}
 
 trace variable botnick rwu sbnc:tracevars-botnick
 trace variable botname rwu sbnc:tracevars-botname
