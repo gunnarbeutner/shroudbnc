@@ -97,8 +97,6 @@ class CTclSupport : public CModuleFar {
 
 		char strNow[20];
 
-		sprintf(strNow, "%d", Now);
-
 		CallBinds(Type_Pulse, strNow, 0, NULL);
 	}
 
@@ -234,6 +232,8 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		for (int a = 0; a < argc; a++) {
 			Tcl_DecrRefCount(listv[a]);
 		}
+
+		free(listv);
 
 		Tcl_DecrRefCount(objv[2]);
 	}

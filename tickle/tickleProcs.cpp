@@ -34,6 +34,7 @@
 #include "../FloodControl.h"
 #include "../ModuleFar.h"
 #include "../Module.h"
+#include "../utility.h"
 
 static char* g_Context = NULL;
 
@@ -1022,7 +1023,7 @@ int ticklerand(int limit) {
 }
 
 const char* bncversion(void) {
-	return "0.3 0030000";
+	return BNCVERSION " 0030000";
 }
 
 const char* bncnumversion(void) {
