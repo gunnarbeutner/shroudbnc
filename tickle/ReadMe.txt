@@ -1,0 +1,1 @@
+g++ -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp -g -lm /usr/local/lib/libtcl8.4.so

@@ -1,0 +1,3 @@
+LIBRARY tickle
+EXPORTS
+	bncGetObject
