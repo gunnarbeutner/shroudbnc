@@ -539,7 +539,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							strcat(Nicks, Nick);
 
 							if (a % 50 == 0) {
-								WriteLine(":%s 353 %s @ %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
+								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 
 								Nicks = (char*)realloc(Nicks, 1);
 								*Nicks = '\0';
