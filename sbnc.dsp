@@ -234,6 +234,10 @@ SOURCE=.\win32.h
 # End Group
 # Begin Source File
 
+SOURCE=.\users\fnords.conf
+# End Source File
+# Begin Source File
+
 SOURCE=.\GPLHeader.txt
 # End Source File
 # Begin Source File
