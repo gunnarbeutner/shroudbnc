@@ -31,7 +31,9 @@
 #include "Hashtable.h"
 #include "utility.h"
 
+#ifndef _WIN32
 typedef __sighandler_t sighandler_t;
+#endif
 
 CBouncerCore* g_Bouncer;
 

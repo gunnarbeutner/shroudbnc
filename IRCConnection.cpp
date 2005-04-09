@@ -383,6 +383,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Mask);
 
 		free(Mask);
+	} else if (argc > 3 && strcmpi(Raw, "PONG") == 0 && strcmpi(argv[3], "sbnc") == 0) {
+		return false;
 	}
 
 	CModule** Modules = g_Bouncer->GetModules();
