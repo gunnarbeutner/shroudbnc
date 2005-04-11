@@ -48,6 +48,11 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_QueueLow = new CQueue();
 	m_FloodControl = new CFloodControl(this);
 
+	const char* Password = Owning->GetConfig()->ReadString("user.spass");
+
+	if (Password)
+		WriteLine("PASS :%s", Password);
+
 	WriteLine("NICK %s", Owning->GetNick());
 	WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
 

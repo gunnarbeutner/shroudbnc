@@ -357,6 +357,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			User->Notice("SETSERVER - sets your default server");
 			User->Notice("SETGECOS - sets your realname");
 			User->Notice("SETAWAYNICK - sets your awaynick");
+			User->Notice("SETSERVERPASS - sets your server password");
 			User->Notice("SETAWAY - sets your away reason");
 			User->Notice("BVHOST - sets your vhost");
 			User->Notice("JUMP - reconnects to the IRC server");
@@ -682,6 +683,15 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				m_Owner->Notice(Out);
 			} else {
 				m_Owner->GetConfig()->WriteString("user.away", argv[1]);
+				m_Owner->Notice("Done.");
+			}
+
+			return false;
+		} else if (strcmpi(Command, "setserverpass") == 0) {
+			if (argc < 2)
+				m_Owner->Notice("SYNTAX: SETSERVERPASS password");
+			else {
+				m_Owner->GetConfig()->WriteString("user.spass", argv[1]);
 				m_Owner->Notice("Done.");
 			}
 
