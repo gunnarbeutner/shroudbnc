@@ -33,14 +33,14 @@ proc sbnc:tcltimers {time} {
 		upvar [getns]::timers timers
 
 		foreach timer $utimers {
-			if {$time >= [lindex $timer 0]} {
+			if {$time > [lindex $timer 0]} {
 				catch {eval [lindex $timer 1]}
 				killutimer [lindex $timer 2]
 			}
 		}
 
 		foreach timer $timers {
-			if {$time >= [lindex $timer 0]} {
+			if {$time > [lindex $timer 0]} {
 				catch {eval [lindex $timer 1]}
 				killtimer [lindex $timer 2]
 			}
