@@ -99,6 +99,8 @@ class CTclSupport : public CModuleFar {
 
 		char strNow[20];
 
+		sprintf(strNow, "%d", Now);
+
 		CallBinds(Type_Pulse, strNow, 0, NULL);
 	}
 
