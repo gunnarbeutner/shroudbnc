@@ -247,7 +247,8 @@ void CBouncerUser::Reconnect(void) {
 	if (m_IRC) {
 		m_IRC->Kill("Reconnecting");
 		delete m_IRC;
-		m_IRC = NULL;
+
+		SetIRCConnection(NULL);
 	}
 
 	char Out[1024];
@@ -282,13 +283,15 @@ void CBouncerUser::Reconnect(void) {
 	if (!BindIp)
 		BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
-	m_IRC = CreateIRCConnection(Server, Port, this, BindIp);
+	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp);
 
-	if (!m_IRC) {
+	if (!Connection) {
 		Notice("Can't connect..");
 		g_Bouncer->Log("Can't connect..");
 		g_Bouncer->GlobalNotice("Failed to connect.", true);
 	} else {
+		SetIRCConnection(Connection);
+
 		g_Bouncer->Log("Connected!");
 		g_Bouncer->GlobalNotice("Connected!", true);
 	}
@@ -351,8 +354,25 @@ void CBouncerUser::Unlock(void) {
 void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 	m_IRC = IRC;
 
-	if (!IRC)
+	if (!IRC) {
 		Notice("Disconnected from the server.");
+
+		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+			CModule* M = g_Bouncer->GetModules()[i];
+
+			if (M) {
+				M->ServerDisconnect(GetUsername());
+			}
+		}
+	} else {
+		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+			CModule* M = g_Bouncer->GetModules()[i];
+
+			if (M) {
+				M->ServerConnect(GetUsername());
+			}
+		}
+	}
 }
 
 void CBouncerUser::SetClientConnection(CClientConnection* Client) {

@@ -29,7 +29,10 @@ enum binding_type_e {
 	Type_Attach,
 	Type_Detach,
 	Type_SingleMode,
-	Type_Unload
+	Type_Unload,
+	Type_SvrDisconnect,
+	Type_SvrConnect,
+	Type_SvrLogon
 };
 
 typedef struct binding_s {

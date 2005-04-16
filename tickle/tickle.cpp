@@ -151,6 +151,18 @@ class CTclSupport : public CModuleFar {
 		CallBinds(Type_Detach, Client, 0, NULL);
 	}
 
+	void ServerDisconnect(const char* Client) {
+		CallBinds(Type_SvrDisconnect, Client, 0, NULL);
+	}
+
+	void ServerConnect(const char* Client) {
+		CallBinds(Type_SvrConnect, Client, 0, NULL);
+	}
+
+	void ServerLogon(const char* Client) {
+		CallBinds(Type_SvrLogon, Client, 0, NULL);
+	}
+
 	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
 		char ModeC[3];
 

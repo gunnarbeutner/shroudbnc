@@ -185,6 +185,10 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	void AttachClient(const char* Client) { }
 	void DetachClient(const char* Client) { }
 
+	void ServerDisconnect(const char* Client) { }
+	void ServerConnect(const char* Client) { }
+	void ServerLogon(const char* Client) { }
+
 	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
 };
 

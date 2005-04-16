@@ -95,6 +95,18 @@ void CModule::DetachClient(const char* Client) {
 	m_Far->DetachClient(Client);
 }
 
+void CModule::ServerDisconnect(const char* Client) {
+	m_Far->ServerDisconnect(Client);
+}
+
+void CModule::ServerConnect(const char* Client) {
+	m_Far->ServerConnect(Client);
+}
+
+void CModule::ServerLogon(const char* Client) {
+	m_Far->ServerLogon(Client);
+}
+
 void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
 	m_Far->SingleModeChange(Connection, Channel, Source, Flip, Mode, Parameter);
 }

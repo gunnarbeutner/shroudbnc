@@ -242,6 +242,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			WriteLine("JOIN %s", Chans);
 
 		if (m_State != State_Connected) {
+			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+				CModule* M = g_Bouncer->GetModules()[i];
+
+				if (M) {
+					M->ServerLogon(m_Owner->GetUsername());
+				}
+			}
+
 			GetOwningClient()->Notice("Connected to an IRC server.");
 
 			g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());

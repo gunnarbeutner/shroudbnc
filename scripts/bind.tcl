@@ -17,6 +17,9 @@
 
 internalbind server sbnc:rawserver
 internalbind modec sbnc:modechange
+internalbind svrconnect sbnc:svrconnect
+internalbind svrdisconnect sbnc:svrdisconnect
+internalbind svrlogon sbnc:svrlogon
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -24,6 +27,18 @@ proc sbnc:nickfromhost {host} {
 
 proc sbnc:sitefromhost {host} {
 	return [lindex [split $host "!"] 1]
+}
+
+proc sbnc:svrconnect {client} {
+	callevent "connect-server"
+}
+
+proc sbnc:srvdisconnect {client} {
+	callevent "disconnect-server"
+}
+
+proc sbnc:svrlogon {client} {
+	callevent "init-server"
 }
 
 proc sbnc:modechange {client parameters} {
@@ -212,5 +227,5 @@ proc binds {{mask ""}} {
 }
 
 proc callevent {event} {
-	sbnc:callbinds "evnt" - {} {} $event
+	sbnc:callbinds "evnt" - {} $event $event
 }

@@ -218,6 +218,12 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_SingleMode;
 	else if (strcmpi(type, "unload") == 0)
 		g_Binds[n].type = Type_Unload;
+	else if (strcmpi(type, "svrdisconnect") == 0)
+		g_Binds[n].type = Type_SvrDisconnect;
+	else if (strcmpi(type, "svrconnect") == 0)
+		g_Binds[n].type = Type_SvrConnect;
+	else if (strcmpi(type, "svrlogon") == 0)
+		g_Binds[n].type = Type_SvrLogon;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -250,6 +256,12 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_SingleMode;
 	else if (strcmpi(type, "unload") == 0)
 		bindtype = Type_Unload;
+	else if (strcmpi(type, "svrdisconnect") == 0)
+		bindtype = Type_SvrDisconnect;
+	else if (strcmpi(type, "svrconnect") == 0)
+		bindtype = Type_SvrConnect;
+	else if (strcmpi(type, "svrlogon") == 0)
+		bindtype = Type_SvrLogon;
 	else
 		return 0;
 

@@ -50,6 +50,10 @@ public:
 	virtual void AttachClient(const char* Client);
 	virtual void DetachClient(const char* Client) ;
 
+	virtual void ServerDisconnect(const char* Client);
+	virtual void ServerConnect(const char* Client);
+	virtual void ServerLogon(const char* Client);
+
 	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter);
 };
 
