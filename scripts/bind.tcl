@@ -137,13 +137,21 @@ proc sbnc:callbinds {type flags chan mask args} {
 		set u [lindex $bind 3]
 		set p [lindex $bind 4]
 
-		# todo: match flags!
 		if {[string equal -nocase $t $type] && [string match -nocase $m $mask] && [matchattr $flags $f $chan]} {
-			catch [list eval $p $args] error
+			set errcode [catch [list eval $p $args] error]
 
-#			foreach line [split $error \n] {
-#				putserv "PRIVMSG #shroudtest :$line"
-#			}
+			if {$errcode} {
+				set ctx [getctx]
+				setctx [lindex [bncuserlist] 0]
+
+				bncnotc "Error in bind $t $f $m called: $p ($args)"
+
+				foreach line [split $error \n] {
+					bncnotc $line
+				}
+
+				setctx $ctx
+			}
 		}
 	}
 }

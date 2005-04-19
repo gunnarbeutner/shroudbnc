@@ -32,7 +32,10 @@ enum binding_type_e {
 	Type_Unload,
 	Type_SvrDisconnect,
 	Type_SvrConnect,
-	Type_SvrLogon
+	Type_SvrLogon,
+	Type_UsrLoad,
+	Type_UsrCreate,
+	Type_UsrDelete
 };
 
 typedef struct binding_s {

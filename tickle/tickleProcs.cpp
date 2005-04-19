@@ -224,6 +224,12 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_SvrConnect;
 	else if (strcmpi(type, "svrlogon") == 0)
 		g_Binds[n].type = Type_SvrLogon;
+	else if (strcmpi(type, "usrload") == 0)
+		g_Binds[n].type = Type_UsrLoad;
+	else if (strcmpi(type, "usrcreate") == 0)
+		g_Binds[n].type = Type_UsrCreate;
+	else if (strcmpi(type, "usrdelete") == 0)
+		g_Binds[n].type = Type_UsrDelete;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -262,6 +268,12 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_SvrConnect;
 	else if (strcmpi(type, "svrlogon") == 0)
 		bindtype = Type_SvrLogon;
+	else if (strcmpi(type, "usrload") == 0)
+		bindtype = Type_UsrLoad;
+	else if (strcmpi(type, "usrcreate") == 0)
+		bindtype = Type_UsrCreate;
+	else if (strcmpi(type, "usrdelete") == 0)
+		bindtype = Type_UsrDelete;
 	else
 		return 0;
 
@@ -462,7 +474,6 @@ const char* internalchanlist(const char* Channel) {
 }
 
 bool isop(const char* Nick, const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -492,7 +503,6 @@ bool isop(const char* Nick, const char* Channel) {
 }
 
 bool isvoice(const char* Nick, const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -522,7 +532,6 @@ bool isvoice(const char* Nick, const char* Channel) {
 }
 
 bool ishalfop(const char* Nick, const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -1020,7 +1029,10 @@ int getchanidle(const char* Nick, const char* Channel) {
 
 	CNick* User = Chan->GetNames()->Get(Nick);
 
-	return time(NULL) - User->GetIdleSince();
+	if (User)
+		return time(NULL) - User->GetIdleSince();
+	else
+		return 0;
 }
 
 const char* duration(int Interval) {
@@ -1249,4 +1261,54 @@ const char* bncmodules(void) {
 	}
 
 	return Buffer;
+}
+
+int bncsettag(const char* channel, const char* nick, const char* tag, const char* value) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return 0;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return 0;
+
+	CChannel* Chan = IRC->GetChannel(channel);
+
+	if (!Chan)
+		return 0;
+
+	CNick* User = Chan->GetNames()->Get(nick);
+
+	if (User) {
+		User->SetTag(tag, value);
+
+		return 1;
+	} else
+		return 0;
+}
+
+const char* bncgettag(const char* channel, const char* nick, const char* tag) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return NULL;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return NULL;
+
+	CChannel* Chan = IRC->GetChannel(channel);
+
+	if (!Chan)
+		return NULL;
+
+	CNick* User = Chan->GetNames()->Get(nick);
+
+	if (User)
+		return User->GetTag(tag);
+	else
+		return NULL;
 }

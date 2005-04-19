@@ -1783,6 +1783,53 @@ _wrap_bncmodules(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 
 static int
+_wrap_bncsettag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ssss:bncsettag channel nick tag value ",&arg1,&arg2,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)bncsettag((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncgettag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"sss:bncgettag channel nick tag ",&arg1,&arg2,&arg3) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncgettag((char const *)arg1,(char const *)arg2,(char const *)arg3);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2246,6 +2293,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "isprefixmode", (swig_wrapper_func) _wrap_isprefixmode, NULL},
     { SWIG_prefix "internalchannels", (swig_wrapper_func) _wrap_internalchannels, NULL},
     { SWIG_prefix "bncmodules", (swig_wrapper_func) _wrap_bncmodules, NULL},
+    { SWIG_prefix "bncsettag", (swig_wrapper_func) _wrap_bncsettag, NULL},
+    { SWIG_prefix "bncgettag", (swig_wrapper_func) _wrap_bncgettag, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -123,6 +123,10 @@ class CHelloClass : public CModuleFar {
 	void ServerConnect(const char* Client) { }
 	void ServerLogon(const char* Client) { }
 
+	void UserLoad(const char* User) { }
+	void UserCreate(const char* User) { }
+	void UserDelete(const char* User) { }
+
 	void SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
 };
 

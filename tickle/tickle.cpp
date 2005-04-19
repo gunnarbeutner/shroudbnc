@@ -163,6 +163,18 @@ class CTclSupport : public CModuleFar {
 		CallBinds(Type_SvrLogon, Client, 0, NULL);
 	}
 
+	void UserLoad(const char* User) {
+		CallBinds(Type_UsrLoad, User, 0, NULL);
+	}
+
+	void UserCreate(const char* User) {
+		CallBinds(Type_UsrCreate, User, 0, NULL);
+	}
+
+	void UserDelete(const char* User) {
+		CallBinds(Type_UsrDelete, User, 0, NULL);
+	}
+
 	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
 		char ModeC[3];
 

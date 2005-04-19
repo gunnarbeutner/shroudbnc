@@ -77,6 +77,9 @@ bool isprefixmode(char Mode);
 const char* internalchannels(void);
 const char* bncmodules(void);
 
+int bncsettag(const char* channel, const char* nick, const char* tag, const char* value);
+const char* bncgettag(const char* channel, const char* nick, const char* tag);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);
