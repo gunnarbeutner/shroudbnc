@@ -107,6 +107,18 @@ void CModule::ServerLogon(const char* Client) {
 	m_Far->ServerLogon(Client);
 }
 
+void CModule::UserLoad(const char* User) {
+	m_Far->UserLoad(User);
+}
+
+void CModule::UserCreate(const char* User) {
+	m_Far->UserCreate(User);
+}
+
+void CModule::UserDelete(const char* User) {
+	m_Far->UserDelete(User);
+}
+
 void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
 	m_Far->SingleModeChange(Connection, Channel, Source, Flip, Mode, Parameter);
 }

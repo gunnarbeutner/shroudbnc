@@ -142,6 +142,8 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 
+			m_Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
+
 			m_Client->ParseLine("VERSION");
 
 			CChannel** Chans = m_IRC->GetChannels();

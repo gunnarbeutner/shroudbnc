@@ -28,12 +28,15 @@ class CNick;
 
 void DestroyCNick(CNick* P);
 
+class CBouncerConfig;
+
 class CNick {
 	char* m_Nick;
 	char* m_Prefixes;
 	char* m_Site;
 	time_t m_Creation;
 	time_t m_IdleSince;
+	CBouncerConfig* m_Tags;
 public:
 	CNick(const char* Nick);
 	virtual ~CNick();
@@ -57,8 +60,9 @@ public:
 	virtual time_t GetChanJoin(void);
 	virtual time_t GetIdleSince(void);
 	virtual void SetIdleSince(time_t Time);
-
-	virtual CNick* Clone(void);
+	
+	virtual void SetTag(const char* Name, const char* Value);
+	virtual const char* GetTag(const char* Name);
 };
 
 void DestroyCNick(CNick* P);

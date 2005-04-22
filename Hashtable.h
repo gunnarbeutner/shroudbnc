@@ -80,19 +80,27 @@ public:
 		m_Pairs[m_PairCount - 1].Value = Value;
 	}
 
-	virtual void Remove(const char* Name) {
+	virtual void InternalRemove(const char* Name, bool Release = true) {
 		for (int i = 0; i < m_PairCount; i++) {
 			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
 				free(m_Pairs[i].Name);
 				m_Pairs[i].Name = NULL;
 				m_Pairs[i].Valid = false;
 
-				if (m_DestructorFunc)
+				if (Release && m_DestructorFunc)
 					m_DestructorFunc(m_Pairs[i].Value);
 
 				return;
 			}
 		}
+	}
+
+	virtual void RemoveNoRelease(const char* Name) {
+		InternalRemove(Name, false);
+	}
+
+	virtual void Remove(const char* Name) {
+		InternalRemove(Name, true);
 	}
 
 	virtual value_type Get(const char* Name) {

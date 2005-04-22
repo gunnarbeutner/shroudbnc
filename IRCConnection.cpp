@@ -216,11 +216,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				NickObj = Nicks->Get(Nick);
 
 				if (NickObj) {
-					CNick* Clone = NickObj->Clone();
-					Clone->SetNick(argv[2]);
+					NickObj->SetNick(argv[2]);
 
-					Nicks->Remove(Nick);
-					Nicks->Add(argv[2], Clone);
+					Nicks->RemoveNoRelease(Nick);
+					Nicks->Add(argv[2], NickObj);
 				}
 			}
 		}

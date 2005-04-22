@@ -1830,6 +1830,24 @@ _wrap_bncgettag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
 
 static int
+_wrap_haltoutput(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    if (SWIG_GetArgs(interp, objc, objv,":haltoutput ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            haltoutput();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2295,6 +2313,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncmodules", (swig_wrapper_func) _wrap_bncmodules, NULL},
     { SWIG_prefix "bncsettag", (swig_wrapper_func) _wrap_bncsettag, NULL},
     { SWIG_prefix "bncgettag", (swig_wrapper_func) _wrap_bncgettag, NULL},
+    { SWIG_prefix "haltoutput", (swig_wrapper_func) _wrap_haltoutput, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

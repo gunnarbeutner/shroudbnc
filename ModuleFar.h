@@ -44,6 +44,10 @@ struct CModuleFar {
 	virtual void ServerConnect(const char* Client) = 0;
 	virtual void ServerLogon(const char* Client) = 0;
 
+	virtual void UserLoad(const char* User) = 0;
+	virtual void UserCreate(const char* User) = 0;
+	virtual void UserDelete(const char* User) = 0;
+
 	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) = 0;
 };
 

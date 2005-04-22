@@ -40,6 +40,7 @@ static char* g_Context = NULL;
 
 binding_t* g_Binds = NULL;
 int g_BindCount = 0;
+extern bool g_Ret;
 
 extern "C" int Bnc_Init(Tcl_Interp*);
 
@@ -1051,11 +1052,11 @@ int ticklerand(int limit) {
 }
 
 const char* bncversion(void) {
-	return BNCVERSION " 0030000";
+	return BNCVERSION " 0050000";
 }
 
 const char* bncnumversion(void) {
-	return "0030000";
+	return "0050000";
 }
 
 int bncuptime(void) {
@@ -1311,4 +1312,8 @@ const char* bncgettag(const char* channel, const char* nick, const char* tag) {
 		return User->GetTag(tag);
 	else
 		return NULL;
+}
+
+void haltoutput(void) {
+	g_Ret = false;
 }

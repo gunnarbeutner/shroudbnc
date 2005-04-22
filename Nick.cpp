@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "Nick.h"
+#include "BouncerConfig.h"
 
 void DestroyCNick(CNick* P) {
 	delete P;
@@ -34,12 +35,16 @@ CNick::CNick(const char* Nick) {
 	m_Site = NULL;
 
 	m_IdleSince = m_Creation = time(NULL);
+
+	m_Tags = new CBouncerConfig(NULL);
 }
 
 CNick::~CNick() {
 	free(m_Nick);
 	free(m_Prefixes);
 	free(m_Site);
+
+	delete m_Tags;
 }
 
 const char* CNick::GetNick(void) {
@@ -84,7 +89,7 @@ void CNick::RemovePrefix(char Prefix) {
 
 	for (unsigned int i = 0; i < strlen(m_Prefixes); i++) {
 		if (m_Prefixes[i] != Prefix)
-			Copy[a++] = '\0';
+			Copy[a++] = m_Prefixes[i];
 	}
 
 	Copy[a] = '\0';
@@ -142,13 +147,10 @@ void CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
 }
 
-CNick* CNick::Clone(void) {
-	CNick* C = new CNick(m_Nick);
+void CNick::SetTag(const char* Name, const char* Value) {
+	m_Tags->WriteString(Name, Value);
+}
 
-	C->m_Creation = m_Creation;
-	C->m_IdleSince = m_IdleSince;
-	C->m_Prefixes = m_Prefixes ? strdup(m_Prefixes) : NULL;
-	C->m_Site = m_Site ? strdup(m_Site) : NULL;
-
-	return C;
+const char* CNick::GetTag(const char* Name) {
+	return m_Tags->ReadString(Name);
 }

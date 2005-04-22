@@ -79,6 +79,7 @@ const char* bncmodules(void);
 
 int bncsettag(const char* channel, const char* nick, const char* tag, const char* value);
 const char* bncgettag(const char* channel, const char* nick, const char* tag);
+void haltoutput(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

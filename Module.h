@@ -54,6 +54,10 @@ public:
 	virtual void ServerConnect(const char* Client);
 	virtual void ServerLogon(const char* Client);
 
+	virtual void UserLoad(const char* User);
+	virtual void UserCreate(const char* User);
+	virtual void UserDelete(const char* User);
+
 	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter);
 };
 
