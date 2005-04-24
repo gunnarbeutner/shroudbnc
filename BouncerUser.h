@@ -43,6 +43,7 @@ class CBouncerUser {
 	time_t m_LastReconnect;
 
 	bool m_Locked;
+	bool m_Quitted;
 public:
 	CBouncerUser(const char* Name);
 	virtual ~CBouncerUser(void);
@@ -96,6 +97,9 @@ public:
 
 	virtual void SetPort(int Port);
 	virtual int GetPort(void);
+
+	virtual void MarkQuitted(void);
+	
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

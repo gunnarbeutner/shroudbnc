@@ -63,6 +63,7 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	assert(m_Log != NULL);
 
 	m_Locked = false;
+	m_Quitted = false;
 }
 
 CBouncerUser::~CBouncerUser() {
@@ -300,7 +301,7 @@ void CBouncerUser::Reconnect(void) {
 }
 
 bool CBouncerUser::ShouldReconnect(void) {
-	if (!m_IRC && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > 15)
+	if (!m_IRC && !m_Quitted && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > 15)
 		return true;
 	else
 		return false;
@@ -309,6 +310,9 @@ bool CBouncerUser::ShouldReconnect(void) {
 void CBouncerUser::ScheduleReconnect(int Delay) {
 	if (m_IRC)
 		return;
+
+	if (m_Quitted && Delay == 0)
+		m_Quitted = false;
 
 	if (m_ReconnectTime < time(NULL) + Delay) {
 		m_ReconnectTime = time(NULL) + Delay;
@@ -456,4 +460,8 @@ void CBouncerUser::SetNick(const char* Nick) {
 void CBouncerUser::SetRealname(const char* Realname) {
 	if (Realname)
 		m_Config->WriteString("user.realname", Realname);
+}
+
+void CBouncerUser::MarkQuitted(void) {
+	m_Quitted = true;
 }

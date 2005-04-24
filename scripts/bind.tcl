@@ -66,8 +66,6 @@ proc sbnc:modechange {client parameters} {
 	} else {
 		sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode $targ
 	}
-
-	puts "[join $parameters]"
 }
 
 proc sbnc:rawserver {client parameters} {
@@ -119,8 +117,6 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "wall" - "" $targ $source [join [lrange $parameters 2 end]]
 		}
 	}
-
-	puts [join $parameters]
 }
 
 proc sbnc:callbinds {type flags chan mask args} {
@@ -204,8 +200,6 @@ proc unbind {type flags mask procname} {
 	}
 
 	set binds $newbinds
-
-	puts $binds
 
 	return $mask
 }

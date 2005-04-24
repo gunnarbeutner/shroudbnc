@@ -147,6 +147,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			if (Conn)
 				Conn->Kill(argv[1]);
 
+			m_Owner->MarkQuitted();
+
 			return false;
 		} else if (strcmpi(Command, "global") == 0 && m_Owner->IsAdmin()) {
 			if (argc < 2) {
@@ -564,46 +566,45 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 					if (ServerVersion != NULL && ServerFeat != NULL) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
+					}
 
-						hash_t<char*>* Features = IRC->GetISupportAll()->GetSettings();
-						int FeatureCount = IRC->GetISupportAll()->GetSettingCount();
+					hash_t<char*>* Features = IRC->GetISupportAll()->GetSettings();
+					int FeatureCount = IRC->GetISupportAll()->GetSettingCount();
 
-						char* Feats = (char*)malloc(1);
-						Feats[0] = '\0';
+					char* Feats = (char*)malloc(1);
+					Feats[0] = '\0';
 
-						int a = 0;
+					int a = 0;
 
-						for (int i = 0; i < FeatureCount; i++) {
-							if (!Features[i].Name || !Features[i].Value)
-								continue;
+					for (int i = 0; i < FeatureCount; i++) {
+						if (!Features[i].Name || !Features[i].Value)
+							continue;
 
-							char* Name = Features[i].Name;
-							char* Value = Features[i].Value;
+						char* Name = Features[i].Name;
+						char* Value = Features[i].Value;
 
-							Feats = (char*)realloc(Feats, (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2);
+						Feats = (char*)realloc(Feats, (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2);
 
-							if (*Feats)
-								strcat(Feats, " ");
+						if (*Feats)
+							strcat(Feats, " ");
 
-							strcat(Feats, Name);
-							strcat(Feats, "=");
-							strcat(Feats, Value);
+						strcat(Feats, Name);
+						strcat(Feats, "=");
+						strcat(Feats, Value);
 
-							if (++a == 11) {
-								WriteLine(":%s 005 %s %s :are supported by this server", IRC->GetServer(), IRC->GetCurrentNick(), Feats);
-
-								Feats = (char*)realloc(Feats, 1);
-								*Feats = '\0';
-								a = 0;
-							}
-						}
-
-						if (a)
+						if (++a == 11) {
 							WriteLine(":%s 005 %s %s :are supported by this server", IRC->GetServer(), IRC->GetCurrentNick(), Feats);
 
-						free(Feats);
-					} else
-						IRC->WriteLine("VERSION");
+							Feats = (char*)realloc(Feats, 1);
+							*Feats = '\0';
+							a = 0;
+						}
+					}
+
+					if (a)
+						WriteLine(":%s 005 %s %s :are supported by this server", IRC->GetServer(), IRC->GetCurrentNick(), Feats);
+
+					free(Feats);
 				}
 			}
 
