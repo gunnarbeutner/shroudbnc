@@ -157,6 +157,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 2 && strcmpi(Raw, "part") == 0) {
+		bool bRet = ModuleEvent(argc, argv);
+
 		if (b_Me)
 			RemoveChannel(argv[2]);
 		else {
@@ -170,7 +172,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		UpdateHostHelper(Reply);
+
+		return bRet;
 	} else if (argc > 2 && strcmpi(Raw, "kick") == 0) {
+		bool bRet = ModuleEvent(argc, argv);
+
 		if (strcmpi(argv[3], m_CurrentNick) == 0) {
 			RemoveChannel(argv[2]);
 
@@ -185,6 +191,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		UpdateHostHelper(Reply);
+
+		return bRet;
 	} else if (argc > 2 && atoi(Raw) == 1) {
 		CClientConnection* Client = GetOwningClient()->GetClientConnection();
 
@@ -226,6 +234,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		free(Nick);
 	} else if (argc > 1 && strcmpi(Raw, "quit") == 0) {
+		bool bRet = ModuleEvent(argc, argv);
+
 		Nick = NickFromHostmask(argv[0]);
 
 		for (int i = 0; i < m_ChannelCount; i++) {
@@ -234,6 +244,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		free(Nick);
+		
+		return bRet;
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
 		const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
 
@@ -399,6 +411,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		return false;
 	}
 
+	return ModuleEvent(argc, argv);
+}
+
+bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 	CModule** Modules = g_Bouncer->GetModules();
 	int Count = g_Bouncer->GetModuleCount();
 

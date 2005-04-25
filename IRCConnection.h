@@ -63,6 +63,8 @@ class CIRCConnection : public CConnection {
 
 	void UpdateChannelConfig(void);
 	void UpdateHostHelper(const char* Host);
+
+	bool ModuleEvent(int argc, const char** argv);
 public:
 	CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning);
 	virtual ~CIRCConnection();

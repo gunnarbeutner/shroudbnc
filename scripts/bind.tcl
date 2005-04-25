@@ -102,7 +102,11 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "part" $flags $targ "$targ $source" $nick $site $hand $targ $opt
 		}
 		"quit" {
-
+			foreach c [internalchannels] {
+				if {[onchan $nick $c]} {
+					sbnc:callbinds "sign" $flags $c "$c $source" $nick $site $hand $c $targ
+				}
+			}
 		}
 		"topic" {
 			sbnc:callbinds "topc" $flags $targ "$targ $opt" $nick $site $hand $targ $opt

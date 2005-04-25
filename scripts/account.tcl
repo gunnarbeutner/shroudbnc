@@ -11,8 +11,16 @@ proc auth:raw354 {source raw text} {
 
 	if {[lindex $pieces 1] != 23} { return }
 
+	set nick [lindex $pieces 2]
+	set site [getchanhost $nick]
+	set host [lindex $pieces 2]!$site
+	set hand [finduser $host]
+
 	foreach chan [internalchannels] {
-		bncsettag $chan [lindex $pieces 2] account [lindex $pieces 3]
+		if {[onchan $nick $chan]} {
+			bncsettag $chan [lindex $pieces 2] account [lindex $pieces 3]
+			sbnc:callbinds "account" - $chan "$chan $host" $nick $site $hand $chan
+		}
 	}
 }
 

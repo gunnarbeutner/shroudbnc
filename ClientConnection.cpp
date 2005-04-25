@@ -285,6 +285,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		} else if (strcmpi(Command, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
 			g_Bouncer->GetLog()->Clear();
+			g_Bouncer->Log("User %s erased the main log", m_Owner->GetUsername());
 			m_Owner->Notice("Done.");
 
 			return false;
