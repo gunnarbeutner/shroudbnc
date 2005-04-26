@@ -18,15 +18,23 @@
 internalbind pulse sbnc:channelpulse
 internalbind unload sbnc:channelflush
 
+setudef int inactive
+
 proc sbnc:channelflush {} {
 	foreach user [bncuserlist] {
 		setctx $user
 		savechannels
+
+		foreach channel [channels] {
+			if {![botonchan $channel] && ![channel get $channel inactive]} {
+				puthelp "JOIN $channel"
+			}
+		}
 	}
 }
 
 proc sbnc:channelpulse {time} {
-	if {[expr $time % 120] == 0} {
+	if {$time % 120 == 0} {
 		sbnc:channelflush
 	}
 }
@@ -49,6 +57,8 @@ proc channel {option chan args} {
 	switch [string tolower $option] {
 		add {
 			set channels($chan) [join $args]
+
+			puthelp "JOIN $chan"
 
 			return 1
 		}
@@ -80,7 +90,11 @@ proc channel {option chan args} {
 			} elseif {[info exists channel([lindex $args 0])]} {
 				return $channel([lindex $args 0])
 			} else {
-				return {}
+				if {$chanoptions(inactive) == "int" || $chanoptions(inactive) == "flag"} {
+					return 0
+				} else {
+					return {}
+				}
 			}
 		}
 		remove {

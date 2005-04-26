@@ -1,5 +1,11 @@
-bind join - * auth:join
-bind raw - 354 auth:raw354
+set ::account354 "fnords"
+
+foreach user [split $::account354] {
+	setctx $user
+	bind join - * auth:join
+	bind raw - 354 auth:raw354
+}
+
 internalbind pulse auth:pulse
 
 proc auth:join {nick host hand chan} {
@@ -18,33 +24,42 @@ proc auth:raw354 {source raw text} {
 
 	foreach chan [internalchannels] {
 		if {[onchan $nick $chan]} {
+			set old [bncgettag $chan [lindex $pieces 2] account]
 			bncsettag $chan [lindex $pieces 2] account [lindex $pieces 3]
-			sbnc:callbinds "account" - $chan "$chan $host" $nick $site $hand $chan
+
+			if {$old == ""} {
+				sbnc:callbinds "account" - $chan "$chan $host" $nick $site $hand $chan
+			}
 		}
 	}
 }
 
 proc auth:pulse {time} {
+	global account354
+
 	if {$time % 120 != 0} { return }
 
-	set nicks ""
+	foreach user [split $account354] {
+		setctx $user
 
-	foreach chan [internalchannels] {
-		foreach nick [internalchanlist $chan] {
-			set acc [bncgettag $chan $nick account]
-			if {$acc == "" || ($acc == 0 && $time % 240 == 0)} {
-				lappend nicks $nick
-			}
+		set nicks ""
+		foreach chan [internalchannels] {
+			foreach nick [internalchanlist $chan] {
+				set acc [bncgettag $chan $nick account]
+				if {$acc == "" || ($acc == 0 && $time % 240 == 0)} {
+					lappend nicks $nick
+				}
 
-			if {[string length [join [sbnc:uniq $nicks] ","]] > 300} {
-				putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
-				set nicks ""
+				if {[string length [join [sbnc:uniq $nicks] ","]] > 300} {
+					putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+					set nicks ""
+				}
 			}
 		}
-	}
 
-	if {$nicks != ""} {
-		putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+		if {$nicks != ""} {
+			putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+		}
 	}
 }
 
