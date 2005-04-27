@@ -9,7 +9,15 @@ foreach user [split $::account354] {
 internalbind pulse auth:pulse
 
 proc auth:join {nick host hand chan} {
-	putserv "WHO $nick n%nat,23"
+	if {[isbotnick $nick]} {
+		putserv "WHO $chan n%nat,23"
+	} else {
+		if {[getchanlogin $nick] == ""} {
+			putserv "WHO $nick n%nat,23"
+		} else {
+			sbnc:callbinds "account" - $chan "$chan $nick!$host" $nick $host $hand $chan
+		}
+	}
 }
 
 proc auth:raw354 {source raw text} {

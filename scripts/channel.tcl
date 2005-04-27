@@ -18,8 +18,6 @@
 internalbind pulse sbnc:channelpulse
 internalbind unload sbnc:channelflush
 
-setudef int inactive
-
 proc sbnc:channelflush {} {
 	foreach user [bncuserlist] {
 		setctx $user
@@ -230,3 +228,5 @@ if {![info exists sbnc:channelinit]} {
 
 	set sbnc:channelinit 1
 }
+
+setudef int inactive
