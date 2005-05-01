@@ -84,16 +84,24 @@ proc sbnc:rawserver {client parameters} {
 
 	switch $verb {
 		"privmsg" {
-			if {[validchan $targ] || [lsearch -exact [string tolower [internalchannels]] [string tolower $targ]] != -1} {
-				sbnc:callbinds "pub" $flags $targ [lindex [split $opt] 0] $nick $site $hand $targ [join [lrange [split $opt] 1 end]]
-				sbnc:callbinds "pubm" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
+			if {[regexp "\001(\[^ \]+)(| (.*?))\001" $opt foo verb text]} {
+				sbnc:callbinds "ctcp" $flags $targ $verb $nick $site $hand $targ $verb $text
 			} else {
-				sbnc:callbinds "msg" $flags "" [lindex [split $opt] 0] $nick $site $hand [join [lrange [split $opt] 1 end]]
-				sbnc:callbinds "pubm" $flags "" $opt $nick $site $hand $opt
+				if {[validchan $targ] || [lsearch -exact [string tolower [internalchannels]] [string tolower $targ]] != -1} {
+					sbnc:callbinds "pub" $flags $targ [lindex [split $opt] 0] $nick $site $hand $targ [join [lrange [split $opt] 1 end]]
+					sbnc:callbinds "pubm" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
+				} else {
+					sbnc:callbinds "msg" $flags "" [lindex [split $opt] 0] $nick $site $hand [join [lrange [split $opt] 1 end]]
+					sbnc:callbinds "pubm" $flags "" $opt $nick $site $hand $opt
+				}
 			}
 		}
 		"notice" {
-			sbnc:callbinds "notc" $flags $targ $opt $nick $site $hand $opt $targ
+			if {[regexp "\001(\[^ \]+)(| (.*?))\001" $opt foo verb text]} {
+				sbnc:callbinds "ctcr" $flags $targ $verb $nick $site $hand $targ $verb $text
+			} else {
+				sbnc:callbinds "notc" $flags $targ $opt $nick $site $hand $opt $targ
+			}
 		}
 		"join" {
 			sbnc:callbinds "join" $flags $targ "$targ $source" $nick $site $hand $targ
