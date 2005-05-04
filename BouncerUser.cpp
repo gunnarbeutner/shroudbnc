@@ -64,6 +64,14 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_Locked = false;
 	m_Quitted = false;
+
+	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+		CModule* M = g_Bouncer->GetModules()[i];
+
+		if (M) {
+			M->UserLoad(Name);
+		}
+	}
 }
 
 CBouncerUser::~CBouncerUser() {
@@ -118,14 +126,6 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
 
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
-
-		if (M) {
-			M->AttachClient(GetUsername());
-		}
-	}
-
 	g_Bouncer->Log(Out);
 	g_Bouncer->GlobalNotice(Out, true);
 
@@ -173,6 +173,14 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		snprintf(Out, sizeof(Out), "Message of the day: %s", Motd);
 		
 		Notice(Out);
+	}
+
+	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+		CModule* M = g_Bouncer->GetModules()[i];
+
+		if (M) {
+			M->AttachClient(GetUsername());
+		}
 	}
 
 	if (!GetLog()->IsEmpty())

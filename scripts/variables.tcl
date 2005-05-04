@@ -60,7 +60,12 @@ proc sbnc:tracevars-botnick {name item operation} {
 proc sbnc:tracevars-botname {name item operation} {
 	if {$operation == "r"} {
 		set nick [getbncuser [getctx] nick]
-		set ::botname $nick![getchanhost $nick]
+
+		if {[getchanhost $nick] != ""} {
+			set ::botname $nick![getchanhost $nick]
+		} else {
+			set ::botname "$nick![getctx]@unknown"
+		}
 	} else {
 		return -code error "variable is read-only"
 	}
@@ -68,7 +73,13 @@ proc sbnc:tracevars-botname {name item operation} {
 
 proc sbnc:tracevars-server {name item operation} {
 	if {$operation == "r"} {
-		set ::server [getbncuser [getctx] realserver]:[getbncuser [getctx] port]
+		set s [getbncuser [getctx] realserver]:[getbncuser [getctx] port]
+
+		if {[getbncuser [getctx] realserver] != ""} {
+			set ::server $s
+		} else {
+			return "sbnc:6667"
+		}
 	} else {
 		return -code error "variable is read-only"
 	}

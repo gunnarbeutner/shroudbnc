@@ -35,6 +35,7 @@ proc sbnc:tcltimers {time} {
 		foreach timer $utimers {
 			if {$time > [lindex $timer 0]} {
 				catch {eval [lindex $timer 1]}
+				setctx $user
 				killutimer [lindex $timer 2]
 			}
 		}
@@ -42,6 +43,7 @@ proc sbnc:tcltimers {time} {
 		foreach timer $timers {
 			if {$time > [lindex $timer 0]} {
 				catch {eval [lindex $timer 1]}
+				setctx $user
 				killtimer [lindex $timer 2]
 			}
 		}

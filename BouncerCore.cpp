@@ -44,6 +44,8 @@ time_t g_LastReconnect = 0;
 CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	int i;
 
+	g_Bouncer = this;
+
 	m_Config = Config;
 
 	m_Users = NULL;
@@ -493,12 +495,28 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 
 	UpdateUserConfig();
 
+	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+		CModule* M = g_Bouncer->GetModules()[i];
+
+		if (M) {
+			M->UserCreate(Username);
+		}
+	}
+
 	return m_Users[m_UserCount - 1];
 }
 
 bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
+			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+				CModule* M = g_Bouncer->GetModules()[i];
+
+				if (M) {
+					M->UserDelete(Username);
+				}
+			}
+
 			if (RemoveConfig)
 				unlink(m_Users[i]->GetConfig()->GetFilename());
 

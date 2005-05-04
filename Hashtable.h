@@ -127,6 +127,17 @@ public:
 		return NULL;
 	}
 
+	virtual int Count(void) {
+		int a = 0;
+
+		for (int i = 0; i < m_PairCount; i++) {
+			if (m_Pairs[i].Valid)
+				a++;
+		}
+
+		return a;
+	}
+
 	virtual hash_t<value_type>* GetInnerData(void) {
 		return m_Pairs;
 	}

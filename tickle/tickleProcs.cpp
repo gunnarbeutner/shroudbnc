@@ -118,28 +118,27 @@ const char* internalchannels(void) {
 	if (!IRC)
 		return NULL;
 
-	static char* ChanList = NULL;
-
-	ChanList = (char*)realloc(ChanList, 1);
-	ChanList[0] = '\0';
-
 	int Count = IRC->GetChannelCount();
 	CChannel** Channels = IRC->GetChannels();
 
-	for (int i = 0; i < Count; i++) {
-		if (Channels[i]) {
-			const char* Channel = Channels[i]->GetName();
-			ChanList = (char*)realloc(ChanList, strlen(ChanList) + strlen(Channel) + 4);
-			if (*ChanList)
-				strcat(ChanList, " ");
+	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-			strcat(ChanList, "{");
-			strcat(ChanList, Channel);
-			strcat(ChanList, "}");
-		}
-	}
+	for (int i = 0; i < Count; i++)
+		if (Channels[i])
+			argv[i] = Channels[i]->GetName();
+		else
+			Count--;
 
-	return ChanList;
+	static char* List = NULL;
+
+	if (List)
+		Tcl_Free(List);
+
+	List = Tcl_Merge(Count, argv);
+
+	free(argv);
+
+	return List;
 }
 
 const char* gettopic(const char* Channel) {
@@ -437,7 +436,6 @@ const char* getchanmode(const char* Channel) {
 }
 
 const char* internalchanlist(const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -453,25 +451,25 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	NickList = (char*)realloc(NickList, 1);
-	NickList[0] = '\0';
-
 	CHashtable<CNick*, false>* Names = Chan->GetNames();
+
+	int Count = Names->Count();
+	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
 	int a = 0;
 
 	while (hash_t<CNick*>* NickHash = Names->Iterate(a++)) {
-		const char* Nick = NickHash->Value->GetNick();
-		NickList = (char*)realloc(NickList, strlen(NickList) + strlen(Nick) + 4);
-		if (*NickList)
-			strcat(NickList, " ");
-
-		strcat(NickList, "{");
-		strcat(NickList, Nick);
-		strcat(NickList, "}");
+		argv[a-1] = NickHash->Value->GetNick();
 	}
 
-	return NickList;
+	static char* List = NULL;
+
+	if (List)
+		Tcl_Free(List);
+
+	List = Tcl_Merge(Count, argv);
+
+	return List;
 }
 
 bool isop(const char* Nick, const char* Channel) {
