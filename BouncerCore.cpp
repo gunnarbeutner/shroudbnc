@@ -69,6 +69,9 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 			m_Users[i] = new CBouncerUser(ArgGet(Args, i + 1));
 		}
 
+		for (i = 0; i < Count; i++)
+			m_Users[i]->LoadEvent();
+
 		ArgFree(Args);
 		Args = NULL;
 	}
@@ -279,6 +282,8 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 
 						shutdown(Socket, SD_BOTH);
 						closesocket(Socket);
+
+						m_OtherSockets[i].Socket = INVALID_SOCKET;
 					}
 				}
 			}
@@ -510,14 +515,16 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 		}
 	}
 
+	m_Users[m_UserCount - 1]->LoadEvent();
+
 	return m_Users[m_UserCount - 1];
 }
 
 bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
-			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-				CModule* M = g_Bouncer->GetModules()[i];
+			for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
+				CModule* M = g_Bouncer->GetModules()[a];
 
 				if (M) {
 					M->UserDelete(Username);

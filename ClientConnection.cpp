@@ -705,6 +705,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 }
 
 void CClientConnection::ParseLine(const char* Line) {
+//	if (!GetOwningClient())
+//		return;
+
 	const char* Args = ArgTokenize(Line);
 	const char** argv = ArgToArray(Args);
 	int argc = ArgCount(Args);
@@ -745,10 +748,4 @@ void CClientConnection::Destroy(void) {
 		g_Bouncer->Log("%s disconnected.", m_Username);
 		m_Owner->SetClientConnection(NULL);
 	}
-
-	delete this;
-}
-
-void CClientConnection::SetOwner(CBouncerUser* Owner) {
-	m_Owner = Owner;
 }

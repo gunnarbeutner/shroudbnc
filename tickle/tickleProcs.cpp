@@ -128,15 +128,13 @@ const char* internalchannels(void) {
 	for (int i = 0; i < Count; i++)
 		if (Channels[i])
 			argv[a++] = Channels[i]->GetName();
-		else
-			Count--;
 
 	static char* List = NULL;
 
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(Count, argv);
+	List = Tcl_Merge(a, argv);
 
 	free(argv);
 

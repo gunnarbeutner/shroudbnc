@@ -42,8 +42,6 @@ public:
 	virtual const char* GetNick(void);
 
 	virtual void Destroy(void);
-
-	virtual void SetOwner(CBouncerUser* Owner);
 };
 
 #endif // !defined(AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_)

@@ -183,10 +183,8 @@ void CConnection::Kill(const char* Error) {
 		WriteLine(Out);
 	}
 
-	m_Owner = NULL;
-
-	Shutdown();
-	Timeout(10);
+	shutdown(m_Socket, SD_BOTH);
+	closesocket(m_Socket);
 }
 
 bool CConnection::HasQueuedData(void) {
@@ -206,6 +204,7 @@ void CConnection::Error(void) {
 }
 
 void CConnection::Destroy(void) {
+	m_Owner = NULL;
 	delete this;
 }
 

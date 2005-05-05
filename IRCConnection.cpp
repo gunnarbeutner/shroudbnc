@@ -106,9 +106,6 @@ connection_role_e CIRCConnection::GetRole(void) {
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
-	if (!GetOwningClient())
-		return false;
-
 	const char* Reply = argv[0];
 	const char* Raw = argv[1];
 	char* Nick = ::NickFromHostmask(Reply);
@@ -432,6 +429,9 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 }
 
 void CIRCConnection::ParseLine(const char* Line) {
+	if (!GetOwningClient())
+		return;
+
 	const char* Args = ArgParseServerLine(Line);
 
 	const char** argv = ArgToArray(Args);

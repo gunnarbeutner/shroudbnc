@@ -99,7 +99,8 @@ public:
 	virtual int GetPort(void);
 
 	virtual void MarkQuitted(void);
-	
+
+	virtual void LoadEvent(void);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

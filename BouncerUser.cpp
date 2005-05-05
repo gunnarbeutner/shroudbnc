@@ -64,12 +64,14 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_Locked = false;
 	m_Quitted = false;
+}
 
+void CBouncerUser::LoadEvent(void) {
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 		CModule* M = g_Bouncer->GetModules()[i];
 
 		if (M) {
-			M->UserLoad(Name);
+			M->UserLoad(m_Name);
 		}
 	}
 }
@@ -115,8 +117,9 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		return;
 	}
 
-	if (m_Client) {
+	if (m_Client && m_Client != Client) {
 		m_Client->Kill("Another client has connected.");
+		delete m_Client;
 
 		SetClientConnection(NULL);
 	}
@@ -391,8 +394,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 
 	if (m_Client) {
 		m_Client->Kill("Disconnecting.");
-
-		m_Client->SetOwner(NULL);
+		delete m_Client;
 	}
 
 	m_Client = Client;
