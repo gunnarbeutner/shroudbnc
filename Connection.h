@@ -66,6 +66,8 @@ public:
 	virtual bool IsLocked(void);
 
 	virtual void Shutdown(void);
+	virtual void Timeout(int TimeLeft);
+	virtual bool DoTimeout(void);
 protected:
 	virtual void ParseLine(const char* Line);
 
@@ -81,6 +83,7 @@ protected:
 
 	bool m_Locked;
 	bool m_Shutdown;
+	time_t m_Timeout;
 };
 
 #endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)

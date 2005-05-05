@@ -38,6 +38,7 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 
 	m_Locked = false;
 	m_Shutdown = false;
+	m_Timeout = 0;
 }
 
 CConnection::~CConnection() {
@@ -85,13 +86,6 @@ bool CConnection::Read(void) {
 void CConnection::Write(void) {
 	if (sendq_size > 0) {
 		send(m_Socket, sendq, sendq_size, 0);
-
-//		char* Copy = (char*)malloc(sendq_size + 1);
-//		memcpy(Copy, sendq, sendq_size);
-//		Copy[sendq_size] = 0;
-
-//		if (GetRole() == Role_IRC)
-//			printf("-> %s\n", Copy);
 
 		sendq_size = 0;
 	}
@@ -189,7 +183,10 @@ void CConnection::Kill(const char* Error) {
 		WriteLine(Out);
 	}
 
+	m_Owner = NULL;
+
 	Shutdown();
+	Timeout(10);
 }
 
 bool CConnection::HasQueuedData(void) {
@@ -222,4 +219,20 @@ bool CConnection::IsLocked(void) {
 
 void CConnection::Shutdown(void) {
 	m_Shutdown = true;
+}
+
+void CConnection::Timeout(int TimeLeft) {
+	m_Timeout = time(NULL) + TimeLeft;
+}
+
+bool CConnection::DoTimeout(void) {
+	if (m_Timeout > 0 && m_Timeout < time(NULL)) {
+		shutdown(m_Socket, SD_BOTH);
+		closesocket(m_Socket);
+
+		delete this;
+
+		return true;
+	} else
+		return false;
 }

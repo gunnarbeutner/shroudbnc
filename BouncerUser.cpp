@@ -76,17 +76,14 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 CBouncerUser::~CBouncerUser() {
 	if (m_Client)
-		delete m_Client;
+		m_Client->Kill("Removing user.");
 
 	delete m_Config;
 
 	free(m_Name);
 
-	if (m_IRC) {
+	if (m_IRC)
 		m_IRC->Kill("fish go moo.");
-
-		delete m_IRC;
-	}
 
 	delete m_Log;
 }
@@ -257,7 +254,6 @@ void CBouncerUser::Simulate(const char* Command) {
 void CBouncerUser::Reconnect(void) {
 	if (m_IRC) {
 		m_IRC->Kill("Reconnecting");
-		delete m_IRC;
 
 		SetIRCConnection(NULL);
 	}

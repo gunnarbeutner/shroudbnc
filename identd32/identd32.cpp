@@ -119,6 +119,8 @@ public:
 	void Destroy(void) {
 		delete this;
 	}
+
+	bool DoTimeout(void) { return false; }
 };
 
 class CIdentModule : public CModuleFar, public CSocketEvents {
@@ -181,6 +183,8 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	bool HasQueuedData(void) {
 		return false;
 	}
+
+	bool DoTimeout(void) { return false; }
 
 	void AttachClient(const char* Client) { }
 	void DetachClient(const char* Client) { }

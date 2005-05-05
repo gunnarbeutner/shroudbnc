@@ -203,6 +203,13 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 
 		for (i = 0; i < m_OtherSocketCount; i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
+				if (m_OtherSockets[i].Events->DoTimeout())
+					m_OtherSockets[i].Socket = INVALID_SOCKET;
+			}
+		}
+
+		for (i = 0; i < m_OtherSocketCount; i++) {
+			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 				FD_SET(m_OtherSockets[i].Socket, &FDRead);
 
 				if (m_OtherSockets[i].Events->HasQueuedData())

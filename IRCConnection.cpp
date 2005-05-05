@@ -106,6 +106,9 @@ connection_role_e CIRCConnection::GetRole(void) {
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
+	if (!GetOwningClient())
+		return false;
+
 	const char* Reply = argv[0];
 	const char* Raw = argv[1];
 	char* Nick = ::NickFromHostmask(Reply);
@@ -508,7 +511,8 @@ const char* CIRCConnection::GetServer(void) {
 }
 
 void CIRCConnection::Destroy(void) {
-	m_Owner->SetIRCConnection(NULL);
+	if (m_Owner)
+		m_Owner->SetIRCConnection(NULL);
 
 	delete this;
 }
@@ -732,3 +736,4 @@ CQueue* CIRCConnection::GetQueueMiddle(void) {
 CQueue* CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
+
