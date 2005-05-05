@@ -37,6 +37,7 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	recvq_size = 0;
 
 	m_Locked = false;
+	m_Shutdown = false;
 }
 
 CConnection::~CConnection() {
@@ -94,6 +95,11 @@ void CConnection::Write(void) {
 
 		sendq_size = 0;
 	}
+
+	if (m_Shutdown) {
+		shutdown(m_Socket, SD_BOTH);
+		closesocket(m_Socket);
+	}
 }
 
 bool CConnection::ReadLine(char** Out) {
@@ -140,7 +146,7 @@ bool CConnection::ReadLine(char** Out) {
 }
 
 void CConnection::InternalWriteLine(const char* In) {
-	if (m_Locked)
+	if (m_Locked || m_Shutdown)
 		return;
 
 	sendq_size += strlen(In) + 2;
@@ -170,20 +176,20 @@ connection_role_e CConnection::GetRole(void) {
 void CConnection::Kill(const char* Error) {
 	char Out[1024];
 
+	if (m_Shutdown)
+		return;
+
 	if (GetRole() == Role_Client) {
 		snprintf(Out, sizeof(Out), ":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
 
 		WriteLine(Out);
-		Write();
 	} else if (GetRole() == Role_IRC) {
 		snprintf(Out, sizeof(Out), "QUIT :%s", Error);
 
 		WriteLine(Out);
-		Write();
 	}
 
-	shutdown(m_Socket, SD_BOTH);
-	closesocket(m_Socket);
+	Shutdown();
 }
 
 bool CConnection::HasQueuedData(void) {
@@ -212,4 +218,8 @@ void CConnection::Lock(void) {
 
 bool CConnection::IsLocked(void) {
 	return m_Locked;
+}
+
+void CConnection::Shutdown(void) {
+	m_Shutdown = true;
 }

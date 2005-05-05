@@ -390,6 +390,15 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 }
 
 void CBouncerUser::SetClientConnection(CClientConnection* Client) {
+	if (!m_Client && !Client)
+		return;
+
+	if (m_Client) {
+		m_Client->Kill("Disconnecting.");
+
+		m_Client->SetOwner(NULL);
+	}
+
 	m_Client = Client;
 
 	if (!Client) {

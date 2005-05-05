@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
-	g_Bouncer = new CBouncerCore(Config);
+	// constructor sets g_Bouncer
+	new CBouncerCore(Config);
 
 #ifndef _WIN32
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);

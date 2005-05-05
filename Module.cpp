@@ -122,3 +122,7 @@ void CModule::UserDelete(const char* User) {
 void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
 	m_Far->SingleModeChange(Connection, Channel, Source, Flip, Mode, Parameter);
 }
+
+const char* CModule::Command(const char* Cmd, const char* Parameters) {
+	return m_Far->Command(Cmd, Parameters);
+}

@@ -748,3 +748,7 @@ void CClientConnection::Destroy(void) {
 
 	delete this;
 }
+
+void CClientConnection::SetOwner(CBouncerUser* Owner) {
+	m_Owner = Owner;
+}
