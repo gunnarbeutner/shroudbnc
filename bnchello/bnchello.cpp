@@ -128,6 +128,8 @@ class CHelloClass : public CModuleFar {
 	void UserDelete(const char* User) { }
 
 	void SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
+
+	const char* Command(const char* Cmd, const char* Parameters) { return NULL; }
 };
 
 extern "C" CModuleFar* bncGetObject(void) {

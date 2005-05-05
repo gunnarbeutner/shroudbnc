@@ -123,9 +123,11 @@ const char* internalchannels(void) {
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
+	int a = 0;
+
 	for (int i = 0; i < Count; i++)
 		if (Channels[i])
-			argv[i] = Channels[i]->GetName();
+			argv[a++] = Channels[i]->GetName();
 		else
 			Count--;
 
@@ -1314,4 +1316,19 @@ const char* bncgettag(const char* channel, const char* nick, const char* tag) {
 
 void haltoutput(void) {
 	g_Ret = false;
+}
+
+const char* bnccommand(const char* Cmd, const char* Parameters) {
+	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+		CModule* M = g_Bouncer->GetModules()[i];
+
+		if (M) {
+			const char* Result = M->Command(Cmd, Parameters);
+
+			if (Result)
+				return Result;
+		}
+	}
+
+	return NULL;
 }
