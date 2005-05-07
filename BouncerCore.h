@@ -106,6 +106,8 @@ public:
 	virtual bool RemoveUser(const char* Username, bool RemoveConfig = true);
 
 	virtual time_t GetStartup(void);
+
+	virtual const char* MD5(const char* String);
 };
 
 extern CBouncerCore* g_Bouncer;

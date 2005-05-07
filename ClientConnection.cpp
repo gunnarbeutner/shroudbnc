@@ -747,5 +747,7 @@ void CClientConnection::Destroy(void) {
 	if (m_Owner) {
 		g_Bouncer->Log("%s disconnected.", m_Username);
 		m_Owner->SetClientConnection(NULL);
+
+		delete this;
 	}
 }

@@ -21,6 +21,7 @@
 #include "SocketEvents.h"
 #include "Connection.h"
 #include "BouncerCore.h"
+#include "BouncerUser.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -58,6 +59,9 @@ CBouncerUser* CConnection::GetOwningClient(void) {
 
 bool CConnection::Read(void) {
 	char Buffer[8192];
+
+	if (m_Shutdown)
+		return true;
 
 	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
@@ -176,15 +180,19 @@ void CConnection::Kill(const char* Error) {
 	if (GetRole() == Role_Client) {
 		snprintf(Out, sizeof(Out), ":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
 
+		m_Owner->SetClientConnection(NULL);
+
 		WriteLine(Out);
 	} else if (GetRole() == Role_IRC) {
 		snprintf(Out, sizeof(Out), "QUIT :%s", Error);
 
+		m_Owner->SetIRCConnection(NULL);
+
 		WriteLine(Out);
 	}
 
-	shutdown(m_Socket, SD_BOTH);
-	closesocket(m_Socket);
+	Shutdown();
+	Timeout(10);
 }
 
 bool CConnection::HasQueuedData(void) {

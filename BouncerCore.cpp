@@ -33,6 +33,10 @@
 #include "Queue.h"
 #include "FloodControl.h"
 #include "utility.h"
+//extern "C" {
+//	#include "md5-c/global.h"
+//	#include "md5-c/md5.h"
+//}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -610,4 +614,25 @@ bool CBouncerCore::Daemonize(void) {
 #endif
 
 	return true;
+}
+
+const char* CBouncerCore::MD5(const char* String) {
+	return String;
+
+/*	MD5_CTX context;
+	static char Result[32];
+	unsigned char digest[16];
+	unsigned int len = strlen(String);
+
+	MD5Init (&context);
+	MD5Update (&context, (unsigned char*)String, len);
+	MD5Final (digest, &context);
+
+#undef sprintf
+
+	for (int i = 0; i < 16; i++) {
+		sprintf(Result + i * 2, "%02x", digest[i]);
+	}
+
+	return Result;*/
 }

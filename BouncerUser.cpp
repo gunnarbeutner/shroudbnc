@@ -119,8 +119,6 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	if (m_Client && m_Client != Client) {
 		m_Client->Kill("Another client has connected.");
-		delete m_Client;
-
 		SetClientConnection(NULL);
 	}
 
@@ -193,7 +191,7 @@ bool CBouncerUser::Validate(const char* Password) {
 	if (!RealPass || strlen(RealPass) == 0)
 		return false;
 
-	return (strcmp(RealPass, Password) == 0);
+	return (strcmp(RealPass, g_Bouncer->MD5(Password)) == 0);
 }
 
 const char* CBouncerUser::GetNick(void) {
@@ -392,10 +390,10 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 	if (!m_Client && !Client)
 		return;
 
-	if (m_Client) {
+/*	if (m_Client) {
 		m_Client->Kill("Disconnecting.");
 		delete m_Client;
-	}
+	}*/
 
 	m_Client = Client;
 
@@ -438,7 +436,7 @@ bool CBouncerUser::IsAdmin(void) {
 }
 
 void CBouncerUser::SetPassword(const char* Password) {
-	m_Config->WriteString("user.password", Password);
+	m_Config->WriteString("user.password", g_Bouncer->MD5(Password));
 }
 
 void CBouncerUser::SetServer(const char* Server) {

@@ -260,6 +260,23 @@ SOURCE=.\win32.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Group "md5"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=".\md5-c\global.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\md5-c\md5.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\md5-c\md5c.c"
+# PROP Exclude_From_Build 1
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\users\fnords.conf
