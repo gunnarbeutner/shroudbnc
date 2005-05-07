@@ -72,13 +72,13 @@ proc flushmode {channel} {
 		}
 
 		if {[llength $params] >= [getisupport modes]} {
-			putquick "MODE $channel $mc $params"
+			putquick "MODE $channel $mc [join $params]"
 			set mc ""
 			set params ""
 		}
 	}
 
-	putquick "MODE $channel $mc $params"
+	putquick "MODE $channel $mc [join $params]"
 
 	unset pmbuf($channel)
 

@@ -187,7 +187,19 @@ class CTclSupport : public CModuleFar {
 		CallBinds(Type_SingleMode, IRC->GetOwningClient()->GetUsername(), Parameter ? 4 : 3, argv);
 	}
 
-	const char* Command(const char* Cmd, const char* Parameters) { return NULL; }
+	const char* Command(const char* Cmd, const char* Parameters) {
+		if (strcmpi(Cmd, "tcl:eval") == 0) {
+			int Code = Tcl_Eval(g_Interp, Parameters);
+
+			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
+
+			const char* strResult = Tcl_GetString(Result);
+
+			return strResult;
+		}
+
+		return NULL;
+	}
 public:
 	void RehashInterpreter(void) {
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
