@@ -117,18 +117,14 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		return;
 	}
 
-	if (m_Client && m_Client != Client) {
-		m_Client->Kill("Another client has connected.");
-		SetClientConnection(NULL);
-	}
-
 	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
 
 	g_Bouncer->Log(Out);
 	g_Bouncer->GlobalNotice(Out, true);
 
-	m_Client = Client;
 	Client->m_Owner = this;
+
+	SetClientConnection(Client);
 
 	if (m_IRC) {
 		const char* IrcNick = m_IRC->GetCurrentNick();
@@ -389,22 +385,33 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 	}
 }
 
-void CBouncerUser::SetClientConnection(CClientConnection* Client) {
+void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	if (!m_Client && !Client)
 		return;
+
+	char Out[1024];
 
 /*	if (m_Client) {
 		m_Client->Kill("Disconnecting.");
 		delete m_Client;
 	}*/
 
+	if (m_Client && Client) {
+		snprintf(Out, sizeof(Out), "Seamless transition for %s", GetUsername());
+		g_Bouncer->GlobalNotice(Out, true);
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+		m_Client->Kill("Another client has connected.");
+	}
+
 	m_Client = Client;
 
 	if (!Client) {
-		char Out[1024];
-
-		snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
-		g_Bouncer->GlobalNotice(Out, true);
+		if (!DontSetAway) {
+			snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
+			g_Bouncer->GlobalNotice(Out, true);
+			g_Bouncer->GetLog()->InternalWriteLine(Out);
+		}
 
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 			CModule* M = g_Bouncer->GetModules()[i];
@@ -414,7 +421,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client) {
 			}
 		}
 
-		if (m_IRC) {
+		if (m_IRC && !DontSetAway) {
 			const char* Offnick = m_Config->ReadString("user.awaynick");
 
 			if (Offnick)

@@ -1050,11 +1050,11 @@ int ticklerand(int limit) {
 }
 
 const char* bncversion(void) {
-	return BNCVERSION " 0060000";
+	return BNCVERSION " 0070000";
 }
 
 const char* bncnumversion(void) {
-	return "0060000";
+	return "0070000";
 }
 
 int bncuptime(void) {

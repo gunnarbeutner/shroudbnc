@@ -85,7 +85,7 @@ public:
 	virtual bool IsLocked(void);
 
 	virtual void SetIRCConnection(CIRCConnection* IRC);
-	virtual void SetClientConnection(CClientConnection* Client);
+	void SetClientConnection(CClientConnection* Client, bool DontSetAway = false);
 
 	virtual void SetAdmin(bool Admin = true);
 	virtual bool IsAdmin(void);
