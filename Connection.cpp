@@ -180,13 +180,15 @@ void CConnection::Kill(const char* Error) {
 	if (GetRole() == Role_Client) {
 		snprintf(Out, sizeof(Out), ":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
 
-		m_Owner->SetClientConnection(NULL);
+		if (m_Owner)
+			m_Owner->SetClientConnection(NULL);
 
 		WriteLine(Out);
 	} else if (GetRole() == Role_IRC) {
 		snprintf(Out, sizeof(Out), "QUIT :%s", Error);
 
-		m_Owner->SetIRCConnection(NULL);
+		if (m_Owner)
+			m_Owner->SetIRCConnection(NULL);
 
 		WriteLine(Out);
 	}

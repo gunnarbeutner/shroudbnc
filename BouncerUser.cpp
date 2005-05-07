@@ -191,7 +191,10 @@ bool CBouncerUser::Validate(const char* Password) {
 	if (!RealPass || strlen(RealPass) == 0)
 		return false;
 
-	return (strcmp(RealPass, g_Bouncer->MD5(Password)) == 0);
+	if (g_Bouncer->GetConfig()->ReadInteger("system.md5"))
+		Password = g_Bouncer->MD5(Password);
+
+	return (strcmp(RealPass, Password) == 0);
 }
 
 const char* CBouncerUser::GetNick(void) {
@@ -436,7 +439,10 @@ bool CBouncerUser::IsAdmin(void) {
 }
 
 void CBouncerUser::SetPassword(const char* Password) {
-	m_Config->WriteString("user.password", g_Bouncer->MD5(Password));
+	if (g_Bouncer->GetConfig()->ReadInteger("system.md5"))
+		Password = g_Bouncer->MD5(Password);
+
+	m_Config->WriteString("user.password", Password);
 }
 
 void CBouncerUser::SetServer(const char* Server) {
