@@ -83,6 +83,8 @@ void haltoutput(void);
 
 const char* bnccommand(const char* Cmd, const char* Parameters);
 
+const char* md5(const char* String);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

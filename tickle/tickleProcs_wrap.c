@@ -1870,6 +1870,27 @@ _wrap_bnccommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 
 static int
+_wrap_md5(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:md5 String ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)md5((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2337,6 +2358,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncgettag", (swig_wrapper_func) _wrap_bncgettag, NULL},
     { SWIG_prefix "haltoutput", (swig_wrapper_func) _wrap_haltoutput, NULL},
     { SWIG_prefix "bnccommand", (swig_wrapper_func) _wrap_bnccommand, NULL},
+    { SWIG_prefix "md5", (swig_wrapper_func) _wrap_md5, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

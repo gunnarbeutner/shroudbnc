@@ -1339,3 +1339,10 @@ const char* bnccommand(const char* Cmd, const char* Parameters) {
 
 	return NULL;
 }
+
+const char* md5(const char* String) {
+	if (String)
+		return g_Bouncer->MD5(String);
+	else
+		return NULL;
+}
