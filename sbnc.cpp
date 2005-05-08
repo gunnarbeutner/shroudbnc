@@ -47,6 +47,11 @@ void sigint_handler(int code) {
 #endif
 
 int main(int argc, char* argv[]) {
+#ifndef _WIN32
+	rlimit core_limit = { INT_MAX, INT_MAX };
+	setrlimit(RLIMIT_CORE, &core_limit);
+#endif
+
 	Socket_Init();
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");

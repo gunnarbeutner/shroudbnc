@@ -274,7 +274,6 @@ SOURCE=".\md5-c\md5.h"
 # Begin Source File
 
 SOURCE=".\md5-c\md5c.c"
-# PROP Exclude_From_Build 1
 # End Source File
 # End Group
 # Begin Source File
