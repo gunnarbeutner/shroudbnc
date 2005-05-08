@@ -124,7 +124,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	Client->m_Owner = this;
 
-	SetClientConnection(Client);
+	SetClientConnection(Client, true);
 
 	if (m_IRC) {
 		const char* IrcNick = m_IRC->GetCurrentNick();

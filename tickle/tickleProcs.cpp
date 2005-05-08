@@ -488,7 +488,10 @@ bool isop(const char* Nick, const char* Channel) {
 	if (Chan) {
 		CNick* User = Chan->GetNames()->Get(Nick);
 
-		return User->IsOp();
+		if (User)
+			return User->IsOp();
+		else
+			return false;
 	} else {
 		for (int i = 0; i < IRC->GetChannelCount(); i++) {
 			CChannel* Chan = IRC->GetChannels()[i];
@@ -517,7 +520,10 @@ bool isvoice(const char* Nick, const char* Channel) {
 	if (Chan) {
 		CNick* User = Chan->GetNames()->Get(Nick);
 
-		return User->IsVoice();
+		if (User)
+			return User->IsVoice();
+		else
+			return false;
 	} else {
 		for (int i = 0; i < IRC->GetChannelCount(); i++) {
 			CChannel* Chan = IRC->GetChannels()[i];
@@ -546,7 +552,10 @@ bool ishalfop(const char* Nick, const char* Channel) {
 	if (Chan) {
 		CNick* User = Chan->GetNames()->Get(Nick);
 
-		return User->IsHalfop();
+		if (User)
+			return User->IsHalfop();
+		else
+			return false;
 	} else {
 		for (int i = 0; i < IRC->GetChannelCount(); i++) {
 			CChannel* Chan = IRC->GetChannels()[i];
