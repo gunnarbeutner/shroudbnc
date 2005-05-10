@@ -85,6 +85,8 @@ const char* bnccommand(const char* Cmd, const char* Parameters);
 
 const char* md5(const char* String);
 
+void debugout(const char* String);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);
@@ -107,3 +109,4 @@ int clearqueue(const char* Queue);
 int queuesize(const char* Queue);
 int puthelp(const char* text);
 int putquick(const char* text);
+void putlog(const char* Text);

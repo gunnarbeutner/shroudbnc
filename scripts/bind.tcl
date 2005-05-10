@@ -20,6 +20,7 @@ internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect
 internalbind svrlogon sbnc:svrlogon
+internalbind pulse sbnc:bindpulse
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -39,6 +40,18 @@ proc sbnc:srvdisconnect {client} {
 
 proc sbnc:svrlogon {client} {
 	callevent "init-server"
+}
+
+proc sbnc:bindpulse {time} {
+	if {$time % 60 != 0} { return }
+
+	foreach user [bncuserlist] {
+		foreach chan [channels] {
+			if {[botonchan $chan] && ![botisop $chan]} {
+				sbnc:callbinds "need" - $chan "$chan op" $chan "op"
+			}
+		}
+	}
 }
 
 proc sbnc:modechange {client parameters} {
@@ -127,6 +140,26 @@ proc sbnc:rawserver {client parameters} {
 		}
 		"wallops" {
 			sbnc:callbinds "wall" - "" $targ $source [join [lrange $parameters 2 end]]
+		}
+		"471" {
+			sbnc:callbinds "need" - $opt "$opt limit" $opt "limit"
+		}
+		"473" {
+			sbnc:callbinds "need" - $opt "$opt invite" $opt "invite"
+		}
+		"474" {
+			sbnc:callbinds "need" - $opt "$opt unban" $opt "unban"
+		}
+		"475" {
+			sbnc:callbinds "need" - $opt "$opt key" $opt "key"
+		}
+		"477" {
+			sbnc:callbinds "need" - $opt "$opt register" $opt "register"
+		}
+		"invite" {
+			if {[lsearch -exact [string tolower [channels]] [string tolower $opt]] != -1} {
+				puthelp "JOIN $opt"
+			}
 		}
 	}
 }

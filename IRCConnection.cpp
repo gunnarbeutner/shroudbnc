@@ -278,7 +278,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		snprintf(Out, sizeof(Out), "Error received for %s: %s", GetOwningClient()->GetUsername(), argv[1]);
 
 		g_Bouncer->GlobalNotice(Out, true);
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
@@ -288,7 +288,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		snprintf(Out, sizeof(Out), "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
 
 		g_Bouncer->GlobalNotice(Out, true);
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);

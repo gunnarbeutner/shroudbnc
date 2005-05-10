@@ -119,7 +119,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
 
-	g_Bouncer->Log(Out);
+	g_Bouncer->GetLog()->InternalWriteLine(Out);
 	g_Bouncer->GlobalNotice(Out, true);
 
 	Client->m_Owner = this;
@@ -268,14 +268,14 @@ void CBouncerUser::Reconnect(void) {
 
 		ScheduleReconnect(120);
 
-		g_Bouncer->Log(Out);
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
 		g_Bouncer->GlobalNotice(Out, true);
 
 		return;
 	}
 
 	snprintf(Out, sizeof(Out), "Trying to reconnect to %s:%d", Server, Port);
-	g_Bouncer->Log(Out);
+	g_Bouncer->GetLog()->InternalWriteLine(Out);
 	Notice(Out);
 
 	snprintf(Out, sizeof(Out), "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);

@@ -29,6 +29,7 @@
 #include "../Channel.h"
 #include "../BouncerUser.h"
 #include "../BouncerConfig.h"
+#include "../BouncerLog.h"
 #include "../Nick.h"
 #include "../Queue.h"
 #include "../FloodControl.h"
@@ -1345,4 +1346,18 @@ const char* md5(const char* String) {
 		return g_Bouncer->MD5(String);
 	else
 		return NULL;
+}
+
+void debugout(const char* String) {
+#ifdef _WIN32
+	OutputDebugString(String);
+	OutputDebugString("\n");
+#endif
+}
+
+void putlog(const char* Text) {
+	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+
+	if (User)
+		User->GetLog()->InternalWriteLine(Text);
 }
