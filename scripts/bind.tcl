@@ -51,6 +51,14 @@ proc sbnc:bindpulse {time} {
 				sbnc:callbinds "need" - $chan "$chan op" $chan "op"
 			}
 		}
+
+		set minute [clock format $time -format "%M"]
+		set hour [clock format $time -format "%H"]
+		set day [clock format $time -format "%d"]
+		set month [clock format $time -format "%m"]
+		set year [clock format $time -format "%Y"]
+
+		sbnc:callbinds "time" - {} "$minute $hour $day $month $year" $minute $hour $day $month $year
 	}
 }
 
@@ -60,7 +68,6 @@ proc sbnc:modechange {client parameters} {
 	set mode [lindex $parameters 2]
 	set targ [lindex $parameters 3]
 
-	# todo: implement
 	set hand [finduser $source]
 	set flags $hand
 
@@ -133,7 +140,7 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "topc" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 		}
 		"kick" {
-			sbnc:callbinds "kick" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
+			sbnc:callbinds "kick" $flags $targ "$targ $opt" $nick $site $hand $targ $opt [lindex $parameters 4]
 		}
 		"nick" {
 

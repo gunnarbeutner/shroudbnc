@@ -74,6 +74,7 @@ public:
 	virtual void ScheduleReconnect(int Delay = 10);
 
 	virtual void Notice(const char* Text);
+	virtual void RealNotice(const char* Text);
 
 	virtual int IRCUptime(void);
 

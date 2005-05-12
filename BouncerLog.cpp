@@ -36,7 +36,7 @@ CBouncerLog::~CBouncerLog() {
 	free(m_File);
 }
 
-void CBouncerLog::PlayToUser(CBouncerUser* User) {
+void CBouncerLog::PlayToUser(CBouncerUser* User, bool NoticeUser) {
 	FILE* Log;
 
 	if (m_File && (Log = fopen(m_File, "r"))) {
@@ -44,14 +44,21 @@ void CBouncerLog::PlayToUser(CBouncerUser* User) {
 		while (!feof(Log)) {
 			char* n = fgets(Line, sizeof(Line), Log);
 
-			if (n)
-				User->Notice(Line);
+			if (n) {
+				if (NoticeUser)
+					User->RealNotice(Line);
+				else
+					User->Notice(Line);
+			}
 		}
 
 		fclose(Log);
 	}
 
-	User->Notice("End of LOG.");
+	if (NoticeUser)
+		User->RealNotice("End of LOG.");
+	else
+		User->Notice("End of LOG.");
 }
 
 void CBouncerLog::InternalWriteLine(const char* Line) {

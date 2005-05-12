@@ -35,7 +35,7 @@ public:
 	virtual void Clear(void);
 	virtual void InternalWriteLine(const char* Line);
 	virtual void WriteLine(const char* Format, ...);
-	virtual void PlayToUser(CBouncerUser* User);
+	virtual void PlayToUser(CBouncerUser* User, bool NoticeUser);
 	virtual bool IsEmpty(void);
 };
 

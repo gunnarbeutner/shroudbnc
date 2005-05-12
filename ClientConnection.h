@@ -38,6 +38,7 @@ public:
 
 	virtual bool ParseLineArgV(int argc, const char** argv);
 	virtual void ParseLine(const char* Line);
+	virtual bool ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser);
 
 	virtual const char* GetNick(void);
 

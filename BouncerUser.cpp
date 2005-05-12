@@ -178,7 +178,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	}
 
 	if (!GetLog()->IsEmpty())
-		Notice("You have new messages. Use /PLAYPRIVATELOG to view them.");
+		Notice("You have new messages. Use '/msg -sBNC read' to view them.");
 }
 
 bool CBouncerUser::Validate(const char* Password) {
@@ -331,6 +331,11 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 void CBouncerUser::Notice(const char* Text) {
 	if (m_Client)
 		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG %s :%s", GetNick(), Text);
+}
+
+void CBouncerUser::RealNotice(const char* Text) {
+	if (m_Client)
+		m_Client->WriteLine(":-sBNC!core@bnc.server NOTICE %s :%s", GetNick(), Text);
 }
 
 int CBouncerUser::IRCUptime(void) {

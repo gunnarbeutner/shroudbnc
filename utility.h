@@ -37,4 +37,4 @@ SOCKET CreateListener(unsigned short Port);
 char* NickFromHostmask(const char* Hostmask);
 void string_free(char* string);
 
-#define BNCVERSION "0.7"
+#define BNCVERSION "0.8"

@@ -55,6 +55,398 @@ connection_role_e CClientConnection::GetRole(void) {
 	return Role_Client;
 }
 
+bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
+	char Out[1024];
+	CBouncerUser* User = m_Owner;
+
+	if (argc < 1) {
+		User->Notice("Try /sbnc help");
+		return false;
+	}
+
+#define SENDUSER(Text) { \
+	if (NoticeUser) { \
+		User->RealNotice(Text); \
+	} else { \
+		User->Notice(Text); \
+	} \
+	}
+
+	if (strcmpi(Subcommand, "help") == 0) {
+		SENDUSER("--The following commands are available to you--");
+		SENDUSER("--Used as '/sbnc <command>', or '/msg -sbnc <command>'");
+		SENDUSER("--");
+
+		if (m_Owner->IsAdmin()) {
+			SENDUSER("Admin commands:");
+			SENDUSER("adduser       - creates a new user");
+			SENDUSER("deluser       - removes a user");
+			SENDUSER("who           - shows users");
+			SENDUSER("lsmod         - lists loaded modules");
+			SENDUSER("insmod        - loads a module");
+			SENDUSER("rmmod         - unloads a module");
+			SENDUSER("simul         - simulates a command on another user's connection");
+			SENDUSER("global        - sends a global notice to all bouncer users");
+			SENDUSER("kill          - disconnects a user from the bouncer");
+			SENDUSER("disconnect    - disconnects a user from the IRC server");
+			SENDUSER("playmainlog   - plays the bouncer's log");
+			SENDUSER("erasemainlog  - erases the bouncer's log");
+			SENDUSER("gvhost        - sets the default/global vhost");
+			SENDUSER("motd          - sets the bouncer's MOTD");
+			SENDUSER("die           - terminates the bouncer");
+			SENDUSER("--");
+			SENDUSER("User commands:");
+		}
+
+		SENDUSER("read          - plays your message log");
+		SENDUSER("erase         - erases your message log");
+		SENDUSER("set           - sets configurable settings for your user");
+		SENDUSER("jump          - reconnects to the IRC server");
+
+		if (m_Owner->IsAdmin()) {
+			SENDUSER("perror        - disconnects you from the IRC server");
+			SENDUSER("status        - tells you the current status");
+			SENDUSER("synth         - synthesizes the reply for an ordinary irc-command");
+			SENDUSER("direct        - sends a raw command (bypassing SYNTH)");
+		}
+
+		SENDUSER("help          - oh well, guess what..");
+		SENDUSER("End of HELP.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
+		CModule** Modules = g_Bouncer->GetModules();
+		int Count = g_Bouncer->GetModuleCount();
+
+		for (int i = 0; i < Count; i++) {
+			if (!Modules[i]) { continue; }
+
+			snprintf(Out, sizeof(Out), "%d: 0x%x %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
+			SENDUSER(Out);
+		}
+
+		SENDUSER("End of MODULES.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "insmod") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: INSMOD module-path");
+			return false;
+		}
+
+		CModule* Module = g_Bouncer->LoadModule(argv[1]);
+
+		if (Module) {
+			SENDUSER("Module was loaded.");
+		} else {
+			SENDUSER("Module could not be loaded.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "rmmod") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: RMMOD module-id");
+			return false;
+		}
+
+		int idx = atoi(argv[1]);
+
+		if (idx < 1 || idx > g_Bouncer->GetModuleCount()) {
+			SENDUSER("There is no such module.");
+		} else {
+			CModule* Mod = g_Bouncer->GetModules()[idx - 1];
+
+			if (!Mod) {
+				SENDUSER("This module is already unloaded.");
+			} else {
+				if (g_Bouncer->UnloadModule(Mod)) {
+					SENDUSER("Done.");
+				} else {
+					SENDUSER("Failed to unload this module.");
+				}
+			}
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "set") == 0) {
+		CBouncerConfig* Config = m_Owner->GetConfig();
+		if (argc < 3) {
+			SENDUSER("Configurable settings:");
+			SENDUSER("--");
+
+			SENDUSER("password - Set");
+
+			snprintf(Out, sizeof(Out), "vhost - %s", Config->ReadString("user.ip") ? Config->ReadString("user.ip") : "Default");
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "server - %s:%d", Config->ReadString("user.server"), Config->ReadInteger("user.port"));
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "serverpass - %s", Config->ReadString("user.spass") ? "Set" : "Not set");
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "realname - %s", m_Owner->GetRealname());
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "awaynick - %s", Config->ReadString("user.awaynick") ? Config->ReadString("user.awaynick") : "Not set");
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "away - %s", Config->ReadString("user.away") ? Config->ReadString("user.away") : "Not set");
+			SENDUSER(Out);
+		} else {
+			if (argc > 3 && strcmpi(argv[1], "server") == 0) {
+				Config->WriteString("user.server", argv[2]);
+				Config->WriteInteger("user.port", atoi(argv[3]));
+			} else if (strcmpi(argv[1], "realname") == 0) {
+				Config->WriteString("user.realname", argv[2]);
+			} else if (strcmpi(argv[1], "awaynick") == 0) {
+				Config->WriteString("user.awaynick", argv[2]);
+			} else if (strcmpi(argv[1], "away") == 0) {
+				Config->WriteString("user.away", argv[2]);
+			} else if (strcmpi(argv[1], "vhost") == 0) {
+				Config->WriteString("user.ip", argv[2]);
+			} else if (strcmpi(argv[1], "serverpass") == 0) {
+				Config->WriteString("user.spass", argv[2]);
+			} else if (strcmpi(argv[1], "password") == 0) {
+				if (strlen(argv[2]) < 6 || argc > 3) {
+					SENDUSER("Your password is too short or contains invalid characters.");
+					return false;
+				} else {
+					m_Owner->SetPassword(argv[2]);
+				}
+			} else {
+				SENDUSER("Unknown setting");
+				return false;
+			}
+
+			SENDUSER("Done.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
+		g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
+		g_Bouncer->Shutdown();
+	} else if (strcmpi(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 3) {
+			SENDUSER("Syntax: ADDUSER username password");
+			return false;
+		}
+
+		g_Bouncer->CreateUser(argv[1], argv[2]);
+
+		SENDUSER("Done.");
+
+		return false;
+
+	} else if (strcmpi(Subcommand, "deluser") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: DELUSER username");
+			return false;
+		}
+
+		g_Bouncer->RemoveUser(argv[1]);
+
+		SENDUSER("Done.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "direct") == 0) {
+		if (argc < 2) {
+			SENDUSER("Syntax: DIRECT :command");
+			return false;
+		}
+
+		CIRCConnection* IRC = m_Owner->GetIRCConnection();
+
+		IRC->InternalWriteLine(argv[1]);
+
+		return false;
+	} else if (strcmpi(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			const char* Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+			snprintf(Out, sizeof(Out), "Current global VHost: %s", Ip ? Ip : "(none)");
+			SENDUSER(Out);
+		} else {
+			g_Bouncer->GetConfig()->WriteString("system.ip", argv[1]);
+			SENDUSER("Done.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "motd") == 0) {
+		if (argc < 2) {
+			const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
+
+			snprintf(Out, sizeof(Out), "Current MOTD: %s", Motd ? Motd : "(none)");
+			SENDUSER(Out);
+		} else if (m_Owner->IsAdmin()) {
+			g_Bouncer->GetConfig()->WriteString("system.motd", argv[1]);
+			SENDUSER("Done.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "perror") == 0) {
+		if (argc < 2) {
+			SENDUSER("Syntax: PERROR :quit-msg");
+			return false;
+		}
+
+		CIRCConnection* Conn = m_Owner->GetIRCConnection();
+
+		if (Conn)
+			Conn->Kill(argv[1]);
+
+		m_Owner->MarkQuitted();
+
+		return false;
+	} else if (strcmpi(Subcommand, "global") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: GLOBAL :text");
+			return false;
+		}
+
+		g_Bouncer->GlobalNotice(argv[1]);
+		return false;
+	} else if (strcmpi(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 3) {
+			SENDUSER("Syntax: SIMUL username :command");
+			return false;
+		}
+
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+
+		if (User)
+			User->Simulate(argv[2]);
+		else {
+			snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
+			SENDUSER(Out);
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: BKILL username");
+			return false;
+		}
+		
+		snprintf(Out, sizeof(Out), "SIMUL %s :QUIT", argv[1]);
+		ParseLine(Out);
+
+		return false;
+	} else if (strcmpi(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: BKILL username");
+			return false;
+		}
+
+		snprintf(Out, sizeof(Out), "SIMUL %s :PERROR :Requested.", argv[1]);
+		ParseLine(Out);
+
+		return false;
+	} else if (strcmpi(Subcommand, "jump") == 0) {
+		m_Owner->Reconnect();
+		return false;
+	} else if (strcmpi(Subcommand, "status") == 0) {
+		snprintf(Out, sizeof(Out), "Username: %s", m_Owner->GetUsername());
+		SENDUSER(Out);
+
+		snprintf(Out, sizeof(Out), "You are %san admin.", m_Owner->IsAdmin() ? "" : "not ");
+		SENDUSER(Out);
+
+		snprintf(Out, sizeof(Out), "Client: sendq: %d, recvq: %d", SendqSize(), RecvqSize());
+		SENDUSER(Out);
+
+		CIRCConnection* IRC = m_Owner->GetIRCConnection();
+
+		if (IRC) {
+			snprintf(Out, sizeof(Out), "IRC: sendq: %d, recvq: %d", IRC->SendqSize(), IRC->RecvqSize());
+			SENDUSER(Out);
+
+			CChannel** Chans = IRC->GetChannels();
+
+			SENDUSER("Channels:");
+
+			for (int i = 0; i < IRC->GetChannelCount(); i++) {
+				if (Chans[i])
+					SENDUSER(Chans[i]->GetName());
+			}
+
+			SENDUSER("End of CHANNELS.");
+		}
+
+		snprintf(Out, sizeof(Out), "Uptime: %d seconds", m_Owner->IRCUptime());
+		SENDUSER(Out);
+
+		return false;
+	} else if (strcmpi(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
+		CBouncerUser** Users = g_Bouncer->GetUsers();
+		int lUsers = g_Bouncer->GetUserCount();
+
+		for (int i = 0; i < lUsers; i++) {
+			const char* Server, *ClientAddr;
+			CBouncerUser* User = Users[i];
+
+			if (!User)
+				continue;
+
+			if (User->GetIRCConnection()) {
+				Server = User->GetIRCConnection()->GetServer();
+			} else {
+				Server = NULL;
+			}
+
+			if (User->GetClientConnection()) {
+				SOCKET Sock = User->GetClientConnection()->GetSocket();
+
+				sockaddr_in saddr;
+				socklen_t saddr_size = sizeof(saddr);
+
+				getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
+
+				hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
+
+				if (hent)
+					ClientAddr = hent->h_name;
+				else
+					ClientAddr = inet_ntoa(saddr.sin_addr);
+			} else
+				ClientAddr = NULL;
+
+			if (Users[i]) {
+				snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
+				SENDUSER(Out);
+			}
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "read") == 0) {
+		m_Owner->GetLog()->PlayToUser(m_Owner, NoticeUser);
+
+		return false;
+	} else if (strcmpi(Subcommand, "erase") == 0) {
+		m_Owner->GetLog()->Clear();
+		SENDUSER("Done.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
+		g_Bouncer->GetLog()->PlayToUser(m_Owner, NoticeUser);
+
+		return false;
+	} else if (strcmpi(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
+		g_Bouncer->GetLog()->Clear();
+		g_Bouncer->Log("User %s erased the main log", m_Owner->GetUsername());
+		SENDUSER("Done.");
+
+		return false;
+	}
+	
+	if (NoticeUser)
+		m_Owner->RealNotice("Unknown command. Try /sbnc help");
+	else
+		SENDUSER("Unknown command. Try /msg -sBNC help");
+
+	return false;
+}
+
 bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	char Out[1024];
 
@@ -136,159 +528,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		if (strcmpi(Command, "quit") == 0) {
 			Kill("Thanks for flying with shroudBNC :P");
 			return false;
-		} else if (strcmpi(Command, "perror") == 0) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: PERROR :quit-msg");
-				return false;
-			}
-
-			CIRCConnection* Conn = m_Owner->GetIRCConnection();
-
-			if (Conn)
-				Conn->Kill(argv[1]);
-
-			m_Owner->MarkQuitted();
-
-			return false;
-		} else if (strcmpi(Command, "global") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: GLOBAL :text");
-				return false;
-			}
-
-			g_Bouncer->GlobalNotice(argv[1]);
-			return false;
-		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 3) {
-				m_Owner->Notice("Syntax: SIMUL username :command");
-				return false;
-			}
-
-			CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
-
-			if (User)
-				User->Simulate(argv[2]);
-			else {
-				snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
-				m_Owner->Notice(Out);
-			}
-
-			return false;
-		} else if (strcmpi(Command, "bkill") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: BKILL username");
-				return false;
-			}
-			
-			snprintf(Out, sizeof(Out), "SIMUL %s :QUIT", argv[1]);
-			ParseLine(Out);
-
-			return false;
-		} else if (strcmpi(Command, "bdisconnect") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: BKILL username");
-				return false;
-			}
-
-			snprintf(Out, sizeof(Out), "SIMUL %s :PERROR :Requested.", argv[1]);
-			ParseLine(Out);
-
-			return false;
-		} else if (strcmpi(Command, "jump") == 0) {
-			m_Owner->Reconnect();
-			return false;
-		} else if (strcmpi(Command, "status") == 0) {
-			snprintf(Out, sizeof(Out), "Username: %s", m_Owner->GetUsername());
-			m_Owner->Notice(Out);
-
-			snprintf(Out, sizeof(Out), "You are %san admin.", m_Owner->IsAdmin() ? "" : "not ");
-			m_Owner->Notice(Out);
-
-			snprintf(Out, sizeof(Out), "Client: sendq: %d, recvq: %d", SendqSize(), RecvqSize());
-			m_Owner->Notice(Out);
-
-			CIRCConnection* IRC = m_Owner->GetIRCConnection();
-
-			if (IRC) {
-				snprintf(Out, sizeof(Out), "IRC: sendq: %d, recvq: %d", IRC->SendqSize(), IRC->RecvqSize());
-				m_Owner->Notice(Out);
-
-				CChannel** Chans = IRC->GetChannels();
-
-				m_Owner->Notice("Channels:");
-
-				for (int i = 0; i < IRC->GetChannelCount(); i++) {
-					if (Chans[i])
-						m_Owner->Notice(Chans[i]->GetName());
-				}
-
-				m_Owner->Notice("End of CHANNELS.");
-			}
-
-			snprintf(Out, sizeof(Out), "Uptime: %d seconds", m_Owner->IRCUptime());
-			m_Owner->Notice(Out);
-
-			return false;
-		} else if (strcmpi(Command, "bwho") == 0) {
-			CBouncerUser** Users = g_Bouncer->GetUsers();
-			int lUsers = g_Bouncer->GetUserCount();
-
-			for (int i = 0; i < lUsers; i++) {
-				const char* Server, *ClientAddr;
-				CBouncerUser* User = Users[i];
-
-				if (!User)
-					continue;
-
-				if (User->GetIRCConnection()) {
-					Server = User->GetIRCConnection()->GetServer();
-				} else {
-					Server = NULL;
-				}
-
-				if (User->GetClientConnection()) {
-					SOCKET Sock = User->GetClientConnection()->GetSocket();
-
-					sockaddr_in saddr;
-					socklen_t saddr_size = sizeof(saddr);
-
-					getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
-
-					hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
-
-					if (hent)
-						ClientAddr = hent->h_name;
-					else
-						ClientAddr = inet_ntoa(saddr.sin_addr);
-				} else
-					ClientAddr = NULL;
-
-				if (Users[i]) {
-					snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
-					m_Owner->Notice(Out);
-				}
-			}
-
-			return false;
-		} else if (strcmpi(Command, "playprivatelog") == 0) {
-			m_Owner->GetLog()->PlayToUser(m_Owner);
-
-			return false;
-		} else if (strcmpi(Command, "eraseprivatelog") == 0) {
-			m_Owner->GetLog()->Clear();
-			m_Owner->Notice("Done.");
-
-			return false;
-		} else if (strcmpi(Command, "playmainlog") == 0 && m_Owner->IsAdmin()) {
-			g_Bouncer->GetLog()->PlayToUser(m_Owner);
-
-			return false;
-		} else if (strcmpi(Command, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
-			g_Bouncer->GetLog()->Clear();
-			g_Bouncer->Log("User %s erased the main log", m_Owner->GetUsername());
-			m_Owner->Notice("Done.");
-
-			return false;
 		} else if (strcmpi(Command, "nick") == 0) {
 			if (argc >= 2) {
 				free(m_Nick);
@@ -308,172 +547,21 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 			}
-		} else if (strcmpi(Command, "privmsg") == 0 && argv[1] && strcmpi(argv[1], "-sbnc") == 0) {
-			char* Cmd = strdup(argv[2]);
-			ParseLine(Cmd);
-			free(Cmd);
+		} else if (argc > 2 && strcmpi(Command, "privmsg") == 0 && strcmpi(argv[1], "-sbnc") == 0) {
+			const char* Toks = ArgTokenize(argv[2]);
+			const char** Arr = ArgToArray(Toks);
+
+			ProcessBncCommand(Arr[0], ArgCount(Toks), Arr, false);
+
+			ArgFreeArray(Arr);
+			ArgFree(Toks);
 
 			return false;
-		} else if (strcmpi(Command, "password") == 0) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: PASSWORD new-password");
-				return false;
-			}
-
-			if (strlen(argv[1]) < 6 || argc > 2) {
-				m_Owner->Notice("Your password is too short or contains invalid characters.");
-			} else {
-				m_Owner->SetPassword(argv[1]);
-				m_Owner->Notice("Password changed.");
-			}
-
-			return false;
-		} else if (strcmpi(Command, "bhelp") == 0) {
+		} else if (strcmpi(Command, "sbnc") == 0) {
+			const char* Subcommand = argv[1];
 			CBouncerUser* User = m_Owner;
 
-			User->Notice("sBNC" BNCVERSION " - an object-oriented IRC bouncer - Help");
-			User->Notice("------------");
-			User->Notice("Admin commands:");
-			User->Notice("ADDUSER - creates a new user");
-			User->Notice("DELUSER - removes a user");
-			User->Notice("LSMOD - lists loaded modules");
-			User->Notice("INSMOD - loads a module");
-			User->Notice("RMMOD - unloads a module");
-			User->Notice("SIMUL - simulates a command on another user's connection");
-			User->Notice("GLOBAL - sends a global notice to all bouncer users");
-			User->Notice("BKILL - disconnects a user from the bouncer");
-			User->Notice("BDISCONNECT - disconnects a user from the IRC server");
-			User->Notice("PLAYMAINLOG - plays the bouncer's log");
-			User->Notice("ERASEMAINLOG - erases the bouncer's log");
-			User->Notice("GVHOST - sets the default/global vhost");
-			User->Notice("BMOTD - sets the bouncer's MOTD");
-			User->Notice("BDIE - terminates the bouncer");
-			User->Notice("------------");
-			User->Notice("User commands:");
-			User->Notice("BWHO - shows users");
-			User->Notice("STATUS - tells you the current status");
-			User->Notice("PLAYPRIVATELOG - plays your message log");
-			User->Notice("ERASEPRIVATELOG - erases your message log");
-			User->Notice("PASSWORD - changes your password");
-			User->Notice("QUIT - disconnects you from the bouncer");
-			User->Notice("PERROR - disconnects you from the IRC server");
-			User->Notice("SETSERVER - sets your default server");
-			User->Notice("SETGECOS - sets your realname");
-			User->Notice("SETAWAYNICK - sets your awaynick");
-			User->Notice("SETSERVERPASS - sets your server password");
-			User->Notice("SETAWAY - sets your away reason");
-			User->Notice("BVHOST - sets your vhost");
-			User->Notice("JUMP - reconnects to the IRC server");
-			User->Notice("SYNTH - synthesizes the reply for an ordinary irc-command");
-			User->Notice("DIRECT - sends a raw command (bypassing SYNTH)");
-			User->Notice("BHELP - oh well, guess what..");
-			User->Notice("End of HELP.");
-
-			return false;
-		} else if (strcmpi(Command, "lsmod") == 0 && m_Owner->IsAdmin()) {
-			CModule** Modules = g_Bouncer->GetModules();
-			int Count = g_Bouncer->GetModuleCount();
-
-			for (int i = 0; i < Count; i++) {
-				if (!Modules[i]) { continue; }
-
-				snprintf(Out, sizeof(Out), "%d: 0x%x %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
-				m_Owner->Notice(Out);
-			}
-
-			m_Owner->Notice("End of MODULES.");
-
-			return false;
-		} else if (strcmpi(Command, "insmod") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: INSMOD module-path");
-				return false;
-			}
-
-			CModule* Module = g_Bouncer->LoadModule(argv[1]);
-
-			if (Module)
-				m_Owner->Notice("Module was loaded.");
-			else
-				m_Owner->Notice("Module could not be loaded.");
-
-			return false;
-		} else if (strcmpi(Command, "rmmod") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: RMMOD module-id");
-				return false;
-			}
-
-			int idx = atoi(argv[1]);
-
-			if (idx < 1 || idx > g_Bouncer->GetModuleCount())
-				m_Owner->Notice("There is no such module.");
-			else {
-				CModule* Mod = g_Bouncer->GetModules()[idx - 1];
-
-				if (!Mod)
-					m_Owner->Notice("This module is already unloaded.");
-				else {
-					if (g_Bouncer->UnloadModule(Mod))
-						m_Owner->Notice("Done.");
-					else
-						m_Owner->Notice("Failed to unload this module.");
-				}
-			}
-
-			return false;
-		} else if (strcmpi(Command, "setserver") == 0) {
-			if (argc < 3) {
-				m_Owner->Notice("Syntax: SETSERVER hostname port");
-				return false;
-			}
-
-			const char* Server = argv[1];
-			int Port = atoi(argv[2]);
-
-			m_Owner->GetConfig()->WriteString("user.server", Server);
-			m_Owner->GetConfig()->WriteInteger("user.port", Port);
-
-			m_Owner->Notice("Done. Use JUMP to connect to the new server.");
-
-			return false;
-		} else if (strcmpi(Command, "setgecos") == 0) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: SETGECOS :real name");
-				return false;
-			}
-
-			m_Owner->GetConfig()->WriteString("user.realname", argv[1]);
-
-			m_Owner->Notice("Done. Use JUMP to active your new gecos information.");
-
-			return false;
-		} else if (strcmpi(Command, "bdie") == 0 && m_Owner->IsAdmin()) {
-			g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
-			g_Bouncer->Shutdown();
-		} else if (strcmpi(Command, "adduser") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 3) {
-				m_Owner->Notice("Syntax: ADDUSER username password");
-				return false;
-			}
-
-			g_Bouncer->CreateUser(argv[1], argv[2]);
-
-			m_Owner->Notice("Done.");
-
-			return false;
-
-		} else if (strcmpi(Command, "deluser") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: DELUSER username");
-				return false;
-			}
-
-			g_Bouncer->RemoveUser(argv[1]);
-
-			m_Owner->Notice("Done.");
-
-			return false;
+			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
 		} else if (strcmpi(Command, "synth") == 0) {
 			if (argc < 2) {
 				m_Owner->Notice("Syntax: SYNTH command parameter");
@@ -619,83 +707,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			}
 		} else if (strcmpi(Command, "version") == 0) {
 			ParseLine("SYNTH VERSION");
-
-			return false;
-		} else if (strcmpi(Command, "setawaynick") == 0) {
-			m_Owner->GetConfig()->WriteString("user.awaynick", argc == 1 ? NULL : argv[1]);
-
-			m_Owner->Notice("Done.");
-
-			return false;
-		} else if (strcmpi(Command, "direct") == 0) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: DIRECT :command");
-				return false;
-			}
-
-			CIRCConnection* IRC = m_Owner->GetIRCConnection();
-
-			IRC->InternalWriteLine(argv[1]);
-
-			return false;
-		} else if (strcmpi(Command, "bvhost") == 0) {
-			if (argc < 2) {
-				const char* Ip = m_Owner->GetConfig()->ReadString("user.ip");
-
-				if (!Ip)
-					Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
-
-				snprintf(Out, sizeof(Out), "Current VHost: %s", Ip ? Ip : "(none)");
-				m_Owner->Notice(Out);
-			} else {
-				m_Owner->GetConfig()->WriteString("user.ip", argv[1]);
-				m_Owner->Notice("Done. Use JUMP to activate the new VHost.");
-			}
-
-			return false;
-		} else if (strcmpi(Command, "gvhost") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 2) {
-				const char* Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
-
-				snprintf(Out, sizeof(Out), "Current global VHost: %s", Ip ? Ip : "(none)");
-				m_Owner->Notice(Out);
-			} else {
-				g_Bouncer->GetConfig()->WriteString("system.ip", argv[1]);
-				m_Owner->Notice("Done.");
-			}
-
-			return false;
-		} else if (strcmpi(Command, "bmotd") == 0) {
-			if (argc < 2) {
-				const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
-
-				snprintf(Out, sizeof(Out), "Current MOTD: %s", Motd ? Motd : "(none)");
-				m_Owner->Notice(Out);
-			} else if (m_Owner->IsAdmin()) {
-				g_Bouncer->GetConfig()->WriteString("system.motd", argv[1]);
-				m_Owner->Notice("Done.");
-			}
-
-			return false;
-		} else if (strcmpi(Command, "setaway") == 0) {
-			if (argc < 2) {
-				const char* Away = m_Owner->GetConfig()->ReadString("user.away");
-
-				snprintf(Out, sizeof(Out), "Current away reason: %s", Away ? Away : "(none)");
-				m_Owner->Notice(Out);
-			} else {
-				m_Owner->GetConfig()->WriteString("user.away", argv[1]);
-				m_Owner->Notice("Done.");
-			}
-
-			return false;
-		} else if (strcmpi(Command, "setserverpass") == 0) {
-			if (argc < 2)
-				m_Owner->Notice("SYNTAX: SETSERVERPASS password");
-			else {
-				m_Owner->GetConfig()->WriteString("user.spass", argv[1]);
-				m_Owner->Notice("Done.");
-			}
 
 			return false;
 		}
