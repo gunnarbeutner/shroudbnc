@@ -618,7 +618,7 @@ bool CBouncerCore::Daemonize(void) {
 
 const char* CBouncerCore::MD5(const char* String) {
 	MD5_CTX context;
-	static char Result[32];
+	static char Result[33];
 	unsigned char digest[16];
 	unsigned int len = strlen(String);
 

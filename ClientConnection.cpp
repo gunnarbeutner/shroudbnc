@@ -59,17 +59,17 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	char Out[1024];
 	CBouncerUser* User = m_Owner;
 
-	if (argc < 1) {
-		User->Notice("Try /sbnc help");
-		return false;
-	}
-
 #define SENDUSER(Text) { \
 	if (NoticeUser) { \
 		User->RealNotice(Text); \
 	} else { \
 		User->Notice(Text); \
 	} \
+	}
+
+	if (argc < 1) {
+		SENDUSER("Try /sbnc help");
+		return false;
 	}
 
 	if (strcmpi(Subcommand, "help") == 0) {
@@ -104,10 +104,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("jump          - reconnects to the IRC server");
 
 		if (m_Owner->IsAdmin()) {
-			SENDUSER("perror        - disconnects you from the IRC server");
 			SENDUSER("status        - tells you the current status");
-			SENDUSER("synth         - synthesizes the reply for an ordinary irc-command");
-			SENDUSER("direct        - sends a raw command (bypassing SYNTH)");
 		}
 
 		SENDUSER("help          - oh well, guess what..");
@@ -226,6 +223,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcmpi(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
 		g_Bouncer->Shutdown();
+
+		return false;
 	} else if (strcmpi(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 3) {
 			SENDUSER("Syntax: ADDUSER username password");
@@ -247,6 +246,22 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		g_Bouncer->RemoveUser(argv[1]);
 
 		SENDUSER("Done.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 3) {
+			SENDUSER("Syntax: SIMUL username :command");
+			return false;
+		}
+
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+
+		if (User)
+			User->Simulate(argv[2]);
+		else {
+			snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
+			SENDUSER(Out);
+		}
 
 		return false;
 	} else if (strcmpi(Subcommand, "direct") == 0) {
@@ -284,20 +299,6 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "perror") == 0) {
-		if (argc < 2) {
-			SENDUSER("Syntax: PERROR :quit-msg");
-			return false;
-		}
-
-		CIRCConnection* Conn = m_Owner->GetIRCConnection();
-
-		if (Conn)
-			Conn->Kill(argv[1]);
-
-		m_Owner->MarkQuitted();
-
-		return false;
 	} else if (strcmpi(Subcommand, "global") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: GLOBAL :text");
@@ -305,22 +306,6 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		g_Bouncer->GlobalNotice(argv[1]);
-		return false;
-	} else if (strcmpi(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
-		if (argc < 3) {
-			SENDUSER("Syntax: SIMUL username :command");
-			return false;
-		}
-
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
-
-		if (User)
-			User->Simulate(argv[2]);
-		else {
-			snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
-			SENDUSER(Out);
-		}
-
 		return false;
 	} else if (strcmpi(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
@@ -416,6 +401,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				SENDUSER(Out);
 			}
 		}
+
+		SENDUSER("End of USERS.");
 
 		return false;
 	} else if (strcmpi(Subcommand, "read") == 0) {
@@ -547,6 +534,36 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 			}
+		} else if (strcmpi(Command, "perror") == 0) {
+			if (argc < 2) {
+				m_Owner->Notice("Syntax: PERROR :quit-msg");
+				return false;
+			}
+
+			CIRCConnection* Conn = m_Owner->GetIRCConnection();
+
+			if (Conn)
+				Conn->Kill(argv[1]);
+
+			m_Owner->MarkQuitted();
+
+			return false;
+		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
+			if (argc < 3) {
+				m_Owner->Notice("Syntax: SIMUL username :command");
+				return false;
+			}
+
+			CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+
+			if (User)
+				User->Simulate(argv[2]);
+			else {
+				snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
+				m_Owner->Notice(Out);
+			}
+
+			return false;
 		} else if (argc > 2 && strcmpi(Command, "privmsg") == 0 && strcmpi(argv[1], "-sbnc") == 0) {
 			const char* Toks = ArgTokenize(argv[2]);
 			const char** Arr = ArgToArray(Toks);
