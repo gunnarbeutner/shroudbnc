@@ -66,3 +66,7 @@ proc putkick {channel nicks {reason ""}} {
 proc bncnotc {text} {
 	putclient ":-sBNC!core@bnc.server PRIVMSG $::botnick :$text"
 }
+
+proc bncrnotc {text} {
+	putclient ":-sBNC!core@bnc.server NOTICE $::botnick :$text"
+}
