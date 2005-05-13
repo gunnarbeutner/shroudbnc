@@ -57,13 +57,13 @@ connection_role_e CClientConnection::GetRole(void) {
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 	char Out[1024];
-	CBouncerUser* User = m_Owner;
+	CBouncerUser* targUser = m_Owner;
 
 #define SENDUSER(Text) { \
 	if (NoticeUser) { \
-		User->RealNotice(Text); \
+		targUser->RealNotice(Text); \
 	} else { \
-		User->Notice(Text); \
+		targUser->Notice(Text); \
 	} \
 	}
 
@@ -71,6 +71,17 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Try /sbnc help");
 		return false;
 	}
+
+	CModule** Modules = g_Bouncer->GetModules();
+	int Count = g_Bouncer->GetModuleCount();
+
+	for (int i = 0; i < Count; i++) {
+		if (!Modules[i]) { continue; }
+
+		if (Modules[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
+			return false;
+	}
+
 
 	if (strcmpi(Subcommand, "help") == 0) {
 		SENDUSER("--The following commands are available to you--");
@@ -396,10 +407,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} else
 				ClientAddr = NULL;
 
-			if (Users[i]) {
-				snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
-				SENDUSER(Out);
-			}
+			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
+			SENDUSER(Out);
 		}
 
 		SENDUSER("End of USERS.");

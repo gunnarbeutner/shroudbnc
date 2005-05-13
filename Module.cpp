@@ -126,3 +126,7 @@ void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, 
 const char* CModule::Command(const char* Cmd, const char* Parameters) {
 	return m_Far->Command(Cmd, Parameters);
 }
+
+bool CModule::InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
+	return m_Far->InterceptClientCommand(Connection, Subcommand, argc, argv, NoticeUser);
+}

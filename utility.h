@@ -32,7 +32,7 @@ int ArgCount(const char* Args);
 
 SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp = NULL);
 CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp = NULL);
-SOCKET CreateListener(unsigned short Port);
+SOCKET CreateListener(unsigned short Port, const char* BindIp = NULL);
 
 char* NickFromHostmask(const char* Hostmask);
 void string_free(char* string);

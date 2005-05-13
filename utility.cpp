@@ -250,7 +250,7 @@ char* NickFromHostmask(const char* Hostmask) {
 	}
 }
 
-SOCKET CreateListener(unsigned short Port) {
+SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 	int code;
 	SOCKET Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -264,11 +264,32 @@ SOCKET CreateListener(unsigned short Port) {
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
 
+	bool bound = false;
+
+	if (BindIp) {
+		hostent* hent = gethostbyname(BindIp);
+
+		if (hent) {
+			in_addr* peer = (in_addr*)hent->h_addr_list[0];
+
+	#ifdef _WIN32
+			sin.sin_addr.S_un.S_addr = peer->S_un.S_addr;
+	#else
+			sin.sin_addr.s_addr = peer->s_addr;
+	#endif
+
+			bound = true;
+		}
+	}
+
+
+	if (!bound) {
 #ifdef _WIN32
-	sin.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+		sin.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 #else
-	sin.sin_addr.s_addr = htonl(INADDR_ANY);
+		sin.sin_addr.s_addr = htonl(INADDR_ANY);
 #endif
+	}
 
 	code = bind(Listener, (sockaddr*)&sin, sizeof(sin));
 

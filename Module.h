@@ -46,6 +46,7 @@ public:
 
 	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv);
 	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv);
+	virtual bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser);
 
 	virtual void AttachClient(const char* Client);
 	virtual void DetachClient(const char* Client) ;

@@ -166,7 +166,9 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 	if (Port == 0)
 		Port = 9000;
 
-	m_Listener = CreateListener(Port);
+	const char* BindIp = m_Config->ReadString("system.ip");
+
+	m_Listener = CreateListener(Port, BindIp);
 
 	if (m_Listener == INVALID_SOCKET) {
 		Log("Could not create listener port");
@@ -458,8 +460,8 @@ void CBouncerCore::UnregisterSocket(SOCKET Socket) {
 	}
 }
 
-SOCKET CBouncerCore::CreateListener(unsigned short Port) {
-	return ::CreateListener(Port);
+SOCKET CBouncerCore::CreateListener(unsigned short Port, const char* BindIp = NULL) {
+	return ::CreateListener(Port, BindIp);
 }
 
 void CBouncerCore::Log(const char* Format, ...) {

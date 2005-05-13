@@ -95,7 +95,7 @@ public:
 	virtual void RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface);
 	virtual void UnregisterSocket(SOCKET Socket);
 
-	virtual SOCKET CreateListener(unsigned short Port);
+	virtual SOCKET CreateListener(unsigned short Port, const char* BindIp = NULL);
 
 	virtual void Log(const char* Format, ...);
 	virtual CBouncerLog* GetLog(void);
