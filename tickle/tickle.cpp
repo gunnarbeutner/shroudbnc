@@ -30,6 +30,8 @@
 #include "tickle.h"
 #include "tickleProcs.h"
 
+#define FREEZEFIX
+
 class CTclSupport;
 
 CBouncerCore* g_Bouncer;
@@ -89,13 +91,17 @@ class CTclSupport : public CModuleFar {
 
 		g_Interp = Tcl_CreateInterp();
 
+		Tcl_SetVar(g_Interp, "tcl_interactive", "0", TCL_GLOBAL_ONLY);
+
 		Tcl_AppInit(g_Interp);
 
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
 	}
 
 	void Pulse(time_t Now) {
+#ifndef FREEZEFIX
 		Tcl_DoOneEvent(TCL_ALL_EVENTS | TCL_DONT_WAIT);
+#endif
 
 		char strNow[20];
 
@@ -115,29 +121,12 @@ class CTclSupport : public CModuleFar {
 	}
 
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
-		if (argc > 1 && strcmpi(argv[0], "tcl") == 0 && Client->GetOwningClient() && Client->GetOwningClient()->IsAdmin()) {
-			if (Client->GetOwningClient())
-				setctx(Client->GetOwningClient()->GetUsername());
-
-			int Code = Tcl_Eval(g_Interp, argv[1]);
-
-			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
-
-			const char* strResult = Tcl_GetString(Result);
-
-			if (Code == TCL_ERROR) {
-				Client->GetOwningClient()->Notice("An error occured in the tcl script:");
-			}
-
-			Client->GetOwningClient()->Notice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
-
-			return false;
-		}
-
 		g_Ret = true;
 
+		CBouncerUser* User = Client->GetOwningClient();
+
 		CallBinds(Type_PreScript, NULL, 0, NULL);
-		CallBinds(Type_Client, Client->GetOwningClient() ? Client->GetOwningClient()->GetUsername() : NULL, argc, argv);
+		CallBinds(Type_Client, User ? User->GetUsername() : NULL, argc, argv);
 		CallBinds(Type_PostScript, NULL, 0, NULL);
 
 		return g_Ret;
@@ -199,6 +188,36 @@ class CTclSupport : public CModuleFar {
 		}
 
 		return NULL;
+	}
+
+	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
+		CBouncerUser* User = Client->GetOwningClient();
+
+		if (argc > 1 && strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
+			setctx(User->GetUsername());
+
+			int Code = Tcl_Eval(g_Interp, argv[1]);
+
+			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
+
+			const char* strResult = Tcl_GetString(Result);
+
+			if (Code == TCL_ERROR) {
+				if (NoticeUser)
+					User->RealNotice("An error occured in the tcl script:");
+				else
+					User->Notice("An error occured in the tcl script:");
+			}
+
+			if (NoticeUser)
+				User->RealNotice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
+			else
+				User->Notice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
+
+			return true;
+		}
+
+		return false;
 	}
 public:
 	void RehashInterpreter(void) {

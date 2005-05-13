@@ -142,26 +142,6 @@ const char* internalchannels(void) {
 	return List;
 }
 
-const char* gettopic(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
-
-	if (!Context)
-		return NULL;
-
-	CIRCConnection* IRC = Context->GetIRCConnection();
-
-	if (!IRC)
-		return NULL;
-
-
-	CChannel* Chan = IRC->GetChannel(Channel);
-
-	if (!Chan)
-		return NULL;
-	else
-		return Chan->GetTopic();
-}
-
 const char* getchanmodes(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 

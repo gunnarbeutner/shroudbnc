@@ -130,6 +130,8 @@ class CHelloClass : public CModuleFar {
 	void SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
 
 	const char* Command(const char* Cmd, const char* Parameters) { return NULL; }
+
+	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return true; }
 };
 
 extern "C" CModuleFar* bncGetObject(void) {

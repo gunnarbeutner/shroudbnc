@@ -34,7 +34,7 @@ proc sbnc:svrconnect {client} {
 	callevent "connect-server"
 }
 
-proc sbnc:srvdisconnect {client} {
+proc sbnc:svrdisconnect {client} {
 	callevent "disconnect-server"
 }
 
