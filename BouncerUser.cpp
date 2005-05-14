@@ -391,11 +391,6 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 	char Out[1024];
 
-/*	if (m_Client) {
-		m_Client->Kill("Disconnecting.");
-		delete m_Client;
-	}*/
-
 	if (!m_Client) {
 		snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
 
@@ -409,6 +404,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->GetLog()->InternalWriteLine(Out);
 
+		m_Client->SetOwner(NULL);
 		m_Client->Kill("Another client has connected.");
 	}
 

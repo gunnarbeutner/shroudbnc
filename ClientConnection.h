@@ -42,6 +42,8 @@ public:
 
 	virtual const char* GetNick(void);
 
+	virtual void SetOwner(CBouncerUser* Owner);
+
 	virtual void Destroy(void);
 };
 
