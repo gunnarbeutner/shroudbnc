@@ -117,11 +117,6 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		return;
 	}
 
-	snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
-
-	g_Bouncer->GetLog()->InternalWriteLine(Out);
-	g_Bouncer->GlobalNotice(Out, true);
-
 	Client->m_Owner = this;
 
 	SetClientConnection(Client, true);
@@ -400,6 +395,14 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 		m_Client->Kill("Disconnecting.");
 		delete m_Client;
 	}*/
+
+	if (!m_Client) {
+		snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
+
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->GlobalNotice(Out, true);
+	}
+
 
 	if (m_Client && Client) {
 		snprintf(Out, sizeof(Out), "Seamless transition for %s", GetUsername());

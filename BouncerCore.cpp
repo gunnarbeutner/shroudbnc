@@ -460,7 +460,7 @@ void CBouncerCore::UnregisterSocket(SOCKET Socket) {
 	}
 }
 
-SOCKET CBouncerCore::CreateListener(unsigned short Port, const char* BindIp = NULL) {
+SOCKET CBouncerCore::CreateListener(unsigned short Port, const char* BindIp) {
 	return ::CreateListener(Port, BindIp);
 }
 

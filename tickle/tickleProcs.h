@@ -46,7 +46,6 @@ int Tcl_ProcInit(Tcl_Interp* interp);
 const char* bncuserlist(void);
 
 const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
-const char* user(const char* Function, const char* User = 0, const char* Parameter = 0, const char* Parameter2 = 0);
 
 int putclient(const char* text);
 int simul(const char* User, const char* Command);
@@ -73,6 +72,7 @@ int floodcontrol(const char* Function);
 const char* getisupport(const char* Feature);
 int requiresparam(char Mode);
 bool isprefixmode(char Mode);
+const char* getchanprefix(const char* Channel, const char* Nick);
 
 const char* internalchannels(void);
 const char* bncmodules(void);

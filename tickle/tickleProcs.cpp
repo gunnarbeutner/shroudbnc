@@ -49,27 +49,6 @@ int Tcl_ProcInit(Tcl_Interp* interp) {
 	return Bnc_Init(interp);
 }
 
-const char* getuser(const char* Option) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
-
-	if (!User)
-		return NULL;
-	else
-		return User->GetConfig()->ReadString(Option);
-}
-
-int setuser(const char* Option, const char* Value) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
-
-	if (!User)
-		return 0;
-	else {		
-		User->GetConfig()->WriteString(Option, Value);
-
-		return 1;
-	}
-}
-
 void die(void) {
 	g_Bouncer->Shutdown();
 }
@@ -668,169 +647,33 @@ const char* channel(const char* Function, const char* Channel, const char* Param
 	return "Function should be one of: ison join part mode topic topicnick topicstamp hastopic hasnames modes nicks prefix";
 }
 
-const char* user(const char* Function, const char* User, const char* Parameter, const char* Parameter2) {
-	static char Buffer[1024];
-
-	CBouncerUser* Context;
-
-	if (User)
-		Context = g_Bouncer->GetUser(User);
-	else
-		Context = g_Bouncer->GetUser(g_Context);
-
-	if (strcmpi(Function, "isvalid") == 0)
-		return Context ? "1" : "0";
-
-	if (strcmpi(Function, "add") == 0) {
-		if (Context)
-			return "0";
-		else {
-			g_Bouncer->CreateUser(User, Parameter);
-
-			return "1";
-		}
-	}
-
-	if (strcmpi(Function, "remove") == 0) {
-		if (Context) {
-			g_Bouncer->RemoveUser(User);
-			return "0";
-		} else
-			return "-1";
-	}
+const char* getchanprefix(const char* Channel, const char* Nick) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return "-1";
+		return NULL;
 
-	if (strcmpi(Function, "server") == 0) {
-		if (!Parameter)
-			return Context->GetServer();
-		else {
-			Context->SetServer(Parameter);
+	CIRCConnection* IRC = Context->GetIRCConnection();
 
-			return "1";
-		}
-	}
+	if (!IRC)
+		return NULL;
 
-	if (strcmpi(Function, "port") == 0) {
-		if (!Parameter) {
-			sprintf(Buffer, "%d", Context->GetPort());
+	CChannel* Chan = IRC->GetChannel(Channel);
 
-			return Buffer;
-		} else {
-			Context->SetPort(atoi(Parameter));
+	if (!Chan)
+		return NULL;
 
-			return "1";
-		}
-	}
+	CNick* cNick = Chan->GetNames()->Get(Nick);
 
-	if (strcmpi(Function, "realname") == 0)
-		if (!Parameter)
-			return Context->GetRealname();
-		else {
-			Context->SetRealname(Parameter);
+	if (!cNick)
+		return NULL;
 
-			return "1";
-		}
-	if (strcmpi(Function, "uptime") == 0) {
-		sprintf(Buffer, "%d", Context->IRCUptime());
+	static char outPref[2];
 
-		return Buffer;
-	}
-
-	if (strcmpi(Function, "lock") == 0) {
-		if (!Parameter) {
-			sprintf(Buffer, "%d", Context->IsLocked());
-
-			return Buffer;
-		} else {
-			if (atoi(Parameter))
-				Context->Lock();
-			else
-				Context->Unlock();
-
-			return "1";
-		}
-	}
-
-	if (strcmpi(Function, "admin") == 0) {
-		if (!Parameter) {
-			sprintf(Buffer, "%d", Context->IsAdmin());
-
-			return Buffer;
-		} else {
-			if (atoi(Parameter))
-				Context->SetAdmin(true);
-			else
-				Context->SetAdmin(false);
-
-			return "1";
-		}
-	}
-
-	if (strcmpi(Function, "hasserver") == 0)
-		return Context->GetIRCConnection() ? "1" : "0";
-
-	if (strcmpi(Function, "hasclient") == 0)
-		return Context->GetClientConnection() ? "1" : "0";
-
-	if (strcmpi(Function, "nick") == 0) {
-		if (!Parameter)
-			return Context->GetNick();
-		else {
-			CIRCConnection* IRC = Context->GetIRCConnection();
-
-			IRC->WriteLine("NICK :%s", Parameter);
-
-			return "1";
-		}
-	}
-
-	if (strcmpi(Function, "set") == 0) {
-		if (!Parameter)
-			return "-1";
-		else {
-			Context->GetConfig()->WriteString(Parameter, Parameter2);
-			return "1";
-		}
-	}
-
-	if (strcmpi(Function, "get") == 0) {
-		if (!Parameter)
-			return "-1";
-		else
-			return Context->GetConfig()->ReadString(Parameter);
-	}
-
-	if (strcmpi(Function, "log") == 0) {
-		Context->Log("%s", Parameter);
-
-		return "1";
-	}
-
-	if (strcmpi(Function, "client") == 0) {
-		CClientConnection* Client = Context->GetClientConnection();
-
-		if (!Client)
-			return NULL;
-		else {
-			SOCKET Sock = Client->GetSocket();
-
-			sockaddr_in saddr;
-			socklen_t saddr_size = sizeof(saddr);
-
-			getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
-
-			hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
-
-			if (hent)
-				return hent->h_name;
-			else
-				return "<unknown>";
-		}
-	}
-
-	return "Function should be one of: add remove server port realname uptime lock admin hasserver hasclient nick set get log";
+	outPref[0] = Chan->GetHighestUserFlag(cNick->GetPrefixes());
+	outPref[1] = '\0';
+	
+	return outPref;
 }
 
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
@@ -857,6 +700,12 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetRealname();
 	else if (strcmpi(Type, "nick") == 0)
 		return Context->GetNick();
+	else if (strcmpi(Type, "awaynick") == 0)
+		return Context->GetConfig()->ReadString("user.awaynick");
+	else if (strcmpi(Type, "vhost") == 0)
+		return Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
+	else if (strcmpi(Type, "channels") == 0)
+		return Context->GetConfig()->ReadString("user.channels");
 	else if (strcmpi(Type, "uptime") == 0) {
 		sprintf(Buffer, "%d", Context->IRCUptime());
 
@@ -869,6 +718,27 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
+	else if (strcmpi(Type, "client") == 0) {
+		CClientConnection* Client = Context->GetClientConnection();
+
+		if (!Client)
+			return NULL;
+		else {
+			SOCKET Sock = Client->GetSocket();
+
+			sockaddr_in saddr;
+			socklen_t saddr_size = sizeof(saddr);
+
+			getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
+
+			hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
+
+			if (hent)
+				return hent->h_name;
+			else
+				return "<unknown>";
+		}
+	}
 	else if (strcmpi(Type, "tag") == 0) {
 		if (!Parameter2)
 			return NULL;
@@ -882,7 +752,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return ReturnValue;
 	} else
-		throw "Type should be one of: server port realname nick uptime lock admin hasserver hasclient tag";
+		throw "Type should be one of: server port realname nick awaynick uptime lock admin hasserver hasclient vhost channels tag";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -900,6 +770,12 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetRealname(Value);
 	else if (strcmpi(Type, "nick") == 0)
 		Context->SetNick(Value);
+	else if (strcmpi(Type, "awaynick") == 0)
+		Context->GetConfig()->WriteString("user.awaynick", Value);
+	else if (strcmpi(Type, "vhost") == 0)
+		Context->GetConfig()->WriteString("user.ip", Value);
+	else if (strcmpi(Type, "channels") == 0)
+		Context->GetConfig()->WriteString("user.channels", Value);
 	else if (strcmpi(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();
@@ -915,7 +791,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 
 		free(Buf);
 	} else
-		throw "Type should be one of: server port realname nick lock admin tag";
+		throw "Type should be one of: server port realname nick awaynick lock admin channels tag";
 
 
 	return 1;
@@ -995,6 +871,9 @@ int getchanjoin(const char* Nick, const char* Channel) {
 		return 0;
 
 	CNick* User = Chan->GetNames()->Get(Nick);
+
+	if (!User)
+		return 0;
 
 	return User->GetChanJoin();
 }

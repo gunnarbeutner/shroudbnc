@@ -1339,30 +1339,6 @@ _wrap_channel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static int
-_wrap_user(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char *arg4 = (char *) 0 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s|sss:user Function ?User? ?Parameter? ?Parameter2? ",&arg1,&arg2,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)user((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_putclient(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     int result;
@@ -1736,6 +1712,28 @@ _wrap_isprefixmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_getchanprefix(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:getchanprefix Channel Nick ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)getchanprefix((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -2373,7 +2371,6 @@ _wrap_putlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
-    { SWIG_prefix "user", (swig_wrapper_func) _wrap_user, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
     { SWIG_prefix "simul", (swig_wrapper_func) _wrap_simul, NULL},
     { SWIG_prefix "internalbind", (swig_wrapper_func) _wrap_internalbind, NULL},
@@ -2392,6 +2389,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "getisupport", (swig_wrapper_func) _wrap_getisupport, NULL},
     { SWIG_prefix "requiresparam", (swig_wrapper_func) _wrap_requiresparam, NULL},
     { SWIG_prefix "isprefixmode", (swig_wrapper_func) _wrap_isprefixmode, NULL},
+    { SWIG_prefix "getchanprefix", (swig_wrapper_func) _wrap_getchanprefix, NULL},
     { SWIG_prefix "internalchannels", (swig_wrapper_func) _wrap_internalchannels, NULL},
     { SWIG_prefix "bncmodules", (swig_wrapper_func) _wrap_bncmodules, NULL},
     { SWIG_prefix "bncsettag", (swig_wrapper_func) _wrap_bncsettag, NULL},

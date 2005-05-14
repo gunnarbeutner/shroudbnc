@@ -73,7 +73,12 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 		time(&tNow);
 		Now = *localtime(&tNow);
 
+#ifdef _WIN32
 		strftime(strNow, sizeof(strNow), "%#c" , &Now);
+#else
+		strftime(strNow, sizeof(strNow), "%c" , &Now);
+#endif
+
 		snprintf(Out, sizeof(Out), "%s %s\n", strNow, Line);
 
 		fputs(Out, Log);
