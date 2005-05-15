@@ -89,9 +89,17 @@ bool CConnection::Read(void) {
 
 void CConnection::Write(void) {
 	if (sendq_size > 0) {
-		send(m_Socket, sendq, sendq_size, 0);
+		send(m_Socket, sendq, sendq_size > 2000 ? 2000 : sendq_size , 0);
 
-		sendq_size = 0;
+		if (sendq_size > 2000) {
+			char* sendq_new = (char*)malloc(sendq_size - 2000);
+			memcpy(sendq_new, &sendq[2000], sendq_size - 2000);
+			sendq_size -= 2000;
+			
+			free(sendq);
+			sendq = sendq_new;
+		} else
+			sendq_size = 0;
 	}
 
 	if (m_Shutdown) {
