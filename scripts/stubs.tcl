@@ -54,3 +54,5 @@ proc dccdumpfile {idx file} { }
 
 proc link {args} { }
 proc unlink {bot} { }
+
+proc chanlist {chan} { return [internalchanlist $chan] }

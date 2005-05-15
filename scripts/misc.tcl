@@ -70,3 +70,7 @@ proc bncnotc {text} {
 proc bncrnotc {text} {
 	putclient ":-sBNC!core@bnc.server NOTICE $::botnick :$text"
 }
+
+proc getchanidle {nick chan} {
+	return [expr [internalgetchanidle $nick $chan] / 60]
+}

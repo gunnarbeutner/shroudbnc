@@ -1909,6 +1909,28 @@ _wrap_debugout(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 
 static int
+_wrap_internalgetchanidle(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:internalgetchanidle Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)internalgetchanidle((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2200,28 +2222,6 @@ _wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
-_wrap_getchanidle(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"ss:getchanidle Nick Channel ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (int)getchanidle((char const *)arg1,(char const *)arg2);
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_duration(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int arg1 ;
     char *result;
@@ -2398,6 +2398,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bnccommand", (swig_wrapper_func) _wrap_bnccommand, NULL},
     { SWIG_prefix "md5", (swig_wrapper_func) _wrap_md5, NULL},
     { SWIG_prefix "debugout", (swig_wrapper_func) _wrap_debugout, NULL},
+    { SWIG_prefix "internalgetchanidle", (swig_wrapper_func) _wrap_internalgetchanidle, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -2412,7 +2413,6 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "die", (swig_wrapper_func) _wrap_die, NULL},
     { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
     { SWIG_prefix "getchanjoin", (swig_wrapper_func) _wrap_getchanjoin, NULL},
-    { SWIG_prefix "getchanidle", (swig_wrapper_func) _wrap_getchanidle, NULL},
     { SWIG_prefix "duration", (swig_wrapper_func) _wrap_duration, NULL},
     { SWIG_prefix "rand", (swig_wrapper_func) _wrap_rand, NULL},
     { SWIG_prefix "clearqueue", (swig_wrapper_func) _wrap_clearqueue, NULL},

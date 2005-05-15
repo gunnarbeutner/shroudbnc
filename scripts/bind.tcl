@@ -46,6 +46,8 @@ proc sbnc:bindpulse {time} {
 	if {$time % 60 != 0} { return }
 
 	foreach user [bncuserlist] {
+		setctx $user
+
 		foreach chan [channels] {
 			if {[botonchan $chan] && ![botisop $chan]} {
 				sbnc:callbinds "need" - $chan "$chan op" $chan "op"

@@ -878,7 +878,7 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	return User->GetChanJoin();
 }
 
-int getchanidle(const char* Nick, const char* Channel) {
+int internalgetchanidle(const char* Nick, const char* Channel) {
 	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
