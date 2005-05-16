@@ -1,0 +1,101 @@
+shroudBNC 0.9
+-------------
+
+shroudBNC is a modular framework for IRC clients. It supports TCL scripting and can be used as a bouncer.
+
+Installation
+------------
+
+In order to compile and install sbnc you will have to use the 'configure' script which is included in the distribution of sbnc:
+
+./configure
+make
+
+Once you've compiled sbnc you will need to edit sbnc's configuration files:
+
+sbnc.conf, users/username.conf and sbnc.tcl
+
+The default sbnc.conf looks like this:
+
+system.port=9000
+system.users=fnords
+system.md5=1
+
+Simply replace 'fnords' with your desired username and set the bnc's port. If you want that sbnc listens on a specific ip address, you can add the following setting:
+
+system.ip=your.ip.address.here
+
+Rename the default user config file 'fnords.conf' (in the users directory) to match the username you've chosen. E.g. if your username is 'test' you should use 'test.conf' for the config file.
+
+Edit the user config like you've edited the sbnc.conf. You will need the md5util tool to generate an md5 hash for your password:
+
+dev@zero:~/sbnc$ md5util/md5util password
+5f4dcc3b5aa765d61d8327deb882cf99
+dev@zero:~/sbnc$
+
+You will have the opportunity to change your password again once the bouncer is online.
+
+Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts you want.
+
+You can start sbnc using './sbnc' or './sbnc -n' if you want to see the console output:
+
+dev@zero:~/sbnc$ ./sbnc
+Mon May 16 08:33:12 2005 Log system initialized.
+sBNC0.8 - an object-oriented IRC bouncer
+Mon May 16 08:33:12 2005 Created main listener.
+Mon May 16 08:33:12 2005 Starting main loop.
+Daemonizing... DONE
+dev@zero:~/sbnc$
+
+Usage
+-----
+
+Just connect to the bnc using your favorite IRC client. You will have to set your username (i.e. e-mail address in most clients) to the accountname you've chosen for your bnc.
+
+Once you're connected you should type /sbnc help to get a list of available commands.
+
+If you've compiled the TCL module you can load it using:
+
+/sbnc insmod tickle/tickle.so
+
+A list of loaded modules can be viewed using /sbnc lsmod. /sbnc rmmod <module-id> removes a module.
+
+shroudBNC supports oidentd in order to provide custom idents for each user. You will need to enable ident-spoofing for the unix account you're using to run shroudBNC. Read oidentd's manual for more details.
+
+TCL
+---
+
+Installing the TCL module might sometimes be a bit tricky. You should know this before you start to compile the TCL module:
+
+-the path of your TCL libraries
+-the path of the include files
+
+The command for compiling the TCL module looks like this:
+
+g++ -I/include/directory -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c -g /path/to/your/libtcl8.xso
+
+For example, if your include files are in /usr/include/tcl8.4 and your libtcl8.x.so can be found at /usr/lib/libtcl8.4.so you can use this command to compile the TCL module:
+
+g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c -g /usr/lib/libtcl8.4.so
+
+Security
+--------
+
+It is vital that you understand that any bnc admin has access to:
+
+a) the shell account where the bnc is running
+b) any user connections
+
+Using the TCL module any admin can perform shell commands (using the exec command) and send IRC commands for any user's connection. Thus you should choose your admins wisely. Do not load arbitrary scripts and make sure you understand any scripts you want to load.
+
+Giving someone you don't trust shell access and an array of irc connections is potentially dangerous.
+
+Credits
+-------
+
+I'd like to thank all the beta testers who have been using shroudBNC so far. Feature requests and bug reports are welcome; please send them to: sbnc-bugs@shroudirc.net
+
+In case you encounter problems while compiling and/or using shroudBNC you can contact me on IRC:
+
+server: irc.quakenet.org / 6667
+channel: #shroud
