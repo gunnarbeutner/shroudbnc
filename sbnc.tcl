@@ -1,4 +1,3 @@
-source "tickle.tcl"
 source "scripts/namespace.tcl"
 source "scripts/timers.tcl"
 source "scripts/misc.tcl"
@@ -9,5 +8,13 @@ source "scripts/pushmode.tcl"
 source "scripts/bind.tcl"
 source "scripts/usys.tcl"
 
+source "scripts/alltools.tcl"
+
+#setctx "fnords"
 #source "scripts/tcl.tcl"
-#source "scripts/control.tcl"
+
+#set ::account354 "fnords"
+#source "scripts/account.tcl"
+
+#set ::versionreply "fnords"
+#source "scripts/version.tcl"
