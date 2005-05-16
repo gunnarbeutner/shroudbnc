@@ -20,13 +20,11 @@ int main(int argc, char* argv[]) {
 	MD5Update (&context, (unsigned char*)String, len);
 	MD5Final (digest, &context);
 
-#undef sprintf
-
 	for (int i = 0; i < 16; i++) {
 		sprintf(Result + i * 2, "%02x", digest[i]);
 	}
 
-	printf("%s", Result);
+	printf("%s\n", Result);
 
 	return 0;
 }
