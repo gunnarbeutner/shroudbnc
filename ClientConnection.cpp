@@ -42,6 +42,27 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 	m_Password = NULL;
 	m_Username = NULL;
 
+	m_Peer = Peer;
+	m_PeerName = NULL;
+
+	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC" BNCVERSION);
+	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Looking up your hostname");
+
+#ifdef ASYNC_DNS
+	adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, this, &m_PeerA);
+
+	m_PeerName = NULL;
+#else
+	hostent* hent = gethostbyaddr((const char*)&Peer.sin_addr, sizeof(in_addr), AF_INET);
+
+	if (hent)
+		m_PeerName = strdup(hent->h_name);
+	else
+		m_PeerName = strdup(inet_ntoa(Peer.sin_addr));
+
+	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", m_PeerName);
+#endif
+
 	g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
 }
 
@@ -49,6 +70,7 @@ CClientConnection::~CClientConnection() {
 	free(m_Nick);
 	free(m_Password);
 	free(m_Username);
+	free(m_PeerName);
 }
 
 connection_role_e CClientConnection::GetRole(void) {
@@ -384,27 +406,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			if (!User)
 				continue;
 
-			if (User->GetIRCConnection()) {
+			if (User->GetIRCConnection())
 				Server = User->GetIRCConnection()->GetServer();
-			} else {
+			else
 				Server = NULL;
-			}
 
-			if (User->GetClientConnection()) {
-				SOCKET Sock = User->GetClientConnection()->GetSocket();
-
-				sockaddr_in saddr;
-				socklen_t saddr_size = sizeof(saddr);
-
-				getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
-
-				hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
-
-				if (hent)
-					ClientAddr = hent->h_name;
-				else
-					ClientAddr = inet_ntoa(saddr.sin_addr);
-			} else
+			if (User->GetClientConnection())
+				ClientAddr = User->GetClientConnection()->GetPeerName();
+			else
 				ClientAddr = NULL;
 
 			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
@@ -462,9 +471,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		if (strcmpi(Command, "nick") == 0 && argc > 1) {
 			const char* Nick = argv[1];
 
-			if (m_Nick == NULL) {
-				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC" BNCVERSION);
-			} else {
+			if (m_Nick != NULL) {
 				if (strcmp(m_Nick, Nick) != 0) {
 					m_Owner->GetConfig()->WriteString("user.nick", Nick);
 
@@ -765,11 +772,26 @@ void CClientConnection::ParseLine(const char* Line) {
 void CClientConnection::ValidateUser(void) {
 	CBouncerUser* User = g_Bouncer->GetUser(m_Username);
 
-	if (m_Password && User && User->Validate(m_Password)) {
+	bool Blocked = true, Valid = false;
+
+	if (User) {
+		Blocked = User->IsIpBlocked(m_Peer);
+		Valid = User->Validate(m_Password);
+	}
+
+	if (m_Password && User && !Blocked && Valid) {
 		User->Attach(this);
 		//WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
-		g_Bouncer->Log("Wrong password for user %s", m_Username);
+		if (User && !Blocked) {
+			User->LogBadLogin(m_Peer);
+		}
+
+		if (User && Blocked) {
+			g_Bouncer->Log("Blocked login attempt from %s for %s", inet_ntoa(m_Peer.sin_addr), m_Username);
+		} else {
+			g_Bouncer->Log("Wrong password for user %s", m_Username);
+		}
 
 		Kill("Unknown user or wrong password.");
 	}
@@ -791,4 +813,37 @@ void CClientConnection::Destroy(void) {
 
 void CClientConnection::SetOwner(CBouncerUser* Owner) {
 	m_Owner = Owner;
+}
+
+bool CClientConnection::ReadLine(char** Out) {
+	if (m_PeerName)
+		return CConnection::ReadLine(Out);
+	else
+		return false;
+}
+
+void CClientConnection::SetPeerName(const char* PeerName) {
+	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", PeerName);
+
+	m_PeerName = strdup(PeerName);
+
+	char* Line;
+
+	while (ReadLine(&Line)) {
+		ParseLine(Line);
+
+		free(Line);
+	}
+}
+
+adns_query CClientConnection::GetPeerDNSQuery(void) {
+	return m_PeerA;
+}
+
+sockaddr_in CClientConnection::GetPeer(void) {
+	return m_Peer;
+}
+
+const char* CClientConnection::GetPeerName(void) {
+	return m_PeerName;
 }

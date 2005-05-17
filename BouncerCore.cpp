@@ -294,6 +294,26 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 				}
 			}
 		}
+
+#ifdef ASYNC_DNS
+		void* context;
+		adns_query query;
+
+		for (adns_forallqueries_begin(g_adns_State); query = adns_forallqueries_next(g_adns_State, &context);) {
+			adns_answer* reply = NULL;
+
+			adns_check(g_adns_State, &query, &reply, &context);
+
+			CClientConnection* Ctx = (CClientConnection*)context;
+
+			if (reply) {
+				if (reply->status != adns_s_ok)
+					Ctx->SetPeerName(inet_ntoa(Ctx->GetPeer().sin_addr));
+				else
+					((CClientConnection*)context)->SetPeerName(*reply->rrs.str);
+			}
+		}
+#endif
 	}
 }
 
@@ -329,6 +349,7 @@ void CBouncerCore::GlobalNotice(const char* Text, bool AdminOnly) {
 
 void CBouncerCore::Pulse(time_t Now) {
 	int i;
+	bool One = true;
 
 	for (i = 0; i < m_UserCount; i++) {
 		if (!m_Users[i])
@@ -341,9 +362,11 @@ void CBouncerCore::Pulse(time_t Now) {
 				m_Users[i]->GetIRCConnection()->InternalWriteLine("PING :sbnc");
 		}
 
-		if (m_Users[i]->ShouldReconnect()) {
+		m_Users[i]->Pulse(Now);
+
+		if (One && m_Users[i]->ShouldReconnect()) {
 			m_Users[i]->Reconnect();
-			break;
+			One = false;
 		}
 	}
 

@@ -37,6 +37,10 @@ typedef __sighandler_t sighandler_t;
 
 CBouncerCore* g_Bouncer;
 
+#ifdef ASYNC_DNS
+adns_state g_adns_State;
+#endif
+
 #ifndef _WIN32
 void sigint_handler(int code) {
 	g_Bouncer->Log("SIGINT received.");
@@ -53,6 +57,10 @@ int main(int argc, char* argv[]) {
 #endif
 
 	Socket_Init();
+
+#ifdef ASYNC_DNS
+	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
+#endif
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
@@ -71,6 +79,10 @@ int main(int argc, char* argv[]) {
 
 	delete g_Bouncer;
 	delete Config;
+
+#ifdef ASYNC_DNS
+	adns_finish(g_adns_State);
+#endif
 
 	Socket_Final();
 

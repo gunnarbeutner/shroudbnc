@@ -563,7 +563,7 @@ void CIRCConnection::Write(void) {
 		return;
 
 	char* Copy = (char*)malloc(strlen(Line) + 2);
-	snprintf(Copy, strlen(Line) + 3, "%s\n", Line);
+	snprintf(Copy, strlen(Line) + 2, "%s\n", Line);
 
 	send(m_Socket, Copy, strlen(Copy), 0);
 

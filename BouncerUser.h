@@ -29,6 +29,11 @@ class CIRCConnection;
 class CBouncerConfig;
 class CBouncerLog;
 
+typedef struct badlogin_s {
+	sockaddr_in ip;
+	unsigned int count;
+} badlogin_t;
+
 class CBouncerUser {
 	friend class CBouncerCore;
 
@@ -44,6 +49,9 @@ class CBouncerUser {
 
 	bool m_Locked;
 	bool m_Quitted;
+
+	badlogin_t* m_BadLogins;
+	unsigned int m_BadLoginCount;
 public:
 	CBouncerUser(const char* Name);
 	virtual ~CBouncerUser(void);
@@ -102,6 +110,11 @@ public:
 	virtual void MarkQuitted(void);
 
 	virtual void LoadEvent(void);
+
+	virtual void LogBadLogin(sockaddr_in Peer);
+	virtual bool IsIpBlocked(sockaddr_in Peer);
+
+	virtual void Pulse(time_t Now);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

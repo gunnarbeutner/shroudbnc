@@ -112,4 +112,8 @@ public:
 
 extern CBouncerCore* g_Bouncer;
 
+#ifdef ASYNC_DNS
+extern adns_state g_adns_State;
+#endif
+
 #endif // !defined(AFX_BOUNCERCORE_H__986A00F2_4825_4A77_B6D9_BEFC05E1C565__INCLUDED_)

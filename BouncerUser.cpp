@@ -64,6 +64,9 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_Locked = false;
 	m_Quitted = false;
+
+	m_BadLogins = NULL;
+	m_BadLoginCount = 0;
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -88,6 +91,8 @@ CBouncerUser::~CBouncerUser() {
 		m_IRC->Kill("fish go moo.");
 
 	delete m_Log;
+
+	free(m_BadLogins);
 }
 
 SOCKET CBouncerUser::GetIRCSocket(void) {
@@ -494,4 +499,58 @@ void CBouncerUser::SetRealname(const char* Realname) {
 
 void CBouncerUser::MarkQuitted(void) {
 	m_Quitted = true;
+}
+
+void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
+	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+#ifdef _WIN32
+		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
+#else
+		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr) {
+#endif
+			m_BadLogins[i].count++;
+
+			return;
+		}
+	}
+
+	for (unsigned int a = 0; a < m_BadLoginCount; a++) {
+		if (m_BadLogins[a].count == 0) {
+			m_BadLogins[a].ip = Peer;
+			m_BadLogins[a].count = 1;
+
+			return;
+		}
+	}
+
+	m_BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
+
+	m_BadLogins[m_BadLoginCount - 1].ip = Peer;
+	m_BadLogins[m_BadLoginCount - 1].count = 1;
+}
+
+bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
+	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+#ifdef _WIN32
+		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
+#else
+		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr) {
+#endif
+			if (m_BadLogins[i].count > 2)
+				return true;
+			else
+				return false;
+		}
+	}
+
+	return false;
+}
+
+void CBouncerUser::Pulse(time_t Now) {
+	if (Now % 200 == 0) {
+		for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+			if (m_BadLogins[i].count)
+				m_BadLogins[i].count--;
+		}
+	}
 }

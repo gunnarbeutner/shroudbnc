@@ -28,8 +28,15 @@ class CClientConnection : public CConnection {
 	char* m_Nick;
 	char* m_Password;
 	char* m_Username;
+	sockaddr_in m_Peer;
+	char* m_PeerName;
+
+#ifdef ASYNC_DNS
+	adns_query m_PeerA;
+#endif
 
 	void ValidateUser(void);
+	virtual bool ReadLine(char** Out);
 public:
 	CClientConnection(SOCKET Socket, sockaddr_in Peer);
 	virtual ~CClientConnection();
@@ -43,6 +50,14 @@ public:
 	virtual const char* GetNick(void);
 
 	virtual void SetOwner(CBouncerUser* Owner);
+
+#ifdef ASYNC_DNS
+	virtual void SetPeerName(const char* PeerName);
+	virtual adns_query GetPeerDNSQuery(void);
+#endif
+
+	virtual const char* GetPeerName(void);
+	virtual sockaddr_in GetPeer(void);
 
 	virtual void Destroy(void);
 };
