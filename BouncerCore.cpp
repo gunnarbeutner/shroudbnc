@@ -614,6 +614,13 @@ bool CBouncerCore::Daemonize(void) {
 	}
 
 	if (pid) {
+		FILE* pidFile = fopen("sbnc.pid", "w");
+
+		if (pidFile) {
+			fprintf(pidFile, "%d", pid);
+			fclose(pidFile);
+		}
+
 		printf("DONE\n");
 		exit(0);
 	}

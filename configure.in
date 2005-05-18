@@ -25,6 +25,7 @@ AC_HEADER_TIME
 AC_STRUCT_TM
 
 AC_CHECK_LIB(dl, dlsym)
+AC_CHECK_LIB(adns, adns_init)
 
 # Checks for library functions.
 AC_FUNC_FORK
