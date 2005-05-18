@@ -450,8 +450,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		char** Hosts = m_Owner->GetHostAllows();
 		unsigned int a = 0;
 
-		SENDUSER("Hosts");
-		SENDUSER("-----");
+		SENDUSER("Hostmasks");
+		SENDUSER("---------");
 
 		for (unsigned int i = 0; i < m_Owner->GetHostAllowCount(); i++) {
 			if (Hosts[i]) {
