@@ -88,7 +88,9 @@ class CTclSupport : public CModuleFar {
 	void Init(CBouncerCore* Root) {
 		g_Bouncer = Root;
 
-		Tcl_FindExecutable(NULL);
+		Tcl_FindExecutable(Root->GetArgV()[0]);
+
+		Tcl_SetSystemEncoding(NULL, "ISO8859-1");
 
 		g_Interp = Tcl_CreateInterp();
 

@@ -21,6 +21,7 @@
 #include "../ModuleFar.h"
 #include "../BouncerCore.h"
 #include "../SocketEvents.h"
+#include "../DnsEvents.h"
 #include "../Connection.h"
 #include "../IRCConnection.h"
 #include "../ClientConnection.h"
