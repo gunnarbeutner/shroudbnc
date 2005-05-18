@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
@@ -45,23 +46,23 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 	m_Peer = Peer;
 	m_PeerName = NULL;
 
-	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :shroudBNC" BNCVERSION);
+	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** shroudBNC" BNCVERSION);
 	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Looking up your hostname");
 
-#ifdef ASYNC_DNS
-	adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, this, &m_PeerA);
+//#ifdef ASYNC_DNS
+	adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
 
 	m_PeerName = NULL;
-#else
-	hostent* hent = gethostbyaddr((const char*)&Peer.sin_addr, sizeof(in_addr), AF_INET);
-
-	if (hent)
-		m_PeerName = strdup(hent->h_name);
-	else
-		m_PeerName = strdup(inet_ntoa(Peer.sin_addr));
-
-	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", m_PeerName);
-#endif
+//#else
+//	hostent* hent = gethostbyaddr((const char*)&Peer.sin_addr, sizeof(in_addr), AF_INET);
+//
+//	if (hent)
+//		m_PeerName = strdup(hent->h_name);
+//	else
+//		m_PeerName = strdup(inet_ntoa(Peer.sin_addr));
+//
+//	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", m_PeerName);
+//#endif
 
 	g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
 }
@@ -135,6 +136,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("erase         - erases your message log");
 		SENDUSER("set           - sets configurable settings for your user");
 		SENDUSER("jump          - reconnects to the IRC server");
+		SENDUSER("hosts         - lists all hostmasks, which are permitted to use this account");
+		SENDUSER("hostadd       - adds a hostmask");
+		SENDUSER("hostdel       - removes a hostmask");
 
 		if (m_Owner->IsAdmin()) {
 			SENDUSER("status        - tells you the current status");
@@ -439,6 +443,64 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcmpi(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->GetLog()->Clear();
 		g_Bouncer->Log("User %s erased the main log", m_Owner->GetUsername());
+		SENDUSER("Done.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "hosts") == 0) {
+		char** Hosts = m_Owner->GetHostAllows();
+		unsigned int a = 0;
+
+		SENDUSER("Hosts");
+		SENDUSER("-----");
+
+		for (unsigned int i = 0; i < m_Owner->GetHostAllowCount(); i++) {
+			if (Hosts[i]) {
+				SENDUSER(Hosts[i]);
+				a++;
+			}
+		}
+
+		if (a == 0)
+			SENDUSER("*");
+
+		SENDUSER("End of HOSTS.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "hostadd") == 0) {
+		if (argc <= 1) {
+			SENDUSER("Syntax: HOSTADD hostmask");
+
+			return false;
+		}
+
+		char** Hosts = m_Owner->GetHostAllows();
+		unsigned int a = 0;
+
+		for (unsigned int i = 0; i < m_Owner->GetHostAllowCount(); i++) {
+			if (Hosts[i])
+				a++;
+		}
+
+		if (m_Owner->CanHostConnect(argv[1]) && a) {
+			SENDUSER("This hostmask is already added or another hostmask supercedes it.");
+		} else if (a >= 50) {
+			SENDUSER("You may not add more than 50 hostmasks.");
+		} else {
+			m_Owner->AddHostAllow(argv[1]);
+
+			SENDUSER("Done.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "hostdel") == 0 && argc > 1) {
+		if (argc <= 1) {
+			SENDUSER("Syntax: HOSTDEL hostmask");
+
+			return false;
+		}
+
+		m_Owner->RemoveHostAllow(argv[1]);
+
 		SENDUSER("Done.");
 
 		return false;
@@ -749,8 +811,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 }
 
 void CClientConnection::ParseLine(const char* Line) {
-//	if (!GetOwningClient())
-//		return;
+	if (strlen(Line) > 512)
+		return; // protocol violation
 
 	const char* Args = ArgTokenize(Line);
 	const char** argv = ArgToArray(Args);
@@ -772,14 +834,15 @@ void CClientConnection::ParseLine(const char* Line) {
 void CClientConnection::ValidateUser(void) {
 	CBouncerUser* User = g_Bouncer->GetUser(m_Username);
 
-	bool Blocked = true, Valid = false;
+	bool Blocked = true, Valid = false, ValidHost = false;
 
 	if (User) {
 		Blocked = User->IsIpBlocked(m_Peer);
 		Valid = User->Validate(m_Password);
+		ValidHost = User->CanHostConnect(m_PeerName);
 	}
 
-	if (m_Password && User && !Blocked && Valid) {
+	if (m_Password && User && !Blocked && Valid && ValidHost) {
 		User->Attach(this);
 		//WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
@@ -787,13 +850,15 @@ void CClientConnection::ValidateUser(void) {
 			User->LogBadLogin(m_Peer);
 		}
 
-		if (User && Blocked) {
+		if (User && !ValidHost && !Blocked) {
+			g_Bouncer->Log("Attempted login from %s for %s denied: Host does not match any host allows.", inet_ntoa(m_Peer.sin_addr), m_Username);
+		} else if (User && Blocked) {
 			g_Bouncer->Log("Blocked login attempt from %s for %s", inet_ntoa(m_Peer.sin_addr), m_Username);
-		} else {
+		} else if (User) {
 			g_Bouncer->Log("Wrong password for user %s", m_Username);
 		}
 
-		Kill("Unknown user or wrong password.");
+		Kill("*** Unknown user or wrong password.");
 	}
 }
 
@@ -846,4 +911,12 @@ sockaddr_in CClientConnection::GetPeer(void) {
 
 const char* CClientConnection::GetPeerName(void) {
 	return m_PeerName;
+}
+
+void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+	if (response->status != adns_s_ok)
+		
+		SetPeerName(inet_ntoa(GetPeer().sin_addr));
+	else
+		SetPeerName(*response->rrs.str);
 }

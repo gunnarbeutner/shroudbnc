@@ -23,6 +23,7 @@
 #include "../ModuleFar.h"
 #include "../BouncerCore.h"
 #include "../SocketEvents.h"
+#include "../DnsEvents.h"
 #include "../Connection.h"
 #include "../IRCConnection.h"
 #include "../ClientConnection.h"
@@ -258,7 +259,14 @@ int putserv(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->InternalWriteLine(text);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
+
+	IRC->InternalWriteLine(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 
 	return 1;
 }
@@ -274,7 +282,14 @@ int putclient(const char* text) {
 	if (!Client)
 		return 0;
 
-	Client->InternalWriteLine(text);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
+
+	Client->InternalWriteLine(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 
 	return 1;
 }
@@ -919,11 +934,11 @@ int ticklerand(int limit) {
 }
 
 const char* bncversion(void) {
-	return BNCVERSION " 0080000";
+	return BNCVERSION " 0090000";
 }
 
 const char* bncnumversion(void) {
-	return "0080000";
+	return "0090000";
 }
 
 int bncuptime(void) {
@@ -1007,16 +1022,25 @@ int queuesize(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	if (strcmpi(Queue, "mode") == 0)
+	Tcl_DString dsQueue;
+
+	Tcl_DStringInit(&dsQueue);
+	Tcl_UtfToExternalDString(NULL, Queue, -1, &dsQueue);
+
+	if (strcmpi(Tcl_DStringValue(&dsQueue), "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Queue, "server") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Queue, "help") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Queue, "all") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else
+	else {
+		Tcl_DStringFree(&dsQueue);
 		throw "Queue should be one of: mode server help all";
+	}
+
+	Tcl_DStringFree(&dsQueue);
 
 	int Size;
 
@@ -1039,7 +1063,14 @@ int puthelp(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->GetQueueLow()->QueueItem(text);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
+
+	IRC->GetQueueLow()->QueueItem(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 
 	return 1;
 }
@@ -1055,7 +1086,14 @@ int putquick(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->GetQueueHigh()->QueueItem(text);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
+
+	IRC->GetQueueHigh()->QueueItem(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 
 	return 1;
 }
@@ -1071,7 +1109,16 @@ const char* getisupport(const char* Feature) {
 	if (!IRC)
 		return NULL;
 
-	return IRC->GetISupport(Feature);
+	Tcl_DString dsFeat;
+
+	Tcl_DStringInit(&dsFeat);
+	Tcl_UtfToExternalDString(NULL, Feature, -1, &dsFeat);
+
+	const char* ReturnValue = IRC->GetISupport(Tcl_DStringValue(&dsFeat));
+
+	Tcl_DStringFree(&dsFeat);
+
+	return ReturnValue;
 }
 
 int requiresparam(char Mode) {
@@ -1201,10 +1248,20 @@ const char* bnccommand(const char* Cmd, const char* Parameters) {
 }
 
 const char* md5(const char* String) {
-	if (String)
-		return g_Bouncer->MD5(String);
-	else
+	if (String) {
+		Tcl_DString dsString;
+
+		Tcl_DStringInit(&dsString);
+		Tcl_UtfToExternalDString(NULL, String, -1, &dsString);
+
+		const char* ReturnValue = g_Bouncer->MD5(Tcl_DStringValue(&dsString));
+		
+		Tcl_DStringFree(&dsString);
+		
+		return ReturnValue;
+	} else
 		return NULL;
+
 }
 
 void debugout(const char* String) {
@@ -1217,6 +1274,14 @@ void debugout(const char* String) {
 void putlog(const char* Text) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
-	if (User)
-		User->GetLog()->InternalWriteLine(Text);
+	if (User && Text) {
+		Tcl_DString dsText;
+
+		Tcl_DStringInit(&dsText);
+		Tcl_UtfToExternalDString(NULL, Text, -1, &dsText);
+
+		User->GetLog()->InternalWriteLine(Tcl_DStringValue(&dsText));
+
+		Tcl_DStringFree(&dsText);
+	}
 }

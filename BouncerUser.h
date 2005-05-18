@@ -52,6 +52,11 @@ class CBouncerUser {
 
 	badlogin_t* m_BadLogins;
 	unsigned int m_BadLoginCount;
+
+	char** m_HostAllows;
+	unsigned int m_HostAllowCount;
+
+	void UpdateHosts(void);
 public:
 	CBouncerUser(const char* Name);
 	virtual ~CBouncerUser(void);
@@ -115,6 +120,12 @@ public:
 	virtual bool IsIpBlocked(sockaddr_in Peer);
 
 	virtual void Pulse(time_t Now);
+
+	virtual void AddHostAllow(const char* Mask, bool UpdateConfig = true);
+	virtual void RemoveHostAllow(const char* Mask, bool UpdateConfig = true);
+	virtual char** GetHostAllows(void);
+	virtual unsigned int GetHostAllowCount(void);
+	virtual bool CanHostConnect(const char* Host);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

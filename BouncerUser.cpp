@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
@@ -30,6 +31,7 @@
 #include "ModuleFar.h"
 #include "Module.h"
 #include "utility.h"
+#include "Match.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -67,6 +69,22 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_BadLogins = NULL;
 	m_BadLoginCount = 0;
+
+	m_HostAllows = NULL;
+	m_HostAllowCount = 0;
+
+	unsigned int i = 0;
+	while (true) {
+		snprintf(Out, sizeof(Out), "user.hosts.host%d", i++);
+
+		const char* Hostmask = m_Config->ReadString(Out);
+
+		if (Hostmask)
+			AddHostAllow(Hostmask, false);
+		else
+			break;
+	}
+
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -553,4 +571,78 @@ void CBouncerUser::Pulse(time_t Now) {
 				m_BadLogins[i].count--;
 		}
 	}
+}
+
+void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
+	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
+		if (!m_HostAllows[i]) {
+			m_HostAllows[i] = strdup(Mask);
+
+			if (UpdateConfig)
+				UpdateHosts();
+
+			return;
+		}
+	}
+
+	m_HostAllows = (char**)realloc(m_HostAllows, sizeof(char*) * ++m_HostAllowCount);
+	m_HostAllows[m_HostAllowCount - 1] = strdup(Mask);
+
+	if (UpdateConfig)
+		UpdateHosts();
+}
+
+void CBouncerUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
+	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
+		if (m_HostAllows[i] && strcmpi(m_HostAllows[i], Mask) == 0) {
+			free(m_HostAllows[i]);
+			m_HostAllows[i] = NULL;
+
+			if (UpdateConfig)
+				UpdateHosts();
+
+			return;
+		}
+	}
+}
+
+char** CBouncerUser::GetHostAllows(void) {
+	return m_HostAllows;
+}
+
+unsigned int CBouncerUser::GetHostAllowCount(void) {
+	return m_HostAllowCount;
+}
+
+bool CBouncerUser::CanHostConnect(const char* Host) {
+	unsigned int c = 0;
+
+	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
+		if (m_HostAllows[i])
+			if (mmatch(m_HostAllows[i], Host) == 0)
+				return true;
+			else
+				c++;
+	}
+
+	if (c > 0)
+		return false;
+	else
+		return true;	
+}
+
+void CBouncerUser::UpdateHosts(void) {
+	char Out[1024];
+	int a = 0;
+
+	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
+		if (m_HostAllows[i]) {
+			snprintf(Out, sizeof(Out), "user.hosts.host%d", a++);
+			m_Config->WriteString(Out, m_HostAllows[i]);
+		}
+	}
+
+	snprintf(Out, sizeof(Out), "user.hosts.host%d", a);
+
+	m_Config->WriteString(Out, NULL);
 }

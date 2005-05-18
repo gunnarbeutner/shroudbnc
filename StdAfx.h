@@ -70,7 +70,6 @@
 #define ASYNC_DNS
 
 #ifdef ASYNC_DNS
-
 	#ifdef _WIN32
 		#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
 
@@ -78,9 +77,7 @@
 	#endif
 
 	#include <adns.h>
-
 #endif
-
 
 #define sprintf __evil_function
 #undef wsprintf

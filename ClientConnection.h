@@ -24,16 +24,14 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class CClientConnection : public CConnection {
+class CClientConnection : public CConnection, CDnsEvents {
 	char* m_Nick;
 	char* m_Password;
 	char* m_Username;
 	sockaddr_in m_Peer;
 	char* m_PeerName;
 
-#ifdef ASYNC_DNS
 	adns_query m_PeerA;
-#endif
 
 	void ValidateUser(void);
 	virtual bool ReadLine(char** Out);
@@ -52,6 +50,7 @@ public:
 	virtual void SetOwner(CBouncerUser* Owner);
 
 #ifdef ASYNC_DNS
+	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
 	virtual void SetPeerName(const char* PeerName);
 	virtual adns_query GetPeerDNSQuery(void);
 #endif

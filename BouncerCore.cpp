@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "BouncerConfig.h"
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
@@ -295,7 +296,7 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 			}
 		}
 
-#ifdef ASYNC_DNS
+//#ifdef ASYNC_DNS
 		void* context;
 		adns_query query;
 
@@ -304,16 +305,12 @@ void CBouncerCore::StartMainLoop(int argc, char** argv) {
 
 			adns_check(g_adns_State, &query, &reply, &context);
 
-			CClientConnection* Ctx = (CClientConnection*)context;
+			CDnsEvents* Ctx = (CDnsEvents*)context;
 
-			if (reply) {
-				if (reply->status != adns_s_ok)
-					Ctx->SetPeerName(inet_ntoa(Ctx->GetPeer().sin_addr));
-				else
-					((CClientConnection*)context)->SetPeerName(*reply->rrs.str);
-			}
+			if (reply)
+				Ctx->AsyncDnsFinished(&query, reply);
 		}
-#endif
+//#endif
 	}
 }
 

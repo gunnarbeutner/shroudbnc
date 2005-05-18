@@ -51,7 +51,12 @@
 #include <string.h>
 
 #include <tcl.h>
-// TODO: reference additional headers your program requires here
+
+#ifdef _WIN32
+	#define ADNS_JGAA_WIN32
+#endif
+
+#include <adns.h>
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

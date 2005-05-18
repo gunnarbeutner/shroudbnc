@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
@@ -37,9 +38,9 @@ typedef __sighandler_t sighandler_t;
 
 CBouncerCore* g_Bouncer;
 
-#ifdef ASYNC_DNS
+//#ifdef ASYNC_DNS
 adns_state g_adns_State;
-#endif
+//#endif
 
 #ifndef _WIN32
 void sigint_handler(int code) {
@@ -58,9 +59,9 @@ int main(int argc, char* argv[]) {
 
 	Socket_Init();
 
-#ifdef ASYNC_DNS
+//#ifdef ASYNC_DNS
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
-#endif
+//#endif
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
@@ -80,9 +81,9 @@ int main(int argc, char* argv[]) {
 	delete g_Bouncer;
 	delete Config;
 
-#ifdef ASYNC_DNS
+//#ifdef ASYNC_DNS
 	adns_finish(g_adns_State);
-#endif
+//#endif
 
 	Socket_Final();
 

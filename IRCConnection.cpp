@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
