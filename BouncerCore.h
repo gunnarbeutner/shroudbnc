@@ -63,15 +63,18 @@ class CBouncerCore {
 	bool m_LoadingModules;
 	bool m_Running;
 
+	int m_argc;
+	char** m_argv;
+
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
 public:
-	CBouncerCore(CBouncerConfig* Config);
+	CBouncerCore(CBouncerConfig* Config, int argc, char** argv);
 	virtual ~CBouncerCore();
 
-	virtual void StartMainLoop(int argc, char** argv);
+	virtual void StartMainLoop(void);
 
 	virtual CBouncerUser* GetUser(const char* Name);
 
@@ -108,6 +111,9 @@ public:
 	virtual time_t GetStartup(void);
 
 	virtual const char* MD5(const char* String);
+
+	virtual int GetArgC(void);
+	virtual char** GetArgV(void);
 };
 
 extern CBouncerCore* g_Bouncer;

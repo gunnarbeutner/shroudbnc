@@ -66,13 +66,13 @@ int main(int argc, char* argv[]) {
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
 	// constructor sets g_Bouncer
-	new CBouncerCore(Config);
+	new CBouncerCore(Config, argc, argv);
 
 #ifndef _WIN32
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
 #endif
 
-	g_Bouncer->StartMainLoop(argc, argv);
+	g_Bouncer->StartMainLoop();
 
 #ifndef _WIN32
 	signal(SIGINT, oldhandler);

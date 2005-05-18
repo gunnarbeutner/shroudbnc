@@ -46,7 +46,7 @@ extern "C" {
 SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
 
-CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
+CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
 
 	g_Bouncer = this;
@@ -58,6 +58,9 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config) {
 	
 	m_Modules = NULL;
 	m_ModuleCount = 0;
+
+	m_argc = argc;
+	m_argv = argv;
 
 	m_Ident = new CIdentSupport();
 
@@ -142,10 +145,13 @@ CBouncerCore::~CBouncerCore() {
 	free(m_OtherSockets);
 }
 
-void CBouncerCore::StartMainLoop(int argc, char** argv) {
+void CBouncerCore::StartMainLoop(void) {
 	bool b_DontDetach = false;
 
 	puts("sBNC" BNCVERSION " - an object-oriented IRC bouncer");
+
+	int argc = m_argc;
+	char** argv = m_argv;
 
 	for (int a = 1; a < argc; a++) {
 		if (strcmp(argv[a], "-n") == 0)
@@ -662,4 +668,13 @@ const char* CBouncerCore::MD5(const char* String) {
 	}
 
 	return Result;
+}
+
+
+int CBouncerCore::GetArgC(void) {
+	return m_argc;
+}
+
+char** CBouncerCore::GetArgV(void) {
+	return m_argv;
 }
