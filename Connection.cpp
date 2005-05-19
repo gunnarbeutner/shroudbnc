@@ -22,6 +22,7 @@
 #include "Connection.h"
 #include "BouncerCore.h"
 #include "BouncerUser.h"
+#include "TrafficStats.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -40,6 +41,8 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	m_Locked = false;
 	m_Shutdown = false;
 	m_Timeout = 0;
+
+	m_Traffic = NULL;
 }
 
 CConnection::~CConnection() {
@@ -69,6 +72,9 @@ bool CConnection::Read(void) {
 		recvq_size += n;
 		recvq = (char*)realloc(recvq, recvq_size);
 		memcpy(recvq + recvq_size - n, Buffer, n);
+
+		if (m_Traffic)
+			m_Traffic->AddInbound(n);
 	} else {
 		shutdown(m_Socket, SD_BOTH);
 		closesocket(m_Socket);
@@ -89,7 +95,10 @@ bool CConnection::Read(void) {
 
 void CConnection::Write(void) {
 	if (sendq_size > 0) {
-		send(m_Socket, sendq, sendq_size > 2000 ? 2000 : sendq_size , 0);
+		int n = send(m_Socket, sendq, sendq_size > 2000 ? 2000 : sendq_size , 0);
+
+		if (n > 0 && m_Traffic)
+			m_Traffic->AddOutbound(n);
 
 		if (sendq_size > 2000) {
 			char* sendq_new = (char*)malloc(sendq_size - 2000);
@@ -258,4 +267,12 @@ bool CConnection::DoTimeout(void) {
 		return true;
 	} else
 		return false;
+}
+
+void CConnection::AttachStats(CTrafficStats* Stats) {
+	m_Traffic = Stats;
+}
+
+CTrafficStats* CConnection::GetTrafficStats(void) {
+	return m_Traffic;
 }

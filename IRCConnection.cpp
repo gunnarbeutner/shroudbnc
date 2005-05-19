@@ -34,6 +34,7 @@
 #include "Queue.h"
 #include "FloodControl.h"
 #include "utility.h"
+#include "TrafficStats.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -567,6 +568,9 @@ void CIRCConnection::Write(void) {
 	snprintf(Copy, strlen(Line) + 2, "%s\n", Line);
 
 	send(m_Socket, Copy, strlen(Copy), 0);
+
+	if (GetTrafficStats())
+		GetTrafficStats()->AddOutbound(strlen(Copy));
 
 	free(Copy);
 	free(Line);

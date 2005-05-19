@@ -32,6 +32,7 @@
 #include "Module.h"
 #include "utility.h"
 #include "Match.h"
+#include "TrafficStats.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -85,6 +86,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 			break;
 	}
 
+	m_ClientStats = new CTrafficStats();
+	m_IRCStats = new CTrafficStats();
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -405,6 +408,8 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 				M->ServerConnect(GetUsername());
 			}
 		}
+
+		IRC->AttachStats(m_IRCStats);
 	}
 }
 
@@ -459,7 +464,8 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 			if (Away)
 				m_IRC->WriteLine("AWAY :%s", Away);
 		}
-	}
+	} else
+		Client->AttachStats(m_ClientStats);
 }
 
 void CBouncerUser::SetAdmin(bool Admin) {
@@ -645,4 +651,12 @@ void CBouncerUser::UpdateHosts(void) {
 	snprintf(Out, sizeof(Out), "user.hosts.host%d", a);
 
 	m_Config->WriteString(Out, NULL);
+}
+
+CTrafficStats* CBouncerUser::GetClientStats(void) {
+	return m_ClientStats;
+}
+
+CTrafficStats* CBouncerUser::GetIRCStats(void) {
+	return m_IRCStats;
 }

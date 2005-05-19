@@ -89,6 +89,8 @@ void debugout(const char* String);
 
 int internalgetchanidle(const char* Nick, const char* Channel);
 
+int trafficstats(const char* User, const char* ConnectionType = NULL, const char* Type = NULL);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

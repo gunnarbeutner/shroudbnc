@@ -28,6 +28,7 @@ class CClientConnection;
 class CIRCConnection;
 class CBouncerConfig;
 class CBouncerLog;
+class CTrafficStats;
 
 typedef struct badlogin_s {
 	sockaddr_in ip;
@@ -55,6 +56,9 @@ class CBouncerUser {
 
 	char** m_HostAllows;
 	unsigned int m_HostAllowCount;
+
+	CTrafficStats* m_ClientStats;
+	CTrafficStats* m_IRCStats;
 
 	void UpdateHosts(void);
 public:
@@ -126,6 +130,9 @@ public:
 	virtual char** GetHostAllows(void);
 	virtual unsigned int GetHostAllowCount(void);
 	virtual bool CanHostConnect(const char* Host);
+
+	virtual CTrafficStats* GetClientStats(void);
+	virtual CTrafficStats* GetIRCStats(void);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

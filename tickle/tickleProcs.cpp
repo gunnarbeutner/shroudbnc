@@ -37,6 +37,7 @@
 #include "../ModuleFar.h"
 #include "../Module.h"
 #include "../utility.h"
+#include "../TrafficStats.h"
 
 static char* g_Context = NULL;
 
@@ -1284,4 +1285,35 @@ void putlog(const char* Text) {
 
 		Tcl_DStringFree(&dsText);
 	}
+}
+
+int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
+
+	if (!Context)
+		return 0;
+
+	unsigned int Bytes = 0;
+
+	if (!ConnectionType || strcmpi(ConnectionType, "client") == 0) {
+		if (!Type || strcmpi(Type, "in") == 0) {
+			Bytes += Context->GetClientStats()->GetInbound();
+		}
+
+		if (!Type || strcmpi(Type, "out") == 0) {
+			Bytes += Context->GetClientStats()->GetOutbound();
+		}
+	}
+
+	if (!ConnectionType || strcmpi(ConnectionType, "server") == 0) {
+		if (!Type || strcmpi(Type, "in") == 0) {
+			Bytes += Context->GetIRCStats()->GetInbound();
+		}
+
+		if (!Type || strcmpi(Type, "out") == 0) {
+			Bytes += Context->GetIRCStats()->GetOutbound();
+		}
+	}
+
+	return Bytes;
 }
