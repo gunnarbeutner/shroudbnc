@@ -1317,3 +1317,13 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 
 	return Bytes;
 }
+
+void bncjoinchans(const char* User) {
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
+
+	if (!Context)
+		return 0;
+
+	if (Context->GetIRCConnection())
+		Context->GetIRCConnection()->JoinChannels();
+}
