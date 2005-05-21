@@ -81,6 +81,8 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_FloodControl->AttachInputQueue(m_QueueLow, 2);
 
 	g_Bouncer->RegisterSocket(Socket, (CSocketEvents*)this);
+
+	m_DelayJoin = 0;
 }
 
 CIRCConnection::~CIRCConnection() {
@@ -249,10 +251,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		
 		return bRet;
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
-		const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
-
-		if (Chans && *Chans)
-			WriteLine("JOIN %s", Chans);
+		if (m_Owner->GetConfig()->ReadInteger("user.delayjoin"))
+			m_DelayJoin = time(NULL) + 5;
+		else
+			JoinChannels();
 
 		if (m_State != State_Connected) {
 			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
@@ -742,3 +744,21 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
 
+void CIRCConnection::JoinChannels(void) {
+	const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
+
+	if (Chans && *Chans)
+		WriteLine("JOIN %s", Chans);
+
+	m_DelayJoin = 0;
+}
+
+void CIRCConnection::Pulse(time_t Now) {
+	if (m_DelayJoin != 0 && m_DelayJoin < Now)
+		JoinChannels();
+
+	GetFloodControl()->Pulse(Now);
+
+	if (Now % 180 == 0)
+		InternalWriteLine("PING :sbnc");
+}

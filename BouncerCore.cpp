@@ -358,13 +358,6 @@ void CBouncerCore::Pulse(time_t Now) {
 		if (!m_Users[i])
 			continue;
 
-		if (m_Users[i]->GetIRCConnection()) {
-			m_Users[i]->GetIRCConnection()->GetFloodControl()->Pulse(Now);
-
-			if (Now % 180 == 0)
-				m_Users[i]->GetIRCConnection()->InternalWriteLine("PING :sbnc");
-		}
-
 		m_Users[i]->Pulse(Now);
 
 		if (One && m_Users[i]->ShouldReconnect()) {

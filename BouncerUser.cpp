@@ -577,6 +577,9 @@ void CBouncerUser::Pulse(time_t Now) {
 				m_BadLogins[i].count--;
 		}
 	}
+
+	if (m_IRC)
+		m_IRC->Pulse(Now);
 }
 
 void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {

@@ -160,6 +160,10 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\TrafficStats.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\unix.cpp
 # PROP Exclude_From_Build 1
 # End Source File
@@ -254,6 +258,10 @@ SOURCE=.\SocketEvents.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TrafficStats.h
 # End Source File
 # Begin Source File
 

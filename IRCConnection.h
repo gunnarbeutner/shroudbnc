@@ -52,6 +52,7 @@ class CIRCConnection : public CConnection {
 	CBouncerConfig* m_ISupport;
 
 	time_t m_LastBurst;
+	time_t m_DelayJoin;
 
 	CQueue* m_QueueLow;
 	CQueue* m_QueueMiddle;
@@ -109,6 +110,9 @@ public:
 	virtual CQueue* GetQueueLow(void);
 
 	virtual CFloodControl* GetFloodControl(void);
+
+	virtual void JoinChannels(void);
+	virtual void Pulse(time_t Now);
 };
 
 #endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)
