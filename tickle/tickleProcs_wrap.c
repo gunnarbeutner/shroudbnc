@@ -1954,6 +1954,26 @@ _wrap_trafficstats(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 
 static int
+_wrap_bncjoinchans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:bncjoinchans User ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            bncjoinchans((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2423,6 +2443,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "debugout", (swig_wrapper_func) _wrap_debugout, NULL},
     { SWIG_prefix "internalgetchanidle", (swig_wrapper_func) _wrap_internalgetchanidle, NULL},
     { SWIG_prefix "trafficstats", (swig_wrapper_func) _wrap_trafficstats, NULL},
+    { SWIG_prefix "bncjoinchans", (swig_wrapper_func) _wrap_bncjoinchans, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

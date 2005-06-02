@@ -814,15 +814,22 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 }
 
 void addbncuser(const char* User, const char* Password) {
+	const char* Context = getctx();
 	CBouncerUser* U = g_Bouncer->CreateUser(User, Password);
 
 	if (!U)
 		throw "Could not create user.";
+
+	setctx(Context);
 }
 
 void delbncuser(const char* User) {
+	const char* Context = getctx();
+
 	if (!g_Bouncer->RemoveUser(User))
 		throw "Could not remove user.";
+
+	setctx(Context);
 }
 
 int simul(const char* User, const char* Command) {
@@ -1322,7 +1329,7 @@ void bncjoinchans(const char* User) {
 	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return 0;
+		return;
 
 	if (Context->GetIRCConnection())
 		Context->GetIRCConnection()->JoinChannels();

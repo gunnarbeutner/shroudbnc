@@ -6,6 +6,12 @@ shroudBNC is a modular framework for IRC clients. It supports TCL scripting and 
 Installation
 ------------
 
+First of all make sure that you have the following libraries installed:
+
+- libadns (for asynchronois support, mandatory)
+- tcl (if you're going to use the tcl module, version 8.4 or later, earlier versions have not been tested)
+- lua (if you want to use the lua scripting language, version 5.x or later)
+
 In order to compile and install sbnc you will have to use the 'configure' script which is included in the distribution of sbnc:
 
 ./configure
