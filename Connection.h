@@ -90,6 +90,8 @@ protected:
 	time_t m_Timeout;
 
 	CTrafficStats* m_Traffic;
+
+	bool m_Wrapper;
 };
 
 #endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)

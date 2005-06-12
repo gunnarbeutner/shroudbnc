@@ -31,6 +31,7 @@ class CClientConnection;
 class CIRCConnection;
 class CIdentSupport;
 class CModule;
+class CConnection;
 struct CSocketEvents;
 struct sockaddr_in;
 template <typename value_type, bool casesensitive> class CHashtable;
@@ -114,6 +115,12 @@ public:
 
 	virtual int GetArgC(void);
 	virtual char** GetArgV(void);
+
+	virtual CConnection* WrapSocket(SOCKET Socket, sockaddr_in Peer);
+	virtual void DeleteWrapper(CConnection* Wrapper);
+
+	virtual void Free(void* Pointer);
+	virtual void* Alloc(size_t Size);
 };
 
 extern CBouncerCore* g_Bouncer;

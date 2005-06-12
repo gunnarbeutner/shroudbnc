@@ -43,6 +43,8 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	m_Timeout = 0;
 
 	m_Traffic = NULL;
+
+	m_Wrapper = false;
 }
 
 CConnection::~CConnection() {
@@ -81,6 +83,9 @@ bool CConnection::Read(void) {
 
 		return false;
 	}
+
+	if (m_Wrapper)
+		return true;
 
 	char* Line;
 

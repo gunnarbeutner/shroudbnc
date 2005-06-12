@@ -671,3 +671,23 @@ int CBouncerCore::GetArgC(void) {
 char** CBouncerCore::GetArgV(void) {
 	return m_argv;
 }
+
+CConnection* CBouncerCore::WrapSocket(SOCKET Socket, sockaddr_in Peer) {
+	CConnection* Wrapper = new CConnection(Socket, Peer);
+
+	Wrapper->m_Wrapper = true;
+
+	return Wrapper;
+}
+
+void CBouncerCore::DeleteWrapper(CConnection* Wrapper) {
+	delete Wrapper;
+}
+
+void CBouncerCore::Free(void* Pointer) {
+	free(Pointer);
+}
+
+void* CBouncerCore::Alloc(size_t Size) {
+	return malloc(Size);
+}
