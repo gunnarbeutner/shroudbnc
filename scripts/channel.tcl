@@ -98,6 +98,8 @@ proc channel {option chan args} {
 		remove {
 			unset channels($chan)
 
+			puthelp "PART $chan"
+
 			return 1
 		}
 		default {

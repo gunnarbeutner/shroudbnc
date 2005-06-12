@@ -38,6 +38,7 @@
 #include "../Module.h"
 #include "../utility.h"
 #include "../TrafficStats.h"
+#include "TclSocket.h"
 
 static char* g_Context = NULL;
 
@@ -1333,4 +1334,8 @@ void bncjoinchans(const char* User) {
 
 	if (Context->GetIRCConnection())
 		Context->GetIRCConnection()->JoinChannels();
+}
+
+CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
+	return new CTclSocket(g_Bouncer, NULL, Port);
 }

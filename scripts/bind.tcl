@@ -114,7 +114,7 @@ proc sbnc:rawserver {client parameters} {
 					sbnc:callbinds "pubm" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 				} else {
 					sbnc:callbinds "msg" $flags "" [lindex [split $opt] 0] $nick $site $hand [join [lrange [split $opt] 1 end]]
-					sbnc:callbinds "pubm" $flags "" $opt $nick $site $hand $opt
+					sbnc:callbinds "msgm" $flags "" $opt $nick $site $hand $opt
 				}
 			}
 		}

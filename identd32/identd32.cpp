@@ -25,6 +25,7 @@
 #include "../Connection.h"
 #include "../ClientConnection.h"
 #include "../BouncerUser.h"
+#include "../Connection.h"
 
 #ifndef _WIN32
 #error This module cannot be used on *nix systems.
@@ -38,90 +39,72 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 }
 
 class CIdentClient : public CSocketEvents {
-	SOCKET m_Client;
 	CBouncerCore* m_Core;
-
-	char* recvq;
-	int recvq_size;
-
-	char* sendq;
-	int sendq_size;
+	CConnection* m_Wrap;
 public:
 	CIdentClient(SOCKET Client, CBouncerCore* Core) {
-		m_Client = Client;
+		sockaddr_in Peer;
+		int PeerSize = sizeof(Peer);
+		getpeername(Client, (sockaddr*)&Peer, &PeerSize);
+
+		m_Wrap = Core->WrapSocket(Client, Peer);
+
 		m_Core = Core;
-
-		recvq = NULL;
-		recvq_size = 0;
-
-		sendq = NULL;
-		sendq_size = 0;
 	}
 
 	virtual ~CIdentClient(void) {
-		m_Core->UnregisterSocket(m_Client);
+		m_Core->UnregisterSocket(m_Wrap->GetSocket());
+		m_Core->DeleteWrapper(m_Wrap);
 	}
 
 	bool Read(void) {
-		char nullBuffer[512];
+		bool RetVal = m_Wrap->Read();
 
-		int n = recv(m_Client, nullBuffer, sizeof(nullBuffer), 0);
+		if (!RetVal)
+			return false;
 
-		if (n > 0) {
-			recvq = (char*)realloc(recvq, recvq_size + n + 200);
+		char* Line;
 
-			memcpy(recvq + recvq_size, nullBuffer, n);
-			recvq[recvq_size + n] = '\0';
+		while (m_Wrap->ReadLine(&Line)) {
+			ParseLine(Line);
 
-			recvq_size += n;
-
-			if (strstr(recvq, "\n") != 0) {
-				for (unsigned int i = 0; i < strlen(recvq); i++) {
-					if (recvq[i] == '\r' || recvq[i] == '\n') {
-						recvq[i] = '\0';
-						break;
-					}
-				}
-
-				char Out[1024];
-				sprintf(Out, "%s : USERID : UNIX : %s\r\n", recvq, m_Core->GetIdent());
-
-				sendq = strdup(Out);
-				sendq_size = strlen(sendq);
-
-				sprintf(Out, "Answered ident-request for %s", m_Core->GetIdent());
-				m_Core->Log(Out);
-			}		
+			m_Core->Free(Line);
 		}
 
 		return true;
 	}
 
-	// 113 , 3559 : USERID : UNIX : shroud
-	void Write(void) {
-		if (sendq) {
-			send(m_Client, sendq, sendq_size, 0);
-			free(sendq);
-			sendq = NULL;
-			sendq_size = 0;
+	void ParseLine(const char* Line) {
+		char Out[1024];
 
-			closesocket(m_Client);
-		}
+		// 113 , 3559 : USERID : UNIX : shroud
+		sprintf(Out, "%s : USERID : UNIX : %s", Line, m_Core->GetIdent());
+
+		m_Wrap->WriteLine(Out);
+
+		sprintf(Out, "Answered ident-request for %s", m_Core->GetIdent());
+		m_Core->Log(Out);
+	}
+
+	void Write(void) {
+		m_Wrap->Write();
 	}
 
 	void Error(void) {
-
+		m_Wrap->Error();
 	}
 
 	bool HasQueuedData(void) {
-		return sendq_size > 0;
+		return m_Wrap->HasQueuedData();
 	}
 
 	void Destroy(void) {
 		delete this;
 	}
 
-	bool DoTimeout(void) { return false; }
+	bool DoTimeout(void) {
+		return m_Wrap->DoTimeout();
+	}
 };
 
 class CIdentModule : public CModuleFar, public CSocketEvents {
