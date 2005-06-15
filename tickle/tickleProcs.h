@@ -35,11 +35,13 @@
 }
 
 struct CTclSocket;
+struct CTclClientSocket;
 
 #else
 int Tcl_ProcInit(Tcl_Interp* interp);
 
 class CTclSocket;
+class CTclClientSocket;
 #endif
 
 // exported procs, which are accessible via tcl
@@ -97,6 +99,7 @@ int trafficstats(const char* User, const char* ConnectionType = NULL, const char
 void bncjoinchans(const char* User);
 
 CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0);
+void internalsocketwriteln(CTclClientSocket* Socket, const char* Line);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
@@ -120,3 +123,5 @@ int queuesize(const char* Queue);
 int puthelp(const char* text);
 int putquick(const char* text);
 void putlog(const char* Text);
+
+void control(CTclClientSocket* Socket, const char* Proc);

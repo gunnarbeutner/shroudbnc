@@ -17,38 +17,33 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-extern Tcl_Interp* g_Interp;
+#if !defined(AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_)
+#define AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_
 
-enum binding_type_e {
-	Type_Invalid,
-	Type_Client,
-	Type_Server,
-	Type_Pulse,
-	Type_PreScript,
-	Type_PostScript,
-	Type_Attach,
-	Type_Detach,
-	Type_SingleMode,
-	Type_Unload,
-	Type_SvrDisconnect,
-	Type_SvrConnect,
-	Type_SvrLogon,
-	Type_UsrLoad,
-	Type_UsrCreate,
-	Type_UsrDelete,
-	Type_Command
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
+class CTclClientSocket : public CSocketEvents {
+public:
+	CTclClientSocket(SOCKET Socket, sockaddr_in Peer);
+	virtual ~CTclClientSocket();
+
+	virtual void Destroy(void);
+
+	virtual bool Read(void);
+	virtual void Write(void);
+	virtual void Error(void);
+	virtual bool HasQueuedData(void);
+	virtual bool DoTimeout(void);
+
+	virtual void SetControlProc(const char* Proc);
+	virtual const char* GetControlProc(void);
+	virtual void WriteLine(const char* Line);
+private:
+	SOCKET m_Socket;
+	CConnection* m_Wrap;
+	const char* m_Control;
 };
 
-typedef struct binding_s {
-	bool valid;
-	binding_type_e type;
-	char* proc;
-} binding_t;
-
-extern binding_t* g_Binds;
-extern int g_BindCount;
-
-void RestartInterpreter(void);
-void RehashInterpreter(void);
-void CallBinds(binding_type_e type, const char* user, int argc, const char** argv);
-void SetLatchedReturnValue(bool Ret);
+#endif // !defined(AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_)

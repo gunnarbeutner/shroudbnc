@@ -154,7 +154,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 
 	sockaddr_in sin, sloc;
 
-	if (BindIp) {
+	if (BindIp && *BindIp) {
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = 0;
 

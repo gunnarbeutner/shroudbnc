@@ -416,7 +416,7 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 
 		Log("Loaded module: %s", Mod->GetFilename());
 
-		Mod->GetModule()->Init(this);
+		Mod->Init(this);
 
 		if (!m_LoadingModules)
 			UpdateModuleConfig();

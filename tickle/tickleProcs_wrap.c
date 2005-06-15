@@ -458,7 +458,7 @@ SWIG_TypeRegister(swig_type_info *ti) {
 }
 
 /* Search for a swig_type_info structure */
-static swig_type_info *
+swig_type_info *
 SWIG_TypeQuery(const char *name) {
   return SWIG_TypeQueryTL(*swig_type_list_handle, name);
 }
@@ -742,7 +742,7 @@ type_error:
 
 
 /* Take a pointer and convert it to a string */
-static void
+void
 SWIG_Tcl_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
   if (ptr) {
     *(c++) = '_';
@@ -1249,7 +1249,8 @@ typedef struct {
 #define  SWIGTYPE_size_t swig_types[0] 
 #define  SWIGTYPE_ptrdiff_t swig_types[1] 
 #define  SWIGTYPE_p_CTclSocket swig_types[2] 
-static swig_type_info *swig_types[4];
+#define  SWIGTYPE_p_CTclClientSocket swig_types[3] 
+static swig_type_info *swig_types[5];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -1999,6 +2000,28 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 
 static int
+_wrap_internalsocketwriteln(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    char *arg2 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"os:internalsocketwriteln Socket Line ",NULL,&arg2) == TCL_ERROR) SWIG_fail;
+    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    {
+        try {
+            internalsocketwriteln(arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2435,6 +2458,28 @@ _wrap_putlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 }
 
 
+static int
+_wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    char *arg2 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"os:control Socket Proc ",NULL,&arg2) == TCL_ERROR) SWIG_fail;
+    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    {
+        try {
+            control(arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
 
 static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
@@ -2470,6 +2515,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "trafficstats", (swig_wrapper_func) _wrap_trafficstats, NULL},
     { SWIG_prefix "bncjoinchans", (swig_wrapper_func) _wrap_bncjoinchans, NULL},
     { SWIG_prefix "internallisten", (swig_wrapper_func) _wrap_internallisten, NULL},
+    { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -2491,6 +2537,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "puthelp", (swig_wrapper_func) _wrap_puthelp, NULL},
     { SWIG_prefix "putquick", (swig_wrapper_func) _wrap_putquick, NULL},
     { SWIG_prefix "putlog", (swig_wrapper_func) _wrap_putlog, NULL},
+    { SWIG_prefix "control", (swig_wrapper_func) _wrap_control, NULL},
     {0, 0, 0}
 };
 
@@ -2507,11 +2554,13 @@ static swig_const_info swig_constants[] = {
 static swig_type_info _swigt__size_t[] = {{"_size_t", 0, "size_t", 0, 0, 0, 0},{"_size_t", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__ptrdiff_t[] = {{"_ptrdiff_t", 0, "ptrdiff_t", 0, 0, 0, 0},{"_ptrdiff_t", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_CTclSocket[] = {{"_p_CTclSocket", 0, "CTclSocket *", 0, 0, 0, 0},{"_p_CTclSocket", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_CTclClientSocket[] = {{"_p_CTclClientSocket", 0, "CTclClientSocket *", 0, 0, 0, 0},{"_p_CTclClientSocket", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 
 static swig_type_info *swig_types_initial[] = {
 _swigt__size_t, 
 _swigt__ptrdiff_t, 
 _swigt__p_CTclSocket, 
+_swigt__p_CTclClientSocket, 
 0
 };
 

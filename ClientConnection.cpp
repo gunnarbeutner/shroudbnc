@@ -95,17 +95,6 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	}
 
-	CModule** Modules = g_Bouncer->GetModules();
-	int Count = g_Bouncer->GetModuleCount();
-
-	for (int i = 0; i < Count; i++) {
-		if (!Modules[i]) { continue; }
-
-		if (Modules[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
-			return false;
-	}
-
-
 	if (strcmpi(Subcommand, "help") == 0) {
 		SENDUSER("--The following commands are available to you--");
 		SENDUSER("--Used as '/sbnc <command>', or '/msg -sbnc <command>'");
@@ -145,10 +134,29 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		SENDUSER("help          - oh well, guess what..");
+	}
+
+	CModule** Modules = g_Bouncer->GetModules();
+	int Count = g_Bouncer->GetModuleCount();
+	bool latchedRetVal = true;
+
+	for (int i = 0; i < Count; i++) {
+		if (!Modules[i]) { continue; }
+
+		if (Modules[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
+			latchedRetVal = false;
+	}
+
+	if (strcmpi(Subcommand, "help") == 0) {
 		SENDUSER("End of HELP.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
+	}
+
+	if (!latchedRetVal)
+		return false;
+
+	if (strcmpi(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
 		CModule** Modules = g_Bouncer->GetModules();
 		int Count = g_Bouncer->GetModuleCount();
 

@@ -39,6 +39,7 @@
 #include "../utility.h"
 #include "../TrafficStats.h"
 #include "TclSocket.h"
+#include "TclClientSocket.h"
 
 static char* g_Context = NULL;
 
@@ -193,6 +194,8 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_UsrCreate;
 	else if (strcmpi(type, "usrdelete") == 0)
 		g_Binds[n].type = Type_UsrDelete;
+	else if (strcmpi(type, "command") == 0)
+		g_Binds[n].type = Type_Command;
 	else {
 		g_Binds[n].type = Type_Invalid;
 		throw "Invalid bind type.";
@@ -237,6 +240,8 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_UsrCreate;
 	else if (strcmpi(type, "usrdelete") == 0)
 		bindtype = Type_UsrDelete;
+	else if (strcmpi(type, "command") == 0)
+		bindtype = Type_Command;
 	else
 		return 0;
 
@@ -1337,5 +1342,13 @@ void bncjoinchans(const char* User) {
 }
 
 CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
-	return new CTclSocket(g_Bouncer, NULL, Port);
+	return new CTclSocket(NULL, Port, Options);
+}
+
+void control(CTclClientSocket* Socket, const char* Proc) {
+	Socket->SetControlProc(Proc);
+}
+
+void internalsocketwriteln(CTclClientSocket* Socket, const char* Line) {
+	Socket->WriteLine(Line);
 }

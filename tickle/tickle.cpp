@@ -220,7 +220,11 @@ class CTclSupport : public CModuleFar {
 			return true;
 		}
 
-		return false;
+		g_Ret = true;
+
+		CallBinds(Type_Command, Client->GetOwningClient()->GetUsername(), argc, argv);
+
+		return !g_Ret;
 	}
 public:
 	void RehashInterpreter(void) {
