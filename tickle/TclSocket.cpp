@@ -55,7 +55,7 @@ void CTclSocket::Destroy(void) {
 
 bool CTclSocket::Read(void) {
 	sockaddr_in peer;
-	int peerSize = sizeof(peer);
+	socklen_t peerSize = sizeof(peer);
 
 	SOCKET Socket = accept(m_Listener, (sockaddr*)&peer, &peerSize);
 
