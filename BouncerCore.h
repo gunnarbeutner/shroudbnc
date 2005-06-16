@@ -121,6 +121,9 @@ public:
 
 	virtual void Free(void* Pointer);
 	virtual void* Alloc(size_t Size);
+
+	virtual bool IsRegisteredSocket(CSocketEvents* Events);
+	virtual SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp);
 };
 
 extern CBouncerCore* g_Bouncer;

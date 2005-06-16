@@ -691,3 +691,16 @@ void CBouncerCore::Free(void* Pointer) {
 void* CBouncerCore::Alloc(size_t Size) {
 	return malloc(Size);
 }
+
+bool CBouncerCore::IsRegisteredSocket(CSocketEvents* Events) {
+	for (int i = 0; i < m_OtherSocketCount; i++) {
+		if (m_OtherSockets[i].Events == Events)
+			return true;
+	}
+
+	return false;
+}
+
+SOCKET CBouncerCore::SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
+	return ::SocketAndConnect(Host, Port, BindIp);
+}

@@ -26,7 +26,6 @@ proc chandname2name {chan} { return $chan }
 
 proc onchansplit {nick {chan ""}} { return 0 }
 
-proc putdcc {idx text} { }
 proc dccbroadcast {message} { }
 proc dccputchan {channel message} { }
 proc boot {user {reason ""}} { }
@@ -41,7 +40,6 @@ proc echo {idx {status ""}} { }
 proc strip {idx flags} { }
 proc putbot {nick message} { }
 proc putallbots {message} { }
-proc killdcc {idx} { }
 proc bots {} { }
 proc botlist {} { }
 proc islinked {bot} { return 0 }
