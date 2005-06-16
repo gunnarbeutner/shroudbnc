@@ -740,6 +740,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
+	else if (strcmpi(Type, "delayjoin") == 0)
+		return Context->GetConfig()->ReadString("user.delayjoin");
 	else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
@@ -774,7 +776,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return ReturnValue;
 	} else
-		throw "Type should be one of: server port realname nick awaynick uptime lock admin hasserver hasclient vhost channels tag";
+		throw "Type should be one of: server port realname nick awaynick uptime lock admin hasserver hasclient vhost channels tag delayjoin";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -798,6 +800,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.ip", Value);
 	else if (strcmpi(Type, "channels") == 0)
 		Context->GetConfig()->WriteString("user.channels", Value);
+	else if (strcmpi(Type, "delayjoin") == 0)
+		Context->GetConfig()->WriteString("user.delayjoin", Value);
 	else if (strcmpi(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();
@@ -813,7 +817,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 
 		free(Buf);
 	} else
-		throw "Type should be one of: server port realname nick awaynick lock admin channels tag";
+		throw "Type should be one of: server port realname nick awaynick lock admin channels tag vhost delayjoin";
 
 
 	return 1;
@@ -1350,5 +1354,38 @@ void control(CTclClientSocket* Socket, const char* Proc) {
 }
 
 void internalsocketwriteln(CTclClientSocket* Socket, const char* Line) {
-	Socket->WriteLine(Line);
+	if (!g_Bouncer->IsRegisteredSocket(Socket))
+		throw "Invalid socket pointer.";
+
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, Line, -1, &dsText);
+
+	Socket->WriteLine(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
+}
+
+CTclClientSocket* internalconnect(const char* Host, unsigned short Port) {
+	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
+
+	if (Socket == INVALID_SOCKET)
+		return NULL;
+
+	sockaddr_in saddr;
+	socklen_t socketLen = sizeof(saddr);
+
+	getpeername(Socket, (sockaddr*)&saddr, &socketLen);
+
+	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, saddr);
+
+	return Wrapper;
+}
+
+void internalclosesocket(CTclClientSocket* Socket) {
+	if (!g_Bouncer->IsRegisteredSocket(Socket))
+		throw "Invalid socket pointer.";
+
+	Socket->Destroy();
 }

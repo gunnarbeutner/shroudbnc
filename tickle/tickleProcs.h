@@ -100,6 +100,8 @@ void bncjoinchans(const char* User);
 
 CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0);
 void internalsocketwriteln(CTclClientSocket* Socket, const char* Line);
+CTclClientSocket* internalconnect(const char* Host, unsigned short Port);
+void internalclosesocket(CTclClientSocket* Socket);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

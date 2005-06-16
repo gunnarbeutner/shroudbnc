@@ -2022,6 +2022,49 @@ _wrap_internalsocketwriteln(ClientData clientData, Tcl_Interp *interp, int objc,
 
 
 static int
+_wrap_internalconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    unsigned short arg2 ;
+    CTclClientSocket *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"sh:internalconnect Host Port ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (CTclClientSocket *)internalconnect((char const *)arg1,arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) result, SWIGTYPE_p_CTclClientSocket,0));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_internalclosesocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o:internalclosesocket Socket ",NULL) == TCL_ERROR) SWIG_fail;
+    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    {
+        try {
+            internalclosesocket(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2516,6 +2559,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncjoinchans", (swig_wrapper_func) _wrap_bncjoinchans, NULL},
     { SWIG_prefix "internallisten", (swig_wrapper_func) _wrap_internallisten, NULL},
     { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
+    { SWIG_prefix "internalconnect", (swig_wrapper_func) _wrap_internalconnect, NULL},
+    { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

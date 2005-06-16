@@ -99,6 +99,10 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\TclClientSocket.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\TclSocket.cpp
 # End Source File
 # Begin Source File
@@ -138,6 +142,10 @@ SOURCE=.\tickleProcs_wrap.c
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TclClientSocket.h
 # End Source File
 # Begin Source File
 
