@@ -1351,11 +1351,14 @@ CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Op
 }
 
 void control(CTclClientSocket* Socket, const char* Proc) {
+	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
+		throw "Invalid socket pointer.";
+
 	Socket->SetControlProc(Proc);
 }
 
 void internalsocketwriteln(CTclClientSocket* Socket, const char* Line) {
-	if (!g_Bouncer->IsRegisteredSocket(Socket))
+	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
 		throw "Invalid socket pointer.";
 
 	Tcl_DString dsText;
@@ -1385,7 +1388,7 @@ CTclClientSocket* internalconnect(const char* Host, unsigned short Port) {
 }
 
 void internalclosesocket(CTclClientSocket* Socket) {
-	if (!g_Bouncer->IsRegisteredSocket(Socket))
+	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
 		throw "Invalid socket pointer.";
 
 	Socket->Destroy();
