@@ -163,7 +163,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		for (int i = 0; i < Count; i++) {
 			if (!Modules[i]) { continue; }
 
-			snprintf(Out, sizeof(Out), "%d: 0x%x %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
+			snprintf(Out, sizeof(Out), "%d: 0x%x %s", i + 1, (unsigned int)Modules[i]->GetHandle(), Modules[i]->GetFilename());
 			SENDUSER(Out);
 		}
 
@@ -661,9 +661,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			return false;
 		} else if (strcmpi(Command, "sbnc") == 0) {
-			const char* Subcommand = argv[1];
-			CBouncerUser* User = m_Owner;
-
 			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
 		} else if (strcmpi(Command, "synth") == 0) {
 			if (argc < 2) {

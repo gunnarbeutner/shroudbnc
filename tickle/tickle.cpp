@@ -108,7 +108,7 @@ class CTclSupport : public CModuleFar {
 
 		char strNow[20];
 
-		sprintf(strNow, "%d", Now);
+		sprintf(strNow, "%d", (int)Now);
 
 		CallBinds(Type_Pulse, strNow, 0, NULL);
 	}
@@ -181,7 +181,7 @@ class CTclSupport : public CModuleFar {
 
 	const char* Command(const char* Cmd, const char* Parameters) {
 		if (strcmpi(Cmd, "tcl:eval") == 0) {
-			int Code = Tcl_Eval(g_Interp, Parameters);
+			Tcl_Eval(g_Interp, Parameters);
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
 

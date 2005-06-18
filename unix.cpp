@@ -50,7 +50,9 @@ HMODULE LoadLibrary(const char* lpLibFileName) {
 
 BOOL FreeLibrary(HMODULE hLibModule) {
 	if (hLibModule)
-		dlclose(hLibModule);
+		return !dlclose(hLibModule);
+
+	return 0;
 }
 
 void* GetProcAddress(HMODULE hModule, const char* lpProcName) {

@@ -306,7 +306,7 @@ void CBouncerCore::StartMainLoop(void) {
 		void* context;
 		adns_query query;
 
-		for (adns_forallqueries_begin(g_adns_State); query = adns_forallqueries_next(g_adns_State, &context);) {
+		for (adns_forallqueries_begin(g_adns_State); (query = adns_forallqueries_next(g_adns_State, &context));) {
 			adns_answer* reply = NULL;
 
 			adns_check(g_adns_State, &query, &reply, &context);

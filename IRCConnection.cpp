@@ -127,7 +127,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (Dest && strcmpi(Dest, m_CurrentNick) == 0) {
+		if (Dest && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			GetOwningClient()->Log("%s: %s", Reply, argv[3]);
 		}
 

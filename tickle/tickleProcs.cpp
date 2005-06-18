@@ -608,7 +608,7 @@ const char* channel(const char* Function, const char* Channel, const char* Param
 	if (strcmpi(Function, "topicstamp") == 0) {
 		Buffer = (char*)realloc(Buffer, 20);
 
-		sprintf(Buffer, "%d", Chan->GetTopicStamp());
+		sprintf(Buffer, "%d", (int)Chan->GetTopicStamp());
 
 		return Buffer;
 	}
@@ -724,6 +724,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetNick();
 	else if (strcmpi(Type, "awaynick") == 0)
 		return Context->GetConfig()->ReadString("user.awaynick");
+	else if (strcmpi(Type, "away") == 0)
+		return Context->GetConfig()->ReadString("user.away");
 	else if (strcmpi(Type, "vhost") == 0)
 		return Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
 	else if (strcmpi(Type, "channels") == 0)
@@ -776,11 +778,10 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return ReturnValue;
 	} else
-		throw "Type should be one of: server port realname nick awaynick uptime lock admin hasserver hasclient vhost channels tag delayjoin";
+		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
-	static char Buffer[1024];
 	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
@@ -802,6 +803,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.channels", Value);
 	else if (strcmpi(Type, "delayjoin") == 0)
 		Context->GetConfig()->WriteString("user.delayjoin", Value);
+	else if (strcmpi(Type, "away") == 0)
+		Context->GetConfig()->WriteString("user.away", Value);
 	else if (strcmpi(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();
@@ -817,7 +820,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 
 		free(Buf);
 	} else
-		throw "Type should be one of: server port realname nick awaynick lock admin channels tag vhost delayjoin";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin";
 
 
 	return 1;
@@ -887,7 +890,6 @@ const char* getchanhost(const char* Nick, const char* Channel) {
 }
 
 int getchanjoin(const char* Nick, const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -912,7 +914,6 @@ int getchanjoin(const char* Nick, const char* Channel) {
 }
 
 int internalgetchanidle(const char* Nick, const char* Channel) {
-	static char* NickList = NULL;
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
