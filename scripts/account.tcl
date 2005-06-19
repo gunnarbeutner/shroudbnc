@@ -20,20 +20,72 @@
 foreach user [split $::account354] {
 	setctx $user
 	bind join - * auth:join
+	bind raw - 315 auth:raw315
 	bind raw - 354 auth:raw354
 }
 
 internalbind pulse auth:pulse
 
 proc auth:join {nick host hand chan} {
+	namespace eval [getns] {
+		if {![info exists inwho]} { set inwho 0 }
+	}
+
+	upvar [getns]::inwho inwho
+
 	if {[isbotnick $nick]} {
-		putserv "WHO $chan n%nat,23"
+		if {$inwho} {
+			auth:enqueuechan $chan
+		} else {
+			puthelp "WHO $chan n%nat,23"
+			set inwho 1
+		}
 	} else {
 		if {[getchanlogin $nick] == ""} {
-			putserv "WHO $nick n%nat,23"
+			puthelp "WHO $nick n%nat,23"
 		} else {
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
+	}
+}
+
+proc auth:enqueuechan {chan} {
+	namespace eval [getns] {
+		if {![info exists authchans]} { set authchans {} }
+	}
+
+	upvar [getns]::authchans authchans
+
+	lappend authchans $chan
+}
+
+proc auth:dequeuechan {} {
+	namespace eval [getns] {
+		if {![info exists authchans]} { set authchans {} }
+	}
+
+	upvar [getns]::authchans authchans
+
+	set chan [lindex $authchans 0]
+	set authchans [lrange $authchans 1 end]
+
+	return $chan
+}
+
+proc auth:raw315 {source raw text} {
+	namespace eval [getns] {
+		if {![info exists inwho]} { set inwho 0 }
+	}
+
+	upvar [getns]::inwho inwho
+
+	set chan [auth:dequeuechan]
+
+	if {$chan != ""} {
+		puthelp "WHO $chan n%nat,23"
+		set inwho 1
+	} else {
+		set inwho 0
 	}
 }
 
@@ -62,7 +114,7 @@ proc auth:raw354 {source raw text} {
 proc auth:pulse {time} {
 	global account354
 
-	if {$time % 120 != 0} { return }
+	if {$time %180 != 0} { return }
 
 	foreach user [split $account354] {
 		setctx $user
@@ -84,6 +136,10 @@ proc auth:pulse {time} {
 
 		if {$nicks != ""} {
 			putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+		}
+
+		namespace eval [getns] {
+			set authchans {}
 		}
 	}
 }
