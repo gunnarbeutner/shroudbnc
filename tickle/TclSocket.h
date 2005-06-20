@@ -41,6 +41,8 @@ public:
 	virtual bool DoTimeout(void);
 
 	virtual const char* ClassName(void);
+
+	virtual bool IsValid(void);
 private:
 	SOCKET m_Listener;
 	char* m_TclProc;

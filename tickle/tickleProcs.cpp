@@ -1348,7 +1348,14 @@ void bncjoinchans(const char* User) {
 
 CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
 	if (strcmpi(Type, "script") == 0) {
-		return new CTclSocket(NULL, Port, Options);
+		CTclSocket* TclSocket = new CTclSocket(NULL, Port, Options);
+
+		if (!TclSocket->IsValid()) {
+			TclSocket->Destroy();
+			throw "Could not create listener.";
+		}
+
+		return TclSocket;
 	} else if (strcmpi(Type, "off") == 0) {
 		int i = 0;
 		socket_t* Socket;

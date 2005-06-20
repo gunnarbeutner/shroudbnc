@@ -37,8 +37,12 @@ extern "C" {
 
 CTclSocket::CTclSocket(const char* BindIp, unsigned short Port, const char* TclProc) {
 	m_Listener = g_Bouncer->CreateListener(Port, BindIp);
-	g_Bouncer->RegisterSocket(m_Listener, this);
-	m_TclProc = strdup(TclProc);
+
+	if (IsValid()) {
+		g_Bouncer->RegisterSocket(m_Listener, this);
+		m_TclProc = strdup(TclProc);
+	} else
+		m_TclProc = NULL;
 }
 
 CTclSocket::~CTclSocket() {
@@ -104,4 +108,8 @@ bool CTclSocket::DoTimeout(void) {
 
 const char* CTclSocket::ClassName(void) {
 	return "CTclSocket";
+}
+
+bool CTclSocket::IsValid(void) {
+	return m_Listener != INVALID_SOCKET;
 }
