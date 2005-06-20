@@ -704,3 +704,22 @@ bool CBouncerCore::IsRegisteredSocket(CSocketEvents* Events) {
 SOCKET CBouncerCore::SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
 	return ::SocketAndConnect(Host, Port, BindIp);
 }
+
+socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
+	int a = 0;
+
+	for (int i = 0; i < m_OtherSocketCount; i++) {
+		socket_t Socket = m_OtherSockets[i];
+
+		if (Socket.Socket == INVALID_SOCKET)
+			continue;
+
+		if (strcmp(Socket.Events->ClassName(), Class) == 0)
+			a++;
+
+		if (a - 1 == Index)
+			return &m_OtherSockets[i];
+	}
+
+	return NULL;
+}

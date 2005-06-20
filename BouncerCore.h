@@ -124,6 +124,8 @@ public:
 
 	virtual bool IsRegisteredSocket(CSocketEvents* Events);
 	virtual SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp);
+
+	virtual socket_t* GetSocketByClass(const char* Class, int Index);
 };
 
 extern CBouncerCore* g_Bouncer;

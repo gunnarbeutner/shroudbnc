@@ -142,3 +142,7 @@ const char* CTclClientSocket::GetControlProc(void) {
 void CTclClientSocket::WriteLine(const char* Line) {
 	m_Wrap->WriteLine(Line);
 }
+
+const char* CTclClientSocket::ClassName(void) {
+	return "CTclClientSocket";
+}

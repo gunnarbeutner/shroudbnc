@@ -84,6 +84,7 @@ public:
 	virtual const char* GetServer(void);
 
 	virtual void Destroy(void);
+	virtual const char* ClassName(void);
 
 	virtual bool IsOnChannel(const char* Channel);
 

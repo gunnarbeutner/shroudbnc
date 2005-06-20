@@ -1347,7 +1347,27 @@ void bncjoinchans(const char* User) {
 }
 
 CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
-	return new CTclSocket(NULL, Port, Options);
+	if (strcmpi(Type, "script") == 0) {
+		return new CTclSocket(NULL, Port, Options);
+	} else if (strcmpi(Type, "off") == 0) {
+		int i = 0;
+		socket_t* Socket;
+
+		while ((Socket = g_Bouncer->GetSocketByClass("CTclSocket", i++)) != NULL) {
+			sockaddr_in saddr;
+			int saddrSize = sizeof(saddr);
+			getsockname(Socket->Socket, (sockaddr*)&saddr, &saddrSize);
+
+			if (ntohs(saddr.sin_port) == Port) {
+				Socket->Events->Destroy();
+
+				break;
+			}
+		}
+
+		return NULL;
+	} else
+		throw "Type must be one of: script off";
 }
 
 void control(CTclClientSocket* Socket, const char* Proc) {

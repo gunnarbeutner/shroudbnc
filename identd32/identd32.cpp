@@ -105,6 +105,10 @@ public:
 	bool DoTimeout(void) {
 		return m_Wrap->DoTimeout();
 	}
+
+	const char* ClassName(void) {
+		return "CIdentClient";
+	}
 };
 
 class CIdentModule : public CModuleFar, public CSocketEvents {
@@ -169,6 +173,10 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	}
 
 	bool DoTimeout(void) { return false; }
+
+	const char* ClassName(void) {
+		return "CIdentModule";
+	}
 
 	void AttachClient(const char* Client) { }
 	void DetachClient(const char* Client) { }

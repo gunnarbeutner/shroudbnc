@@ -39,6 +39,8 @@ public:
 	virtual void Error(void);
 	virtual bool HasQueuedData(void);
 	virtual bool DoTimeout(void);
+
+	virtual const char* ClassName(void);
 private:
 	SOCKET m_Listener;
 	char* m_TclProc;

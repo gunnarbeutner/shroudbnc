@@ -101,3 +101,7 @@ bool CTclSocket::HasQueuedData(void) {
 bool CTclSocket::DoTimeout(void) {
 	return false;
 }
+
+const char* CTclSocket::ClassName(void) {
+	return "CTclSocket";
+}

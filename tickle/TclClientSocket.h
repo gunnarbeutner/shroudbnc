@@ -37,6 +37,8 @@ public:
 	virtual bool HasQueuedData(void);
 	virtual bool DoTimeout(void);
 
+	virtual const char* ClassName(void);
+
 	virtual void SetControlProc(const char* Proc);
 	virtual const char* GetControlProc(void);
 	virtual void WriteLine(const char* Line);

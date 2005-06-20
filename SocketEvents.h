@@ -33,6 +33,8 @@ public:
 	virtual void Error(void) = 0;
 	virtual bool HasQueuedData(void) = 0;
 	virtual bool DoTimeout(void) = 0;
+
+	virtual const char* ClassName(void) = 0;
 };
 
 #endif // !defined(AFX_SOCKETEVENTS_H__E3357DBD_BBB7_4F6D_B406_08F652675369__INCLUDED_)

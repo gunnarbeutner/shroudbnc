@@ -762,3 +762,7 @@ void CIRCConnection::Pulse(time_t Now) {
 	if (Now % 180 == 0)
 		InternalWriteLine("PING :sbnc");
 }
+
+const char* CIRCConnection::ClassName(void) {
+	return "CIRCConnection";
+}

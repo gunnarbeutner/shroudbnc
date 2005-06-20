@@ -59,6 +59,7 @@ public:
 	virtual sockaddr_in GetPeer(void);
 
 	virtual void Destroy(void);
+	virtual const char* ClassName(void);
 };
 
 #endif // !defined(AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_)

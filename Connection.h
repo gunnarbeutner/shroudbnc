@@ -59,6 +59,7 @@ public:
 
 	virtual void Destroy(void);
 	virtual void Error(void);
+	virtual const char* ClassName(void);
 
 	virtual bool Read(void);
 	virtual void Write(void);

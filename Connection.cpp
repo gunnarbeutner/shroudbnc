@@ -281,3 +281,7 @@ void CConnection::AttachStats(CTrafficStats* Stats) {
 CTrafficStats* CConnection::GetTrafficStats(void) {
 	return m_Traffic;
 }
+
+const char* CConnection::ClassName(void) {
+	return "CConnection";
+}

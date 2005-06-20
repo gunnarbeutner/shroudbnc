@@ -925,3 +925,7 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	else
 		SetPeerName(*response->rrs.str);
 }
+
+const char* CClientConnection::ClassName(void) {
+	return "CClientConnection";
+}
