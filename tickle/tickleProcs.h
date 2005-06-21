@@ -66,6 +66,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 int setbncuser(const char* User, const char* Type, const char* Value = 0, const char* Parameter2 = 0);
 void addbncuser(const char* User, const char* Password);
 void delbncuser(const char* User);
+bool bnccheckpassword(const char* User, const char* Password);
 
 const char* internalchanlist(const char* Channel);
 

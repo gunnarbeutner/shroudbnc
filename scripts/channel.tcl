@@ -96,7 +96,9 @@ proc channel {option chan args} {
 			}
 		}
 		remove {
-			unset channels($chan)
+			if {[info exists channels($chan)]} {
+				unset channels($chan)
+			}
 
 			puthelp "PART $chan"
 

@@ -1420,3 +1420,12 @@ void internalclosesocket(CTclClientSocket* Socket) {
 
 	Socket->Destroy();
 }
+
+bool bnccheckpassword(const char* User, const char* Password) {
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
+
+	if (!Context)
+		return false;
+
+	return Context->Validate(Password);
+}

@@ -1556,6 +1556,28 @@ _wrap_delbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 
 static int
+_wrap_bnccheckpassword(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    bool result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ss:bnccheckpassword User Password ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (bool)bnccheckpassword((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_internalchanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *result;
@@ -2537,6 +2559,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "setbncuser", (swig_wrapper_func) _wrap_setbncuser, NULL},
     { SWIG_prefix "addbncuser", (swig_wrapper_func) _wrap_addbncuser, NULL},
     { SWIG_prefix "delbncuser", (swig_wrapper_func) _wrap_delbncuser, NULL},
+    { SWIG_prefix "bnccheckpassword", (swig_wrapper_func) _wrap_bnccheckpassword, NULL},
     { SWIG_prefix "internalchanlist", (swig_wrapper_func) _wrap_internalchanlist, NULL},
     { SWIG_prefix "bncversion", (swig_wrapper_func) _wrap_bncversion, NULL},
     { SWIG_prefix "bncnumversion", (swig_wrapper_func) _wrap_bncnumversion, NULL},
