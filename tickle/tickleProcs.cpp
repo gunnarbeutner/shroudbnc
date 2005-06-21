@@ -1362,7 +1362,7 @@ CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Op
 
 		while ((Socket = g_Bouncer->GetSocketByClass("CTclSocket", i++)) != NULL) {
 			sockaddr_in saddr;
-			int saddrSize = sizeof(saddr);
+			socklen_t saddrSize = sizeof(saddr);
 			getsockname(Socket->Socket, (sockaddr*)&saddr, &saddrSize);
 
 			if (ntohs(saddr.sin_port) == Port) {
