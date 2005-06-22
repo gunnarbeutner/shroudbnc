@@ -577,7 +577,7 @@ proc reload { } {
 		if {$u == 1} {
 
 			if {[string range $line 0 1] == "! "} {
-				lappend us(chanf) [lrange $line 2 end]
+				lappend us(chanf) [lrange $line 1 end]
 			}
 
 			if {[string range $line 0 1] == "--"} {

@@ -52,6 +52,10 @@ proc sbnc:ifacemsg {socket line} {
 		"checkpw" {
 			set result [bnccheckpassword [lindex $params 0] [lindex $params 1]]
 		}
+		"raw" {
+			setctx [lindex $params 0]
+			puthelp [join [lrange $params 1 end]]
+		}
 	}
 
 	putdcc $socket "$code $result"
