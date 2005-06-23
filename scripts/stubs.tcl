@@ -54,3 +54,5 @@ proc link {args} { }
 proc unlink {bot} { }
 
 proc chanlist {chan} { return [internalchanlist $chan] }
+
+proc addhost {hand host} { setuser $hand HOSTS $host }
