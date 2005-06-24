@@ -236,9 +236,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "away - %s", Config->ReadString("user.away") ? Config->ReadString("user.away") : "Not set");
 			SENDUSER(Out);
 		} else {
-			if (argc > 3 && strcmpi(argv[1], "server") == 0) {
-				Config->WriteString("user.server", argv[2]);
-				Config->WriteInteger("user.port", atoi(argv[3]));
+			if (strcmpi(argv[1], "server") == 0) {
+				if (argc > 3) {
+					Config->WriteString("user.server", argv[2]);
+					Config->WriteInteger("user.port", atoi(argv[3]));
+				} else {
+					SENDUSER("Syntax: /sbnc set server host port");
+				}
 			} else if (strcmpi(argv[1], "realname") == 0) {
 				Config->WriteString("user.realname", argv[2]);
 			} else if (strcmpi(argv[1], "awaynick") == 0) {
