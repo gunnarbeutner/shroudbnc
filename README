@@ -78,11 +78,11 @@ Installing the TCL module might sometimes be a bit tricky. You should know this 
 
 The command for compiling the TCL module looks like this:
 
-g++ -I/include/directory -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c -g /path/to/your/libtcl8.xso
+g++ -I/include/directory -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /path/to/your/libtcl8.x.so
 
 For example, if your include files are in /usr/include/tcl8.4 and your libtcl8.x.so can be found at /usr/lib/libtcl8.4.so you can use this command to compile the TCL module:
 
-g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c -g /usr/lib/libtcl8.4.so
+g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /usr/lib/libtcl8.4.so
 
 Security
 --------
