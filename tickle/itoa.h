@@ -21,4 +21,4 @@
         equal to 'x', interpret that D is hexadecimal. */
 
 void
-     itoa (char *buf, int base, int d);
+     itoa (int d, char *buf, int base);
