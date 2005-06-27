@@ -21,15 +21,14 @@
 #include "../BouncerCore.h"
 #include "../SocketEvents.h"
 #include "../Connection.h"
+#include "../Hashtable.h"
 #include "TclSocket.h"
 #include "TclClientSocket.h"
 
 extern Tcl_Interp* g_Interp;
 
-extern "C" {
-	void SWIG_Tcl_MakePtr(char* c, void* ptr, void* ty, int flags);
-	void *SWIG_TypeQuery(const char *);
-}
+CHashtable<CTclSocket*, false>* g_TclListeners;
+int g_SocketIdx = 0;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -43,14 +42,29 @@ CTclSocket::CTclSocket(const char* BindIp, unsigned short Port, const char* TclP
 		m_TclProc = strdup(TclProc);
 	} else
 		m_TclProc = NULL;
+
+	char Buf[20];
+
+	itoa(g_SocketIdx, Buf, 10);
+	m_Idx = g_SocketIdx;
+	g_SocketIdx++;
+
+	g_TclListeners->Add(Buf, this);
 }
 
 CTclSocket::~CTclSocket() {
-	g_Bouncer->UnregisterSocket(m_Listener);
+	if (IsValid()) {
+		g_Bouncer->UnregisterSocket(m_Listener);
 
-	closesocket(m_Listener);
+		closesocket(m_Listener);
+	}
 
 	free(m_TclProc);
+
+	char Buf[20];
+	itoa(m_Idx, Buf, 10);
+
+	g_TclListeners->Remove(Buf);
 }
 
 void CTclSocket::Destroy(void) {
@@ -65,10 +79,9 @@ bool CTclSocket::Read(void) {
 
 	CTclClientSocket* Client = new CTclClientSocket(Socket, peer);
 
-	void* type = SWIG_TypeQuery("CTclClientSocket *");
-	char ptr[50];
+	char ptr[20];
 
-	SWIG_Tcl_MakePtr(ptr, Client, type, 0);
+	itoa(Client->GetIdx(), ptr, 10);
 
 	Tcl_Obj* objv[2];
 	
@@ -112,4 +125,8 @@ const char* CTclSocket::ClassName(void) {
 
 bool CTclSocket::IsValid(void) {
 	return m_Listener != INVALID_SOCKET;
+}
+
+int CTclSocket::GetIdx(void) {
+	return m_Idx;
 }

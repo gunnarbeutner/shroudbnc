@@ -49,8 +49,6 @@ class CTclClientSocket;
 //const char* getuser(const char* Option);
 //int setuser(const char* Option, const char* Value);
 
-const char* bncuserlist(void);
-
 const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
 
 int putclient(const char* text);
@@ -62,6 +60,7 @@ int internalunbind(const char* type, const char* proc);
 void setctx(const char* ctx);
 const char* getctx(void);
 
+const char* bncuserlist(void);
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2 = 0);
 int setbncuser(const char* User, const char* Type, const char* Value = 0, const char* Parameter2 = 0);
 void addbncuser(const char* User, const char* Password);
@@ -99,10 +98,10 @@ int internalgetchanidle(const char* Nick, const char* Channel);
 int trafficstats(const char* User, const char* ConnectionType = NULL, const char* Type = NULL);
 void bncjoinchans(const char* User);
 
-CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0);
-void internalsocketwriteln(CTclClientSocket* Socket, const char* Line);
-CTclClientSocket* internalconnect(const char* Host, unsigned short Port);
-void internalclosesocket(CTclClientSocket* Socket);
+int internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0);
+void internalsocketwriteln(int Socket, const char* Line);
+int internalconnect(const char* Host, unsigned short Port);
+void internalclosesocket(int Socket);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
@@ -127,4 +126,4 @@ int puthelp(const char* text);
 int putquick(const char* text);
 void putlog(const char* Text);
 
-void control(CTclClientSocket* Socket, const char* Proc);
+void control(int Socket, const char* Proc);

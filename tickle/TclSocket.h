@@ -43,9 +43,11 @@ public:
 	virtual const char* ClassName(void);
 
 	virtual bool IsValid(void);
+	virtual int GetIdx(void);
 private:
 	SOCKET m_Listener;
 	char* m_TclProc;
+	int m_Idx;
 };
 
 #endif // !defined(AFX_TCLSOCKET_H__840815A2_F117_4D3D_8593_4F97538DE148__INCLUDED_)

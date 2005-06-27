@@ -28,6 +28,7 @@
 #include "../Channel.h"
 #include "../BouncerUser.h"
 #include "../BouncerConfig.h"
+#include "../Hashtable.h"
 #include "tickle.h"
 #include "tickleProcs.h"
 
@@ -87,6 +88,9 @@ class CTclSupport : public CModuleFar {
 
 	void Init(CBouncerCore* Root) {
 		g_Bouncer = Root;
+
+		g_TclListeners = new CHashtable<CTclSocket*, false>;
+		g_TclClientSockets = new CHashtable<CTclClientSocket*, false>;
 
 		Tcl_FindExecutable(Root->GetArgV()[0]);
 

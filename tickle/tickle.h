@@ -48,6 +48,13 @@ typedef struct binding_s {
 extern binding_t* g_Binds;
 extern int g_BindCount;
 
+class CTclSocket;
+class CTclClientSocket;
+
+extern CHashtable<CTclSocket*, false>* g_TclListeners;
+extern CHashtable<CTclClientSocket*, false>* g_TclClientSockets;
+extern int g_SocketIdx;
+
 void RestartInterpreter(void);
 void RehashInterpreter(void);
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv);

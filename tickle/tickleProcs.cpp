@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "../Hashtable.h"
 #include "tickle.h"
 #include "tickleProcs.h"
 #include "../ModuleFar.h"
@@ -851,7 +852,7 @@ int simul(const char* User, const char* Command) {
 	Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return -1;
+		return 0;
 	else {
 		Context->Simulate(Command);
 
@@ -1346,16 +1347,18 @@ void bncjoinchans(const char* User) {
 		Context->GetIRCConnection()->JoinChannels();
 }
 
-CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
+int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
 	if (strcmpi(Type, "script") == 0) {
 		CTclSocket* TclSocket = new CTclSocket(NULL, Port, Options);
 
-		if (!TclSocket->IsValid()) {
+		if (!TclSocket)
+			throw "Could not create object.";
+		else if (!TclSocket->IsValid()) {
 			TclSocket->Destroy();
 			throw "Could not create listener.";
 		}
 
-		return TclSocket;
+		return TclSocket->GetIdx();
 	} else if (strcmpi(Type, "off") == 0) {
 		int i = 0;
 		socket_t* Socket;
@@ -1372,20 +1375,28 @@ CTclSocket* internallisten(unsigned short Port, const char* Type, const char* Op
 			}
 		}
 
-		return NULL;
+		return 0;
 	} else
 		throw "Type must be one of: script off";
 }
 
-void control(CTclClientSocket* Socket, const char* Proc) {
-	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
-		throw "Invalid socket pointer.";
+void control(int Socket, const char* Proc) {
+	char Buf[20];
+	itoa(Socket, Buf, 10);
+	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 
-	Socket->SetControlProc(Proc);
+	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
+		throw "Invalid socket.";
+
+	SockPtr->SetControlProc(Proc);
 }
 
-void internalsocketwriteln(CTclClientSocket* Socket, const char* Line) {
-	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
+void internalsocketwriteln(int Socket, const char* Line) {
+	char Buf[20];
+	itoa(Socket, Buf, 10);
+	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+
+	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
 
 	Tcl_DString dsText;
@@ -1393,12 +1404,12 @@ void internalsocketwriteln(CTclClientSocket* Socket, const char* Line) {
 	Tcl_DStringInit(&dsText);
 	Tcl_UtfToExternalDString(NULL, Line, -1, &dsText);
 
-	Socket->WriteLine(Tcl_DStringValue(&dsText));
+	SockPtr->WriteLine(Tcl_DStringValue(&dsText));
 
 	Tcl_DStringFree(&dsText);
 }
 
-CTclClientSocket* internalconnect(const char* Host, unsigned short Port) {
+int internalconnect(const char* Host, unsigned short Port) {
 	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
 
 	if (Socket == INVALID_SOCKET)
@@ -1411,14 +1422,18 @@ CTclClientSocket* internalconnect(const char* Host, unsigned short Port) {
 
 	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, saddr);
 
-	return Wrapper;
+	return Wrapper->GetIdx();
 }
 
-void internalclosesocket(CTclClientSocket* Socket) {
-	if (!Socket || !g_Bouncer->IsRegisteredSocket(Socket))
+void internalclosesocket(int Socket) {
+	char Buf[20];
+	itoa(Socket, Buf, 10);
+	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+
+	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
 
-	Socket->Destroy();
+	SockPtr->Destroy();
 }
 
 bool bnccheckpassword(const char* User, const char* Password) {

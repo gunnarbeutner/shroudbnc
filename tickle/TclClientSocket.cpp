@@ -21,14 +21,13 @@
 #include "../BouncerCore.h"
 #include "../SocketEvents.h"
 #include "../Connection.h"
+#include "../Hashtable.h"
 #include "TclClientSocket.h"
 
 extern Tcl_Interp* g_Interp;
 
-extern "C" {
-	void SWIG_Tcl_MakePtr(char* c, void* ptr, void* ty, int flags);
-	void *SWIG_TypeQuery(const char *);
-}
+CHashtable<CTclClientSocket*, false>* g_TclClientSockets;
+extern int g_SocketIdx;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -39,6 +38,14 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, sockaddr_in Peer) {
 	m_Wrap = g_Bouncer->WrapSocket(Socket, Peer);
 	g_Bouncer->RegisterSocket(Socket, this);
 
+	char Buf[20];
+
+	itoa(g_SocketIdx, Buf, 10);
+	m_Idx = g_SocketIdx;
+	g_SocketIdx++;
+
+	g_TclClientSockets->Add(Buf, this);
+
 	m_Control = NULL;
 }
 
@@ -46,16 +53,19 @@ CTclClientSocket::~CTclClientSocket() {
 	g_Bouncer->UnregisterSocket(m_Socket);
 	g_Bouncer->DeleteWrapper(m_Wrap);
 	closesocket(m_Socket);
+
+	char Buf[20];
+	itoa(m_Idx, Buf, 10);
+
+	g_TclClientSockets->Remove(Buf);
 }
 
 void CTclClientSocket::Destroy(void) {
 	if (m_Control) {
 		Tcl_Obj* objv[3];
 
-		void* type = SWIG_TypeQuery("CTclClientSocket *");
-		char ptr[50];
-
-		SWIG_Tcl_MakePtr(ptr, this, type, 0);
+		char ptr[20];
+		itoa(m_Idx, ptr, 10);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
@@ -84,10 +94,8 @@ bool CTclClientSocket::Read(void) {
 	while (m_Wrap->ReadLine(&Line) && m_Control) {
 		Tcl_Obj* objv[3];
 		
-		void* type = SWIG_TypeQuery("CTclClientSocket *");
-		char ptr[50];
-
-		SWIG_Tcl_MakePtr(ptr, this, type, 0);
+		char ptr[20];
+		itoa(m_Idx, ptr, 10);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
@@ -145,4 +153,8 @@ void CTclClientSocket::WriteLine(const char* Line) {
 
 const char* CTclClientSocket::ClassName(void) {
 	return "CTclClientSocket";
+}
+
+int CTclClientSocket::GetIdx(void) {
+	return m_Idx;
 }

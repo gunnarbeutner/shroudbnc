@@ -1248,9 +1248,7 @@ typedef struct {
 
 #define  SWIGTYPE_size_t swig_types[0] 
 #define  SWIGTYPE_ptrdiff_t swig_types[1] 
-#define  SWIGTYPE_p_CTclSocket swig_types[2] 
-#define  SWIGTYPE_p_CTclClientSocket swig_types[3] 
-static swig_type_info *swig_types[5];
+static swig_type_info *swig_types[3];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -1297,26 +1295,6 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 #ifdef __cplusplus
 extern "C" {
 #endif
-static int
-_wrap_bncuserlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,":bncuserlist ") == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)bncuserlist();
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
 static int
 _wrap_channel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
@@ -1455,6 +1433,26 @@ _wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     {
         try {
             result = (char *)getctx();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncuserlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncuserlist ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncuserlist();
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -2003,18 +2001,18 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     char *arg2 = (char *) 0 ;
     char *arg3 = (char *) 0 ;
     char *arg4 = (char *) 0 ;
-    CTclSocket *result;
+    int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"hs|ss:internallisten Port Type ?Options? ?Flag? ",&arg1,&arg2,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
     {
         try {
-            result = (CTclSocket *)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
         }
     }
-    Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) result, SWIGTYPE_p_CTclSocket,0));
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -2023,11 +2021,10 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static int
 _wrap_internalsocketwriteln(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    int arg1 ;
     char *arg2 = (char *) 0 ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"os:internalsocketwriteln Socket Line ",NULL,&arg2) == TCL_ERROR) SWIG_fail;
-    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"is:internalsocketwriteln Socket Line ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
     {
         try {
             internalsocketwriteln(arg1,(char const *)arg2);
@@ -2047,18 +2044,18 @@ static int
 _wrap_internalconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     unsigned short arg2 ;
-    CTclClientSocket *result;
+    int result;
     
     if (SWIG_GetArgs(interp, objc, objv,"sh:internalconnect Host Port ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
     {
         try {
-            result = (CTclClientSocket *)internalconnect((char const *)arg1,arg2);
+            result = (int)internalconnect((char const *)arg1,arg2);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
         }
     }
-    Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) result, SWIGTYPE_p_CTclClientSocket,0));
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
     return TCL_OK;
     fail:
     return TCL_ERROR;
@@ -2067,10 +2064,9 @@ _wrap_internalconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
 static int
 _wrap_internalclosesocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    int arg1 ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"o:internalclosesocket Socket ",NULL) == TCL_ERROR) SWIG_fail;
-    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"i:internalclosesocket Socket ",&arg1) == TCL_ERROR) SWIG_fail;
     {
         try {
             internalclosesocket(arg1);
@@ -2525,11 +2521,10 @@ _wrap_putlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 static int
 _wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    CTclClientSocket *arg1 = (CTclClientSocket *) 0 ;
+    int arg1 ;
     char *arg2 = (char *) 0 ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"os:control Socket Proc ",NULL,&arg2) == TCL_ERROR) SWIG_fail;
-    if ((SWIG_ConvertPtr(objv[1], (void **) &arg1, SWIGTYPE_p_CTclClientSocket,SWIG_POINTER_EXCEPTION | 0) != TCL_OK)) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"is:control Socket Proc ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
     {
         try {
             control(arg1,(char const *)arg2);
@@ -2547,7 +2542,6 @@ _wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static swig_command_info swig_commands[] = {
-    { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
     { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
     { SWIG_prefix "simul", (swig_wrapper_func) _wrap_simul, NULL},
@@ -2555,6 +2549,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internalunbind", (swig_wrapper_func) _wrap_internalunbind, NULL},
     { SWIG_prefix "setctx", (swig_wrapper_func) _wrap_setctx, NULL},
     { SWIG_prefix "getctx", (swig_wrapper_func) _wrap_getctx, NULL},
+    { SWIG_prefix "bncuserlist", (swig_wrapper_func) _wrap_bncuserlist, NULL},
     { SWIG_prefix "getbncuser", (swig_wrapper_func) _wrap_getbncuser, NULL},
     { SWIG_prefix "setbncuser", (swig_wrapper_func) _wrap_setbncuser, NULL},
     { SWIG_prefix "addbncuser", (swig_wrapper_func) _wrap_addbncuser, NULL},
@@ -2621,14 +2616,10 @@ static swig_const_info swig_constants[] = {
 
 static swig_type_info _swigt__size_t[] = {{"_size_t", 0, "size_t", 0, 0, 0, 0},{"_size_t", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__ptrdiff_t[] = {{"_ptrdiff_t", 0, "ptrdiff_t", 0, 0, 0, 0},{"_ptrdiff_t", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_CTclSocket[] = {{"_p_CTclSocket", 0, "CTclSocket *", 0, 0, 0, 0},{"_p_CTclSocket", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_CTclClientSocket[] = {{"_p_CTclClientSocket", 0, "CTclClientSocket *", 0, 0, 0, 0},{"_p_CTclClientSocket", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 
 static swig_type_info *swig_types_initial[] = {
 _swigt__size_t, 
 _swigt__ptrdiff_t, 
-_swigt__p_CTclSocket, 
-_swigt__p_CTclClientSocket, 
 0
 };
 
