@@ -42,6 +42,7 @@
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
 	#include "../unix.h"
+	#include "itoa.h"
 #endif
 
 #include <stdio.h>
