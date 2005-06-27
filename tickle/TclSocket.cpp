@@ -57,9 +57,9 @@ CTclSocket::~CTclSocket() {
 		g_Bouncer->UnregisterSocket(m_Listener);
 
 		closesocket(m_Listener);
-	}
 
-	free(m_TclProc);
+		free(m_TclProc);
+	}
 
 	char Buf[20];
 	itoa(m_Idx, Buf, 10);
