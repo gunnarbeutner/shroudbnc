@@ -118,9 +118,6 @@ CBouncerCore::~CBouncerCore() {
 	if (m_Listener != INVALID_SOCKET)
 		closesocket(m_Listener);
 
-	delete m_Log;
-	delete m_Ident;
-
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i])
 			delete m_Users[i];
@@ -143,6 +140,9 @@ CBouncerCore::~CBouncerCore() {
 	}
 
 	free(m_Modules);
+
+	delete m_Log;
+	delete m_Ident;
 }
 
 void CBouncerCore::StartMainLoop(void) {

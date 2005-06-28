@@ -358,7 +358,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
-			SENDUSER("Syntax: BKILL username");
+			SENDUSER("Syntax: KILL username");
 			return false;
 		}
 		
@@ -368,7 +368,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
-			SENDUSER("Syntax: BKILL username");
+			SENDUSER("Syntax: disconnect username");
 			return false;
 		}
 

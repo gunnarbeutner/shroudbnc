@@ -54,7 +54,7 @@ proc channel {option chan args} {
 
 	switch [string tolower $option] {
 		add {
-			set channels($chan) [join $args]
+			set channels([string tolower $chan]) [join $args]
 
 			puthelp "JOIN $chan"
 
@@ -73,7 +73,7 @@ proc channel {option chan args} {
 
 			set channel([lindex $args 0]) [lindex $args 1]
 
-			set channels($chan) [array get channel]
+			set channels([string tolower $chan]) [array get channel]
 
 			return [lindex $args 1]
 		}
@@ -97,7 +97,7 @@ proc channel {option chan args} {
 		}
 		remove {
 			if {[info exists channels($chan)]} {
-				unset channels($chan)
+				unset channels([string tolower $chan])
 			}
 
 			puthelp "PART $chan"

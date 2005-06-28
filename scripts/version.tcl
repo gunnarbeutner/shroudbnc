@@ -52,4 +52,6 @@ proc sbnc:ctcpversion {nick host hand dest key text} {
 		incr flood
 		setbncuser [getctx] tag flood $flood
 	}
+
+	haltoutput
 }

@@ -29,6 +29,7 @@ internalbind pulse auth:pulse
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {
 		if {![info exists inwho]} { set inwho 0 }
+		if {![info exists whonicks]} { set whonicks {} }
 	}
 
 	upvar [getns]::inwho inwho
@@ -42,7 +43,7 @@ proc auth:join {nick host hand chan} {
 		}
 	} else {
 		if {[getchanlogin $nick] == ""} {
-			puthelp "WHO $nick n%nat,23"
+			bncsettag $chan $nick accunknown 1
 		} else {
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
@@ -114,8 +115,6 @@ proc auth:raw354 {source raw text} {
 proc auth:pulse {time} {
 	global account354
 
-	if {$time %180 != 0} { return }
-
 	foreach user [split $account354] {
 		setctx $user
 
@@ -123,8 +122,11 @@ proc auth:pulse {time} {
 		foreach chan [internalchannels] {
 			foreach nick [internalchanlist $chan] {
 				set acc [bncgettag $chan $nick account]
-				if {$acc == "" || ($acc == 0 && $time % 240 == 0)} {
+				set unk [bncgettag $chan $nick accunknown]
+
+				if {$unk == 1 || ($time %180 == 0 && ($acc == "" || ($acc == 0 && $time % 240 == 0)))} {
 					lappend nicks $nick
+					bncsettag $chan $nick accunknown 0
 				}
 
 				if {[string length [join [sbnc:uniq $nicks] ","]] > 300} {

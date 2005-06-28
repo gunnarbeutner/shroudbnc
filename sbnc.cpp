@@ -68,13 +68,13 @@ int main(int argc, char* argv[]) {
 	// constructor sets g_Bouncer
 	new CBouncerCore(Config, argc, argv);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(_FREEBSD)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
 #endif
 
 	g_Bouncer->StartMainLoop();
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(_FREEBSD)
 	signal(SIGINT, oldhandler);
 #endif
 

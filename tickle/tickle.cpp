@@ -29,6 +29,8 @@
 #include "../BouncerUser.h"
 #include "../BouncerConfig.h"
 #include "../Hashtable.h"
+#include "TclSocket.h"
+#include "TclClientSocket.h"
 #include "tickle.h"
 #include "tickleProcs.h"
 
@@ -82,6 +84,22 @@ class CTclSupport : public CModuleFar {
 		CallBinds(Type_Unload, NULL, 0, NULL);
 
 		Tcl_DeleteInterp(g_Interp);
+
+		int i = 0;
+
+		while (hash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
+			p->Value->Destroy();
+		}
+
+		free(g_TclListeners);
+
+		i = 0;
+
+		while (hash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
+			p->Value->Destroy();
+		}
+
+		free(g_TclClientSockets);
 
 		delete this;
 	}

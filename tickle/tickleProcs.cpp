@@ -1413,7 +1413,7 @@ int internalconnect(const char* Host, unsigned short Port) {
 	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
 
 	if (Socket == INVALID_SOCKET)
-		throw "Could not connect."
+		throw "Could not connect.";
 
 	sockaddr_in saddr;
 	socklen_t socketLen = sizeof(saddr);
