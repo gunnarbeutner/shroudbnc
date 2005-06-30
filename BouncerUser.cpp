@@ -33,6 +33,7 @@
 #include "utility.h"
 #include "Match.h"
 #include "TrafficStats.h"
+#include "Keyring.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -88,6 +89,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_ClientStats = new CTrafficStats();
 	m_IRCStats = new CTrafficStats();
+
+	m_Keys = new CKeyring(m_Config);
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -112,6 +115,8 @@ CBouncerUser::~CBouncerUser() {
 		m_IRC->Kill("fish go moo.");
 
 	delete m_Log;
+
+	delete m_Keys;
 
 	free(m_BadLogins);
 }
@@ -662,4 +667,8 @@ CTrafficStats* CBouncerUser::GetClientStats(void) {
 
 CTrafficStats* CBouncerUser::GetIRCStats(void) {
 	return m_IRCStats;
+}
+
+CKeyring* CBouncerUser::GetKeyring(void) {
+	return m_Keys;
 }

@@ -29,6 +29,7 @@ class CIRCConnection;
 class CBouncerConfig;
 class CBouncerLog;
 class CTrafficStats;
+class CKeyring;
 
 typedef struct badlogin_s {
 	sockaddr_in ip;
@@ -59,6 +60,8 @@ class CBouncerUser {
 
 	CTrafficStats* m_ClientStats;
 	CTrafficStats* m_IRCStats;
+
+	CKeyring* m_Keys;
 
 	void UpdateHosts(void);
 public:
@@ -133,6 +136,8 @@ public:
 
 	virtual CTrafficStats* GetClientStats(void);
 	virtual CTrafficStats* GetIRCStats(void);
+
+	virtual CKeyring* GetKeyring(void);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

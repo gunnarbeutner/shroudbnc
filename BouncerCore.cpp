@@ -118,6 +118,13 @@ CBouncerCore::~CBouncerCore() {
 	if (m_Listener != INVALID_SOCKET)
 		closesocket(m_Listener);
 
+	for (int a = 0; a < m_ModuleCount; a++) {
+		if (m_Modules[a])
+			delete m_Modules[a];
+	}
+
+	free(m_Modules);
+
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i])
 			delete m_Users[i];
@@ -133,13 +140,6 @@ CBouncerCore::~CBouncerCore() {
 	}
 
 	free(m_OtherSockets);
-
-	for (int a = 0; a < m_ModuleCount; a++) {
-		if (m_Modules[a])
-			delete m_Modules[a];
-	}
-
-	free(m_Modules);
 
 	delete m_Log;
 	delete m_Ident;

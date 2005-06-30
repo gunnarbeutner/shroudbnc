@@ -32,6 +32,7 @@
 #include "Channel.h"
 #include "Hashtable.h"
 #include "Nick.h"
+#include "Keyring.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -610,6 +611,17 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				free(m_Nick);
 				m_Nick = strdup(argv[1]);
 				m_Owner->GetConfig()->WriteString("user.nick", argv[1]);
+			}
+		} else if (argc > 1 && strcmpi(Command, "join") == 0) {
+			CIRCConnection* IRC;
+			const char* Key;
+
+			if (argc > 2 && strstr(argv[0], ",") == NULL && strstr(argv[1], ",") == NULL)
+				m_Owner->GetKeyring()->AddKey(argv[1], argv[2]);
+			else if ((Key = m_Owner->GetKeyring()->GetKey(argv[1])) && (IRC = m_Owner->GetIRCConnection())) {
+				IRC->WriteLine("JOIN %s %s", argv[1], Key);
+
+				return false;
 			}
 		} else if (strcmpi(Command, "whois") == 0) {
 			if (argc >= 2) {

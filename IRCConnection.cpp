@@ -33,8 +33,9 @@
 #include "Nick.h"
 #include "Queue.h"
 #include "FloodControl.h"
-#include "utility.h"
 #include "TrafficStats.h"
+#include "Keyring.h"
+#include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -747,8 +748,37 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 void CIRCConnection::JoinChannels(void) {
 	const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
 
-	if (Chans && *Chans)
-		WriteLine("JOIN %s", Chans);
+	// TODO: Support keyrings
+
+	if (Chans && *Chans) {
+		char* dup = strdup(Chans);
+		char* tok = strtok(dup, ",");
+		char* Keys = NULL;
+		CKeyring* Keyring = m_Owner->GetKeyring();
+
+		while (tok) {
+			const char* Key = Keyring->GetKey(tok);
+
+			if (Key) {
+				bool Valid = (Keys != NULL);
+
+				Keys = (char*)realloc(Keys, (Keys ? strlen(Keys) : 0) + strlen(Key) + 2);
+				
+				if (Valid)
+					strcat(Keys, ",");
+				else
+					*Keys = '\0';
+
+				strcat(Keys, Key);
+			}
+
+			tok = strtok(NULL, ",");
+		}
+
+		free(dup);
+
+		WriteLine(Keys ? "JOIN %s %s" : "JOIN %s", Chans, Keys);
+	}
 
 	m_DelayJoin = 0;
 }
