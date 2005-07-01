@@ -103,6 +103,9 @@ void internalsocketwriteln(int Socket, const char* Line);
 int internalconnect(const char* Host, unsigned short Port);
 void internalclosesocket(int Socket);
 
+void bncdisconnect(const char* Reason);
+void bnckill(const char* Reason);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

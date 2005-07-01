@@ -48,6 +48,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_Nicks = new CHashtable<CNick*, false>();
 	m_Nicks->RegisterValueDestructor(DestroyCNick);
 	m_HasNames = false;
+	m_ModesValid = false;
 }
 
 CChannel::~CChannel() {
@@ -134,6 +135,9 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 					Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, pargv[p]);
 				}
 			}
+
+			if (flip && Cur == 'o' && strcmpi(pargv[p], m_Owner->GetCurrentNick()) == 0)
+				SetModesValid(false);
 
 			p++;
 
@@ -300,4 +304,13 @@ void CChannel::ClearModes(void) {
 			}
 		}
 	}
+}
+
+
+bool CChannel::AreModesValid(void) {
+	return m_ModesValid;
+}
+
+void CChannel::SetModesValid(bool Valid) {
+	m_ModesValid = Valid;
 }

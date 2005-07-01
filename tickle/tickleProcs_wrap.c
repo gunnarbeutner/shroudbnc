@@ -2083,6 +2083,46 @@ _wrap_internalclosesocket(ClientData clientData, Tcl_Interp *interp, int objc, T
 
 
 static int
+_wrap_bncdisconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:bncdisconnect Reason ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            bncdisconnect((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bnckill(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:bnckill Reason ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            bnckill((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -2579,6 +2619,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
     { SWIG_prefix "internalconnect", (swig_wrapper_func) _wrap_internalconnect, NULL},
     { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
+    { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
+    { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -806,6 +806,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.delayjoin", Value);
 	else if (strcmpi(Type, "away") == 0)
 		Context->GetConfig()->WriteString("user.away", Value);
+	else if (strcmp(Type, "password") == 0)
+		Context->SetPassword(Value);
 	else if (strcmpi(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();
@@ -821,7 +823,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 
 		free(Buf);
 	} else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password";
 
 
 	return 1;
@@ -1443,4 +1445,33 @@ bool bnccheckpassword(const char* User, const char* Password) {
 		return false;
 
 	return Context->Validate(Password);
+}
+
+void bncdisconnect(const char* Reason) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return;
+
+	CIRCConnection* Irc = Context->GetIRCConnection();
+
+	if (!Irc)
+		return;
+
+	Irc->Kill(Reason);
+	Context->MarkQuitted();
+}
+
+void bnckill(const char* Reason) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return;
+
+	CClientConnection* Client = Context->GetClientConnection();
+
+	if (!Client)
+		return;
+
+	Client->Kill(Reason);
 }

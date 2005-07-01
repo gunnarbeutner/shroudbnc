@@ -45,6 +45,7 @@ class CChannel {
 	char* m_TopicNick;
 	time_t m_TopicStamp;
 	int m_HasTopic;
+	bool m_ModesValid;
 
 	time_t m_Creation;
 
@@ -89,6 +90,8 @@ public:
 	virtual CHashtable<CNick*, false>* GetNames(void);
 
 	virtual void ClearModes(void);
+	virtual bool AreModesValid(void);
+	virtual void SetModesValid(bool Valid);
 };
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

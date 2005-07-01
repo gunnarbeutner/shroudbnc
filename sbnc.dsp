@@ -127,6 +127,10 @@ SOURCE=.\IRCConnection.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Keyring.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Match.cpp
 # End Source File
 # Begin Source File
@@ -226,6 +230,10 @@ SOURCE=.\IdentSupport.h
 # Begin Source File
 
 SOURCE=.\IRCConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Keyring.h
 # End Source File
 # Begin Source File
 

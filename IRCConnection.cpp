@@ -323,6 +323,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (Chan) {
 			Chan->ClearModes();
 			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
+			Chan->SetModesValid(true);
 		}
 	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
 		CChannel* Chan = GetChannel(argv[2]);
@@ -747,8 +748,6 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 
 void CIRCConnection::JoinChannels(void) {
 	const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
-
-	// TODO: Support keyrings
 
 	if (Chans && *Chans) {
 		char* dup = strdup(Chans);
