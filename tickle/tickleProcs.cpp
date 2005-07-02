@@ -47,6 +47,7 @@ static char* g_Context = NULL;
 binding_t* g_Binds = NULL;
 int g_BindCount = 0;
 extern bool g_Ret;
+extern bool g_NoticeUser;
 
 extern "C" int Bnc_Init(Tcl_Interp*);
 
@@ -1474,4 +1475,16 @@ void bnckill(const char* Reason) {
 		return;
 
 	Client->Kill(Reason);
+}
+
+void bncreply(const char* Text) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return;
+
+	if (g_NoticeUser)
+		Context->RealNotice(Text);
+	else
+		Context->Notice(Text);
 }

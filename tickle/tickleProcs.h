@@ -95,6 +95,8 @@ void debugout(const char* String);
 
 int internalgetchanidle(const char* Nick, const char* Channel);
 
+void bncreply(const char* Text);
+
 int trafficstats(const char* User, const char* ConnectionType = NULL, const char* Type = NULL);
 void bncjoinchans(const char* User);
 

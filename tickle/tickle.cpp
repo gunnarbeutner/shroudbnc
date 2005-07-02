@@ -42,6 +42,7 @@ CBouncerCore* g_Bouncer;
 Tcl_Interp* g_Interp;
 CTclSupport* g_Tcl;
 bool g_Ret;
+bool g_NoticeUser;
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -217,6 +218,8 @@ class CTclSupport : public CModuleFar {
 
 	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 		CBouncerUser* User = Client->GetOwningClient();
+
+		g_NoticeUser = NoticeUser;
 
 		if (argc > 1 && strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 			setctx(User->GetUsername());
