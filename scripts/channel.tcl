@@ -25,7 +25,7 @@ proc sbnc:channelflush {} {
 
 		foreach channel [channels] {
 			if {![botonchan $channel] && ![channel get $channel inactive]} {
-				puthelp "JOIN $channel"
+				simul [getctx] "JOIN $channel"
 			}
 		}
 	}
@@ -56,7 +56,7 @@ proc channel {option chan args} {
 		add {
 			set channels([string tolower $chan]) [join $args]
 
-			puthelp "JOIN $chan"
+			simul [getctx] "JOIN $chan"
 
 			return 1
 		}

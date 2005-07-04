@@ -35,6 +35,7 @@
 #include "FloodControl.h"
 #include "TrafficStats.h"
 #include "Keyring.h"
+#include "Banlist.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -413,6 +414,16 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Mask);
 
 		free(Mask);
+	} else if (argc > 6 && atoi(Raw) == 367) {
+		CChannel* Chan = GetChannel(argv[3]);
+
+		if (Chan)
+			Chan->GetBanlist()->SetBan(argv[4], argv[5], atoi(argv[6]));
+	} else if (argc > 1 && atoi(Raw) == 368) {
+		CChannel* Chan = GetChannel(argv[3]);
+
+		if (Chan)
+			Chan->SetHasBans();
 	} else if (argc > 3 && strcmpi(Raw, "PONG") == 0 && strcmpi(argv[3], "sbnc") == 0) {
 		return false;
 	}

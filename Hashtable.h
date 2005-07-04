@@ -56,18 +56,23 @@ public:
 	}
 
 	virtual void Add(const char* Name, value_type Value) {
+		// todo: find valid 'Name' first?
 		for (int i = 0; i < m_PairCount; i++) {
-			if (!m_Pairs[i].Valid) {
-				m_Pairs[i].Name = strdup(Name);
-				m_Pairs[i].Value = Value;
-				m_Pairs[i].Valid = true;
-
-				return;
-			} else if ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0)) {
+			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
 				if (m_DestructorFunc)
 					m_DestructorFunc(m_Pairs[i].Value);
 
 				m_Pairs[i].Value = Value;
+
+				return;
+			}
+		}
+
+		for (int a = 0; a < m_PairCount; a++) {
+			if (!m_Pairs[a].Valid) {
+				m_Pairs[a].Name = strdup(Name);
+				m_Pairs[a].Value = Value;
+				m_Pairs[a].Valid = true;
 
 				return;
 			}

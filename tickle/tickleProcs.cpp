@@ -39,6 +39,7 @@
 #include "../Module.h"
 #include "../utility.h"
 #include "../TrafficStats.h"
+#include "../Banlist.h"
 #include "TclSocket.h"
 #include "TclClientSocket.h"
 
@@ -1487,4 +1488,57 @@ void bncreply(const char* Text) {
 		Context->RealNotice(Text);
 	else
 		Context->Notice(Text);
+}
+
+char* chanbans(const char* Channel) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return NULL;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return NULL;
+
+	CChannel* Chan = IRC->GetChannel(Channel);
+
+	if (!Chan)
+		return NULL;
+
+	CBanlist* Banlist = Chan->GetBanlist();
+
+	char** Blist = NULL;
+	int Bcount = 0;
+
+	int i = 0;
+	while (const ban_t* Ban = Banlist->Iterate(i)) {
+		char TS[20];
+
+		sprintf(TS, "%d", Ban->TS);
+
+		char* ThisBan[3] = { Ban->Mask, Ban->Nick, TS };
+
+		char* List = Tcl_Merge(3, ThisBan);
+
+		Blist = (char**)realloc(Blist, ++Bcount * sizeof(char*));
+
+		Blist[Bcount - 1] = List;
+
+		i++;
+	}
+
+	static char* AllBans = NULL;
+
+	if (AllBans)
+		Tcl_Free(AllBans);
+
+	AllBans = Tcl_Merge(Bcount, Blist);
+
+	for (int a = 0; a < Bcount; a++)
+		Tcl_Free(Blist[a]);
+
+	free(Blist);
+
+	return AllBans;
 }

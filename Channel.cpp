@@ -30,6 +30,7 @@
 #include "ModuleFar.h"
 #include "Module.h"
 #include "BouncerCore.h"
+#include "Banlist.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -49,6 +50,8 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_Nicks->RegisterValueDestructor(DestroyCNick);
 	m_HasNames = false;
 	m_ModesValid = false;
+	m_Banlist = new CBanlist();
+	m_HasBans = false;
 }
 
 CChannel::~CChannel() {
@@ -66,6 +69,8 @@ CChannel::~CChannel() {
 	}
 
 	free(m_Modes);
+
+	delete m_Banlist;
 }
 
 const char* CChannel::GetName(void) {
@@ -148,6 +153,13 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 
 		int ModeType = m_Owner->RequiresParameter(Cur);
 
+		if (Cur == 'b') {
+			if (flip)
+				m_Banlist->SetBan(pargv[p], source, time(NULL));
+			else
+				m_Banlist->UnsetBan(pargv[p]);
+		}
+
 		for (int i = 0; i < Count; i++) {
 			if (Modules[i]) {
 				Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, ((flip && ModeType) || (!flip && ModeType && ModeType != 1)) ? pargv[p] : NULL);
@@ -172,10 +184,10 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 				free(Slot->Parameter);
 
 				Slot->Parameter = NULL;
-
-				if (ModeType && ModeType != 1)
-					p++;
 			}
+
+			if (ModeType && ModeType != 1)
+				p++;
 		}
 	}
 }
@@ -313,4 +325,16 @@ bool CChannel::AreModesValid(void) {
 
 void CChannel::SetModesValid(bool Valid) {
 	m_ModesValid = Valid;
+}
+
+CBanlist* CChannel::GetBanlist(void) {
+	return m_Banlist;
+}
+
+void CChannel::SetHasBans(void) {
+	m_HasBans = true;
+}
+
+bool CChannel::HasBans(void) {
+	return m_HasBans;
 }

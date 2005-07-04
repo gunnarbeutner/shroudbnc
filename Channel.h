@@ -33,6 +33,7 @@ typedef struct chanmode_s {
 
 class CNick;
 template <typename value_type, bool casesensitive> class CHashtable;
+class CBanlist;
 
 class CChannel {
 	char* m_Name;
@@ -46,6 +47,7 @@ class CChannel {
 	time_t m_TopicStamp;
 	int m_HasTopic;
 	bool m_ModesValid;
+	bool m_HasBans;
 
 	time_t m_Creation;
 
@@ -54,6 +56,8 @@ class CChannel {
 	bool m_HasNames;
 
 	CIRCConnection* m_Owner;
+
+	CBanlist* m_Banlist;
 
 	chanmode_t* AllocSlot(void);
 	chanmode_t* FindSlot(char Mode);
@@ -92,6 +96,10 @@ public:
 	virtual void ClearModes(void);
 	virtual bool AreModesValid(void);
 	virtual void SetModesValid(bool Valid);
+
+	virtual CBanlist* GetBanlist(void);
+	virtual void SetHasBans(void);
+	virtual bool HasBans(void);
 };
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

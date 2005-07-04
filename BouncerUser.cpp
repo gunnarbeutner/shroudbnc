@@ -66,7 +66,6 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	assert(m_Log != NULL);
 
-	m_Locked = false;
 	m_Quitted = false;
 
 	m_BadLogins = NULL;
@@ -143,7 +142,7 @@ bool CBouncerUser::IsConnectedToIRC(void) {
 void CBouncerUser::Attach(CClientConnection* Client) {
 	char Out[1024];
 
-	if (m_Locked) {
+	if (IsLocked()) {
 		Client->Kill("You cannot attach to this user.");
 		return;
 	}
@@ -385,11 +384,11 @@ void CBouncerUser::Log(const char* Format, ...) {
 
 
 void CBouncerUser::Lock(void) {
-	m_Locked = true;
+	m_Config->WriteInteger("user.lock", 1);
 }
 
 void CBouncerUser::Unlock(void) {
-	m_Locked = false;
+	m_Config->WriteInteger("user.lock", 0);
 }
 
 void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
@@ -514,7 +513,7 @@ int CBouncerUser::GetPort(void) {
 }
 
 bool CBouncerUser::IsLocked(void) {
-	return m_Locked;
+	return m_Config->ReadInteger("user.lock") != 0;
 }
 
 void CBouncerUser::SetNick(const char* Nick) {

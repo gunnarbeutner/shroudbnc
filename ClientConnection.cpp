@@ -33,6 +33,7 @@
 #include "Hashtable.h"
 #include "Nick.h"
 #include "Keyring.h"
+#include "Banlist.h"
 #include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -692,11 +693,26 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel* Chan = IRC->GetChannel(argv[2]);
 
-					if (Chan && Chan->AreModesValid()) {
-						WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChanModes());
-						WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
-					} else
-						IRC->WriteLine("MODE %s", argv[2]);
+					if (argc == 3) {
+						if (Chan && Chan->AreModesValid()) {
+							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChanModes());
+							WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
+						} else
+							IRC->WriteLine("MODE %s", argv[2]);
+					} else if (argc == 4 && strcmp(argv[3],"+b") == 0) {
+						if (Chan && Chan->HasBans()) {
+							CBanlist* Bans = Chan->GetBanlist();
+
+							int i = 0; 
+
+							while (const ban_t* Ban = Bans->Iterate(i++)) {
+								WriteLine(":%s 367 %s %s %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Ban->Mask, Ban->Nick, Ban->TS);
+							}
+
+							WriteLine(":%s 368 %s %s :End of Channel Ban List", IRC->GetServer(), IRC->GetCurrentNick(), argv[2]);
+						} else
+							IRC->WriteLine("MODE %s +b", argv[2]);
+					}
 				}
 			} else if (strcmpi(argv[1], "topic") == 0 && argc > 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
@@ -815,8 +831,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			return false;
 		} else if (strcmpi(Command, "mode") == 0 || strcmpi(Command, "topic") == 0 || strcmpi(Command, "names") == 0) {
-			if (argc == 2) {
-				snprintf(Out, sizeof(Out), "SYNTH %s %s", argv[0], argv[1]);
+			if (argc == 2 || (strcmpi(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
+				snprintf(Out, sizeof(Out), argc == 2 ? "SYNTH %s %s" : "SYNTH %s %s %s", argv[0], argv[1], argv[2]);
 				ParseLine(Out);
 
 				return false;

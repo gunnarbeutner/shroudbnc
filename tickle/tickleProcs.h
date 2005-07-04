@@ -108,6 +108,8 @@ void internalclosesocket(int Socket);
 void bncdisconnect(const char* Reason);
 void bnckill(const char* Reason);
 
+char* chanbans(const char* Channel);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);
