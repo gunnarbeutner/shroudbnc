@@ -105,6 +105,8 @@ CIRCConnection::~CIRCConnection() {
 	delete m_QueueMiddle;
 	delete m_QueueHigh;
 	delete m_FloodControl;
+
+	g_Bouncer->UnregisterSocket(m_Socket);
 }
 
 connection_role_e CIRCConnection::GetRole(void) {

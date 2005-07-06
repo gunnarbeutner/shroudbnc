@@ -48,25 +48,14 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 	m_Peer = Peer;
 	m_PeerName = NULL;
 
-	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** shroudBNC" BNCVERSION);
-	InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Looking up your hostname");
+	if (Client != INVALID_SOCKET) {
+		InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** shroudBNC" BNCVERSION);
+		InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Looking up your hostname");
 
-//#ifdef ASYNC_DNS
-	adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
+		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
 
-	m_PeerName = NULL;
-//#else
-//	hostent* hent = gethostbyaddr((const char*)&Peer.sin_addr, sizeof(in_addr), AF_INET);
-//
-//	if (hent)
-//		m_PeerName = strdup(hent->h_name);
-//	else
-//		m_PeerName = strdup(inet_ntoa(Peer.sin_addr));
-//
-//	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", m_PeerName);
-//#endif
-
-	g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
+		g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
+	}
 }
 
 CClientConnection::~CClientConnection() {
@@ -74,6 +63,11 @@ CClientConnection::~CClientConnection() {
 	free(m_Password);
 	free(m_Username);
 	free(m_PeerName);
+
+	if (!m_PeerName && m_Socket != INVALID_SOCKET)
+		adns_cancel(m_PeerA);
+
+	g_Bouncer->UnregisterSocket(m_Socket);
 }
 
 connection_role_e CClientConnection::GetRole(void) {
@@ -908,9 +902,9 @@ void CClientConnection::Destroy(void) {
 	if (m_Owner) {
 		g_Bouncer->Log("%s disconnected.", m_Username);
 		m_Owner->SetClientConnection(NULL);
-
-		delete this;
 	}
+
+	delete this;
 }
 
 void CClientConnection::SetOwner(CBouncerUser* Owner) {
@@ -960,4 +954,14 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 
 const char* CClientConnection::ClassName(void) {
 	return "CClientConnection";
+}
+
+bool CClientConnection::Read(void) {
+	bool Ret = CConnection::Read();
+
+	if (Ret && recvq_size > 5120) {
+		Kill("RecvQ exceeded.");
+	}
+
+	return Ret;
 }

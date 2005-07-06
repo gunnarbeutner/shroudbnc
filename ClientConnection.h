@@ -37,7 +37,7 @@ class CClientConnection : public CConnection, CDnsEvents {
 	virtual bool ReadLine(char** Out);
 public:
 	CClientConnection(SOCKET Socket, sockaddr_in Peer);
-	virtual ~CClientConnection();
+	~CClientConnection();
 
 	virtual connection_role_e GetRole(void);
 
@@ -58,6 +58,7 @@ public:
 	virtual const char* GetPeerName(void);
 	virtual sockaddr_in GetPeer(void);
 
+	virtual bool Read(void);
 	virtual void Destroy(void);
 	virtual const char* ClassName(void);
 };

@@ -31,6 +31,8 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
+#define FD_SETSIZE 1024
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -42,12 +44,14 @@
 #include "snprintf.h"
 
 #ifdef _WIN32
+	#include "win32.h"
+
 	#include <windows.h>
 	#include <winsock2.h>
 	#include <assert.h>
-
-	#include "win32.h"
 #else
+	#include "unix.h"
+
 	#include <dlfcn.h>
 	#include <ctype.h>
 	#include <string.h>
@@ -63,8 +67,6 @@
 	#include <errno.h>
     #include <sys/resource.h>
 	#include <limits.h>
-
-	#include "unix.h"
 #endif
 
 #define ASYNC_DNS

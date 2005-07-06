@@ -525,10 +525,7 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	if (Password)
 		m_Users[m_UserCount - 1]->SetPassword(Password);
 
-	char Out[1024];
-
-	snprintf(Out, sizeof(Out), "New user created: %s", Username);
-	m_Log->WriteLine(Out);
+	g_Bouncer->Log("New user created: %s", Username);
 
 	UpdateUserConfig();
 
@@ -578,13 +575,23 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 }
 
 void CBouncerCore::UpdateUserConfig(void) {
-	char Out[1024] = "";
+	char* Out = NULL;
 
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i]) {
+			bool WasNull = false;
+
+			if (Out == NULL)
+				WasNull = true;
+
+			Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
+
+			if (WasNull)
+				*Out = '\0';
+
 			if (*Out) {
-				strncat(Out, " ", sizeof(Out));
-				strncat(Out, m_Users[i]->GetUsername(), sizeof(Out));
+				strcat(Out, " ");
+				strcat(Out, m_Users[i]->GetUsername());
 			} else {
 				strcpy(Out, m_Users[i]->GetUsername());
 			}
@@ -592,6 +599,8 @@ void CBouncerCore::UpdateUserConfig(void) {
 	}
 
 	m_Config->WriteString("system.users", Out);
+
+	free(Out);
 }
 
 time_t CBouncerCore::GetStartup(void) {

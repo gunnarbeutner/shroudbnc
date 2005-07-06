@@ -26,4 +26,4 @@ typedef int socklen_t;
 
 typedef void (sighandler_t)(int);
 
-#define MAX_SOCKETS 64
+#define MAX_SOCKETS 1024
