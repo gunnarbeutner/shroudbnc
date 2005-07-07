@@ -28,8 +28,10 @@ class CBouncerConfig;
 
 class CKeyring {
 public:
+#ifndef SWIG
 	CKeyring(CBouncerConfig* Config);
-	virtual ~CKeyring(void);
+	~CKeyring(void);
+#endif
 
 	virtual const char* GetKey(const char* Channel);
 	virtual void AddKey(const char* Channel, const char* Key);

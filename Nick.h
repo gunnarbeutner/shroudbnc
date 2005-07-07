@@ -25,9 +25,6 @@
 #endif // _MSC_VER > 1000
 
 class CNick;
-
-void DestroyCNick(CNick* P);
-
 class CBouncerConfig;
 
 class CNick {
@@ -38,8 +35,10 @@ class CNick {
 	time_t m_IdleSince;
 	CBouncerConfig* m_Tags;
 public:
+#ifndef SWIG
 	CNick(const char* Nick);
-	virtual ~CNick();
+	~CNick(void);
+#endif
 
 	virtual const char* GetNick(void);
 	virtual void SetNick(const char* Nick);
@@ -65,6 +64,8 @@ public:
 	virtual const char* GetTag(const char* Name);
 };
 
+#ifndef SWIG
 void DestroyCNick(CNick* P);
+#endif
 
 #endif // !defined(AFX_NICK_H__2D11FD8C_472A_4623_AA6D_4C87F5F8C170__INCLUDED_)

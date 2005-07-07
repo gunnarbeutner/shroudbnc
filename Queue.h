@@ -34,8 +34,10 @@ class CQueue {
 	queue_item_t* m_Items;
 	int m_ItemCount;
 public:
-	CQueue();
-	virtual ~CQueue();
+#ifndef SWIG
+	CQueue(void);
+	~CQueue(void);
+#endif
 
 	virtual char* DequeueItem(void);
 	virtual const char* PeekItem(void);

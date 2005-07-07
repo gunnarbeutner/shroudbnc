@@ -72,8 +72,10 @@ class CBouncerCore {
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
 public:
+#ifndef SWIG
 	CBouncerCore(CBouncerConfig* Config, int argc, char** argv);
-	virtual ~CBouncerCore();
+	~CBouncerCore(void);
+#endif
 
 	virtual void StartMainLoop(void);
 
@@ -130,7 +132,7 @@ public:
 
 extern CBouncerCore* g_Bouncer;
 
-#ifdef ASYNC_DNS
+#ifndef SWIG
 extern adns_state g_adns_State;
 #endif
 

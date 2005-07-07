@@ -31,8 +31,10 @@ class CModule : public CModuleFar {
 	char* m_File;
 	CModuleFar* m_Far;
 public:
+#ifndef SWIG
 	CModule(const char* Filename);
-	virtual ~CModule();
+	~CModule(void);
+#endif
 
 	virtual CModuleFar* GetModule(void);
 	virtual const char* GetFilename(void);

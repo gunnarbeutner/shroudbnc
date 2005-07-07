@@ -65,8 +65,10 @@ class CBouncerUser {
 
 	void UpdateHosts(void);
 public:
+#ifndef SWIG
 	CBouncerUser(const char* Name);
-	virtual ~CBouncerUser(void);
+	~CBouncerUser(void);
+#endif
 
 	virtual SOCKET GetIRCSocket(void);
 	virtual CClientConnection* GetClientConnection(void);
@@ -106,7 +108,7 @@ public:
 	virtual bool IsLocked(void);
 
 	virtual void SetIRCConnection(CIRCConnection* IRC);
-	void SetClientConnection(CClientConnection* Client, bool DontSetAway = false);
+	virtual void SetClientConnection(CClientConnection* Client, bool DontSetAway = false);
 
 	virtual void SetAdmin(bool Admin = true);
 	virtual bool IsAdmin(void);

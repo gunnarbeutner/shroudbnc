@@ -17,13 +17,15 @@ typedef struct ban_s {
 
 class CBanlist {
 public:
+#ifndef SWIG
 	CBanlist();
 	virtual ~CBanlist();
+#endif
 
 	virtual void SetBan(const char* Mask, const char* Nick, time_t TS);
 	virtual void UnsetBan(const char* Mask);
 
-	const ban_t* CBanlist::GetBan(const char* Mask);
+	virtual const ban_t* CBanlist::GetBan(const char* Mask);
 	virtual const ban_t* Iterate(int Skip);
 private:
 	CHashtable<ban_t*, false>* m_Bans;

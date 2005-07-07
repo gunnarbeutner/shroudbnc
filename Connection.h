@@ -38,8 +38,10 @@ class CConnection : public CSocketEvents {
 	friend class CBouncerCore;
 	friend class CBouncerUser;
 public:
+#ifndef SWIG
 	CConnection(SOCKET Client, sockaddr_in Peer);
-	virtual ~CConnection();
+	~CConnection(void);
+#endif
 
 	virtual SOCKET GetSocket(void);
 	virtual CBouncerUser* GetOwningClient(void);

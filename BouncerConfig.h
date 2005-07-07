@@ -44,8 +44,10 @@ class CBouncerConfig {
 	void ParseConfig(const char* Filename);
 	void Persist(void);
 public:
+#ifndef SWIG
 	CBouncerConfig(const char* Filename);
-	virtual ~CBouncerConfig();
+	~CBouncerConfig(void);
+#endif
 
 	virtual int ReadInteger(const char* Setting);
 	virtual const char* ReadString(const char* Setting);

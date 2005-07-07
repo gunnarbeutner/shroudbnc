@@ -62,8 +62,10 @@ class CChannel {
 	chanmode_t* AllocSlot(void);
 	chanmode_t* FindSlot(char Mode);
 public:
+#ifndef SWIG
 	CChannel(const char* Name, CIRCConnection* Owner);
-	virtual ~CChannel();
+	~CChannel(void);
+#endif
 
 	virtual const char* GetName(void);
 

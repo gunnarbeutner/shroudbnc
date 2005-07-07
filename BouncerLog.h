@@ -29,8 +29,10 @@ class CBouncerUser;
 class CBouncerLog {
 	char* m_File;
 public:
+#ifndef SWIG
 	CBouncerLog(const char* Filename);
-	virtual ~CBouncerLog();
+	~CBouncerLog(void);
+#endif
 
 	virtual void Clear(void);
 	virtual void InternalWriteLine(const char* Line);

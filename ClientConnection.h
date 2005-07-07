@@ -24,7 +24,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class CClientConnection : public CConnection, CDnsEvents {
+class CClientConnection : public CConnection, public CDnsEvents {
 	char* m_Nick;
 	char* m_Password;
 	char* m_Username;
@@ -36,8 +36,10 @@ class CClientConnection : public CConnection, CDnsEvents {
 	void ValidateUser(void);
 	virtual bool ReadLine(char** Out);
 public:
+#ifndef SWIG
 	CClientConnection(SOCKET Socket, sockaddr_in Peer);
-	~CClientConnection();
+	~CClientConnection(void);
+#endif
 
 	virtual connection_role_e GetRole(void);
 

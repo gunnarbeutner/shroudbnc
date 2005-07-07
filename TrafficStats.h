@@ -11,8 +11,10 @@
 
 class CTrafficStats {
 public:
-	CTrafficStats();
-	virtual ~CTrafficStats();
+#ifndef SWIG
+	CTrafficStats(void);
+	~CTrafficStats(void);
+#endif
 
 	virtual void AddInbound(unsigned int Bytes);
 	virtual unsigned int GetInbound(void);

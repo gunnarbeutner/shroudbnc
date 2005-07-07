@@ -44,7 +44,7 @@ public:
 		m_DestructorFunc = NULL;
 	}
 
-	virtual ~CHashtable() {
+	~CHashtable() {
 		for (int i = 0; i < m_PairCount; i++) {
 			if (m_DestructorFunc && m_Pairs[i].Valid) {
 				m_DestructorFunc(m_Pairs[i].Value);
