@@ -67,8 +67,10 @@ class CIRCConnection : public CConnection {
 
 	bool ModuleEvent(int argc, const char** argv);
 public:
+#ifndef SWIG
 	CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning);
-	virtual ~CIRCConnection();
+	~CIRCConnection();
+#endif
 
 	virtual void Write(void);
 	virtual bool HasQueuedData(void);
