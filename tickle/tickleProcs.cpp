@@ -48,7 +48,7 @@ static char* g_Context = NULL;
 binding_t* g_Binds = NULL;
 int g_BindCount = 0;
 
-timer_t** g_Timers = NULL;
+tcltimer_t** g_Timers = NULL;
 int g_TimerCount = 0;
 
 extern Tcl_Interp* g_Interp;
@@ -1546,7 +1546,7 @@ char* chanbans(const char* Channel) {
 }
 
 bool TclTimerProc(time_t Now, void* RawCookie) {
-	timer_t* Cookie = (timer_t*)RawCookie;
+	tcltimer_t* Cookie = (tcltimer_t*)RawCookie;
 
 	Tcl_Obj* objv[2];
 	int objc;
@@ -1587,8 +1587,8 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 			return 0;
 	}
 
-	g_Timers = (timer_t**)realloc(g_Timers, sizeof(timer_t) * ++g_TimerCount);
-	g_Timers[g_TimerCount - 1] = (timer_t*)malloc(sizeof(timer_t));
+	g_Timers = (tcltimer_t**)realloc(g_Timers, sizeof(tcltimer_t) * ++g_TimerCount);
+	g_Timers[g_TimerCount - 1] = (tcltimer_t*)malloc(sizeof(tcltimer_t));
 
 	g_Timers[g_TimerCount - 1]->valid = true;
 	g_Timers[g_TimerCount - 1]->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, g_Timers[g_TimerCount - 1]);

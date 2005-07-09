@@ -49,15 +49,15 @@ extern int g_BindCount;
 
 class CTimer;
 
-typedef struct timer_s {
+typedef struct tcltimer_s {
 	bool valid;
 	CTimer* timer;
 	char* proc;
 	bool repeat;
 	char* param;
-} timer_t;
+} tcltimer_t;
 
-extern timer_t** g_Timers;
+extern tcltimer_t** g_Timers;
 extern int g_TimerCount;
 
 class CTclSocket;
