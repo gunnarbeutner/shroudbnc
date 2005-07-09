@@ -17,37 +17,50 @@
 
 package require bnc 0.2
 
-internalbind pulse sbnc:tcltimers
+proc sbnc:runthistimer {cookie} {
+	set user [lindex $cookie 0]
+	set timerID [lindex $cookie 1]
 
-# entry point to sbnc's timer system
-proc sbnc:tcltimers {time} {
-	foreach user [bncuserlist] {
-		setctx $user
+	setctx $user
 
-		namespace eval [getns] {
-			if {![info exists utimers]} { set utimers "" }
-			if {![info exists timers]} { set timers "" }
-		}
-
-		upvar [getns]::utimers utimers
-		upvar [getns]::timers timers
-
-		foreach timer $utimers {
-			if {$time > [lindex $timer 0]} {
-				catch {eval [lindex $timer 1]}
-				setctx $user
-				killutimer [lindex $timer 2]
-			}
-		}
-
-		foreach timer $timers {
-			if {$time > [lindex $timer 0]} {
-				catch {eval [lindex $timer 1]}
-				setctx $user
-				killtimer [lindex $timer 2]
-			}
-		}
+	namespace eval [getns] {
+		if {![info exists timers]} { set timers "" }
 	}
+
+	upvar [getns]::timers timers
+
+	set idx [lsearch $timers "* $timerID"]
+
+	if {$idx == 1} { return }
+
+	set timer [lindex $timers $idx]
+
+	catch {eval [lindex $timer 1]}
+
+	killtimer $timerID
+}
+
+proc sbnc:runthisutimer {cookie} {
+	set user [lindex $cookie 0]
+	set timerID [lindex $cookie 1]
+
+	setctx $user
+
+	namespace eval [getns] {
+		if {![info exists utimers]} { set utimers "" }
+	}
+
+	upvar [getns]::utimers utimers
+
+	set idx [lsearch $utimers "* $timerID"]
+
+	if {$idx == 1} { return }
+
+	set timer [lindex $utimers $idx]
+
+	catch {eval [lindex $timer 1]}
+
+	killutimer $timerID
 }
 
 proc timer {minutes tclcommand} {
@@ -66,6 +79,8 @@ proc timer {minutes tclcommand} {
 	set timer [list $time $tclcommand $id]
 
 	lappend timers $timer
+
+	internaltimer [expr $minutes * 60] 0 sbnc:runthistimer [list [getctx] $id]
 
 	return $id
 }
@@ -86,6 +101,8 @@ proc utimer {seconds tclcommand} {
 	set timer [list $time $tclcommand $id]
 
 	lappend utimers $timer
+
+	internaltimer $seconds 0 sbnc:runthisutimer [list [getctx] $id]
 
 	return $id
 }

@@ -24,7 +24,7 @@ foreach user [split $::account354] {
 	bind raw - 354 auth:raw354
 }
 
-internalbind pulse auth:pulse
+internaltimer 5 1 auth:pulse
 
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {
@@ -112,8 +112,10 @@ proc auth:raw354 {source raw text} {
 	}
 }
 
-proc auth:pulse {time} {
+proc auth:pulse {} {
 	global account354
+
+	set time [unixtime]
 
 	foreach user [split $account354] {
 		setctx $user

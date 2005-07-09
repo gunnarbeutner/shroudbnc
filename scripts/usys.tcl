@@ -778,16 +778,14 @@ proc finduser {args} {
 
 }
 
-internalbind pulse sbnc:userpulse
+internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
 
-proc sbnc:userpulse {time} {
- 	if {[expr $time % 300] == 0} {
-		foreach user [bncuserlist] {
- 			setctx $user
- 			save
-  		}
- 	}
+proc sbnc:userpulse {} {
+	foreach user [bncuserlist] {
+		setctx $user
+		save
+	}
 }
 
 proc sbnc:userunload { } {

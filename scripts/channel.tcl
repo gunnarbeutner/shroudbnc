@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-internalbind pulse sbnc:channelpulse
+internaltimer 120 1 sbnc:channelflush
 internalbind unload sbnc:channelflush
 
 proc sbnc:channelflush {} {
@@ -28,12 +28,6 @@ proc sbnc:channelflush {} {
 				simul [getctx] "JOIN $channel"
 			}
 		}
-	}
-}
-
-proc sbnc:channelpulse {time} {
-	if {$time % 120 == 0} {
-		sbnc:channelflush
 	}
 }
 

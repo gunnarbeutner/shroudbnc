@@ -17,24 +17,22 @@
 
 # configuration variables: ::versionreply
 
-internalbind pulse sbnc:versionflood
+internaltimer 10 1 sbnc:versionflood
 
 foreach user [split $::versionreply] {
 	bind ctcp - version sbnc:ctcpversion
 }
 
-proc sbnc:versionflood {time} {
+proc sbnc:versionflood {} {
 	global versionreply
 
-	if {$time % 10 == 0} {
-		foreach user [split $versionreply] {
-			set flood [getbncuser $user tag flood]
+	foreach user [split $versionreply] {
+		set flood [getbncuser $user tag flood]
 
-			if {$flood != "" && $flood > 0} {
-				incr flood -1
+		if {$flood != "" && $flood > 0} {
+			incr flood -1
 
-				setbncuser $user tag flood $flood
-			}
+			setbncuser $user tag flood $flood
 		}
 	}
 }

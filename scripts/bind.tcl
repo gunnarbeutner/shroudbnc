@@ -20,7 +20,7 @@ internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect
 internalbind svrlogon sbnc:svrlogon
-internalbind pulse sbnc:bindpulse
+internaltimer 60 1 sbnc:bindpulse
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -42,9 +42,7 @@ proc sbnc:svrlogon {client} {
 	callevent "init-server"
 }
 
-proc sbnc:bindpulse {time} {
-	if {$time % 60 != 0} { return }
-
+proc sbnc:bindpulse {} {
 	foreach user [bncuserlist] {
 		setctx $user
 
