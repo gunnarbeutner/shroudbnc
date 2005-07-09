@@ -2103,6 +2103,55 @@ _wrap_internalclosesocket(ClientData clientData, Tcl_Interp *interp, int objc, T
 
 
 static int
+_wrap_internaltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    bool arg2 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
+    int result;
+    int tempb2 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ios|s:internaltimer Interval Repeat Proc ?Parameter? ",&arg1,NULL,&arg3,&arg4) == TCL_ERROR) SWIG_fail;
+    if (Tcl_GetIntFromObj(interp,objv[2],&tempb2) == TCL_ERROR) SWIG_fail;
+    arg2 = tempb2 ? true : false;
+    {
+        try {
+            result = (int)internaltimer(arg1,arg2,(char const *)arg3,(char const *)arg4);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_internalkilltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s|s:internalkilltimer Proc ?Parameter? ",&arg1,&arg2) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)internalkilltimer((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_bncdisconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     
@@ -2661,6 +2710,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
     { SWIG_prefix "internalconnect", (swig_wrapper_func) _wrap_internalconnect, NULL},
     { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
+    { SWIG_prefix "internaltimer", (swig_wrapper_func) _wrap_internaltimer, NULL},
+    { SWIG_prefix "internalkilltimer", (swig_wrapper_func) _wrap_internalkilltimer, NULL},
     { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
     { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},
     { SWIG_prefix "chanbans", (swig_wrapper_func) _wrap_chanbans, NULL},

@@ -23,7 +23,6 @@ enum binding_type_e {
 	Type_Invalid,
 	Type_Client,
 	Type_Server,
-	Type_Pulse,
 	Type_PreScript,
 	Type_PostScript,
 	Type_Attach,
@@ -47,6 +46,19 @@ typedef struct binding_s {
 
 extern binding_t* g_Binds;
 extern int g_BindCount;
+
+class CTimer;
+
+typedef struct timer_s {
+	bool valid;
+	CTimer* timer;
+	char* proc;
+	bool repeat;
+	char* param;
+} timer_t;
+
+extern timer_t** g_Timers;
+extern int g_TimerCount;
 
 class CTclSocket;
 class CTclClientSocket;

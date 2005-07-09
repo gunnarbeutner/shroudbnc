@@ -105,6 +105,9 @@ void internalsocketwriteln(int Socket, const char* Line);
 int internalconnect(const char* Host, unsigned short Port);
 void internalclosesocket(int Socket);
 
+int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter = 0);
+int internalkilltimer(const char* Proc, const char* Parameter = 0);
+
 void bncdisconnect(const char* Reason);
 void bnckill(const char* Reason);
 

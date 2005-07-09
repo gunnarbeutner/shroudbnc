@@ -47,6 +47,12 @@ static char* g_Context = NULL;
 
 binding_t* g_Binds = NULL;
 int g_BindCount = 0;
+
+timer_t** g_Timers = NULL;
+int g_TimerCount = 0;
+
+extern Tcl_Interp* g_Interp;
+
 extern bool g_Ret;
 extern bool g_NoticeUser;
 
@@ -171,8 +177,6 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_Client;
 	else if (strcmpi(type, "server") == 0)
 		g_Binds[n].type = Type_Server;
-	else if (strcmpi(type, "pulse") == 0)
-		g_Binds[n].type = Type_Pulse;
 	else if (strcmpi(type, "pre") == 0)
 		g_Binds[n].type = Type_PreScript;
 	else if (strcmpi(type, "post") == 0)
@@ -217,8 +221,6 @@ int internalunbind(const char* type, const char* proc) {
 		bindtype = Type_Client;
 	else if (strcmpi(type, "server") == 0)
 		bindtype = Type_Server;
-	else if (strcmpi(type, "pulse") == 0)
-		bindtype = Type_Pulse;
 	else if (strcmpi(type, "pre") == 0)
 		bindtype = Type_PreScript;
 	else if (strcmpi(type, "post") == 0)
@@ -1541,4 +1543,76 @@ char* chanbans(const char* Channel) {
 	free(Blist);
 
 	return AllBans;
+}
+
+bool TclTimerProc(time_t Now, void* RawCookie) {
+	timer_t* Cookie = (timer_t*)RawCookie;
+
+	Tcl_Obj* objv[2];
+	int objc;
+
+	if (Cookie->param)
+		objc = 2;
+	else
+		objc = 1;
+
+	objv[0] = Tcl_NewStringObj(Cookie->proc, strlen(Cookie->proc));
+	Tcl_IncrRefCount(objv[0]);
+
+	if (Cookie->param) {
+		objv[1] = Tcl_NewStringObj(Cookie->param, strlen(Cookie->param));
+		Tcl_IncrRefCount(objv[1]);
+	}
+
+	Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+
+	if (Cookie->param) {
+		Tcl_DecrRefCount(objv[1]);
+	}
+
+	Tcl_DecrRefCount(objv[0]);
+
+	if (!Cookie->repeat) {
+		free(Cookie->proc);
+		free(Cookie->param);
+		Cookie->valid = false;
+	}
+
+	return true;
+}
+
+int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter) {
+	for (int i = 0; i < g_TimerCount; i++) {
+		if (g_Timers[i]->valid && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0))
+			return 0;
+	}
+
+	g_Timers = (timer_t**)realloc(g_Timers, sizeof(timer_t) * ++g_TimerCount);
+	g_Timers[g_TimerCount - 1] = (timer_t*)malloc(sizeof(timer_t));
+
+	g_Timers[g_TimerCount - 1]->valid = true;
+	g_Timers[g_TimerCount - 1]->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, g_Timers[g_TimerCount - 1]);
+	g_Timers[g_TimerCount - 1]->proc = strdup(Proc);
+	g_Timers[g_TimerCount - 1]->repeat = Repeat;
+
+	if (Parameter)
+		g_Timers[g_TimerCount - 1]->param = strdup(Parameter);
+	else
+		g_Timers[g_TimerCount - 1]->param = NULL;
+
+	return 1;
+}
+
+int internalkilltimer(const char* Proc, const char* Parameter) {
+	for (int i = 0; i < g_TimerCount; i++) {
+		if (g_Timers[i]->valid && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0)) {
+			g_Timers[i]->timer->Destroy();
+			free(g_Timers[i]->proc);
+			g_Timers[i]->valid = false;
+
+			return 1;
+		}
+	}
+
+	return 0;
 }
