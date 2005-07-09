@@ -49,6 +49,9 @@ time_t g_LastReconnect = 0;
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
 
+	m_TimerChain.next = NULL;
+	m_TimerChain.ptr = NULL;
+
 	g_Bouncer = this;
 
 	m_Config = Config;
@@ -196,7 +199,32 @@ void CBouncerCore::StartMainLoop(void) {
 	m_Running = true;
 	int m_ShutdownLoop = 5;
 
+	time_t Last = 0;
+	time_t LastCheck = 0;
+
 	while (m_Running || --m_ShutdownLoop) {
+		timerchain_t* current = &m_TimerChain;
+		time_t Now = time(NULL);
+		time_t Best = 0;
+		int SleepInterval = 0;
+
+		while (current && current->ptr) {
+			timerchain_t* next = current->next;
+
+			time_t NextCall = current->ptr->GetNextCall();
+
+			if (Now >= NextCall && Now > Last) {
+				current->ptr->Call(Now);
+				Best = Now + 1;
+			} else if (Best == 0 || NextCall < Best)
+				Best = NextCall;
+
+			current = next;
+		}
+
+		if (Best)
+			SleepInterval = Best - Now;
+
 		FD_ZERO(&FDRead);
 		FD_SET(m_Listener, &FDRead);
 
@@ -217,6 +245,15 @@ void CBouncerCore::StartMainLoop(void) {
 
 		int i;
 
+		if (LastCheck + 5 < Now) {
+			for (i = 0; i < m_UserCount; i++) {
+				if (m_Users[i]->ShouldReconnect())
+					m_Users[i]->ScheduleReconnect();
+			}
+
+			LastCheck = Now;
+		}
+
 		for (i = 0; i < m_OtherSocketCount; i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 				if (m_OtherSockets[i].Events->DoTimeout())
@@ -233,17 +270,14 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-		timeval interval = { 1, 0 };
+		if (SleepInterval <= 0)
+			SleepInterval = 1;
+
+		timeval interval = { SleepInterval, 0 };
+
+		Last = time(NULL);
 
 		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
-
-		int now = time(NULL);
-
-		if (now > last) {
-			last = now;
-
-			Pulse(now);
-		}
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
@@ -347,30 +381,6 @@ void CBouncerCore::GlobalNotice(const char* Text, bool AdminOnly) {
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i] && (!AdminOnly || m_Users[i]->IsAdmin()))
 			m_Users[i]->Notice(Text);
-	}
-}
-
-void CBouncerCore::Pulse(time_t Now) {
-	int i;
-	bool One = true;
-
-	for (i = 0; i < m_UserCount; i++) {
-		if (!m_Users[i])
-			continue;
-
-		m_Users[i]->Pulse(Now);
-
-		if (One && m_Users[i]->ShouldReconnect()) {
-			m_Users[i]->Reconnect();
-			One = false;
-		}
-	}
-
-	for (i = 0; i < m_ModuleCount; i++) {
-		if (!m_Modules[i])
-			continue;
-
-		m_Modules[i]->GetModule()->Pulse(Now);
 	}
 }
 
@@ -731,4 +741,48 @@ socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
 	}
 
 	return NULL;
+}
+
+CTimer* CBouncerCore::CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
+	return new CTimer(Interval, Repeat, Function, Cookie);
+}
+
+void CBouncerCore::RegisterTimer(CTimer* Timer) {
+	timerchain_t* last = &m_TimerChain;
+
+	while (last->next)
+		last = last->next;
+
+	last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
+	last->ptr = Timer;
+
+	last->next->next = NULL;
+	last->next->ptr = NULL;
+
+	// register timer
+}
+
+void CBouncerCore::UnregisterTimer(CTimer* Timer) {
+	timerchain_t* current = &m_TimerChain;
+
+	if (current->ptr == Timer && current->next) {
+		current->ptr = current->next->ptr;
+		current->next = current->next->next;
+
+		return;
+	}
+		
+
+	while (current) {
+		if (current->next && current->next->ptr == Timer) {
+			timerchain_t* old = current->next;
+			current->next = current->next->next;
+
+			free(old);
+		}
+
+		current = current->next;
+	}
+
+	// unregister timer
 }

@@ -17,60 +17,59 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_)
-#define AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_
+#include "StdAfx.h"
+#include "Timer.h"
+#include "BouncerCore.h"
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
 
-#define FLOODBYTES 350
+CTimer::CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
+	m_Interval = Interval; 
+	m_Repeat = Repeat;
+	m_Proc = Function;
+	m_Cookie = Cookie;
+	m_Next = time(NULL) + Interval;
 
-typedef struct queue_s {
-	int Priority;
-	CQueue* Queue;
-} queue_t;
+	g_Bouncer->RegisterTimer(this);
+}
 
-class CIRCConnection;
-class CTimer;
+CTimer::~CTimer(void) {
+	g_Bouncer->UnregisterTimer(this);
+}
 
-#ifndef SWIG
-bool FloodTimer(time_t Now, void* FloodControl);
-#endif
+void CTimer::Destroy(void) {
+	delete this;
+}
 
-class CFloodControl : public CQueue {
-#ifndef SWIG
-	friend bool FloodTimer(time_t Now, void* FloodControl);
-#endif
+bool CTimer::Call(time_t Now) {
+	if (m_Interval)
+		m_Next = Now + m_Interval;
 
-	queue_t* m_Queues;
-	int m_QueueCount;
-	int m_Bytes;
-	CIRCConnection* m_Owner;
-	bool m_Control;
-	CTimer* m_FloodTimer;
+	if (!m_Proc) {
+		if (!m_Interval) {
+			Destroy();
 
-	bool Pulse(time_t Time);
-public:
-#ifndef SWIG
-	CFloodControl(CIRCConnection* Owner);
-	~CFloodControl(void);
-#endif
+			return false;
+		}
 
-	virtual char* DequeueItem(void);
-	virtual void QueueItem(const char* Item);
-	virtual void QueueItemNext(const char* Item);
-	virtual int GetQueueSize(void);
+		return true;
+	}
 
-	virtual void AttachInputQueue(CQueue* Queue, int Priority);
-	virtual int GetBytes(void);
-	virtual int GetRealQueueSize(void);
-	virtual void FlushQueue(void);
+	bool Ret = m_Proc(Now, m_Cookie);
 
-	virtual void Enable(void);
-	virtual void Disable(void);
+	printf("Timer call: %p(%d, %p)\n", m_Proc, Now, m_Cookie);
 
-	virtual void NotifyNewItem(void);
-};
+	if (!Ret || !m_Repeat) {
+		Destroy();
 
-#endif // !defined(AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_)
+		return false;
+	}
+
+	return true;
+}
+
+time_t CTimer::GetNextCall(void) {
+	return m_Next;
+}

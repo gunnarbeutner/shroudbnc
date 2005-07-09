@@ -24,6 +24,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "Timer.h"
+
 class CBouncerConfig;
 class CBouncerUser;
 class CBouncerLog;
@@ -32,6 +34,7 @@ class CIRCConnection;
 class CIdentSupport;
 class CModule;
 class CConnection;
+class CTimer;
 struct CSocketEvents;
 struct sockaddr_in;
 template <typename value_type, bool casesensitive> class CHashtable;
@@ -40,6 +43,11 @@ typedef struct socket_s {
 	SOCKET Socket;
 	CSocketEvents* Events;
 } socket_t;
+
+typedef struct timerchain_s {
+	CTimer* ptr;
+	timerchain_s* next;
+} timerchain_t;
 
 class CBouncerCore {
 	CBouncerConfig* m_Config;
@@ -67,6 +75,8 @@ class CBouncerCore {
 	int m_argc;
 	char** m_argv;
 
+	timerchain_t m_TimerChain;
+
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -82,8 +92,6 @@ public:
 	virtual CBouncerUser* GetUser(const char* Name);
 
 	virtual void GlobalNotice(const char* Text, bool AdminOnly = false);
-
-	virtual void Pulse(time_t Now);
 
 	virtual CBouncerUser** GetUsers(void);
 	virtual int GetUserCount(void);
@@ -128,6 +136,10 @@ public:
 	virtual SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp);
 
 	virtual socket_t* GetSocketByClass(const char* Class, int Index);
+
+	virtual CTimer* CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie);
+	virtual void RegisterTimer(CTimer* Timer);
+	virtual void UnregisterTimer(CTimer* Timer);
 };
 
 extern CBouncerCore* g_Bouncer;

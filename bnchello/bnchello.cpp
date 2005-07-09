@@ -83,9 +83,6 @@ class CHelloClass : public CModuleFar {
 		m_Bot->ScheduleReconnect();
 	}
 
-	void Pulse(time_t Now) {
-	}
-
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		if (IRC == m_Bot->GetIRCConnection()) {
 			if (argc >= 3 && strcmpi(argv[1], "privmsg") == 0 && strcmpi(argv[3], "!hello") == 0) {

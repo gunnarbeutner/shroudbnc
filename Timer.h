@@ -17,77 +17,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-// stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
-
-#if !defined(AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_)
-#define AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_
+#if !defined(AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_)
+#define AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_
 
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+typedef bool (*timerproc)(time_t now, void* cookie);
 
+class CTimer {
+public:
 #ifndef SWIG
-#define FD_SETSIZE 1024
+	CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie);
+	~CTimer(void);
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <time.h>
-#include <assert.h>
-#include <fcntl.h>
-#include <signal.h>
+	virtual void Destroy(void);
+	virtual bool Call(time_t Now);
+	virtual time_t GetNextCall(void);
 
-#include "snprintf.h"
+private:
+	timerproc m_Proc;
+	void* m_Cookie;
+	unsigned int m_Interval;
+	bool m_Repeat;
+	time_t m_Next;
+};
 
-#ifdef _WIN32
-	#include "win32.h"
-
-#ifndef RUBY
-	#include <windows.h>
-	#include <winsock2.h>
-	#include <assert.h>
-#endif
-#else
-	#include "unix.h"
-
-	#include <dlfcn.h>
-	#include <ctype.h>
-	#include <string.h>
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <sys/time.h>
-	#include <sys/types.h>
-	#include <sys/ioctl.h>
-	#include <netinet/in.h>
-	#include <sys/socket.h>
-	#include <arpa/inet.h>
-	#include <arpa/nameser.h>
-	#include <errno.h>
-    #include <sys/resource.h>
-	#include <limits.h>
-#endif
-
-#ifndef SWIG
-#ifdef _WIN32
-	#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
-
-	#define ADNS_JGAA_WIN32
-#endif
-
-#include <adns.h>
-#endif
-
-#define sprintf __evil_function
-#undef wsprintf
-#define wsprintf __evil_function
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_)
+#endif // !defined(AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_)

@@ -168,6 +168,10 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Timer.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\TrafficStats.cpp
 # End Source File
 # Begin Source File
@@ -274,6 +278,10 @@ SOURCE=.\SocketEvents.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Timer.h
 # End Source File
 # Begin Source File
 

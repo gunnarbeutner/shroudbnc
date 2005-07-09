@@ -30,14 +30,23 @@ class CBouncerConfig;
 class CBouncerLog;
 class CTrafficStats;
 class CKeyring;
+class CTimer;
 
 typedef struct badlogin_s {
 	sockaddr_in ip;
 	unsigned int count;
 } badlogin_t;
 
+#ifndef SWIG
+bool BadLoginTimer(time_t Now, void* User);
+bool UserReconnectTimer(time_t Now, void* User);
+#endif
+
 class CBouncerUser {
 	friend class CBouncerCore;
+#ifndef SWIG
+	friend bool BadLoginTimer(time_t Now, void* User);
+#endif
 
 	CClientConnection* m_Client;
 	CIRCConnection* m_IRC;
@@ -63,7 +72,12 @@ class CBouncerUser {
 
 	CKeyring* m_Keys;
 
+	CTimer* m_BadLoginPulse;
+	CTimer* m_ReconnectTimer;
+
 	void UpdateHosts(void);
+	void BadLoginPulse(void);
+
 public:
 #ifndef SWIG
 	CBouncerUser(const char* Name);
@@ -126,8 +140,6 @@ public:
 
 	virtual void LogBadLogin(sockaddr_in Peer);
 	virtual bool IsIpBlocked(sockaddr_in Peer);
-
-	virtual void Pulse(time_t Now);
 
 	virtual void AddHostAllow(const char* Mask, bool UpdateConfig = true);
 	virtual void RemoveHostAllow(const char* Mask, bool UpdateConfig = true);

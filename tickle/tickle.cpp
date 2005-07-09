@@ -43,6 +43,9 @@ Tcl_Interp* g_Interp;
 CTclSupport* g_Tcl;
 bool g_Ret;
 bool g_NoticeUser;
+CTimer* g_TickleTimer;
+
+bool TickleTimer(time_t Now, void* Cookie);
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -102,11 +105,15 @@ class CTclSupport : public CModuleFar {
 
 		free(g_TclClientSockets);
 
+		g_TickleTimer->Destroy();
+
 		delete this;
 	}
 
 	void Init(CBouncerCore* Root) {
 		g_Bouncer = Root;
+
+		g_TickleTimer = g_Bouncer->CreateTimer(1, true, TickleTimer, NULL);
 
 		g_TclListeners = new CHashtable<CTclSocket*, false>;
 		g_TclClientSockets = new CHashtable<CTclClientSocket*, false>;
@@ -122,18 +129,6 @@ class CTclSupport : public CModuleFar {
 		Tcl_AppInit(g_Interp);
 
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
-	}
-
-	void Pulse(time_t Now) {
-#ifndef FREEZEFIX
-		Tcl_DoOneEvent(TCL_ALL_EVENTS | TCL_DONT_WAIT);
-#endif
-
-		char strNow[20];
-
-		sprintf(strNow, "%d", (int)Now);
-
-		CallBinds(Type_Pulse, strNow, 0, NULL);
 	}
 
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
@@ -334,4 +329,14 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 void SetLatchedReturnValue(bool Ret) {
 	g_Ret = Ret;
+}
+
+bool TickleTimer(time_t Now, void* Cookie) {
+	char strNow[20];
+
+	sprintf(strNow, "%d", (int)Now);
+
+	CallBinds(Type_Pulse, strNow, 0, NULL);
+
+	return true;
 }

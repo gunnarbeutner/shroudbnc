@@ -21,6 +21,7 @@
 #include "BouncerUser.h"
 #include "Queue.h"
 #include "FloodControl.h"
+#include "BouncerCore.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -32,10 +33,12 @@ CFloodControl::CFloodControl(CIRCConnection* Owner) {
 	m_Bytes = 0;
 	m_Owner = Owner;
 	m_Control = true;
+	m_FloodTimer = NULL;
 }
 
 CFloodControl::~CFloodControl() {
 	free(m_Queues);
+	m_FloodTimer->Destroy();
 }
 
 void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
@@ -90,8 +93,14 @@ int CFloodControl::GetQueueSize(void) {
 		return GetRealQueueSize();
 }
 
-void CFloodControl::Pulse(time_t Time) {
+bool CFloodControl::Pulse(time_t Now) {
 	m_Bytes -= 75 > m_Bytes ? m_Bytes : 75;
+
+	if (GetRealQueueSize() == 0 && m_Bytes == 0) {
+		m_FloodTimer = NULL;
+		return false;
+	} else
+		return true;
 }
 
 int CFloodControl::GetBytes(void) {
@@ -118,4 +127,13 @@ void CFloodControl::Enable(void) {
 
 void CFloodControl::Disable(void) {
 	m_Control = false;
+}
+
+void CFloodControl::NotifyNewItem(void) {
+	if (m_FloodTimer == NULL)
+		m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
+}
+
+bool FloodTimer(time_t Now, void* FloodControl) {
+	return ((CFloodControl*)FloodControl)->Pulse(Now);
 }

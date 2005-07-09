@@ -90,6 +90,11 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_IRCStats = new CTrafficStats();
 
 	m_Keys = new CKeyring(m_Config);
+
+	m_BadLoginPulse = g_Bouncer->CreateTimer(200, true, BadLoginTimer, this);
+	m_ReconnectTimer = NULL;
+
+	ScheduleReconnect(0);
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -118,6 +123,11 @@ CBouncerUser::~CBouncerUser() {
 	delete m_Keys;
 
 	free(m_BadLogins);
+
+	m_BadLoginPulse->Destroy();
+
+	if (m_ReconnectTimer)
+		delete m_ReconnectTimer;
 }
 
 SOCKET CBouncerUser::GetIRCSocket(void) {
@@ -285,6 +295,8 @@ void CBouncerUser::Reconnect(void) {
 
 	char Out[1024];
 
+	m_ReconnectTimer = NULL;
+
 	const char* Server = m_Config->ReadString("user.server");
 	int Port = m_Config->ReadInteger("user.port");
 
@@ -343,12 +355,22 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 	if (m_Quitted && Delay == 0)
 		m_Quitted = false;
 
-	if (m_ReconnectTime < time(NULL) + Delay) {
-		m_ReconnectTime = time(NULL) + Delay;
-		printf("Scheduled reconnect for %s in %d seconds.\n", m_Name, Delay);
+	int MaxDelay = Delay;
+
+	if (time(NULL) - g_LastReconnect < 15 && MaxDelay < 15)
+		MaxDelay = 15;
+
+	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120)
+		MaxDelay = 120;
+
+	if (m_ReconnectTime < time(NULL) + MaxDelay) {
+		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
+
+		m_ReconnectTime = time(NULL) + MaxDelay;
+		printf("Scheduled reconnect for %s in %d seconds.\n", m_Name, MaxDelay);
 
 		char Out[1024];
-		snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", Delay);
+		snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", MaxDelay);
 		Notice(Out);
 	}
 }
@@ -574,16 +596,11 @@ bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
 	return false;
 }
 
-void CBouncerUser::Pulse(time_t Now) {
-	if (Now % 200 == 0) {
-		for (unsigned int i = 0; i < m_BadLoginCount; i++) {
-			if (m_BadLogins[i].count)
-				m_BadLogins[i].count--;
-		}
+void CBouncerUser::BadLoginPulse(void) {
+	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+		if (m_BadLogins[i].count)
+			m_BadLogins[i].count--;
 	}
-
-	if (m_IRC)
-		m_IRC->Pulse(Now);
 }
 
 void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
@@ -670,4 +687,19 @@ CTrafficStats* CBouncerUser::GetIRCStats(void) {
 
 CKeyring* CBouncerUser::GetKeyring(void) {
 	return m_Keys;
+}
+
+bool BadLoginTimer(time_t Now, void* User) {
+	((CBouncerUser*)User)->BadLoginPulse();
+
+	return true;
+}
+
+bool UserReconnectTimer(time_t Now, void* User) {
+	if (time(NULL) - g_LastReconnect > 15)
+		((CBouncerUser*)User)->Reconnect();
+	else
+		((CBouncerUser*)User)->ScheduleReconnect(10);
+
+	return false;
 }

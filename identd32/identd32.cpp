@@ -138,9 +138,6 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 		m_Core->RegisterSocket(m_Listener, this);
 	}
 
-	void Pulse(time_t Now) {
-	}
-
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		return true;
 	}

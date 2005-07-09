@@ -75,10 +75,6 @@ void CModule::Init(CBouncerCore* Root) {
 	m_Far->Init(Root);
 }
 
-void CModule::Pulse(time_t Now) {
-	m_Far->Pulse(Now);
-}
-
 bool CModule::InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv) {
 	return m_Far->InterceptIRCMessage(Connection, argc, argv);
 }

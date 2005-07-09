@@ -36,8 +36,18 @@ class CBouncerConfig;
 class CChannel;
 class CQueue;
 class CFloodControl;
+class CTimer;
+
+#ifndef SWIG
+bool DelayJoinTimer(time_t Now, void* IRCConnection);
+bool IRCPingTimer(time_t Now, void* IRCConnection);
+#endif
 
 class CIRCConnection : public CConnection {
+#ifndef SWIG
+	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
+#endif
+
 	connection_state_e m_State;
 
 	char* m_CurrentNick;
@@ -52,7 +62,9 @@ class CIRCConnection : public CConnection {
 	CBouncerConfig* m_ISupport;
 
 	time_t m_LastBurst;
-	time_t m_DelayJoin;
+	
+	CTimer* m_DelayJoinTimer;
+	CTimer* m_PingTimer;
 
 	CQueue* m_QueueLow;
 	CQueue* m_QueueMiddle;
@@ -115,7 +127,6 @@ public:
 	virtual CFloodControl* GetFloodControl(void);
 
 	virtual void JoinChannels(void);
-	virtual void Pulse(time_t Now);
 
 	virtual bool Read(void);
 };

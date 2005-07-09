@@ -30,9 +30,12 @@ typedef struct queue_item_s {
 	char* Line;
 } queue_item_t;
 
+class CFloodControl;
+
 class CQueue {
 	queue_item_t* m_Items;
 	int m_ItemCount;
+	CFloodControl* m_Notify;
 public:
 #ifndef SWIG
 	CQueue(void);
@@ -45,6 +48,8 @@ public:
 	virtual void QueueItemNext(const char* Item);
 	virtual int GetQueueSize(void);
 	virtual void FlushQueue(void);
+
+	virtual void SetNotifyObject(CFloodControl* Notify);
 };
 
 #endif // !defined(AFX_QUEUE_H__BE311FBC_F9FB_4649_97B9_6F3726BE9F66__INCLUDED_)

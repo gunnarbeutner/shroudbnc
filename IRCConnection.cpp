@@ -78,13 +78,18 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_ISupport->WriteString("CHANTYPES", "#&+");
 	m_ISupport->WriteString("PREFIX", "(ov)@+");
 
+	m_QueueHigh->SetNotifyObject(m_FloodControl);
+	m_QueueMiddle->SetNotifyObject(m_FloodControl);
+	m_QueueLow->SetNotifyObject(m_FloodControl);
+
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
 	m_FloodControl->AttachInputQueue(m_QueueLow, 2);
 
 	g_Bouncer->RegisterSocket(Socket, (CSocketEvents*)this);
 
-	m_DelayJoin = 0;
+	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
+	m_DelayJoinTimer = NULL;
 }
 
 CIRCConnection::~CIRCConnection() {
@@ -107,6 +112,11 @@ CIRCConnection::~CIRCConnection() {
 	delete m_FloodControl;
 
 	g_Bouncer->UnregisterSocket(m_Socket);
+
+	if (m_DelayJoinTimer)
+		m_DelayJoinTimer->Destroy();
+
+	m_PingTimer->Destroy();
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -256,7 +266,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		return bRet;
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
 		if (m_Owner->GetConfig()->ReadInteger("user.delayjoin"))
-			m_DelayJoin = time(NULL) + 5;
+			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
 		else
 			JoinChannels();
 
@@ -792,17 +802,10 @@ void CIRCConnection::JoinChannels(void) {
 		WriteLine(Keys ? "JOIN %s %s" : "JOIN %s", Chans, Keys);
 	}
 
-	m_DelayJoin = 0;
-}
-
-void CIRCConnection::Pulse(time_t Now) {
-	if (m_DelayJoin != 0 && m_DelayJoin < Now)
-		JoinChannels();
-
-	GetFloodControl()->Pulse(Now);
-
-	if (Now % 180 == 0)
-		InternalWriteLine("PING :sbnc");
+	if (m_DelayJoinTimer) {
+		m_DelayJoinTimer->Destroy();
+		m_DelayJoinTimer = NULL;
+	}
 }
 
 const char* CIRCConnection::ClassName(void) {
@@ -817,4 +820,17 @@ bool CIRCConnection::Read(void) {
 	}
 
 	return Ret;
+}
+
+bool DelayJoinTimer(time_t Now, void* IRCConnection) {
+	((CIRCConnection*)IRCConnection)->m_DelayJoinTimer = NULL;
+	((CIRCConnection*)IRCConnection)->JoinChannels();
+
+	return false;
+}
+
+bool IRCPingTimer(time_t Now, void* IRCConnection) {
+	((CIRCConnection*)IRCConnection)->WriteLine("PING :sbnc");
+
+	return true;
 }

@@ -44,7 +44,6 @@ public:
 	virtual void Destroy(void);
 
 	virtual void Init(CBouncerCore* Root);
-	virtual void Pulse(time_t Now);
 
 	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv);
 	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv);
