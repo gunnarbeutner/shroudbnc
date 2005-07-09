@@ -808,3 +808,13 @@ void CIRCConnection::Pulse(time_t Now) {
 const char* CIRCConnection::ClassName(void) {
 	return "CIRCConnection";
 }
+
+bool CIRCConnection::Read(void) {
+	bool Ret = CConnection::Read();
+
+	if (Ret && recvq_size > 5120) {
+		Kill("RecvQ exceeded.");
+	}
+
+	return Ret;
+}

@@ -29,6 +29,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#ifndef SWIG
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 #define FD_SETSIZE 1024
@@ -68,18 +69,15 @@
     #include <sys/resource.h>
 	#include <limits.h>
 #endif
-
-#define ASYNC_DNS
-
-#ifdef ASYNC_DNS
-	#ifdef _WIN32
-		#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
-
-		#define ADNS_JGAA_WIN32
-	#endif
-
-	#include <adns.h>
 #endif
+
+#ifdef _WIN32
+	#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
+
+	#define ADNS_JGAA_WIN32
+#endif
+
+#include <adns.h>
 
 #define sprintf __evil_function
 #undef wsprintf

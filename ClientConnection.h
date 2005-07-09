@@ -31,7 +31,9 @@ class CClientConnection : public CConnection, public CDnsEvents {
 	sockaddr_in m_Peer;
 	char* m_PeerName;
 
+#ifndef SWIG
 	adns_query m_PeerA;
+#endif
 
 	void ValidateUser(void);
 	virtual bool ReadLine(char** Out);
@@ -51,11 +53,9 @@ public:
 
 	virtual void SetOwner(CBouncerUser* Owner);
 
-#ifdef ASYNC_DNS
 	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
 	virtual void SetPeerName(const char* PeerName);
 	virtual adns_query GetPeerDNSQuery(void);
-#endif
 
 	virtual const char* GetPeerName(void);
 	virtual sockaddr_in GetPeer(void);

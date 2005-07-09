@@ -116,6 +116,8 @@ public:
 
 	virtual void JoinChannels(void);
 	virtual void Pulse(time_t Now);
+
+	virtual bool Read(void);
 };
 
 #endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)

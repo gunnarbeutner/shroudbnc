@@ -84,7 +84,6 @@ public:
 	virtual const char* GetRealname(void);
 	virtual void SetRealname(const char* Realname);
 
-	
 	virtual const char* GetUsername(void);
 	virtual CBouncerConfig* GetConfig(void);
 
@@ -114,7 +113,7 @@ public:
 	virtual bool IsAdmin(void);
 
 	virtual void SetPassword(const char* Password);
-	
+
 	virtual void SetServer(const char* Server);
 	virtual const char* GetServer(void);
 
