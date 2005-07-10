@@ -159,7 +159,7 @@ proc sbnc:tracevars-config {name item operation} {
 
 proc sbnc:tracevars-userfile {name item operation} {
 	if {$operation == "r"} {
-		set ::userfile "[getctx].user"
+		set ::userfile "users/[getctx].user"
 	} else {
 		return -code error "variable is read-only"
 	}
@@ -167,7 +167,7 @@ proc sbnc:tracevars-userfile {name item operation} {
 
 proc sbnc:tracevars-chanfile {name item operation} {
 	if {$operation == "r"} {
-		set ::chanfile "[getctx].chan"
+		set ::chanfile "users/[getctx].chan"
 	} else {
 		return -code error "variable is read-only"
 	}

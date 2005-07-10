@@ -17,6 +17,8 @@
 
 # configuration variables: ::account354
 
+# TODO: this script needs a major overhaul so that it uses the new timer system more efficiently
+
 foreach user [split $::account354] {
 	setctx $user
 	bind join - * auth:join
@@ -24,7 +26,7 @@ foreach user [split $::account354] {
 	bind raw - 354 auth:raw354
 }
 
-internaltimer 5 1 auth:pulse
+#internaltimer 5 1 auth:pulse
 
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {

@@ -92,7 +92,7 @@ class CTclSupport : public CModuleFar {
 			p->Value->Destroy();
 		}
 
-		free(g_TclListeners);
+		delete g_TclListeners;
 
 		i = 0;
 
@@ -100,7 +100,7 @@ class CTclSupport : public CModuleFar {
 			p->Value->Destroy();
 		}
 
-		free(g_TclClientSockets);
+		delete g_TclListeners;
 
 		delete this;
 	}

@@ -37,7 +37,7 @@ proc sbnc:runthistimer {cookie} {
 
 	catch {eval [lindex $timer 1]}
 
-	killtimer $timerID
+	set timers [lreplace $timers $idx $idx]
 }
 
 proc sbnc:runthisutimer {cookie} {
@@ -60,7 +60,7 @@ proc sbnc:runthisutimer {cookie} {
 
 	catch {eval [lindex $timer 1]}
 
-	killutimer $timerID
+	set utimers [lreplace $utimers $idx $idx]
 }
 
 proc timer {minutes tclcommand} {
@@ -148,7 +148,11 @@ proc killtimer {timerID} {
 
 	if {$idx != -1} {
 		set timers [lreplace $timers $idx $idx]
+
+		internalkilltimer sbnc:runthistimer [list [getctx] $timerID]
 	}
+
+	return
 }
 
 proc killutimer {timerID} {
@@ -162,5 +166,9 @@ proc killutimer {timerID} {
 
 	if {$idx != -1} {
 		set utimers [lreplace $utimers $idx $idx]
+
+		internalkilltimer sbnc:runthisutimer [list [getctx] $timerID]
 	}
+
+	return
 }

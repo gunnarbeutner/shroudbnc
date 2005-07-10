@@ -88,7 +88,7 @@ const char* bncuserlist(void) {
 	CBouncerUser** Users = g_Bouncer->GetUsers();
 
 	int argc = 0;
-	const char** argv = (const char**)malloc(argc * sizeof(const char*));
+	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
 	for (int i = 0; i < Count; i++) {
 		if (Users[i])
@@ -101,6 +101,8 @@ const char* bncuserlist(void) {
 		Tcl_Free(List);
 
 	List = Tcl_Merge(argc, argv);
+
+	free(argv);
 
 	return List;
 }
