@@ -88,7 +88,7 @@ class CTclSupport : public CModuleFar {
 
 		int i = 0;
 
-		while (hash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
+		while (xhash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
 			p->Value->Destroy();
 		}
 
@@ -96,7 +96,7 @@ class CTclSupport : public CModuleFar {
 
 		i = 0;
 
-		while (hash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
+		while (xhash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
 			p->Value->Destroy();
 		}
 

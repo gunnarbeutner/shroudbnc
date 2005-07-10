@@ -54,8 +54,11 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 
 		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
 
+		m_AdnsTimeout = g_Bouncer->CreateTimer(2, true, AdnsTimeoutTimer, this);
+
 		g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
-	}
+	} else
+		m_AdnsTimeout = NULL;
 }
 
 CClientConnection::~CClientConnection() {
@@ -68,6 +71,9 @@ CClientConnection::~CClientConnection() {
 		adns_cancel(m_PeerA);
 
 	g_Bouncer->UnregisterSocket(m_Socket);
+
+	if (m_AdnsTimeout)
+		m_AdnsTimeout->Destroy();
 }
 
 connection_role_e CClientConnection::GetRole(void) {
@@ -100,7 +106,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("Admin commands:");
 			SENDUSER("adduser       - creates a new user");
 			SENDUSER("deluser       - removes a user");
+			SENDUSER("resetpass     - sets a user's password");
 			SENDUSER("who           - shows users");
+			SENDUSER("admin         - gives someone admin privileges");
+			SENDUSER("unadmin       - removes someone's admin privileges");
 			SENDUSER("lsmod         - lists loaded modules");
 			SENDUSER("insmod        - loads a module");
 			SENDUSER("rmmod         - unloads a module");
@@ -512,8 +521,44 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
+	} else if (strcmpi(Subcommand, "admin") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+
+		if (User) {
+			User->SetAdmin(true);
+
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There's no such user.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "unadmin") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		
+		if (User) {
+			User->SetAdmin(false);
+
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There's no such user.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "resetpass") == 0 && argc > 2 && m_Owner->IsAdmin()) {
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		
+		if (User) {
+			User->SetPassword(argv[2]);
+
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There's no such user.");
+		}
+
+		return false;
 	}
-	
+
 	if (NoticeUser)
 		m_Owner->RealNotice("Unknown command. Try /sbnc help");
 	else
@@ -737,7 +782,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 						int a = 0;
 
-						while (hash_t<CNick*>* NickHash = H->Iterate(a++)) {
+						while (xhash_t<CNick*>* NickHash = H->Iterate(a++)) {
 							CNick* NickObj = NickHash->Value;
 
 							const char* Prefix = NickObj->GetPrefixes();
@@ -783,20 +828,14 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
 					}
 
-					hash_t<char*>* Features = IRC->GetISupportAll()->GetSettings();
-					int FeatureCount = IRC->GetISupportAll()->GetSettingCount();
-
 					char* Feats = (char*)malloc(1);
 					Feats[0] = '\0';
 
-					int a = 0;
+					int a = 0, i = 0;
 
-					for (int i = 0; i < FeatureCount; i++) {
-						if (!Features[i].Name || !Features[i].Value)
-							continue;
-
-						char* Name = Features[i].Name;
-						char* Value = Features[i].Value;
+					while (xhash_t<char*>* Feat = IRC->GetISupportAll()->Iterate(i++)) {
+						char* Name = Feat->Name;
+						char* Value = Feat->Value;
 
 						Feats = (char*)realloc(Feats, (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2);
 
@@ -945,8 +984,12 @@ const char* CClientConnection::GetPeerName(void) {
 }
 
 void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+	if (m_AdnsTimeout) {
+		m_AdnsTimeout->Destroy();
+		m_AdnsTimeout = NULL;
+	}
+
 	if (response->status != adns_s_ok)
-		
 		SetPeerName(inet_ntoa(GetPeer().sin_addr));
 	else
 		SetPeerName(*response->rrs.str);
@@ -964,4 +1007,19 @@ bool CClientConnection::Read(void) {
 	}
 
 	return Ret;
+}
+
+void CClientConnection::AdnsTimeout(void) {
+	m_AdnsTimeout = NULL;
+
+	if (!m_PeerName && m_Socket != INVALID_SOCKET)
+		adns_cancel(m_PeerA);
+	
+	SetPeerName(inet_ntoa(GetPeer().sin_addr));
+}
+
+bool AdnsTimeoutTimer(time_t Now, void* Client) {
+	((CClientConnection*)Client)->AdnsTimeout();
+
+	return false;
 }

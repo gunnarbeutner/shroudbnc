@@ -118,7 +118,7 @@ void CBouncerConfig::Persist(void) {
 
 	if (Config) {
 		int i = 0;
-		while (hash_t<char*>* P = m_Settings->Iterate(i++)) {
+		while (xhash_t<char*>* P = m_Settings->Iterate(i++)) {
 			if (P->Name && P->Value) {
 				fprintf(Config, "%s=%s\n", P->Name, P->Value);
 			}
@@ -133,10 +133,6 @@ const char* CBouncerConfig::GetFilename(void) {
 	return m_File;
 }
 
-hash_t<char*>* CBouncerConfig::GetSettings(void) {
-	return m_Settings->GetInnerData();
-}
-
-int CBouncerConfig::GetSettingCount(void) {
-	return m_Settings->GetInnerDataCount();
+xhash_t<char*>* CBouncerConfig::Iterate(int Index) {
+	return m_Settings->Iterate(Index);
 }

@@ -367,7 +367,6 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
 
 		m_ReconnectTime = time(NULL) + MaxDelay;
-		printf("Scheduled reconnect for %s in %d seconds.\n", m_Name, MaxDelay);
 
 		char Out[1024];
 		snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", MaxDelay);

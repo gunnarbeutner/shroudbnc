@@ -25,6 +25,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+int g_TimerStats = 0;
+
 CTimer::CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
 	m_Interval = Interval; 
 	m_Repeat = Repeat;
@@ -44,6 +46,8 @@ void CTimer::Destroy(void) {
 }
 
 bool CTimer::Call(time_t Now) {
+	g_TimerStats++;
+
 	if (m_Interval)
 		m_Next = Now + m_Interval;
 
@@ -58,8 +62,6 @@ bool CTimer::Call(time_t Now) {
 	}
 
 	bool Ret = m_Proc(Now, m_Cookie);
-
-	printf("Timer call: %p(%d, %p)\n", m_Proc, Now, m_Cookie);
 
 	if (!Ret || !m_Repeat) {
 		Destroy();

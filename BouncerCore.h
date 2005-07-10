@@ -44,10 +44,12 @@ typedef struct socket_s {
 	CSocketEvents* Events;
 } socket_t;
 
+#ifndef SWIG
 typedef struct timerchain_s {
 	CTimer* ptr;
 	timerchain_s* next;
 } timerchain_t;
+#endif
 
 class CBouncerCore {
 	CBouncerConfig* m_Config;
@@ -75,7 +77,9 @@ class CBouncerCore {
 	int m_argc;
 	char** m_argv;
 
+#ifndef SWIG
 	timerchain_t m_TimerChain;
+#endif
 
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
 	void UpdateModuleConfig(void);
@@ -140,6 +144,8 @@ public:
 	virtual CTimer* CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie);
 	virtual void RegisterTimer(CTimer* Timer);
 	virtual void UnregisterTimer(CTimer* Timer);
+
+	virtual int GetTimerStats(void);
 };
 
 extern CBouncerCore* g_Bouncer;

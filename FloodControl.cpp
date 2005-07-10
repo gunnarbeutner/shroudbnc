@@ -38,7 +38,9 @@ CFloodControl::CFloodControl(CIRCConnection* Owner) {
 
 CFloodControl::~CFloodControl() {
 	free(m_Queues);
-	m_FloodTimer->Destroy();
+
+	if (m_FloodTimer)
+		m_FloodTimer->Destroy();
 }
 
 void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
@@ -98,6 +100,7 @@ bool CFloodControl::Pulse(time_t Now) {
 
 	if (GetRealQueueSize() == 0 && m_Bytes == 0) {
 		m_FloodTimer = NULL;
+
 		return false;
 	} else
 		return true;

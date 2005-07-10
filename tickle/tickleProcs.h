@@ -46,11 +46,6 @@ class CTclClientSocket;
 
 // exported procs, which are accessible via tcl
 
-//const char* getuser(const char* Option);
-//int setuser(const char* Option, const char* Value);
-
-const char* channel(const char* Function, const char* Channel = 0, const char* Parameter = 0);
-
 int putclient(const char* text);
 int simul(const char* User, const char* Command);
 
@@ -107,6 +102,8 @@ void internalclosesocket(int Socket);
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter = 0);
 int internalkilltimer(const char* Proc, const char* Parameter = 0);
+
+int timerstats(void);
 
 void bncdisconnect(const char* Reason);
 void bnckill(const char* Reason);

@@ -17,143 +17,156 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_HASHTABLE_H__FA383811_CE36_4970_9236_9F1EAECC6998__INCLUDED_)
-#define AFX_HASHTABLE_H__FA383811_CE36_4970_9236_9F1EAECC6998__INCLUDED_
+#if !defined(AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_)
+#define AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_
 
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
 
-template <typename value_type> struct hash_t {
-	bool Valid;
+template <typename Type> struct xhash_t {
 	char* Name;
-	value_type Value;
+	Type Value;
 };
 
-template <typename value_type, bool casesensitive> class CHashtable {
-	typedef void (DestroyValue)(value_type P);
+template<typename Type, bool CaseSensitive> class CHashtable {
+	typedef void (DestroyValue)(Type P);
 
-	hash_t<value_type>* m_Pairs;
-	int m_PairCount;
+	template <typename Type> struct hash_t {
+		int subcount;
+		char** keys;
+		Type* values;
+	};
+
+	hash_t<Type> m_Items[0xFF];
 	DestroyValue* m_DestructorFunc;
+
+	int Hash(const char* String) {
+		int Out = 0;
+
+		for (size_t i = 0; i < strlen(String); i++)
+			Out ^= String[i];
+
+		return Out & 0xFF;
+	}
 public:
 	CHashtable(void) {
-		m_Pairs = NULL;
-		m_PairCount = 0;
+		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+			m_Items[i].subcount = 0;
+			m_Items[i].keys = NULL;
+			m_Items[i].values = NULL;
+		}
 
 		m_DestructorFunc = NULL;
 	}
 
-	~CHashtable() {
-		for (int i = 0; i < m_PairCount; i++) {
-			if (m_DestructorFunc && m_Pairs[i].Valid) {
-				m_DestructorFunc(m_Pairs[i].Value);
-				free(m_Pairs[i].Name);
+	~CHashtable(void) {
+		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+			hash_t<Type>* P = &m_Items[i];
+
+			for (int a = 0; a < P->subcount; a++)
+				free(P->keys[a]);
+
+			free(P->keys);
+			free(P->values);
+		}
+	}
+
+	void Add(const char* Key, Type Value) {
+		Remove(Key);
+
+		hash_t<Type>* P = &m_Items[Hash(Key)];
+
+		P->subcount++;
+
+		P->keys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
+		P->values = (Type*)realloc(P->values, P->subcount * sizeof(Type));
+
+		P->keys[P->subcount - 1] = strdup(Key);
+		P->values[P->subcount -1] = Value;
+	}
+
+	Type Get(const char* Key) {
+		hash_t<Type>* P = &m_Items[Hash(Key)];
+
+		if (P->subcount == 0)
+			return NULL;
+		else {
+			for (int i = 0; i < P->subcount; i++)
+				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcmpi(P->keys[i], Key)) == 0)
+					return P->values[i];
+
+			return NULL;
+		}
+	}
+
+	int Count(void) {
+		int Count = 0;
+
+		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++)
+			Count += m_Items[i].subcount;
+
+		return Count;
+	}
+
+	void Remove(const char* Key, bool NoRelease = false) {
+		hash_t<Type>* P = &m_Items[Hash(Key)];
+
+		if (P->subcount == 0)
+			return;
+		else if (P->subcount == 1 && (CaseSensitive ? strcmp(P->keys[0], Key) : strcmpi(P->keys[0], Key)) == 0) {
+			if (m_DestructorFunc && !NoRelease)
+				m_DestructorFunc(P->values[0]);
+
+			free(P->keys[0]);
+			free(P->keys);
+			free(P->values);
+			P->subcount = 0;
+			P->keys = NULL;
+			P->values = NULL;
+		} else {
+			for (int i = 0; i < P->subcount; i++) {
+				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcmpi(P->keys[i], Key)) == 0) {
+					free(P->keys[i]);
+					P->keys[i] = P->keys[P->subcount - 1];
+
+					if (m_DestructorFunc && !NoRelease)
+						m_DestructorFunc(P->values[i]);
+
+					P->values[i] = P->values[P->subcount - 1];
+					P->subcount--;
+
+					break;
+				}
 			}
 		}
-
-		free(m_Pairs);
 	}
 
-	virtual void Add(const char* Name, value_type Value) {
-		// todo: find valid 'Name' first?
-		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
-				if (m_DestructorFunc)
-					m_DestructorFunc(m_Pairs[i].Value);
-
-				m_Pairs[i].Value = Value;
-
-				return;
-			}
-		}
-
-		for (int a = 0; a < m_PairCount; a++) {
-			if (!m_Pairs[a].Valid) {
-				m_Pairs[a].Name = strdup(Name);
-				m_Pairs[a].Value = Value;
-				m_Pairs[a].Valid = true;
-
-				return;
-			}
-		}
-
-		m_Pairs = (hash_t<value_type>*)realloc(m_Pairs, ++m_PairCount * sizeof(hash_t<value_type>));
-
-		m_Pairs[m_PairCount - 1].Valid = true;
-		m_Pairs[m_PairCount - 1].Name = strdup(Name);
-		m_Pairs[m_PairCount - 1].Value = Value;
-	}
-
-	virtual void InternalRemove(const char* Name, bool Release = true) {
-		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
-				free(m_Pairs[i].Name);
-				m_Pairs[i].Name = NULL;
-				m_Pairs[i].Valid = false;
-
-				if (Release && m_DestructorFunc)
-					m_DestructorFunc(m_Pairs[i].Value);
-
-				return;
-			}
-		}
-	}
-
-	virtual void RemoveNoRelease(const char* Name) {
-		InternalRemove(Name, false);
-	}
-
-	virtual void Remove(const char* Name) {
-		InternalRemove(Name, true);
-	}
-
-	virtual value_type Get(const char* Name) {
-		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid && ((casesensitive && strcmp(m_Pairs[i].Name, Name) == 0) || (!casesensitive && strcmpi(m_Pairs[i].Name, Name) == 0))) {
-				return m_Pairs[i].Value;
-			}
-		}
-
-		return NULL;
-	}
-
-	virtual hash_t<value_type>* Iterate(int Index) {
-		int a = 0;
-
-		for (int i = 0; i < m_PairCount; i++) {
-			if (a == Index && m_Pairs[i].Valid)
-				return &m_Pairs[i];
-
-			if (m_Pairs[i].Valid)
-				a++;
-		}
-
-		return NULL;
-	}
-
-	virtual int Count(void) {
-		int a = 0;
-
-		for (int i = 0; i < m_PairCount; i++) {
-			if (m_Pairs[i].Valid)
-				a++;
-		}
-
-		return a;
-	}
-
-	virtual hash_t<value_type>* GetInnerData(void) {
-		return m_Pairs;
-	}
-
-	virtual int GetInnerDataCount(void) {
-		return m_PairCount;
-	}
-
-	virtual void RegisterValueDestructor(DestroyValue* Func) {
+	void RegisterValueDestructor(DestroyValue* Func) {
 		m_DestructorFunc = Func;
 	}
+
+	xhash_t<Type>* Iterate(int Index) {
+		int Skip = 0;
+
+		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+			for (int a = 0; a < m_Items[i].subcount; a++) {
+				if (Skip == Index) {
+					static xhash_t<Type> H;
+
+					H.Name = m_Items[i].keys[a];
+					H.Value = m_Items[i].values[a];
+
+					return &H;
+				}
+
+				Skip++;
+			}
+		}
+
+		return NULL;
+	}
+
 };
 
-#endif // !defined(AFX_HASHTABLE_H__FA383811_CE36_4970_9236_9F1EAECC6998__INCLUDED_)
+#endif // !defined(AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_)

@@ -1296,29 +1296,6 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 extern "C" {
 #endif
 static int
-_wrap_channel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"s|ss:channel Function ?Channel? ?Parameter? ",&arg1,&arg2,&arg3) == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)channel((char const *)arg1,(char const *)arg2,(char const *)arg3);
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_putclient(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     int result;
@@ -2152,6 +2129,26 @@ _wrap_internalkilltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
 
 static int
+_wrap_timerstats(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":timerstats ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)timerstats();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_bncdisconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     
@@ -2672,7 +2669,6 @@ _wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static swig_command_info swig_commands[] = {
-    { SWIG_prefix "channel", (swig_wrapper_func) _wrap_channel, NULL},
     { SWIG_prefix "putclient", (swig_wrapper_func) _wrap_putclient, NULL},
     { SWIG_prefix "simul", (swig_wrapper_func) _wrap_simul, NULL},
     { SWIG_prefix "internalbind", (swig_wrapper_func) _wrap_internalbind, NULL},
@@ -2712,6 +2708,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
     { SWIG_prefix "internaltimer", (swig_wrapper_func) _wrap_internaltimer, NULL},
     { SWIG_prefix "internalkilltimer", (swig_wrapper_func) _wrap_internalkilltimer, NULL},
+    { SWIG_prefix "timerstats", (swig_wrapper_func) _wrap_timerstats, NULL},
     { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
     { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},
     { SWIG_prefix "chanbans", (swig_wrapper_func) _wrap_chanbans, NULL},

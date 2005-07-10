@@ -137,11 +137,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
 		WriteLine("NICK :%s`", argv[3]);
 		return false;
-	} else if (argc > 3 && (strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection())) {
+	} else if (argc > 3 && strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (Dest && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			GetOwningClient()->Log("%s: %s", Reply, argv[3]);
 		}
 
@@ -157,6 +157,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		free(Nick);
 
 		UpdateHostHelper(Reply);
+	} else if (argc > 3 && strcmpi(Raw, "notice") == 0 && !GetOwningClient()->GetClientConnection()) {
+		const char* Dest = argv[2];
+		char* Nick = ::NickFromHostmask(Reply);
+
+		if (Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
+		}
+
+		free(Nick);
 	} else if (argc > 2 && strcmpi(Raw, "join") == 0) {
 		if (b_Me) {
 			AddChannel(argv[2]);
@@ -200,6 +209,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			if (GetOwningClient()->GetClientConnection() == NULL) {
 				WriteLine("JOIN %s", argv[2]);
+
+				GetOwningClient()->Log("%s kicked you from %s (%s)", Reply, argv[2], argc > 4 ? argv[4] : "");
 			}
 		} else {
 			CChannel* Chan = GetChannel(argv[2]);
@@ -244,7 +255,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				if (NickObj) {
 					NickObj->SetNick(argv[2]);
 
-					Nicks->RemoveNoRelease(Nick);
+					Nicks->Remove(Nick, true);
 					Nicks->Add(argv[2], NickObj);
 				}
 			}
@@ -770,6 +781,11 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 }
 
 void CIRCConnection::JoinChannels(void) {
+	if (m_DelayJoinTimer) {
+		m_DelayJoinTimer->Destroy();
+		m_DelayJoinTimer = NULL;
+	}
+
 	const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
 
 	if (Chans && *Chans) {
@@ -800,11 +816,6 @@ void CIRCConnection::JoinChannels(void) {
 		free(dup);
 
 		WriteLine(Keys ? "JOIN %s %s" : "JOIN %s", Chans, Keys);
-	}
-
-	if (m_DelayJoinTimer) {
-		m_DelayJoinTimer->Destroy();
-		m_DelayJoinTimer = NULL;
 	}
 }
 

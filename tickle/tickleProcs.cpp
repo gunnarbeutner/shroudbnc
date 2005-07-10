@@ -68,7 +68,15 @@ void die(void) {
 
 void setctx(const char* ctx) {
 	free(g_Context);
-	g_Context = ctx ? strdup(ctx) : NULL;
+
+	Tcl_DString dsContext;
+
+	Tcl_DStringInit(&dsContext);
+	Tcl_UtfToExternalDString(NULL, ctx, -1, &dsContext);
+
+	g_Context = ctx ? strdup(Tcl_DStringValue(&dsContext)) : NULL;
+
+	Tcl_DStringFree(&dsContext);
 }
 
 const char* getctx(void) {
@@ -76,28 +84,25 @@ const char* getctx(void) {
 }
 
 const char* bncuserlist(void) {
-	static char* UserList = NULL;
-
-	UserList = (char*)realloc(UserList, 1);
-	UserList[0] = '\0';
-
 	int Count = g_Bouncer->GetUserCount();
 	CBouncerUser** Users = g_Bouncer->GetUsers();
 
-	for (int i = 0; i < Count; i++) {
-		if (Users[i]) {
-			const char* User = Users[i]->GetUsername();
-			UserList = (char*)realloc(UserList, strlen(UserList) + strlen(User) + 4);
-			if (*UserList)
-				strcat(UserList, " ");
+	int argc = 0;
+	const char** argv = (const char**)malloc(argc * sizeof(const char*));
 
-			strcat(UserList, "{");
-			strcat(UserList, User);
-			strcat(UserList, "}");
-		}
+	for (int i = 0; i < Count; i++) {
+		if (Users[i])
+			argv[argc++] = Users[i]->GetUsername();
 	}
 
-	return UserList;
+	static char* List = NULL;
+
+	if (List)
+		Tcl_Free(List);
+
+	List = Tcl_Merge(argc, argv);
+
+	return List;
 }
 
 const char* internalchannels(void) {
@@ -134,7 +139,7 @@ const char* internalchannels(void) {
 	return List;
 }
 
-const char* getchanmodes(const char* Channel) {
+const char* getchanmode(const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
@@ -145,8 +150,14 @@ const char* getchanmodes(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
+	Tcl_DString dsChan;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
@@ -159,7 +170,6 @@ void rehash(void) {
 
 	g_Bouncer->GlobalNotice("Rehashing TCL module", true);
 }
-
 
 int internalbind(const char* type, const char* proc) {
 	for (int i = 0; i < g_BindCount; i++) {
@@ -357,7 +367,14 @@ const char* topic(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
@@ -376,7 +393,14 @@ const char* topicnick(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
@@ -395,31 +419,19 @@ int topicstamp(const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return 0;
 
 	return Chan->GetTopicStamp();
-}
-
-const char* getchanmode(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
-
-	if (!Context)
-		return NULL;
-
-	CIRCConnection* IRC = Context->GetIRCConnection();
-
-	if (!IRC)
-		return NULL;
-
-	CChannel* Chan = IRC->GetChannel(Channel);
-
-	if (!Chan)
-		return NULL;
-
-	return Chan->GetChanModes();
 }
 
 const char* internalchanlist(const char* Channel) {
@@ -433,7 +445,14 @@ const char* internalchanlist(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
@@ -445,7 +464,7 @@ const char* internalchanlist(const char* Channel) {
 
 	int a = 0;
 
-	while (hash_t<CNick*>* NickHash = Names->Iterate(a++)) {
+	while (xhash_t<CNick*>* NickHash = Names->Iterate(a++)) {
 		argv[a-1] = NickHash->Value->GetNick();
 	}
 
@@ -553,125 +572,6 @@ bool ishalfop(const char* Nick, const char* Channel) {
 
 		return false;
 	}
-}
-
-const char* channel(const char* Function, const char* Channel, const char* Parameter) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
-
-	if (!Context)
-		return NULL;
-
-	CIRCConnection* IRC = Context->GetIRCConnection();
-
-	if (!IRC)
-		return "-1";
-
-	CChannel* Chan = IRC->GetChannel(Channel);
-
-	if (strcmpi(Function, "ison") == 0) {
-		if (!Parameter) {
-			if (Chan)
-				return "1";
-			else
-				return "0";
-		} else {
-			if (!Chan)
-				return "-1";
-			else {
-				CNick* Nick = Chan->GetNames()->Get(Parameter);
-
-				if (Nick)
-					return "1";
-				else
-					return "0";
-			}
-		}
-	}
-
-	if (strcmpi(Function, "join") == 0) {
-		IRC->WriteLine("JOIN :%s", Channel);
-		return "1";
-	} else if (strcmpi(Function, "part") == 0) {
-		IRC->WriteLine("PART :%s", Channel);
-		return "1";
-	} else if (strcmpi(Function, "mode") == 0) {
-		IRC->WriteLine("MODE %s %s", Channel, Parameter);
-		return "1";
-	}
-
-	if (!Chan)
-		return "-1";
-
-	if (strcmpi(Function, "topic") == 0)
-		return Chan->GetTopic();
-
-	if (strcmpi(Function, "topicnick") == 0)
-		return Chan->GetTopicNick();
-
-	static char* Buffer = NULL;
-
-	if (strcmpi(Function, "topicstamp") == 0) {
-		Buffer = (char*)realloc(Buffer, 20);
-
-		sprintf(Buffer, "%d", (int)Chan->GetTopicStamp());
-
-		return Buffer;
-	}
-
-	if (strcmpi(Function, "hastopic") == 0)
-		if (Chan->HasTopic())
-			return "1";
-		else
-			return "0";
-
-	if (strcmpi(Function, "hasnames") == 0)
-		if (Chan->HasNames())
-			return "1";
-		else
-			return "0";
-
-	if (strcmpi(Function, "modes") == 0)
-		return Chan->GetChanModes();
-
-	if (strcmpi(Function, "nicks") == 0) {
-		static char* NickList = NULL;
-
-		NickList = (char*)realloc(NickList, 1);
-		NickList[0] = '\0';
-
-		CHashtable<CNick*, false>* Names = Chan->GetNames();
-
-		int a = 0;
-
-		while (hash_t<CNick*>* NickHash = Names->Iterate(a++)) {
-			const char* Nick = NickHash->Value->GetNick();
-			NickList = (char*)realloc(NickList, strlen(NickList) + strlen(Nick) + 4);
-			if (*NickList)
-				strcat(NickList, " ");
-
-			strcat(NickList, "{");
-			strcat(NickList, Nick);
-			strcat(NickList, "}");
-		}
-
-		return NickList;
-	}
-
-	if (strcmpi(Function, "prefix") == 0) {
-		CNick* Nick = Chan->GetNames()->Get(Parameter);
-
-		static char outPref[2];
-
-		if (Nick) {
-			outPref[0] = Chan->GetHighestUserFlag(Nick->GetPrefixes());
-			outPref[1] = '\0';
-
-			return outPref;
-		} else
-			return "-1";
-	}
-
-	return "Function should be one of: ison join part mode topic topicnick topicstamp hastopic hasnames modes nicks prefix";
 }
 
 const char* getchanprefix(const char* Channel, const char* Nick) {
@@ -1287,7 +1187,6 @@ const char* md5(const char* String) {
 		return ReturnValue;
 	} else
 		return NULL;
-
 }
 
 void debugout(const char* String) {
@@ -1344,7 +1243,14 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 }
 
 void bncjoinchans(const char* User) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser;
+
+	Tcl_DStringInit(&dsUser);
+	Tcl_UtfToExternalDString(NULL, User, -1, &dsUser);
+
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_DStringValue(&dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		return;
@@ -1394,7 +1300,14 @@ void control(int Socket, const char* Proc) {
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket.";
 
-	SockPtr->SetControlProc(Proc);
+	Tcl_DString dsProc;
+
+	Tcl_DStringInit(&dsProc);
+	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
+
+	SockPtr->SetControlProc(Tcl_DStringValue(&dsProc));
+
+	Tcl_DStringFree(&dsProc);
 }
 
 void internalsocketwriteln(int Socket, const char* Line) {
@@ -1416,7 +1329,14 @@ void internalsocketwriteln(int Socket, const char* Line) {
 }
 
 int internalconnect(const char* Host, unsigned short Port) {
-	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
+	Tcl_DString dsHost;
+
+	Tcl_DStringInit(&dsHost);
+	Tcl_UtfToExternalDString(NULL, Host, -1, &dsHost);
+
+	SOCKET Socket = g_Bouncer->SocketAndConnect(Tcl_DStringValue(&dsHost), Port, NULL);
+
+	Tcl_DStringFree(&dsHost);
 
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
@@ -1443,12 +1363,26 @@ void internalclosesocket(int Socket) {
 }
 
 bool bnccheckpassword(const char* User, const char* Password) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser, dsPass;
+
+	Tcl_DStringInit(&dsUser);
+	Tcl_DStringInit(&dsPass);
+
+	Tcl_UtfToExternalDString(NULL, User, -1, &dsUser);
+	Tcl_UtfToExternalDString(NULL, Password, -1, &dsPass);
+
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_DStringValue(&dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		return false;
 
-	return Context->Validate(Password);
+	bool Ret = Context->Validate(Tcl_DStringValue(&dsPass));
+
+	Tcl_DStringFree(&dsPass);
+
+	return Ret;
 }
 
 void bncdisconnect(const char* Reason) {
@@ -1462,7 +1396,15 @@ void bncdisconnect(const char* Reason) {
 	if (!Irc)
 		return;
 
-	Irc->Kill(Reason);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, Reason, -1, &dsText);
+
+	Irc->Kill(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
+
 	Context->MarkQuitted();
 }
 
@@ -1477,7 +1419,14 @@ void bnckill(const char* Reason) {
 	if (!Client)
 		return;
 
-	Client->Kill(Reason);
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, Reason, -1, &dsText);
+
+	Client->Kill(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 }
 
 void bncreply(const char* Text) {
@@ -1486,10 +1435,17 @@ void bncreply(const char* Text) {
 	if (!Context)
 		return;
 
+	Tcl_DString dsText;
+
+	Tcl_DStringInit(&dsText);
+	Tcl_UtfToExternalDString(NULL, Text, -1, &dsText);
+
 	if (g_NoticeUser)
-		Context->RealNotice(Text);
+		Context->RealNotice(Tcl_DStringValue(&dsText));
 	else
-		Context->Notice(Text);
+		Context->Notice(Tcl_DStringValue(&dsText));
+
+	Tcl_DStringFree(&dsText);
 }
 
 char* chanbans(const char* Channel) {
@@ -1503,7 +1459,14 @@ char* chanbans(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	Tcl_DStringInit(&dsChan);
+	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
@@ -1548,6 +1511,9 @@ char* chanbans(const char* Channel) {
 bool TclTimerProc(time_t Now, void* RawCookie) {
 	tcltimer_t* Cookie = (tcltimer_t*)RawCookie;
 
+	if (Cookie == NULL)
+		return false;
+
 	Tcl_Obj* objv[2];
 	int objc;
 
@@ -1573,46 +1539,110 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 	Tcl_DecrRefCount(objv[0]);
 
 	if (!Cookie->repeat) {
+		for (int i = 0; i < g_TimerCount; i++) {
+			if (g_Timers[i] == Cookie) {
+				g_Timers[i] = NULL;
+
+				break;
+			}
+		}
+
 		free(Cookie->proc);
 		free(Cookie->param);
-		Cookie->valid = false;
+		free(Cookie);
 	}
 
 	return true;
 }
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter) {
+	Tcl_DString dsProc, dsParam;
+
+	internalkilltimer(Proc, Parameter);
+
+	tcltimer_t** n = NULL;
+
 	for (int i = 0; i < g_TimerCount; i++) {
-		if (g_Timers[i]->valid && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0))
-			return 0;
+		if (g_Timers[i] == NULL) {
+			n = &g_Timers[i];
+
+			break;
+		}
 	}
 
-	g_Timers = (tcltimer_t**)realloc(g_Timers, sizeof(tcltimer_t) * ++g_TimerCount);
-	g_Timers[g_TimerCount - 1] = (tcltimer_t*)malloc(sizeof(tcltimer_t));
+	if (n == NULL) {
+		g_Timers = (tcltimer_t**)realloc(g_Timers, ++g_TimerCount * sizeof(tcltimer_t*));
 
-	g_Timers[g_TimerCount - 1]->valid = true;
-	g_Timers[g_TimerCount - 1]->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, g_Timers[g_TimerCount - 1]);
-	g_Timers[g_TimerCount - 1]->proc = strdup(Proc);
-	g_Timers[g_TimerCount - 1]->repeat = Repeat;
+		n = &g_Timers[g_TimerCount - 1];
+	}
+	
+	*n = (tcltimer_t*)malloc(sizeof(tcltimer_t));
 
-	if (Parameter)
-		g_Timers[g_TimerCount - 1]->param = strdup(Parameter);
-	else
-		g_Timers[g_TimerCount - 1]->param = NULL;
+	tcltimer_t* p = *n;
+
+	p->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, p);
+
+	Tcl_DStringInit(&dsProc);
+	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
+
+	p->proc = strdup(Tcl_DStringValue(&dsProc));
+
+	Tcl_DStringFree(&dsProc);
+
+	p->repeat = Repeat;
+
+	if (Parameter) {
+		Tcl_DStringInit(&dsParam);
+		Tcl_UtfToExternalDString(NULL, Parameter, -1, &dsParam);
+
+		p->param = strdup(Tcl_DStringValue(&dsParam));
+
+		Tcl_DStringFree(&dsParam);
+	} else
+		p->param = NULL;
 
 	return 1;
 }
 
 int internalkilltimer(const char* Proc, const char* Parameter) {
+	Tcl_DString dsProc, dsParam;
+
+	Tcl_DStringInit(&dsProc);
+	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
+
+	if (Parameter) {
+		Tcl_DStringInit(&dsParam);
+		Tcl_UtfToExternalDString(NULL, Parameter, -1, &dsParam);
+	}
+
+	if (!g_Timers)
+		return 0;
+
 	for (int i = 0; i < g_TimerCount; i++) {
-		if (g_Timers[i]->valid && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0)) {
+		if (g_Timers[i] && strcmp(g_Timers[i]->proc, Tcl_DStringValue(&dsProc)) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Tcl_DStringValue(&dsParam), g_Timers[i]->param) == 0)) {
 			g_Timers[i]->timer->Destroy();
 			free(g_Timers[i]->proc);
-			g_Timers[i]->valid = false;
+			free(g_Timers[i]->param);
+
+			g_Timers[i] = NULL;
+
+			Tcl_DStringFree(&dsProc);
+
+			if (Parameter)
+				Tcl_DStringFree(&dsParam);
 
 			return 1;
 		}
 	}
 
+	Tcl_DStringFree(&dsProc);
+
+	if (Parameter)
+		Tcl_DStringFree(&dsParam);
+
 	return 0;
+}
+
+int timerstats(void) {
+	return g_Bouncer->GetTimerStats();
 }

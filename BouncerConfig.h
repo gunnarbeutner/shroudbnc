@@ -55,8 +55,7 @@ public:
 	virtual void WriteInteger(const char* Setting, const int Value);
 	virtual void WriteString(const char* Setting, const char* Value);
 
-	virtual hash_t<char*>* GetSettings(void);
-	virtual int GetSettingCount(void);
+	virtual xhash_t<char*>* Iterate(int Index);
 
 	virtual const char* GetFilename(void);
 };

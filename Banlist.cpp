@@ -55,7 +55,7 @@ void CBanlist::UnsetBan(const char* Mask) {
 }
 
 const ban_t* CBanlist::Iterate(int Skip) {
-	hash_t<ban_t*>* Obj = m_Bans->Iterate(Skip);
+	xhash_t<ban_t*>* Obj = m_Bans->Iterate(Skip);
 
 	if (Obj)
 		return Obj->Value;

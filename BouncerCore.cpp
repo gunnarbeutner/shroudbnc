@@ -45,6 +45,7 @@ extern "C" {
 
 SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
+extern int g_TimerStats;
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
@@ -214,6 +215,9 @@ void CBouncerCore::StartMainLoop(void) {
 			time_t NextCall = current->ptr->GetNextCall();
 
 			if (Now >= NextCall && Now > Last) {
+				if (Now - 5 > NextCall)
+					Log("Timer drift for timer 0x%p: %d seconds", current->ptr, Now - NextCall);
+
 				current->ptr->Call(Now);
 				Best = Now + 1;
 			} else if (Best == 0 || NextCall < Best)
@@ -758,8 +762,6 @@ void CBouncerCore::RegisterTimer(CTimer* Timer) {
 
 	last->next->next = NULL;
 	last->next->ptr = NULL;
-
-	// register timer
 }
 
 void CBouncerCore::UnregisterTimer(CTimer* Timer) {
@@ -783,6 +785,8 @@ void CBouncerCore::UnregisterTimer(CTimer* Timer) {
 
 		current = current->next;
 	}
+}
 
-	// unregister timer
+int CBouncerCore::GetTimerStats(void) {
+	return g_TimerStats;
 }

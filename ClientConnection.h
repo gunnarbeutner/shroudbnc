@@ -24,12 +24,23 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#ifndef SWIG
+bool AdnsTimeoutTimer(time_t Now, void* Client);
+#endif
+
+class CTimer;
+
 class CClientConnection : public CConnection, public CDnsEvents {
+#ifndef SWIG
+	friend bool AdnsTimeoutTimer(time_t Now, void* Client);
+#endif
+
 	char* m_Nick;
 	char* m_Password;
 	char* m_Username;
 	sockaddr_in m_Peer;
 	char* m_PeerName;
+	CTimer* m_AdnsTimeout;
 
 #ifndef SWIG
 	adns_query m_PeerA;
@@ -37,6 +48,7 @@ class CClientConnection : public CConnection, public CDnsEvents {
 
 	void ValidateUser(void);
 	virtual bool ReadLine(char** Out);
+	void AdnsTimeout(void);
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, sockaddr_in Peer);
