@@ -120,6 +120,9 @@ CBouncerUser::~CBouncerUser() {
 
 	delete m_Log;
 
+	delete m_ClientStats;
+	delete m_IRCStats;
+
 	delete m_Keys;
 
 	free(m_BadLogins);

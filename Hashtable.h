@@ -64,8 +64,12 @@ public:
 		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
 			hash_t<Type>* P = &m_Items[i];
 
-			for (int a = 0; a < P->subcount; a++)
+			for (int a = 0; a < P->subcount; a++) {
 				free(P->keys[a]);
+
+				if (m_DestructorFunc)
+					m_DestructorFunc(P->values[a]);
+			}
 
 			free(P->keys);
 			free(P->values);

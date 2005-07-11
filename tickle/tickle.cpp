@@ -100,6 +100,8 @@ class CTclSupport : public CModuleFar {
 			p->Value->Destroy();
 		}
 
+		delete g_TclClientSockets;
+
 		delete this;
 	}
 
