@@ -88,7 +88,7 @@ class CBouncerCore {
 public:
 #ifndef SWIG
 	CBouncerCore(CBouncerConfig* Config, int argc, char** argv);
-	~CBouncerCore(void);
+	virtual ~CBouncerCore(void);
 #endif
 
 	virtual void StartMainLoop(void);

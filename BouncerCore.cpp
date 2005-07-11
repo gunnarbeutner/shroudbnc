@@ -792,7 +792,6 @@ void CBouncerCore::UnregisterTimer(CTimer* Timer) {
 
 		return;
 	}
-		
 
 	while (current) {
 		if (current->next && current->next->ptr == Timer) {

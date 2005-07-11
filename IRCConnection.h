@@ -80,7 +80,7 @@ class CIRCConnection : public CConnection {
 public:
 #ifndef SWIG
 	CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning);
-	~CIRCConnection();
+	virtual ~CIRCConnection();
 #endif
 
 	virtual void Write(void);

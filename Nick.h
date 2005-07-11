@@ -37,7 +37,7 @@ class CNick {
 public:
 #ifndef SWIG
 	CNick(const char* Nick);
-	~CNick(void);
+	virtual ~CNick(void);
 #endif
 
 	virtual const char* GetNick(void);

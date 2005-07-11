@@ -30,7 +30,7 @@ class CKeyring {
 public:
 #ifndef SWIG
 	CKeyring(CBouncerConfig* Config);
-	~CKeyring(void);
+	virtual ~CKeyring(void);
 #endif
 
 	virtual const char* GetKey(const char* Channel);

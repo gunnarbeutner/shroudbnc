@@ -54,7 +54,7 @@ class CFloodControl : public CQueue {
 public:
 #ifndef SWIG
 	CFloodControl(CIRCConnection* Owner);
-	~CFloodControl(void);
+	virtual ~CFloodControl(void);
 #endif
 
 	virtual char* DequeueItem(void);

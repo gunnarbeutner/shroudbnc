@@ -64,7 +64,7 @@ class CChannel {
 public:
 #ifndef SWIG
 	CChannel(const char* Name, CIRCConnection* Owner);
-	~CChannel(void);
+	virtual ~CChannel(void);
 #endif
 
 	virtual const char* GetName(void);

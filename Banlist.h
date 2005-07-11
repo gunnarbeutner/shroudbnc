@@ -19,7 +19,7 @@ class CBanlist {
 public:
 #ifndef SWIG
 	CBanlist();
-	~CBanlist();
+	virtual ~CBanlist();
 #endif
 
 	virtual void SetBan(const char* Mask, const char* Nick, time_t TS);

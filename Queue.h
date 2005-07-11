@@ -39,7 +39,7 @@ class CQueue {
 public:
 #ifndef SWIG
 	CQueue(void);
-	~CQueue(void);
+	virtual ~CQueue(void);
 #endif
 
 	virtual char* DequeueItem(void);

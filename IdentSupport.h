@@ -29,7 +29,7 @@ class CIdentSupport {
 public:
 #ifndef SWIG
 	CIdentSupport(void);
-	~CIdentSupport(void);
+	virtual ~CIdentSupport(void);
 #endif
 
 	virtual void SetIdent(const char* Ident);
