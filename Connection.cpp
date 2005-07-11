@@ -194,29 +194,23 @@ connection_role_e CConnection::GetRole(void) {
 }
 
 void CConnection::Kill(const char* Error) {
-	char Out[1024];
-
 	if (m_Shutdown)
 		return;
 
 	if (GetRole() == Role_Client) {
-		snprintf(Out, sizeof(Out), ":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
-
 		if (m_Owner) {
 			m_Owner->SetClientConnection(NULL);
 			m_Owner = NULL;
 		}
 
-		WriteLine(Out);
+		WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
 	} else if (GetRole() == Role_IRC) {
-		snprintf(Out, sizeof(Out), "QUIT :%s", Error);
-
 		if (m_Owner) {
 			m_Owner->SetIRCConnection(NULL);
 			m_Owner = NULL;
 		}
 
-		WriteLine(Out);
+		WriteLine("QUIT :%s", Error);
 	}
 
 	Shutdown();

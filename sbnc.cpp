@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 
+#include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Connection.h"
@@ -67,6 +68,10 @@ int main(int argc, char* argv[]) {
 
 	// constructor sets g_Bouncer
 	new CBouncerCore(Config, argc, argv);
+
+#if defined(_WIN32) && defined(_DEBUG)
+	g_Bouncer->CreateTimer(5, 1, ReportMemory, NULL);
+#endif
 
 #if !defined(_WIN32) && !defined(_FREEBSD)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);

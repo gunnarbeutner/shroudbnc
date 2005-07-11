@@ -28,7 +28,7 @@
 
 CBouncerConfig::CBouncerConfig(const char* Filename) {
 	m_WriteLock = false;
-	m_Settings = new CHashtable<char*, false>;
+	m_Settings = new CHashtable<char*, false, 3>();
 
 	assert(m_Settings != NULL);
 

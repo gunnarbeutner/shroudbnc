@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Connection.h"
@@ -110,6 +111,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("who           - shows users");
 			SENDUSER("admin         - gives someone admin privileges");
 			SENDUSER("unadmin       - removes someone's admin privileges");
+			SENDUSER("suspend       - suspends a user");
+			SENDUSER("unsuspend     - unsuspends a user");
 			SENDUSER("lsmod         - lists loaded modules");
 			SENDUSER("insmod        - loads a module");
 			SENDUSER("rmmod         - unloads a module");
@@ -400,13 +403,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "IRC: sendq: %d, recvq: %d", IRC->SendqSize(), IRC->RecvqSize());
 			SENDUSER(Out);
 
-			CChannel** Chans = IRC->GetChannels();
-
 			SENDUSER("Channels:");
 
-			for (int i = 0; i < IRC->GetChannelCount(); i++) {
-				if (Chans[i])
-					SENDUSER(Chans[i]->GetName());
+			int a = 0;
+
+			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+				SENDUSER(Chan->Name);
 			}
 
 			SENDUSER("End of CHANNELS.");
@@ -538,6 +540,33 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		
 		if (User) {
 			User->SetAdmin(false);
+
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There's no such user.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "suspend") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+
+		if (User) {
+			User->Lock();
+
+			if (User->GetClientConnection())
+				User->GetClientConnection()->Kill("Your account has been suspended.");
+
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There's no such user.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "unsuspend") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		
+		if (User) {
+			User->Unlock();
 
 			SENDUSER("Done.");
 		} else {
@@ -778,7 +807,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
-						CHashtable<CNick*, false>* H = Chan->GetNames();
+						CHashtable<CNick*, false, 20>* H = Chan->GetNames();
 
 						int a = 0;
 

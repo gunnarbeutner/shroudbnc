@@ -34,22 +34,29 @@ CKeyring::~CKeyring(void) {
 }
 
 const char* CKeyring::GetKey(const char* Channel) {
-	char Out[1024];
-	snprintf(Out, sizeof(Out), "key.%s", Channel);
+	char* Buf = (char*)malloc(5 + strlen(Channel));
+	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
 
-	return m_Config->ReadString(Out);
+	const char* Ret = m_Config->ReadString(Buf);
+
+	free(Buf);
+
+	return Ret;
 }
 
 void CKeyring::AddKey(const char* Channel, const char* Key) {
-	char Out[1024];
-	snprintf(Out, sizeof(Out), "key.%s", Channel);
+	char* Buf = (char*)malloc(5 + strlen(Channel));
+	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
 
-	m_Config->WriteString(Out, Key);
+	m_Config->WriteString(Buf, Key);
+
+	free(Buf);
 }
 
 void CKeyring::DeleteKey(const char* Channel) {
-	char Out[1024];
-	snprintf(Out, sizeof(Out), "key.%s", Channel);
+	char* Buf = (char*)malloc(5 + strlen(Channel));
+	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
 
-	m_Config->WriteString(Out, NULL);
+	m_Config->WriteString(Buf, NULL);
+	free(Buf);
 }

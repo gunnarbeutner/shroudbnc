@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Connection.h"
@@ -62,8 +63,8 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 
 	m_Owner = Owning;
 
-	m_Channels = NULL;
-	m_ChannelCount = 0;
+	m_Channels = new CHashtable<CChannel*, false, 5>();
+	m_Channels->RegisterValueDestructor(DestroyCChannel);
 
 	m_Server = NULL;
 
@@ -95,10 +96,7 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 CIRCConnection::~CIRCConnection() {
 	free(m_CurrentNick);
 
-	for (int i = 0; i < m_ChannelCount; i++)
-		delete m_Channels[i];
-
-	free(m_Channels);
+	delete m_Channels;
 
 	free(m_Server);
 	free(m_ServerVersion);
@@ -124,6 +122,9 @@ connection_role_e CIRCConnection::GetRole(void) {
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
+	if (argc < 2)
+		return true;
+
 	const char* Reply = argv[0];
 	const char* Raw = argv[1];
 	char* Nick = ::NickFromHostmask(Reply);
@@ -136,12 +137,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
 		WriteLine("NICK :%s`", argv[3]);
-		return false;
+		return ModuleEvent(argc, argv); // false
 	} else if (argc > 3 && strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			GetOwningClient()->Log("%s: %s", Reply, argv[3]);
 		}
 
@@ -161,7 +162,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 
@@ -244,20 +245,19 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		Nick = NickFromHostmask(argv[0]);
 
-		for (int i = 0; i < m_ChannelCount; i++) {
-			if (m_Channels[i]) {
-				CHashtable<CNick*, false>* Nicks = m_Channels[i]->GetNames();
+		int i = 0;
 
-				CNick* NickObj;
+		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+			CHashtable<CNick*, false, 20>* Nicks = Chan->Value->GetNames();
 
-				NickObj = Nicks->Get(Nick);
+			CNick* NickObj = Nicks->Get(Nick);
 
-				if (NickObj) {
-					NickObj->SetNick(argv[2]);
 
-					Nicks->Remove(Nick, true);
-					Nicks->Add(argv[2], NickObj);
-				}
+			if (NickObj) {
+				NickObj->SetNick(argv[2]);
+
+				Nicks->Remove(Nick, true);
+				Nicks->Add(argv[2], NickObj);
 			}
 		}
 
@@ -267,9 +267,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		Nick = NickFromHostmask(argv[0]);
 
-		for (int i = 0; i < m_ChannelCount; i++) {
-			if (m_Channels[i])
-				m_Channels[i]->GetNames()->Remove(Nick);
+		int i = 0;
+
+		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+			Chan->Value->GetNames()->Remove(Nick);
 		}
 
 		free(Nick);
@@ -506,20 +507,14 @@ void CIRCConnection::ParseLine(const char* Line) {
 	ArgFree(Args);
 }
 
-CChannel** CIRCConnection::GetChannels(void) {
-	return m_Channels;
-}
-
-int CIRCConnection::GetChannelCount(void) {
-	return m_ChannelCount;
-}
-
 const char* CIRCConnection::GetCurrentNick(void) {
 	return m_CurrentNick;
 }
 
 void CIRCConnection::AddChannel(const char* Channel) {
-	for (int i = 0; i < m_ChannelCount; i++) {
+	m_Channels->Add(Channel, new CChannel(Channel, this));
+
+/*	for (int i = 0; i < m_ChannelCount; i++) {
 		if (m_Channels[i] == NULL) {
 			m_Channels[i] = new CChannel(Channel, this);
 
@@ -530,18 +525,20 @@ void CIRCConnection::AddChannel(const char* Channel) {
 	}
 
 	m_Channels = (CChannel**)realloc(m_Channels, ++m_ChannelCount * sizeof(CChannel*));
-	m_Channels[m_ChannelCount - 1] = new CChannel(Channel, this);
+	m_Channels[m_ChannelCount - 1] = new CChannel(Channel, this);*/
 
 	UpdateChannelConfig();
 }
 
 void CIRCConnection::RemoveChannel(const char* Channel) {
-	for (int i = 0; i < m_ChannelCount; i++) {
+	m_Channels->Remove(Channel);
+
+/*	for (int i = 0; i < m_ChannelCount; i++) {
 		if (m_Channels[i] && strcmpi(m_Channels[i]->GetName(), Channel) == 0) {
 			delete m_Channels[i];
 			m_Channels[i] = NULL;
 		}
-	}
+	}*/
 
 	UpdateChannelConfig();
 }
@@ -558,23 +555,33 @@ void CIRCConnection::Destroy(void) {
 }
 
 void CIRCConnection::UpdateChannelConfig(void) {
-	char Out[1024] = "";
+	char* Out = NULL;
 
-	for (int i = 0; i < m_ChannelCount; i++) {
-		if (m_Channels[i]) {
-			if (*Out)
-				strcat(Out, ",");
+	int a = 0;
 
-			strcat(Out, m_Channels[i]->GetName());
-		}
+	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+		bool WasNull = (Out == NULL);
+
+		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
+
+		if (!WasNull)
+			strcat(Out, ",");
+		else
+			Out[0] = '\0';
+
+		strcat(Out, Chan->Name);
 	}
 
 	m_Owner->GetConfig()->WriteString("user.channels", Out);
+
+	free(Out);
 }
 
 bool CIRCConnection::IsOnChannel(const char* Channel) {
-	for (int i = 0; i < m_ChannelCount; i++) {
-		if (m_Channels[i] && strcmpi(m_Channels[i]->GetName(), Channel) == 0)
+	int a = 0;
+
+	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+		if (strcmpi(Chan->Name, Channel) == 0)
 			return true;
 	}
 
@@ -660,15 +667,7 @@ int CIRCConnection::RequiresParameter(char Mode) {
 }
 
 CChannel* CIRCConnection::GetChannel(const char* Name) {
-	if (!Name)
-		return NULL;
-
-	for (int i = 0; i < m_ChannelCount; i++) {
-		if (m_Channels[i] && strcmpi(m_Channels[i]->GetName(), Name) == 0)
-			return m_Channels[i];
-	}
-
-	return NULL;
+	return m_Channels->Get(Name);
 }
 
 bool CIRCConnection::IsNickPrefix(char Char) {
@@ -745,15 +744,13 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		return;
 	}
 
-	for (int i = 0; i < m_ChannelCount; i++) {
-		CChannel* Channel = m_Channels[i];
+	int i = 0;
 
-		if (Channel) {
-			CNick* NickObj = Channel->GetNames()->Get(Nick);
+	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
 
-			if (NickObj && NickObj->GetSite() == NULL)
-				NickObj->SetSite(Site);
-		}
+		if (NickObj && NickObj->GetSite() == NULL)
+			NickObj->SetSite(Site);
 	}
 
 	free(Copy);
@@ -844,4 +841,8 @@ bool IRCPingTimer(time_t Now, void* IRCConnection) {
 	((CIRCConnection*)IRCConnection)->WriteLine("PING :sbnc");
 
 	return true;
+}
+
+CHashtable<CChannel*, false, 5>* CIRCConnection::GetChannels(void) {
+	return m_Channels;
 }

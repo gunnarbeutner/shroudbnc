@@ -62,10 +62,10 @@ void CBouncerLog::PlayToUser(CBouncerUser* User, bool NoticeUser) {
 }
 
 void CBouncerLog::InternalWriteLine(const char* Line) {
-	char Out[1024];
 	FILE* Log;
 
 	if (m_File && (Log = fopen(m_File, "a"))) {
+		char Out[1024];
 		tm Now;
 		time_t tNow;
 		char strNow[100];

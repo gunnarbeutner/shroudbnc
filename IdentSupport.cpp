@@ -34,23 +34,28 @@ CIdentSupport::~CIdentSupport(void) {
 
 void CIdentSupport::SetIdent(const char* Ident) {
 #ifndef _WIN32
-	char Out[1024];
 	char* homedir = getenv("HOME");
 
+	char* Out = (char*)malloc(strlen(homedir) + 50);
+
 	if (homedir) {
-		snprintf(Out, sizeof(Out), "%s/.oidentd.conf", homedir);
+		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
 
 		FILE* identConfig = fopen(Out, "w");
 
 		if (identConfig) {
-			char Out[1024];
+			char* Buf = (char*)malloc(strlen(Ident) + 50);
 
-			snprintf(Out, sizeof(Out), "global { reply \"%s\" }", Ident);
-			fputs(Out, identConfig);
+			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
+			fputs(Buf, identConfig);
+
+			free(Buf);
 
 			fclose(identConfig);
 		}
 	}
+
+	free(Out);
 #endif
 
 	free(m_Ident);

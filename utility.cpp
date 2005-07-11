@@ -20,6 +20,7 @@
 // utility functions
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "SocketEvents.h"
 #include "Connection.h"
 #include "IRCConnection.h"

@@ -39,6 +39,8 @@ extern "C" {
 	#include "md5-c/md5.h"
 }
 
+extern bool g_Debug;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -49,6 +51,14 @@ extern int g_TimerStats;
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
+
+	m_Log = new CBouncerLog("sbnc.log");
+	m_Log->Clear();
+	m_Log->WriteLine("Log system initialized.");
+
+#if defined(_DEBUG) && defined(_WIN32)
+	g_Debug = true;
+#endif
 
 	m_TimerChain.next = NULL;
 	m_TimerChain.ptr = NULL;
@@ -90,10 +100,6 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 	m_OtherSockets = NULL;
 	m_OtherSocketCount = 0;
-
-	m_Log = new CBouncerLog("sbnc.log");
-	m_Log->Clear();
-	m_Log->WriteLine("Log system initialized.");
 
 	m_Listener = INVALID_SOCKET;
 

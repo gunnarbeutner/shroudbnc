@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Connection.h"
@@ -156,7 +157,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	char Out[1024];
 
 	if (IsLocked()) {
-		Client->Kill("You cannot attach to this user.");
+		Client->Kill("*** You cannot attach to this user.");
 		return;
 	}
 
@@ -179,19 +180,16 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			m_Client->ParseLine("VERSION");
 
-			CChannel** Chans = m_IRC->GetChannels();
-			int Count = m_IRC->GetChannelCount();
+			int a = 0;
 
-			for (int i = 0; i < Count; i++) {
-				if (Chans[i]) {
-					m_Client->WriteLine(":%s!%s@bouncer JOIN %s", m_IRC->GetCurrentNick(), m_Name, Chans[i]->GetName());
+			while (xhash_t<CChannel*>* Chan = m_IRC->GetChannels()->Iterate(a++)) {
+				m_Client->WriteLine(":%s!%s@bouncer JOIN %s", m_IRC->GetCurrentNick(), m_Name, Chan->Name);
 
-					snprintf(Out, sizeof(Out), "NAMES %s", Chans[i]->GetName());
-					m_Client->ParseLine(Out);
+				snprintf(Out, sizeof(Out), "NAMES %s", Chan->Name);
+				m_Client->ParseLine(Out);
 
-					snprintf(Out, sizeof(Out), "TOPIC %s", Chans[i]->GetName());
-					m_Client->ParseLine(Out);
-				}
+				snprintf(Out, sizeof(Out), "TOPIC %s", Chan->Name);
+				m_Client->ParseLine(Out);
 			}
 		}
 

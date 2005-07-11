@@ -28,15 +28,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-template <typename value_type, bool casesensitive = false> class CHashtable;
-
-typedef struct config_s {
-	char* Name;
-	char* Value;
-} config_t;
+template <typename value_type, bool casesensitive = false, int Size> class CHashtable;
 
 class CBouncerConfig {
-	CHashtable<char*, false>* m_Settings;
+	CHashtable<char*, false, 3>* m_Settings;
 
 	char* m_File;
 	bool m_WriteLock;

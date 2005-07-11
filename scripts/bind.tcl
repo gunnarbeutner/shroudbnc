@@ -52,6 +52,8 @@ proc sbnc:bindpulse {} {
 			}
 		}
 
+		set time [unixtime]
+
 		set minute [clock format $time -format "%M"]
 		set hour [clock format $time -format "%H"]
 		set day [clock format $time -format "%d"]

@@ -19,7 +19,7 @@ class CBanlist {
 public:
 #ifndef SWIG
 	CBanlist();
-	virtual ~CBanlist();
+	~CBanlist();
 #endif
 
 	virtual void SetBan(const char* Mask, const char* Nick, time_t TS);
@@ -28,7 +28,7 @@ public:
 	virtual const ban_t* CBanlist::GetBan(const char* Mask);
 	virtual const ban_t* Iterate(int Skip);
 private:
-	CHashtable<ban_t*, false>* m_Bans;
+	CHashtable<ban_t*, false, 5>* m_Bans;
 };
 
 #endif // !defined(AFX_BANLIST_H__BBD3E3D9_7146_452C_BBB3_8762021E7C62__INCLUDED_)

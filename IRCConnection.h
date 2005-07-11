@@ -53,8 +53,7 @@ class CIRCConnection : public CConnection {
 	char* m_CurrentNick;
 	char* m_Server;
 
-	CChannel** m_Channels;
-	int m_ChannelCount;
+	CHashtable<CChannel*, false, 5>* m_Channels;
 
 	char* m_ServerVersion;
 	char* m_ServerFeat;
@@ -90,9 +89,8 @@ public:
 
 	virtual connection_role_e GetRole(void);
 
-	virtual CChannel** GetChannels(void);
 	virtual CChannel* GetChannel(const char* Name);
-	virtual int GetChannelCount(void);
+	virtual CHashtable<CChannel*, false, 5>* GetChannels(void);
 
 	virtual const char* GetCurrentNick(void);
 	virtual const char* GetServer(void);

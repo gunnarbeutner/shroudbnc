@@ -108,8 +108,8 @@ class CTclSupport : public CModuleFar {
 	void Init(CBouncerCore* Root) {
 		g_Bouncer = Root;
 
-		g_TclListeners = new CHashtable<CTclSocket*, false>;
-		g_TclClientSockets = new CHashtable<CTclClientSocket*, false>;
+		g_TclListeners = new CHashtable<CTclSocket*, false, 5>;
+		g_TclClientSockets = new CHashtable<CTclClientSocket*, false, 5>;
 
 		Tcl_FindExecutable(Root->GetArgV()[0]);
 
@@ -270,8 +270,16 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 	objv[0] = NULL;
 
+	Tcl_Encoding Encoding = Tcl_GetEncoding(g_Interp, "utf-8");
+
 	if (user) {
-		objv[1] = Tcl_NewStringObj(user ? user : "", user ? strlen(user) : 0);
+		Tcl_DString dsUser;
+
+		Tcl_DStringInit(&dsUser);
+		Tcl_ExternalToUtfDString(Encoding, user ? user : "", -1, &dsUser);
+		objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
+		Tcl_DStringFree(&dsUser);
+
 		Tcl_IncrRefCount(objv[1]);
 	} else {
 		objv[1] = NULL;
@@ -282,7 +290,13 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		listv = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * argc);
 
 		for (int a = 0; a < argc; a++) {
-			listv[a] = Tcl_NewStringObj(argv[a], strlen(argv[a]));
+			Tcl_DString dsString;
+
+			Tcl_DStringInit(&dsString);
+			Tcl_ExternalToUtfDString(Encoding, argv[a], -1, &dsString);
+			listv[a] = Tcl_NewStringObj(Tcl_DStringValue(&dsString), Tcl_DStringLength(&dsString));
+			Tcl_DStringFree(&dsString);
+
 			Tcl_IncrRefCount(listv[a]);
 		}
 
@@ -297,7 +311,13 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
-			objv[0] = Tcl_NewStringObj(g_Binds[i].proc, strlen(g_Binds[i].proc));
+			Tcl_DString dsProc;
+
+			Tcl_DStringInit(&dsProc);
+			Tcl_ExternalToUtfDString(Encoding, g_Binds[i].proc, -1, &dsProc);
+			objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
+			Tcl_DStringFree(&dsProc);
+
 			Tcl_IncrRefCount(objv[0]);
 
 			Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
@@ -305,6 +325,8 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 			Tcl_DecrRefCount(objv[0]);
 		}
 	}
+
+	Tcl_FreeEncoding(Encoding);
 
 	if (user)
 		Tcl_DecrRefCount(objv[1]);

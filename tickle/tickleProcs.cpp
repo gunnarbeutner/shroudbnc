@@ -118,23 +118,24 @@ const char* internalchannels(void) {
 	if (!IRC)
 		return NULL;
 
-	int Count = IRC->GetChannelCount();
-	CChannel** Channels = IRC->GetChannels();
+	CHashtable<CChannel*, false, 5>* H = IRC->GetChannels();
+	int Count = H->Count();
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
 	int a = 0;
 
-	for (int i = 0; i < Count; i++)
-		if (Channels[i])
-			argv[a++] = Channels[i]->GetName();
+	while (xhash_t<CChannel*>* Chan = H->Iterate(a)) {
+		argv[a] = Chan->Name;
+		a++;
+	}
 
 	static char* List = NULL;
 
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(a, argv);
+	List = Tcl_Merge(Count, argv);
 
 	free(argv);
 
@@ -347,10 +348,10 @@ bool onchan(const char* Nick, const char* Channel) {
 		else
 			return false;
 	} else {
-		for (int i = 0; i < IRC->GetChannelCount(); i++) {
-			CChannel* Chan = IRC->GetChannels()[i];
+		int a = 0;
 
-			if (Chan && Chan->GetNames()->Get(Nick))
+		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			if (Chan->Value->GetNames()->Get(Nick))
 				return true;
 		}
 
@@ -459,7 +460,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	CHashtable<CNick*, false>* Names = Chan->GetNames();
+	CHashtable<CNick*, false, 20>* Names = Chan->GetNames();
 
 	int Count = Names->Count();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
@@ -501,10 +502,10 @@ bool isop(const char* Nick, const char* Channel) {
 		else
 			return false;
 	} else {
-		for (int i = 0; i < IRC->GetChannelCount(); i++) {
-			CChannel* Chan = IRC->GetChannels()[i];
+		int a = 0;
 
-			if (Chan && Chan->GetNames()->Get(Nick) && Chan->GetNames()->Get(Nick)->IsOp())
+		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsOp())
 				return true;
 		}
 
@@ -533,10 +534,10 @@ bool isvoice(const char* Nick, const char* Channel) {
 		else
 			return false;
 	} else {
-		for (int i = 0; i < IRC->GetChannelCount(); i++) {
-			CChannel* Chan = IRC->GetChannels()[i];
+		int a = 0;
 
-			if (Chan && Chan->GetNames()->Get(Nick) && Chan->GetNames()->Get(Nick)->IsVoice())
+		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsVoice())
 				return true;
 		}
 
@@ -565,10 +566,10 @@ bool ishalfop(const char* Nick, const char* Channel) {
 		else
 			return false;
 	} else {
-		for (int i = 0; i < IRC->GetChannelCount(); i++) {
-			CChannel* Chan = IRC->GetChannels()[i];
+		int a = 0;
 
-			if (Chan && Chan->GetNames()->Get(Nick) && Chan->GetNames()->Get(Nick)->IsHalfop())
+		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsHalfop())
 				return true;
 		}
 
@@ -779,17 +780,13 @@ const char* getchanhost(const char* Nick, const char* Channel) {
 		CIRCConnection* IRC = Context->GetIRCConnection();
 
 		if (IRC) {
-			CChannel** Chans = IRC->GetChannels();
-			int ChanCount = IRC->GetChannelCount();
+			int a = 0;
 
-			for (int i = 0; i < ChanCount; i++) {
-				if (Chans[i]) {
-					CNick* U = Chans[i]->GetNames()->Get(Nick);
+			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
-					if (U && U->GetSite() != NULL)
-						return U->GetSite();
-				}
-					
+				if (U && U->GetSite() != NULL)
+					return U->GetSite();					
 			}
 		}
 
@@ -1524,13 +1521,27 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 	else
 		objc = 1;
 
-	objv[0] = Tcl_NewStringObj(Cookie->proc, strlen(Cookie->proc));
+	Tcl_DString dsProc, dsCookie;
+
+	Tcl_Encoding Encoding = Tcl_GetEncoding(g_Interp, "utf-8");
+
+	Tcl_DStringInit(&dsProc);
+	Tcl_ExternalToUtfDString(NULL, Cookie->proc, -1, &dsProc);
+	objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
+	Tcl_DStringFree(&dsProc);
+
 	Tcl_IncrRefCount(objv[0]);
 
 	if (Cookie->param) {
-		objv[1] = Tcl_NewStringObj(Cookie->param, strlen(Cookie->param));
+		Tcl_DStringInit(&dsCookie);
+		Tcl_ExternalToUtfDString(NULL, Cookie->param, -1, &dsCookie);
+		objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsCookie), Tcl_DStringLength(&dsCookie));
+		Tcl_DStringFree(&dsCookie);
+
 		Tcl_IncrRefCount(objv[1]);
 	}
+
+	Tcl_FreeEncoding(Encoding);
 
 	Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
 

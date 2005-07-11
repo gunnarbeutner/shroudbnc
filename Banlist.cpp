@@ -32,7 +32,7 @@ void DestroyBan(ban_t* Obj) {
 }
 
 CBanlist::CBanlist() {
-	m_Bans = new CHashtable<ban_t*, false>();
+	m_Bans = new CHashtable<ban_t*, false, 5>();
 	m_Bans->RegisterValueDestructor(DestroyBan);
 }
 

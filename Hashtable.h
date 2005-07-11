@@ -29,7 +29,7 @@ template <typename Type> struct xhash_t {
 	Type Value;
 };
 
-template<typename Type, bool CaseSensitive> class CHashtable {
+template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	typedef void (DestroyValue)(Type P);
 
 	template <typename HType> struct hash_t {
@@ -38,16 +38,16 @@ template<typename Type, bool CaseSensitive> class CHashtable {
 		HType* values;
 	};
 
-	hash_t<Type> m_Items[0xFF];
+	hash_t<Type> m_Items[Size];
 	DestroyValue* m_DestructorFunc;
 
-	int Hash(const char* String) {
-		int Out = 0;
+	unsigned char Hash(const char* String) {
+		unsigned char Out = 0;
 
 		for (size_t i = 0; i < strlen(String); i++)
 			Out ^= String[i];
 
-		return Out & 0xFF;
+		return Out & (Size - 1);
 	}
 public:
 	CHashtable(void) {
@@ -77,6 +77,9 @@ public:
 	}
 
 	void Add(const char* Key, Type Value) {
+		if (!Key)
+			return;
+
 		Remove(Key);
 
 		hash_t<Type>* P = &m_Items[Hash(Key)];
@@ -91,6 +94,9 @@ public:
 	}
 
 	Type Get(const char* Key) {
+		if (!Key)
+			return NULL;
+
 		hash_t<Type>* P = &m_Items[Hash(Key)];
 
 		if (P->subcount == 0)
@@ -114,6 +120,9 @@ public:
 	}
 
 	void Remove(const char* Key, bool NoRelease = false) {
+		if (!Key)
+			return;
+
 		hash_t<Type>* P = &m_Items[Hash(Key)];
 
 		if (P->subcount == 0)

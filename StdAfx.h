@@ -87,6 +87,19 @@
 #undef wsprintf
 #define wsprintf __evil_function
 
+#ifdef _WIN32
+#ifdef _DEBUG
+#ifndef SWIG
+
+void* DebugMalloc(size_t Size);
+bool ReportMemory(time_t Now, void* Cookie);
+
+#define malloc DebugMalloc
+
+#endif
+#endif
+#endif
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

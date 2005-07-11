@@ -26,26 +26,45 @@ foreach user [split $::account354] {
 	bind raw - 354 auth:raw354
 }
 
-#internaltimer 5 1 auth:pulse
+internaltimer 180 1 auth:pulse 180
+internaltimer 240 1 auth:pulse 240
 
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {
 		if {![info exists inwho]} { set inwho 0 }
 		if {![info exists whonicks]} { set whonicks {} }
+		if {![info exists accounttimer]} { set accounttimer 0 }
+		if {![info exists accountwait]} { set accountwait 0 }
 	}
 
 	upvar [getns]::inwho inwho
+	upvar [getns]::accounttimer accounttimer
+	upvar [getns]::accountwait accountwait
 
 	if {[isbotnick $nick]} {
 		if {$inwho} {
 			auth:enqueuechan $chan
 		} else {
-			puthelp "WHO $chan n%nat,23"
+			utimer 1 [list puthelp "WHO $chan n%nat,23"]
 			set inwho 1
 		}
 	} else {
 		if {[getchanlogin $nick] == ""} {
 			bncsettag $chan $nick accunknown 1
+
+			if {$accounttimer != 0} {
+				incr accountwait
+
+				if {$accountwait > 2} {
+					return
+				}
+
+				internalkilltimer auth:jointimer [getctx]
+			}
+
+			internaltimer 3 0 auth:jointimer [getctx]
+
+			set accounttimer 1
 		} else {
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
@@ -114,10 +133,45 @@ proc auth:raw354 {source raw text} {
 	}
 }
 
-proc auth:pulse {} {
-	global account354
+# it's possible that the same nick gets /who'd twice (during the same call of auth:jointimer). fix?
+proc auth:jointimer {context} {
+	setctx $context
 
-	set time [unixtime]
+	namespace eval [getns] {
+		if {![info exists accounttimer]} { set accounttimer 0 }
+		if {![info exists accountwait]} { set accountwait 0 }
+	}
+
+	upvar [getns]::accounttimer accounttimer
+	upvar [getns]::accountwait accountwait
+
+	set accounttimer 0
+	set accountwait 0
+
+	set nicks ""
+	foreach chan [internalchannels] {
+		foreach nick [internalchanlist $chan] {
+			if {[bncgettag $chan $nick account] == "" && [bncgettag $chan $nick accunknown] == 1} {
+				lappend nicks $nick
+				bncsettag $chan $nick accunknown 0
+			}
+
+			set l [join [sbnc:uniq $nicks] ","]
+
+			if {[string length $l] > 300} {
+				puthelp "WHO $l n%nat,23"
+				set nicks ""
+			}
+		}
+	}
+
+	if {$nicks != ""} {
+		puthelp "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+	}
+}
+
+proc auth:pulse {reason} {
+	global account354
 
 	foreach user [split $account354] {
 		setctx $user
@@ -128,7 +182,7 @@ proc auth:pulse {} {
 				set acc [bncgettag $chan $nick account]
 				set unk [bncgettag $chan $nick accunknown]
 
-				if {$unk == 1 || ($time %180 == 0 && ($acc == "" || ($acc == 0 && $time % 240 == 0)))} {
+				if {$unk == 1 || ($reason == 180 && ($acc == "" || ($acc == 0 && $reason == 240)))} {
 					lappend nicks $nick
 					bncsettag $chan $nick accunknown 0
 				}

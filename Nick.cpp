@@ -36,7 +36,7 @@ CNick::CNick(const char* Nick) {
 
 	m_IdleSince = m_Creation = time(NULL);
 
-	m_Tags = new CBouncerConfig(NULL);
+	m_Tags = NULL;
 }
 
 CNick::~CNick() {
@@ -44,7 +44,8 @@ CNick::~CNick() {
 	free(m_Prefixes);
 	free(m_Site);
 
-	delete m_Tags;
+	if (m_Tags)
+		delete m_Tags;
 }
 
 const char* CNick::GetNick(void) {
@@ -148,9 +149,15 @@ void CNick::SetIdleSince(time_t Time) {
 }
 
 void CNick::SetTag(const char* Name, const char* Value) {
+	if (m_Tags == NULL)
+		m_Tags = new CBouncerConfig(NULL);
+
 	m_Tags->WriteString(Name, Value);
 }
 
 const char* CNick::GetTag(const char* Name) {
-	return m_Tags->ReadString(Name);
+	if (m_Tags == NULL)
+		return NULL;
+	else
+		return m_Tags->ReadString(Name);
 }

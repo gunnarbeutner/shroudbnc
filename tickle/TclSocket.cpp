@@ -27,7 +27,7 @@
 
 extern Tcl_Interp* g_Interp;
 
-CHashtable<CTclSocket*, false>* g_TclListeners;
+CHashtable<CTclSocket*, false, 5>* g_TclListeners;
 int g_SocketIdx = 0;
 
 //////////////////////////////////////////////////////////////////////

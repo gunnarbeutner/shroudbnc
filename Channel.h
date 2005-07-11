@@ -32,7 +32,7 @@ typedef struct chanmode_s {
 } chanmode_t;
 
 class CNick;
-template <typename value_type, bool casesensitive> class CHashtable;
+template <typename value_type, bool casesensitive, int Size> class CHashtable;
 class CBanlist;
 
 class CChannel {
@@ -51,7 +51,7 @@ class CChannel {
 
 	time_t m_Creation;
 
-	CHashtable<CNick*, false>* m_Nicks;
+	CHashtable<CNick*, false, 20>* m_Nicks;
 
 	bool m_HasNames;
 
@@ -93,7 +93,7 @@ public:
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick*, false>* GetNames(void);
+	virtual CHashtable<CNick*, false, 20>* GetNames(void);
 
 	virtual void ClearModes(void);
 	virtual bool AreModesValid(void);
@@ -103,5 +103,9 @@ public:
 	virtual void SetHasBans(void);
 	virtual bool HasBans(void);
 };
+
+#ifndef SWIG
+void DestroyCChannel(CChannel* P);
+#endif
 
 #endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)
