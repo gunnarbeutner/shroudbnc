@@ -32,10 +32,10 @@ template <typename Type> struct xhash_t {
 template<typename Type, bool CaseSensitive> class CHashtable {
 	typedef void (DestroyValue)(Type P);
 
-	template <typename Type> struct hash_t {
+	template <typename HType> struct hash_t {
 		int subcount;
 		char** keys;
-		Type* values;
+		HType* values;
 	};
 
 	hash_t<Type> m_Items[0xFF];

@@ -100,8 +100,6 @@ class CTclSupport : public CModuleFar {
 			p->Value->Destroy();
 		}
 
-		delete g_TclListeners;
-
 		delete this;
 	}
 

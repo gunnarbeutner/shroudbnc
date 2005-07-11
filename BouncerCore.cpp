@@ -129,6 +129,8 @@ CBouncerCore::~CBouncerCore() {
 
 	free(m_Modules);
 
+	m_ModuleCount = 0;
+
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i])
 			delete m_Users[i];
@@ -147,6 +149,17 @@ CBouncerCore::~CBouncerCore() {
 
 	delete m_Log;
 	delete m_Ident;
+
+	if (m_TimerChain.next) {
+		timerchain_t* current = m_TimerChain.next;
+
+		while (current) {
+			timerchain_t* p = current;
+			current = current->next;
+
+			free(p);
+		}
+	}
 }
 
 void CBouncerCore::StartMainLoop(void) {
