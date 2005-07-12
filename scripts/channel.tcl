@@ -25,6 +25,7 @@ proc sbnc:channelflush {} {
 
 		foreach channel [channels] {
 			if {![botonchan $channel] && ![channel get $channel inactive]} {
+				# simul so we can take advantage of keyrings
 				simul [getctx] "JOIN $channel"
 			}
 		}

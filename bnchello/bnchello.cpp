@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "../ModuleFar.h"
+#include "../Hashtable.h"
 #include "../BouncerCore.h"
 #include "../SocketEvents.h"
 #include "../DnsEvents.h"

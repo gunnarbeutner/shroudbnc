@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "Hashtable.h"
 #include "Channel.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
@@ -25,7 +26,6 @@
 #include "ClientConnection.h"
 #include "IRCConnection.h"
 #include "BouncerConfig.h"
-#include "Hashtable.h"
 #include "Nick.h"
 #include "ModuleFar.h"
 #include "Module.h"

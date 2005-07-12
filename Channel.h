@@ -32,7 +32,6 @@ typedef struct chanmode_s {
 } chanmode_t;
 
 class CNick;
-template <typename value_type, bool casesensitive, int Size, bool VolatileKeys = false> class CHashtable;
 class CBanlist;
 
 class CChannel {
