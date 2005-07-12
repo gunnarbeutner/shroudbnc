@@ -29,7 +29,7 @@ template <typename Type> struct xhash_t {
 	Type Value;
 };
 
-template<typename Type, bool CaseSensitive, int Size> class CHashtable {
+template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false> class CHashtable {
 	typedef void (DestroyValue)(Type P);
 
 	template <typename HType> struct hash_t {
@@ -65,7 +65,8 @@ public:
 			hash_t<Type>* P = &m_Items[i];
 
 			for (int a = 0; a < P->subcount; a++) {
-				free(P->keys[a]);
+				if (!VolatileKeys)
+					free(P->keys[a]);
 
 				if (m_DestructorFunc)
 					m_DestructorFunc(P->values[a]);
@@ -89,7 +90,11 @@ public:
 		P->keys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
 		P->values = (Type*)realloc(P->values, P->subcount * sizeof(Type));
 
-		P->keys[P->subcount - 1] = strdup(Key);
+		if (VolatileKeys)
+			P->keys[P->subcount - 1] = const_cast<char*>(Key);
+		else
+			P->keys[P->subcount - 1] = strdup(Key);
+
 		P->values[P->subcount -1] = Value;
 	}
 
@@ -131,7 +136,9 @@ public:
 			if (m_DestructorFunc && !NoRelease)
 				m_DestructorFunc(P->values[0]);
 
-			free(P->keys[0]);
+			if (!VolatileKeys)
+				free(P->keys[0]);
+
 			free(P->keys);
 			free(P->values);
 			P->subcount = 0;
@@ -140,7 +147,9 @@ public:
 		} else {
 			for (int i = 0; i < P->subcount; i++) {
 				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcmpi(P->keys[i], Key)) == 0) {
-					free(P->keys[i]);
+					if (!VolatileKeys)
+						free(P->keys[i]);
+
 					P->keys[i] = P->keys[P->subcount - 1];
 
 					if (m_DestructorFunc && !NoRelease)

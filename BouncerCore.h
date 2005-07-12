@@ -37,7 +37,7 @@ class CConnection;
 class CTimer;
 struct CSocketEvents;
 struct sockaddr_in;
-template <typename value_type, bool casesensitive, int Size> class CHashtable;
+template <typename value_type, bool casesensitive, int Size, bool VolatileKeys = false> class CHashtable;
 
 typedef struct socket_s {
 	SOCKET Socket;

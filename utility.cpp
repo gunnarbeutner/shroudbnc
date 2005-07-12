@@ -243,9 +243,8 @@ char* NickFromHostmask(const char* Hostmask) {
 		return NULL;
 	else {
 		char* Copy = strdup(Hostmask);
-		char* Ex2 = strstr(Copy, "!");
 
-		*Ex2 = '\0';
+		Copy[Ex - Hostmask] = '\0';
 
 		return Copy;
 	}

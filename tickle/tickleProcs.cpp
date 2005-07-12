@@ -440,7 +440,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	CHashtable<CNick*, false, 20>* Names = Chan->GetNames();
+	CHashtable<CNick*, false, 20, true>* Names = Chan->GetNames();
 
 	int Count = Names->Count();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
@@ -457,6 +457,8 @@ const char* internalchanlist(const char* Channel) {
 		Tcl_Free(List);
 
 	List = Tcl_Merge(Count, argv);
+
+	free(argv);
 
 	return List;
 }
@@ -747,7 +749,7 @@ int simul(const char* User, const char* Command) {
 	if (!Context)
 		return 0;
 	else {
-		Context->Simulate(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsCtx));
+		Context->Simulate(Tcl_UtfToExternalDString(g_Encoding, Command, -1, &dsCtx));
 
 		Tcl_DStringFree(&dsCtx);
 

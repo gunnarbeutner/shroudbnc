@@ -32,7 +32,7 @@ typedef struct chanmode_s {
 } chanmode_t;
 
 class CNick;
-template <typename value_type, bool casesensitive, int Size> class CHashtable;
+template <typename value_type, bool casesensitive, int Size, bool VolatileKeys = false> class CHashtable;
 class CBanlist;
 
 class CChannel {
@@ -51,7 +51,7 @@ class CChannel {
 
 	time_t m_Creation;
 
-	CHashtable<CNick*, false, 20>* m_Nicks;
+	CHashtable<CNick*, false, 20, true>* m_Nicks;
 
 	bool m_HasNames;
 
@@ -93,7 +93,7 @@ public:
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick*, false, 20>* GetNames(void);
+	virtual CHashtable<CNick*, false, 20, true>* GetNames(void);
 
 	virtual void ClearModes(void);
 	virtual bool AreModesValid(void);

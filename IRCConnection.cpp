@@ -248,7 +248,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int i = 0;
 
 		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			CHashtable<CNick*, false, 20>* Nicks = Chan->Value->GetNames();
+			CHashtable<CNick*, false, 20, true>* Nicks = Chan->Value->GetNames();
 
 			CNick* NickObj = Nicks->Get(Nick);
 

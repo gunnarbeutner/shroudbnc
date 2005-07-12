@@ -50,7 +50,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CHashtable<CNick*, false, 20>();
+	m_Nicks = new CHashtable<CNick*, false, 20, true>();
 	m_Nicks->RegisterValueDestructor(DestroyCNick);
 	m_HasNames = false;
 	m_ModesValid = false;
@@ -266,7 +266,7 @@ void CChannel::AddUser(const char* Nick, const char* ModeChars) {
 
 	N->SetPrefixes(ModeChars);
 
-	m_Nicks->Add(Nick, N);
+	m_Nicks->Add(N->GetNick(), N);
 }
 
 void CChannel::RemoveUser(const char* Nick) {
@@ -303,7 +303,7 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CHashtable<CNick*, false, 20>* CChannel::GetNames(void) {
+CHashtable<CNick*, false, 20, true>* CChannel::GetNames(void) {
 	return m_Nicks;
 }
 

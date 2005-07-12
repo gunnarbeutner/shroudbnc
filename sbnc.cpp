@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 	new CBouncerCore(Config, argc, argv);
 
 #if defined(_WIN32) && defined(_DEBUG)
-	g_Bouncer->CreateTimer(5, 1, ReportMemory, NULL);
+	g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
 #endif
 
 #if !defined(_WIN32) && !defined(_FREEBSD)
