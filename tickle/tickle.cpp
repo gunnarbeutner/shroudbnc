@@ -43,6 +43,7 @@ Tcl_Interp* g_Interp;
 CTclSupport* g_Tcl;
 bool g_Ret;
 bool g_NoticeUser;
+Tcl_Encoding g_Encoding;
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -84,6 +85,8 @@ class CTclSupport : public CModuleFar {
 	void Destroy(void) {
 		CallBinds(Type_Unload, NULL, 0, NULL);
 
+		Tcl_FreeEncoding(g_Encoding);
+
 		Tcl_DeleteInterp(g_Interp);
 
 		int i = 0;
@@ -114,6 +117,8 @@ class CTclSupport : public CModuleFar {
 		Tcl_FindExecutable(Root->GetArgV()[0]);
 
 		Tcl_SetSystemEncoding(NULL, "ISO8859-1");
+
+		g_Encoding = Tcl_GetEncoding(g_Interp, "ISO8859-1");
 
 		g_Interp = Tcl_CreateInterp();
 
@@ -270,13 +275,10 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 	objv[0] = NULL;
 
-	Tcl_Encoding Encoding = Tcl_GetEncoding(g_Interp, "utf-8");
-
 	if (user) {
 		Tcl_DString dsUser;
 
-		Tcl_DStringInit(&dsUser);
-		Tcl_ExternalToUtfDString(Encoding, user ? user : "", -1, &dsUser);
+		Tcl_ExternalToUtfDString(g_Encoding, user ? user : "", -1, &dsUser);
 		objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
 		Tcl_DStringFree(&dsUser);
 
@@ -292,8 +294,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		for (int a = 0; a < argc; a++) {
 			Tcl_DString dsString;
 
-			Tcl_DStringInit(&dsString);
-			Tcl_ExternalToUtfDString(Encoding, argv[a], -1, &dsString);
+			Tcl_ExternalToUtfDString(g_Encoding, argv[a], -1, &dsString);
 			listv[a] = Tcl_NewStringObj(Tcl_DStringValue(&dsString), Tcl_DStringLength(&dsString));
 			Tcl_DStringFree(&dsString);
 
@@ -313,8 +314,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			Tcl_DString dsProc;
 
-			Tcl_DStringInit(&dsProc);
-			Tcl_ExternalToUtfDString(Encoding, g_Binds[i].proc, -1, &dsProc);
+			Tcl_ExternalToUtfDString(g_Encoding, g_Binds[i].proc, -1, &dsProc);
 			objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
 			Tcl_DStringFree(&dsProc);
 
@@ -325,8 +325,6 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 			Tcl_DecrRefCount(objv[0]);
 		}
 	}
-
-	Tcl_FreeEncoding(Encoding);
 
 	if (user)
 		Tcl_DecrRefCount(objv[1]);

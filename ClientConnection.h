@@ -52,8 +52,8 @@ class CClientConnection : public CConnection, public CDnsEvents {
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, sockaddr_in Peer);
-	virtual ~CClientConnection(void);
 #endif
+	virtual ~CClientConnection(void);
 
 	virtual connection_role_e GetRole(void);
 

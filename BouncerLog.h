@@ -31,8 +31,8 @@ class CBouncerLog {
 public:
 #ifndef SWIG
 	CBouncerLog(const char* Filename);
-	virtual ~CBouncerLog(void);
 #endif
+	virtual ~CBouncerLog(void);
 
 	virtual void Clear(void);
 	virtual void InternalWriteLine(const char* Line);

@@ -39,8 +39,8 @@ class CQueue {
 public:
 #ifndef SWIG
 	CQueue(void);
-	virtual ~CQueue(void);
 #endif
+	virtual ~CQueue(void);
 
 	virtual char* DequeueItem(void);
 	virtual const char* PeekItem(void);

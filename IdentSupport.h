@@ -29,8 +29,8 @@ class CIdentSupport {
 public:
 #ifndef SWIG
 	CIdentSupport(void);
-	virtual ~CIdentSupport(void);
 #endif
+	virtual ~CIdentSupport(void);
 
 	virtual void SetIdent(const char* Ident);
 	virtual const char* GetIdent(void);

@@ -40,8 +40,8 @@ class CConnection : public CSocketEvents {
 public:
 #ifndef SWIG
 	CConnection(SOCKET Client, sockaddr_in Peer);
-	virtual ~CConnection(void);
 #endif
+	virtual ~CConnection(void);
 
 	virtual SOCKET GetSocket(void);
 	virtual CBouncerUser* GetOwningClient(void);

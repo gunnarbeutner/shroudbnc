@@ -81,8 +81,8 @@ class CBouncerUser {
 public:
 #ifndef SWIG
 	CBouncerUser(const char* Name);
-	virtual ~CBouncerUser(void);
 #endif
+	virtual ~CBouncerUser(void);
 
 	virtual SOCKET GetIRCSocket(void);
 	virtual CClientConnection* GetClientConnection(void);

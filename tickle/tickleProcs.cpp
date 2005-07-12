@@ -51,6 +51,8 @@ int g_BindCount = 0;
 tcltimer_t** g_Timers = NULL;
 int g_TimerCount = 0;
 
+extern Tcl_Encoding g_Encoding;
+
 extern Tcl_Interp* g_Interp;
 
 extern bool g_Ret;
@@ -71,8 +73,7 @@ void setctx(const char* ctx) {
 
 	Tcl_DString dsContext;
 
-	Tcl_DStringInit(&dsContext);
-	Tcl_UtfToExternalDString(NULL, ctx, -1, &dsContext);
+	Tcl_UtfToExternalDString(g_Encoding, ctx, -1, &dsContext);
 
 	g_Context = ctx ? strdup(Tcl_DStringValue(&dsContext)) : NULL;
 
@@ -155,10 +156,7 @@ const char* getchanmode(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -286,10 +284,7 @@ int putserv(const char* text) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
-
-	IRC->InternalWriteLine(Tcl_DStringValue(&dsText));
+	IRC->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 
@@ -309,10 +304,7 @@ int putclient(const char* text) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
-
-	Client->InternalWriteLine(Tcl_DStringValue(&dsText));
+	Client->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 
@@ -372,10 +364,7 @@ const char* topic(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -398,10 +387,7 @@ const char* topicnick(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -424,10 +410,7 @@ int topicstamp(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -450,10 +433,7 @@ const char* internalchanlist(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -758,12 +738,18 @@ void delbncuser(const char* User) {
 int simul(const char* User, const char* Command) {
 	CBouncerUser* Context;
 
-	Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser, dsCtx;
+
+	Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		return 0;
 	else {
-		Context->Simulate(Command);
+		Context->Simulate(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsCtx));
+
+		Tcl_DStringFree(&dsCtx);
 
 		return 1;
 	}
@@ -949,8 +935,7 @@ int queuesize(const char* Queue) {
 
 	Tcl_DString dsQueue;
 
-	Tcl_DStringInit(&dsQueue);
-	Tcl_UtfToExternalDString(NULL, Queue, -1, &dsQueue);
+	Tcl_UtfToExternalDString(g_Encoding, Queue, -1, &dsQueue);
 
 	if (strcmpi(Tcl_DStringValue(&dsQueue), "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
@@ -990,10 +975,7 @@ int puthelp(const char* text) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
-
-	IRC->GetQueueLow()->QueueItem(Tcl_DStringValue(&dsText));
+	IRC->GetQueueLow()->QueueItem(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 
@@ -1013,10 +995,7 @@ int putquick(const char* text) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, text, -1, &dsText);
-
-	IRC->GetQueueHigh()->QueueItem(Tcl_DStringValue(&dsText));
+	IRC->GetQueueHigh()->QueueItem(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 
@@ -1036,10 +1015,7 @@ const char* getisupport(const char* Feature) {
 
 	Tcl_DString dsFeat;
 
-	Tcl_DStringInit(&dsFeat);
-	Tcl_UtfToExternalDString(NULL, Feature, -1, &dsFeat);
-
-	const char* ReturnValue = IRC->GetISupport(Tcl_DStringValue(&dsFeat));
+	const char* ReturnValue = IRC->GetISupport(Tcl_UtfToExternalDString(g_Encoding, Feature, -1, &dsFeat));
 
 	Tcl_DStringFree(&dsFeat);
 
@@ -1176,10 +1152,7 @@ const char* md5(const char* String) {
 	if (String) {
 		Tcl_DString dsString;
 
-		Tcl_DStringInit(&dsString);
-		Tcl_UtfToExternalDString(NULL, String, -1, &dsString);
-
-		const char* ReturnValue = g_Bouncer->MD5(Tcl_DStringValue(&dsString));
+		const char* ReturnValue = g_Bouncer->MD5(Tcl_UtfToExternalDString(g_Encoding, String, -1, &dsString));
 		
 		Tcl_DStringFree(&dsString);
 		
@@ -1201,10 +1174,7 @@ void putlog(const char* Text) {
 	if (User && Text) {
 		Tcl_DString dsText;
 
-		Tcl_DStringInit(&dsText);
-		Tcl_UtfToExternalDString(NULL, Text, -1, &dsText);
-
-		User->GetLog()->InternalWriteLine(Tcl_DStringValue(&dsText));
+		User->GetLog()->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, Text, -1, &dsText));
 
 		Tcl_DStringFree(&dsText);
 	}
@@ -1244,10 +1214,7 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 void bncjoinchans(const char* User) {
 	Tcl_DString dsUser;
 
-	Tcl_DStringInit(&dsUser);
-	Tcl_UtfToExternalDString(NULL, User, -1, &dsUser);
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_DStringValue(&dsUser));
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
 
 	Tcl_DStringFree(&dsUser);
 
@@ -1301,10 +1268,7 @@ void control(int Socket, const char* Proc) {
 
 	Tcl_DString dsProc;
 
-	Tcl_DStringInit(&dsProc);
-	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
-
-	SockPtr->SetControlProc(Tcl_DStringValue(&dsProc));
+	SockPtr->SetControlProc(Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc));
 
 	Tcl_DStringFree(&dsProc);
 }
@@ -1319,10 +1283,7 @@ void internalsocketwriteln(int Socket, const char* Line) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, Line, -1, &dsText);
-
-	SockPtr->WriteLine(Tcl_DStringValue(&dsText));
+	SockPtr->WriteLine(Tcl_UtfToExternalDString(g_Encoding, Line, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 }
@@ -1330,10 +1291,7 @@ void internalsocketwriteln(int Socket, const char* Line) {
 int internalconnect(const char* Host, unsigned short Port) {
 	Tcl_DString dsHost;
 
-	Tcl_DStringInit(&dsHost);
-	Tcl_UtfToExternalDString(NULL, Host, -1, &dsHost);
-
-	SOCKET Socket = g_Bouncer->SocketAndConnect(Tcl_DStringValue(&dsHost), Port, NULL);
+	SOCKET Socket = g_Bouncer->SocketAndConnect(Tcl_UtfToExternalDString(g_Encoding, Host, -1, &dsHost), Port, NULL);
 
 	Tcl_DStringFree(&dsHost);
 
@@ -1364,20 +1322,14 @@ void internalclosesocket(int Socket) {
 bool bnccheckpassword(const char* User, const char* Password) {
 	Tcl_DString dsUser, dsPass;
 
-	Tcl_DStringInit(&dsUser);
-	Tcl_DStringInit(&dsPass);
-
-	Tcl_UtfToExternalDString(NULL, User, -1, &dsUser);
-	Tcl_UtfToExternalDString(NULL, Password, -1, &dsPass);
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_DStringValue(&dsUser));
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
 
 	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		return false;
 
-	bool Ret = Context->Validate(Tcl_DStringValue(&dsPass));
+	bool Ret = Context->Validate(Tcl_UtfToExternalDString(g_Encoding, Password, -1, &dsPass));
 
 	Tcl_DStringFree(&dsPass);
 
@@ -1397,10 +1349,7 @@ void bncdisconnect(const char* Reason) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, Reason, -1, &dsText);
-
-	Irc->Kill(Tcl_DStringValue(&dsText));
+	Irc->Kill(Tcl_UtfToExternalDString(g_Encoding, Reason, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 
@@ -1420,10 +1369,7 @@ void bnckill(const char* Reason) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, Reason, -1, &dsText);
-
-	Client->Kill(Tcl_DStringValue(&dsText));
+	Client->Kill(Tcl_UtfToExternalDString(g_Encoding, Reason, -1, &dsText));
 
 	Tcl_DStringFree(&dsText);
 }
@@ -1436,8 +1382,7 @@ void bncreply(const char* Text) {
 
 	Tcl_DString dsText;
 
-	Tcl_DStringInit(&dsText);
-	Tcl_UtfToExternalDString(NULL, Text, -1, &dsText);
+	Tcl_UtfToExternalDString(g_Encoding, Text, -1, &dsText);
 
 	if (g_NoticeUser)
 		Context->RealNotice(Tcl_DStringValue(&dsText));
@@ -1460,10 +1405,7 @@ char* chanbans(const char* Channel) {
 
 	Tcl_DString dsChan;
 
-	Tcl_DStringInit(&dsChan);
-	Tcl_UtfToExternalDString(NULL, Channel, -1, &dsChan);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_DStringValue(&dsChan));
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
 
 	Tcl_DStringFree(&dsChan);
 
@@ -1523,25 +1465,17 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 
 	Tcl_DString dsProc, dsCookie;
 
-	Tcl_Encoding Encoding = Tcl_GetEncoding(g_Interp, "utf-8");
-
-	Tcl_DStringInit(&dsProc);
-	Tcl_ExternalToUtfDString(NULL, Cookie->proc, -1, &dsProc);
-	objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
+	objv[0] = Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, Cookie->proc, -1, &dsProc), -1);
 	Tcl_DStringFree(&dsProc);
 
 	Tcl_IncrRefCount(objv[0]);
 
 	if (Cookie->param) {
-		Tcl_DStringInit(&dsCookie);
-		Tcl_ExternalToUtfDString(NULL, Cookie->param, -1, &dsCookie);
-		objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsCookie), Tcl_DStringLength(&dsCookie));
+		objv[1] = Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, Cookie->param, -1, &dsCookie), -1);
 		Tcl_DStringFree(&dsCookie);
 
 		Tcl_IncrRefCount(objv[1]);
 	}
-
-	Tcl_FreeEncoding(Encoding);
 
 	Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
 
@@ -1595,20 +1529,14 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 
 	p->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, p);
 
-	Tcl_DStringInit(&dsProc);
-	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
-
-	p->proc = strdup(Tcl_DStringValue(&dsProc));
+	p->proc = strdup(Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc));
 
 	Tcl_DStringFree(&dsProc);
 
 	p->repeat = Repeat;
 
 	if (Parameter) {
-		Tcl_DStringInit(&dsParam);
-		Tcl_UtfToExternalDString(NULL, Parameter, -1, &dsParam);
-
-		p->param = strdup(Tcl_DStringValue(&dsParam));
+		p->param = strdup(Tcl_UtfToExternalDString(g_Encoding, Parameter, -1, &dsParam));
 
 		Tcl_DStringFree(&dsParam);
 	} else
@@ -1620,12 +1548,10 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 int internalkilltimer(const char* Proc, const char* Parameter) {
 	Tcl_DString dsProc, dsParam;
 
-	Tcl_DStringInit(&dsProc);
-	Tcl_UtfToExternalDString(NULL, Proc, -1, &dsProc);
+	Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc);
 
 	if (Parameter) {
-		Tcl_DStringInit(&dsParam);
-		Tcl_UtfToExternalDString(NULL, Parameter, -1, &dsParam);
+		Tcl_UtfToExternalDString(g_Encoding, Parameter, -1, &dsParam);
 	}
 
 	if (!g_Timers)

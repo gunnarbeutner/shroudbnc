@@ -30,8 +30,8 @@ class CTimer {
 public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie);
-	virtual ~CTimer(void);
 #endif
+	virtual ~CTimer(void);
 
 	virtual void Destroy(void);
 	virtual bool Call(time_t Now);

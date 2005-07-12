@@ -13,8 +13,8 @@ class CTrafficStats {
 public:
 #ifndef SWIG
 	CTrafficStats(void);
-	virtual ~CTrafficStats(void);
 #endif
+	virtual ~CTrafficStats(void);
 
 	virtual void AddInbound(unsigned int Bytes);
 	virtual unsigned int GetInbound(void);

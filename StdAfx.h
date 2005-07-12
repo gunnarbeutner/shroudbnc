@@ -89,12 +89,18 @@
 
 #ifdef _WIN32
 #ifdef _DEBUG
-#ifndef SWIG
+#ifdef SBNC
 
 void* DebugMalloc(size_t Size);
+void DebugFree(void* p);
+char* DebugStrDup(const char* p);
+void* DebugReAlloc(void* p, size_t newsize);
 bool ReportMemory(time_t Now, void* Cookie);
 
 #define malloc DebugMalloc
+#define free DebugFree
+#define strdup DebugStrDup
+#define realloc DebugReAlloc
 
 #endif
 #endif
