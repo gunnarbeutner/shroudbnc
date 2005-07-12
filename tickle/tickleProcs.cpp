@@ -448,7 +448,7 @@ const char* internalchanlist(const char* Channel) {
 	int a = 0;
 
 	while (xhash_t<CNick*>* NickHash = Names->Iterate(a++)) {
-		argv[a-1] = NickHash->Value->GetNick();
+		argv[a-1] = NickHash->Name;
 	}
 
 	static char* List = NULL;

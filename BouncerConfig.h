@@ -28,8 +28,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-template <typename value_type, bool casesensitive = false, int Size> class CHashtable;
-
 class CBouncerConfig {
 	CHashtable<char*, false, 3>* m_Settings;
 
