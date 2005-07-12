@@ -270,7 +270,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 		if (LastCheck + 5 < Now) {
 			for (i = 0; i < m_UserCount; i++) {
-				if (m_Users[i]->ShouldReconnect())
+				if (m_Users[i] && m_Users[i]->ShouldReconnect())
 					m_Users[i]->ScheduleReconnect();
 			}
 
