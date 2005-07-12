@@ -197,6 +197,8 @@ void CConnection::Kill(const char* Error) {
 	if (m_Shutdown)
 		return;
 
+	AttachStats(NULL);
+
 	if (GetRole() == Role_Client) {
 		if (m_Owner) {
 			m_Owner->SetClientConnection(NULL);
