@@ -17,8 +17,6 @@
 
 # configuration variables: ::account354
 
-# TODO: this script needs a major overhaul so that it uses the new timer system more efficiently
-
 foreach user [split $::account354] {
 	setctx $user
 	bind join - * auth:join
@@ -182,7 +180,7 @@ proc auth:pulse {reason} {
 				set acc [bncgettag $chan $nick account]
 				set unk [bncgettag $chan $nick accunknown]
 
-				if {$unk == 1 || ($reason == 180 && ($acc == "" || ($acc == 0 && $reason == 240)))} {
+				if {$unk == 1 || ($reason == 180 && $acc == "") || ($acc == 0 && $reason == 240)} {
 					lappend nicks $nick
 					bncsettag $chan $nick accunknown 0
 				}

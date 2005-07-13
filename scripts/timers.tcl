@@ -149,7 +149,7 @@ proc killtimer {timerID} {
 	if {$idx != -1} {
 		set timers [lreplace $timers $idx $idx]
 
-		internalkilltimer sbnc:runthistimer [list [getctx] $timerID]
+		internalkilltimer sbnc:runthistimer [list [getctx] $timerID]]
 	}
 
 	return
@@ -167,7 +167,7 @@ proc killutimer {timerID} {
 	if {$idx != -1} {
 		set utimers [lreplace $utimers $idx $idx]
 
-		internalkilltimer sbnc:runthisutimer [list [getctx] $timerID]
+		internalkilltimer sbnc:runthisutimer [list [getctx] $timerID]]
 	}
 
 	return

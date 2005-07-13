@@ -136,8 +136,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	free(Nick);
 
 	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
-		WriteLine("NICK :%s`", argv[3]);
-		return ModuleEvent(argc, argv); // false
+		bool Ret = ModuleEvent(argc, argv);
+
+		if (Ret)
+			WriteLine("NICK :%s`", argv[3]);
+
+		return Ret;
 	} else if (argc > 3 && strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);

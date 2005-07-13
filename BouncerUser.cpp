@@ -358,8 +358,8 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 
 	int MaxDelay = Delay;
 
-	if (time(NULL) - g_LastReconnect < 15 && MaxDelay < 15)
-		MaxDelay = 15;
+	if (time(NULL) - g_LastReconnect < 20 && MaxDelay < 20)
+		MaxDelay = 20;
 
 	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120)
 		MaxDelay = 120;
@@ -698,6 +698,9 @@ bool BadLoginTimer(time_t Now, void* User) {
 }
 
 bool UserReconnectTimer(time_t Now, void* User) {
+	if (((CBouncerUser*)User)->GetIRCConnection())
+		return false;
+
 	if (time(NULL) - g_LastReconnect > 15)
 		((CBouncerUser*)User)->Reconnect();
 	else
