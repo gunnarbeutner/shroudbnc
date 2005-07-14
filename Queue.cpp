@@ -28,7 +28,6 @@
 CQueue::CQueue() {
 	m_Items = NULL;
 	m_ItemCount = 0;
-	m_Notify = NULL;
 }
 
 CQueue::~CQueue() {
@@ -84,9 +83,6 @@ void CQueue::QueueItem(const char* Item) {
 			m_Items[i].Line = strdup(Item);
 			m_Items[i].Valid = true;
 
-			if (m_Notify)
-				m_Notify->NotifyNewItem();
-
 			return;
 		}
 	}
@@ -96,9 +92,6 @@ void CQueue::QueueItem(const char* Item) {
 	m_Items[m_ItemCount - 1].Priority = 0;
 	m_Items[m_ItemCount - 1].Line = strdup(Item);
 	m_Items[m_ItemCount - 1].Valid = true;
-
-	if (m_Notify)
-		m_Notify->NotifyNewItem();
 }
 
 void CQueue::QueueItemNext(const char* Item) {
@@ -128,8 +121,4 @@ void CQueue::FlushQueue(void) {
 			m_Items[i].Valid = false;
 		}
 	}
-}
-
-void CQueue::SetNotifyObject(CFloodControl* Notify) {
-	m_Notify = Notify;
 }

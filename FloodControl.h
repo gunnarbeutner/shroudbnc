@@ -57,7 +57,7 @@ public:
 #endif
 	virtual ~CFloodControl(void);
 
-	virtual char* DequeueItem(void);
+	virtual char* DequeueItem(bool Peek = false);
 	virtual void QueueItem(const char* Item);
 	virtual void QueueItemNext(const char* Item);
 	virtual int GetQueueSize(void);
@@ -69,8 +69,6 @@ public:
 
 	virtual void Enable(void);
 	virtual void Disable(void);
-
-	virtual void NotifyNewItem(void);
 };
 
 #endif // !defined(AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_)

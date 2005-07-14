@@ -48,8 +48,6 @@ public:
 	virtual void QueueItemNext(const char* Item);
 	virtual int GetQueueSize(void);
 	virtual void FlushQueue(void);
-
-	virtual void SetNotifyObject(CFloodControl* Notify);
 };
 
 #endif // !defined(AFX_QUEUE_H__BE311FBC_F9FB_4649_97B9_6F3726BE9F66__INCLUDED_)

@@ -79,10 +79,6 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_ISupport->WriteString("CHANTYPES", "#&+");
 	m_ISupport->WriteString("PREFIX", "(ov)@+");
 
-	m_QueueHigh->SetNotifyObject(m_FloodControl);
-	m_QueueMiddle->SetNotifyObject(m_FloodControl);
-	m_QueueLow->SetNotifyObject(m_FloodControl);
-
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
 	m_FloodControl->AttachInputQueue(m_QueueLow, 2);

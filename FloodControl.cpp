@@ -50,7 +50,7 @@ void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
 	m_Queues[m_QueueCount - 1].Queue = Queue;
 }
 
-char* CFloodControl::DequeueItem(void) {
+char* CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
 	queue_t* ThatQueue = NULL;
 
@@ -69,11 +69,17 @@ char* CFloodControl::DequeueItem(void) {
 
 		if (m_Control && (strlen(PItem) + m_Bytes > FLOODBYTES - 150 && m_Bytes > 1/4 * FLOODBYTES))
 			return NULL;
+		else if (Peek)
+			return const_cast<char*>(PItem);
 
 		char* Item = ThatQueue->Queue->DequeueItem();
 		
-		if (Item && m_Control)
+		if (Item && m_Control) {
 			m_Bytes += strlen(Item);
+
+			if (m_FloodTimer == NULL)
+				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
+		}
 
 		return Item;
 	} else
@@ -89,10 +95,10 @@ void CFloodControl::QueueItemNext(const char* Item) {
 }
 
 int CFloodControl::GetQueueSize(void) {
-	if ((m_Bytes > FLOODBYTES - 100) && m_Control)
-		return 0;
+	if (DequeueItem(true))
+		return 1;
 	else
-		return GetRealQueueSize();
+		return 0;
 }
 
 bool CFloodControl::Pulse(time_t Now) {
@@ -130,11 +136,6 @@ void CFloodControl::Enable(void) {
 
 void CFloodControl::Disable(void) {
 	m_Control = false;
-}
-
-void CFloodControl::NotifyNewItem(void) {
-	if (m_FloodTimer == NULL)
-		m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
 }
 
 bool FloodTimer(time_t Now, void* FloodControl) {

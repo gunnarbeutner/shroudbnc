@@ -239,8 +239,12 @@ void CBouncerCore::StartMainLoop(void) {
 
 				current->ptr->Call(Now);
 				Best = Now + 1;
-			} else if (Best == 0 || NextCall < Best)
+			} else if (Best == 0 || NextCall < Best) {
 				Best = NextCall;
+			}
+
+			if (Best <= Now + 1)
+				break;
 
 			current = next;
 		}

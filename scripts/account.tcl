@@ -56,10 +56,9 @@ proc auth:join {nick host hand chan} {
 				if {$accountwait > 2} {
 					return
 				}
-
-				internalkilltimer auth:jointimer [getctx]
 			}
 
+			internalkilltimer auth:jointimer [getctx]
 			internaltimer 3 0 auth:jointimer [getctx]
 
 			set accounttimer 1
