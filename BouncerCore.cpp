@@ -56,10 +56,6 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	m_Log->Clear();
 	m_Log->WriteLine("Log system initialized.");
 
-#if defined(_DEBUG) && defined(_WIN32)
-	g_Debug = true;
-#endif
-
 	m_TimerChain.next = NULL;
 	m_TimerChain.ptr = NULL;
 
@@ -122,6 +118,11 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	}
 
 	m_LoadingModules = false;
+
+#if defined(_DEBUG) && defined(_WIN32)
+	if (Config->ReadInteger("system.debug"))
+		g_Debug = true;
+#endif
 }
 
 CBouncerCore::~CBouncerCore() {
