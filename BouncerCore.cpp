@@ -236,16 +236,13 @@ void CBouncerCore::StartMainLoop(void) {
 
 			if (Now >= NextCall && Now > Last) {
 				if (Now - 5 > NextCall)
-					Log("Timer drift for timer 0x%p: %d seconds", current->ptr, Now - NextCall);
+					Log("Timer drift for timer %p: %d seconds", current->ptr, Now - NextCall);
 
 				current->ptr->Call(Now);
 				Best = Now + 1;
 			} else if (Best == 0 || NextCall < Best) {
 				Best = NextCall;
 			}
-
-			if (Best <= Now + 1)
-				break;
 
 			current = next;
 		}

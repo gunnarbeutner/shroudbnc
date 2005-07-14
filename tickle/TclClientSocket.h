@@ -44,11 +44,16 @@ public:
 	virtual void WriteLine(const char* Line);
 
 	virtual int GetIdx(void);
+
+	virtual bool MayNotEnterDestroy(void);
+	virtual void DestroyLater(void);
 private:
 	SOCKET m_Socket;
 	CConnection* m_Wrap;
 	const char* m_Control;
 	int m_Idx;
+	bool m_InTcl;
+	bool m_Destroy;
 };
 
 #endif // !defined(AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_)

@@ -47,6 +47,8 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, sockaddr_in Peer) {
 	g_TclClientSockets->Add(Buf, this);
 
 	m_Control = NULL;
+	m_InTcl = false;
+	m_Destroy = false;
 }
 
 CTclClientSocket::~CTclClientSocket() {
@@ -76,7 +78,9 @@ void CTclClientSocket::Destroy(void) {
 		objv[2] = Tcl_NewStringObj("", 0);
 		Tcl_IncrRefCount(objv[2]);
 
+		m_InTcl = true;
 		Tcl_EvalObjv(g_Interp, 3, objv, TCL_EVAL_GLOBAL);
+		m_InTcl = false;
 
 		Tcl_DecrRefCount(objv[2]);
 		Tcl_DecrRefCount(objv[1]);
@@ -111,7 +115,9 @@ bool CTclClientSocket::Read(void) {
 		objv[2] = Tcl_NewStringObj(Tcl_DStringValue(&dsText), strlen(Tcl_DStringValue(&dsText)));
 		Tcl_IncrRefCount(objv[2]);
 
+		m_InTcl = true;
 		int Code = Tcl_EvalObjv(g_Interp, 3, objv, TCL_EVAL_GLOBAL);
+		m_InTcl = false;
 
 		Tcl_DecrRefCount(objv[1]);
 		Tcl_DecrRefCount(objv[0]);
@@ -120,7 +126,10 @@ bool CTclClientSocket::Read(void) {
 		g_Bouncer->Free(Line);
 	}
 
-	return Ret;
+	if (m_Destroy)
+		return false;
+	else
+		return Ret;
 }
 
 void CTclClientSocket::Write(void) {
@@ -157,4 +166,12 @@ const char* CTclClientSocket::ClassName(void) {
 
 int CTclClientSocket::GetIdx(void) {
 	return m_Idx;
+}
+
+bool CTclClientSocket::MayNotEnterDestroy(void) {
+	return m_InTcl;
+}
+
+void CTclClientSocket::DestroyLater(void) {
+	m_Destroy = true;
 }

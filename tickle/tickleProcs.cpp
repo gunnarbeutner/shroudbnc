@@ -1318,7 +1318,10 @@ void internalclosesocket(int Socket) {
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
 
-	SockPtr->Destroy();
+	if (SockPtr->MayNotEnterDestroy())
+		SockPtr->DestroyLater();
+	else
+		SockPtr->Destroy();
 }
 
 bool bnccheckpassword(const char* User, const char* Password) {
