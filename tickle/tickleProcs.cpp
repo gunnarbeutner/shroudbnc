@@ -1709,7 +1709,7 @@ int timerstats(void) {
 }
 
 const char* getcurrentnick(void) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Ctx);
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return NULL;
