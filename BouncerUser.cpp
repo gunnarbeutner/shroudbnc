@@ -299,7 +299,10 @@ void CBouncerUser::Reconnect(void) {
 
 	char Out[1024];
 
-	m_ReconnectTimer = NULL;
+	if (m_ReconnectTimer) {
+		m_ReconnectTimer->Destroy();
+		m_ReconnectTimer = NULL;
+	}
 
 	const char* Server = m_Config->ReadString("user.server");
 	int Port = m_Config->ReadInteger("user.port");
@@ -434,8 +437,6 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 				M->ServerDisconnect(GetUsername());
 			}
 		}
-
-		ScheduleReconnect(10);
 	} else {
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 			CModule* M = g_Bouncer->GetModules()[i];

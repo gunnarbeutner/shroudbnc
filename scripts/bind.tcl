@@ -145,7 +145,11 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "kick" $flags $targ "$targ $opt" $nick $site $hand $targ $opt [lindex $parameters 4]
 		}
 		"nick" {
-
+			foreach c [internalchannels] {
+				if {[onchan $targ $c]} {
+					sbnc:callbinds "nick" $flags $c "$c $targ" $nick $site $hand $c $targ
+				}
+			}
 		}
 		"wallops" {
 			sbnc:callbinds "wall" - "" $targ $source [join [lrange $parameters 2 end]]
