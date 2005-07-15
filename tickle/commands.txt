@@ -211,3 +211,8 @@ bncreply <text>
 
   Description: Sends a notice/msg to the current user (depending on how the command-bind was triggered.)
   Returns: Nothing.
+
+getcurrentnick
+
+  Description: Use $::botnick instead.
+  Returns: The bot's current nick.

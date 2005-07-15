@@ -108,6 +108,8 @@ int timerstats(void);
 void bncdisconnect(const char* Reason);
 void bnckill(const char* Reason);
 
+const char* getcurrentnick(void);
+
 char* chanbans(const char* Channel);
 
 // eggdrop compat

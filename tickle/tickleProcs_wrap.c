@@ -2189,6 +2189,26 @@ _wrap_bnckill(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static int
+_wrap_getcurrentnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":getcurrentnick ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)getcurrentnick();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_chanbans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *result;
@@ -2711,6 +2731,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "timerstats", (swig_wrapper_func) _wrap_timerstats, NULL},
     { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
     { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},
+    { SWIG_prefix "getcurrentnick", (swig_wrapper_func) _wrap_getcurrentnick, NULL},
     { SWIG_prefix "chanbans", (swig_wrapper_func) _wrap_chanbans, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},

@@ -1707,3 +1707,15 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 int timerstats(void) {
 	return g_Bouncer->GetTimerStats();
 }
+
+const char* getcurrentnick(void) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Ctx);
+
+	if (Context == NULL)
+		return;
+
+	if (Context->GetIRCConnection())
+		return Context->GetIRCConnection()->GetCurrentNick();
+	else
+		return Context->GetNick();
+}

@@ -51,7 +51,7 @@ trace variable chanfile rwu sbnc:tracevars-chanfile
 
 proc sbnc:tracevars-botnick {name item operation} {
 	if {$operation == "r"} {
-		set ::botnick [getbncuser [getctx] nick]
+		set ::botnick [getcurrentnick]
 	} else {
 		return -code error "variable is read-only"
 	}
