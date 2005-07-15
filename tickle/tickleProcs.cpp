@@ -1712,7 +1712,7 @@ const char* getcurrentnick(void) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Ctx);
 
 	if (Context == NULL)
-		return;
+		return NULL;
 
 	if (Context->GetIRCConnection())
 		return Context->GetIRCConnection()->GetCurrentNick();
