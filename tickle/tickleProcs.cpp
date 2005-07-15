@@ -332,20 +332,39 @@ bool onchan(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	if (Channel) {
-		CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsNick;
 
-		if (Chan && Chan->GetNames()->Get(Nick))
-			return true;
+	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
+
+	if (Channel) {
+		Tcl_DString dsChan;
+
+		CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+		Tcl_DStringFree(&dsChan);
+
+		bool Ret;
+
+		if (Chan && Chan->GetNames()->Get(Tcl_DStringValue(&dsNick)))
+			Ret = true;
 		else
-			return false;
+			Ret = false;
+
+		Tcl_DStringFree(&dsNick);
+
+		return Ret;
 	} else {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Nick))
+			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick))) {
+				Tcl_DStringFree(&dsNick);
+
 				return true;
+			}
 		}
+
+		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -474,10 +493,18 @@ bool isop(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan, dsNick;
+
+	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Nick);
+		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
+
+		Tcl_DStringFree(&dsNick);
 
 		if (User)
 			return User->IsOp();
@@ -487,9 +514,14 @@ bool isop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsOp())
+			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsOp()) {
+				Tcl_DStringFree(&dsNick);
+
 				return true;
+			}
 		}
+
+		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -506,10 +538,18 @@ bool isvoice(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan, dsNick;
+
+	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Nick);
+		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
+
+		Tcl_DStringFree(&dsNick);
 
 		if (User)
 			return User->IsVoice();
@@ -519,9 +559,14 @@ bool isvoice(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsVoice())
+			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsVoice()) {
+				Tcl_DStringFree(&dsNick);
+
 				return true;
+			}
 		}
+
+		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -538,10 +583,18 @@ bool ishalfop(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan, dsNick;
+
+	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Nick);
+		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
+
+		Tcl_DStringFree(&dsNick);
 
 		if (User)
 			return User->IsHalfop();
@@ -551,9 +604,14 @@ bool ishalfop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsHalfop())
+			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsHalfop()) {
+				Tcl_DStringFree(&dsNick);
+
 				return true;
+			}
 		}
+
+		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -570,12 +628,20 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsChan;
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
 
-	CNick* cNick = Chan->GetNames()->Get(Nick);
+	Tcl_DString dsNick;
+
+	CNick* cNick = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
+
+	Tcl_DStringFree(&dsNick);
 
 	if (!cNick)
 		return NULL;
@@ -719,22 +785,39 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 }
 
 void addbncuser(const char* User, const char* Password) {
-	const char* Context = getctx();
-	CBouncerUser* U = g_Bouncer->CreateUser(User, Password);
+	char* Context = strdup(getctx());
+
+	Tcl_DString dsUser, dsPassword;
+
+	CBouncerUser* U = g_Bouncer->CreateUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser), Tcl_UtfToExternalDString(g_Encoding, Password, -1, &dsPassword));
+
+	Tcl_DStringFree(&dsUser);
+	Tcl_DStringFree(&dsPassword);
 
 	if (!U)
 		throw "Could not create user.";
 
 	setctx(Context);
+
+	free(Context);
 }
 
 void delbncuser(const char* User) {
-	const char* Context = getctx();
+	char* Context = strdup(getctx());
 
-	if (!g_Bouncer->RemoveUser(User))
+	Tcl_DString dsUser;
+
+	if (!g_Bouncer->RemoveUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser))) {
+		Tcl_DStringFree(&dsUser);
+
 		throw "Could not remove user.";
+	}
+
+	Tcl_DStringFree(&dsUser);
 
 	setctx(Context);
+
+	free(Context);
 }
 
 int simul(const char* User, const char* Command) {
@@ -757,7 +840,7 @@ int simul(const char* User, const char* Command) {
 	}
 }
 
-const char* getchanhost(const char* Nick, const char* Channel) {
+const char* getchanhost(const char* Nick, const char*) {
 	CBouncerUser* Context;
 
 	Context = g_Bouncer->GetUser(g_Context);
@@ -770,12 +853,21 @@ const char* getchanhost(const char* Nick, const char* Channel) {
 		if (IRC) {
 			int a = 0;
 
+			Tcl_DString dsNick;
+
+			Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
+
 			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
-				if (U && U->GetSite() != NULL)
-					return U->GetSite();					
+				if (U && U->GetSite() != NULL) {
+					Tcl_DStringFree(&dsNick);
+
+					return U->GetSite();
+				}
 			}
+
+			Tcl_DStringFree(&dsNick);
 		}
 
 		return NULL;
@@ -899,16 +991,25 @@ int clearqueue(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	if (strcmpi(Queue, "mode") == 0)
+	Tcl_DString dsQueue;
+
+	Tcl_UtfToExternalDString(g_Encoding, Queue, -1, &dsQueue);
+
+	if (strcmpi(Tcl_DStringValue(&dsQueue), "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Queue, "server") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Queue, "help") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Queue, "all") == 0)
+	else if (strcmpi(Tcl_DStringValue(&dsQueue), "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else
+	else {
+		Tcl_DStringFree(&dsQueue);
+
 		throw "Queue should be one of: mode server help all";
+	}
+
+	Tcl_DStringFree(&dsQueue);
 
 	int Size;
 
@@ -949,6 +1050,7 @@ int queuesize(const char* Queue) {
 		TheQueue = (CQueue*)IRC->GetFloodControl();
 	else {
 		Tcl_DStringFree(&dsQueue);
+
 		throw "Queue should be one of: mode server help all";
 	}
 
@@ -1136,16 +1238,27 @@ void haltoutput(void) {
 }
 
 const char* bnccommand(const char* Cmd, const char* Parameters) {
+	Tcl_DString dsCmd, dsParameters;
+
+	Tcl_UtfToExternalDString(g_Encoding, Cmd, -1, &dsCmd);
+	Tcl_UtfToExternalDString(g_Encoding, Parameters, -1, &dsParameters);
+
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 		CModule* M = g_Bouncer->GetModules()[i];
 
 		if (M) {
 			const char* Result = M->Command(Cmd, Parameters);
 
+			Tcl_DStringFree(&dsCmd);
+			Tcl_DStringFree(&dsParameters);
+
 			if (Result)
 				return Result;
 		}
 	}
+
+	Tcl_DStringFree(&dsCmd);
+	Tcl_DStringFree(&dsParameters);
 
 	return NULL;
 }
@@ -1165,8 +1278,12 @@ const char* md5(const char* String) {
 
 void debugout(const char* String) {
 #ifdef _WIN32
-	OutputDebugString(String);
+	Tcl_DString dsText;
+
+	OutputDebugString(Tcl_UtfToExternalDString(g_Encoding, String, -1, &dsText));
 	OutputDebugString("\n");
+
+	Tcl_DStringFree(&dsText);
 #endif
 }
 

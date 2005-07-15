@@ -109,7 +109,7 @@ proc sbnc:rawserver {client parameters} {
 			if {[regexp "\001(\[^ \]+)(| (.*?))\001" $opt foo verb text]} {
 				sbnc:callbinds "ctcp" $flags $targ $verb $nick $site $hand $targ $verb $text
 			} else {
-				if {[validchan $targ] || [lsearch -exact [string tolower [internalchannels]] [string tolower $targ]] != -1} {
+				if {[validchan $targ] || [onchan $targ]} {
 					sbnc:callbinds "pub" $flags $targ [lindex [split $opt] 0] $nick $site $hand $targ [join [lrange [split $opt] 1 end]]
 					sbnc:callbinds "pubm" $flags $targ "$targ $opt" $nick $site $hand $targ $opt
 				} else {

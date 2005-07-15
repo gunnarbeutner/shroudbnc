@@ -248,6 +248,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				if (argc > 3) {
 					Config->WriteString("user.server", argv[2]);
 					Config->WriteInteger("user.port", atoi(argv[3]));
+
+					m_Owner->ScheduleReconnect(0);
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
 				}

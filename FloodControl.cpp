@@ -23,6 +23,18 @@
 #include "FloodControl.h"
 #include "BouncerCore.h"
 
+typedef struct penalty_s {
+	char* Command;
+	int Amplifier;
+} penalty_t;
+
+penalty_t penalties [] = {
+	{ "MODE", 3 },
+	{ "KICK", 3 },
+	{ "WHO", 5 },
+	{ NULL, 0 }
+};
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -75,7 +87,7 @@ char* CFloodControl::DequeueItem(bool Peek) {
 		char* Item = ThatQueue->Queue->DequeueItem();
 		
 		if (Item && m_Control) {
-			m_Bytes += strlen(Item);
+			m_Bytes += strlen(Item) * CalculatePenalityAmplifier(Item);
 
 			if (m_FloodTimer == NULL)
 				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
@@ -140,4 +152,38 @@ void CFloodControl::Disable(void) {
 
 bool FloodTimer(time_t Now, void* FloodControl) {
 	return ((CFloodControl*)FloodControl)->Pulse(Now);
+}
+
+int CFloodControl::CalculatePenalityAmplifier(const char* Line) {
+	char* Space = strstr(Line, " ");
+	char* Command;
+	
+	if (Space) {
+		Command = (char*)malloc(Space - Line + 1);
+		strncpy(Command, Line, Space - Line);
+		Command[Space - Line] = '\0';
+	} else
+		Command = const_cast<char*>(Line);
+
+	int i = 0;
+
+	while (true) {
+		penalty_t penalty = penalties[i++];
+
+		if (penalty.Command == NULL)
+			break;
+
+		if (strcmpi(penalty.Command, Command) == 0) {
+			if (Space)
+				free(Command);
+
+			return penalty.Amplifier;
+		}
+
+	}
+
+	if (Space)
+		free(Command);
+
+	return 1;
 }

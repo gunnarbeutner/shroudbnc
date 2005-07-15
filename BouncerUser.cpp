@@ -213,6 +213,9 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		}
 	}
 
+	if (m_IRC == NULL && GetServer() == NULL)
+		Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+
 	if (!GetLog()->IsEmpty())
 		Notice("You have new messages. Use '/msg -sBNC read' to view them.");
 }
@@ -365,13 +368,18 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 		MaxDelay = 120;
 
 	if (m_ReconnectTime < time(NULL) + MaxDelay) {
+		if (m_ReconnectTimer)
+			m_ReconnectTimer->Destroy();
+
 		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
 
 		m_ReconnectTime = time(NULL) + MaxDelay;
 
-		char Out[1024];
-		snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", MaxDelay);
-		Notice(Out);
+		if (GetServer()) {
+			char Out[1024];
+			snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", MaxDelay);
+			Notice(Out);
+		}
 	}
 }
 
@@ -700,6 +708,8 @@ bool BadLoginTimer(time_t Now, void* User) {
 bool UserReconnectTimer(time_t Now, void* User) {
 	if (((CBouncerUser*)User)->GetIRCConnection())
 		return false;
+
+	((CBouncerUser*)User)->m_ReconnectTimer = NULL;
 
 	if (time(NULL) - g_LastReconnect > 15)
 		((CBouncerUser*)User)->Reconnect();

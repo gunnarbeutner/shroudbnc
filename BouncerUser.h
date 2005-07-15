@@ -46,6 +46,7 @@ class CBouncerUser {
 	friend class CBouncerCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void* User);
+	friend bool UserReconnectTimer(time_t Now, void* User);
 #endif
 
 	CClientConnection* m_Client;
