@@ -74,3 +74,60 @@ proc bncrnotc {text} {
 proc getchanidle {nick chan} {
 	return [expr [internalgetchanidle $nick $chan] / 60]
 }
+
+proc duration {seconds} {
+	set result ""
+
+	set dur [expr 365*24*60*60]
+	if {[format %.0f [expr $seconds/$dur]] != 0} {
+		set years [format %.0f [expr $seconds/$dur]]
+		if {$years == "1"} {
+			set result "$result$years year "
+		} {set result "$result$years years "}
+		set seconds [expr $seconds - $years*$dur]
+	}
+
+	set dur [expr 7*24*60*60]
+	if {[format %.0f [expr $seconds/$dur]] != 0} {
+		set weeks [format %.0f [expr $seconds/$dur]]
+		if {$weeks == "1"} {
+			set result "$result$weeks week "
+		} {set result "$result$weeks weeks "}
+		set seconds [expr $seconds - $weeks*$dur]
+	}
+
+	set dur [expr 24*60*60]
+	if {[format %.0f [expr $seconds/$dur]] != 0} {
+		set days [format %.0f [expr $seconds/$dur]]
+		if {$days == "1"} {
+			set result "$result$days day "
+		} {set result "$result$days days "}
+		set seconds [expr $seconds - $days*$dur]
+	}
+
+	set dur [expr 60*60]
+	if {[format %.0f [expr $seconds/$dur]] != 0} {
+		set hours [format %.0f [expr $seconds/$dur]]
+		if {$hours == "1"} {
+			set result "$result$hours hour "
+		} {set result "$result$hours hours "}
+		set seconds [expr $seconds - $hours*$dur]
+	}
+
+	set dur 60
+	if {[format %.0f [expr $seconds/$dur]] != 0} {
+		set minutes [format %.0f [expr $seconds/$dur]]
+		if {$minutes == "1"} {
+			set result "$result$minutes minute "
+		} {set result "$result$minutes minutes "}
+		set seconds [expr $seconds - $minutes*$dur]
+	}
+
+	if {$seconds != 0} {
+		if {$seconds == "1"} {
+			set result "$result$seconds second "
+		} {set result "$result$seconds seconds "}
+	}
+
+	return $result
+}

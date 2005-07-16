@@ -343,8 +343,8 @@ void CBouncerUser::Reconnect(void) {
 	} else {
 		SetIRCConnection(Connection);
 
-		g_Bouncer->Log("Connected!");
-		g_Bouncer->GlobalNotice("Connected!", true);
+		g_Bouncer->Log("Connection initialized. Waiting for response...");
+		g_Bouncer->GlobalNotice("Connection initialized. Waiting for response...", true);
 	}
 }
 
