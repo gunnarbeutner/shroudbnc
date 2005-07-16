@@ -127,7 +127,6 @@ void rehash(void);
 void die(void);
 int putserv(const char* text);
 int getchanjoin(const char* Nick, const char* Channel);
-const char* duration(int Interval);
 int ticklerand(int limit);
 int clearqueue(const char* Queue);
 int queuesize(const char* Queue);

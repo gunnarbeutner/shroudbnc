@@ -923,12 +923,6 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 		return 0;
 }
 
-const char* duration(int Interval) {
-	// TODO: implement
-
-	return "not yet implemented.";
-}
-
 int ticklerand(int limit) {
 	int val = int(rand() / float(RAND_MAX) * limit);
 

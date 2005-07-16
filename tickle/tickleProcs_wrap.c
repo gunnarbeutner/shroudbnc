@@ -2521,27 +2521,6 @@ _wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
-_wrap_duration(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    int arg1 ;
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"i:duration Interval ",&arg1) == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)duration(arg1);
-            
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
-        }
-    }
-    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_rand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int arg1 ;
     int result;
@@ -2747,7 +2726,6 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "die", (swig_wrapper_func) _wrap_die, NULL},
     { SWIG_prefix "putserv", (swig_wrapper_func) _wrap_putserv, NULL},
     { SWIG_prefix "getchanjoin", (swig_wrapper_func) _wrap_getchanjoin, NULL},
-    { SWIG_prefix "duration", (swig_wrapper_func) _wrap_duration, NULL},
     { SWIG_prefix "rand", (swig_wrapper_func) _wrap_rand, NULL},
     { SWIG_prefix "clearqueue", (swig_wrapper_func) _wrap_clearqueue, NULL},
     { SWIG_prefix "queuesize", (swig_wrapper_func) _wrap_queuesize, NULL},
