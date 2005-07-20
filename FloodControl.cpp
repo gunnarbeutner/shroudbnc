@@ -29,9 +29,9 @@ typedef struct penalty_s {
 } penalty_t;
 
 penalty_t penalties [] = {
-	{ "MODE", 3 },
-	{ "KICK", 3 },
-	{ "WHO", 5 },
+	{ "MODE", 2 },
+	{ "KICK", 2 },
+	{ "WHO", 2 },
 	{ NULL, 0 }
 };
 

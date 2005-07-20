@@ -441,7 +441,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			else
 				ClientAddr = NULL;
 
-			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
+			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetIRCConnection() ? User->GetIRCConnection()->GetCurrentNick() : User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
 			SENDUSER(Out);
 		}
 

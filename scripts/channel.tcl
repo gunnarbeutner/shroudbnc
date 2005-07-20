@@ -64,6 +64,8 @@ proc channel {option chan args} {
 				return -code error "Value is not an integer."
 			} elseif {[string equal -nocase $chanoptions([lindex $args 0]) "flag"] && [lindex $args 1] != "1" && [lindex $args 1] != "0"} {
 				return -code error "Value is not a flag."
+			} elseif {![validchan [lindex $args 0]]} {
+				return -code error "no such channel record"
 			}
 
 			set channel([lindex $args 0]) [lindex $args 1]
@@ -129,6 +131,8 @@ proc loadchannels {} {
 	}
 
 	catch [list source $::chanfile]
+
+	return
 }
 
 proc channels {} {

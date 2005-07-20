@@ -180,9 +180,11 @@ proc sbnc:rawserver {client parameters} {
 proc sbnc:callbinds {type flags chan mask args} {
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
+		if {![info exists binds]} { set clastbind "" }
 	}
 
 	upvar [getns]::binds binds
+	upvar [getns]::clastbind clastbind
 
 	foreach bind $binds {
 		set t [lindex $bind 0]
@@ -192,6 +194,8 @@ proc sbnc:callbinds {type flags chan mask args} {
 		set p [lindex $bind 4]
 
 		if {[string equal -nocase $t $type] && [string match -nocase $m $mask] && [matchattr $flags $f $chan]} {
+			set clastbind $m
+
 			set errcode [catch [list eval $p $args] error]
 
 			if {$errcode} {

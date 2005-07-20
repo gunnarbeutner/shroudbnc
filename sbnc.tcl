@@ -7,6 +7,7 @@ source "scripts/pushmode.tcl"
 source "scripts/bind.tcl"
 source "scripts/usys.tcl"
 source "scripts/socket.tcl"
+source "scripts/botnet.tcl"
 
 source "scripts/alltools.tcl"
 

@@ -131,3 +131,51 @@ proc duration {seconds} {
 
 	return $result
 }
+
+proc chanlist {channel {flags ""}} {
+	set res [list]
+
+	foreach nick [internalchanlist $channel] {
+		if {$flags == "" || [matchattr [nick2hand $nick] $flags $channel]} {
+			lappend res $nick
+		}
+	}
+
+	return $res
+}
+
+proc nick2hand {nick {channel ""}} {
+	if {[onchan $nick $channel]} {
+		return [finduser $nick![getchanhost $nick]]
+	} else {
+		return ""
+	}
+}
+
+proc hand2nick {handle {channel ""}} {
+	if {$channel != ""} {
+		set channels [list $channel]
+	} else {
+		set channels [channels]
+	}
+
+	foreach chan $channels {
+		foreach user [internalchanlist $chan] {
+			set u [finduser $user![getchanhost $user]]
+
+			if {[string equal $u $handle]} {
+				return $user
+			}
+		}
+	}
+
+	return ""
+}
+
+proc handonchan {handle {channel ""}} {
+	if {[hand2nick $handle $channel] != ""} {
+		return 1
+	} else {
+		return 0
+	}
+}

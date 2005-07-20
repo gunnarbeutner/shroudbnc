@@ -218,7 +218,11 @@ class CTclSupport : public CModuleFar {
 		if (argc > 1 && strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 			setctx(User->GetUsername());
 
-			int Code = Tcl_Eval(g_Interp, argv[1]);
+			Tcl_DString dsScript;
+
+			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argv[1], -1, &dsScript), -1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
+
+			Tcl_DStringFree(&dsScript);
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
 
@@ -231,10 +235,29 @@ class CTclSupport : public CModuleFar {
 					User->Notice("An error occured in the tcl script:");
 			}
 
-			if (NoticeUser)
-				User->RealNotice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
-			else
-				User->Notice(strResult ? (*strResult ? strResult : "empty string.") : "<null>");
+			if (strResult && *strResult) {
+				Tcl_DString dsResult;
+
+				char* Dup = strdup(Tcl_UtfToExternalDString(g_Encoding, strResult, -1, &dsResult));
+
+				Tcl_DStringFree(&dsResult);
+
+				char* token = strtok(Dup, "\n");
+
+				while (token != NULL) {
+					if (NoticeUser)
+						User->RealNotice(strResult ? (*token ? token : "empty string.") : "<null>");
+					else
+						User->Notice(strResult ? (*token ? token : "empty string.") : "<null>");
+
+					token = strtok(NULL, "\n");
+				}
+			} else {
+					if (NoticeUser)
+						User->RealNotice("<null>");
+					else
+						User->Notice("<null>");
+			}
 
 			return true;
 		}

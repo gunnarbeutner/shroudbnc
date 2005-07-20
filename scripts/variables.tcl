@@ -59,7 +59,7 @@ proc sbnc:tracevars-botnick {name item operation} {
 
 proc sbnc:tracevars-botname {name item operation} {
 	if {$operation == "r"} {
-		set nick [getbncuser [getctx] nick]
+		set nick [getcurrentnick]
 
 		if {[getchanhost $nick] != ""} {
 			set ::botname $nick![getchanhost $nick]
@@ -127,7 +127,13 @@ proc sbnc:tracevars-server-online {name item operation} {
 
 proc sbnc:tracevars-lastbind {name item operation} {
 	if {$operation == "r"} {
-		set ::lastbind "N/A"
+		namespace eval [getns] {
+			if {![info exists binds]} { set clastbind "" }
+		}
+
+		upvar [getns]::clastbind clastbind
+
+		set ::lastbind $clastbind
 	} else {
 		return -code error "variable is read-only"
 	}

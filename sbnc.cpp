@@ -54,6 +54,11 @@ void sigint_handler(int code) {
 
 int main(int argc, char* argv[]) {
 #ifndef _WIN32
+	if (geteuid() == 0) {
+		printf("You cannot run sBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
+		return 1;
+	}
+
 	rlimit core_limit = { INT_MAX, INT_MAX };
 	setrlimit(RLIMIT_CORE, &core_limit);
 #endif
