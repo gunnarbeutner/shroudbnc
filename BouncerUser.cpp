@@ -95,6 +95,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_BadLoginPulse = g_Bouncer->CreateTimer(200, true, BadLoginTimer, this);
 	m_ReconnectTimer = NULL;
 
+	m_LastSeen = 0;
+
 	ScheduleReconnect(0);
 }
 
@@ -461,6 +463,8 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 		g_Bouncer->GetLog()->InternalWriteLine(Out);
 		g_Bouncer->GlobalNotice(Out, true);
+
+		m_LastSeen = time(NULL);
 	}
 
 
@@ -480,6 +484,8 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 			snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
 			g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+			m_LastSeen = time(NULL);
 		}
 
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
@@ -718,4 +724,8 @@ bool UserReconnectTimer(time_t Now, void* User) {
 		((CBouncerUser*)User)->ScheduleReconnect(10);
 
 	return false;
+}
+
+time_t CBouncerUser::GetLastSeen(void) {
+	return m_LastSeen;
 }

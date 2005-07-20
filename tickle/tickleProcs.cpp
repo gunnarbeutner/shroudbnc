@@ -733,8 +733,12 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		free(Buf);
 
 		return ReturnValue;
+	} else if (strcmpi(Type, "seen") == 0) {
+		sprintf(Buffer, "%d", Context->GetLastSeen());
+
+		return Buffer;
 	} else
-		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin";
+		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -886,12 +890,18 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsNick, dsChan;
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(Nick);
+	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
+
+	Tcl_DStringFree(&dsNick);
 
 	if (!User)
 		return 0;
@@ -910,12 +920,18 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	CChannel* Chan = IRC->GetChannel(Channel);
+	Tcl_DString dsNick, dsChan;
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(Nick);
+	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
+
+	Tcl_DStringFree(&dsNick);
 
 	if (User)
 		return time(NULL) - User->GetIdleSince();
@@ -957,19 +973,31 @@ int floodcontrol(const char* Function) {
 
 	CFloodControl* FloodControl = IRC->GetFloodControl();
 
+	Tcl_DString dsFunc;
+
+	Tcl_UtfToExternalDString(g_Encoding, Function, -1, &dsFunc);
+
+	int Result;
+
 	if (strcmpi(Function, "bytes") == 0)
-		return FloodControl->GetBytes();
+		Result = FloodControl->GetBytes();
 	else if (strcmpi(Function, "items") == 0)
-		return FloodControl->GetRealQueueSize();
+		Result = FloodControl->GetRealQueueSize();
 	else if (strcmpi(Function, "on") == 0) {
 		FloodControl->Enable();
-		return 1;
+		Result = 1;
 	} else if (strcmpi(Function, "off") == 0) {
 		FloodControl->Disable();
-		return 1;
+		Result = 1;
+	} else {
+		Tcl_DStringFree(&dsFunc);
+
+		throw "Function should be one of: bytes items on off";
 	}
 
-	throw "Function should be one of: bytes items on off";
+	Tcl_DStringFree(&dsFunc);
+
+	return Result;
 }
 
 int clearqueue(const char* Queue) {
@@ -1157,24 +1185,36 @@ const char* bncmodules(void) {
 	if (Buffer)
 		*Buffer = '\0';
 
+	int a = 0;
+	char** List = (char**)malloc(ModuleCount * sizeof(const char*));
+
 	for (int i = 0; i < ModuleCount; i++) {
 		if (Modules[i]) {
-			const char* File = Modules[i]->GetFilename();
-			const void* Ptr = Modules[i]->GetHandle();
-			const void* ModPtr = Modules[i]->GetModule();
+			char BufId[200], Buf1[200], Buf2[200];
 
-			char* P = (char*)realloc(Buffer, (Buffer ? strlen(Buffer) : 0) + strlen(File) + 50);
+			sprintf(BufId, "%d", i);
+			sprintf(Buf1, "%p", Modules[i]->GetHandle());
+			sprintf(Buf2, "%p", Modules[i]->GetModule());
 
-			if (!Buffer)
-				P[0] = '\0';
+			const char* Mod[4] = { BufId, Modules[i]->GetFilename(), Buf1, Buf2 };
 
-			Buffer = P;
-
-			sprintf(Buffer + strlen(Buffer), "%s{{%d} {%s} {%p} {%p}}", *Buffer ? " " : "", i, File, Ptr, ModPtr);
+			List[a++] = Tcl_Merge(4, Mod);
 		}
 	}
 
-	return Buffer;
+	static char* Mods = NULL;
+
+	if (Mods)
+		Tcl_Free(Mods);
+
+	Mods = Tcl_Merge(a - 1, List);
+
+	for (int c = 0; c < a; c++)
+		Tcl_Free(List[c]);
+
+	free(List);
+
+	return Mods;
 }
 
 int bncsettag(const char* channel, const char* nick, const char* tag, const char* value) {
@@ -1188,15 +1228,24 @@ int bncsettag(const char* channel, const char* nick, const char* tag, const char
 	if (!IRC)
 		return 0;
 
-	CChannel* Chan = IRC->GetChannel(channel);
+	Tcl_DString dsChan, dsNick, dsTag, dsValue;
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(nick);
+	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, nick, -1, &dsNick));
+
+	Tcl_DStringFree(&dsNick);
 
 	if (User) {
-		User->SetTag(tag, value);
+		User->SetTag(Tcl_UtfToExternalDString(g_Encoding, tag, -1, &dsTag), Tcl_UtfToExternalDString(g_Encoding, value, -1, &dsValue));
+
+		Tcl_DStringFree(&dsTag);
+		Tcl_DStringFree(&dsValue);
 
 		return 1;
 	} else
@@ -1214,16 +1263,26 @@ const char* bncgettag(const char* channel, const char* nick, const char* tag) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(channel);
+	Tcl_DString dsChan, dsNick, dsTag;
+
+	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, channel, -1, &dsChan));
+
+	Tcl_DStringFree(&dsChan);
 
 	if (!Chan)
 		return NULL;
 
-	CNick* User = Chan->GetNames()->Get(nick);
+	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, nick, -1, &dsNick));
 
-	if (User)
-		return User->GetTag(tag);
-	else
+	Tcl_DStringFree(&dsNick);
+
+	if (User) {
+		const char* Result = User->GetTag(Tcl_UtfToExternalDString(g_Encoding, tag, -1, &dsTag));
+
+		Tcl_DStringFree(&dsTag);
+
+		return Result;
+	} else
 		return NULL;
 }
 
@@ -1294,32 +1353,42 @@ void putlog(const char* Text) {
 }
 
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser, dsConn, dsType;
+
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		return 0;
 
 	unsigned int Bytes = 0;
 
-	if (!ConnectionType || strcmpi(ConnectionType, "client") == 0) {
-		if (!Type || strcmpi(Type, "in") == 0) {
+	Tcl_UtfToExternalDString(g_Encoding, ConnectionType, -1, &dsConn);
+	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
+
+	if (!ConnectionType || strcmpi(Tcl_DStringValue(&dsConn), "client") == 0) {
+		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "in") == 0) {
 			Bytes += Context->GetClientStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Type, "out") == 0) {
+		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "out") == 0) {
 			Bytes += Context->GetClientStats()->GetOutbound();
 		}
 	}
 
-	if (!ConnectionType || strcmpi(ConnectionType, "server") == 0) {
-		if (!Type || strcmpi(Type, "in") == 0) {
+	if (!ConnectionType || strcmpi(Tcl_DStringValue(&dsConn), "server") == 0) {
+		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "in") == 0) {
 			Bytes += Context->GetIRCStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Type, "out") == 0) {
+		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "out") == 0) {
 			Bytes += Context->GetIRCStats()->GetOutbound();
 		}
 	}
+
+	Tcl_DStringFree(&dsConn);
+	Tcl_DStringFree(&dsType);
 
 	return Bytes;
 }

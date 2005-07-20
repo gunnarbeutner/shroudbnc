@@ -441,7 +441,26 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			else
 				ClientAddr = NULL;
 
-			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetIRCConnection() ? User->GetIRCConnection()->GetCurrentNick() : User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", User->GetRealname());
+			char LastSeen[1024];
+
+			if (User->GetLastSeen() == 0)
+				strcpy(LastSeen, "Never");
+			else if (User->GetClientConnection() != NULL)
+				strcpy(LastSeen, "Now");
+			else {
+				tm Then;
+				time_t tThen = User->GetLastSeen();
+
+				Then = *localtime(&tThen);
+
+#ifdef _WIN32
+				strftime(LastSeen, sizeof(LastSeen), "%#c" , &Then);
+#else
+				strftime(LastSeen, sizeof(LastSeen), "%c" , &Then);
+#endif
+			}
+
+			snprintf(Out, sizeof(Out), "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetIRCConnection() ? User->GetIRCConnection()->GetCurrentNick() : User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", LastSeen, User->GetRealname());
 			SENDUSER(Out);
 		}
 
