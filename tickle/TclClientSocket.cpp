@@ -157,7 +157,7 @@ const char* CTclClientSocket::GetControlProc(void) {
 }
 
 void CTclClientSocket::WriteLine(const char* Line) {
-	m_Wrap->WriteLine(Line);
+	m_Wrap->InternalWriteLine(Line);
 }
 
 const char* CTclClientSocket::ClassName(void) {
