@@ -78,13 +78,13 @@ int main(int argc, char* argv[]) {
 	g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
 #endif
 
-#if !defined(_WIN32) && !defined(_FREEBSD)
+#if !defined(_WIN32) && !defined(__FreeBSD__)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
 #endif
 
 	g_Bouncer->StartMainLoop();
 
-#if !defined(_WIN32) && !defined(_FREEBSD)
+#if !defined(_WIN32) && !defined(__FreeBSD__)
 	signal(SIGINT, oldhandler);
 #endif
 
