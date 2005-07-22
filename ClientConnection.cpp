@@ -670,25 +670,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			ValidateUser();
 
 			return false;
-/*		} else if (strcmpi(Command, "whois") == 0) {
-			char* Nick = LastArg(Args);
-
-			if (strcmpi(m_Nick, Nick) == 0) {
-				HOSTENT* hent = gethostbyaddr((const char*)GetPeer(), sizeof(in_addr), AF_INET);
-
-				wsprintf(Out, ":bouncer 311 %s %s ident %s * :shroudBNC User", m_Nick, Nick, hent->h_name);
-				WriteLine(Out);
-
-				wsprintf(Out, ":bouncer 312 %s %s :shroudBNC Server", m_Nick, Nick);
-				WriteLine(Out);
-
-				wsprintf(Out, ":bouncer 318 %s %s :End of /WHOIS list.", m_Nick, Nick);
-				WriteLine(Out);
-			} else {
-				wsprintf(Out, ":bouncer 402 %s %s :No such server", m_Nick, Nick);
-				WriteLine(Out);
-			}
-*/
 		}
 	}
 	

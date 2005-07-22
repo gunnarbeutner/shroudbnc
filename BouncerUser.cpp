@@ -427,10 +427,17 @@ void CBouncerUser::Unlock(void) {
 }
 
 void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
+	bool WasNull = m_IRC ? true : false;
+
 	m_IRC = IRC;
 
-	if (!IRC) {
+	if (!IRC && !WasNull) {
 		Notice("Disconnected from the server.");
+
+		g_Bouncer->Log("%s disconnected from the server.", GetUsername());
+
+		if (m_Client == NULL)
+			Log("Disconnected from the server.");
 
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 			CModule* M = g_Bouncer->GetModules()[i];
@@ -439,7 +446,7 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 				M->ServerDisconnect(GetUsername());
 			}
 		}
-	} else {
+	} else if (IRC) {
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 			CModule* M = g_Bouncer->GetModules()[i];
 

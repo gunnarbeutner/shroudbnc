@@ -61,7 +61,6 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 CChannel::~CChannel() {
 	free(m_Name);
 
-	// TODO: free individiual modes
 	free(m_Topic);
 	free(m_TopicNick);
 
