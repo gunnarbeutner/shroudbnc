@@ -656,134 +656,155 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
 	static char Buffer[1024];
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser, dsType, dsParam;
+
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		throw "Invalid user.";
 
+	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
+
+	const char* ReturnValue;
+
 	if (strcmpi(Type, "server") == 0)
-		return Context->GetServer();
+		ReturnValue = Context->GetServer();
 	else if (strcmpi(Type, "realserver") == 0) {
 		CIRCConnection* IRC = Context->GetIRCConnection();;
 
 		if (IRC)
-			return IRC->GetServer();
+			ReturnValue = IRC->GetServer();
 		else
-			return NULL;
+			ReturnValue = NULL;
 	} else if (strcmpi(Type, "port") == 0) {
 		sprintf(Buffer, "%d", Context->GetPort());
 
-		return Buffer;
+		ReturnValue = Buffer;
 	} else if (strcmpi(Type, "realname") == 0)
-		return Context->GetRealname();
+		ReturnValue = Context->GetRealname();
 	else if (strcmpi(Type, "nick") == 0)
-		return Context->GetNick();
+		ReturnValue = Context->GetNick();
 	else if (strcmpi(Type, "awaynick") == 0)
-		return Context->GetConfig()->ReadString("user.awaynick");
+		ReturnValue = Context->GetConfig()->ReadString("user.awaynick");
 	else if (strcmpi(Type, "away") == 0)
-		return Context->GetConfig()->ReadString("user.away");
+		ReturnValue = Context->GetConfig()->ReadString("user.away");
 	else if (strcmpi(Type, "vhost") == 0)
-		return Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
+		ReturnValue = Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
 	else if (strcmpi(Type, "channels") == 0)
-		return Context->GetConfig()->ReadString("user.channels");
+		ReturnValue = Context->GetConfig()->ReadString("user.channels");
 	else if (strcmpi(Type, "uptime") == 0) {
 		sprintf(Buffer, "%d", Context->IRCUptime());
 
-		return Buffer;
+		ReturnValue = Buffer;
 	} else if (strcmpi(Type, "lock") == 0)
-		return Context->IsLocked() ? "1" : "0";
+		ReturnValue = Context->IsLocked() ? "1" : "0";
 	else if (strcmpi(Type, "admin") == 0)
-		return Context->IsAdmin() ? "1" : "0";
+		ReturnValue = Context->IsAdmin() ? "1" : "0";
 	else if (strcmpi(Type, "hasserver") == 0)
-		return Context->GetIRCConnection() ? "1" : "0";
+		ReturnValue = Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
-		return Context->GetClientConnection() ? "1" : "0";
+		ReturnValue = Context->GetClientConnection() ? "1" : "0";
 	else if (strcmpi(Type, "delayjoin") == 0)
-		return Context->GetConfig()->ReadString("user.delayjoin");
+		ReturnValue = Context->GetConfig()->ReadString("user.delayjoin");
 	else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
 		if (!Client)
-			return NULL;
-		else {
-			SOCKET Sock = Client->GetSocket();
-
-			sockaddr_in saddr;
-			socklen_t saddr_size = sizeof(saddr);
-
-			getpeername(Sock, (sockaddr*)&saddr, &saddr_size);
-
-			hostent* hent = gethostbyaddr((const char*)&saddr.sin_addr, sizeof(in_addr), AF_INET);
-
-			if (hent)
-				return hent->h_name;
-			else
-				return "<unknown>";
-		}
+			ReturnValue = NULL;
+		else
+			ReturnValue = Client->GetPeerName();
 	}
 	else if (strcmpi(Type, "tag") == 0) {
 		if (!Parameter2)
-			return NULL;
+			ReturnValue = NULL;
 
-		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
-		sprintf(Buf, "tag.%s", Parameter2);
+		Tcl_UtfToExternalDString(g_Encoding, Parameter2, -1, &dsParam);
 
-		const char* ReturnValue = Context->GetConfig()->ReadString(Buf);
+		char* Buf = (char*)malloc(strlen(Tcl_DStringValue(&dsParam)) + 5);
+		sprintf(Buf, "tag.%s", Tcl_DStringValue(&dsParam));
+
+		Tcl_DStringFree(&dsParam);
+
+		ReturnValue = Context->GetConfig()->ReadString(Buf);
 
 		free(Buf);
-
-		return ReturnValue;
 	} else if (strcmpi(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
-		return Buffer;
-	} else
+		ReturnValue = Buffer;
+	} else {
+		Tcl_DStringFree(&dsType);
+
 		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen";
+	}
+
+	Tcl_DStringFree(&dsType);
+
+	return ReturnValue;
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	Tcl_DString dsUser, dsType, dsValue, dsParam;
+
+	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
+
+	Tcl_DStringFree(&dsUser);
 
 	if (!Context)
 		throw "Invalid user.";
 
-	if (strcmpi(Type, "server") == 0)
+	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
+	Tcl_UtfToExternalDString(g_Encoding, Value, -1, &dsValue);
+
+	if (strcmpi(Tcl_DStringValue(&dsType), "server") == 0)
 		Context->SetServer(Value);
-	else if (strcmpi(Type, "port") == 0)
-		Context->SetPort(atoi(Value));
-	else if (strcmpi(Type, "realname") == 0)
-		Context->SetRealname(Value);
-	else if (strcmpi(Type, "nick") == 0)
-		Context->SetNick(Value);
-	else if (strcmpi(Type, "awaynick") == 0)
-		Context->GetConfig()->WriteString("user.awaynick", Value);
-	else if (strcmpi(Type, "vhost") == 0)
-		Context->GetConfig()->WriteString("user.ip", Value);
-	else if (strcmpi(Type, "channels") == 0)
-		Context->GetConfig()->WriteString("user.channels", Value);
-	else if (strcmpi(Type, "delayjoin") == 0)
-		Context->GetConfig()->WriteString("user.delayjoin", Value);
-	else if (strcmpi(Type, "away") == 0)
-		Context->GetConfig()->WriteString("user.away", Value);
-	else if (strcmp(Type, "password") == 0)
-		Context->SetPassword(Value);
-	else if (strcmpi(Type, "lock") == 0) {
-		if (atoi(Value))
+	else if (strcmpi(Tcl_DStringValue(&dsType), "port") == 0)
+		Context->SetPort(atoi(Tcl_DStringValue(&dsValue)));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "realname") == 0)
+		Context->SetRealname(Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "nick") == 0)
+		Context->SetNick(Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "awaynick") == 0)
+		Context->GetConfig()->WriteString("user.awaynick", Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "vhost") == 0)
+		Context->GetConfig()->WriteString("user.ip", Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "channels") == 0)
+		Context->GetConfig()->WriteString("user.channels", Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "delayjoin") == 0)
+		Context->GetConfig()->WriteString("user.delayjoin", Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "away") == 0)
+		Context->GetConfig()->WriteString("user.away", Tcl_DStringValue(&dsValue));
+	else if (strcmp(Tcl_DStringValue(&dsType), "password") == 0)
+		Context->SetPassword(Tcl_DStringValue(&dsValue));
+	else if (strcmpi(Tcl_DStringValue(&dsType), "lock") == 0) {
+		if (atoi(Tcl_DStringValue(&dsValue)))
 			Context->Lock();
 		else
 			Context->Unlock();
-	} else if (strcmpi(Type, "admin") == 0)
-		Context->SetAdmin(atoi(Value) ? true : false);
-	else if (strcmpi(Type, "tag") == 0 && Value) {
-		char* Buf = (char*)malloc(strlen(Value) + 5);
-		sprintf(Buf, "tag.%s", Value);
+	} else if (strcmpi(Tcl_DStringValue(&dsType), "admin") == 0)
+		Context->SetAdmin(atoi(Tcl_DStringValue(&dsValue)) ? true : false);
+	else if (strcmpi(Tcl_DStringValue(&dsType), "tag") == 0 && Value) {
+		char* Buf = (char*)malloc(strlen(Tcl_DStringValue(&dsValue)) + 5);
+		sprintf(Buf, "tag.%s", Tcl_DStringValue(&dsValue));
 
-		Context->GetConfig()->WriteString(Buf, Parameter2);
+		Tcl_UtfToExternalDString(g_Encoding, Parameter2, -1, &dsParam);
+
+		Context->GetConfig()->WriteString(Buf, Tcl_DStringValue(&dsParam));
+
+		Tcl_DStringFree(&dsParam);
 
 		free(Buf);
-	} else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password";
+	} else {
+		Tcl_DStringFree(&dsType);
+		Tcl_DStringFree(&dsValue);
 
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password";
+	}
+
+	Tcl_DStringFree(&dsType);
+	Tcl_DStringFree(&dsValue);
 
 	return 1;
 }
