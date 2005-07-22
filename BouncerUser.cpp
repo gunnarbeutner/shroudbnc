@@ -119,7 +119,7 @@ CBouncerUser::~CBouncerUser() {
 	free(m_Name);
 
 	if (m_IRC)
-		m_IRC->Kill("fish go moo.");
+		m_IRC->Kill("-)(- If you can't see the fnords, they can't eat you.");
 
 	delete m_Log;
 
