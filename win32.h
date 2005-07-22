@@ -26,6 +26,4 @@ void Socket_Final(void);
 typedef int socklen_t;
 #endif
 
-typedef void (sighandler_t)(int);
-
 #define MAX_SOCKETS 1024

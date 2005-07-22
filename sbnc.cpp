@@ -33,7 +33,7 @@
 #include "Hashtable.h"
 #include "utility.h"
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__FreeBSD__)
 typedef __sighandler_t sighandler_t;
 #endif
 
@@ -65,9 +65,7 @@ int main(int argc, char* argv[]) {
 
 	Socket_Init();
 
-//#ifdef ASYNC_DNS
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
-//#endif
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
 
@@ -78,22 +76,20 @@ int main(int argc, char* argv[]) {
 	g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
 #endif
 
-#if !defined(_WIN32) && !defined(__FreeBSD__)
+#if !defined(_WIN32)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
 #endif
 
 	g_Bouncer->StartMainLoop();
 
-#if !defined(_WIN32) && !defined(__FreeBSD__)
+#if !defined(_WIN32)
 	signal(SIGINT, oldhandler);
 #endif
 
 	delete g_Bouncer;
 	delete Config;
 
-//#ifdef ASYNC_DNS
 	adns_finish(g_adns_State);
-//#endif
 
 	Socket_Final();
 
