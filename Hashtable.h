@@ -51,7 +51,7 @@ template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false>
 	}
 public:
 	CHashtable(void) {
-		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
 			m_Items[i].subcount = 0;
 			m_Items[i].keys = NULL;
 			m_Items[i].values = NULL;
@@ -61,7 +61,7 @@ public:
 	}
 
 	~CHashtable(void) {
-		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
 			hash_t<Type>* P = &m_Items[i];
 
 			for (int a = 0; a < P->subcount; a++) {
@@ -171,7 +171,7 @@ public:
 	xhash_t<Type>* Iterate(int Index) {
 		int Skip = 0;
 
-		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
 			for (int a = 0; a < m_Items[i].subcount; a++) {
 				if (Skip == Index) {
 					static xhash_t<Type> H;

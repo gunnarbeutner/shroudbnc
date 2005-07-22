@@ -69,7 +69,7 @@
 	#include <arpa/inet.h>
 	#include <arpa/nameser.h>
 	#include <errno.h>
-    #include <sys/resource.h>
+	#include <sys/resource.h>
 	#include <limits.h>
 #endif
 

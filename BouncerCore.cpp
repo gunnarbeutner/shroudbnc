@@ -210,8 +210,6 @@ void CBouncerCore::StartMainLoop(void) {
 
 	fd_set FDRead, FDWrite;//, FDError;
 
-	int last = time(NULL);
-
 	Log("Starting main loop.");
 
 	if (!b_DontDetach)
