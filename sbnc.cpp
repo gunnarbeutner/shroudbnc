@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 	new CBouncerCore(Config, argc, argv);
 
 #if defined(_WIN32) && defined(_DEBUG)
-	g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
+	CTimer* DebugTimer = g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
 #endif
 
 #if !defined(_WIN32)
@@ -84,6 +84,10 @@ int main(int argc, char* argv[]) {
 
 #if !defined(_WIN32)
 	signal(SIGINT, oldhandler);
+#endif
+
+#if defined(_WIN32) && defined(_DEBUG)
+	DebugTimer->Destroy();
 #endif
 
 	delete g_Bouncer;
