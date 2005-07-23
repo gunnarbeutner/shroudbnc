@@ -2209,14 +2209,13 @@ _wrap_getcurrentnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 
 static int
-_wrap_chanbans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *arg1 = (char *) 0 ;
+_wrap_internalbinds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *result;
     
-    if (SWIG_GetArgs(interp, objc, objv,"s:chanbans Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,":internalbinds ") == TCL_ERROR) SWIG_fail;
     {
         try {
-            result = (char *)chanbans((char const *)arg1);
+            result = (char *)internalbinds();
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -2646,6 +2645,27 @@ _wrap_putlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 
 static int
+_wrap_chanbans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"s:chanbans Channel ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)chanbans((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int arg1 ;
     char *arg2 = (char *) 0 ;
@@ -2711,7 +2731,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
     { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},
     { SWIG_prefix "getcurrentnick", (swig_wrapper_func) _wrap_getcurrentnick, NULL},
-    { SWIG_prefix "chanbans", (swig_wrapper_func) _wrap_chanbans, NULL},
+    { SWIG_prefix "internalbinds", (swig_wrapper_func) _wrap_internalbinds, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
@@ -2732,6 +2752,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "puthelp", (swig_wrapper_func) _wrap_puthelp, NULL},
     { SWIG_prefix "putquick", (swig_wrapper_func) _wrap_putquick, NULL},
     { SWIG_prefix "putlog", (swig_wrapper_func) _wrap_putlog, NULL},
+    { SWIG_prefix "chanbans", (swig_wrapper_func) _wrap_chanbans, NULL},
     { SWIG_prefix "control", (swig_wrapper_func) _wrap_control, NULL},
     {0, 0, 0}
 };

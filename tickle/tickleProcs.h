@@ -110,7 +110,7 @@ void bnckill(const char* Reason);
 
 const char* getcurrentnick(void);
 
-char* chanbans(const char* Channel);
+const char* internalbinds(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
@@ -133,5 +133,6 @@ int queuesize(const char* Queue);
 int puthelp(const char* text);
 int putquick(const char* text);
 void putlog(const char* Text);
+char* chanbans(const char* Channel);
 
 void control(int Socket, const char* Proc);

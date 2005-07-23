@@ -271,6 +271,70 @@ int internalunbind(const char* type, const char* proc) {
 	return 1;
 }
 
+const char* internalbinds(void) {
+	char** List = (char**)malloc(g_BindCount * sizeof(char*));
+	int n = 0;
+
+	for (int i = 0; i < g_BindCount; i++) {
+		if (g_Binds[i].valid) {
+			char* Bind[2];
+
+			binding_type_e type = g_Binds[i].type;
+
+			if (type == Type_Client)
+				Bind[0] = "client";
+			else if (type == Type_Server)
+				Bind[0] = "server";
+			else if (type == Type_PreScript)
+				Bind[0] = "pre";
+			else if (type == Type_PostScript)
+				Bind[0] = "post";
+			else if (type == Type_Attach)
+				Bind[0] = "attach";
+			else if (type == Type_Detach)
+				Bind[0] = "detach";
+			else if (type == Type_SingleMode)
+				Bind[0] = "modec";
+			else if (type == Type_Unload)
+				Bind[0] = "unload";
+			else if (type == Type_SvrDisconnect)
+				Bind[0] = "svrdisconnect";
+			else if (type == Type_SvrConnect)
+				Bind[0] = "svrconnect";
+			else if (type, Type_SvrLogon)
+				Bind[0] = "svrlogon";
+			else if (type, Type_UsrLoad)
+				Bind[0] = "usrload";
+			else if (type, Type_UsrCreate)
+				Bind[0] = "usrcreate";
+			else if (type, Type_UsrDelete)
+				Bind[0] = "usrdelete";
+			else if (type, Type_Command)
+				Bind[0] = "command";
+			else
+				Bind[0] = "invalid";
+
+			Bind[1] = g_Binds[i].proc;
+
+			char* Item = Tcl_Merge(2, Bind);
+
+			List[n++] = Item;
+		}
+	}
+
+	static char* Out = NULL;
+
+	if (Out)
+		Tcl_Free(Out);
+
+	Out = Tcl_Merge(n, List);
+
+	for (int a = 0; a < n; a++)
+		Tcl_Free(List[a]);
+
+	return Out;
+}
+
 int putserv(const char* text) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 

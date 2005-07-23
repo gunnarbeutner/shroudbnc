@@ -75,15 +75,10 @@ public:
 	}
 
 	void ParseLine(const char* Line) {
-		char Out[1024];
-
 		// 113 , 3559 : USERID : UNIX : shroud
-		sprintf(Out, "%s : USERID : UNIX : %s", Line, m_Core->GetIdent());
+		m_Wrap->WriteLine("%s : USERID : UNIX : %s", Line, m_Core->GetIdent());
 
-		m_Wrap->WriteLine(Out);
-
-		sprintf(Out, "Answered ident-request for %s", m_Core->GetIdent());
-		m_Core->Log(Out);
+		m_Core->Log("Answered ident-request for %s", m_Core->GetIdent());
 	}
 
 	void Write(void) {
