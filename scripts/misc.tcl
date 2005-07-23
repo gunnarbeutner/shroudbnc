@@ -18,7 +18,7 @@
 package require bnc 0.2
 
 proc sbncnick {} {
-	return [getbncuser [getctx] nick]
+	return [getcurrentnick]
 }
 
 proc isbotnick {nick} {
