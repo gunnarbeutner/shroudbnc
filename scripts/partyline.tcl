@@ -124,6 +124,8 @@ proc sbnc:bcparty {text} {
 	set chan [lindex [split $text] 2]
 
 	foreach user [bncuserlist] {
+		set chans [split [string tolower [getbncuser $user tag partyline]] ","]
+
 		if {[lsearch $chans $chan] != -1} {
 			setctx $user
 			putclient "$text"
@@ -133,9 +135,10 @@ proc sbnc:bcparty {text} {
 
 proc sbnc:bcpartybutone {client text} {
 	set chan [string tolower [lindex [split $text] 2]]
-	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
 	foreach user [bncuserlist] {
+		set chans [split [string tolower [getbncuser $user tag partyline]] ","]
+
 		if {[lsearch $chans $chan] != -1 && ![string equal -nocase $client $user]} {
 			setctx $user
 			putclient "$text"
