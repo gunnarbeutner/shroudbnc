@@ -71,7 +71,7 @@ proc sbnc:partyline {client parameters} {
 	if {[string equal -nocase "names" $cmd]} {
 		set idents ""
 		foreach user [bncuserlist] {
-			if {[lsearch $chans $chan] != -1 && [getbncuser $user hasclient]} {
+			if {[lsearch [split [string tolower [getbncuser $user tag partyline]] ","] $chan] != -1 && [getbncuser $user hasclient]} {
 				lappend idents "\$$user"
 			}
 		}
