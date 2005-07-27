@@ -676,7 +676,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 	}
 	
-	if (m_Owner) {
+	if (strcmpi(Command, "quit") == 0) {
+			Kill("*** Thanks for flying with shroudBNC :P");
+			return false;
+	} else if (m_Owner) {
 		if (strcmpi(Command, "nick") == 0) {
 			if (argc >= 2) {
 				free(m_Nick);
