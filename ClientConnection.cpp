@@ -675,12 +675,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		}
 	}
-	
-	if (strcmpi(Command, "quit") == 0) {
+
+	if (m_Owner) {
+		if (strcmpi(Command, "quit") == 0) {
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;
-	} else if (m_Owner) {
-		if (strcmpi(Command, "nick") == 0) {
+		} else if (strcmpi(Command, "nick") == 0) {
 			if (argc >= 2) {
 				free(m_Nick);
 				m_Nick = strdup(argv[1]);
