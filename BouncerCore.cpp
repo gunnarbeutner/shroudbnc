@@ -197,7 +197,7 @@ void CBouncerCore::StartMainLoop(void) {
 	if (Port == 0)
 		Port = 9000;
 
-	const char* BindIp = m_Config->ReadString("system.ip");
+	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 	m_Listener = CreateListener(Port, BindIp);
 
@@ -208,7 +208,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 	Log("Created main listener.");
 
-	fd_set FDRead, FDWrite;//, FDError;
+	fd_set FDRead, FDWrite;
 
 	Log("Starting main loop.");
 

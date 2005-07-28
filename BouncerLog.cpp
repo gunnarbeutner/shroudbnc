@@ -54,11 +54,6 @@ void CBouncerLog::PlayToUser(CBouncerUser* User, bool NoticeUser) {
 
 		fclose(Log);
 	}
-
-	if (NoticeUser)
-		User->RealNotice("End of LOG.");
-	else
-		User->Notice("End of LOG.");
 }
 
 void CBouncerLog::InternalWriteLine(const char* Line) {

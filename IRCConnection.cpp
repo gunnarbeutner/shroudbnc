@@ -143,7 +143,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		char* Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
-			GetOwningClient()->Log("%s: %s", Reply, argv[3]);
+			char* Dup = strdup(Reply);
+
+			char* Delim = strstr(Dup, "!");
+
+			*Delim = '\0';
+
+			const char* Host = Delim + 1;
+
+			GetOwningClient()->Log("%s (%s): %s", Dup, Delim, argv[3]);
+
+			free(Dup);
 		}
 
 		CChannel* Chan = GetChannel(Dest);
@@ -163,7 +173,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		char* Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+			char* Dup = strdup(Reply);
+
+			char* Delim = strstr(Dup, "!");
+
+			*Delim = '\0';
+
+			const char* Host = Delim + 1;
+
 			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
+
+			free(Dup);
 		}
 
 		free(Nick);
@@ -209,7 +229,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			RemoveChannel(argv[2]);
 
 			if (GetOwningClient()->GetClientConnection() == NULL) {
-				WriteLine("JOIN %s", argv[2]);
+				char Out[1024];
+
+				snprintf(Out, sizeof(Out), "JOIN %s", argv[2]);
+
+				m_Owner->Simulate(Out);
 
 				GetOwningClient()->Log("%s kicked you from %s (%s)", Reply, argv[2], argc > 4 ? argv[4] : "");
 			}
@@ -294,6 +318,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			GetOwningClient()->Notice("Connected to an IRC server.");
 
 			g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());
+		}
+
+		if (GetOwningClient()->GetClientConnection() == NULL) {
+			bool AppendTS = (GetOwningClient()->GetConfig()->ReadInteger("user.ts") != 0);
+
+			WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", GetOwningClient()->GetConfig()->ReadString("user.away"));
 		}
 
 		m_State = State_Connected;

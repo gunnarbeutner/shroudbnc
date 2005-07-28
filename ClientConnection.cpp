@@ -55,7 +55,7 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnect
 
 		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
 
-		m_AdnsTimeout = g_Bouncer->CreateTimer(2, true, AdnsTimeoutTimer, this);
+		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, AdnsTimeoutTimer, this);
 
 		g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
 	} else
@@ -243,6 +243,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			snprintf(Out, sizeof(Out), "away - %s", Config->ReadString("user.away") ? Config->ReadString("user.away") : "Not set");
 			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "appendtimestamp - %s", Config->ReadInteger("user.ts") ? "On" : "Off");
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), "usequitasaway - %s", Config->ReadInteger("user.quitasaway") ? "On" : "Off");
+			SENDUSER(Out);
 		} else {
 			if (strcmpi(argv[1], "server") == 0) {
 				if (argc > 3) {
@@ -269,6 +275,26 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				} else {
 					m_Owner->SetPassword(argv[2]);
+				}
+			} else if (strcmpi(argv[1], "appendtimestamp") == 0) {
+				if (strcmpi(argv[2], "on") == 0)
+					Config->WriteInteger("user.ts", 1);
+				else if (strcmpi(argv[2], "off") == 0)
+					Config->WriteInteger("user.ts", 0);
+				else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
+				}
+			} else if (strcmpi(argv[1], "usequitasaway") == 0) {
+				if (strcmpi(argv[2], "on") == 0)
+					Config->WriteInteger("user.quitaway", 1);
+				else if (strcmpi(argv[2], "off") == 0)
+					Config->WriteInteger("user.quitaway", 0);
+				else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
 				}
 			} else {
 				SENDUSER("Unknown setting");
@@ -336,12 +362,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
-			const char* Ip = g_Bouncer->GetConfig()->ReadString("system.ip");
+			const char* Ip = g_Bouncer->GetConfig()->ReadString("system.vhost");
 
 			snprintf(Out, sizeof(Out), "Current global VHost: %s", Ip ? Ip : "(none)");
 			SENDUSER(Out);
 		} else {
-			g_Bouncer->GetConfig()->WriteString("system.ip", argv[1]);
+			g_Bouncer->GetConfig()->WriteString("system.vhost", argv[1]);
 			SENDUSER("Done.");
 		}
 
@@ -470,6 +496,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcmpi(Subcommand, "read") == 0) {
 		m_Owner->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
+		if (NoticeUser)
+			m_Owner->RealNotice("End of LOG. Use /sbnc erase to remove this log.");
+		else
+			m_Owner->Notice("End of LOG. Use /msg -sBNC erase to remove this log.");
+
 		return false;
 	} else if (strcmpi(Subcommand, "erase") == 0) {
 		m_Owner->GetLog()->Clear();
@@ -478,6 +509,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->GetLog()->PlayToUser(m_Owner, NoticeUser);
+
+		if (NoticeUser)
+			m_Owner->RealNotice("End of LOG. Use /sbnc erasemainlog to remove this log.");
+		else
+			m_Owner->Notice("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
 
 		return false;
 	} else if (strcmpi(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
@@ -678,6 +714,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 	if (m_Owner) {
 		if (strcmpi(Command, "quit") == 0) {
+			bool QuitAsAway = (m_Owner->GetConfig()->ReadInteger("user.quitaway") != 0);
+
+			if (QuitAsAway && argc > 0 && *argv[1])
+				m_Owner->GetConfig()->WriteString("user.away", argv[1]);
+
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;
 		} else if (strcmpi(Command, "nick") == 0) {

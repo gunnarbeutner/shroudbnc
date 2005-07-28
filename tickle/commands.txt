@@ -216,3 +216,23 @@ getcurrentnick
 
   Description: Use $::botnick instead.
   Returns: The bot's current nick.
+
+bncgetmotd
+
+  Description: Returns the current motd.
+  Returns: A string.
+
+bncsetmotd <Motd>
+
+  Description: Sets the motd.
+  Returns: Nothing.
+
+bncgetgvhost
+
+  Description: Returns the default vhost.
+  Returns: A string.
+
+bncsetgvhost <Host>
+
+  Description: Sets the default vhost.
+  Returns: Nothing:

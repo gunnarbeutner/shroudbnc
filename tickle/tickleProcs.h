@@ -34,6 +34,23 @@
 	}
 }
 
+%typemap(in) char* (Tcl_DString ds_) {	
+	$1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString($input), -1, &ds_);
+}
+
+%typemap(freearg) char* {
+	Tcl_DStringFree(&ds_$argnum);
+}
+
+%typemap(out) char* {
+	Tcl_DString ds_result;
+
+	Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, $1, -1, &ds_result),-1));
+	Tcl_DStringFree(&ds_result);
+}
+
+extern Tcl_Encoding g_Encoding;
+
 struct CTclSocket;
 struct CTclClientSocket;
 
@@ -111,6 +128,17 @@ void bnckill(const char* Reason);
 const char* getcurrentnick(void);
 
 const char* internalbinds(void);
+
+const char* bncgetmotd(void);
+void bncsetmotd(const char* Motd);
+const char* bncgetgvhost(void);
+void bncsetgvhost(const char* GVHost);
+
+const char* getbnchosts(void);
+void delbnchost(const char* Host);
+int addbnchost(const char* Host);
+bool bncisipblocked(const char* Ip);
+bool bnccanhostconnect(const char* Host);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

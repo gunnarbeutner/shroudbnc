@@ -31,6 +31,8 @@
 #include "Module.h"
 #include "BouncerCore.h"
 #include "Banlist.h"
+#include "BouncerUser.h"
+#include "Keyring.h"
 
 void DestroyCChannel(CChannel* P) {
 	delete P;
@@ -162,6 +164,9 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 			else
 				m_Banlist->UnsetBan(pargv[p]);
 		}
+
+		if (Cur == 'k' && flip)
+			m_Owner->GetOwningClient()->GetKeyring()->AddKey(m_Name, pargv[p]);
 
 		for (int i = 0; i < Count; i++) {
 			if (Modules[i]) {

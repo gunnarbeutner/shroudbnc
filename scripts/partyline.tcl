@@ -49,7 +49,7 @@ proc sbnc:partyline {client parameters} {
 			lappend chans $chan
 			setbncuser $client tag partyline [join $chans ","]
 
-			putclient ":$botname JOIN $chan"
+			putclient ":[getbncuser $client nick]!no@idea JOIN $chan"
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
 
@@ -87,7 +87,7 @@ proc sbnc:partyline {client parameters} {
 		} elseif {[lindex $parameters 2] == "+b"} {
 			putclient ":$serv 368 $botnick $chan :End of Channel Ban List"
 		} else {
-			putclient ":$serv 482 $botnick $chan :You can't change modes on $partyline"
+			putclient ":$serv 482 $botnick $chan :You can't change modes on $chan"
 		}
 	}
 
@@ -107,7 +107,7 @@ proc sbnc:partyline {client parameters} {
 		if {[llength $parameters] < 3} {
 			putclient ":$serv 461 $botnick KICK :Not enough parameters"
 		} else {
-			putclient ":$serv 482 $botnick $chan :You can't kick users from $partyline"
+			putclient ":$serv 482 $botnick $chan :You can't kick users from $chan"
 		}
 	}
 

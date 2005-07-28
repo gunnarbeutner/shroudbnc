@@ -334,7 +334,7 @@ void CBouncerUser::Reconnect(void) {
 	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
 
 	if (!BindIp)
-		BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+		BindIp = g_Bouncer->GetConfig()->ReadString("system.vhost");
 
 	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp);
 
@@ -511,8 +511,28 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 			const char* Away = m_Config->ReadString("user.away");
 
-			if (Away)
-				m_IRC->WriteLine("AWAY :%s", Away);
+			if (Away) {
+				bool AppendTS = (m_Config->ReadInteger("user.ts") != 0);
+
+				if (!AppendTS)
+					m_IRC->WriteLine("AWAY :%s", Away);
+				else {
+					tm Now;
+					time_t tNow;
+					char strNow[100];
+
+					time(&tNow);
+					Now = *localtime(&tNow);
+
+#ifdef _WIN32
+					strftime(strNow, sizeof(strNow), "%#c" , &Now);
+#else
+					strftime(strNow, sizeof(strNow), "%c" , &Now);
+#endif
+
+					m_IRC->WriteLine("AWAY :%s (Away since %s)", Away, strNow);
+				}
+			}
 		}
 	} else
 		Client->AttachStats(m_ClientStats);

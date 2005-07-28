@@ -71,13 +71,7 @@ void die(void) {
 void setctx(const char* ctx) {
 	free(g_Context);
 
-	Tcl_DString dsContext;
-
-	Tcl_UtfToExternalDString(g_Encoding, ctx, -1, &dsContext);
-
-	g_Context = ctx ? strdup(Tcl_DStringValue(&dsContext)) : NULL;
-
-	Tcl_DStringFree(&dsContext);
+	g_Context = ctx ? strdup(ctx) : NULL;
 }
 
 const char* getctx(void) {
@@ -154,11 +148,7 @@ const char* getchanmode(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;
@@ -346,11 +336,7 @@ int putserv(const char* text) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsText;
-
-	IRC->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	IRC->InternalWriteLine(text);
 
 	return 1;
 }
@@ -366,11 +352,7 @@ int putclient(const char* text) {
 	if (!Client)
 		return 0;
 
-	Tcl_DString dsText;
-
-	Client->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	Client->InternalWriteLine(text);
 
 	return 1;
 }
@@ -396,39 +378,25 @@ bool onchan(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	Tcl_DString dsNick;
-
-	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
-
 	if (Channel) {
-		Tcl_DString dsChan;
-
-		CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-		Tcl_DStringFree(&dsChan);
+		CChannel* Chan = IRC->GetChannel(Channel);
 
 		bool Ret;
 
-		if (Chan && Chan->GetNames()->Get(Tcl_DStringValue(&dsNick)))
+		if (Chan && Chan->GetNames()->Get(Nick))
 			Ret = true;
 		else
 			Ret = false;
-
-		Tcl_DStringFree(&dsNick);
 
 		return Ret;
 	} else {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick))) {
-				Tcl_DStringFree(&dsNick);
-
+			if (Chan->Value->GetNames()->Get(Nick)) {
 				return true;
 			}
 		}
-
-		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -445,11 +413,7 @@ const char* topic(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;
@@ -468,11 +432,7 @@ const char* topicnick(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;
@@ -491,11 +451,7 @@ int topicstamp(const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return 0;
@@ -514,11 +470,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;
@@ -557,18 +509,10 @@ bool isop(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	Tcl_DString dsChan, dsNick;
-
-	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
-
-		Tcl_DStringFree(&dsNick);
+		CNick* User = Chan->GetNames()->Get(Nick);
 
 		if (User)
 			return User->IsOp();
@@ -578,14 +522,10 @@ bool isop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsOp()) {
-				Tcl_DStringFree(&dsNick);
-
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsOp()) {
 				return true;
 			}
 		}
-
-		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -602,18 +542,10 @@ bool isvoice(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	Tcl_DString dsChan, dsNick;
-
-	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
-
-		Tcl_DStringFree(&dsNick);
+		CNick* User = Chan->GetNames()->Get(Nick);
 
 		if (User)
 			return User->IsVoice();
@@ -623,14 +555,10 @@ bool isvoice(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsVoice()) {
-				Tcl_DStringFree(&dsNick);
-
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsVoice()) {
 				return true;
 			}
 		}
-
-		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -647,18 +575,10 @@ bool ishalfop(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return false;
 
-	Tcl_DString dsChan, dsNick;
-
-	Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (Chan) {
-		CNick* User = Chan->GetNames()->Get(Tcl_DStringValue(&dsNick));
-
-		Tcl_DStringFree(&dsNick);
+		CNick* User = Chan->GetNames()->Get(Nick);
 
 		if (User)
 			return User->IsHalfop();
@@ -668,14 +588,10 @@ bool ishalfop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-			if (Chan->Value->GetNames()->Get(Tcl_DStringValue(&dsNick)) && Chan->Value->GetNames()->Get(Nick)->IsHalfop()) {
-				Tcl_DStringFree(&dsNick);
-
+			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsHalfop()) {
 				return true;
 			}
 		}
-
-		Tcl_DStringFree(&dsNick);
 
 		return false;
 	}
@@ -692,20 +608,12 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Nick);
 
 	if (!Chan)
 		return NULL;
 
-	Tcl_DString dsNick;
-
-	CNick* cNick = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
-
-	Tcl_DStringFree(&dsNick);
+	CNick* cNick = Chan->GetNames()->Get(Nick);
 
 	if (!cNick)
 		return NULL;
@@ -720,16 +628,11 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
 	static char Buffer[1024];
-	Tcl_DString dsUser, dsType, dsParam;
 
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		throw "Invalid user.";
-
-	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
 
 	const char* ReturnValue;
 
@@ -784,12 +687,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (!Parameter2)
 			ReturnValue = NULL;
 
-		Tcl_UtfToExternalDString(g_Encoding, Parameter2, -1, &dsParam);
-
-		char* Buf = (char*)malloc(strlen(Tcl_DStringValue(&dsParam)) + 5);
-		sprintf(Buf, "tag.%s", Tcl_DStringValue(&dsParam));
-
-		Tcl_DStringFree(&dsParam);
+		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
+		sprintf(Buf, "tag.%s", Parameter2);
 
 		ReturnValue = Context->GetConfig()->ReadString(Buf);
 
@@ -799,76 +698,54 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		ReturnValue = Buffer;
 	} else {
-		Tcl_DStringFree(&dsType);
-
 		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen";
 	}
-
-	Tcl_DStringFree(&dsType);
 
 	return ReturnValue;
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
-	Tcl_DString dsUser, dsType, dsValue, dsParam;
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		throw "Invalid user.";
 
-	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
-	Tcl_UtfToExternalDString(g_Encoding, Value, -1, &dsValue);
-
-	if (strcmpi(Tcl_DStringValue(&dsType), "server") == 0)
+	if (strcmpi(Type, "server") == 0)
 		Context->SetServer(Value);
-	else if (strcmpi(Tcl_DStringValue(&dsType), "port") == 0)
-		Context->SetPort(atoi(Tcl_DStringValue(&dsValue)));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "realname") == 0)
-		Context->SetRealname(Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "nick") == 0)
-		Context->SetNick(Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "awaynick") == 0)
-		Context->GetConfig()->WriteString("user.awaynick", Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "vhost") == 0)
-		Context->GetConfig()->WriteString("user.ip", Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "channels") == 0)
-		Context->GetConfig()->WriteString("user.channels", Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "delayjoin") == 0)
-		Context->GetConfig()->WriteString("user.delayjoin", Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "away") == 0)
-		Context->GetConfig()->WriteString("user.away", Tcl_DStringValue(&dsValue));
-	else if (strcmp(Tcl_DStringValue(&dsType), "password") == 0)
-		Context->SetPassword(Tcl_DStringValue(&dsValue));
-	else if (strcmpi(Tcl_DStringValue(&dsType), "lock") == 0) {
-		if (atoi(Tcl_DStringValue(&dsValue)))
+	else if (strcmpi(Type, "port") == 0)
+		Context->SetPort(atoi(Value));
+	else if (strcmpi(Type, "realname") == 0)
+		Context->SetRealname(Value);
+	else if (strcmpi(Type, "nick") == 0)
+		Context->SetNick(Value);
+	else if (strcmpi(Type, "awaynick") == 0)
+		Context->GetConfig()->WriteString("user.awaynick", Value);
+	else if (strcmpi(Type, "vhost") == 0)
+		Context->GetConfig()->WriteString("user.ip", Value);
+	else if (strcmpi(Type, "channels") == 0)
+		Context->GetConfig()->WriteString("user.channels", Value);
+	else if (strcmpi(Type, "delayjoin") == 0)
+		Context->GetConfig()->WriteString("user.delayjoin", Value);
+	else if (strcmpi(Type, "away") == 0)
+		Context->GetConfig()->WriteString("user.away", Value);
+	else if (strcmp(Type, "password") == 0)
+		Context->SetPassword(Value);
+	else if (strcmpi(Type, "lock") == 0) {
+		if (atoi(Value))
 			Context->Lock();
 		else
 			Context->Unlock();
-	} else if (strcmpi(Tcl_DStringValue(&dsType), "admin") == 0)
-		Context->SetAdmin(atoi(Tcl_DStringValue(&dsValue)) ? true : false);
-	else if (strcmpi(Tcl_DStringValue(&dsType), "tag") == 0 && Value) {
-		char* Buf = (char*)malloc(strlen(Tcl_DStringValue(&dsValue)) + 5);
-		sprintf(Buf, "tag.%s", Tcl_DStringValue(&dsValue));
+	} else if (strcmpi(Type, "admin") == 0)
+		Context->SetAdmin(atoi(Value) ? true : false);
+	else if (strcmpi(Type, "tag") == 0 && Value) {
+		char* Buf = (char*)malloc(strlen(Value) + 5);
+		sprintf(Buf, "tag.%s", Value);
 
-		Tcl_UtfToExternalDString(g_Encoding, Parameter2, -1, &dsParam);
-
-		Context->GetConfig()->WriteString(Buf, Tcl_DStringValue(&dsParam));
-
-		Tcl_DStringFree(&dsParam);
+		Context->GetConfig()->WriteString(Buf, Parameter2);
 
 		free(Buf);
-	} else {
-		Tcl_DStringFree(&dsType);
-		Tcl_DStringFree(&dsValue);
-
+	} else
 		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password";
-	}
-
-	Tcl_DStringFree(&dsType);
-	Tcl_DStringFree(&dsValue);
 
 	return 1;
 }
@@ -876,12 +753,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 void addbncuser(const char* User, const char* Password) {
 	char* Context = strdup(getctx());
 
-	Tcl_DString dsUser, dsPassword;
-
-	CBouncerUser* U = g_Bouncer->CreateUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser), Tcl_UtfToExternalDString(g_Encoding, Password, -1, &dsPassword));
-
-	Tcl_DStringFree(&dsUser);
-	Tcl_DStringFree(&dsPassword);
+	CBouncerUser* U = g_Bouncer->CreateUser(User, Password);
 
 	if (!U)
 		throw "Could not create user.";
@@ -894,15 +766,8 @@ void addbncuser(const char* User, const char* Password) {
 void delbncuser(const char* User) {
 	char* Context = strdup(getctx());
 
-	Tcl_DString dsUser;
-
-	if (!g_Bouncer->RemoveUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser))) {
-		Tcl_DStringFree(&dsUser);
-
+	if (!g_Bouncer->RemoveUser(User))
 		throw "Could not remove user.";
-	}
-
-	Tcl_DStringFree(&dsUser);
 
 	setctx(Context);
 
@@ -912,18 +777,12 @@ void delbncuser(const char* User) {
 int simul(const char* User, const char* Command) {
 	CBouncerUser* Context;
 
-	Tcl_DString dsUser, dsCtx;
-
-	Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return 0;
 	else {
-		Context->Simulate(Tcl_UtfToExternalDString(g_Encoding, Command, -1, &dsCtx));
-
-		Tcl_DStringFree(&dsCtx);
+		Context->Simulate(Command);
 
 		return 1;
 	}
@@ -942,21 +801,12 @@ const char* getchanhost(const char* Nick, const char*) {
 		if (IRC) {
 			int a = 0;
 
-			Tcl_DString dsNick;
-
-			Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick);
-
 			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
-				if (U && U->GetSite() != NULL) {
-					Tcl_DStringFree(&dsNick);
-
+				if (U && U->GetSite() != NULL)
 					return U->GetSite();
-				}
 			}
-
-			Tcl_DStringFree(&dsNick);
 		}
 
 		return NULL;
@@ -975,18 +825,12 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsNick, dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
-
-	Tcl_DStringFree(&dsNick);
+	CNick* User = Chan->GetNames()->Get(Nick);
 
 	if (!User)
 		return 0;
@@ -1005,18 +849,12 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsNick, dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, Nick, -1, &dsNick));
-
-	Tcl_DStringFree(&dsNick);
+	CNick* User = Chan->GetNames()->Get(Nick);
 
 	if (User)
 		return time(NULL) - User->GetIdleSince();
@@ -1058,10 +896,6 @@ int floodcontrol(const char* Function) {
 
 	CFloodControl* FloodControl = IRC->GetFloodControl();
 
-	Tcl_DString dsFunc;
-
-	Tcl_UtfToExternalDString(g_Encoding, Function, -1, &dsFunc);
-
 	int Result;
 
 	if (strcmpi(Function, "bytes") == 0)
@@ -1074,13 +908,8 @@ int floodcontrol(const char* Function) {
 	} else if (strcmpi(Function, "off") == 0) {
 		FloodControl->Disable();
 		Result = 1;
-	} else {
-		Tcl_DStringFree(&dsFunc);
-
+	} else
 		throw "Function should be one of: bytes items on off";
-	}
-
-	Tcl_DStringFree(&dsFunc);
 
 	return Result;
 }
@@ -1098,25 +927,16 @@ int clearqueue(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	Tcl_DString dsQueue;
-
-	Tcl_UtfToExternalDString(g_Encoding, Queue, -1, &dsQueue);
-
-	if (strcmpi(Tcl_DStringValue(&dsQueue), "mode") == 0)
+	if (strcmpi(Queue, "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "server") == 0)
+	else if (strcmpi(Queue, "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "help") == 0)
+	else if (strcmpi(Queue, "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "all") == 0)
+	else if (strcmpi(Queue, "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else {
-		Tcl_DStringFree(&dsQueue);
-
+	else
 		throw "Queue should be one of: mode server help all";
-	}
-
-	Tcl_DStringFree(&dsQueue);
 
 	int Size;
 
@@ -1143,25 +963,16 @@ int queuesize(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	Tcl_DString dsQueue;
-
-	Tcl_UtfToExternalDString(g_Encoding, Queue, -1, &dsQueue);
-
-	if (strcmpi(Tcl_DStringValue(&dsQueue), "mode") == 0)
+	if (strcmpi(Queue, "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "server") == 0)
+	else if (strcmpi(Queue, "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "help") == 0)
+	else if (strcmpi(Queue, "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Tcl_DStringValue(&dsQueue), "all") == 0)
+	else if (strcmpi(Queue, "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else {
-		Tcl_DStringFree(&dsQueue);
-
+	else
 		throw "Queue should be one of: mode server help all";
-	}
-
-	Tcl_DStringFree(&dsQueue);
 
 	int Size;
 
@@ -1184,11 +995,7 @@ int puthelp(const char* text) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsText;
-
-	IRC->GetQueueLow()->QueueItem(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	IRC->GetQueueLow()->QueueItem(text);
 
 	return 1;
 }
@@ -1204,11 +1011,7 @@ int putquick(const char* text) {
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsText;
-
-	IRC->GetQueueHigh()->QueueItem(Tcl_UtfToExternalDString(g_Encoding, text, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	IRC->GetQueueHigh()->QueueItem(text);
 
 	return 1;
 }
@@ -1224,13 +1027,7 @@ const char* getisupport(const char* Feature) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsFeat;
-
-	const char* ReturnValue = IRC->GetISupport(Tcl_UtfToExternalDString(g_Encoding, Feature, -1, &dsFeat));
-
-	Tcl_DStringFree(&dsFeat);
-
-	return ReturnValue;
+	return IRC->GetISupport(Feature);
 }
 
 int requiresparam(char Mode) {
@@ -1313,24 +1110,15 @@ int bncsettag(const char* channel, const char* nick, const char* tag, const char
 	if (!IRC)
 		return 0;
 
-	Tcl_DString dsChan, dsNick, dsTag, dsValue;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(channel);
 
 	if (!Chan)
 		return 0;
 
-	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, nick, -1, &dsNick));
-
-	Tcl_DStringFree(&dsNick);
+	CNick* User = Chan->GetNames()->Get(nick);
 
 	if (User) {
-		User->SetTag(Tcl_UtfToExternalDString(g_Encoding, tag, -1, &dsTag), Tcl_UtfToExternalDString(g_Encoding, value, -1, &dsValue));
-
-		Tcl_DStringFree(&dsTag);
-		Tcl_DStringFree(&dsValue);
+		User->SetTag(tag, value);
 
 		return 1;
 	} else
@@ -1348,26 +1136,16 @@ const char* bncgettag(const char* channel, const char* nick, const char* tag) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan, dsNick, dsTag;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(channel);
 
 	if (!Chan)
 		return NULL;
 
-	CNick* User = Chan->GetNames()->Get(Tcl_UtfToExternalDString(g_Encoding, nick, -1, &dsNick));
+	CNick* User = Chan->GetNames()->Get(nick);
 
-	Tcl_DStringFree(&dsNick);
-
-	if (User) {
-		const char* Result = User->GetTag(Tcl_UtfToExternalDString(g_Encoding, tag, -1, &dsTag));
-
-		Tcl_DStringFree(&dsTag);
-
-		return Result;
-	} else
+	if (User)
+		return User->GetTag(tag);
+	else
 		return NULL;
 }
 
@@ -1376,114 +1154,74 @@ void haltoutput(void) {
 }
 
 const char* bnccommand(const char* Cmd, const char* Parameters) {
-	Tcl_DString dsCmd, dsParameters;
-
-	Tcl_UtfToExternalDString(g_Encoding, Cmd, -1, &dsCmd);
-	Tcl_UtfToExternalDString(g_Encoding, Parameters, -1, &dsParameters);
-
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 		CModule* M = g_Bouncer->GetModules()[i];
 
 		if (M) {
 			const char* Result = M->Command(Cmd, Parameters);
 
-			Tcl_DStringFree(&dsCmd);
-			Tcl_DStringFree(&dsParameters);
-
 			if (Result)
 				return Result;
 		}
 	}
 
-	Tcl_DStringFree(&dsCmd);
-	Tcl_DStringFree(&dsParameters);
-
 	return NULL;
 }
 
 const char* md5(const char* String) {
-	if (String) {
-		Tcl_DString dsString;
-
-		const char* ReturnValue = g_Bouncer->MD5(Tcl_UtfToExternalDString(g_Encoding, String, -1, &dsString));
-		
-		Tcl_DStringFree(&dsString);
-		
-		return ReturnValue;
-	} else
+	if (String)
+		return g_Bouncer->MD5(String);
+	else
 		return NULL;
 }
 
 void debugout(const char* String) {
 #ifdef _WIN32
-	Tcl_DString dsText;
-
-	OutputDebugString(Tcl_UtfToExternalDString(g_Encoding, String, -1, &dsText));
+	OutputDebugString(String);
 	OutputDebugString("\n");
-
-	Tcl_DStringFree(&dsText);
 #endif
 }
 
 void putlog(const char* Text) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
-	if (User && Text) {
-		Tcl_DString dsText;
-
-		User->GetLog()->InternalWriteLine(Tcl_UtfToExternalDString(g_Encoding, Text, -1, &dsText));
-
-		Tcl_DStringFree(&dsText);
-	}
+	if (User && Text)
+		User->GetLog()->InternalWriteLine(Text);
 }
 
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
-	Tcl_DString dsUser, dsConn, dsType;
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return 0;
 
 	unsigned int Bytes = 0;
 
-	Tcl_UtfToExternalDString(g_Encoding, ConnectionType, -1, &dsConn);
-	Tcl_UtfToExternalDString(g_Encoding, Type, -1, &dsType);
-
-	if (!ConnectionType || strcmpi(Tcl_DStringValue(&dsConn), "client") == 0) {
-		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "in") == 0) {
+	if (!ConnectionType || strcmpi(ConnectionType, "client") == 0) {
+		if (!Type || strcmpi(Type, "in") == 0) {
 			Bytes += Context->GetClientStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "out") == 0) {
+		if (!Type || strcmpi(Type, "out") == 0) {
 			Bytes += Context->GetClientStats()->GetOutbound();
 		}
 	}
 
-	if (!ConnectionType || strcmpi(Tcl_DStringValue(&dsConn), "server") == 0) {
-		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "in") == 0) {
+	if (!ConnectionType || strcmpi(ConnectionType, "server") == 0) {
+		if (!Type || strcmpi(Type, "in") == 0) {
 			Bytes += Context->GetIRCStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Tcl_DStringValue(&dsType), "out") == 0) {
+		if (!Type || strcmpi(Type, "out") == 0) {
 			Bytes += Context->GetIRCStats()->GetOutbound();
 		}
 	}
-
-	Tcl_DStringFree(&dsConn);
-	Tcl_DStringFree(&dsType);
 
 	return Bytes;
 }
 
 void bncjoinchans(const char* User) {
-	Tcl_DString dsUser;
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return;
@@ -1494,7 +1232,9 @@ void bncjoinchans(const char* User) {
 
 int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
 	if (strcmpi(Type, "script") == 0) {
-		CTclSocket* TclSocket = new CTclSocket(NULL, Port, Options);
+		const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+
+		CTclSocket* TclSocket = new CTclSocket(BindIp, Port, Options);
 
 		if (!TclSocket)
 			throw "Could not create object.";
@@ -1533,11 +1273,7 @@ void control(int Socket, const char* Proc) {
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket.";
 
-	Tcl_DString dsProc;
-
-	SockPtr->SetControlProc(Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc));
-
-	Tcl_DStringFree(&dsProc);
+	SockPtr->SetControlProc(Proc);
 }
 
 void internalsocketwriteln(int Socket, const char* Line) {
@@ -1548,19 +1284,11 @@ void internalsocketwriteln(int Socket, const char* Line) {
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
 
-	Tcl_DString dsText;
-
-	SockPtr->WriteLine(Tcl_UtfToExternalDString(g_Encoding, Line, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	SockPtr->WriteLine(Line);
 }
 
 int internalconnect(const char* Host, unsigned short Port) {
-	Tcl_DString dsHost;
-
-	SOCKET Socket = g_Bouncer->SocketAndConnect(Tcl_UtfToExternalDString(g_Encoding, Host, -1, &dsHost), Port, NULL);
-
-	Tcl_DStringFree(&dsHost);
+	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
 
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
@@ -1590,18 +1318,12 @@ void internalclosesocket(int Socket) {
 }
 
 bool bnccheckpassword(const char* User, const char* Password) {
-	Tcl_DString dsUser, dsPass;
-
-	CBouncerUser* Context = g_Bouncer->GetUser(Tcl_UtfToExternalDString(g_Encoding, User, -1, &dsUser));
-
-	Tcl_DStringFree(&dsUser);
+	CBouncerUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return false;
 
-	bool Ret = Context->Validate(Tcl_UtfToExternalDString(g_Encoding, Password, -1, &dsPass));
-
-	Tcl_DStringFree(&dsPass);
+	bool Ret = Context->Validate(Password);
 
 	return Ret;
 }
@@ -1617,11 +1339,7 @@ void bncdisconnect(const char* Reason) {
 	if (!Irc)
 		return;
 
-	Tcl_DString dsText;
-
-	Irc->Kill(Tcl_UtfToExternalDString(g_Encoding, Reason, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	Irc->Kill(Reason);
 
 	Context->MarkQuitted();
 }
@@ -1637,11 +1355,7 @@ void bnckill(const char* Reason) {
 	if (!Client)
 		return;
 
-	Tcl_DString dsText;
-
-	Client->Kill(Tcl_UtfToExternalDString(g_Encoding, Reason, -1, &dsText));
-
-	Tcl_DStringFree(&dsText);
+	Client->Kill(Reason);
 }
 
 void bncreply(const char* Text) {
@@ -1650,16 +1364,10 @@ void bncreply(const char* Text) {
 	if (!Context)
 		return;
 
-	Tcl_DString dsText;
-
-	Tcl_UtfToExternalDString(g_Encoding, Text, -1, &dsText);
-
 	if (g_NoticeUser)
-		Context->RealNotice(Tcl_DStringValue(&dsText));
+		Context->RealNotice(Text);
 	else
-		Context->Notice(Tcl_DStringValue(&dsText));
-
-	Tcl_DStringFree(&dsText);
+		Context->Notice(Text);
 }
 
 char* chanbans(const char* Channel) {
@@ -1673,11 +1381,7 @@ char* chanbans(const char* Channel) {
 	if (!IRC)
 		return NULL;
 
-	Tcl_DString dsChan;
-
-	CChannel* Chan = IRC->GetChannel(Tcl_UtfToExternalDString(g_Encoding, Channel, -1, &dsChan));
-
-	Tcl_DStringFree(&dsChan);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;
@@ -1733,16 +1437,12 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 	else
 		objc = 1;
 
-	Tcl_DString dsProc, dsCookie;
-
-	objv[0] = Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, Cookie->proc, -1, &dsProc), -1);
-	Tcl_DStringFree(&dsProc);
+	objv[0] = Tcl_NewStringObj(Cookie->proc, -1);
 
 	Tcl_IncrRefCount(objv[0]);
 
 	if (Cookie->param) {
-		objv[1] = Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, Cookie->param, -1, &dsCookie), -1);
-		Tcl_DStringFree(&dsCookie);
+		objv[1] = Tcl_NewStringObj(Cookie->param, -1);
 
 		Tcl_IncrRefCount(objv[1]);
 	}
@@ -1773,8 +1473,6 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 }
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter) {
-	Tcl_DString dsProc, dsParam;
-
 	internalkilltimer(Proc, Parameter);
 
 	tcltimer_t** n = NULL;
@@ -1799,16 +1497,12 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 
 	p->timer = g_Bouncer->CreateTimer(Interval, Repeat, TclTimerProc, p);
 
-	p->proc = strdup(Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc));
-
-	Tcl_DStringFree(&dsProc);
+	p->proc = strdup(Proc);
 
 	p->repeat = Repeat;
 
 	if (Parameter) {
-		p->param = strdup(Tcl_UtfToExternalDString(g_Encoding, Parameter, -1, &dsParam));
-
-		Tcl_DStringFree(&dsParam);
+		p->param = strdup(Parameter);
 	} else
 		p->param = NULL;
 
@@ -1816,38 +1510,20 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 }
 
 int internalkilltimer(const char* Proc, const char* Parameter) {
-	Tcl_DString dsProc, dsParam;
-
-	Tcl_UtfToExternalDString(g_Encoding, Proc, -1, &dsProc);
-
-	if (Parameter) {
-		Tcl_UtfToExternalDString(g_Encoding, Parameter, -1, &dsParam);
-	}
-
 	if (!g_Timers)
 		return 0;
 
 	for (int i = 0; i < g_TimerCount; i++) {
-		if (g_Timers[i] && strcmp(g_Timers[i]->proc, Tcl_DStringValue(&dsProc)) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Tcl_DStringValue(&dsParam), g_Timers[i]->param) == 0)) {
+		if (g_Timers[i] && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0)) {
 			g_Timers[i]->timer->Destroy();
 			free(g_Timers[i]->proc);
 			free(g_Timers[i]->param);
 
 			g_Timers[i] = NULL;
 
-			Tcl_DStringFree(&dsProc);
-
-			if (Parameter)
-				Tcl_DStringFree(&dsParam);
-
 			return 1;
 		}
 	}
-
-	Tcl_DStringFree(&dsProc);
-
-	if (Parameter)
-		Tcl_DStringFree(&dsParam);
 
 	return 0;
 }
@@ -1866,4 +1542,112 @@ const char* getcurrentnick(void) {
 		return Context->GetIRCConnection()->GetCurrentNick();
 	else
 		return Context->GetNick();
+}
+
+const char* bncgetmotd(void) {
+	return g_Bouncer->GetConfig()->ReadString("system.motd");
+}
+
+void bncsetmotd(const char* Motd) {
+	g_Bouncer->GetConfig()->WriteString("system.motd", Motd);
+}
+
+const char* bncgetgvhost(void) {
+	return g_Bouncer->GetConfig()->ReadString("system.ip");
+}
+
+void bncsetgvhost(const char* GVHost) {
+	g_Bouncer->GetConfig()->WriteString("system.ip", GVHost);
+}
+
+const char* getbnchosts(void) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return NULL;
+
+	int Count = Context->GetHostAllowCount();
+	char** Hosts = Context->GetHostAllows();
+
+	int argc = 0;
+	const char** argv = (const char**)malloc(Count * sizeof(const char*));
+
+	for (int i = 0; i < Count; i++) {
+		if (Hosts[i])
+			argv[argc++] = Hosts[i];
+	}
+
+	static char* List = NULL;
+
+	if (List)
+		Tcl_Free(List);
+
+	List = Tcl_Merge(argc, argv);
+
+	free(argv);
+
+	return List;
+}
+
+void delbnchost(const char* Host) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return;
+
+	Context->RemoveHostAllow(Host, true);
+}
+
+int addbnchost(const char* Host) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return -1;
+
+	char** Hosts = Context->GetHostAllows();
+	unsigned int a = 0;
+
+	for (unsigned int i = 0; i < Context->GetHostAllowCount(); i++) {
+		if (Hosts[i])
+			a++;
+	}
+
+	if (Context->CanHostConnect(Host) && a)
+		return -1;
+
+	Context->AddHostAllow(Host, true);
+
+	return 0;
+}
+
+bool bncisipblocked(const char* Ip) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return false;
+
+	sockaddr_in Peer;
+
+	Peer.sin_family = AF_INET;
+
+	unsigned long addr = inet_addr(Ip);
+
+#ifdef _WIN32
+	Peer.sin_addr.S_un.S_addr = addr;
+#else
+	Peer.sin_addr.s_addr = addr;
+#endif
+
+	return Context->IsIpBlocked(Peer);
+}
+
+bool bnccanhostconnect(const char* Host) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return false;
+
+	bool Ret = Context->CanHostConnect(Host);
+
+	return Ret;
 }
