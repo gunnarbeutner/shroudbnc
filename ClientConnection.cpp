@@ -401,6 +401,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		snprintf(Out, sizeof(Out), "SIMUL %s :QUIT", argv[1]);
 		ParseLine(Out);
 
+		SENDUSER("Done.");
+
 		return false;
 	} else if (strcmpi(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
@@ -410,6 +412,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		snprintf(Out, sizeof(Out), "SIMUL %s :PERROR :Requested.", argv[1]);
 		ParseLine(Out);
+
+		SENDUSER("Done.");
 
 		return false;
 	} else if (strcmpi(Subcommand, "jump") == 0) {

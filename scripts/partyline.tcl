@@ -49,7 +49,7 @@ proc sbnc:partyline {client parameters} {
 			lappend chans $chan
 			setbncuser $client tag partyline [join $chans ","]
 
-			putclient ":[getbncuser $client nick]!no@idea JOIN $chan"
+			putclient ":$botname JOIN $chan"
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
 
@@ -155,9 +155,9 @@ proc sbnc:partyattach {client} {
 
 	foreach chan $partyline {
 		if {[lsearch $chans [string tolower $chan]] != -1} {
-			utimer 1 [list putclient ":$botname JOIN $chan"]
-			utimer 1 [list sbnc:partyline $client "NAMES $chan"]
-			utimer 1 [list sbnc:partyline $client "TOPIC $chan"]
+			putclient ":$botname JOIN $chan"
+			sbnc:partyline $client "NAMES $chan"
+			sbnc:partyline $client "TOPIC $chan"
 
 			sbnc:bcpartybutone $client ":\$$client!$client@sbnc JOIN $chan"
 		}
