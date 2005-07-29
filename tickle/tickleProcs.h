@@ -34,12 +34,14 @@
 	}
 }
 
-%typemap(in) char* (Tcl_DString ds_) {	
+%typemap(in) char* (Tcl_DString ds_, bool ds_use_ = false) {
+	ds_use_ = true;
 	$1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString($input), -1, &ds_);
 }
 
 %typemap(freearg) char* {
-	Tcl_DStringFree(&ds_$argnum);
+	if (ds_use_$argnum)
+		Tcl_DStringFree(&ds_$argnum);
 }
 
 %typemap(out) char* {
