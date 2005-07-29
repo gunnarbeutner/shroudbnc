@@ -151,7 +151,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			const char* Host = Delim + 1;
 
-			GetOwningClient()->Log("%s (%s): %s", Dup, Delim, argv[3]);
+			GetOwningClient()->Log("%s (%s): %s", Dup, Delim ? Host : "<unknown host>", argv[3]);
 
 			free(Dup);
 		}
@@ -235,7 +235,19 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 				m_Owner->Simulate(Out);
 
-				GetOwningClient()->Log("%s kicked you from %s (%s)", Reply, argv[2], argc > 4 ? argv[4] : "");
+				char* Dup = strdup(Reply);
+				char* Delim = strstr(Dup, "!");
+				const char* Host;
+
+				if (Delim) {
+					*Delim = '\0';
+
+					Host = Delim + 1;
+				}
+
+				GetOwningClient()->Log("%s (%s) kicked you from %s (%s)", Dup, Host, argv[2], argc > 4 ? argv[4] : "");
+
+				free(Dup);
 			}
 		} else {
 			CChannel* Chan = GetChannel(argv[2]);

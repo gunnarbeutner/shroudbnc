@@ -206,6 +206,7 @@ int internalbind(const char* type, const char* proc) {
 		g_Binds[n].type = Type_Command;
 	else {
 		g_Binds[n].type = Type_Invalid;
+
 		throw "Invalid bind type.";
 	}
 
@@ -381,14 +382,10 @@ bool onchan(const char* Nick, const char* Channel) {
 	if (Channel) {
 		CChannel* Chan = IRC->GetChannel(Channel);
 
-		bool Ret;
-
 		if (Chan && Chan->GetNames()->Get(Nick))
-			Ret = true;
+			return true;
 		else
-			Ret = false;
-
-		return Ret;
+			return false;;
 	} else {
 		int a = 0;
 
@@ -634,74 +631,77 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	if (!Context)
 		throw "Invalid user.";
 
-	const char* ReturnValue;
-
 	if (strcmpi(Type, "server") == 0)
-		ReturnValue = Context->GetServer();
+		return Context->GetServer();
 	else if (strcmpi(Type, "realserver") == 0) {
 		CIRCConnection* IRC = Context->GetIRCConnection();;
 
 		if (IRC)
-			ReturnValue = IRC->GetServer();
+			return IRC->GetServer();
 		else
-			ReturnValue = NULL;
+			return NULL;
 	} else if (strcmpi(Type, "port") == 0) {
 		sprintf(Buffer, "%d", Context->GetPort());
 
-		ReturnValue = Buffer;
+		return Buffer;
 	} else if (strcmpi(Type, "realname") == 0)
-		ReturnValue = Context->GetRealname();
+		return Context->GetRealname();
 	else if (strcmpi(Type, "nick") == 0)
-		ReturnValue = Context->GetNick();
+		return Context->GetNick();
 	else if (strcmpi(Type, "awaynick") == 0)
-		ReturnValue = Context->GetConfig()->ReadString("user.awaynick");
+		return Context->GetConfig()->ReadString("user.awaynick");
 	else if (strcmpi(Type, "away") == 0)
-		ReturnValue = Context->GetConfig()->ReadString("user.away");
+		return Context->GetConfig()->ReadString("user.away");
 	else if (strcmpi(Type, "vhost") == 0)
-		ReturnValue = Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
+		return Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
 	else if (strcmpi(Type, "channels") == 0)
-		ReturnValue = Context->GetConfig()->ReadString("user.channels");
+		return Context->GetConfig()->ReadString("user.channels");
 	else if (strcmpi(Type, "uptime") == 0) {
 		sprintf(Buffer, "%d", Context->IRCUptime());
 
-		ReturnValue = Buffer;
+		return Buffer;
 	} else if (strcmpi(Type, "lock") == 0)
-		ReturnValue = Context->IsLocked() ? "1" : "0";
+		return Context->IsLocked() ? "1" : "0";
 	else if (strcmpi(Type, "admin") == 0)
-		ReturnValue = Context->IsAdmin() ? "1" : "0";
+		return Context->IsAdmin() ? "1" : "0";
 	else if (strcmpi(Type, "hasserver") == 0)
-		ReturnValue = Context->GetIRCConnection() ? "1" : "0";
+		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
-		ReturnValue = Context->GetClientConnection() ? "1" : "0";
+		return Context->GetClientConnection() ? "1" : "0";
 	else if (strcmpi(Type, "delayjoin") == 0)
-		ReturnValue = Context->GetConfig()->ReadString("user.delayjoin");
+		return Context->GetConfig()->ReadString("user.delayjoin");
 	else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
 		if (!Client)
-			ReturnValue = NULL;
+			return NULL;
 		else
-			ReturnValue = Client->GetPeerName();
+			return Client->GetPeerName();
 	}
 	else if (strcmpi(Type, "tag") == 0) {
 		if (!Parameter2)
-			ReturnValue = NULL;
+			return NULL;
 
 		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
 		sprintf(Buf, "tag.%s", Parameter2);
 
-		ReturnValue = Context->GetConfig()->ReadString(Buf);
+		return Context->GetConfig()->ReadString(Buf);
 
 		free(Buf);
 	} else if (strcmpi(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
-		ReturnValue = Buffer;
-	} else {
-		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen";
-	}
+		return Buffer;
+	} else if (strcmpi(Type, "appendts") == 0) {
+		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.ts") != 0 ? 1 : 0);
 
-	return ReturnValue;
+		return Buffer;
+	} else if (strcmpi(Type, "quitasaway") == 0) {
+		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
+
+		return Buffer;
+	} else
+		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -744,8 +744,12 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString(Buf, Parameter2);
 
 		free(Buf);
-	} else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password";
+	} else if (strcmpi(Type, "appendts") == 0)
+		Context->GetConfig()->WriteString("user.ts", Value);
+	else if (strcmpi(Type, "quitasaway") == 0)
+		Context->GetConfig()->WriteString("user.quitaway", Value);
+	else
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway";
 
 	return 1;
 }
@@ -1602,7 +1606,7 @@ int addbnchost(const char* Host) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return -1;
+		return 0;
 
 	char** Hosts = Context->GetHostAllows();
 	unsigned int a = 0;
@@ -1613,11 +1617,11 @@ int addbnchost(const char* Host) {
 	}
 
 	if (Context->CanHostConnect(Host) && a)
-		return -1;
+		return 0;
 
 	Context->AddHostAllow(Host, true);
 
-	return 0;
+	return 1;
 }
 
 bool bncisipblocked(const char* Ip) {

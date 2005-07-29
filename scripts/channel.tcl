@@ -17,6 +17,7 @@
 
 internaltimer 120 1 sbnc:channelflush
 internalbind unload sbnc:channelflush
+internalbind usrdelete sbnc:channelconfdelete
 
 proc sbnc:channelflush {} {
 	foreach user [bncuserlist] {
@@ -30,6 +31,10 @@ proc sbnc:channelflush {} {
 			}
 		}
 	}
+}
+
+proc sbnc:channelconfdelete {client} {
+	file delete "users/$client.chan"
 }
 
 proc channel {option chan args} {
