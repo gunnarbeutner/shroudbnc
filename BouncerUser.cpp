@@ -351,7 +351,12 @@ void CBouncerUser::Reconnect(void) {
 }
 
 bool CBouncerUser::ShouldReconnect(void) {
-	if (!m_IRC && !m_Quitted && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > 15)
+	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+
+	if (Interval == 0)
+		Interval = 15;
+
+	if (!m_IRC && !m_Quitted && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval)
 		return true;
 	else
 		return false;
@@ -366,8 +371,13 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 
 	int MaxDelay = Delay;
 
-	if (time(NULL) - g_LastReconnect < 20 && MaxDelay < 20)
-		MaxDelay = 20;
+	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+
+	if (Interval == 0)
+		Interval = 15;
+
+	if (time(NULL) - g_LastReconnect < Interval && MaxDelay < Interval)
+		MaxDelay = Interval;
 
 	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120)
 		MaxDelay = 120;
@@ -745,10 +755,15 @@ bool UserReconnectTimer(time_t Now, void* User) {
 
 	((CBouncerUser*)User)->m_ReconnectTimer = NULL;
 
-	if (time(NULL) - g_LastReconnect > 15)
+	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+
+	if (Interval == 0)
+		Interval = 15;
+
+	if (time(NULL) - g_LastReconnect > Interval)
 		((CBouncerUser*)User)->Reconnect();
 	else
-		((CBouncerUser*)User)->ScheduleReconnect(10);
+		((CBouncerUser*)User)->ScheduleReconnect(Interval);
 
 	return false;
 }

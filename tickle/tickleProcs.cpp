@@ -700,6 +700,10 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
 		return Buffer;
+	} else if (strcmpi(Type, "nosrvevt") == 0) {
+		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.nosrvevt") != 0 ? 1 : 0);
+
+		return Buffer;
 	} else
 		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway";
 }
@@ -748,8 +752,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.ts", Value);
 	else if (strcmpi(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
+	else if (strcmpi(Type, "nosrvevt") == 0)
+		Context->GetConfig()->WriteString("user.nosrvevt", Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway nosrvevt";
 
 	return 1;
 }

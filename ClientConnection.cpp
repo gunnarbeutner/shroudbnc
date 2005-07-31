@@ -417,7 +417,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcmpi(Subcommand, "jump") == 0) {
-		m_Owner->Reconnect();
+		if (m_Owner->GetIRCConnection()) {
+			m_Owner->GetIRCConnection()->Kill("Reconnecting");
+
+			m_Owner->SetIRCConnection(NULL);
+		}
+
+		m_Owner->ScheduleReconnect(0);
 		return false;
 	} else if (strcmpi(Subcommand, "status") == 0) {
 		snprintf(Out, sizeof(Out), "Username: %s", m_Owner->GetUsername());

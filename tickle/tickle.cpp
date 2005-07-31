@@ -133,6 +133,9 @@ class CTclSupport : public CModuleFar {
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		g_Ret = true;
 
+		if (IRC->GetOwningClient()->GetConfig()->ReadInteger("user.nosrvevt"))
+			return true;
+
 		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Server, IRC->GetOwningClient()->GetUsername(), argc, argv);
 		CallBinds(Type_PostScript, NULL, 0, NULL);
