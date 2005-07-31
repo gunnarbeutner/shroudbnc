@@ -37,6 +37,10 @@ enum connection_role_e {
 class CConnection : public CSocketEvents {
 	friend class CBouncerCore;
 	friend class CBouncerUser;
+
+#ifndef SWIG
+	void ReadLines(void);
+#endif
 public:
 #ifndef SWIG
 	CConnection(SOCKET Client, sockaddr_in Peer);

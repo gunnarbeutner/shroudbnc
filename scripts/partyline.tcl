@@ -31,9 +31,9 @@ if {![info exists ::partytopic]} {
 }
 
 proc sbnc:partyline {client parameters} {
-	global botnick botname server partyline partytopic partyts partywho
-
 	setctx $client
+
+	global botnick botname server partyline partytopic partyts partywho
 
 	if {[lsearch [string tolower $partyline] [string tolower [lindex $parameters 1]]] == -1} { return }
 
@@ -147,9 +147,9 @@ proc sbnc:bcpartybutone {client text} {
 }
 
 proc sbnc:partyattach {client} {
-	global botnick botname partyline
-
 	setctx $client
+
+	global botnick botname partyline
 
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
@@ -165,9 +165,9 @@ proc sbnc:partyattach {client} {
 }
 
 proc sbnc:partydetach {client} {
-	global partyline
-
 	setctx $client
+
+	global partyline
 
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 

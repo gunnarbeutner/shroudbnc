@@ -91,6 +91,8 @@ proc sbnc:modechange {client parameters} {
 }
 
 proc sbnc:rawserver {client parameters} {
+	if {[llength [binds]] == 0} { return }
+
 	set source [lindex $parameters 0]
 	set nick [sbnc:nickfromhost $source]
 	set site [sbnc:sitefromhost $source]

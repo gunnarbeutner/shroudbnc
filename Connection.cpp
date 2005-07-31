@@ -87,13 +87,7 @@ bool CConnection::Read(void) {
 	if (m_Wrapper)
 		return true;
 
-	char* Line;
-
-	while (ReadLine(&Line)) {
-		ParseLine(Line);
-
-		free(Line);
-	}
+	ReadLines();
 
 	return true;
 }
@@ -119,6 +113,29 @@ void CConnection::Write(void) {
 	if (m_Shutdown) {
 		shutdown(m_Socket, SD_BOTH);
 		closesocket(m_Socket);
+	}
+}
+
+void CConnection::ReadLines(void) {
+	char* line = recvq;
+
+	for (int i = 0; i < recvq_size; i++) {
+		if (recvq[i] == '\n' || recvq[i] == '\r') {
+			recvq[i] = '\0';
+
+			if (strlen(line) > 0)
+				ParseLine(line);
+
+			line = &recvq[i+1];
+		}
+	}
+
+	if (recvq != line) {
+		char* old_recvq = recvq;
+		recvq_size -= line - recvq;
+		recvq = (char*)malloc(recvq_size);
+		memcpy(recvq, line, recvq_size);
+		free(old_recvq);
 	}
 }
 
