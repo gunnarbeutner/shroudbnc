@@ -15,9 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-internalbind post sbnc:pminternalflush
-
 proc sbnc:pminternalflush {} {
+	internalunbind post sbnc:pminternalflush
+
 	foreach user [bncuserlist] {
 		setctx $user
 
@@ -97,6 +97,8 @@ proc pushmode {channel mode {arg ""}} {
 	if {$arg == {} && ($mtype == 2 || ($mtype == 1 && [string first "-" $mode] == -1))} {
 			return -code error "Chanmode $mode requires a parameter."
 	}
+
+	internalbind post sbnc:pminternalflush
 
 	if {[info exists pmbuf($channel)]} {
 			lappend pmbuf($channel) [list $mode $arg]
