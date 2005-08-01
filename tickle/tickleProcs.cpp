@@ -1256,6 +1256,10 @@ void bncjoinchans(const char* User) {
 
 int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
 	if (strcmpi(Type, "script") == 0) {
+		if (Options == NULL)
+			throw "You need to specifiy a control proc.";
+
+
 		const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 		CTclSocket* TclSocket = new CTclSocket(BindIp, Port, Options);

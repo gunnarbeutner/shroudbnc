@@ -608,9 +608,9 @@ void CBouncerUser::MarkQuitted(void) {
 void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 #ifdef _WIN32
-		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
+		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].count < 3) {
 #else
-		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr) {
+		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr && m_BadLogins[i].count < 3) {
 #endif
 			m_BadLogins[i].count++;
 
