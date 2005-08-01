@@ -33,6 +33,7 @@
 #include "Hashtable.h"
 #include "Queue.h"
 #include "FloodControl.h"
+#include "Match.h"
 #include "utility.h"
 extern "C" {
 	#include "md5-c/global.h"
@@ -807,4 +808,8 @@ void CBouncerCore::UnregisterTimer(CTimer* Timer) {
 
 int CBouncerCore::GetTimerStats(void) {
 	return g_TimerStats;
+}
+
+bool CBouncerCore::Match(const char* Pattern, const char* String) {
+	return (match(Pattern, String) == 0);
 }

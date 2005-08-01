@@ -42,6 +42,8 @@ typedef struct binding_s {
 	bool valid;
 	binding_type_e type;
 	char* proc;
+	char* pattern;
+	char* user;
 } binding_t;
 
 extern binding_t* g_Binds;

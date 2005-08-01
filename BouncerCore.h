@@ -146,6 +146,8 @@ public:
 	virtual void UnregisterTimer(CTimer* Timer);
 
 	virtual int GetTimerStats(void);
+
+	virtual bool Match(const char* Pattern, const char* String);
 };
 
 extern CBouncerCore* g_Bouncer;

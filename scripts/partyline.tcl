@@ -147,14 +147,13 @@ proc sbnc:bcpartybutone {client text} {
 }
 
 proc sbnc:partyattach {client} {
-	setctx $client
-
 	global botnick botname partyline
 
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
 	foreach chan $partyline {
 		if {[lsearch $chans [string tolower $chan]] != -1} {
+			setctx $client
 			putclient ":$botname JOIN $chan"
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
@@ -172,7 +171,7 @@ proc sbnc:partydetach {client} {
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
 	foreach chan $partyline {
-		if {[lsearch $chans [string tolower $chan]] != -1} {
+		if {[lsearch $chans $chan] != -1} {
 			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PART $chan :Leaving"
 		}
 	}

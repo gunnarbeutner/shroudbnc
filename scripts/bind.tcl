@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-internalbind server sbnc:rawserver
+#internalbind server sbnc:rawserver
 internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect
@@ -227,6 +227,8 @@ proc bind {type flags mask {procname ""}} {
 
 	lappend binds [list $type $flags $mask 0 $procname]
 
+	internalbind server sbnc:rawserver * [getctx]
+
 	return $mask
 }
 
@@ -264,6 +266,10 @@ proc unbind {type flags mask procname} {
 	}
 
 	set binds $newbinds
+
+	if {[llength $binds] == 0} {
+		internalunbind server sbnc:rawserver * [getctx]
+	}
 
 	return $mask
 }

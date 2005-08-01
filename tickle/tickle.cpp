@@ -46,6 +46,10 @@ bool g_Ret;
 bool g_NoticeUser;
 Tcl_Encoding g_Encoding;
 
+extern tcltimer_t** g_Timers;
+extern int g_TimerCount;
+
+
 #ifdef _WIN32
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -106,6 +110,15 @@ class CTclSupport : public CModuleFar {
 
 		delete g_TclClientSockets;
 
+		for (int a = 0; i < g_TimerCount; a++) {
+			if (g_Timers[a]) {
+				g_Timers[a]->timer->Destroy();
+				free(g_Timers[a]->proc);
+				free(g_Timers[a]->param);
+			}
+		}
+
+
 		delete this;
 	}
 
@@ -132,9 +145,6 @@ class CTclSupport : public CModuleFar {
 
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		g_Ret = true;
-
-		if (IRC->GetOwningClient()->GetConfig()->ReadInteger("user.nosrvevt"))
-			return true;
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Server, IRC->GetOwningClient()->GetUsername(), argc, argv);
@@ -299,71 +309,98 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 	int objc = 3;
 	Tcl_Obj* objv[3];
-
-	objv[0] = NULL;
-
-	if (user) {
-		Tcl_DString dsUser;
-
-		Tcl_ExternalToUtfDString(g_Encoding, user ? user : "", -1, &dsUser);
-		objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
-		Tcl_DStringFree(&dsUser);
-
-		Tcl_IncrRefCount(objv[1]);
-	} else {
-		objv[1] = NULL;
-		objc = 1;
-	}
-
-	if (argc) {
-		listv = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * argc);
-
-		for (int a = 0; a < argc; a++) {
-			Tcl_DString dsString;
-
-			Tcl_ExternalToUtfDString(g_Encoding, argv[a], -1, &dsString);
-			listv[a] = Tcl_NewStringObj(Tcl_DStringValue(&dsString), Tcl_DStringLength(&dsString));
-			Tcl_DStringFree(&dsString);
-
-			Tcl_IncrRefCount(listv[a]);
-		}
-
-		objv[2] = Tcl_NewListObj(argc, listv);
-		Tcl_IncrRefCount(objv[2]);
-	} else {
-		objv[2] = NULL;
-
-		if (objc > 2)
-			objc = 2;
-	}
+	bool lazyConversionDone = false;
 
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			Tcl_DString dsProc;
 
-			Tcl_ExternalToUtfDString(g_Encoding, g_Binds[i].proc, -1, &dsProc);
-			objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
-			Tcl_DStringFree(&dsProc);
+			if (g_Binds[i].user && strcmpi(g_Binds[i].user, user) != 0)
+				continue;
 
-			Tcl_IncrRefCount(objv[0]);
+			bool Match = false;
 
-			Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+			if (g_Binds[i].pattern == NULL)
+				Match = true;
 
-			Tcl_DecrRefCount(objv[0]);
+			if (!Match) {
+				for (int a = 0; a < argc; a++) {
+					if (g_Bouncer->Match(g_Binds[i].pattern, argv[a])) {
+						Match = true;
+
+						break;
+					}
+				}
+			}
+
+			if (Match) {
+				if (!lazyConversionDone) {
+					objv[0] = NULL;
+
+					if (user) {
+						Tcl_DString dsUser;
+
+						Tcl_ExternalToUtfDString(g_Encoding, user ? user : "", -1, &dsUser);
+						objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
+						Tcl_DStringFree(&dsUser);
+
+						Tcl_IncrRefCount(objv[1]);
+					} else {
+						objv[1] = NULL;
+						objc = 1;
+					}
+
+					if (argc) {
+						listv = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * argc);
+
+						for (int a = 0; a < argc; a++) {
+							Tcl_DString dsString;
+
+							Tcl_ExternalToUtfDString(g_Encoding, argv[a], -1, &dsString);
+							listv[a] = Tcl_NewStringObj(Tcl_DStringValue(&dsString), Tcl_DStringLength(&dsString));
+							Tcl_DStringFree(&dsString);
+
+							Tcl_IncrRefCount(listv[a]);
+						}
+
+						objv[2] = Tcl_NewListObj(argc, listv);
+						Tcl_IncrRefCount(objv[2]);
+					} else {
+						objv[2] = NULL;
+
+						if (objc > 2)
+							objc = 2;
+					}
+
+					lazyConversionDone = true;
+				}
+
+				Tcl_ExternalToUtfDString(g_Encoding, g_Binds[i].proc, -1, &dsProc);
+				objv[0] = Tcl_NewStringObj(Tcl_DStringValue(&dsProc), Tcl_DStringLength(&dsProc));
+				Tcl_DStringFree(&dsProc);
+
+				Tcl_IncrRefCount(objv[0]);
+
+				Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+
+				Tcl_DecrRefCount(objv[0]);
+			}
 		}
 	}
 
-	if (user)
-		Tcl_DecrRefCount(objv[1]);
+	if (lazyConversionDone) {
+		if (user)
+			Tcl_DecrRefCount(objv[1]);
 
-	if (argc) {
-		for (int a = 0; a < argc; a++) {
-			Tcl_DecrRefCount(listv[a]);
+		if (argc) {
+			for (int a = 0; a < argc; a++) {
+				Tcl_DecrRefCount(listv[a]);
+			}
+
+			free(listv);
+
+			Tcl_DecrRefCount(objv[2]);
 		}
-
-		free(listv);
-
-		Tcl_DecrRefCount(objv[2]);
 	}
 }
 

@@ -68,8 +68,8 @@ class CTclClientSocket;
 int putclient(const char* text);
 int simul(const char* User, const char* Command);
 
-int internalbind(const char* type, const char* proc);
-int internalunbind(const char* type, const char* proc);
+int internalbind(const char* type, const char* proc, const char* pattern = 0, const char* user = 0);
+int internalunbind(const char* type, const char* proc, const char* pattern = 0, const char* user = 0);
 
 void setctx(const char* ctx);
 const char* getctx(void);

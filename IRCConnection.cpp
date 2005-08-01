@@ -334,8 +334,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (GetOwningClient()->GetClientConnection() == NULL) {
 			bool AppendTS = (GetOwningClient()->GetConfig()->ReadInteger("user.ts") != 0);
+			const char* AwayReason = GetOwningClient()->GetConfig()->ReadString("user.away");
 
-			WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", GetOwningClient()->GetConfig()->ReadString("user.away"));
+			if (AwayReason)
+				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
 		}
 
 		m_State = State_Connected;

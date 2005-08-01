@@ -162,9 +162,12 @@ void rehash(void) {
 	g_Bouncer->GlobalNotice("Rehashing TCL module", true);
 }
 
-int internalbind(const char* type, const char* proc) {
+int internalbind(const char* type, const char* proc, const char* pattern, const char* user) {
 	for (int i = 0; i < g_BindCount; i++) {
-		if (g_Binds[i].valid && strcmp(g_Binds[i].proc, proc) == 0)
+		if (g_Binds[i].valid && strcmp(g_Binds[i].proc, proc) == 0
+			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
+			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcmpi(user, g_Binds[i].user) == 0)))
+
 			return 0;
 	}
 
@@ -213,10 +216,20 @@ int internalbind(const char* type, const char* proc) {
 	g_Binds[n].proc = strdup(proc);
 	g_Binds[n].valid = true;
 
+	if (pattern)
+		g_Binds[n].pattern = strdup(pattern);
+	else
+		g_Binds[n].pattern = NULL;
+
+	if (user)
+		g_Binds[n].user = strdup(user);
+	else
+		g_Binds[n].user = NULL;
+
 	return 1;
 }
 
-int internalunbind(const char* type, const char* proc) {
+int internalunbind(const char* type, const char* proc, const char* pattern, const char* user) {
 	binding_type_e bindtype;
 
 	if (strcmpi(type, "client") == 0)
@@ -253,8 +266,13 @@ int internalunbind(const char* type, const char* proc) {
 		return 0;
 
 	for (int i = 0; i < g_BindCount; i++) {
-		if (g_Binds[i].valid && g_Binds[i].type == bindtype && strcmp(g_Binds[i].proc, proc) == 0) {
+		if (g_Binds[i].valid && g_Binds[i].type == bindtype && strcmp(g_Binds[i].proc, proc) == 0
+			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
+			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcmpi(user, g_Binds[i].user) == 0))) {
+
 			free(g_Binds[i].proc);
+			free(g_Binds[i].pattern);
+			free(g_Binds[i].user);
 			g_Binds[i].valid = false;
 		}
 	}
@@ -268,7 +286,7 @@ const char* internalbinds(void) {
 
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid) {
-			char* Bind[2];
+			const char* Bind[4];
 
 			binding_type_e type = g_Binds[i].type;
 
@@ -292,22 +310,24 @@ const char* internalbinds(void) {
 				Bind[0] = "svrdisconnect";
 			else if (type == Type_SvrConnect)
 				Bind[0] = "svrconnect";
-			else if (type, Type_SvrLogon)
+			else if (type == Type_SvrLogon)
 				Bind[0] = "svrlogon";
-			else if (type, Type_UsrLoad)
+			else if (type == Type_UsrLoad)
 				Bind[0] = "usrload";
-			else if (type, Type_UsrCreate)
+			else if (type == Type_UsrCreate)
 				Bind[0] = "usrcreate";
-			else if (type, Type_UsrDelete)
+			else if (type == Type_UsrDelete)
 				Bind[0] = "usrdelete";
-			else if (type, Type_Command)
+			else if (type == Type_Command)
 				Bind[0] = "command";
 			else
 				Bind[0] = "invalid";
 
 			Bind[1] = g_Binds[i].proc;
+			Bind[2] = g_Binds[i].pattern ? g_Binds[i].pattern : "*";
+			Bind[3] = g_Binds[i].user ? g_Binds[i].user : "*";
 
-			char* Item = Tcl_Merge(2, Bind);
+			char* Item = Tcl_Merge(4, Bind);
 
 			List[n++] = Item;
 		}
@@ -700,10 +720,6 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
 		return Buffer;
-	} else if (strcmpi(Type, "nosrvevt") == 0) {
-		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.nosrvevt") != 0 ? 1 : 0);
-
-		return Buffer;
 	} else
 		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway";
 }
@@ -752,10 +768,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.ts", Value);
 	else if (strcmpi(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
-	else if (strcmpi(Type, "nosrvevt") == 0)
-		Context->GetConfig()->WriteString("user.nosrvevt", Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway nosrvevt";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway";
 
 	return 1;
 }

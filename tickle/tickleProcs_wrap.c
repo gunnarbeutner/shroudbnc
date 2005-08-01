@@ -1417,13 +1417,19 @@ static int
 _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
     int result;
     Tcl_DString ds_1 ;
     bool ds_use_1 = false ;
     Tcl_DString ds_2 ;
     bool ds_use_2 = false ;
+    Tcl_DString ds_3 ;
+    bool ds_use_3 = false ;
+    Tcl_DString ds_4 ;
+    bool ds_use_4 = false ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"oo:internalbind type proc ",NULL,NULL) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"oo|oo:internalbind type proc ?pattern? ?user? ",NULL,NULL,NULL,NULL) == TCL_ERROR) SWIG_fail;
     {
         ds_use_1 = true;
         arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
@@ -1432,9 +1438,21 @@ _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         ds_use_2 = true;
         arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
+    if (objc > 3) {
+        {
+            ds_use_3 = true;
+            arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
+        }
+    }
+    if (objc > 4) {
+        {
+            ds_use_4 = true;
+            arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
+        }
+    }
     {
         try {
-            result = (int)internalbind((char const *)arg1,(char const *)arg2);
+            result = (int)internalbind((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -1449,6 +1467,14 @@ _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         if (ds_use_2)
         Tcl_DStringFree(&ds_2);
     }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
+    }
     return TCL_OK;
     fail:
     {
@@ -1458,6 +1484,14 @@ _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     {
         if (ds_use_2)
         Tcl_DStringFree(&ds_2);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
     }
     return TCL_ERROR;
 }
@@ -1467,13 +1501,19 @@ static int
 _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
     int result;
     Tcl_DString ds_1 ;
     bool ds_use_1 = false ;
     Tcl_DString ds_2 ;
     bool ds_use_2 = false ;
+    Tcl_DString ds_3 ;
+    bool ds_use_3 = false ;
+    Tcl_DString ds_4 ;
+    bool ds_use_4 = false ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"oo:internalunbind type proc ",NULL,NULL) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"oo|oo:internalunbind type proc ?pattern? ?user? ",NULL,NULL,NULL,NULL) == TCL_ERROR) SWIG_fail;
     {
         ds_use_1 = true;
         arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
@@ -1482,9 +1522,21 @@ _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         ds_use_2 = true;
         arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
+    if (objc > 3) {
+        {
+            ds_use_3 = true;
+            arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
+        }
+    }
+    if (objc > 4) {
+        {
+            ds_use_4 = true;
+            arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
+        }
+    }
     {
         try {
-            result = (int)internalunbind((char const *)arg1,(char const *)arg2);
+            result = (int)internalunbind((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -1499,6 +1551,14 @@ _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         if (ds_use_2)
         Tcl_DStringFree(&ds_2);
     }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
+    }
     return TCL_OK;
     fail:
     {
@@ -1508,6 +1568,14 @@ _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     {
         if (ds_use_2)
         Tcl_DStringFree(&ds_2);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
     }
     return TCL_ERROR;
 }
