@@ -154,7 +154,7 @@ bool FloodTimer(time_t Now, void* FloodControl) {
 	return ((CFloodControl*)FloodControl)->Pulse(Now);
 }
 
-int CFloodControl::CalculatePenalityAmplifier(const char* Line) {
+int CFloodControl::CalculatePenaltyAmplifier(const char* Line) {
 	char* Space = strstr(Line, " ");
 	char* Command;
 	

@@ -863,7 +863,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
-						CHashtable<CNick*, false, 20, true>* H = Chan->GetNames();
+						CHashtable<CNick*, false, 64, true>* H = Chan->GetNames();
 
 						int a = 0;
 

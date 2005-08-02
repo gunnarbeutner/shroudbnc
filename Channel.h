@@ -50,7 +50,7 @@ class CChannel {
 
 	time_t m_Creation;
 
-	CHashtable<CNick*, false, 20, true>* m_Nicks;
+	CHashtable<CNick*, false, 64, true>* m_Nicks;
 
 	bool m_HasNames;
 
@@ -92,7 +92,7 @@ public:
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick*, false, 20, true>* GetNames(void);
+	virtual CHashtable<CNick*, false, 64, true>* GetNames(void);
 
 	virtual void ClearModes(void);
 	virtual bool AreModesValid(void);

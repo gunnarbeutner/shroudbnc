@@ -52,7 +52,7 @@ class CFloodControl : public CQueue {
 
 	bool Pulse(time_t Time);
 
-	int CalculatePenalityAmplifier(const char* Line);
+	int CalculatePenaltyAmplifier(const char* Line);
 public:
 #ifndef SWIG
 	CFloodControl(CIRCConnection* Owner);

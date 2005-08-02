@@ -29,7 +29,7 @@
 #endif // _MSC_VER > 1000
 
 class CBouncerConfig {
-	CHashtable<char*, false, 3>* m_Settings;
+	CHashtable<char*, false, 8>* m_Settings;
 
 	char* m_File;
 	bool m_WriteLock;

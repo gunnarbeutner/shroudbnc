@@ -63,7 +63,7 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 
 	m_Owner = Owning;
 
-	m_Channels = new CHashtable<CChannel*, false, 5>();
+	m_Channels = new CHashtable<CChannel*, false, 16>();
 	m_Channels->RegisterValueDestructor(DestroyCChannel);
 
 	m_Server = NULL;
@@ -284,7 +284,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int i = 0;
 
 		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			CHashtable<CNick*, false, 20, true>* Nicks = Chan->Value->GetNames();
+			CHashtable<CNick*, false, 64, true>* Nicks = Chan->Value->GetNames();
 
 			CNick* NickObj = Nicks->Get(Nick);
 
@@ -887,6 +887,6 @@ bool IRCPingTimer(time_t Now, void* IRCConnection) {
 	return true;
 }
 
-CHashtable<CChannel*, false, 5>* CIRCConnection::GetChannels(void) {
+CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }

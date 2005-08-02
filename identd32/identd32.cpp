@@ -57,13 +57,16 @@ public:
 		m_Core->DeleteWrapper(m_Wrap);
 	}
 
-	bool Read(void) {
+	bool Read(bool DontProcess) {
 		bool RetVal = m_Wrap->Read();
 
 		if (!RetVal)
 			return false;
 
 		char* Line;
+
+		if (DontProcess)
+			return true;
 
 		while (m_Wrap->ReadLine(&Line)) {
 			ParseLine(Line);
@@ -141,7 +144,7 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 		return true;
 	}
 
-	bool Read(void) {
+	bool Read(bool DontProcess) {
 		sockaddr_in sin;
 		int len = sizeof(sin);
 

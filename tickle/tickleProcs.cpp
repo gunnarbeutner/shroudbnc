@@ -113,7 +113,7 @@ const char* internalchannels(void) {
 	if (!IRC)
 		return NULL;
 
-	CHashtable<CChannel*, false, 5>* H = IRC->GetChannels();
+	CHashtable<CChannel*, false, 16>* H = IRC->GetChannels();
 	int Count = H->Count();
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
@@ -492,7 +492,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	CHashtable<CNick*, false, 20, true>* Names = Chan->GetNames();
+	CHashtable<CNick*, false, 64, true>* Names = Chan->GetNames();
 
 	int Count = Names->Count();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
