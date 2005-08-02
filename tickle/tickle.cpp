@@ -110,7 +110,7 @@ class CTclSupport : public CModuleFar {
 
 		delete g_TclClientSockets;
 
-		for (int a = 0; i < g_TimerCount; a++) {
+		for (int a = 0; a < g_TimerCount; a++) {
 			if (g_Timers[a]) {
 				g_Timers[a]->timer->Destroy();
 				free(g_Timers[a]->proc);

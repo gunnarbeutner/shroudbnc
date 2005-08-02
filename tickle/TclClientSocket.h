@@ -31,7 +31,7 @@ public:
 
 	virtual void Destroy(void);
 
-	virtual bool Read(void);
+	virtual bool Read(bool DontProcess);
 	virtual void Write(void);
 	virtual void Error(void);
 	virtual bool HasQueuedData(void);

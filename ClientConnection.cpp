@@ -1035,13 +1035,6 @@ void CClientConnection::SetOwner(CBouncerUser* Owner) {
 	m_Owner = Owner;
 }
 
-bool CClientConnection::ReadLine(char** Out) {
-	if (m_PeerName)
-		return CConnection::ReadLine(Out);
-	else
-		return false;
-}
-
 void CClientConnection::SetPeerName(const char* PeerName) {
 	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", PeerName);
 
@@ -1084,8 +1077,13 @@ const char* CClientConnection::ClassName(void) {
 	return "CClientConnection";
 }
 
-bool CClientConnection::Read(void) {
-	bool Ret = CConnection::Read();
+bool CClientConnection::Read(bool DontProcess) {
+	bool Ret;
+
+	if (m_PeerName)
+		Ret = CConnection::Read(false);
+	else
+		return CConnection::Read(true);
 
 	if (Ret && recvq_size > 5120) {
 		Kill("RecvQ exceeded.");

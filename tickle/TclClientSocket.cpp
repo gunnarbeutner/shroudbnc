@@ -90,8 +90,11 @@ void CTclClientSocket::Destroy(void) {
 	delete this;
 }
 
-bool CTclClientSocket::Read(void) {
+bool CTclClientSocket::Read(bool DontProcess) {
 	bool Ret = m_Wrap->Read();
+
+	if (DontProcess)
+		return true;
 
 	char* Line;
 

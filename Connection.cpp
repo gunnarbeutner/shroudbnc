@@ -62,7 +62,7 @@ CBouncerUser* CConnection::GetOwningClient(void) {
 	return m_Owner;
 }
 
-bool CConnection::Read(void) {
+bool CConnection::Read(bool DontProcess) {
 	char Buffer[8192];
 
 	if (m_Shutdown)
@@ -87,7 +87,8 @@ bool CConnection::Read(void) {
 	if (m_Wrapper)
 		return true;
 
-	ReadLines();
+	if (DontProcess == false)
+		ReadLines();
 
 	return true;
 }

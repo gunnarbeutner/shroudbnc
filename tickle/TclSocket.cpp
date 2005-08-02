@@ -71,7 +71,7 @@ void CTclSocket::Destroy(void) {
 	delete this;
 }
 
-bool CTclSocket::Read(void) {
+bool CTclSocket::Read(bool DontProcess) {
 	sockaddr_in peer;
 	socklen_t peerSize = sizeof(peer);
 

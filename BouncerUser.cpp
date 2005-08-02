@@ -444,7 +444,12 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 	if (!IRC && !WasNull) {
 		Notice("Disconnected from the server.");
 
-		g_Bouncer->Log("%s disconnected from the server.", GetUsername());
+		char Out[1024];
+
+		snprintf(Out, sizeof(Out), "%s disconnected from the server.", GetUsername());
+
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->GlobalNotice(Out, true);
 
 		if (m_Client == NULL)
 			Log("Disconnected from the server.");
@@ -476,7 +481,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 	char Out[1024];
 
 	if (!m_Client) {
-		snprintf(Out, sizeof(Out), "User %s logged on.", GetUsername());
+		snprintf(Out, sizeof(Out), "User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
 
 		g_Bouncer->GetLog()->InternalWriteLine(Out);
 		g_Bouncer->GlobalNotice(Out, true);
@@ -492,6 +497,8 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 		m_Client->SetOwner(NULL);
 		m_Client->Kill("Another client has connected.");
+
+		SetClientConnection(NULL, true);
 	}
 
 	m_Client = Client;

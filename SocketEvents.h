@@ -28,7 +28,7 @@ struct CSocketEvents {
 public:
 	virtual void Destroy(void) = 0;
 
-	virtual bool Read(void) = 0;
+	virtual bool Read(bool DontProcess = false) = 0;
 	virtual void Write(void) = 0;
 	virtual void Error(void) = 0;
 	virtual bool HasQueuedData(void) = 0;

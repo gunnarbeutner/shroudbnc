@@ -47,7 +47,6 @@ class CClientConnection : public CConnection, public CDnsEvents {
 #endif
 
 	void ValidateUser(void);
-	virtual bool ReadLine(char** Out);
 	void AdnsTimeout(void);
 public:
 #ifndef SWIG
@@ -72,7 +71,7 @@ public:
 	virtual const char* GetPeerName(void);
 	virtual sockaddr_in GetPeer(void);
 
-	virtual bool Read(void);
+	virtual bool Read(bool DontProcess = false);
 	virtual void Destroy(void);
 	virtual const char* ClassName(void);
 };

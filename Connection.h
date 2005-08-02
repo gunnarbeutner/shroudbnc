@@ -50,7 +50,6 @@ public:
 	virtual SOCKET GetSocket(void);
 	virtual CBouncerUser* GetOwningClient(void);
 
-	virtual bool ReadLine(char** Out);
 	virtual void InternalWriteLine(const char* In);
 	virtual void WriteLine(const char* Format, ...);
 
@@ -67,7 +66,7 @@ public:
 	virtual void Error(void);
 	virtual const char* ClassName(void);
 
-	virtual bool Read(void);
+	virtual bool Read(bool DontProcess = false);
 	virtual void Write(void);
 
 	virtual void Lock(void);
@@ -79,6 +78,8 @@ public:
 
 	virtual void AttachStats(CTrafficStats* Stats);
 	virtual CTrafficStats* GetTrafficStats(void);
+
+	virtual bool ReadLine(char** Out);
 protected:
 	virtual void ParseLine(const char* Line);
 
