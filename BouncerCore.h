@@ -122,6 +122,7 @@ public:
 
 	virtual CBouncerUser* CreateUser(const char* Username, const char* Password);
 	virtual bool RemoveUser(const char* Username, bool RemoveConfig = true);
+	virtual bool IsValidUsername(const char* Username);
 
 	virtual time_t GetStartup(void);
 

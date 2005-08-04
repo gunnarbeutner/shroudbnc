@@ -867,7 +867,7 @@ const char* CIRCConnection::ClassName(void) {
 bool CIRCConnection::Read(void) {
 	bool Ret = CConnection::Read();
 
-	if (Ret && recvq_size > 5120) {
+	if (Ret && RecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 

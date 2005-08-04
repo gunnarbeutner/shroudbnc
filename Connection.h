@@ -87,12 +87,6 @@ protected:
 
 	SOCKET m_Socket;
 
-	char* sendq;
-	int sendq_size;
-
-	char* recvq;
-	int recvq_size;
-
 	bool m_Locked;
 	bool m_Shutdown;
 	time_t m_Timeout;
@@ -100,6 +94,13 @@ protected:
 	CTrafficStats* m_Traffic;
 
 	bool m_Wrapper;
+
+private:
+	char* sendq;
+	int sendq_size;
+
+	char* recvq;
+	int recvq_size;
 };
 
 #endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)

@@ -142,6 +142,8 @@ int addbnchost(const char* Host);
 bool bncisipblocked(const char* Ip);
 bool bnccanhostconnect(const char* Host);
 
+bool bncvalidusername(const char* Name);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

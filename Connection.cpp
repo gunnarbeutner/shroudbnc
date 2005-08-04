@@ -24,6 +24,9 @@
 #include "BouncerUser.h"
 #include "TrafficStats.h"
 
+#define BLOCKSIZE 4096
+#define SENDSIZE 4096
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -45,6 +48,16 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	m_Traffic = NULL;
 
 	m_Wrapper = false;
+
+	const int optBuffer = 4 * SENDSIZE;
+	const int optLowWat = SENDSIZE;
+	const int optLinger = 0;
+
+#ifndef _WIN32
+	setsockopt(Client, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
+	setsockopt(Client, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
+	setsockopt(Client, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
+#endif
 }
 
 CConnection::~CConnection() {
@@ -62,6 +75,23 @@ CBouncerUser* CConnection::GetOwningClient(void) {
 	return m_Owner;
 }
 
+void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
+	if (OldSize != 0)
+		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
+
+	unsigned int CeilNewSize = NewSize + BLOCKSIZE - (NewSize % BLOCKSIZE);
+
+	unsigned int OldBlocks = OldSize / BLOCKSIZE;
+	unsigned int NewBlocks = CeilNewSize / BLOCKSIZE;
+
+	assert(NewBlocks * BLOCKSIZE > NewSize);
+
+	if (NewBlocks != OldBlocks)
+		return realloc(Buffer, NewBlocks * BLOCKSIZE);
+	else
+		return Buffer;
+}
+
 bool CConnection::Read(bool DontProcess) {
 	char Buffer[8192];
 
@@ -71,8 +101,8 @@ bool CConnection::Read(bool DontProcess) {
 	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
 	if (n > 0) {
+		recvq = (char*)ResizeBuffer(recvq, recvq_size, recvq_size + n);
 		recvq_size += n;
-		recvq = (char*)realloc(recvq, recvq_size);
 		memcpy(recvq + recvq_size - n, Buffer, n);
 
 		if (m_Traffic)
@@ -95,15 +125,15 @@ bool CConnection::Read(bool DontProcess) {
 
 void CConnection::Write(void) {
 	if (sendq_size > 0) {
-		int n = send(m_Socket, sendq, sendq_size > 2000 ? 2000 : sendq_size , 0);
+		int n = send(m_Socket, sendq, sendq_size > SENDSIZE ? SENDSIZE : sendq_size, 0);
 
 		if (n > 0 && m_Traffic)
 			m_Traffic->AddOutbound(n);
 
-		if (sendq_size > 2000) {
-			char* sendq_new = (char*)malloc(sendq_size - 2000);
-			memcpy(sendq_new, &sendq[2000], sendq_size - 2000);
-			sendq_size -= 2000;
+		if (n != sendq_size) {
+			char* sendq_new = (char*)ResizeBuffer(NULL, 0, sendq_size - n);
+			memcpy(sendq_new, &sendq[n], sendq_size - n);
+			sendq_size -= n;
 			
 			free(sendq);
 			sendq = sendq_new;
@@ -134,7 +164,7 @@ void CConnection::ReadLines(void) {
 	if (recvq != line) {
 		char* old_recvq = recvq;
 		recvq_size -= line - recvq;
-		recvq = (char*)malloc(recvq_size);
+		recvq = (char*)ResizeBuffer(NULL, 0, recvq_size);
 		memcpy(recvq, line, recvq_size);
 		free(old_recvq);
 	}
@@ -164,7 +194,7 @@ bool CConnection::ReadLine(char** Out) {
 		if (recvq_size == 0)
 			recvq = NULL;
 		else {
-			recvq = (char*)malloc(recvq_size);
+			recvq = (char*)ResizeBuffer(NULL, 0, recvq_size);
 			memcpy(recvq, NewPtr, recvq_size);
 		}
 
@@ -187,8 +217,8 @@ void CConnection::InternalWriteLine(const char* In) {
 	if (m_Locked || m_Shutdown)
 		return;
 
+	sendq = (char*)ResizeBuffer(sendq, sendq_size, sendq_size + strlen(In) + 2);
 	sendq_size += strlen(In) + 2;
-	sendq = (char*)realloc(sendq, sendq_size);
 	memcpy(sendq + sendq_size - (strlen(In) + 2), In, strlen(In));
 	memcpy(sendq + sendq_size - 2, "\r\n", 2);
 }

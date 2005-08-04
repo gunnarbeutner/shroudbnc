@@ -236,3 +236,8 @@ bncsetgvhost <Host>
 
   Description: Sets the default vhost.
   Returns: Nothing:
+
+bncvalidusername <Username>
+
+  Description: Checks whether something is a valid username.
+  Returns: 1 if the username is valid, 0 otherwise.

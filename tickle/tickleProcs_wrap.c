@@ -3461,6 +3461,41 @@ _wrap_bnccanhostconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
 
 static int
+_wrap_bncvalidusername(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    bool result;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o:bncvalidusername Name ",NULL) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    {
+        try {
+            result = (bool)bncvalidusername((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4344,6 +4379,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "addbnchost", (swig_wrapper_func) _wrap_addbnchost, NULL},
     { SWIG_prefix "bncisipblocked", (swig_wrapper_func) _wrap_bncisipblocked, NULL},
     { SWIG_prefix "bnccanhostconnect", (swig_wrapper_func) _wrap_bnccanhostconnect, NULL},
+    { SWIG_prefix "bncvalidusername", (swig_wrapper_func) _wrap_bncvalidusername, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

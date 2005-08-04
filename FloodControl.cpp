@@ -87,7 +87,7 @@ char* CFloodControl::DequeueItem(bool Peek) {
 		char* Item = ThatQueue->Queue->DequeueItem();
 		
 		if (Item && m_Control) {
-			m_Bytes += strlen(Item) * CalculatePenalityAmplifier(Item);
+			m_Bytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
 
 			if (m_FloodTimer == NULL)
 				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);

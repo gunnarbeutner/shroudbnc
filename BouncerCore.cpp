@@ -204,7 +204,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 	if (m_Listener == INVALID_SOCKET) {
 		Log("Could not create listener port");
-		exit(0);
+		return;
 	}
 
 	Log("Created main listener.");
@@ -285,8 +285,13 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
+		SOCKET nfds = 0;
+
 		for (i = 0; i < m_OtherSocketCount; i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
+				if (m_OtherSockets[i].Socket > nfds)
+					nfds = m_OtherSockets[i].Socket;
+
 				FD_SET(m_OtherSockets[i].Socket, &FDRead);
 
 				if (m_OtherSockets[i].Events->HasQueuedData())
@@ -294,14 +299,14 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-		if (SleepInterval <= 0)
+		if (SleepInterval <= 0 || !m_Running)
 			SleepInterval = 1;
 
 		timeval interval = { SleepInterval, 0 };
 
 		Last = time(NULL);
 
-		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
+		int ready = select(nfds, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
@@ -552,6 +557,9 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 		return U;
 	}
 
+	if (!IsValidUsername(Username))
+		return NULL;
+
 	m_Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
 
 	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
@@ -606,6 +614,15 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	}
 
 	return false;
+}
+
+bool CBouncerCore::IsValidUsername(const char* Username) {
+	for (unsigned int i = 0; i < strlen(Username); i++) {
+		if (!isalnum(Username[i]))
+			return false;
+	}
+
+	return true;
 }
 
 void CBouncerCore::UpdateUserConfig(void) {

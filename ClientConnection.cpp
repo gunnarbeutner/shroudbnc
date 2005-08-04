@@ -316,6 +316,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
+		if (!g_Bouncer->IsValidUsername(argv[1])) {
+			SENDUSER("Could not create user: The username must be alpha-numeric.");
+			return false;
+		}
+
 		g_Bouncer->CreateUser(argv[1], argv[2]);
 
 		SENDUSER("Done.");
@@ -950,7 +955,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		} else if (strcmpi(Command, "mode") == 0 || strcmpi(Command, "topic") == 0 || strcmpi(Command, "names") == 0) {
 			if (argc == 2 || (strcmpi(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
-				snprintf(Out, sizeof(Out), argc == 2 ? "SYNTH %s %s" : "SYNTH %s %s %s", argv[0], argv[1], argv[2]);
+				if (argc == 2)
+					snprintf(Out, sizeof(Out), "SYNTH %s %s", argv[0], argv[1]);
+				else
+					snprintf(Out, sizeof(Out), "SYNTH %s %s %s", argv[0], argv[1], argv[2]);
+
 				ParseLine(Out);
 
 				return false;
@@ -1085,7 +1094,7 @@ bool CClientConnection::Read(bool DontProcess) {
 	else
 		return CConnection::Read(true);
 
-	if (Ret && recvq_size > 5120) {
+	if (Ret && RecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 

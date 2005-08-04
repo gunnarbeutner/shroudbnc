@@ -1679,3 +1679,7 @@ bool bnccanhostconnect(const char* Host) {
 
 	return Ret;
 }
+
+bool bncvalidusername(const char* Name) {
+	return g_Bouncer->IsValidUsername(Name);
+}
