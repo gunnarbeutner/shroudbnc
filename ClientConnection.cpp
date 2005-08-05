@@ -41,7 +41,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnection(Client, Peer) {
+CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer) : CConnection(Client) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;

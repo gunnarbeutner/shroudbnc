@@ -19,6 +19,7 @@
 
 // win32 specific header
 
+#ifdef _WIN32
 void Socket_Init(void);
 void Socket_Final(void);
 
@@ -27,3 +28,4 @@ typedef int socklen_t;
 #endif
 
 #define MAX_SOCKETS 1024
+#endif

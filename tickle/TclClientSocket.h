@@ -26,7 +26,7 @@
 
 class CTclClientSocket : public CSocketEvents {
 public:
-	CTclClientSocket(SOCKET Socket, sockaddr_in Peer);
+	CTclClientSocket(SOCKET Socket);
 	virtual ~CTclClientSocket();
 
 	virtual void Destroy(void);

@@ -135,7 +135,7 @@ public:
 	virtual int GetArgC(void);
 	virtual char** GetArgV(void);
 
-	virtual CConnection* WrapSocket(SOCKET Socket, sockaddr_in Peer);
+	virtual CConnection* WrapSocket(SOCKET Socket);
 	virtual void DeleteWrapper(CConnection* Wrapper);
 
 	virtual void Free(void* Pointer);

@@ -21,6 +21,7 @@
 #include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
@@ -43,7 +44,27 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning) : CConnection(Socket, Peer) {
+CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnection(Socket) {
+	m_AdnsTimeout = NULL;
+
+	InitIrcConnection(Owning);
+}
+
+CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) : CConnection(INVALID_SOCKET) {
+	m_Socket = INVALID_SOCKET;
+
+	m_PortCache = Port;
+	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
+
+	adns_query query;
+	adns_submit(g_adns_State, Host, adns_r_a, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &query);
+
+	m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IrcAdnsTimeoutTimer, this);
+
+	InitIrcConnection(Owning);
+}
+
+void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
@@ -83,7 +104,8 @@ CIRCConnection::CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Ow
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
 	m_FloodControl->AttachInputQueue(m_QueueLow, 2);
 
-	g_Bouncer->RegisterSocket(Socket, (CSocketEvents*)this);
+	if (m_Socket != INVALID_SOCKET)
+		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
 
 	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
 	m_DelayJoinTimer = NULL;
@@ -110,7 +132,12 @@ CIRCConnection::~CIRCConnection() {
 	if (m_DelayJoinTimer)
 		m_DelayJoinTimer->Destroy();
 
+	if (m_AdnsTimeout)
+		m_AdnsTimeout->Destroy();
+
 	m_PingTimer->Destroy();
+
+	free(m_BindIpCache);
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -558,31 +585,11 @@ const char* CIRCConnection::GetCurrentNick(void) {
 void CIRCConnection::AddChannel(const char* Channel) {
 	m_Channels->Add(Channel, new CChannel(Channel, this));
 
-/*	for (int i = 0; i < m_ChannelCount; i++) {
-		if (m_Channels[i] == NULL) {
-			m_Channels[i] = new CChannel(Channel, this);
-
-			UpdateChannelConfig();
-
-			return;
-		}
-	}
-
-	m_Channels = (CChannel**)realloc(m_Channels, ++m_ChannelCount * sizeof(CChannel*));
-	m_Channels[m_ChannelCount - 1] = new CChannel(Channel, this);*/
-
 	UpdateChannelConfig();
 }
 
 void CIRCConnection::RemoveChannel(const char* Channel) {
 	m_Channels->Remove(Channel);
-
-/*	for (int i = 0; i < m_ChannelCount; i++) {
-		if (m_Channels[i] && strcmpi(m_Channels[i]->GetName(), Channel) == 0) {
-			delete m_Channels[i];
-			m_Channels[i] = NULL;
-		}
-	}*/
 
 	UpdateChannelConfig();
 }
@@ -882,11 +889,41 @@ bool DelayJoinTimer(time_t Now, void* IRCConnection) {
 }
 
 bool IRCPingTimer(time_t Now, void* IRCConnection) {
-	((CIRCConnection*)IRCConnection)->WriteLine("PING :sbnc");
+	if (((CIRCConnection*)IRCConnection)->m_Socket != INVALID_SOCKET)
+		((CIRCConnection*)IRCConnection)->WriteLine("PING :sbnc");
 
 	return true;
 }
 
 CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
 	return m_Channels;
+}
+
+void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+	if (response->status != adns_s_ok) {
+		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
+		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+		Destroy();
+
+		return;
+	} else {
+		m_Socket = SocketAndConnectResolved(*response->rrs.inaddr, m_PortCache, m_BindIpCache);
+		free(m_BindIpCache);
+
+		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
+
+		InitSocket();
+	}
+}
+
+bool IrcAdnsTimeoutTimer(time_t Now, void* IRC) {
+	((CIRCConnection*)IRC)->AdnsTimeout();
+
+	return false;
+}
+
+void CIRCConnection::AdnsTimeout(void) {
+	m_Owner->Notice("DNS request timed out. Could not connect to server.");
+	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
+	Destroy();
 }

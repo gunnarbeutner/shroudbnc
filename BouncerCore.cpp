@@ -255,7 +255,6 @@ void CBouncerCore::StartMainLoop(void) {
 		FD_SET(m_Listener, &FDRead);
 
 		FD_ZERO(&FDWrite);
-		//FD_ZERO(&FDError);
 
 		if (!m_Running) {
 			for (int i = 0; i < m_UserCount; i++) {
@@ -287,8 +286,6 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-//		SOCKET nfds = 0;
-
 		for (i = 0; i < m_OtherSocketCount; i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 //				if (m_OtherSockets[i].Socket > nfds)
@@ -306,9 +303,22 @@ void CBouncerCore::StartMainLoop(void) {
 
 		timeval interval = { SleepInterval, 0 };
 
+		int nfds = 0;
+		timeval* tv = new timeval;
+		fd_set FDError;
+
+		FD_ZERO(&FDError);
+
+		// &FDError was 'NULL'
+		adns_beforeselect(g_adns_State, &nfds, &FDRead, &FDWrite, &FDError, &tv, &interval, NULL);
+
 		Last = time(NULL);
 
-		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
+		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, &FDError, &interval);
+
+		adns_afterselect(g_adns_State, nfds, &FDRead, &FDWrite, &FDError, NULL);
+
+		delete tv;
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
@@ -734,8 +744,8 @@ char** CBouncerCore::GetArgV(void) {
 	return m_argv;
 }
 
-CConnection* CBouncerCore::WrapSocket(SOCKET Socket, sockaddr_in Peer) {
-	CConnection* Wrapper = new CConnection(Socket, Peer);
+CConnection* CBouncerCore::WrapSocket(SOCKET Socket) {
+	CConnection* Wrapper = new CConnection(Socket);
 
 	Wrapper->m_Wrapper = true;
 

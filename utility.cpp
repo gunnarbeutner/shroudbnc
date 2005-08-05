@@ -22,6 +22,7 @@
 #include "StdAfx.h"
 #include "Hashtable.h"
 #include "SocketEvents.h"
+#include "DnsEvents.h"
 #include "Connection.h"
 #include "IRCConnection.h"
 #include "BouncerCore.h"
@@ -170,7 +171,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 			sloc.sin_addr.s_addr = peer->s_addr;
 	#endif
 		} else {
-			unsigned long addr = inet_addr(Host);
+			unsigned long addr = inet_addr(BindIp);
 
 	#ifdef _WIN32
 			sloc.sin_addr.S_un.S_addr = addr;
@@ -221,6 +222,75 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	return sock;
 }
 
+SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* BindIp) {
+	if (!Port)
+		return INVALID_SOCKET;
+
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if (sock == INVALID_SOCKET)
+		return INVALID_SOCKET;
+
+	unsigned long lTrue = 1;
+	ioctlsocket(sock, FIONBIO, &lTrue);
+
+	if (g_last_sock < sock)
+		g_last_sock = sock;
+
+	sockaddr_in sin, sloc;
+
+	if (BindIp && *BindIp) {
+		sloc.sin_family = AF_INET;
+		sloc.sin_port = 0;
+
+		hostent* hent = gethostbyname(BindIp);
+
+		if (hent) {
+			in_addr* peer = (in_addr*)hent->h_addr_list[0];
+
+	#ifdef _WIN32
+			sloc.sin_addr.S_un.S_addr = peer->S_un.S_addr;
+	#else
+			sloc.sin_addr.s_addr = peer->s_addr;
+	#endif
+		} else {
+			unsigned long addr = inet_addr(BindIp);
+
+	#ifdef _WIN32
+			sloc.sin_addr.S_un.S_addr = addr;
+	#else
+			sloc.sin_addr.s_addr = addr;
+	#endif
+		}
+
+		bind(sock, (sockaddr*)&sloc, sizeof(sloc));
+	}
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(Port);
+
+#ifdef _WIN32
+	sin.sin_addr = Host;
+#else
+	sin.sin_addr = Host;
+#endif
+
+	int code = connect(sock, (const sockaddr*)&sin, sizeof(sin));
+
+#ifdef _WIN32
+	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+#else
+	if (code != 0 && errno != EINPROGRESS) {
+#endif
+		closesocket(sock);
+		return INVALID_SOCKET;
+	}
+
+	g_LastReconnect = time(NULL);
+
+	return sock;
+}
+
 CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) {
 	SOCKET Socket = SocketAndConnect(Host, Port, BindIp);
 
@@ -231,7 +301,8 @@ CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBoun
 
 	memset(&moo, 0, sizeof(moo));
 
-	CIRCConnection* Conn = new CIRCConnection(Socket, moo, Owning);
+	//CIRCConnection* Conn = new CIRCConnection(Socket, moo, Owning);
+	CIRCConnection* Conn = new CIRCConnection(Host, Port, Owning, BindIp);
 
 	return Conn;
 }

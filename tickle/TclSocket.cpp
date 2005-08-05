@@ -77,7 +77,7 @@ bool CTclSocket::Read(bool DontProcess) {
 
 	SOCKET Socket = accept(m_Listener, (sockaddr*)&peer, &peerSize);
 
-	CTclClientSocket* Client = new CTclClientSocket(Socket, peer);
+	CTclClientSocket* Client = new CTclClientSocket(Socket);
 
 	char ptr[20];
 

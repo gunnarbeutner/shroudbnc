@@ -207,4 +207,8 @@ bool ReportMemory(time_t Now, void* Cookie) {
 
 	return true;
 }
+
+#undef strcmpi
+int profilestrcmpi(const char* a, const char* b) { return strcmpi(a, b); }
+
 #endif

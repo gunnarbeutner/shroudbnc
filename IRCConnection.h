@@ -41,11 +41,13 @@ class CTimer;
 #ifndef SWIG
 bool DelayJoinTimer(time_t Now, void* IRCConnection);
 bool IRCPingTimer(time_t Now, void* IRCConnection);
+bool IrcAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
-class CIRCConnection : public CConnection {
+class CIRCConnection : public CConnection, CDnsEvents {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
+	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
 #endif
 
 	connection_state_e m_State;
@@ -70,6 +72,11 @@ class CIRCConnection : public CConnection {
 	CQueue* m_QueueHigh;
 	CFloodControl* m_FloodControl;
 
+	CTimer* m_AdnsTimeout;
+
+	unsigned short m_PortCache;
+	char* m_BindIpCache;
+
 	void AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
@@ -77,9 +84,12 @@ class CIRCConnection : public CConnection {
 	void UpdateHostHelper(const char* Host);
 
 	bool ModuleEvent(int argc, const char** argv);
+
+	void InitIrcConnection(CBouncerUser* Owning);
 public:
 #ifndef SWIG
-	CIRCConnection(SOCKET Socket, sockaddr_in Peer, CBouncerUser* Owning);
+	CIRCConnection(SOCKET Socket, CBouncerUser* Owning);
+	CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp);
 #endif
 	virtual ~CIRCConnection();
 
@@ -127,6 +137,9 @@ public:
 	virtual void JoinChannels(void);
 
 	virtual bool Read(void);
+
+	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	virtual void AdnsTimeout(void);
 };
 
 #endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)

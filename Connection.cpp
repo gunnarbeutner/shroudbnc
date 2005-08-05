@@ -32,7 +32,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
+CConnection::CConnection(SOCKET Client) {
 	m_Socket = Client;
 	m_Owner = NULL;
 
@@ -44,18 +44,10 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 
 	m_Wrapper = false;
 
-	const int optBuffer = 4 * SENDSIZE;
-	const int optLowWat = SENDSIZE;
-	const int optLinger = 0;
-
-#ifndef _WIN32
-	setsockopt(Client, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
-	setsockopt(Client, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
-	setsockopt(Client, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
-#endif
-
 	m_SendQ = new CFIFOBuffer();
 	m_RecvQ = new CFIFOBuffer();
+
+	InitSocket();
 }
 
 CConnection::~CConnection() {
@@ -63,6 +55,22 @@ CConnection::~CConnection() {
 	delete m_RecvQ;
 
 	g_Bouncer->UnregisterSocket(m_Socket);
+}
+
+void CConnection::InitSocket(void) {
+	if (m_Socket == INVALID_SOCKET)
+		return;
+
+#ifndef _WIN32
+	const int optBuffer = 4 * SENDSIZE;
+	const int optLowWat = SENDSIZE;
+	const int optLinger = 0;
+
+	setsockopt(Client, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
+	setsockopt(Client, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
+	setsockopt(Client, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
+#endif
+
 }
 
 SOCKET CConnection::GetSocket(void) {

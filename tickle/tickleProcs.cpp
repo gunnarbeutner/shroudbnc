@@ -1325,12 +1325,7 @@ int internalconnect(const char* Host, unsigned short Port) {
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
 
-	sockaddr_in saddr;
-	socklen_t socketLen = sizeof(saddr);
-
-	getpeername(Socket, (sockaddr*)&saddr, &socketLen);
-
-	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, saddr);
+	CTclClientSocket* Wrapper = new CTclClientSocket(Socket);
 
 	return Wrapper->GetIdx();
 }

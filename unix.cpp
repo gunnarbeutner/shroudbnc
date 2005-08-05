@@ -26,24 +26,6 @@
 void Socket_Init(void) {}
 void Socket_Final(void) {}
 
-int strcmpi(const char* a, const char* b) {
-	if (!a || !b)
-		return 1;
-
-	while (*a && *b) {
-		if (tolower(*a) != tolower(*b))
-			return 1;
-
-		++a;
-		++b;
-	}
-
-	if (*a == *b)
-		return 0;
-	else
-		return 1;
-}
-
 HMODULE LoadLibrary(const char* lpLibFileName) {
 	return dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL);
 }

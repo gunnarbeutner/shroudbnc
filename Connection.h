@@ -44,7 +44,7 @@ class CConnection : public CSocketEvents {
 #endif
 public:
 #ifndef SWIG
-	CConnection(SOCKET Client, sockaddr_in Peer);
+	CConnection(SOCKET Client);
 #endif
 	virtual ~CConnection(void);
 
@@ -83,6 +83,8 @@ public:
 	virtual bool ReadLine(char** Out);
 
 	virtual void FlushSendQ(void);
+
+	virtual void InitSocket(void);
 protected:
 	virtual void ParseLine(const char* Line);
 

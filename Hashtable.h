@@ -40,16 +40,6 @@ template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false>
 
 	hash_t<Type> m_Items[Size];
 	DestroyValue* m_DestructorFunc;
-
-	unsigned char Hash(const char* String) {
-		unsigned char Out = 0;
-		unsigned int Len = strlen(String);
-
-		for (size_t i = 0; i < Len; i++)
-			Out ^= CaseSensitive ? String[i] : tolower(String[i]);
-
-		return Out & (Size - 1);
-	}
 public:
 	CHashtable(void) {
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
@@ -76,6 +66,16 @@ public:
 			free(P->keys);
 			free(P->values);
 		}
+	}
+
+	static unsigned char Hash(const char* String) {
+		unsigned char Out = 0;
+		unsigned int Len = strlen(String);
+
+		for (size_t i = 0; i < Len; i++)
+			Out ^= CaseSensitive ? String[i] : tolower(String[i]);
+
+		return Out & (Size - 1);
 	}
 
 	void Add(const char* Key, Type Value) {

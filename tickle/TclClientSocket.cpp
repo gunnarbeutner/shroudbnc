@@ -33,9 +33,9 @@ extern int g_SocketIdx;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CTclClientSocket::CTclClientSocket(SOCKET Socket, sockaddr_in Peer) {
+CTclClientSocket::CTclClientSocket(SOCKET Socket) {
 	m_Socket = Socket;
-	m_Wrap = g_Bouncer->WrapSocket(Socket, Peer);
+	m_Wrap = g_Bouncer->WrapSocket(Socket);
 	g_Bouncer->RegisterSocket(Socket, this);
 
 	char Buf[20];

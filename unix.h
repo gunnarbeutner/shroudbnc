@@ -24,7 +24,7 @@ void Socket_Final(void);
 
 typedef int SOCKET;
 
-int strcmpi(const char* a, const char* b);
+#define strcmpi strcasecmp
 
 #define SD_BOTH SHUT_RDWR
 #define closesocket close

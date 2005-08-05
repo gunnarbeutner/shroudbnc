@@ -61,21 +61,6 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 int main(int argc, char* argv[]) { return 0; }
 #endif
 
-int strcmpi(const char* a, const char* b) {
-	while (*a && *b) {
-		if (tolower(*a) != tolower(*b))
-			return 1;
-
-		++a;
-		++b;
-	}
-
-	if (*a == *b)
-		return 0;
-	else
-		return 1;
-}
-
 int Tcl_AppInit(Tcl_Interp *interp) {
 	if (Tcl_Init(interp) == TCL_ERROR)
 		return TCL_ERROR;

@@ -96,11 +96,13 @@ void DebugFree(void* p);
 char* DebugStrDup(const char* p);
 void* DebugReAlloc(void* p, size_t newsize);
 bool ReportMemory(time_t Now, void* Cookie);
+int profilestrcmpi(const char*, const char*);
 
 #define malloc DebugMalloc
 #define free DebugFree
 #define strdup DebugStrDup
 #define realloc DebugReAlloc
+#define strcmpi profilestrcmpi
 
 #endif
 #endif
