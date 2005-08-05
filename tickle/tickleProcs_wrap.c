@@ -3496,6 +3496,46 @@ _wrap_bncvalidusername(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 
 static int
+_wrap_bncgetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncgetsendq ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)bncgetsendq();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncsetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"i:bncsetsendq NewSize ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            bncsetsendq(arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4380,6 +4420,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncisipblocked", (swig_wrapper_func) _wrap_bncisipblocked, NULL},
     { SWIG_prefix "bnccanhostconnect", (swig_wrapper_func) _wrap_bnccanhostconnect, NULL},
     { SWIG_prefix "bncvalidusername", (swig_wrapper_func) _wrap_bncvalidusername, NULL},
+    { SWIG_prefix "bncgetsendq", (swig_wrapper_func) _wrap_bncgetsendq, NULL},
+    { SWIG_prefix "bncsetsendq", (swig_wrapper_func) _wrap_bncsetsendq, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -26,6 +26,7 @@
 
 class CBouncerUser;
 class CTrafficStats;
+class CFIFOBuffer;
 struct sockaddr_in;
 
 enum connection_role_e {
@@ -80,6 +81,8 @@ public:
 	virtual CTrafficStats* GetTrafficStats(void);
 
 	virtual bool ReadLine(char** Out);
+
+	virtual void FlushSendQ(void);
 protected:
 	virtual void ParseLine(const char* Line);
 
@@ -96,11 +99,14 @@ protected:
 	bool m_Wrapper;
 
 private:
-	char* sendq;
+/*	char* sendq;
 	int sendq_size;
 
 	char* recvq;
-	int recvq_size;
+	int recvq_size;*/
+
+	CFIFOBuffer* m_SendQ;
+	CFIFOBuffer* m_RecvQ;
 };
 
 #endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)

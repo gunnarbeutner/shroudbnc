@@ -97,6 +97,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_LastSeen = 0;
 
+	m_IsAdminCache = -1;
+
 	ScheduleReconnect(0);
 }
 
@@ -557,12 +559,14 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 void CBouncerUser::SetAdmin(bool Admin) {
 	m_Config->WriteString("user.admin", Admin ? "1" : "0");
+	m_IsAdminCache = (int)Admin;
 }
 
 bool CBouncerUser::IsAdmin(void) {
-	int Admin = m_Config->ReadInteger("user.admin");
+	if (m_IsAdminCache == -1)
+		m_IsAdminCache = m_Config->ReadInteger("user.admin");
 
-	return Admin != 0;
+	return m_IsAdminCache != 0;
 }
 
 void CBouncerUser::SetPassword(const char* Password) {

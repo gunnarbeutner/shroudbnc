@@ -74,6 +74,7 @@ public:
 	virtual bool Read(bool DontProcess = false);
 	virtual void Destroy(void);
 	virtual const char* ClassName(void);
+	virtual void InternalWriteLine(const char* In);
 };
 
 #endif // !defined(AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_)

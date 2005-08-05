@@ -114,7 +114,11 @@ const char* internalchannels(void) {
 		return NULL;
 
 	CHashtable<CChannel*, false, 16>* H = IRC->GetChannels();
-	int Count = H->Count();
+
+	if (H == NULL)
+		return NULL;
+
+	int Count = Count = H->Count();
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
@@ -1682,4 +1686,12 @@ bool bnccanhostconnect(const char* Host) {
 
 bool bncvalidusername(const char* Name) {
 	return g_Bouncer->IsValidUsername(Name);
+}
+
+int bncgetsendq(void) {
+	return g_Bouncer->GetSendQSize();
+}
+
+void bncsetsendq(int NewSize) {
+	g_Bouncer->SetSendQSize(NewSize);
 }

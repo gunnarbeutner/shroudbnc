@@ -118,6 +118,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 			break;
 	}
 
+	m_SendQSizeCache = -1;
+
 	m_LoadingModules = false;
 
 #if defined(_DEBUG) && defined(_WIN32)
@@ -285,12 +287,12 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-		SOCKET nfds = 0;
+//		SOCKET nfds = 0;
 
 		for (i = 0; i < m_OtherSocketCount; i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
-				if (m_OtherSockets[i].Socket > nfds)
-					nfds = m_OtherSockets[i].Socket;
+//				if (m_OtherSockets[i].Socket > nfds)
+//					nfds = m_OtherSockets[i].Socket;
 
 				FD_SET(m_OtherSockets[i].Socket, &FDRead);
 
@@ -306,7 +308,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 		Last = time(NULL);
 
-		int ready = select(nfds, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
+		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, /*&FDError*/ NULL, &interval);
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
@@ -829,4 +831,21 @@ int CBouncerCore::GetTimerStats(void) {
 
 bool CBouncerCore::Match(const char* Pattern, const char* String) {
 	return (match(Pattern, String) == 0);
+}
+
+int CBouncerCore::GetSendQSize(void) {
+	if (m_SendQSizeCache != -1)
+		return m_SendQSizeCache;
+
+	int Size = m_Config->ReadInteger("system.sendq");
+
+	if (Size == 0)
+		return DEFAULT_SENDQ;
+	else
+		return Size;
+}
+
+void CBouncerCore::SetSendQSize(int NewSize) {
+	m_Config->WriteInteger("system.sendq", NewSize);
+	m_SendQSizeCache = NewSize;
 }

@@ -1115,3 +1115,13 @@ bool AdnsTimeoutTimer(time_t Now, void* Client) {
 
 	return false;
 }
+
+void CClientConnection::InternalWriteLine(const char* In) {
+	CConnection::InternalWriteLine(In);
+
+	if (m_Owner && !m_Owner->IsAdmin() && SendqSize() > g_Bouncer->GetSendQSize() * 1024) {
+		FlushSendQ();
+		CConnection::InternalWriteLine("");
+		Kill("SendQ exceeded.");
+	}
+}

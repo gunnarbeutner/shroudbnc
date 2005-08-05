@@ -78,6 +78,8 @@ class CBouncerUser {
 
 	time_t m_LastSeen;
 
+	int m_IsAdminCache;
+
 	void UpdateHosts(void);
 	void BadLoginPulse(void);
 

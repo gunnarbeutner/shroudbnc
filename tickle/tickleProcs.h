@@ -144,6 +144,9 @@ bool bnccanhostconnect(const char* Host);
 
 bool bncvalidusername(const char* Name);
 
+int bncgetsendq(void);
+void bncsetsendq(int NewSize);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

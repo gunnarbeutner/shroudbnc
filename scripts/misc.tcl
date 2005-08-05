@@ -145,7 +145,7 @@ proc chanlist {channel {flags ""}} {
 }
 
 proc nick2hand {nick {channel ""}} {
-	if {[onchan $nick $channel]} {
+	if {($channel != "" && [onchan $nick $channel]) || [onchan $nick]} {
 		return [finduser $nick![getchanhost $nick]]
 	} else {
 		return ""

@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "SocketEvents.h"
+#include "FIFOBuffer.h"
 #include "Connection.h"
 #include "BouncerCore.h"
 #include "BouncerUser.h"
@@ -34,12 +35,6 @@
 CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	m_Socket = Client;
 	m_Owner = NULL;
-
-	sendq = NULL;
-	sendq_size = 0;
-
-	recvq = NULL;
-	recvq_size = 0;
 
 	m_Locked = false;
 	m_Shutdown = false;
@@ -58,11 +53,14 @@ CConnection::CConnection(SOCKET Client, sockaddr_in Peer) {
 	setsockopt(Client, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
 	setsockopt(Client, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
 #endif
+
+	m_SendQ = new CFIFOBuffer();
+	m_RecvQ = new CFIFOBuffer();
 }
 
 CConnection::~CConnection() {
-	free(recvq);
-	free(sendq);
+	delete m_SendQ;
+	delete m_RecvQ;
 
 	g_Bouncer->UnregisterSocket(m_Socket);
 }
@@ -101,9 +99,7 @@ bool CConnection::Read(bool DontProcess) {
 	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
 	if (n > 0) {
-		recvq = (char*)ResizeBuffer(recvq, recvq_size, recvq_size + n);
-		recvq_size += n;
-		memcpy(recvq + recvq_size - n, Buffer, n);
+		m_RecvQ->Write(Buffer, n);
 
 		if (m_Traffic)
 			m_Traffic->AddInbound(n);
@@ -124,21 +120,15 @@ bool CConnection::Read(bool DontProcess) {
 }
 
 void CConnection::Write(void) {
-	if (sendq_size > 0) {
-		int n = send(m_Socket, sendq, sendq_size > SENDSIZE ? SENDSIZE : sendq_size, 0);
+	unsigned int Size = m_SendQ->GetSize();
+
+	if (Size > 0) {
+		int n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
 
 		if (n > 0 && m_Traffic)
 			m_Traffic->AddOutbound(n);
 
-		if (n != sendq_size) {
-			char* sendq_new = (char*)ResizeBuffer(NULL, 0, sendq_size - n);
-			memcpy(sendq_new, &sendq[n], sendq_size - n);
-			sendq_size -= n;
-			
-			free(sendq);
-			sendq = sendq_new;
-		} else
-			sendq_size = 0;
+		m_SendQ->Read(n);
 	}
 
 	if (m_Shutdown) {
@@ -148,9 +138,12 @@ void CConnection::Write(void) {
 }
 
 void CConnection::ReadLines(void) {
+	char* recvq = m_RecvQ->Peek();
 	char* line = recvq;
 
-	for (int i = 0; i < recvq_size; i++) {
+	unsigned int Size = m_RecvQ->GetSize();
+
+	for (unsigned int i = 0; i < Size; i++) {
 		if (recvq[i] == '\n' || recvq[i] == '\r') {
 			recvq[i] = '\0';
 
@@ -161,26 +154,23 @@ void CConnection::ReadLines(void) {
 		}
 	}
 
-	if (recvq != line) {
-		char* old_recvq = recvq;
-		recvq_size -= line - recvq;
-		recvq = (char*)ResizeBuffer(NULL, 0, recvq_size);
-		memcpy(recvq, line, recvq_size);
-		free(old_recvq);
-	}
+	m_RecvQ->Read(line - recvq);
 }
 
+// inefficient -- avoid this function at all costs, use ReadLines() instead
 bool CConnection::ReadLine(char** Out) {
-	char* old_recvq = recvq;
+	char* old_recvq = m_RecvQ->Peek();
 
-	if (!recvq)
+	if (!old_recvq)
 		return false;
 
 	char* Pos = NULL;
 
-	for (int i = 0; i < recvq_size; i++) {
-		if (recvq[i] == '\n') {
-			Pos = recvq + i;
+	unsigned int Size = m_RecvQ->GetSize();
+
+	for (unsigned int i = 0; i < Size; i++) {
+		if (old_recvq[i] == '\n') {
+			Pos = old_recvq + i;
 			break;
 		}
 	}
@@ -189,23 +179,8 @@ bool CConnection::ReadLine(char** Out) {
 		*Pos = '\0';
 		char* NewPtr = Pos + 1;
 
-		recvq_size -= NewPtr - recvq;
+		*Out = strdup(m_RecvQ->Read(NewPtr - old_recvq));
 
-		if (recvq_size == 0)
-			recvq = NULL;
-		else {
-			recvq = (char*)ResizeBuffer(NULL, 0, recvq_size);
-			memcpy(recvq, NewPtr, recvq_size);
-		}
-
-		char* Line = (char*)malloc(strlen(old_recvq) + 1);
-		strcpy(Line, old_recvq);
-		if (Line[strlen(Line) - 1] == '\r')
-			Line[strlen(Line) - 1] = '\0';
-
-		free(old_recvq);
-
-		*Out = Line;
 		return true;
 	} else {
 		*Out = NULL;
@@ -217,10 +192,7 @@ void CConnection::InternalWriteLine(const char* In) {
 	if (m_Locked || m_Shutdown)
 		return;
 
-	sendq = (char*)ResizeBuffer(sendq, sendq_size, sendq_size + strlen(In) + 2);
-	sendq_size += strlen(In) + 2;
-	memcpy(sendq + sendq_size - (strlen(In) + 2), In, strlen(In));
-	memcpy(sendq + sendq_size - 2, "\r\n", 2);
+	m_SendQ->WriteLine(In);
 }
 
 void CConnection::WriteLine(const char* Format, ...) {
@@ -268,16 +240,16 @@ void CConnection::Kill(const char* Error) {
 }
 
 bool CConnection::HasQueuedData(void) {
-	return sendq_size > 0;
+	return m_SendQ->GetSize() > 0;
 }
 
 
 int CConnection::SendqSize(void) {
-	return sendq_size;
+	return m_SendQ->GetSize();
 }
 
 int CConnection::RecvqSize(void) {
-	return recvq_size;
+	return m_RecvQ->GetSize();
 }
 
 void CConnection::Error(void) {
@@ -328,4 +300,8 @@ CTrafficStats* CConnection::GetTrafficStats(void) {
 
 const char* CConnection::ClassName(void) {
 	return "CConnection";
+}
+
+void CConnection::FlushSendQ(void) {
+	m_SendQ->Flush();
 }

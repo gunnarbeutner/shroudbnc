@@ -43,9 +43,10 @@ template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false>
 
 	unsigned char Hash(const char* String) {
 		unsigned char Out = 0;
+		unsigned int Len = strlen(String);
 
-		for (size_t i = 0; i < strlen(String); i++)
-			Out ^= String[i];
+		for (size_t i = 0; i < Len; i++)
+			Out ^= CaseSensitive ? String[i] : tolower(String[i]);
 
 		return Out & (Size - 1);
 	}

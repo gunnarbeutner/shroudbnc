@@ -26,6 +26,8 @@
 
 #include "Timer.h"
 
+#define DEFAULT_SENDQ (10 * 1024)
+
 class CBouncerConfig;
 class CBouncerUser;
 class CBouncerLog;
@@ -76,6 +78,8 @@ class CBouncerCore {
 
 	int m_argc;
 	char** m_argv;
+
+	int m_SendQSizeCache;
 
 #ifndef SWIG
 	timerchain_t m_TimerChain;
@@ -149,6 +153,9 @@ public:
 	virtual int GetTimerStats(void);
 
 	virtual bool Match(const char* Pattern, const char* String);
+
+	virtual int GetSendQSize(void);
+	virtual void SetSendQSize(int NewSize);
 };
 
 extern CBouncerCore* g_Bouncer;
