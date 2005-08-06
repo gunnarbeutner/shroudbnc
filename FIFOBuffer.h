@@ -25,6 +25,7 @@
 #endif // _MSC_VER > 1000
 
 #define BLOCKSIZE 4096
+#define OPTIMIZEBLOCKS 16
 
 class CFIFOBuffer {
 	char* m_Buffer;

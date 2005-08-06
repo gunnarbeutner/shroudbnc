@@ -73,7 +73,7 @@ public:
 		unsigned int Len = strlen(String);
 
 		for (size_t i = 0; i < Len; i++)
-			Out ^= CaseSensitive ? String[i] : tolower(String[i]);
+			Out ^= CaseSensitive ? String[i] : toupper(String[i]);
 
 		return Out & (Size - 1);
 	}
@@ -190,6 +190,27 @@ public:
 		return NULL;
 	}
 
+};
+
+class CHashCompare {
+	const char* m_String;
+	unsigned char m_Hash;
+public:
+	CHashCompare(const char* String) {
+		m_String = String;
+
+		if (String)
+			m_Hash = CHashtable<void*, false, 256>::Hash(String);
+		else
+			m_Hash = 0;
+	}
+
+	bool operator==(CHashCompare Other) {
+		if (m_Hash != Other.m_Hash)
+			return false;
+		else
+			return (strcmpi(m_String, Other.m_String) == 0);
+	}
 };
 
 #endif // !defined(AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_)

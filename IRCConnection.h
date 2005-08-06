@@ -44,10 +44,11 @@ bool IRCPingTimer(time_t Now, void* IRCConnection);
 bool IrcAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
-class CIRCConnection : public CConnection, CDnsEvents {
+class CIRCConnection : public CConnection, public CDnsEvents {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
+	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
 	connection_state_e m_State;

@@ -47,6 +47,8 @@
 CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnection(Socket) {
 	m_AdnsTimeout = NULL;
 
+	m_BindIpCache = NULL;
+
 	InitIrcConnection(Owning);
 }
 
@@ -59,7 +61,7 @@ CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUs
 	adns_query query;
 	adns_submit(g_adns_State, Host, adns_r_a, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &query);
 
-	m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IrcAdnsTimeoutTimer, this);
+	m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
 
 	InitIrcConnection(Owning);
 }
@@ -137,7 +139,8 @@ CIRCConnection::~CIRCConnection() {
 
 	m_PingTimer->Destroy();
 
-	free(m_BindIpCache);
+	if (m_BindIpCache)
+		free(m_BindIpCache);
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -158,6 +161,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 	free(Nick);
 
+	// HASH values
+	CHashCompare hashRaw(argv[1]);
+	static CHashCompare hashPrivmsg("PRIVMSG");
+	static CHashCompare hashNotice("NOTICE");
+	static CHashCompare hashJoin("JOIN");
+	static CHashCompare hashPart("PART");
+	static CHashCompare hashKick("KICK");
+	static CHashCompare hashNick("NICK");
+	static CHashCompare hashQuit("QUIT");
+	static CHashCompare hashMode("MODE");
+	static CHashCompare hashTopic("TOPIC");
+	static CHashCompare hashPong("PONG");
+	// END of HASH values
+
 	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
 		bool Ret = ModuleEvent(argc, argv);
 
@@ -165,7 +182,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			WriteLine("NICK :%s`", argv[3]);
 
 		return Ret;
-	} else if (argc > 3 && strcmpi(Raw, "privmsg") == 0 && !GetOwningClient()->GetClientConnection()) {
+	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwningClient()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
@@ -195,7 +212,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		free(Nick);
 
 		UpdateHostHelper(Reply);
-	} else if (argc > 3 && strcmpi(Raw, "notice") == 0 && !GetOwningClient()->GetClientConnection()) {
+	} else if (argc > 3 && hashRaw == hashNotice && !GetOwningClient()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
@@ -214,7 +231,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		free(Nick);
-	} else if (argc > 2 && strcmpi(Raw, "join") == 0) {
+	} else if (argc > 2 && hashRaw == hashJoin) {
 		if (b_Me) {
 			AddChannel(argv[2]);
 
@@ -231,7 +248,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		UpdateHostHelper(Reply);
-	} else if (argc > 2 && strcmpi(Raw, "part") == 0) {
+	} else if (argc > 2 && hashRaw == hashPart) {
 		bool bRet = ModuleEvent(argc, argv);
 
 		if (b_Me)
@@ -249,7 +266,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Reply);
 
 		return bRet;
-	} else if (argc > 2 && strcmpi(Raw, "kick") == 0) {
+	} else if (argc > 2 && hashRaw == hashKick) {
 		bool bRet = ModuleEvent(argc, argv);
 
 		if (strcmpi(argv[3], m_CurrentNick) == 0) {
@@ -300,7 +317,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		free(m_Server);
 		m_Server = strdup(Reply);
-	} else if (argc > 1 && strcmpi(Raw, "nick") == 0) {
+	} else if (argc > 1 && hashRaw == hashNick) {
 		if (b_Me) {
 			free(m_CurrentNick);
 			m_CurrentNick = strdup(argv[2]);
@@ -325,7 +342,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		free(Nick);
-	} else if (argc > 1 && strcmpi(Raw, "quit") == 0) {
+	} else if (argc > 1 && hashRaw == hashQuit) {
 		bool bRet = ModuleEvent(argc, argv);
 
 		Nick = NickFromHostmask(argv[0]);
@@ -346,12 +363,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			JoinChannels();
 
 		if (m_State != State_Connected) {
-			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-				CModule* M = g_Bouncer->GetModules()[i];
+			CModule** Modules = g_Bouncer->GetModules();
 
-				if (M) {
+			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+				CModule* M = Modules[i];
+
+				if (M)
 					M->ServerLogon(m_Owner->GetUsername());
-				}
 			}
 
 			GetOwningClient()->Notice("Connected to an IRC server.");
@@ -368,7 +386,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		m_State = State_Connected;
-	} else if (argc > 1 && strcmpi(Reply, "error") == 0) {
+	} else if (argc > 1 && strcmpi(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL)
 			GetOwningClient()->ScheduleReconnect(50);
 		else
@@ -421,7 +439,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
 			Chan->SetModesValid(true);
 		}
-	} else if (argc > 3 && strcmpi(Raw, "mode") == 0) {
+	} else if (argc > 3 && hashRaw == hashMode) {
 		CChannel* Chan = GetChannel(argv[2]);
 
 		if (Chan)
@@ -451,7 +469,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (Chan) {
 			Chan->SetNoTopic();
 		}
-	} else if (argc > 3 && strcmpi(Raw, "topic") == 0) {
+	} else if (argc > 3 && hashRaw == hashTopic) {
 		CChannel* Chan = GetChannel(argv[2]);
 
 		if (Chan) {
@@ -519,7 +537,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan)
 			Chan->SetHasBans();
-	} else if (argc > 3 && strcmpi(Raw, "PONG") == 0 && strcmpi(argv[3], "sbnc") == 0) {
+	} else if (argc > 3 && hashRaw == hashPong && strcmpi(argv[3], "sbnc") == 0) {
 		return false;
 	}
 
@@ -909,15 +927,21 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 	} else {
 		m_Socket = SocketAndConnectResolved(*response->rrs.inaddr, m_PortCache, m_BindIpCache);
 		free(m_BindIpCache);
+		m_BindIpCache = NULL;
 
 		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
 
 		InitSocket();
+
+		m_AdnsTimeout->Destroy();
+		m_AdnsTimeout = NULL;
 	}
 }
 
-bool IrcAdnsTimeoutTimer(time_t Now, void* IRC) {
+bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
 	((CIRCConnection*)IRC)->AdnsTimeout();
+
+	((CIRCConnection*)IRC)->m_AdnsTimeout = NULL;
 
 	return false;
 }

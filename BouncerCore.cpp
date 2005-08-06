@@ -307,6 +307,8 @@ void CBouncerCore::StartMainLoop(void) {
 		timeval* tv = new timeval;
 		fd_set FDError;
 
+		memset(tv, 0, sizeof(timeval));
+
 		FD_ZERO(&FDError);
 
 		// &FDError was 'NULL'

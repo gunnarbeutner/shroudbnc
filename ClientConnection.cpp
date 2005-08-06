@@ -933,8 +933,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							strcat(Feats, " ");
 
 						strcat(Feats, Name);
-						strcat(Feats, "=");
-						strcat(Feats, Value);
+
+						if (Value && *Value) {
+							strcat(Feats, "=");
+							strcat(Feats, Value);
+						}
 
 						if (++a == 11) {
 							WriteLine(":%s 005 %s %s :are supported by this server", IRC->GetServer(), IRC->GetCurrentNick(), Feats);
@@ -1049,13 +1052,7 @@ void CClientConnection::SetPeerName(const char* PeerName) {
 
 	m_PeerName = strdup(PeerName);
 
-	char* Line;
-
-	while (ReadLine(&Line)) {
-		ParseLine(Line);
-
-		free(Line);
-	}
+	ReadLines();
 }
 
 adns_query CClientConnection::GetPeerDNSQuery(void) {

@@ -66,9 +66,9 @@ void CConnection::InitSocket(void) {
 	const int optLowWat = SENDSIZE;
 	const int optLinger = 0;
 
-	setsockopt(Client, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
-	setsockopt(Client, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
-	setsockopt(Client, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
+	setsockopt(m_Socket, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
+	setsockopt(m_Socket, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
+	setsockopt(m_Socket, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
 #endif
 
 }
@@ -133,10 +133,12 @@ void CConnection::Write(void) {
 	if (Size > 0) {
 		int n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
 
-		if (n > 0 && m_Traffic)
-			m_Traffic->AddOutbound(n);
+		if (n > 0) {
+			if (m_Traffic)
+				m_Traffic->AddOutbound(n);
 
-		m_SendQ->Read(n);
+			m_SendQ->Read(n);
+		}
 	}
 
 	if (m_Shutdown) {

@@ -39,9 +39,6 @@ class CConnection : public CSocketEvents {
 	friend class CBouncerCore;
 	friend class CBouncerUser;
 
-#ifndef SWIG
-	void ReadLines(void);
-#endif
 public:
 #ifndef SWIG
 	CConnection(SOCKET Client);
@@ -87,6 +84,9 @@ public:
 	virtual void InitSocket(void);
 protected:
 	virtual void ParseLine(const char* Line);
+#ifndef SWIG
+	void ReadLines(void);
+#endif
 
 	CBouncerUser* m_Owner;
 

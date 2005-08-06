@@ -43,11 +43,7 @@ class CIdentClient : public CSocketEvents {
 	CConnection* m_Wrap;
 public:
 	CIdentClient(SOCKET Client, CBouncerCore* Core) {
-		sockaddr_in Peer;
-		int PeerSize = sizeof(Peer);
-		getpeername(Client, (sockaddr*)&Peer, &PeerSize);
-
-		m_Wrap = Core->WrapSocket(Client, Peer);
+		m_Wrap = Core->WrapSocket(Client);
 
 		m_Core = Core;
 	}

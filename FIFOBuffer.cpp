@@ -50,7 +50,7 @@ void* CFIFOBuffer::ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int
 }
 
 void CFIFOBuffer::Optimize(void) {
-	if (m_Offset <= 4 * BLOCKSIZE)
+	if (m_Offset <= OPTIMIZEBLOCKS * BLOCKSIZE)
 		return;
 
 	char* NewBuffer = (char*)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
@@ -72,7 +72,7 @@ char* CFIFOBuffer::Peek(void) {
 
 char* CFIFOBuffer::Read(unsigned int Bytes) {
 	char* ReturnValue = m_Buffer + m_Offset;
-	m_Offset += Bytes > m_BufferSize ? m_Offset : Bytes;
+	m_Offset += Bytes > GetSize() ? GetSize() : Bytes;
 
 	Optimize();
 

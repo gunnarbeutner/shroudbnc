@@ -30,7 +30,6 @@
 #include "BouncerCore.h"
 #include "ModuleFar.h"
 #include "Module.h"
-#include "Hashtable.h"
 #include "utility.h"
 
 #if !defined(_WIN32) && !defined(__FreeBSD__)
@@ -55,7 +54,7 @@ void sigint_handler(int code) {
 int main(int argc, char* argv[]) {
 #ifndef _WIN32
 	if (geteuid() == 0) {
-		printf("You cannot run sBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
+		printf("You cannot run shroudBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
 		return 1;
 	}
 
