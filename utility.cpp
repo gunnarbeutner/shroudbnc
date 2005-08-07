@@ -292,19 +292,7 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* B
 }
 
 CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) {
-	SOCKET Socket = SocketAndConnect(Host, Port, BindIp);
-
-	if (Socket == INVALID_SOCKET)
-		return NULL;
-
-	sockaddr_in moo;
-
-	memset(&moo, 0, sizeof(moo));
-
-	//CIRCConnection* Conn = new CIRCConnection(Socket, moo, Owning);
-	CIRCConnection* Conn = new CIRCConnection(Host, Port, Owning, BindIp);
-
-	return Conn;
+	return new CIRCConnection(Host, Port, Owning, BindIp);
 }
 
 char* NickFromHostmask(const char* Hostmask) {

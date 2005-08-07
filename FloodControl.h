@@ -24,7 +24,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define FLOODBYTES 350
+#define FLOODBYTES 450
 
 typedef struct queue_s {
 	int Priority;

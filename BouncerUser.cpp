@@ -187,7 +187,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 			int a = 0;
 
 			while (xhash_t<CChannel*>* Chan = m_IRC->GetChannels()->Iterate(a++)) {
-				m_Client->WriteLine(":%s!%s@bouncer JOIN %s", m_IRC->GetCurrentNick(), m_Name, Chan->Name);
+				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), m_Name, m_Client->GetPeerName(), Chan->Name);
 
 				snprintf(Out, sizeof(Out), "NAMES %s", Chan->Name);
 				m_Client->ParseLine(Out);

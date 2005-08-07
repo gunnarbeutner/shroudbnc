@@ -78,6 +78,8 @@ class CIRCConnection : public CConnection, public CDnsEvents {
 	unsigned short m_PortCache;
 	char* m_BindIpCache;
 
+	bool m_LatchedDestruction;
+
 	void AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
@@ -141,6 +143,8 @@ public:
 
 	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
 	virtual void AdnsTimeout(void);
+
+	virtual bool ShouldDestroy(void);
 };
 
 #endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)

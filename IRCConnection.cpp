@@ -71,6 +71,8 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 
 	m_CurrentNick = NULL;
 
+	m_LatchedDestruction = false;
+
 	m_QueueHigh = new CQueue();
 	m_QueueMiddle = new CQueue();
 	m_QueueLow = new CQueue();
@@ -921,6 +923,7 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 	if (response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+
 		Destroy();
 
 		return;
@@ -939,9 +942,9 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 }
 
 bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
-	((CIRCConnection*)IRC)->AdnsTimeout();
-
 	((CIRCConnection*)IRC)->m_AdnsTimeout = NULL;
+
+	((CIRCConnection*)IRC)->AdnsTimeout();
 
 	return false;
 }
@@ -949,5 +952,10 @@ bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
 void CIRCConnection::AdnsTimeout(void) {
 	m_Owner->Notice("DNS request timed out. Could not connect to server.");
 	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
-	Destroy();
+
+	m_LatchedDestruction = true;
+}
+
+bool CIRCConnection::ShouldDestroy(void) {
+	return m_LatchedDestruction;
 }

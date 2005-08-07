@@ -256,19 +256,22 @@ void CBouncerCore::StartMainLoop(void) {
 
 		FD_ZERO(&FDWrite);
 
-		if (!m_Running) {
-			for (int i = 0; i < m_UserCount; i++) {
-				CIRCConnection* IRC;
+		int i;
 
-				if (m_Users[i] && (IRC = m_Users[i]->GetIRCConnection()) && !IRC->IsLocked()) {
+		for (i = 0; i < m_UserCount; i++) {
+			CIRCConnection* IRC;
+
+			if (m_Users[i] && (IRC = m_Users[i]->GetIRCConnection())) {
+				if (!m_Running && !IRC->IsLocked()) {
 					Log("Closing connection for %s", m_Users[i]->GetUsername());
 					IRC->InternalWriteLine("QUIT :Shutting down.");
 					IRC->Lock();
 				}
+
+				if (IRC->ShouldDestroy())
+					IRC->Destroy();
 			}
 		}
-
-		int i;
 
 		if (LastCheck + 5 < Now) {
 			for (i = 0; i < m_UserCount; i++) {

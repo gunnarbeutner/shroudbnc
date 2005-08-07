@@ -205,7 +205,7 @@ public:
 			m_Hash = 0;
 	}
 
-	bool operator==(CHashCompare Other) {
+	inline bool operator==(CHashCompare Other) {
 		if (m_Hash != Other.m_Hash)
 			return false;
 		else

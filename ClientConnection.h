@@ -65,7 +65,7 @@ public:
 	virtual void SetOwner(CBouncerUser* Owner);
 
 	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
-	virtual void SetPeerName(const char* PeerName);
+	virtual void SetPeerName(const char* PeerName, bool LookupFailure);
 	virtual adns_query GetPeerDNSQuery(void);
 
 	virtual const char* GetPeerName(void);

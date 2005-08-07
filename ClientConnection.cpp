@@ -136,6 +136,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("hosts         - lists all hostmasks, which are permitted to use this account");
 		SENDUSER("hostadd       - adds a hostmask");
 		SENDUSER("hostdel       - removes a hostmask");
+		SENDUSER("partall       - parts all channels and tells sBNC not to rejoin them when you reconnect to a server");
 
 		if (m_Owner->IsAdmin()) {
 			SENDUSER("status        - tells you the current status");
@@ -658,6 +659,19 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
+	} else if (strcmpi(Subcommand, "partall") == 0) {
+		if (m_Owner->GetIRCConnection()) {
+			const char* Channels = m_Owner->GetConfig()->ReadString("user.channels");
+
+			if (Channels)
+				m_Owner->GetIRCConnection()->WriteLine("PART %s", Channels);
+		}
+
+		m_Owner->GetConfig()->WriteString("user.channels", NULL);
+
+		SENDUSER("Done.");
+
+		return false;
 	}
 
 	if (NoticeUser)
@@ -697,17 +711,25 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			free(m_Nick);
 			m_Nick = strdup(Nick);
+
+			if (m_Username && m_Password)
+				ValidateUser();
+			else if (m_Username)
+				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 		} else if (strcmpi(Command, "pass") == 0) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 			} else {
 				m_Password = strdup(argv[1]);
 			}
+
+			if (m_Nick && m_Username && m_Password)
+				ValidateUser();
+
+			return false;
 		} else if (strcmpi(Command, "user") == 0 && argc > 1) {
 			if (m_Username) {
 				WriteLine(":bouncer 462 %s :You may not reregister", m_Nick);
-			} else if (!m_Password) {
-				Kill("Use PASS first");
 			} else {
 				if (!argv[1]) {
 					WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
@@ -718,7 +740,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 			}
 
-			ValidateUser();
+			if (m_Nick && m_Username && m_Password)
+				ValidateUser();
+			else if (m_Nick && m_Username && !m_Password)
+				InternalWriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 
 			return false;
 		} else if (strcmpi(Command, "quit") == 0) {
@@ -1047,8 +1072,11 @@ void CClientConnection::SetOwner(CBouncerUser* Owner) {
 	m_Owner = Owner;
 }
 
-void CClientConnection::SetPeerName(const char* PeerName) {
-	WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", PeerName);
+void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
+	if (!LookupFailure)
+		WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Found your hostname (%s)", PeerName);
+	else
+		WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :*** Failed to resolve your host. Using IP address instead (%s)", PeerName);
 
 	m_PeerName = strdup(PeerName);
 
@@ -1074,9 +1102,9 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	}
 
 	if (response->status != adns_s_ok)
-		SetPeerName(inet_ntoa(GetPeer().sin_addr));
+		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName(*response->rrs.str);
+		SetPeerName(*response->rrs.str, false);
 }
 
 const char* CClientConnection::ClassName(void) {
@@ -1104,7 +1132,7 @@ void CClientConnection::AdnsTimeout(void) {
 	if (!m_PeerName && m_Socket != INVALID_SOCKET)
 		adns_cancel(m_PeerA);
 	
-	SetPeerName(inet_ntoa(GetPeer().sin_addr));
+	SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 }
 
 bool AdnsTimeoutTimer(time_t Now, void* Client) {
