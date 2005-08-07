@@ -292,6 +292,8 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* B
 }
 
 CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) {
+	g_LastReconnect = time(NULL);
+
 	return new CIRCConnection(Host, Port, Owning, BindIp);
 }
 
