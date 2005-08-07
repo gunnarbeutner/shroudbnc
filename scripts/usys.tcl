@@ -778,6 +778,27 @@ proc finduser {args} {
 
 }
 
+proc userlist {{flags "-"}} {
+
+	namespace eval [getns] {
+		if {![info exists userList]} {
+			set userList ""
+		}
+	}
+
+	upvar [getns]::userList ulist
+	set ret [list]
+
+	foreach user $ulist {
+		if {[matchattr $user $flags]} {
+			lappend ret $user
+		}
+	}
+
+	return $ret
+
+}
+
 internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
 
