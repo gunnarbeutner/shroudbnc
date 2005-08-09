@@ -80,6 +80,8 @@ class CIRCConnection : public CConnection, public CDnsEvents {
 
 	bool m_LatchedDestruction;
 
+	adns_query* m_AdnsQuery;
+
 	void AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 

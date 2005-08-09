@@ -46,6 +46,7 @@
 
 CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnection(Socket) {
 	m_AdnsTimeout = NULL;
+	m_AdnsQuery = NULL;
 
 	m_BindIpCache = NULL;
 
@@ -58,8 +59,8 @@ CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUs
 	m_PortCache = Port;
 	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
 
-	adns_query query;
-	adns_submit(g_adns_State, Host, adns_r_a, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &query);
+	m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
+	adns_submit(g_adns_State, Host, adns_r_a, (adns_queryflags)0, static_cast<CDnsEvents*>(this), m_AdnsQuery);
 
 	m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
 
@@ -138,6 +139,9 @@ CIRCConnection::~CIRCConnection() {
 
 	if (m_AdnsTimeout)
 		m_AdnsTimeout->Destroy();
+
+	if (m_AdnsQuery)
+		adns_cancel(*m_AdnsQuery);
 
 	m_PingTimer->Destroy();
 
@@ -938,6 +942,9 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;
+
+		free(m_AdnsQuery);
+		m_AdnsQuery = NULL;
 	}
 }
 
@@ -954,6 +961,9 @@ void CIRCConnection::AdnsTimeout(void) {
 	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
 
 	m_LatchedDestruction = true;
+	
+	free(m_AdnsQuery);
+	m_AdnsQuery = NULL;
 }
 
 bool CIRCConnection::ShouldDestroy(void) {

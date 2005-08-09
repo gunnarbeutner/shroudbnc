@@ -669,7 +669,8 @@ void CBouncerCore::UpdateUserConfig(void) {
 		}
 	}
 
-	m_Config->WriteString("system.users", Out);
+	if (m_Config)
+		m_Config->WriteString("system.users", Out);
 
 	free(Out);
 }
