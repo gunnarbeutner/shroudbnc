@@ -629,6 +629,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			if (User->GetClientConnection())
 				User->GetClientConnection()->Kill("Your account has been suspended.");
 
+			snprintf(Out, sizeof(Out), "User %s has been suspended.", User->GetUsername());
+			g_Bouncer->GlobalNotice(Out, true);
+
 			SENDUSER("Done.");
 		} else {
 			SENDUSER("There's no such user.");
@@ -640,6 +643,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		
 		if (User) {
 			User->Unlock();
+
+			snprintf(Out, sizeof(Out), "User %s has been unsuspended.", User->GetUsername());
+			g_Bouncer->GlobalNotice(Out, true);
 
 			SENDUSER("Done.");
 		} else {
