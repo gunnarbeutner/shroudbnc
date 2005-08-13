@@ -385,7 +385,6 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-//#ifdef ASYNC_DNS
 		void* context;
 		adns_query query;
 
@@ -399,7 +398,6 @@ void CBouncerCore::StartMainLoop(void) {
 			if (reply)
 				Ctx->AsyncDnsFinished(&query, reply);
 		}
-//#endif
 	}
 }
 

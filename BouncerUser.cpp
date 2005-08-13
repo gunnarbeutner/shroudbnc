@@ -317,7 +317,6 @@ void CBouncerUser::Reconnect(void) {
 		ScheduleReconnect(120);
 
 		g_Bouncer->GetLog()->InternalWriteLine(Out);
-//		g_Bouncer->GlobalNotice(Out, true);
 
 		return;
 	}
