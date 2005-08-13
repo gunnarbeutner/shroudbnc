@@ -924,6 +924,9 @@ CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
 }
 
 void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+	free(m_AdnsQuery);
+	m_AdnsQuery = NULL;
+
 	if (response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
@@ -942,9 +945,6 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;
-
-		free(m_AdnsQuery);
-		m_AdnsQuery = NULL;
 	}
 }
 
