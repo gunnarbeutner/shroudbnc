@@ -391,6 +391,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
 		}
 
+		const char* AutoModes = GetOwningClient()->GetConfig()->ReadString("user.automodes");
+		const char* DropModes = GetOwningClient()->GetConfig()->ReadString("user.dropmodes");
+
+		if (AutoModes && *AutoModes)
+			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
+
+		if (!GetOwningClient()->GetClientConnection() && DropModes && *DropModes)
+			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
+
 		m_State = State_Connected;
 	} else if (argc > 1 && strcmpi(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL)

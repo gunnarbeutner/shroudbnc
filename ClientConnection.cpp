@@ -250,6 +250,17 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			snprintf(Out, sizeof(Out), "usequitasaway - %s", Config->ReadInteger("user.quitasaway") ? "On" : "Off");
 			SENDUSER(Out);
+
+			const char* AutoModes = Config->ReadString("user.automodes");
+			bool ValidAutoModes = AutoModes && *AutoModes;
+			const char* DropModes = Config->ReadString("user.dropmodes");
+			bool ValidDropModes = DropModes && *DropModes;
+
+			snprintf(Out, sizeof(Out), ValidAutoModes ? "automodes - +%s" : "automodes - %s", ValidAutoModes ? AutoModes : "Not set");
+			SENDUSER(Out);
+
+			snprintf(Out, sizeof(Out), ValidDropModes ? "dropmodes - -%s" : "dropmodes - %s", ValidDropModes ? DropModes : "Not set");
+			SENDUSER(Out);
 		} else {
 			if (strcmpi(argv[1], "server") == 0) {
 				if (argc > 3) {
@@ -297,6 +308,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 					return false;
 				}
+			} else if (strcmpi(argv[1], "automodes") == 0) {
+				Config->WriteString("user.automodes", argv[2]);
+			} else if (strcmpi(argv[1], "dropmodes") == 0) {
+				Config->WriteString("user.dropmodes", argv[2]);
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -513,9 +528,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		m_Owner->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
 		if (NoticeUser)
-			m_Owner->RealNotice("End of LOG. Use /sbnc erase to remove this log.");
+			m_Owner->RealNotice("End of LOG. Use '/sbnc erase' to remove this log.");
 		else
-			m_Owner->Notice("End of LOG. Use /msg -sBNC erase to remove this log.");
+			m_Owner->Notice("End of LOG. Use '/msg -sBNC erase' to remove this log.");
 
 		return false;
 	} else if (strcmpi(Subcommand, "erase") == 0) {
@@ -596,7 +611,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "admin") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+	} else if (strcmpi(Subcommand, "admin") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: ADMIN username");
+
+			return false;
+		}
+
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
@@ -608,7 +629,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "unadmin") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+	} else if (strcmpi(Subcommand, "unadmin") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: UNADMIN username");
+
+			return false;
+		}
+
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {
@@ -620,7 +647,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "suspend") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+	} else if (strcmpi(Subcommand, "suspend") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: SUSPEND username :reason");
+
+			return false;
+		}
+
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
@@ -628,6 +661,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			if (User->GetClientConnection())
 				User->GetClientConnection()->Kill("Your account has been suspended.");
+
+			if (User->GetIRCConnection())
+				User->GetIRCConnection()->Kill("Requested.");
+
+			User->MarkQuitted();
+
+			User->GetConfig()->WriteString("user.suspend", argc > 2 ? argv[1] : "Suspended.");
 
 			snprintf(Out, sizeof(Out), "User %s has been suspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
@@ -638,7 +678,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "unsuspend") == 0 && argc > 1 && m_Owner->IsAdmin()) {
+	} else if (strcmpi(Subcommand, "unsuspend") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: UNSUSPEND username");
+
+			return false;
+		}
+
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {
@@ -647,13 +693,21 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "User %s has been unsuspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
 
+			User->GetConfig()->WriteString("user.suspend", NULL);
+
 			SENDUSER("Done.");
 		} else {
 			SENDUSER("There's no such user.");
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "resetpass") == 0 && argc > 2 && m_Owner->IsAdmin()) {
+	} else if (strcmpi(Subcommand, "resetpass") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 3) {
+			SENDUSER("Syntax: RESETPASS username new-password");
+
+			return false;
+		}
+
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {

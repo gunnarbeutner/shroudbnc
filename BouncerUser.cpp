@@ -67,8 +67,6 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	assert(m_Log != NULL);
 
-	m_Quitted = false;
-
 	m_BadLogins = NULL;
 	m_BadLoginCount = 0;
 
@@ -161,7 +159,18 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	char Out[1024];
 
 	if (IsLocked()) {
-		Client->Kill("*** You cannot attach to this user.");
+		const char* Reason = m_Config->ReadString("user.suspend");
+
+		if (!Reason)
+			Client->Kill("*** You cannot attach to this user.");
+		else {
+			snprintf(Out, sizeof(Out), "*** Your account is suspended. Reason: %s", Reason);
+
+			Client->Kill(Out);
+		}
+
+		g_Bouncer->Log("Login for user %s failed: User is locked.", m_Name);
+
 		return;
 	}
 
@@ -170,6 +179,13 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	SetClientConnection(Client, true);
 
 	if (m_IRC) {
+		m_IRC->InternalWriteLine("AWAY");
+
+		const char* AutoModes = m_Config->ReadString("user.automodes");
+
+		if (AutoModes && *AutoModes)
+			m_IRC->WriteLine("MODE %s +%s", m_IRC->GetCurrentNick(), AutoModes);
+
 		const char* IrcNick = m_IRC->GetCurrentNick();
 
 		if (IrcNick) {
@@ -196,8 +212,6 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 				m_Client->ParseLine(Out);
 			}
 		}
-
-		m_IRC->InternalWriteLine("AWAY");
 	} else
 		ScheduleReconnect(0);
 
@@ -357,7 +371,7 @@ bool CBouncerUser::ShouldReconnect(void) {
 	if (Interval == 0)
 		Interval = 15;
 
-	if (!m_IRC && !m_Quitted && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval)
+	if (!m_IRC && !m_Config->ReadInteger("user.quitted") && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval)
 		return true;
 	else
 		return false;
@@ -367,8 +381,8 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 	if (m_IRC)
 		return;
 
-	if (m_Quitted && Delay == 0)
-		m_Quitted = false;
+	if (m_Config->ReadInteger("user.quitted") && Delay == 0)
+		m_Config->WriteInteger("user.quitted", 0);
 
 	int MaxDelay = Delay;
 
@@ -522,6 +536,11 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 		}
 
 		if (m_IRC && !DontSetAway) {
+			const char* DropModes = m_Config->ReadString("user.dropmodes");
+
+			if (DropModes && *DropModes)
+				m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
+
 			const char* Offnick = m_Config->ReadString("user.awaynick");
 
 			if (Offnick)
@@ -612,7 +631,7 @@ void CBouncerUser::SetRealname(const char* Realname) {
 }
 
 void CBouncerUser::MarkQuitted(void) {
-	m_Quitted = true;
+	m_Config->WriteInteger("user.quitted", 1);
 }
 
 void CBouncerUser::LogBadLogin(sockaddr_in Peer) {

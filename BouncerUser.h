@@ -60,7 +60,6 @@ class CBouncerUser {
 	time_t m_LastReconnect;
 
 	bool m_Locked;
-	bool m_Quitted;
 
 	badlogin_t* m_BadLogins;
 	unsigned int m_BadLoginCount;

@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "BouncerCore.h"
 #include "ModuleFar.h"
 #include "Module.h"
 
@@ -29,6 +30,14 @@ CModule::CModule(const char* Filename) {
 	m_Far = NULL;
 	m_File = strdup(Filename);
 	m_Image = LoadLibrary(Filename);
+
+	if (!m_Image) {
+#ifdef _WIN32
+	// todo: implement error logging
+#else
+		g_Bouncer->Log("Could not load module %s: %s", Filename, dlerror());
+#endif
+	}
 }
 
 CModule::~CModule() {
