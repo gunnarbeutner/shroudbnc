@@ -140,8 +140,11 @@ CIRCConnection::~CIRCConnection() {
 	if (m_AdnsTimeout)
 		m_AdnsTimeout->Destroy();
 
-	if (m_AdnsQuery)
+	if (m_AdnsQuery) {
 		adns_cancel(*m_AdnsQuery);
+
+		m_AdnsQuery = NULL;
+	}
 
 	m_PingTimer->Destroy();
 
@@ -970,9 +973,13 @@ void CIRCConnection::AdnsTimeout(void) {
 	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
 
 	m_LatchedDestruction = true;
-	
-	free(m_AdnsQuery);
-	m_AdnsQuery = NULL;
+
+	if (m_AdnsQuery) {
+		adns_cancel(*m_AdnsQuery);
+
+		free(m_AdnsQuery);
+		m_AdnsQuery = NULL;
+	}
 }
 
 bool CIRCConnection::ShouldDestroy(void) {
