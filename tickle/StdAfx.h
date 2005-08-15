@@ -17,49 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-// stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
-
-#if !defined(AFX_STDAFX_H__9B51AB61_E944_48DE_B4B6_80F3ADF7BD02__INCLUDED_)
-#define AFX_STDAFX_H__9B51AB61_E944_48DE_B4B6_80F3ADF7BD02__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
-	#include <windows.h>
-	#include <winsock2.h>
-	#include "../win32.h"
-#else
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <sys/types.h>
-	#include <netinet/in.h>
-	#include <sys/socket.h>
-	#include <arpa/inet.h>
-	#include "../unix.h"
-	#include "itoa.h"
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <ctype.h>
-#include <string.h>
-
 #include <tcl.h>
 
-#ifdef _WIN32
-	#define ADNS_JGAA_WIN32
+#ifndef _WIN32
+#include "itoa.h"
 #endif
-
-#include <adns.h>
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__9B51AB61_E944_48DE_B4B6_80F3ADF7BD02__INCLUDED_)

@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_)
-#define AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #define FLOODBYTES 450
 
 typedef struct queue_s {
@@ -72,5 +65,3 @@ public:
 	virtual void Enable(void);
 	virtual void Disable(void);
 };
-
-#endif // !defined(AFX_FLOODCONTROL_H__7700F733_F9CD_461D_8E19_2E901F9B979D__INCLUDED_)

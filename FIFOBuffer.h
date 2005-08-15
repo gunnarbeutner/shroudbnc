@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_FIFOBUFFER_H__C68E797B_C320_470C_9280_DA0B5C010E8E__INCLUDED_)
-#define AFX_FIFOBUFFER_H__C68E797B_C320_470C_9280_DA0B5C010E8E__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #define BLOCKSIZE 4096
 #define OPTIMIZEBLOCKS 16
 
@@ -47,5 +40,3 @@ public:
 	void Write(const char* Buffer, unsigned int Size);
 	void WriteLine(const char* Line);
 };
-
-#endif // !defined(AFX_FIFOBUFFER_H__C68E797B_C320_470C_9280_DA0B5C010E8E__INCLUDED_)

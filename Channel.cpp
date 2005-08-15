@@ -18,21 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "Hashtable.h"
-#include "Channel.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Connection.h"
-#include "ClientConnection.h"
-#include "IRCConnection.h"
-#include "BouncerConfig.h"
-#include "Nick.h"
-#include "ModuleFar.h"
-#include "Module.h"
-#include "BouncerCore.h"
-#include "Banlist.h"
-#include "BouncerUser.h"
-#include "Keyring.h"
 
 void DestroyCChannel(CChannel* P) {
 	delete P;

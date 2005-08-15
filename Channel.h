@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)
-#define AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CIRCConnection;
 
 typedef struct chanmode_s {
@@ -106,5 +99,3 @@ public:
 #ifndef SWIG
 void DestroyCChannel(CChannel* P);
 #endif
-
-#endif // !defined(AFX_CHANNEL_H__C495C5C9_34AE_49AB_8C67_B8D697AF0651__INCLUDED_)

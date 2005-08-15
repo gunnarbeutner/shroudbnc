@@ -20,7 +20,6 @@
  */
 
 #include "StdAfx.h"
-#include "Match.h"
 
 #define ToLower tolower
 

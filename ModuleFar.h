@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_MODULEFAR_H__898BF56F_427C_4FC5_8D8D_A68E48A0B426__INCLUDED_)
-#define AFX_MODULEFAR_H__898BF56F_427C_4FC5_8D8D_A68E48A0B426__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CBouncerCore;
 class CIRCConnection;
 class CClientConnection;
@@ -52,5 +45,3 @@ struct CModuleFar {
 
 	virtual const char* Command(const char* Cmd, const char* Parameters) = 0;
 };
-
-#endif // !defined(AFX_MODULEFAR_H__898BF56F_427C_4FC5_8D8D_A68E48A0B426__INCLUDED_)

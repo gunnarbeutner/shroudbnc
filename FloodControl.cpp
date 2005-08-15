@@ -18,10 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "BouncerUser.h"
-#include "Queue.h"
-#include "FloodControl.h"
-#include "BouncerCore.h"
 
 typedef struct penalty_s {
 	char* Command;

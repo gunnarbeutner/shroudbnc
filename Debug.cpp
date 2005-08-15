@@ -19,7 +19,6 @@
 
 #if defined(_WIN32) && defined(_WIN32)
 #include "StdAfx.h"
-#include "BouncerCore.h"
 #include <imagehlp.h>
 
 #pragma comment(lib, "imagehlp.lib")

@@ -18,28 +18,10 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "../Hashtable.h"
+#include "../StdAfx.h"
+
 #include "tickle.h"
 #include "tickleProcs.h"
-#include "../ModuleFar.h"
-#include "../BouncerCore.h"
-#include "../SocketEvents.h"
-#include "../DnsEvents.h"
-#include "../Connection.h"
-#include "../IRCConnection.h"
-#include "../ClientConnection.h"
-#include "../Channel.h"
-#include "../BouncerUser.h"
-#include "../BouncerConfig.h"
-#include "../BouncerLog.h"
-#include "../Nick.h"
-#include "../Queue.h"
-#include "../FloodControl.h"
-#include "../ModuleFar.h"
-#include "../Module.h"
-#include "../utility.h"
-#include "../TrafficStats.h"
-#include "../Banlist.h"
 #include "TclSocket.h"
 #include "TclClientSocket.h"
 
@@ -175,60 +157,72 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 			return 0;
 	}
 
-	g_Binds = (binding_s*)realloc(g_Binds, sizeof(binding_t) * ++g_BindCount);
+	binding_t* Bind = NULL;
 
-	int n = g_BindCount - 1;
+	for (int a = 0; a < g_BindCount; a++) {
+		if (!g_Binds[a].valid) {
+			Bind = &g_Binds[a];
 
-	g_Binds[n].valid = false;
+			break;
+		}
+	}
+
+	if (Bind == NULL) {
+		g_Binds = (binding_s*)realloc(g_Binds, sizeof(binding_t) * ++g_BindCount);
+
+		Bind = &g_Binds[g_BindCount - 1];
+	}
+
+	Bind->valid = false;
 
 	if (strcmpi(type, "client") == 0)
-		g_Binds[n].type = Type_Client;
+		Bind->type = Type_Client;
 	else if (strcmpi(type, "server") == 0)
-		g_Binds[n].type = Type_Server;
+		Bind->type = Type_Server;
 	else if (strcmpi(type, "pre") == 0)
-		g_Binds[n].type = Type_PreScript;
+		Bind->type = Type_PreScript;
 	else if (strcmpi(type, "post") == 0)
-		g_Binds[n].type = Type_PostScript;
+		Bind->type = Type_PostScript;
 	else if (strcmpi(type, "attach") == 0)
-		g_Binds[n].type = Type_Attach;
+		Bind->type = Type_Attach;
 	else if (strcmpi(type, "detach") == 0)
-		g_Binds[n].type = Type_Detach;
+		Bind->type = Type_Detach;
 	else if (strcmpi(type, "modec") == 0)
-		g_Binds[n].type = Type_SingleMode;
+		Bind->type = Type_SingleMode;
 	else if (strcmpi(type, "unload") == 0)
-		g_Binds[n].type = Type_Unload;
+		Bind->type = Type_Unload;
 	else if (strcmpi(type, "svrdisconnect") == 0)
-		g_Binds[n].type = Type_SvrDisconnect;
+		Bind->type = Type_SvrDisconnect;
 	else if (strcmpi(type, "svrconnect") == 0)
-		g_Binds[n].type = Type_SvrConnect;
+		Bind->type = Type_SvrConnect;
 	else if (strcmpi(type, "svrlogon") == 0)
-		g_Binds[n].type = Type_SvrLogon;
+		Bind->type = Type_SvrLogon;
 	else if (strcmpi(type, "usrload") == 0)
-		g_Binds[n].type = Type_UsrLoad;
+		Bind->type = Type_UsrLoad;
 	else if (strcmpi(type, "usrcreate") == 0)
-		g_Binds[n].type = Type_UsrCreate;
+		Bind->type = Type_UsrCreate;
 	else if (strcmpi(type, "usrdelete") == 0)
-		g_Binds[n].type = Type_UsrDelete;
+		Bind->type = Type_UsrDelete;
 	else if (strcmpi(type, "command") == 0)
-		g_Binds[n].type = Type_Command;
+		Bind->type = Type_Command;
 	else {
-		g_Binds[n].type = Type_Invalid;
+		Bind->type = Type_Invalid;
 
 		throw "Invalid bind type.";
 	}
 
-	g_Binds[n].proc = strdup(proc);
-	g_Binds[n].valid = true;
+	Bind->proc = strdup(proc);
+	Bind->valid = true;
 
 	if (pattern)
-		g_Binds[n].pattern = strdup(pattern);
+		Bind->pattern = strdup(pattern);
 	else
-		g_Binds[n].pattern = NULL;
+		Bind->pattern = NULL;
 
 	if (user)
-		g_Binds[n].user = strdup(user);
+		Bind->user = strdup(user);
 	else
-		g_Binds[n].user = NULL;
+		Bind->user = NULL;
 
 	return 1;
 }
@@ -647,6 +641,8 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	return outPref;
 }
 
+#undef sprintf
+
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
 	static char Buffer[1024];
 
@@ -673,13 +669,13 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcmpi(Type, "nick") == 0)
 		return Context->GetNick();
 	else if (strcmpi(Type, "awaynick") == 0)
-		return Context->GetConfig()->ReadString("user.awaynick");
+		return Context->GetAwayNick();
 	else if (strcmpi(Type, "away") == 0)
-		return Context->GetConfig()->ReadString("user.away");
+		return Context->GetAwayText();
 	else if (strcmpi(Type, "vhost") == 0)
-		return Context->GetConfig()->ReadString("user.ip") ? Context->GetConfig()->ReadString("user.ip") : g_Bouncer->GetConfig()->ReadString("system.ip");
+		return Context->GetVHost() ? Context->GetVHost() : g_Bouncer->GetConfig()->ReadString("system.ip");
 	else if (strcmpi(Type, "channels") == 0)
-		return Context->GetConfig()->ReadString("user.channels");
+		return Context->GetConfigChannels();
 	else if (strcmpi(Type, "uptime") == 0) {
 		sprintf(Buffer, "%d", Context->IRCUptime());
 
@@ -693,7 +689,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcmpi(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
 	else if (strcmpi(Type, "delayjoin") == 0)
-		return Context->GetConfig()->ReadString("user.delayjoin");
+		return Context->GetDelayJoin() ? "1" : "0";
 	else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
@@ -724,8 +720,12 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
 		return Buffer;
+	} else if (strcmpi(Type, "automodes") == 0) {
+		return Context->GetConfig()->ReadString("user.automodes");
+	} else if (strcmpi(Type, "dropmodes") == 0) {
+		return Context->GetConfig()->ReadString("user.dropmodes");
 	} else
-		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway";
+		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -743,15 +743,15 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcmpi(Type, "nick") == 0)
 		Context->SetNick(Value);
 	else if (strcmpi(Type, "awaynick") == 0)
-		Context->GetConfig()->WriteString("user.awaynick", Value);
+		Context->SetAwayNick(Value);
 	else if (strcmpi(Type, "vhost") == 0)
-		Context->GetConfig()->WriteString("user.ip", Value);
+		Context->SetVHost(Value);
 	else if (strcmpi(Type, "channels") == 0)
-		Context->GetConfig()->WriteString("user.channels", Value);
+		Context->SetConfigChannels(Value);
 	else if (strcmpi(Type, "delayjoin") == 0)
-		Context->GetConfig()->WriteString("user.delayjoin", Value);
+		Context->SetDelayJoin(atoi(Value) != 0);
 	else if (strcmpi(Type, "away") == 0)
-		Context->GetConfig()->WriteString("user.away", Value);
+		Context->SetAwayText(Value);
 	else if (strcmp(Type, "password") == 0)
 		Context->SetPassword(Value);
 	else if (strcmpi(Type, "lock") == 0) {
@@ -772,8 +772,12 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.ts", Value);
 	else if (strcmpi(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
+	else if (strcmpi(Type, "automodes") == 0)
+		Context->GetConfig()->WriteString("user.automodes", Value);
+	else if (strcmpi(Type, "dropmodes") == 0)
+		Context->GetConfig()->WriteString("user.dropmodes", Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes";
 
 	return 1;
 }
@@ -1572,11 +1576,11 @@ const char* getcurrentnick(void) {
 }
 
 const char* bncgetmotd(void) {
-	return g_Bouncer->GetConfig()->ReadString("system.motd");
+	return g_Bouncer->GetMotd();
 }
 
 void bncsetmotd(const char* Motd) {
-	g_Bouncer->GetConfig()->WriteString("system.motd", Motd);
+	g_Bouncer->SetMotd(Motd);
 }
 
 const char* bncgetgvhost(void) {

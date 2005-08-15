@@ -17,15 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
-#include "../ModuleFar.h"
-#include "../BouncerCore.h"
-#include "../SocketEvents.h"
-#include "../DnsEvents.h"
-#include "../Connection.h"
-#include "../ClientConnection.h"
-#include "../BouncerUser.h"
-#include "../Connection.h"
+#include "../StdAfx.h"
 
 #ifndef _WIN32
 #error This module cannot be used on *nix systems.

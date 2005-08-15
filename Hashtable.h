@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_)
-#define AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 template <typename Type> struct xhash_t {
 	char* Name;
 	Type Value;
@@ -212,5 +205,3 @@ public:
 			return (strcmpi(m_String, Other.m_String) == 0);
 	}
 };
-
-#endif // !defined(AFX_HASHTABLE_H__E4C049B1_D51E_4EBE_AD3A_E96BC93BFA4A__INCLUDED_)

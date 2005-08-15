@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_IDENTSUPPORT_H__8702AEFF_6B84_4BC4_9447_18D492507381__INCLUDED_)
-#define AFX_IDENTSUPPORT_H__8702AEFF_6B84_4BC4_9447_18D492507381__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CIdentSupport {
 	char* m_Ident;
 public:
@@ -35,5 +28,3 @@ public:
 	virtual void SetIdent(const char* Ident);
 	virtual const char* GetIdent(void);
 };
-
-#endif // !defined(AFX_IDENTSUPPORT_H__8702AEFF_6B84_4BC4_9447_18D492507381__INCLUDED_)

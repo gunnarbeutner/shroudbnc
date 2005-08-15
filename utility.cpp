@@ -20,13 +20,6 @@
 // utility functions
 
 #include "StdAfx.h"
-#include "Hashtable.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Connection.h"
-#include "IRCConnection.h"
-#include "BouncerCore.h"
-#include "BouncerConfig.h"
 
 char* g_Args = NULL;
 char** g_ArgArray = NULL;

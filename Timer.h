@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_)
-#define AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 typedef bool (*timerproc)(time_t now, void* cookie);
 
 class CTimer {
@@ -44,5 +37,3 @@ private:
 	bool m_Repeat;
 	time_t m_Next;
 };
-
-#endif // !defined(AFX_TIMER_H__7D0C99FA_2766_4DB2_AB06_E03F3595EA58__INCLUDED_)

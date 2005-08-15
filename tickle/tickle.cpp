@@ -18,18 +18,8 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "../ModuleFar.h"
-#include "../Hashtable.h"
-#include "../BouncerCore.h"
-#include "../SocketEvents.h"
-#include "../DnsEvents.h"
-#include "../Connection.h"
-#include "../IRCConnection.h"
-#include "../ClientConnection.h"
-#include "../Channel.h"
-#include "../BouncerUser.h"
-#include "../BouncerConfig.h"
-#include "../Hashtable.h"
+#include "../StdAfx.h"
+
 #include "TclSocket.h"
 #include "TclClientSocket.h"
 #include "tickle.h"

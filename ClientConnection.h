@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_)
-#define AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #ifndef SWIG
 bool AdnsTimeoutTimer(time_t Now, void* Client);
 #endif
@@ -76,5 +69,3 @@ public:
 	virtual const char* ClassName(void);
 	virtual void InternalWriteLine(const char* In);
 };
-
-#endif // !defined(AFX_CLIENTCONNECTION_H__4EDF9F6A_4713_4A92_AD82_EE7CA40BC214__INCLUDED_)

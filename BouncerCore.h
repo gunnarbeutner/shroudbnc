@@ -17,15 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_BOUNCERCORE_H__986A00F2_4825_4A77_B6D9_BEFC05E1C565__INCLUDED_)
-#define AFX_BOUNCERCORE_H__986A00F2_4825_4A77_B6D9_BEFC05E1C565__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#include "Timer.h"
-
 #define DEFAULT_SENDQ (10 * 1024)
 
 class CBouncerConfig;
@@ -166,5 +157,3 @@ extern CBouncerCore* g_Bouncer;
 #ifndef SWIG
 extern adns_state g_adns_State;
 #endif
-
-#endif // !defined(AFX_BOUNCERCORE_H__986A00F2_4825_4A77_B6D9_BEFC05E1C565__INCLUDED_)

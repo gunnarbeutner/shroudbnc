@@ -18,12 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "SocketEvents.h"
-#include "FIFOBuffer.h"
-#include "Connection.h"
-#include "BouncerCore.h"
-#include "BouncerUser.h"
-#include "TrafficStats.h"
 
 #define BLOCKSIZE 4096
 #define SENDSIZE 4096

@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)
-#define AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CBouncerUser;
 class CTrafficStats;
 class CFIFOBuffer;
@@ -110,5 +103,3 @@ private:
 	CFIFOBuffer* m_SendQ;
 	CFIFOBuffer* m_RecvQ;
 };
-
-#endif // !defined(AFX_CONNECTION_H__2FF0F4B2_874D_41A7_8E0F_D22C5C568111__INCLUDED_)

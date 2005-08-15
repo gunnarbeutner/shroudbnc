@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_MODULE_H__E4E050DD_057C_4E38_BDB7_A875F73A9E8F__INCLUDED_)
-#define AFX_MODULE_H__E4E050DD_057C_4E38_BDB7_A875F73A9E8F__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 typedef CModuleFar* (* FNGETOBJECT)() ;
 
 class CModule : public CModuleFar {
@@ -64,5 +57,3 @@ public:
 
 	virtual const char* Command(const char* Cmd, const char* Parameters);
 };
-
-#endif // !defined(AFX_MODULE_H__E4E050DD_057C_4E38_BDB7_A875F73A9E8F__INCLUDED_)

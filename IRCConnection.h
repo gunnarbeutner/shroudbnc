@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)
-#define AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 enum connection_state_e {
 	State_Unknown,
 	State_Connecting,
@@ -148,5 +141,3 @@ public:
 
 	virtual bool ShouldDestroy(void);
 };
-
-#endif // !defined(AFX_IRCCONNECTION_H__219E3E6C_0C55_4167_A663_D9098377ECE6__INCLUDED_)

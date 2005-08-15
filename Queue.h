@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_QUEUE_H__BE311FBC_F9FB_4649_97B9_6F3726BE9F66__INCLUDED_)
-#define AFX_QUEUE_H__BE311FBC_F9FB_4649_97B9_6F3726BE9F66__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 typedef struct queue_item_s {
 	bool Valid;
 	int Priority;
@@ -49,5 +42,3 @@ public:
 	virtual int GetQueueSize(void);
 	virtual void FlushQueue(void);
 };
-
-#endif // !defined(AFX_QUEUE_H__BE311FBC_F9FB_4649_97B9_6F3726BE9F66__INCLUDED_)

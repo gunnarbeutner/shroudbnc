@@ -17,18 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-// stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
-
-#if !defined(AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_)
-#define AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 #ifndef SWIG
@@ -75,7 +63,9 @@
 
 #ifndef SWIG
 #ifdef _WIN32
-	#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
+	#ifndef NOADNSLIB
+		#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
+	#endif
 
 	#define ADNS_JGAA_WIN32
 #endif
@@ -108,7 +98,27 @@ int profilestrcmpi(const char*, const char*);
 #endif
 #endif
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__9D162711_E45F_4BE4_A821_2CABE6E60ED8__INCLUDED_)
+#include "Hashtable.h"
+#include "SocketEvents.h"
+#include "DnsEvents.h"
+#include "Connection.h"
+#include "ClientConnection.h"
+#include "IRCConnection.h"
+#include "BouncerUser.h"
+#include "Timer.h"
+#include "BouncerCore.h"
+#include "BouncerLog.h"
+#include "BouncerConfig.h"
+#include "ModuleFar.h"
+#include "Module.h"
+#include "Channel.h"
+#include "Nick.h"
+#include "Keyring.h"
+#include "Banlist.h"
+#include "IdentSupport.h"
+#include "Match.h"
+#include "TrafficStats.h"
+#include "FIFOBuffer.h"
+#include "Queue.h"
+#include "FloodControl.h"
+#include "utility.h"

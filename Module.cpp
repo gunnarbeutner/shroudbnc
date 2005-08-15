@@ -18,9 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "BouncerCore.h"
-#include "ModuleFar.h"
-#include "Module.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

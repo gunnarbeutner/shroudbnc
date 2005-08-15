@@ -19,19 +19,6 @@
 
 #include "StdAfx.h"
 
-#include "Hashtable.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Connection.h"
-#include "ClientConnection.h"
-#include "IRCConnection.h"
-#include "BouncerConfig.h"
-#include "BouncerUser.h"
-#include "BouncerCore.h"
-#include "ModuleFar.h"
-#include "Module.h"
-#include "utility.h"
-
 #if !defined(_WIN32) && !defined(__FreeBSD__)
 typedef __sighandler_t sighandler_t;
 #endif

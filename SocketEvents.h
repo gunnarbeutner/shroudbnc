@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_SOCKETEVENTS_H__E3357DBD_BBB7_4F6D_B406_08F652675369__INCLUDED_)
-#define AFX_SOCKETEVENTS_H__E3357DBD_BBB7_4F6D_B406_08F652675369__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 struct CSocketEvents {
 public:
 	virtual void Destroy(void) = 0;
@@ -36,5 +29,3 @@ public:
 
 	virtual const char* ClassName(void) = 0;
 };
-
-#endif // !defined(AFX_SOCKETEVENTS_H__E3357DBD_BBB7_4F6D_B406_08F652675369__INCLUDED_)

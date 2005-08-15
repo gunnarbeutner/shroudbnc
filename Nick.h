@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_NICK_H__2D11FD8C_472A_4623_AA6D_4C87F5F8C170__INCLUDED_)
-#define AFX_NICK_H__2D11FD8C_472A_4623_AA6D_4C87F5F8C170__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CNick;
 class CBouncerConfig;
 
@@ -67,5 +60,3 @@ public:
 #ifndef SWIG
 void DestroyCNick(CNick* P);
 #endif
-
-#endif // !defined(AFX_NICK_H__2D11FD8C_472A_4623_AA6D_4C87F5F8C170__INCLUDED_)

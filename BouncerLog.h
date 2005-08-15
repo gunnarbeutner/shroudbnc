@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_BOUNCERLOG_H__A6DB1C48_D094_400E_B622_10F193CF879C__INCLUDED_)
-#define AFX_BOUNCERLOG_H__A6DB1C48_D094_400E_B622_10F193CF879C__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CBouncerUser;
 
 class CBouncerLog {
@@ -40,5 +33,3 @@ public:
 	virtual void PlayToUser(CBouncerUser* User, bool NoticeUser);
 	virtual bool IsEmpty(void);
 };
-
-#endif // !defined(AFX_BOUNCERLOG_H__A6DB1C48_D094_400E_B622_10F193CF879C__INCLUDED_)

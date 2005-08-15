@@ -18,9 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "Hashtable.h"
-#include "BouncerConfig.h"
-#include "utility.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

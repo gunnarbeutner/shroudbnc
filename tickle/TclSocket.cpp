@@ -18,10 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "../BouncerCore.h"
-#include "../SocketEvents.h"
-#include "../Connection.h"
-#include "../Hashtable.h"
+#include "../StdAfx.h"
 #include "TclSocket.h"
 #include "TclClientSocket.h"
 

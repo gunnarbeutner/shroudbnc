@@ -18,23 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "Hashtable.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Connection.h"
-#include "ClientConnection.h"
-#include "IRCConnection.h"
-#include "BouncerConfig.h"
-#include "BouncerUser.h"
-#include "BouncerCore.h"
-#include "BouncerLog.h"
-#include "Channel.h"
-#include "ModuleFar.h"
-#include "Module.h"
-#include "utility.h"
-#include "Match.h"
-#include "TrafficStats.h"
-#include "Keyring.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

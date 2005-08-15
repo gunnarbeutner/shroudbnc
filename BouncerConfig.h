@@ -17,17 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_BOUNCERCONFIG_H__573EF68F_20D5_46A3_AE5D_311447241847__INCLUDED_)
-#define AFX_BOUNCERCONFIG_H__573EF68F_20D5_46A3_AE5D_311447241847__INCLUDED_
-
-#ifndef AFX_HASHTABLE_H__FA383811_CE36_4970_9236_9F1EAECC6998__INCLUDED_
-#include "Hashtable.h"
-#endif
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CBouncerConfig {
 	CHashtable<char*, false, 8>* m_Settings;
 
@@ -52,5 +41,3 @@ public:
 
 	virtual const char* GetFilename(void);
 };
-
-#endif // !defined(AFX_BOUNCERCONFIG_H__573EF68F_20D5_46A3_AE5D_311447241847__INCLUDED_)

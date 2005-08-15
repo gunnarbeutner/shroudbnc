@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_KEYRING_H__DBFDEBD5_5CF7_4A4D_B628_1F43E99ADB7F__INCLUDED_)
-#define AFX_KEYRING_H__DBFDEBD5_5CF7_4A4D_B628_1F43E99ADB7F__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CBouncerConfig;
 
 class CKeyring {
@@ -39,5 +32,3 @@ public:
 private:
 	CBouncerConfig* m_Config;
 };
-
-#endif // !defined(AFX_KEYRING_H__DBFDEBD5_5CF7_4A4D_B628_1F43E99ADB7F__INCLUDED_)

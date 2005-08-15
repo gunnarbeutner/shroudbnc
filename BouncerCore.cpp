@@ -18,23 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "BouncerConfig.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Connection.h"
-#include "ClientConnection.h"
-#include "IRCConnection.h"
-#include "BouncerUser.h"
-#include "BouncerCore.h"
-#include "BouncerLog.h"
-#include "IdentSupport.h"
-#include "ModuleFar.h"
-#include "Module.h"
-#include "Hashtable.h"
-#include "Queue.h"
-#include "FloodControl.h"
-#include "Match.h"
-#include "utility.h"
+
 extern "C" {
 	#include "md5-c/global.h"
 	#include "md5-c/md5.h"
@@ -872,5 +856,5 @@ const char* CBouncerCore::GetMotd(void) {
 }
 
 void CBouncerCore::SetMotd(const char* Motd) {
-	m_Config->WriteString("system.motd");
+	m_Config->WriteString("system.motd", Motd);
 }

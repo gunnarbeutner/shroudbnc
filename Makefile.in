@@ -1,7 +1,7 @@
 CXX =		@CXX@
 CFLAGS =	@CFLAGS@ @CPPFLAGS@ @DEFS@
 LDFLAGS =	@LDFLAGS@ @LIBS@
-OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o StdAfx.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
+OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
 
 all : sbnc md5util

@@ -18,8 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "Nick.h"
-#include "BouncerConfig.h"
 
 void DestroyCNick(CNick* P) {
 	delete P;
