@@ -866,3 +866,11 @@ void CBouncerCore::SetSendQSize(int NewSize) {
 	m_Config->WriteInteger("system.sendq", NewSize);
 	m_SendQSizeCache = NewSize;
 }
+
+const char* CBouncerCore::GetMotd(void) {
+	return m_Config->ReadString("system.motd");
+}
+
+void CBouncerCore::SetMotd(const char* Motd) {
+	m_Config->WriteString("system.motd");
+}

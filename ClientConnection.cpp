@@ -227,22 +227,22 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			SENDUSER("password - Set");
 
-			snprintf(Out, sizeof(Out), "vhost - %s", Config->ReadString("user.ip") ? Config->ReadString("user.ip") : "Default");
+			snprintf(Out, sizeof(Out), "vhost - %s", m_Owner->GetVHost() ? m_Owner->GetVHost() : "Default");
 			SENDUSER(Out);
 
-			snprintf(Out, sizeof(Out), "server - %s:%d", Config->ReadString("user.server"), Config->ReadInteger("user.port"));
+			snprintf(Out, sizeof(Out), "server - %s:%d", m_Owner->GetServer(), m_Owner->GetPort());
 			SENDUSER(Out);
 
-			snprintf(Out, sizeof(Out), "serverpass - %s", Config->ReadString("user.spass") ? "Set" : "Not set");
+			snprintf(Out, sizeof(Out), "serverpass - %s", m_Owner->GetServerPassword() ? "Set" : "Not set");
 			SENDUSER(Out);
 
 			snprintf(Out, sizeof(Out), "realname - %s", m_Owner->GetRealname());
 			SENDUSER(Out);
 
-			snprintf(Out, sizeof(Out), "awaynick - %s", Config->ReadString("user.awaynick") ? Config->ReadString("user.awaynick") : "Not set");
+			snprintf(Out, sizeof(Out), "awaynick - %s", m_Owner->GetAwayNick() ? m_Owner->GetAwayNick() : "Not set");
 			SENDUSER(Out);
 
-			snprintf(Out, sizeof(Out), "away - %s", Config->ReadString("user.away") ? Config->ReadString("user.away") : "Not set");
+			snprintf(Out, sizeof(Out), "away - %s", m_Owner->GetAwayText() ? m_Owner->GetAwayText() : "Not set");
 			SENDUSER(Out);
 
 			snprintf(Out, sizeof(Out), "appendtimestamp - %s", Config->ReadInteger("user.ts") ? "On" : "Off");
@@ -251,9 +251,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "usequitasaway - %s", Config->ReadInteger("user.quitasaway") ? "On" : "Off");
 			SENDUSER(Out);
 
-			const char* AutoModes = Config->ReadString("user.automodes");
+			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
-			const char* DropModes = Config->ReadString("user.dropmodes");
+			const char* DropModes = m_Owner->GetDropModes();
 			bool ValidDropModes = DropModes && *DropModes;
 
 			snprintf(Out, sizeof(Out), ValidAutoModes ? "automodes - +%s" : "automodes - %s", ValidAutoModes ? AutoModes : "Not set");
@@ -264,23 +264,23 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		} else {
 			if (strcmpi(argv[1], "server") == 0) {
 				if (argc > 3) {
-					Config->WriteString("user.server", argv[2]);
-					Config->WriteInteger("user.port", atoi(argv[3]));
+					m_Owner->SetServer(argv[2]);
+					m_Owner->SetPort(atoi(argv[3]));
 
 					m_Owner->ScheduleReconnect(0);
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
 				}
 			} else if (strcmpi(argv[1], "realname") == 0) {
-				Config->WriteString("user.realname", argv[2]);
+				m_Owner->SetRealname(argv[2]);
 			} else if (strcmpi(argv[1], "awaynick") == 0) {
-				Config->WriteString("user.awaynick", argv[2]);
+				m_Owner->SetAwayNick(argv[2]);
 			} else if (strcmpi(argv[1], "away") == 0) {
-				Config->WriteString("user.away", argv[2]);
+				m_Owner->SetAwayText(argv[2]);
 			} else if (strcmpi(argv[1], "vhost") == 0) {
-				Config->WriteString("user.ip", argv[2]);
+				m_Owner->SetVHost(argv[2]);
 			} else if (strcmpi(argv[1], "serverpass") == 0) {
-				Config->WriteString("user.spass", argv[2]);
+				m_Owner->SetServerPassword(argv[2]);
 			} else if (strcmpi(argv[1], "password") == 0) {
 				if (strlen(argv[2]) < 6 || argc > 3) {
 					SENDUSER("Your password is too short or contains invalid characters.");
@@ -309,9 +309,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				}
 			} else if (strcmpi(argv[1], "automodes") == 0) {
-				Config->WriteString("user.automodes", argv[2]);
+				m_Owner->SetAutoModes(argv[2]);
 			} else if (strcmpi(argv[1], "dropmodes") == 0) {
-				Config->WriteString("user.dropmodes", argv[2]);
+				m_Owner->SetDropModes(argv[2]);
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -667,7 +667,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			User->MarkQuitted();
 
-			User->GetConfig()->WriteString("user.suspend", argc > 2 ? argv[1] : "Suspended.");
+			User->SetSuspendReaon(argc > 2 ? argv[1] : "Suspended.");
 
 			snprintf(Out, sizeof(Out), "User %s has been suspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
@@ -693,7 +693,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "User %s has been unsuspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
 
-			User->GetConfig()->WriteString("user.suspend", NULL);
+			User->SetSuspendReaon(NULL);
 
 			SENDUSER("Done.");
 		} else {
@@ -721,13 +721,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "partall") == 0) {
 		if (m_Owner->GetIRCConnection()) {
-			const char* Channels = m_Owner->GetConfig()->ReadString("user.channels");
+			const char* Channels = m_Owner->GetConfigChannels();
 
 			if (Channels)
 				m_Owner->GetIRCConnection()->WriteLine("PART %s", Channels);
 		}
 
-		m_Owner->GetConfig()->WriteString("user.channels", NULL);
+		m_Owner->SetConfigChannels(NULL);
 
 		SENDUSER("Done.");
 
@@ -817,7 +817,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			bool QuitAsAway = (m_Owner->GetConfig()->ReadInteger("user.quitaway") != 0);
 
 			if (QuitAsAway && argc > 0 && *argv[1])
-				m_Owner->GetConfig()->WriteString("user.away", argv[1]);
+				m_Owner->SetAwayText(argv[1]);
 
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;

@@ -30,7 +30,6 @@ CKeyring::CKeyring(CBouncerConfig* Config) {
 }
 
 CKeyring::~CKeyring(void) {
-
 }
 
 const char* CKeyring::GetKey(const char* Channel) {

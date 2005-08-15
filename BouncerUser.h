@@ -157,6 +157,33 @@ public:
 	virtual CKeyring* GetKeyring(void);
 
 	virtual time_t GetLastSeen(void);
+
+	virtual const char* GetAwayNick(void);
+	virtual void SetAwayNick(const char* Nick);
+
+	virtual const char* GetAwayText(void);
+	virtual void SetAwayText(const char* Reason);
+
+	virtual const char* GetVHost(void);
+	virtual void SetVHost(const char* VHost);
+
+	virtual bool GetDelayJoin(void);
+	virtual void SetDelayJoin(bool DelayJoin);
+
+	virtual const char* GetConfigChannels(void);
+	virtual void SetConfigChannels(const char* Channels);
+
+	virtual const char* GetSuspendReason(void);
+	virtual void SetSuspendReaon(const char* Reason);
+
+	virtual const char* GetServerPassword(void);
+	virtual void SetServerPassword(const char* Password);
+
+	virtual const char* GetAutoModes(void);
+	virtual void SetAutoModes(const char* AutoModes);
+
+	virtual const char* GetDropModes(void);
+	virtual void SetDropModes(const char* DropModes);
 };
 
 #endif // !defined(AFX_BOUNCERUSER_H__4861F444_EA24_49F0_83CA_AC12AD2A977B__INCLUDED_)

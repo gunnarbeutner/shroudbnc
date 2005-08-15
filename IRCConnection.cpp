@@ -79,7 +79,7 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_QueueLow = new CQueue();
 	m_FloodControl = new CFloodControl(this);
 
-	const char* Password = Owning->GetConfig()->ReadString("user.spass");
+	const char* Password = Owning->GetServerPassword();
 
 	if (Password)
 		WriteLine("PASS :%s", Password);
@@ -366,7 +366,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		
 		return bRet;
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
-		if (m_Owner->GetConfig()->ReadInteger("user.delayjoin"))
+		if (m_Owner->GetDelayJoin())
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
 		else
 			JoinChannels();
@@ -388,14 +388,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (GetOwningClient()->GetClientConnection() == NULL) {
 			bool AppendTS = (GetOwningClient()->GetConfig()->ReadInteger("user.ts") != 0);
-			const char* AwayReason = GetOwningClient()->GetConfig()->ReadString("user.away");
+			const char* AwayReason = GetOwningClient()->GetAwayText();
 
 			if (AwayReason)
 				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
 		}
 
-		const char* AutoModes = GetOwningClient()->GetConfig()->ReadString("user.automodes");
-		const char* DropModes = GetOwningClient()->GetConfig()->ReadString("user.dropmodes");
+		const char* AutoModes = GetOwningClient()->GetAutoModes();
+		const char* DropModes = GetOwningClient()->GetDropModes();
 
 		if (AutoModes && *AutoModes)
 			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
@@ -659,7 +659,7 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		strcat(Out, Chan->Name);
 	}
 
-	m_Owner->GetConfig()->WriteString("user.channels", Out);
+	m_Owner->SetConfigChannels(Out);
 
 	free(Out);
 }
@@ -870,7 +870,7 @@ void CIRCConnection::JoinChannels(void) {
 		m_DelayJoinTimer = NULL;
 	}
 
-	const char* Chans = GetOwningClient()->GetConfig()->ReadString("user.channels");
+	const char* Chans = GetOwningClient()->GetConfigChannels();
 
 	if (Chans && *Chans) {
 		char* dup = strdup(Chans);

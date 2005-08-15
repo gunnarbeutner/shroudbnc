@@ -159,7 +159,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	char Out[1024];
 
 	if (IsLocked()) {
-		const char* Reason = m_Config->ReadString("user.suspend");
+		const char* Reason = GetSuspendReason();
 
 		if (!Reason)
 			Client->Kill("*** You cannot attach to this user.");
@@ -322,8 +322,8 @@ void CBouncerUser::Reconnect(void) {
 		m_ReconnectTimer = NULL;
 	}
 
-	const char* Server = m_Config->ReadString("user.server");
-	int Port = m_Config->ReadInteger("user.port");
+	const char* Server = GetServer();
+	int Port = GetPort();
 
 	if (!Server || !Port) {
 		snprintf(Out, sizeof(Out), "%s has no default server. Can't (re)connect.", m_Name);
@@ -599,9 +599,7 @@ void CBouncerUser::SetServer(const char* Server) {
 }
 
 const char* CBouncerUser::GetServer(void) {
-	const char* Ptr = m_Config->ReadString("user.server");
-
-	return Ptr;
+	return m_Config->ReadString("user.server");
 }
 
 void CBouncerUser::SetPort(int Port) {
@@ -611,7 +609,7 @@ void CBouncerUser::SetPort(int Port) {
 int CBouncerUser::GetPort(void) {
 	int Port = m_Config->ReadInteger("user.port");
 
-	if (!Port)
+	if (Port == 0)
 		return 6667;
 	else
 		return Port;
@@ -799,4 +797,76 @@ bool UserReconnectTimer(time_t Now, void* User) {
 
 time_t CBouncerUser::GetLastSeen(void) {
 	return m_LastSeen;
+}
+
+const char* CBouncerUser::GetAwayNick(void) {
+	return m_Config->ReadString("user.awaynick");
+}
+
+void CBouncerUser::SetAwayNick(const char* Nick) {
+	m_Config->WriteString("user.awaynick", Nick);
+}
+
+const char* CBouncerUser::GetAwayText(void) {
+	return m_Config->ReadString("user.away");
+}
+
+void CBouncerUser::SetAwayText(const char* Reason) {
+	m_Config->WriteString("user.away", Reason);
+}
+
+const char* CBouncerUser::GetVHost(void) {
+	return m_Config->ReadString("user.ip");
+}
+
+void CBouncerUser::SetVHost(const char* VHost) {
+	m_Config->WriteString("user.ip", VHost);
+}
+
+bool CBouncerUser::GetDelayJoin(void) {
+	return m_Config->ReadInteger("user.delayjoin") != 0;
+}
+
+void CBouncerUser::SetDelayJoin(bool DelayJoin) {
+	m_Config->WriteInteger("user.delayjoin", DelayJoin ? 1 : 0);
+}
+
+const char* CBouncerUser::GetConfigChannels(void) {
+	return m_Config->ReadString("user.channels");
+}
+
+void CBouncerUser::SetConfigChannels(const char* Channels) {
+	m_Config->WriteString("user.channels", Channels);
+}
+
+const char* CBouncerUser::GetSuspendReason(void) {
+	return m_Config->ReadString("user.suspend");
+}
+
+void CBouncerUser::SetSuspendReaon(const char* Reason) {
+	m_Config->WriteString("user.suspend", Reason);
+}
+
+const char* CBouncerUser::GetServerPassword(void) {
+	return m_Config->ReadString("user.spass");
+}
+
+void CBouncerUser::SetServerPassword(const char* Password) {
+	m_Config->WriteString("user.spass", Password);
+}
+
+const char* CBouncerUser::GetAutoModes(void) {
+	return m_Config->ReadString("user.automodes");
+}
+
+void CBouncerUser::SetAutoModes(const char* AutoModes) {
+	m_Config->WriteString("user.automodes", AutoModes);
+}
+
+const char* CBouncerUser::GetDropModes(void) {
+	return m_Config->ReadString("user.dropmodes");
+}
+
+void CBouncerUser::SetDropModes(const char* DropModes) {
+	m_Config->WriteString("user.dropmodes", DropModes);
 }

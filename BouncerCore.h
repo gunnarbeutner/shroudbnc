@@ -156,6 +156,9 @@ public:
 
 	virtual int GetSendQSize(void);
 	virtual void SetSendQSize(int NewSize);
+
+	virtual const char* GetMotd(void);
+	virtual void SetMotd(const char* Motd);
 };
 
 extern CBouncerCore* g_Bouncer;
