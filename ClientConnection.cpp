@@ -344,9 +344,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 
-		if (User)
-			User->Simulate(argv[2]);
-		else {
+		if (User) {
+			User->Simulate(argv[2], this);
+
+			SENDUSER("Done.");
+		} else {
 			snprintf(Out, sizeof(Out), "No such user: %s", argv[1]);
 			SENDUSER(Out);
 		}
@@ -426,7 +428,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			m_Owner->SetIRCConnection(NULL);
 		}
 
-		m_Owner->ScheduleReconnect(0);
+		m_Owner->ScheduleReconnect(2);
 		return false;
 	} else if (strcmpi(Subcommand, "status") == 0) {
 		snprintf(Out, sizeof(Out), "Username: %s", m_Owner->GetUsername());
@@ -649,7 +651,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			User->MarkQuitted();
 
-			User->SetSuspendReaon(argc > 2 ? argv[1] : "Suspended.");
+			User->SetSuspendReason(argc > 2 ? argv[2] : "Suspended.");
 
 			snprintf(Out, sizeof(Out), "User %s has been suspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
@@ -675,7 +677,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "User %s has been unsuspended.", User->GetUsername());
 			g_Bouncer->GlobalNotice(Out, true);
 
-			User->SetSuspendReaon(NULL);
+			User->SetSuspendReason(NULL);
 
 			SENDUSER("Done.");
 		} else {

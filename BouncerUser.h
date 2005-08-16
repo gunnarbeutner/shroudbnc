@@ -98,7 +98,7 @@ public:
 	virtual const char* GetUsername(void);
 	virtual CBouncerConfig* GetConfig(void);
 
-	virtual void Simulate(const char* Command);
+	virtual void Simulate(const char* Command, CClientConnection* FakeClient = NULL);
 
 	virtual void Reconnect(void);
 
@@ -167,7 +167,7 @@ public:
 	virtual void SetConfigChannels(const char* Channels);
 
 	virtual const char* GetSuspendReason(void);
-	virtual void SetSuspendReaon(const char* Reason);
+	virtual void SetSuspendReason(const char* Reason);
 
 	virtual const char* GetServerPassword(void);
 	virtual void SetServerPassword(const char* Password);

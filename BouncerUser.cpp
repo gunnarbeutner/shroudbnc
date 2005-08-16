@@ -80,7 +80,8 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_IsAdminCache = -1;
 
-	ScheduleReconnect(0);
+	if (!m_Config->ReadInteger("user.quitted"))
+		ScheduleReconnect(0);
 }
 
 void CBouncerUser::LoadEvent(void) {
@@ -270,7 +271,7 @@ CBouncerConfig* CBouncerUser::GetConfig(void) {
 	return m_Config;
 }
 
-void CBouncerUser::Simulate(const char* Command) {
+void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) {
 	if (!Command)
 		return;
 
@@ -279,13 +280,26 @@ void CBouncerUser::Simulate(const char* Command) {
 	if (m_Client)
 		m_Client->ParseLine(C);
 	else {
-		sockaddr_in null_peer;
-		memset(&null_peer, 0, sizeof(null_peer));
-		CClientConnection* FakeClient = new CClientConnection(INVALID_SOCKET, null_peer);
-		FakeClient->m_Owner = this;
-		FakeClient->ParseLine(C);
-		FakeClient->m_Owner = NULL;
-		delete FakeClient;
+		if (FakeClient == NULL) {
+			sockaddr_in null_peer;
+			memset(&null_peer, 0, sizeof(null_peer));
+			FakeClient = new CClientConnection(INVALID_SOCKET, null_peer);
+			FakeClient->m_Owner = this;
+
+			FakeClient->ParseLine(C);
+
+			FakeClient->m_Owner = NULL;
+			delete FakeClient;
+		} else {
+			CBouncerUser* Owner = FakeClient->m_Owner;
+			CClientConnection* Client = m_Client;
+
+			m_Client = FakeClient;
+			FakeClient->m_Owner = this;
+			FakeClient->ParseLine(C);
+			FakeClient->m_Owner = Owner;
+			m_Client = Client;
+		}
 	}
 
 	free(C);
@@ -826,7 +840,7 @@ const char* CBouncerUser::GetSuspendReason(void) {
 	return m_Config->ReadString("user.suspend");
 }
 
-void CBouncerUser::SetSuspendReaon(const char* Reason) {
+void CBouncerUser::SetSuspendReason(const char* Reason) {
 	m_Config->WriteString("user.suspend", Reason);
 }
 

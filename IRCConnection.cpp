@@ -167,7 +167,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		bool Ret = ModuleEvent(argc, argv);
 
 		if (Ret)
-			WriteLine("NICK :%s`", argv[3]);
+			WriteLine("NICK :%s_", argv[3]);
 
 		return Ret;
 	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwningClient()->GetClientConnection()) {

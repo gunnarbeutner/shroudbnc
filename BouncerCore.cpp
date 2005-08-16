@@ -569,7 +569,12 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	if (Password)
 		m_Users[m_UserCount - 1]->SetPassword(Password);
 
-	g_Bouncer->Log("New user created: %s", Username);
+	char Out[1024];
+
+	snprintf(Out, sizeof(Out), "New user created: %s", Username);
+
+	Log("%s", Out);
+	GlobalNotice(Out, true);
 
 	UpdateUserConfig();
 
@@ -602,12 +607,14 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 
 			delete m_Users[i];
 
+			m_Users[i] = NULL;
+
 			char Out[1024];
 
 			snprintf(Out, sizeof(Out), "User removed: %s", Username);
 			m_Log->WriteLine(Out);
 
-			m_Users[i] = NULL;
+			GlobalNotice(Out, true);
 
 			UpdateUserConfig();
 
