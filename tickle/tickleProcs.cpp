@@ -724,8 +724,10 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetConfig()->ReadString("user.automodes");
 	} else if (strcmpi(Type, "dropmodes") == 0) {
 		return Context->GetConfig()->ReadString("user.dropmodes");
+	} else if (strcmpi(Type, "suspendreason") == 0) {
+		return Context->GetConfig()->ReadString("user.suspend");
 	} else
-		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes";
+		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -776,8 +778,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.automodes", Value);
 	else if (strcmpi(Type, "dropmodes") == 0)
 		Context->GetConfig()->WriteString("user.dropmodes", Value);
+	else if (strcmpi(Type, "suspendreason") == 0)
+		Context->GetConfig()->WriteString("user.suspend", Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason";
 
 	return 1;
 }
