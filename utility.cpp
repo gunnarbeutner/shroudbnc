@@ -368,3 +368,7 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 void string_free(char* string) {
 	free(string);
 }
+
+int keyStrCmp(const void* a, const void* b) {
+	return strcmp(*(const char**)a, *(const char**)b);
+}

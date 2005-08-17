@@ -39,4 +39,6 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp = NULL);
 char* NickFromHostmask(const char* Hostmask);
 void string_free(char* string);
 
+int keyStrCmp(const void* a, const void* b);
+
 #define BNCVERSION "0.9"

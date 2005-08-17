@@ -172,11 +172,6 @@ SOURCE=.\snprintf.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\StdAfx.cpp
-# ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
 SOURCE=.\Timer.cpp
 # End Source File
 # Begin Source File

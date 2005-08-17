@@ -173,7 +173,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		const char* IrcNick = m_IRC->GetCurrentNick();
 
 		if (IrcNick) {
-			Client->WriteLine(":%s!ident@sbnc NICK :%s", Client->GetNick(), IrcNick);
+			Client->WriteLine(":%s!%s@%s NICK :%s", Client->GetNick(), GetUsername(), Client->GetPeerName(), IrcNick);
 
 			if (Client->GetNick() && strcmp(Client->GetNick(), IrcNick) != 0)
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
@@ -186,15 +186,21 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			int a = 0;
 
-			while (xhash_t<CChannel*>* Chan = m_IRC->GetChannels()->Iterate(a++)) {
-				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), m_Name, m_Client->GetPeerName(), Chan->Name);
+			char** Keys = m_IRC->GetChannels()->GetSortedKeys();
 
-				snprintf(Out, sizeof(Out), "NAMES %s", Chan->Name);
+			while (Keys[a]) {
+				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), m_Name, m_Client->GetPeerName(), Keys[a]);
+
+				snprintf(Out, sizeof(Out), "TOPIC %s", Keys[a]);
 				m_Client->ParseLine(Out);
 
-				snprintf(Out, sizeof(Out), "TOPIC %s", Chan->Name);
+				snprintf(Out, sizeof(Out), "NAMES %s", Keys[a]);
 				m_Client->ParseLine(Out);
+
+				a++;
 			}
+
+			free(Keys);
 		}
 	} else
 		ScheduleReconnect(0);

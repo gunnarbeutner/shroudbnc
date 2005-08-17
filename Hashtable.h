@@ -183,6 +183,29 @@ public:
 		return NULL;
 	}
 
+	char** GetSortedKeys(void) {
+		char** Keys = NULL;
+		unsigned int Count = 0;
+
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+			Keys = (char**)realloc(Keys, (Count + m_Items[i].subcount) * sizeof(char*));
+
+			for (int a = 0; a < m_Items[i].subcount; a++) {
+				Keys[Count + a] = m_Items[i].keys[a];
+			}
+
+			Count += m_Items[i].subcount;
+		}
+
+		qsort(Keys, Count, sizeof(char*), keyStrCmp);
+
+		Keys = (char**)realloc(Keys, ++Count * sizeof(char*));
+
+		Keys[Count - 1] = NULL;
+
+		return Keys;
+	}
+
 };
 
 class CHashCompare {

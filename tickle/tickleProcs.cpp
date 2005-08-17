@@ -725,7 +725,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcmpi(Type, "dropmodes") == 0) {
 		return Context->GetConfig()->ReadString("user.dropmodes");
 	} else
-		throw "Type should be one of: server port realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes";
+		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
