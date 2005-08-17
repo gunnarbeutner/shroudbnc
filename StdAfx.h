@@ -98,6 +98,7 @@ int profilestrcmpi(const char*, const char*);
 #endif
 #endif
 
+#include "utility.h"
 #include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
@@ -121,4 +122,3 @@ int profilestrcmpi(const char*, const char*);
 #include "FIFOBuffer.h"
 #include "Queue.h"
 #include "FloodControl.h"
-#include "utility.h"
