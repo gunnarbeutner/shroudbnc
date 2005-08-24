@@ -131,8 +131,12 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 				}
 			}
 
-			if (flip && Cur == 'o' && strcmpi(pargv[p], m_Owner->GetCurrentNick()) == 0)
+			if (flip && Cur == 'o' && strcmpi(pargv[p], m_Owner->GetCurrentNick()) == 0) {
 				SetModesValid(false);
+
+				if (!m_Owner->GetOwningClient()->GetClientConnection())
+					m_Owner->WriteLine("MODE %s", m_Name);
+			}
 
 			p++;
 

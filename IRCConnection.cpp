@@ -174,7 +174,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			char* Dup = strdup(Reply);
 
 			char* Delim = strstr(Dup, "!");
@@ -204,7 +204,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			char* Dup = strdup(Reply);
 
 			char* Delim = strstr(Dup, "!");
@@ -257,7 +257,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 2 && hashRaw == hashKick) {
 		bool bRet = ModuleEvent(argc, argv);
 
-		if (strcmpi(argv[3], m_CurrentNick) == 0) {
+		if (m_CurrentNick && strcmpi(argv[3], m_CurrentNick) == 0) {
 			RemoveChannel(argv[2]);
 
 			if (GetOwningClient()->GetClientConnection() == NULL) {
