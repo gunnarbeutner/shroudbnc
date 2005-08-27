@@ -1,4 +1,5 @@
 CXX =		@CXX@
+CXXFLAGS =	-g
 CFLAGS =	@CFLAGS@ @CPPFLAGS@ @DEFS@
 LDFLAGS =	@LDFLAGS@ @LIBS@
 OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
@@ -10,7 +11,7 @@ md5util : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
 
 sbnc : $(OBJS)
-	$(CXX) -g -o $@ $(OBJS) $(LDFLAGS)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 clean :
 	rm $(OBJS) $(MD5OBJS)
