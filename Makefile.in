@@ -10,7 +10,7 @@ md5util : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
 
 sbnc : $(OBJS)
-	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
+	$(CXX) -g -o $@ $(OBJS) $(LDFLAGS)
 
 clean :
 	rm $(OBJS) $(MD5OBJS)

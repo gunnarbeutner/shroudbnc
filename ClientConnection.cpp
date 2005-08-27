@@ -747,7 +747,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			if (m_Nick != NULL) {
 				if (strcmp(m_Nick, Nick) != 0) {
-					m_Owner->GetConfig()->WriteString("user.nick", Nick);
+					if (m_Owner)
+						m_Owner->GetConfig()->WriteString("user.nick", Nick);
 
 					WriteLine(":%s!ident@sbnc NICK :%s", m_Nick, Nick);
 				}
