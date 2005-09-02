@@ -705,9 +705,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
 		sprintf(Buf, "tag.%s", Parameter2);
 
-		return Context->GetConfig()->ReadString(Buf);
+		char* Result = Context->GetConfig()->ReadString(Buf);
 
 		free(Buf);
+
+		return Result;
 	} else if (strcmpi(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
@@ -1553,6 +1555,7 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 			g_Timers[i]->timer->Destroy();
 			free(g_Timers[i]->proc);
 			free(g_Timers[i]->param);
+			free(g_Timers[i]);
 
 			g_Timers[i] = NULL;
 
