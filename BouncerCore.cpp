@@ -634,7 +634,10 @@ bool CBouncerCore::IsValidUsername(const char* Username) {
 			return false;
 	}
 
-	return true;
+	if (strlen(Username) <= 3)
+		return false;
+	else
+		return true;
 }
 
 void CBouncerCore::UpdateUserConfig(void) {

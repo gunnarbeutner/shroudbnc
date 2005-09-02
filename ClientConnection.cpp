@@ -741,7 +741,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 	const char* Command = argv[0];
 
-	if (!m_Owner || !m_Owner->IsConnectedToIRC()) {
+//	if (!m_Owner || !m_Owner->IsConnectedToIRC()) {
+	if (!m_Owner) {
 		if (strcmpi(Command, "nick") == 0 && argc > 1) {
 			const char* Nick = argv[1];
 
