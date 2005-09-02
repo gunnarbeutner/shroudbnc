@@ -879,6 +879,8 @@ void CIRCConnection::JoinChannels(void) {
 		free(dup);
 
 		WriteLine(Keys ? "JOIN %s %s" : "JOIN %s", Chans, Keys);
+
+		free(Keys);
 	}
 }
 

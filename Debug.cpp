@@ -30,9 +30,10 @@ bool g_Debug = false;
 struct alloc_t {
 	bool valid;
 	bool reported;
+	size_t size;
 	void* ptr;
 	char* func;
-} g_Allocations[5000];
+} g_Allocations[500000];
 
 int g_AllocationCount = 0;
 
@@ -71,6 +72,7 @@ void* operator new(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].valid = true;
 		g_Allocations[g_AllocationCount - 1].reported = false;
 		g_Allocations[g_AllocationCount - 1].ptr = ptr;
+		g_Allocations[g_AllocationCount - 1].size = Size;
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
 
@@ -107,6 +109,7 @@ void* DebugMalloc(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].valid = true;
 		g_Allocations[g_AllocationCount - 1].reported = false;
 		g_Allocations[g_AllocationCount - 1].ptr = ptr;
+		g_Allocations[g_AllocationCount - 1].size = Size;
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
 
@@ -174,6 +177,7 @@ void* DebugReAlloc(void* p, size_t newsize) {
 				if (g_Allocations[i].ptr == p) {
 					g_Allocations[i].ptr = ptr;
 					g_Allocations[i].reported = false;
+					g_Allocations[i].size = newsize;
 
 					break;
 				}
@@ -196,8 +200,12 @@ char* DebugStrDup(const char* p) {
 
 bool ReportMemory(time_t Now, void* Cookie) {
 	for (int i = 0; i < g_AllocationCount; i++) {
-		if (g_Allocations[i].valid && !g_Allocations[i].reported) {
-			printf("%s -> %p\n", g_Allocations[i].func, g_Allocations[i].ptr);
+		if (g_Allocations[i].valid && g_Allocations[i].size > 50 && !g_Allocations[i].reported) {
+			if (strcmp(g_Allocations[i].func, "DebugStrDup") == 0)
+				printf("%s -> %p (%s)\n", g_Allocations[i].func, g_Allocations[i].ptr, g_Allocations[i].ptr);
+			else
+				printf("%s -> %p (%d)\n", g_Allocations[i].func, g_Allocations[i].ptr, g_Allocations[i].size);
+
 			g_Allocations[i].reported = true;
 		}
 	}

@@ -19,7 +19,7 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-#ifndef SWIG
+#if defined(SWIG) && defined(_WIN32)
 #define FD_SETSIZE 1024
 #endif
 

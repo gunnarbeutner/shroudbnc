@@ -705,7 +705,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
 		sprintf(Buf, "tag.%s", Parameter2);
 
-		char* Result = Context->GetConfig()->ReadString(Buf);
+		const char* Result = Context->GetConfig()->ReadString(Buf);
 
 		free(Buf);
 
@@ -764,7 +764,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		else
 			Context->Unlock();
 	} else if (strcmpi(Type, "admin") == 0)
-		Context->SetAdmin(atoi(Value) ? true : false);
+		Context->SetAdmin(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcmpi(Type, "tag") == 0 && Value) {
 		char* Buf = (char*)malloc(strlen(Value) + 5);
 		sprintf(Buf, "tag.%s", Value);

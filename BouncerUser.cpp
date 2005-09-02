@@ -417,13 +417,17 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 }
 
 void CBouncerUser::Notice(const char* Text) {
-	if (m_Client)
-		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG %s :%s", GetNick(), Text);
+	const char* Nick = GetNick();
+
+	if (m_Client && Nick)
+		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG %s :%s", Nick, Text);
 }
 
 void CBouncerUser::RealNotice(const char* Text) {
-	if (m_Client)
-		m_Client->WriteLine(":-sBNC!core@bnc.server NOTICE %s :%s", GetNick(), Text);
+	const char* Nick = GetNick();
+
+	if (m_Client && Nick)
+		m_Client->WriteLine(":-sBNC!core@bnc.server NOTICE %s :%s", Nick, Text);
 }
 
 int CBouncerUser::IRCUptime(void) {
