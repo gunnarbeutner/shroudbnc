@@ -345,9 +345,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		
 		return bRet;
 	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
-		if (m_Owner->GetDelayJoin())
+		int DelayJoin = m_Owner->GetDelayJoin();
+
+		if (DelayJoin == 1)
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
-		else
+		else if (DelayJoin == 0)
 			JoinChannels();
 
 		if (m_State != State_Connected) {

@@ -830,12 +830,12 @@ void CBouncerUser::SetVHost(const char* VHost) {
 	m_Config->WriteString("user.ip", VHost);
 }
 
-bool CBouncerUser::GetDelayJoin(void) {
-	return m_Config->ReadInteger("user.delayjoin") != 0;
+int CBouncerUser::GetDelayJoin(void) {
+	return m_Config->ReadInteger("user.delayjoin");
 }
 
-void CBouncerUser::SetDelayJoin(bool DelayJoin) {
-	m_Config->WriteInteger("user.delayjoin", DelayJoin ? 1 : 0);
+void CBouncerUser::SetDelayJoin(int DelayJoin) {
+	m_Config->WriteInteger("user.delayjoin", DelayJoin);
 }
 
 const char* CBouncerUser::GetConfigChannels(void) {

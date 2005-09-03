@@ -688,8 +688,15 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcmpi(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
-	else if (strcmpi(Type, "delayjoin") == 0)
-		return Context->GetDelayJoin() ? "1" : "0";
+	else if (strcmpi(Type, "delayjoin") == 0) {
+		int DelayJoin = Context->GetDelayJoin();
+
+		if (DelayJoin == 1)
+			return "1";
+		else if (DelayJoin == "0")
+			return "0";
+		else
+			return "-1";
 	else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
@@ -753,7 +760,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcmpi(Type, "channels") == 0)
 		Context->SetConfigChannels(Value);
 	else if (strcmpi(Type, "delayjoin") == 0)
-		Context->SetDelayJoin(atoi(Value) != 0);
+		Context->SetDelayJoin(atoi(Value));
 	else if (strcmpi(Type, "away") == 0)
 		Context->SetAwayText(Value);
 	else if (strcmp(Type, "password") == 0)

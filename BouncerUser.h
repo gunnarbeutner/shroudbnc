@@ -160,8 +160,8 @@ public:
 	virtual const char* GetVHost(void);
 	virtual void SetVHost(const char* VHost);
 
-	virtual bool GetDelayJoin(void);
-	virtual void SetDelayJoin(bool DelayJoin);
+	virtual int GetDelayJoin(void);
+	virtual void SetDelayJoin(int DelayJoin);
 
 	virtual const char* GetConfigChannels(void);
 	virtual void SetConfigChannels(const char* Channels);
