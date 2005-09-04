@@ -693,11 +693,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		if (DelayJoin == 1)
 			return "1";
-		else if (DelayJoin == "0")
+		else if (DelayJoin == 0)
 			return "0";
 		else
 			return "-1";
-	else if (strcmpi(Type, "client") == 0) {
+	} else if (strcmpi(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
 		if (!Client)
