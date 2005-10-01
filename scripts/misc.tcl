@@ -129,6 +129,10 @@ proc duration {seconds} {
 		} {set result "$result$seconds seconds "}
 	}
 
+	if {$result == ""} {
+		set result "0 seconds"
+	}
+
 	return $result
 }
 

@@ -562,9 +562,6 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	if (!IsValidUsername(Username))
 		return NULL;
 
-	if (strlen(Username) <= 3)
-		return NULL;
-
 	m_Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
 
 	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
@@ -634,7 +631,7 @@ bool CBouncerCore::IsValidUsername(const char* Username) {
 			return false;
 	}
 
-	if (strlen(Username) <= 3)
+	if (strlen(Username) == 0)
 		return false;
 	else
 		return true;

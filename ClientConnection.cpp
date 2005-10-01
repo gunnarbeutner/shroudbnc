@@ -230,7 +230,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			snprintf(Out, sizeof(Out), "appendtimestamp - %s", Config->ReadInteger("user.ts") ? "On" : "Off");
 			SENDUSER(Out);
 
-			snprintf(Out, sizeof(Out), "usequitasaway - %s", Config->ReadInteger("user.quitasaway") ? "On" : "Off");
+			snprintf(Out, sizeof(Out), "usequitasaway - %s", Config->ReadInteger("user.quitaway") ? "On" : "Off");
 			SENDUSER(Out);
 
 			const char* AutoModes = m_Owner->GetAutoModes();

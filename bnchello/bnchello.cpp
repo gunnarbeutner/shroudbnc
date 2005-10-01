@@ -17,19 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
-#include "../ModuleFar.h"
-#include "../Hashtable.h"
-#include "../Timer.h"
-#include "../BouncerCore.h"
-#include "../SocketEvents.h"
-#include "../DnsEvents.h"
-#include "../Connection.h"
-#include "../IRCConnection.h"
-#include "../ClientConnection.h"
-#include "../Channel.h"
-#include "../BouncerUser.h"
-#include "../BouncerConfig.h"
+#include "../StdAfx.h"
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -64,7 +52,7 @@ class CHelloClass : public CModuleFar {
 			m_Bot->SetRealname("Hello World BNC module");
 			m_Bot->SetServer("dk.quakenet.org");
 			m_Bot->SetPort(6667);
-			m_Bot->GetConfig()->WriteString("user.channels", "#illuminati");
+			m_Bot->SetConfigChannels("#shroudtest2");
 		}
 
 		m_Bot->ScheduleReconnect();
@@ -82,15 +70,13 @@ class CHelloClass : public CModuleFar {
 				else
 					Other = argv[2];
 
-				sprintf(Out, "PRIVMSG %s :%s", Other, IRC->GetChannel("#av")->GetChanModes());
+#undef sprintf
+				sprintf(Out, "PRIVMSG %s :%s", Other, IRC->GetChannel("#shroudtest2")->GetChanModes());
 
 				if (Other != argv[2])
 					IRC->FreeNick(const_cast<char*>(Other));
 
 				IRC->WriteLine(Out);
-
-				if (strcmp(IRC->GetChannel("#av")->GetChanModes(), "+") == 0)
-					IRC->WriteLine("MODE #av");
 			}
 		}
 

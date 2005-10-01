@@ -178,6 +178,8 @@ proc sbnc:partydetach {client} {
 }
 
 proc sbnc:partysync {client} {
+	global partyline
+
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
 	foreach chan $partyline {
