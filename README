@@ -8,7 +8,7 @@ Installation
 
 First of all make sure that you have the following libraries installed:
 
-- libadns (for asynchronois support, mandatory)
+- libadns (for asynchronois support, mandatory) and libadns-dev (the header files)
 - tcl (if you're going to use the tcl module, version 8.4 or later, earlier versions have not been tested)
 - lua (if you want to use the lua scripting language, version 5.x or later)
 

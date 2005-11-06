@@ -57,6 +57,12 @@ const char* ArgTokenize(const char* Data) {
 
 	Copy = (char*)malloc(strlen(Data) + 2);
 
+	if (Copy == NULL) {
+		g_Bouncer->Log("ArgTokenize: malloc() failed. Could not tokenize string.");
+
+		return NULL;
+	}
+
 	strcpy(Copy, Data);
 	Copy[strlen(Data) + 1] = '\0';
 
@@ -103,6 +109,9 @@ const char* ArgGet(const char* Args, int Arg) {
 int ArgCount(const char* Args) {
 	int Count = 0;
 
+	if (Args == NULL)
+		return 0;
+
 	while (true) {
 		Args += strlen(Args) + 1;
 		Count++;
@@ -116,6 +125,9 @@ const char** ArgToArray(const char* Args) {
 	int Count = ArgCount(Args);
 
 	const char** ArgArray = (const char**)malloc(Count * sizeof(const char*));
+
+	if (ArgArray == NULL)
+		return NULL;
 
 	for (int i = 0; i < Count; i++) {
 		ArgArray[i] = ArgGet(Args, i + 1);
@@ -297,6 +309,12 @@ char* NickFromHostmask(const char* Hostmask) {
 		return NULL;
 	else {
 		char* Copy = strdup(Hostmask);
+
+		if (Copy == NULL) {
+			g_Bouncer->Log("NickFromHostmask: strdup() failed. Could not parse hostmask.");
+
+			return NULL;
+		}
 
 		Copy[Ex - Hostmask] = '\0';
 

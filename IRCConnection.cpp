@@ -33,17 +33,41 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnectio
 }
 
 CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) : CConnection(INVALID_SOCKET) {
-	m_Socket = INVALID_SOCKET;
+	in_addr ip;
 
-	m_PortCache = Port;
-	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
+#ifdef _WIN32
+	ip.S_un.S_addr = inet_addr(Host);
 
-	m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
-	adns_submit(g_adns_State, Host, adns_r_a, (adns_queryflags)0, static_cast<CDnsEvents*>(this), m_AdnsQuery);
+	if (ip.S_un.S_addr == INADDR_NONE) {
+#else
+	ip.S_addr = inet_addr(Host);
 
-	m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
+	if (ip.S_addr == INADDR_NONE) {
+#endif
+		m_Socket = INVALID_SOCKET;
+		m_PortCache = Port;
+		m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
 
-	InitIrcConnection(Owning);
+		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
+		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), m_AdnsQuery);
+
+		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
+
+		InitIrcConnection(Owning);
+	} else {
+		m_PortCache = 0;
+		m_BindIpCache = NULL;
+		m_AdnsQuery = NULL;
+		m_AdnsTimeout = NULL;
+
+		InitIrcConnection(Owning);
+
+		m_Socket = SocketAndConnectResolved((in_addr)ip, Port, BindIp);
+
+		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
+
+		InitSocket();
+	}
 }
 
 void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
@@ -142,6 +166,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	const char* Reply = argv[0];
 	const char* Raw = argv[1];
 	char* Nick = ::NickFromHostmask(Reply);
+	int iRaw = atoi(Raw);
 
 	bool b_Me = false;
 	if (m_CurrentNick && Nick && strcmpi(Nick, m_CurrentNick) == 0)
@@ -163,7 +188,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	static CHashCompare hashPong("PONG");
 	// END of HASH values
 
-	if (!GetOwningClient()->GetClientConnection() && atoi(Raw) == 433) {
+	if (!GetOwningClient()->GetClientConnection() && iRaw == 433) {
 		bool Ret = ModuleEvent(argc, argv);
 
 		if (Ret)
@@ -291,7 +316,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Reply);
 
 		return bRet;
-	} else if (argc > 2 && atoi(Raw) == 1) {
+	} else if (argc > 2 && iRaw == 1) {
 		CClientConnection* Client = GetOwningClient()->GetClientConnection();
 
 		if (Client) {
@@ -344,7 +369,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		free(Nick);
 		
 		return bRet;
-	} else if (argc > 1 && (atoi(Raw) == 422 || atoi(Raw) == 376)) {
+	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
 		int DelayJoin = m_Owner->GetDelayJoin();
 
 		if (DelayJoin == 1)
@@ -400,7 +425,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
-	} else if (argc > 3 && atoi(Raw) == 465) {
+	} else if (argc > 3 && iRaw == 465) {
 		char Out[1024];
 
 		snprintf(Out, sizeof(Out), "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
@@ -410,15 +435,22 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
-	} else if (argc > 3 && atoi(Raw) == 351) {
+	} else if (argc > 3 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
 
 		free(m_ServerFeat);
 		m_ServerFeat = strdup(argv[5]);
-	} else if (argc > 3 && atoi(Raw) == 5) {
+	} else if (argc > 3 && iRaw == 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char* Dup = strdup(argv[i]);
+
+			if (Dup == NULL) {
+				g_Bouncer->Log("CIRCConnection::ParseLineArgV: strdup failed. Could not parse 005 reply.");
+
+				return false;
+			}
+
 			char* Eq = strstr(Dup, "=");
 
 			if (Eq) {
@@ -430,7 +462,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			free(Dup);
 		}
-	} else if (argc > 4 && atoi(Raw) == 324) {
+	} else if (argc > 4 && iRaw == 324) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan) {
@@ -445,24 +477,24 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			Chan->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
 
 		UpdateHostHelper(Reply);
-	} else if (argc > 4 && atoi(Raw) == 329) {
+	} else if (argc > 4 && iRaw == 329) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
 			Chan->SetCreationTime(atoi(argv[4]));
-	} else if (argc > 4 && atoi(Raw) == 332) {
+	} else if (argc > 4 && iRaw == 332) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
 			Chan->SetTopic(argv[4]);
-	} else if (argc > 5 && atoi(Raw) == 333) {
+	} else if (argc > 5 && iRaw == 333) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan) {
 			Chan->SetTopicNick(argv[4]);
 			Chan->SetTopicStamp(atoi(argv[5]));
 		}
-	} else if (argc > 3 && atoi(Raw) == 331) {
+	} else if (argc > 3 && iRaw == 331) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan) {
@@ -478,7 +510,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		UpdateHostHelper(Reply);
-	} else if (argc > 5 && atoi(Raw) == 353) {
+	} else if (argc > 5 && iRaw == 353) {
 		CChannel* Chan = GetChannel(argv[4]);
 
 		const char* nicks = ArgTokenize(argv[5]);
@@ -509,12 +541,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		ArgFreeArray(nickv);
 		ArgFree(nicks);
-	} else if (argc > 3 && atoi(Raw) == 366) {
+	} else if (argc > 3 && iRaw == 366) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
 			Chan->SetHasNames();
-	} else if (argc > 7 && atoi(Raw) == 352) {
+	} else if (argc > 7 && iRaw == 352) {
 		const char* Ident = argv[4];
 		const char* Host = argv[5];
 		const char* Nick = argv[7];
@@ -526,12 +558,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Mask);
 
 		free(Mask);
-	} else if (argc > 6 && atoi(Raw) == 367) {
+	} else if (argc > 6 && iRaw == 367) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
 			Chan->GetBanlist()->SetBan(argv[4], argv[5], atoi(argv[6]));
-	} else if (argc > 1 && atoi(Raw) == 368) {
+	} else if (argc > 1 && iRaw == 368) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
@@ -563,8 +595,20 @@ void CIRCConnection::ParseLine(const char* Line) {
 
 	const char* Args = ArgParseServerLine(Line);
 
+	if (Args == NULL) {
+		g_Bouncer->Log("CIRCConnection::ParseLine: ArgParseServerLine returned NULL. Could not parse line.");
+
+		return;
+	}
+
 	const char** argv = ArgToArray(Args);
 	int argc = ArgCount(Args);
+
+	if (argv == NULL) {
+		g_Bouncer->Log("CIRCConnection::ParseLine: ArgToArray returned NULL. Could not parse line.");
+
+		return;
+	}
 
 	if (ParseLineArgV(argc, argv)) {
 		if (strcmpi(argv[0], "ping") == 0 && argc > 1) {
@@ -632,6 +676,12 @@ void CIRCConnection::UpdateChannelConfig(void) {
 
 		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
 
+		if (Out == NULL) {
+			g_Bouncer->Log("CIRCConnection::UpdateChannelConfig: realloc() failed. Channel config file might be out of date.");
+
+			return;
+		}
+
 		if (!WasNull)
 			strcat(Out, ",");
 		else
@@ -678,6 +728,13 @@ void CIRCConnection::Write(void) {
 		return;
 
 	char* Copy = (char*)malloc(strlen(Line) + 2);
+
+	if (Copy == NULL) {
+		g_Bouncer->Log("CIRCConnection::Write: malloc() failed. Line was lost.");
+
+		return;
+	}
+
 	snprintf(Copy, strlen(Line) + 2, "%s\n", Line);
 
 	send(m_Socket, Copy, strlen(Copy), 0);
@@ -704,6 +761,12 @@ bool CIRCConnection::IsChanMode(char Mode) {
 int CIRCConnection::RequiresParameter(char Mode) {
 	char* Modes = strdup(GetISupport("CHANMODES"));
 
+	if (Modes == NULL) {
+		g_Bouncer->Log("CIRCConnection::RequiresParameter: strdup() failed.");
+
+		return 0;
+	}
+
 	for (unsigned int i = 0; i < strlen(Modes); i++) {
 		if (Modes[i] == ',')
 			Modes[i] = ' ';
@@ -711,9 +774,26 @@ int CIRCConnection::RequiresParameter(char Mode) {
 
 	const char* Args = ArgTokenize(Modes);
 
+	if (Args == NULL) {
+		g_Bouncer->Log("CIRCConnection::RequiresParameter: ArgTokenize() failed.");
+
+		free(Modes);
+
+		return 0;
+	}
+
 	free(Modes);
 
 	const char** argv = ArgToArray(Args);
+
+	if (argv == NULL) {
+		g_Bouncer->Log("CIRCConnection::RequiresParameter: ArgToArray() failed.");
+
+		ArgFree(Args);
+
+		return 0;
+	}
+
 	int argc = ArgCount(Args);
 	int RetVal = 0;
 
@@ -801,6 +881,13 @@ CBouncerConfig* CIRCConnection::GetISupportAll(void) {
 
 void CIRCConnection::UpdateHostHelper(const char* Host) {
 	char* Copy = strdup(Host);
+
+	if (Copy == NULL) {
+		g_Bouncer->Log("CIRCConnection::UpdateHostHelper: strdup() failed. Could not update hostmask.");
+
+		return;
+	}
+
 	const char* Nick = Copy;
 	char* Site = strstr(Copy, "!");
 
@@ -845,6 +932,7 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
 
+/* TODO: this is inconsistent with ircu .12 behaviour regarding keys. fix */
 void CIRCConnection::JoinChannels(void) {
 	if (m_DelayJoinTimer) {
 		m_DelayJoinTimer->Destroy();
@@ -857,6 +945,7 @@ void CIRCConnection::JoinChannels(void) {
 		char* dup = strdup(Chans);
 		char* tok = strtok(dup, ",");
 		char* Keys = NULL;
+		char* tempKeys;
 		CKeyring* Keyring = m_Owner->GetKeyring();
 
 		while (tok) {
@@ -865,8 +954,13 @@ void CIRCConnection::JoinChannels(void) {
 			if (Key) {
 				bool Valid = (Keys != NULL);
 
-				Keys = (char*)realloc(Keys, (Keys ? strlen(Keys) : 0) + strlen(Key) + 2);
+				tempKeys = (char*)realloc(Keys, (Keys ? strlen(Keys) : 0) + strlen(Key) + 2);
 				
+				if (tempKeys == NULL)
+					break;
+
+				Keys = tempKeys;
+
 				if (Valid)
 					strcat(Keys, ",");
 				else

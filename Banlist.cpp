@@ -38,7 +38,7 @@ CBanlist::~CBanlist() {
 	delete m_Bans;
 }
 
-void CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
+bool CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
 	ban_t* Obj = (ban_t*)malloc(sizeof(ban_t));
 
 	if (Obj) {
@@ -46,13 +46,16 @@ void CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
 		Obj->Nick = strdup(Nick);
 		Obj->TS = TS;
 
-		m_Bans->Add(Mask, Obj);
-	}
+		return m_Bans->Add(Mask, Obj);
+	} else
+		return false;
 }
 
-void CBanlist::UnsetBan(const char* Mask) {
+bool CBanlist::UnsetBan(const char* Mask) {
 	if (Mask != NULL)
-		m_Bans->Remove(Mask);
+		return m_Bans->Remove(Mask);
+	else
+		return false;
 }
 
 const ban_t* CBanlist::Iterate(int Skip) {

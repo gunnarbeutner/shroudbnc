@@ -41,6 +41,12 @@ CConnection::CConnection(SOCKET Client) {
 	m_SendQ = new CFIFOBuffer();
 	m_RecvQ = new CFIFOBuffer();
 
+	if (m_SendQ == NULL || m_RecvQ == NULL) {
+		g_Bouncer->Log("CConnection::CConnection: new operator failed. Sendq/recvq could not be created.");
+
+		Kill("Internal error.");
+	}
+
 	InitSocket();
 }
 
@@ -122,7 +128,12 @@ bool CConnection::Read(bool DontProcess) {
 }
 
 void CConnection::Write(void) {
-	unsigned int Size = m_SendQ->GetSize();
+	unsigned int Size;
+
+	if (m_SendQ)
+		Size = m_SendQ->GetSize();
+	else
+		Size = 0;
 
 	if (Size > 0) {
 		int n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
@@ -144,8 +155,12 @@ void CConnection::Write(void) {
 void CConnection::ReadLines(void) {
 	char* recvq = m_RecvQ->Peek();
 	char* line = recvq;
+	unsigned int Size;
+	
+	if (m_RecvQ == NULL)
+		return;
 
-	unsigned int Size = m_RecvQ->GetSize();
+	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
 		if (recvq[i] == '\n' || recvq[i] == '\r') {
@@ -163,17 +178,24 @@ void CConnection::ReadLines(void) {
 
 // inefficient -- avoid this function at all costs, use ReadLines() instead
 bool CConnection::ReadLine(char** Out) {
-	char* old_recvq = m_RecvQ->Peek();
+	char* old_recvq;
+	unsigned int Size;
+	char* Pos = NULL;
+
+	if (m_RecvQ == NULL) {
+		*Out = NULL;
+		return false;
+	}
+
+	old_recvq = m_RecvQ->Peek();
 
 	if (!old_recvq)
 		return false;
 
-	char* Pos = NULL;
-
-	unsigned int Size = m_RecvQ->GetSize();
+	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
-		if (old_recvq[i] == '\n') {
+		if (old_recvq[i] == '\r' || old_recvq[i] == '\n') {
 			Pos = old_recvq + i;
 			break;
 		}
@@ -196,7 +218,8 @@ void CConnection::InternalWriteLine(const char* In) {
 	if (m_Locked || m_Shutdown)
 		return;
 
-	m_SendQ->WriteLine(In);
+	if (m_SendQ)
+		m_SendQ->WriteLine(In);
 }
 
 void CConnection::WriteLine(const char* Format, ...) {
@@ -244,16 +267,25 @@ void CConnection::Kill(const char* Error) {
 }
 
 bool CConnection::HasQueuedData(void) {
-	return m_SendQ->GetSize() > 0;
+	if (m_SendQ)
+		return m_SendQ->GetSize() > 0;
+	else
+		return 0;
 }
 
 
 int CConnection::SendqSize(void) {
-	return m_SendQ->GetSize();
+	if (m_SendQ)
+		return m_SendQ->GetSize();
+	else
+		return 0;
 }
 
 int CConnection::RecvqSize(void) {
-	return m_RecvQ->GetSize();
+	if (m_RecvQ)
+		return m_RecvQ->GetSize();
+	else
+		return 0;
 }
 
 void CConnection::Error(void) {
@@ -307,5 +339,6 @@ const char* CConnection::ClassName(void) {
 }
 
 void CConnection::FlushSendQ(void) {
-	m_SendQ->Flush();
+	if (m_SendQ)
+		m_SendQ->Flush();
 }

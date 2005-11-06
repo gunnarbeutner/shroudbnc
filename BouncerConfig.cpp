@@ -36,16 +36,20 @@ CBouncerConfig::CBouncerConfig(const char* Filename) {
 		m_File = NULL;
 }
 
-void CBouncerConfig::ParseConfig(const char* Filename) {
+bool CBouncerConfig::ParseConfig(const char* Filename) {
 	char Line[4096];
+	char* dupEq;
 
 	if (!Filename)
-		return;
+		return false;
 
 	FILE* Conf = fopen(Filename, "r");
 
-	if (!Conf)
-		return;
+	if (!Conf) {
+		g_Bouncer->Log("CBouncerConfig::ParseConfig: Config file %s could not be opened.", Filename);
+
+		return false;
+	}
 
 	m_WriteLock = true;
 
@@ -63,13 +67,30 @@ void CBouncerConfig::ParseConfig(const char* Filename) {
 		if (Eq) {
 			*Eq = '\0';
 
-			m_Settings->Add(Line, strdup(++Eq));
+			dupEq = strdup(++Eq);
+
+			if (dupEq == NULL) {
+				if (g_Bouncer != NULL)
+					g_Bouncer->Log("CBouncerConfig::ParseConfig: strdup() failed. Config option lost.");
+				else {
+					printf("CBouncerConfig::ParseConfig: strdup() failed. Config could not be parsed.");
+
+					exit(0);
+				}
+
+
+				continue;
+			}
+
+			m_Settings->Add(Line, dupEq);
 		}
 	}
 
 	fclose(Conf);
 
 	m_WriteLock = false;
+
+	return true;
 }
 
 CBouncerConfig::~CBouncerConfig() {
@@ -87,27 +108,35 @@ int CBouncerConfig::ReadInteger(const char* Setting) {
 	return Value ? atoi(Value) : 0;
 }
 
-void CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
+bool CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
 	char ValueStr[50];
 
 	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
 
-	WriteString(Setting, ValueStr);
+	return WriteString(Setting, ValueStr);
 }
 
-void CBouncerConfig::WriteString(const char* Setting, const char* Value) {
+bool CBouncerConfig::WriteString(const char* Setting, const char* Value) {
+	bool RetVal;
+
 	if (Value)
-		m_Settings->Add(Setting, strdup(Value));
+		RetVal = m_Settings->Add(Setting, strdup(Value));
 	else
-		m_Settings->Remove(Setting);
+		RetVal = m_Settings->Remove(Setting);
+
+	if (RetVal == false)
+		return false;
 
 	if (!m_WriteLock)
-		Persist();
+		if (Persist() == false)
+			return false;
+
+	return true;
 }
 
-void CBouncerConfig::Persist(void) {
+bool CBouncerConfig::Persist(void) {
 	if (!m_File)
-		return;
+		return false;
 
 	FILE* Config = fopen(m_File, "w");
 
@@ -120,6 +149,12 @@ void CBouncerConfig::Persist(void) {
 		}
 
 		fclose(Config);
+
+		return true;
+	} else {
+		g_Bouncer->Log("CBouncerConfig::Persist: Config file %s could not be opened.", m_File);
+
+		return false;
 	}
 }
 

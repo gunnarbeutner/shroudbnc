@@ -37,8 +37,8 @@ public:
 
 	virtual char* DequeueItem(void);
 	virtual const char* PeekItem(void);
-	virtual void QueueItem(const char* Item);
-	virtual void QueueItemNext(const char* Item);
+	virtual bool QueueItem(const char* Item);
+	virtual bool QueueItemNext(const char* Item);
 	virtual int GetQueueSize(void);
 	virtual void FlushQueue(void);
 };

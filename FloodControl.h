@@ -53,8 +53,8 @@ public:
 	virtual ~CFloodControl(void);
 
 	virtual char* DequeueItem(bool Peek = false);
-	virtual void QueueItem(const char* Item);
-	virtual void QueueItemNext(const char* Item);
+	virtual bool QueueItem(const char* Item);
+	virtual bool QueueItemNext(const char* Item);
 	virtual int GetQueueSize(void);
 
 	virtual void AttachInputQueue(CQueue* Queue, int Priority);

@@ -950,7 +950,16 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 							char outPref[2] = { Chan->GetHighestUserFlag(Prefix), '\0' };
 
+							if (Nick == NULL)
+								continue;
+
 							Nicks = (char*)realloc(Nicks, (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2);
+
+							if (Nicks == NULL) {
+								Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
+
+								return false;
+							}
 
 							if (*Nicks)
 								strcat(Nicks, " ");
@@ -962,6 +971,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 
 								Nicks = (char*)realloc(Nicks, 1);
+
+								if (Nicks == NULL) {
+									Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
+
+									return false;
+								}
+
 								*Nicks = '\0';
 							}
 						}
@@ -999,6 +1015,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 						Feats = (char*)realloc(Feats, (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2);
 
+						if (Feats == NULL) {
+							Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
+
+							return false;
+						}
+
+
 						if (*Feats)
 							strcat(Feats, " ");
 
@@ -1013,6 +1036,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							WriteLine(":%s 005 %s %s :are supported by this server", IRC->GetServer(), IRC->GetCurrentNick(), Feats);
 
 							Feats = (char*)realloc(Feats, 1);
+
+							if (Feats == NULL) {
+								Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
+
+								return false;
+							}
+
 							*Feats = '\0';
 							a = 0;
 						}

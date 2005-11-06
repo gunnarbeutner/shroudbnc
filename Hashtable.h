@@ -71,9 +71,13 @@ public:
 		return Out & (Size - 1);
 	}
 
-	void Add(const char* Key, Type Value) {
+	bool Add(const char* Key, Type Value) {
+		char* dupKey = NULL;
+		char** newKeys;
+		Type* newValues;
+
 		if (!Key)
-			return;
+			return false;
 
 		Remove(Key);
 
@@ -81,15 +85,37 @@ public:
 
 		P->subcount++;
 
-		P->keys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
-		P->values = (Type*)realloc(P->values, P->subcount * sizeof(Type));
+		if (!VolatileKeys)
+			dupKey = strdup(Key);
+
+		if (VolatileKeys || dupKey)
+			newKeys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
+
+		if ((VolatileKeys || dupKey) && newKeys)
+			newValues = (Type*)realloc(P->values, P->subcount * sizeof(Type));
+
+		if ((!VolatileKeys && dupKey == NULL) || newKeys == NULL || newValues == NULL) {
+			if (g_Bouncer)
+				g_Bouncer->Log("CHashtable::Add: strdup() or realloc() failed. Key/value pair was lost.");
+			else
+				printf("CHashtable::Add: strdup() or realloc() failed. Key/value pair was lost.\n");
+
+			P->subcount--;
+
+			return false;
+		}
+
+		P->keys = newKeys;
+		P->values = newValues;
 
 		if (VolatileKeys)
 			P->keys[P->subcount - 1] = const_cast<char*>(Key);
 		else
-			P->keys[P->subcount - 1] = strdup(Key);
+			P->keys[P->subcount - 1] = dupKey;
 
 		P->values[P->subcount -1] = Value;
+
+		return true;
 	}
 
 	Type Get(const char* Key) {
@@ -118,14 +144,14 @@ public:
 		return Count;
 	}
 
-	void Remove(const char* Key, bool NoRelease = false) {
+	bool Remove(const char* Key, bool NoRelease = false) {
 		if (!Key)
-			return;
+			return false;
 
 		hash_t<Type>* P = &m_Items[Hash(Key)];
 
 		if (P->subcount == 0)
-			return;
+			return true;
 		else if (P->subcount == 1 && (CaseSensitive ? strcmp(P->keys[0], Key) : strcmpi(P->keys[0], Key)) == 0) {
 			if (m_DestructorFunc && !NoRelease)
 				m_DestructorFunc(P->values[0]);
@@ -156,6 +182,8 @@ public:
 				}
 			}
 		}
+
+		return true;
 	}
 
 	void RegisterValueDestructor(DestroyValue* Func) {

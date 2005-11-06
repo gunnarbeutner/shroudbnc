@@ -32,7 +32,7 @@ class CChannel {
 
 	chanmode_t* m_Modes;
 	int m_ModeCount;
-	char m_TempModes[1024];
+	char* m_TempModes;
 
 	char* m_Topic;
 	char* m_TopicNick;

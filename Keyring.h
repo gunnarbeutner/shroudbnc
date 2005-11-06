@@ -27,8 +27,8 @@ public:
 	virtual ~CKeyring(void);
 
 	virtual const char* GetKey(const char* Channel);
-	virtual void AddKey(const char* Channel, const char* Key);
-	virtual void DeleteKey(const char* Channel);
+	virtual bool AddKey(const char* Channel, const char* Key);
+	virtual bool DeleteKey(const char* Channel);
 private:
 	CBouncerConfig* m_Config;
 };

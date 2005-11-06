@@ -34,26 +34,26 @@ public:
 	virtual ~CNick(void);
 
 	virtual const char* GetNick(void);
-	virtual void SetNick(const char* Nick);
+	virtual bool SetNick(const char* Nick);
 
 	virtual bool IsOp(void);
 	virtual bool IsVoice(void);
 	virtual bool IsHalfop(void);
 
 	virtual bool HasPrefix(char Prefix);
-	virtual void AddPrefix(char Prefix);
-	virtual void RemovePrefix(char Prefix);
-	virtual void SetPrefixes(const char* Prefixes);
+	virtual bool AddPrefix(char Prefix);
+	virtual bool RemovePrefix(char Prefix);
+	virtual bool SetPrefixes(const char* Prefixes);
 	virtual const char* GetPrefixes(void);
 
-	virtual void SetSite(const char* Site);
+	virtual bool SetSite(const char* Site);
 	virtual const char* GetSite(void);
 
 	virtual time_t GetChanJoin(void);
 	virtual time_t GetIdleSince(void);
-	virtual void SetIdleSince(time_t Time);
+	virtual bool SetIdleSince(time_t Time);
 	
-	virtual void SetTag(const char* Name, const char* Value);
+	virtual bool SetTag(const char* Name, const char* Value);
 	virtual const char* GetTag(const char* Name);
 };
 

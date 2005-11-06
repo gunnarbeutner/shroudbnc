@@ -53,6 +53,10 @@ void CFIFOBuffer::Optimize(void) {
 		return;
 
 	char* NewBuffer = (char*)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
+
+	if (NewBuffer == NULL)
+		return;
+
 	memcpy(NewBuffer, m_Buffer + m_Offset, m_BufferSize - m_Offset);
 
 	free(m_Buffer);
@@ -79,7 +83,15 @@ char* CFIFOBuffer::Read(unsigned int Bytes) {
 }
 
 void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
-	m_Buffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
+	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
+
+	if (tempBuffer == NULL) {
+		g_Bouncer->Log("CFIFOBuffer::Write: realloc() failed. Lost %d bytes.", Size);
+
+		return;
+	}
+
+	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Buffer, Size);
 	m_BufferSize += Size;
 }
@@ -87,7 +99,15 @@ void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
 void CFIFOBuffer::WriteLine(const char* Line) {
 	unsigned int Len = strlen(Line);
 
-	m_Buffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
+	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
+
+	if (tempBuffer == NULL) {
+		g_Bouncer->Log("CFIFOBuffer::WriteLine: realloc failed(). Lost %d bytes.", Len + 2);
+
+		return;
+	}
+
+	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Line, Len);
 	memcpy(m_Buffer + m_BufferSize + Len, "\r\n", 2);
 	m_BufferSize += Len + 2;

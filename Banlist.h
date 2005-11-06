@@ -15,8 +15,8 @@ public:
 	virtual ~CBanlist();
 #endif
 
-	virtual void SetBan(const char* Mask, const char* Nick, time_t TS);
-	virtual void UnsetBan(const char* Mask);
+	virtual bool SetBan(const char* Mask, const char* Nick, time_t TS);
+	virtual bool UnsetBan(const char* Mask);
 
 	virtual const ban_t* CBanlist::GetBan(const char* Mask);
 	virtual const ban_t* Iterate(int Skip);

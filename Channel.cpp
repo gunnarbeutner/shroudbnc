@@ -69,6 +69,13 @@ const char* CChannel::GetName(void) {
 
 const char* CChannel::GetChanModes(void) {
 	int i;
+	size_t Size;
+
+	if (m_TempModes)
+		return m_TempModes;
+
+	Size = 1024;
+	m_TempModes = (char*)malloc(Size);
 
 	strcpy(m_TempModes, "+");
 
@@ -89,6 +96,15 @@ const char* CChannel::GetChanModes(void) {
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
 			strcat(m_TempModes, " ");
+
+			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
+				Size += 1024;
+				m_TempModes = (char*)realloc(m_TempModes, Size);
+
+				if (m_TempModes == NULL)
+					return "";
+			}
+
 			strcat(m_TempModes, m_Modes[i].Parameter);
 		}
 	}
@@ -99,6 +115,12 @@ const char* CChannel::GetChanModes(void) {
 void CChannel::ParseModeChange(const char* source, const char* modes, int pargc, const char** pargv) {
 	bool flip = true;
 	int p = 0;
+
+	/* free any cached chanmodes */
+	if (m_TempModes) {
+		free(m_TempModes);
+		m_TempModes = NULL;
+	}
 
 	CModule** Modules = g_Bouncer->GetModules();
 	int Count = g_Bouncer->GetModuleCount();
@@ -169,6 +191,13 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 			else
 				Slot = AllocSlot();
 
+			if (Slot == NULL) {
+				if (ModeType)
+					p++;
+
+				continue;
+			}
+
 			Slot->Mode = Cur;
 			
 			if (ModeType)
@@ -190,12 +219,22 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 }
 
 chanmode_t* CChannel::AllocSlot(void) {
+	chanmode_t* Modes;
+
 	for (int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode == '\0')
 			return &m_Modes[i];
 	}
 
-	m_Modes = (chanmode_t*)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
+	Modes = (chanmode_t*)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
+
+	if (Modes == NULL) {
+		g_Bouncer->Log("CChannel::AllocSlot: realloc() failed. Could not allocate slot for channel mode.");
+
+		return NULL;
+	}
+
+	m_Modes = Modes;
 	m_Modes[m_ModeCount - 1].Parameter = NULL;
 	return &m_Modes[m_ModeCount - 1];
 }

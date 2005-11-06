@@ -442,6 +442,7 @@ int CBouncerCore::GetModuleCount(void) {
 
 CModule* CBouncerCore::LoadModule(const char* Filename) {
 	CModule* Mod = new CModule(Filename);
+	CModule** Modules;
 
 	for (int i = 0; i < m_ModuleCount; i++) {
 		if (m_Modules[i] && m_Modules[i]->GetHandle() == Mod->GetHandle()) {
@@ -452,7 +453,17 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 	}
 
 	if (Mod->GetModule()) {
-		m_Modules = (CModule**)realloc(m_Modules, sizeof(CModule*) * ++m_ModuleCount);
+		Modules = (CModule**)realloc(m_Modules, sizeof(CModule*) * ++m_ModuleCount);
+
+		if (Modules == NULL) {
+			--m_ModuleCount;
+
+			delete Mod;
+
+			return NULL;
+		}
+
+		m_Modules = Modules;
 		m_Modules[m_ModuleCount - 1] = Mod;
 
 		Log("Loaded module: %s", Mod->GetFilename());
@@ -488,7 +499,7 @@ bool CBouncerCore::UnloadModule(CModule* Module) {
 }
 
 void CBouncerCore::UpdateModuleConfig(void) {
-	char Out[1024];
+	char Out[50];
 	int a = 0;
 
 	for (int i = 0; i < m_ModuleCount; i++) {
@@ -505,6 +516,15 @@ void CBouncerCore::UpdateModuleConfig(void) {
 
 void CBouncerCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
 	m_OtherSockets = (socket_s*)realloc(m_OtherSockets, sizeof(socket_s) * ++m_OtherSocketCount);
+
+	/* TODO: can we safely recover from this situation? return value maybe? */
+	if (m_OtherSockets == NULL) {
+		Log("CBouncerCore::RegisterSocket: realloc() failed.");
+
+		Shutdown();
+
+		return;
+	}
 
 	m_OtherSockets[m_OtherSocketCount - 1].Socket = Socket;
 	m_OtherSockets[m_OtherSocketCount - 1].Events = EventInterface;
@@ -552,6 +572,8 @@ void CBouncerCore::Shutdown(void) {
 
 CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {
 	CBouncerUser* U = GetUser(Username);
+	CBouncerUser** Users;
+
 	if (U) {
 		if (Password)
 			U->SetPassword(Password);
@@ -562,8 +584,12 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	if (!IsValidUsername(Username))
 		return NULL;
 
-	m_Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
+	Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
 
+	if (Users == NULL)
+		return NULL;
+
+	m_Users = Users;
 	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
 
 	if (Password)
@@ -648,6 +674,11 @@ void CBouncerCore::UpdateUserConfig(void) {
 				WasNull = true;
 
 			Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
+
+			if (Out == NULL) {
+				Log("CBouncerCore::UpdateUserConfig: realloc() failed. Userlist in sbnc.conf might be out of date.");
+				return;
+			}
 
 			if (WasNull)
 				*Out = '\0';
@@ -808,6 +839,13 @@ void CBouncerCore::RegisterTimer(CTimer* Timer) {
 		last = last->next;
 
 	last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
+
+	if (last->next == NULL) {
+		g_Bouncer->Log("CBouncerCore::RegisterTimer: malloc() failed. Timer could not be registered.");
+
+		return;
+	}
+
 	last->ptr = Timer;
 
 	last->next->next = NULL;

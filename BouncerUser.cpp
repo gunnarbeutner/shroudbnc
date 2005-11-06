@@ -30,12 +30,24 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_IRC = NULL;
 	m_Name = strdup(Name);
 
+	if (m_Name == NULL) {
+		g_Bouncer->Log("CBouncerUser::CBouncerUser: strdup() failed. Could not create user.");
+
+		g_Bouncer->Shutdown();
+	}
+
 	assert(m_Name != NULL);
 
 	char Out[1024];
 	snprintf(Out, sizeof(Out), "users/%s.conf", Name);
 
 	m_Config = new CBouncerConfig(Out);
+
+	if (m_Config == NULL) {
+		g_Bouncer->Log("CBouncerUser::CBouncerUser: new operator failed. Could not create user.");
+
+		g_Bouncer->Shutdown();
+	}
 
 	assert(m_Config != NULL);
 
@@ -282,6 +294,12 @@ void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) 
 		return;
 
 	char* C = strdup(Command);
+
+	if (C == NULL) {
+		g_Bouncer->Log("CBouncerUser::Simulate: strdup() failed. Could not simulate command.");
+
+		return;
+	}
 
 	if (m_Client)
 		m_Client->ParseLine(C);
@@ -640,6 +658,8 @@ void CBouncerUser::MarkQuitted(void) {
 }
 
 void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
+	badlogin_t* BadLogins;
+
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].count < 3) {
@@ -661,8 +681,15 @@ void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 		}
 	}
 
-	m_BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
+	BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
 
+	if (BadLogins) {
+		g_Bouncer->Log("CBouncerUser::LogBadLogin: realloc() failed. Could not add new item.");
+
+		return;
+	}
+
+	m_BadLogins = BadLogins;
 	m_BadLogins[m_BadLoginCount - 1].ip = Peer;
 	m_BadLogins[m_BadLoginCount - 1].count = 1;
 }
@@ -692,6 +719,8 @@ void CBouncerUser::BadLoginPulse(void) {
 }
 
 void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
+	char** HostAllows;
+
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
 		if (!m_HostAllows[i]) {
 			m_HostAllows[i] = strdup(Mask);
@@ -703,7 +732,15 @@ void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 		}
 	}
 
-	m_HostAllows = (char**)realloc(m_HostAllows, sizeof(char*) * ++m_HostAllowCount);
+	HostAllows = (char**)realloc(m_HostAllows, sizeof(char*) * ++m_HostAllowCount);
+
+	if (HostAllows == NULL) {
+		g_Bouncer->Log("CBouncerUser::AddHostAllow: realloc() failed. Host could not be added.");
+
+		return;
+	}
+
+	m_HostAllows = HostAllows;
 	m_HostAllows[m_HostAllowCount - 1] = strdup(Mask);
 
 	if (UpdateConfig)

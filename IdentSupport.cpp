@@ -37,6 +37,12 @@ void CIdentSupport::SetIdent(const char* Ident) {
 
 	char* Out = (char*)malloc(strlen(homedir) + 50);
 
+	if (Out == NULL) {
+		g_Bouncer->Log("CIdentSupport::SetIdent: malloc failed. Could not set new ident.");
+
+		return;
+	}
+
 	if (homedir) {
 		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
 
@@ -59,6 +65,9 @@ void CIdentSupport::SetIdent(const char* Ident) {
 
 	free(m_Ident);
 	m_Ident = strdup(Ident);
+
+	if (m_Ident == NULL)
+		g_Bouncer->Log("CIdentSupport::SetIdent: strdup failed. Could not set new ident.");
 }
 
 const char* CIdentSupport::GetIdent(void) {

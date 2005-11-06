@@ -23,8 +23,8 @@ class CBouncerConfig {
 	char* m_File;
 	bool m_WriteLock;
 
-	void ParseConfig(const char* Filename);
-	void Persist(void);
+	bool ParseConfig(const char* Filename);
+	bool Persist(void);
 public:
 #ifndef SWIG
 	CBouncerConfig(const char* Filename);
@@ -34,8 +34,8 @@ public:
 	virtual int ReadInteger(const char* Setting);
 	virtual const char* ReadString(const char* Setting);
 
-	virtual void WriteInteger(const char* Setting, const int Value);
-	virtual void WriteString(const char* Setting, const char* Value);
+	virtual bool WriteInteger(const char* Setting, const int Value);
+	virtual bool WriteString(const char* Setting, const char* Value);
 
 	virtual xhash_t<char*>* Iterate(int Index);
 

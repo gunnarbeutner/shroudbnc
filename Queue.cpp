@@ -74,31 +74,42 @@ char* CQueue::DequeueItem(void) {
 		return NULL;
 }
 
-void CQueue::QueueItem(const char* Item) {
+bool CQueue::QueueItem(const char* Item) {
+	queue_item_t* Items;
+
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (!m_Items[i].Valid) {
 			m_Items[i].Priority = 0;
 			m_Items[i].Line = strdup(Item);
 			m_Items[i].Valid = true;
 
-			return;
+			return true;
 		}
 	}
 
-	m_Items = (queue_item_t*)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
+	Items = (queue_item_t*)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
 
+	if (Items == NULL) {
+		g_Bouncer->Log("CQueue::QueueItem: realloc() failed. An item was lost.");
+
+		return false;
+	}
+
+	m_Items = Items;
 	m_Items[m_ItemCount - 1].Priority = 0;
 	m_Items[m_ItemCount - 1].Line = strdup(Item);
 	m_Items[m_ItemCount - 1].Valid = true;
+
+	return true;
 }
 
-void CQueue::QueueItemNext(const char* Item) {
+bool CQueue::QueueItemNext(const char* Item) {
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (m_Items[i].Valid)
 			m_Items[i].Priority++;
 	}
 
-	QueueItem(Item);
+	return QueueItem(Item);
 }
 
 int CQueue::GetQueueSize(void) {

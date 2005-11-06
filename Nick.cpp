@@ -28,7 +28,13 @@ void DestroyCNick(CNick* P) {
 //////////////////////////////////////////////////////////////////////
 
 CNick::CNick(const char* Nick) {
+	assert(Nick != NULL);
+
 	m_Nick = strdup(Nick);
+
+	if (m_Nick == NULL && Nick)
+		g_Bouncer->Log("CNick::CNick: strdup() failed. Nick was lost.");
+
 	m_Prefixes = NULL;
 	m_Site = NULL;
 
@@ -69,20 +75,30 @@ bool CNick::HasPrefix(char Prefix) {
 		return false;
 }
 
-void CNick::AddPrefix(char Prefix) {
+bool CNick::AddPrefix(char Prefix) {
+	char* Prefixes;
 	int n = m_Prefixes ? strlen(m_Prefixes) : 0;
 
-	m_Prefixes = (char*)realloc(m_Prefixes, n + 2);
+	Prefixes = (char*)realloc(m_Prefixes, n + 2);
 
+	if (Prefixes == NULL) {
+		g_Bouncer->Log("CNick::AddPrefix: realloc() failed. Prefixes for nick %s might be inconsistent.", m_Nick);
+
+		return false;
+	}
+
+	m_Prefixes = Prefixes;
 	m_Prefixes[n] = Prefix;
 	m_Prefixes[n + 1] = '\0';
+
+	return true;
 }
 
-void CNick::RemovePrefix(char Prefix) {
+bool CNick::RemovePrefix(char Prefix) {
 	int a = 0;
 
 	if (!m_Prefixes)
-		return;
+		return true;
 
 	char* Copy = (char*)malloc(strlen(m_Prefixes) + 1);
 
@@ -95,25 +111,53 @@ void CNick::RemovePrefix(char Prefix) {
 
 	free(m_Prefixes);
 	m_Prefixes = Copy;
+
+	return true;
 }
 
-void CNick::SetPrefixes(const char* Prefixes) {
-	free(m_Prefixes);
+bool CNick::SetPrefixes(const char* Prefixes) {
+	char* dupPrefixes;
 
-	if (Prefixes)
-		m_Prefixes = strdup(Prefixes);
-	else
+	if (Prefixes) {
+		dupPrefixes = strdup(Prefixes);
+
+		if (dupPrefixes == NULL) {
+			g_Bouncer->Log("CNick::SetPrefixes: strdup() failed. New prefixes were lost.");
+
+			return false;
+		} else {
+			free(m_Prefixes);
+			m_Prefixes = dupPrefixes;
+
+			return true;
+		}
+	} else {
+		free(m_Prefixes);
 		m_Prefixes = NULL;
+
+		return true;
+	}
 }
 
 const char* CNick::GetPrefixes(void) {
 	return m_Prefixes;
 }
 
-void CNick::SetSite(const char* Site) {
-	free(m_Site);
+bool CNick::SetSite(const char* Site) {
+	char* dupSite;
 
-	m_Site = strdup(Site);
+	dupSite = strdup(Site);
+
+	if (dupSite == NULL) {
+		g_Bouncer->Log("CNick::SetSite: strdup() failed. New site was lost.");
+
+		return false;
+	} else {
+		free(m_Site);
+		m_Site = dupSite;
+
+		return true;
+	}
 }
 
 const char* CNick::GetSite(void) {
@@ -128,10 +172,19 @@ const char* CNick::GetSite(void) {
 		return m_Site;
 }
 
-void CNick::SetNick(const char* Nick) {
+bool CNick::SetNick(const char* Nick) {
+	assert(Nick != NULL);
+
 	free(m_Nick);
 
 	m_Nick = strdup(Nick);
+
+	if (m_Nick == NULL && Nick) {
+		g_Bouncer->Log("CNick::SetNick: strdup() failed. Nick was lost.");
+
+		return false;
+	} else
+		return true;
 }
 
 time_t CNick::GetChanJoin(void) {
@@ -142,15 +195,24 @@ time_t CNick::GetIdleSince(void) {
 	return m_IdleSince;
 }
 
-void CNick::SetIdleSince(time_t Time) {
+bool CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
+
+	return true;
 }
 
-void CNick::SetTag(const char* Name, const char* Value) {
-	if (m_Tags == NULL)
+bool CNick::SetTag(const char* Name, const char* Value) {
+	if (m_Tags == NULL) {
 		m_Tags = new CBouncerConfig(NULL);
 
-	m_Tags->WriteString(Name, Value);
+		if (m_Tags == NULL) {
+			g_Bouncer->Log("CNick::SetTag: new operator failed. Tag was lost.");
+
+			return false;
+		}
+	}
+
+	return m_Tags->WriteString(Name, Value);
 }
 
 const char* CNick::GetTag(const char* Name) {
