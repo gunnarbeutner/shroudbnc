@@ -40,9 +40,9 @@ CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUs
 
 	if (ip.S_un.S_addr == INADDR_NONE) {
 #else
-	ip.S_addr = inet_addr(Host);
+	ip.s_addr = inet_addr(Host);
 
-	if (ip.S_addr == INADDR_NONE) {
+	if (ip.s_addr == INADDR_NONE) {
 #endif
 		m_Socket = INVALID_SOCKET;
 		m_PortCache = Port;
