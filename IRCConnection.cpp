@@ -1024,7 +1024,7 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 
 		return;
 	} else {
-		m_Socket = SocketAndConnectResolved(*response->rrs.inaddr, m_PortCache, m_BindIpCache);
+		m_Socket = SocketAndConnectResolved(response->rrs.addr->addr.inet.sin_addr, m_PortCache, m_BindIpCache);
 		free(m_BindIpCache);
 		m_BindIpCache = NULL;
 
