@@ -43,6 +43,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_ModesValid = false;
 	m_Banlist = new CBanlist();
 	m_HasBans = false;
+	m_TempModes = NULL;
 }
 
 CChannel::~CChannel() {
@@ -50,6 +51,7 @@ CChannel::~CChannel() {
 
 	free(m_Topic);
 	free(m_TopicNick);
+	free(m_TempModes);
 
 	delete m_Nicks;
 
