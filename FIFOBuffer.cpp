@@ -86,7 +86,7 @@ void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
 	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
 
 	if (tempBuffer == NULL) {
-		g_Bouncer->Log("CFIFOBuffer::Write: realloc() failed. Lost %d bytes.", Size);
+		LOGERROR("realloc() failed. Lost %d bytes.", Size);
 
 		return;
 	}
@@ -102,7 +102,7 @@ void CFIFOBuffer::WriteLine(const char* Line) {
 	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
 
 	if (tempBuffer == NULL) {
-		g_Bouncer->Log("CFIFOBuffer::WriteLine: realloc failed(). Lost %d bytes.", Len + 2);
+		LOGERROR("realloc failed(). Lost %d bytes.", Len + 2);
 
 		return;
 	}

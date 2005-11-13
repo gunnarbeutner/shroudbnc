@@ -245,6 +245,10 @@
 /* #define NEED_VASPRINTF  */
 /* #define NEED_VASNPRINTF */
 
+#if defined(_WIN32) && defined(_MSC_VER)
+/* shroud: it is safe to use va_end(ap2) */
+#define va_copy(ap2, ap) ap2 = ap
+#endif
 
 /* Define the following macros if desired:
  *   SOLARIS_COMPATIBLE, SOLARIS_BUG_COMPATIBLE,

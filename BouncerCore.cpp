@@ -26,6 +26,9 @@ extern "C" {
 
 extern bool g_Debug;
 
+const char* g_ErrorFile;
+unsigned int g_ErrorLine;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -36,10 +39,17 @@ extern int g_TimerStats;
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
+	char* Out;
 
 	m_Log = new CBouncerLog("sbnc.log");
 	m_Log->Clear();
 	m_Log->WriteLine("Log system initialized.");
+
+	if (m_Log == NULL) {
+		printf("Log system could not be initialized. Shutting down.");
+
+		exit(1);
+	}
 
 	m_TimerChain.next = NULL;
 	m_TimerChain.ptr = NULL;
@@ -62,21 +72,46 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	const char* Users = Config->ReadString("system.users");
 
 	if (Users) {
-		const char* Args = ArgTokenize(Users);
-		int Count = ArgCount(Args);
+		const char* Args;
+		int Count;
+
+		Args = ArgTokenize(Users);
+
+		if (Args == NULL) {
+			LOGERROR("ArgTokenize() failed.");
+
+			Fatal();
+		}
+
+		Count = ArgCount(Args);
 
 		m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
 		m_UserCount = Count;
 
+		if (m_Users == NULL) {
+			LOGERROR("malloc() failed. could not allocate user array");
+
+			Fatal();
+		}
+
 		for (i = 0; i < Count; i++) {
 			m_Users[i] = new CBouncerUser(ArgGet(Args, i + 1));
+
+			if (m_Users[i] == NULL) {
+				LOGERROR("Could not create user object");
+
+				Fatal();
+			}
 		}
 
 		for (i = 0; i < Count; i++)
 			m_Users[i]->LoadEvent();
 
 		ArgFree(Args);
-		Args = NULL;
+	} else {
+		Log("No users were found in the config file.");
+
+		Fatal();
 	}
 
 	m_OtherSockets = NULL;
@@ -86,15 +121,21 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 	m_Startup = time(NULL);
 
-	char Out[1024];
-
 	m_LoadingModules = true;
 
 	i = 0;
 	while (true) {
-		snprintf(Out, sizeof(Out), "system.modules.mod%d", i++);
+		asprintf(&Out, "system.modules.mod%d", i++);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed. Module could not be loaded.");
+
+			continue;
+		}
 
 		const char* File = m_Config->ReadString(Out);
+
+		free(Out);
 
 		if (File)
 			LoadModule(File);
@@ -159,7 +200,7 @@ CBouncerCore::~CBouncerCore() {
 void CBouncerCore::StartMainLoop(void) {
 	bool b_DontDetach = false;
 
-	puts("sBNC" BNCVERSION " - an object-oriented IRC bouncer");
+	puts("shroudBNC" BNCVERSION " - an object-oriented IRC bouncer");
 
 	int argc = m_argc;
 	char** argv = m_argv;
@@ -294,23 +335,22 @@ void CBouncerCore::StartMainLoop(void) {
 		timeval interval = { SleepInterval, 0 };
 
 		int nfds = 0;
-		timeval* tv = new timeval;
+		timeval tv;
+		timeval* tvp = &tv;
 		fd_set FDError;
 
-		memset(tv, 0, sizeof(timeval));
+		memset(tvp, 0, sizeof(timeval));
 
 		FD_ZERO(&FDError);
 
 		// &FDError was 'NULL'
-		adns_beforeselect(g_adns_State, &nfds, &FDRead, &FDWrite, &FDError, &tv, &interval, NULL);
+		adns_beforeselect(g_adns_State, &nfds, &FDRead, &FDWrite, &FDError, &tvp, &interval, NULL);
 
 		Last = time(NULL);
 
 		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, &FDError, &interval);
 
 		adns_afterselect(g_adns_State, nfds, &FDRead, &FDWrite, &FDError, NULL);
-
-		delete tv;
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
@@ -425,11 +465,15 @@ int CBouncerCore::GetUserCount(void) {
 
 
 void CBouncerCore::SetIdent(const char* Ident) {
-	m_Ident->SetIdent(Ident);
+	if (m_Ident)
+		m_Ident->SetIdent(Ident);
 }
 
 const char* CBouncerCore::GetIdent(void) {
-	return m_Ident->GetIdent();
+	if (m_Ident)
+		return m_Ident->GetIdent();
+	else
+		return NULL;
 }
 
 CModule** CBouncerCore::GetModules(void) {
@@ -443,6 +487,12 @@ int CBouncerCore::GetModuleCount(void) {
 CModule* CBouncerCore::LoadModule(const char* Filename) {
 	CModule* Mod = new CModule(Filename);
 	CModule** Modules;
+
+	if (Mod == NULL) {
+		LOGERROR("new operator failed. Could not load module %s", Filename);
+
+		return NULL;
+	}
 
 	for (int i = 0; i < m_ModuleCount; i++) {
 		if (m_Modules[i] && m_Modules[i]->GetHandle() == Mod->GetHandle()) {
@@ -459,6 +509,8 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 			--m_ModuleCount;
 
 			delete Mod;
+
+			LOGERROR("realloc() failed. Could not load module");
 
 			return NULL;
 		}
@@ -499,19 +551,36 @@ bool CBouncerCore::UnloadModule(CModule* Module) {
 }
 
 void CBouncerCore::UpdateModuleConfig(void) {
-	char Out[50];
+	char* Out;
 	int a = 0;
 
 	for (int i = 0; i < m_ModuleCount; i++) {
 		if (m_Modules[i]) {
-			snprintf(Out, sizeof(Out), "system.modules.mod%d", a++);
+			asprintf(&Out, "system.modules.mod%d", a++);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+
+				Fatal();
+			}
+
 			m_Config->WriteString(Out, m_Modules[i]->GetFilename());
+
+			free(Out);
 		}
 	}
 
-	snprintf(Out, sizeof(Out), "system.modules.mod%d", a);
+	asprintf(&Out, "system.modules.mod%d", a);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+
+		Fatal();
+	}
 
 	m_Config->WriteString(Out, NULL);
+
+	free(Out);
 }
 
 void CBouncerCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
@@ -519,11 +588,9 @@ void CBouncerCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) 
 
 	/* TODO: can we safely recover from this situation? return value maybe? */
 	if (m_OtherSockets == NULL) {
-		Log("CBouncerCore::RegisterSocket: realloc() failed.");
+		LOGERROR("realloc() failed.");
 
-		Shutdown();
-
-		return;
+		Fatal();
 	}
 
 	m_OtherSockets[m_OtherSocketCount - 1].Socket = Socket;
@@ -545,14 +612,65 @@ SOCKET CBouncerCore::CreateListener(unsigned short Port, const char* BindIp) {
 }
 
 void CBouncerCore::Log(const char* Format, ...) {
-	char Out[1024];
+	char *Out;
+	int Ret;
 	va_list marker;
 
 	va_start(marker, Format);
-	vsnprintf(Out, sizeof(Out), Format, marker);
+	Ret = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
+	if (Ret == -1) {
+		LOGERROR("vasprintf() failed.");
+
+		return;
+	}
+
 	m_Log->InternalWriteLine(Out);
+
+	free(Out);
+}
+
+/* TODO: should we rely on asprintf/vasprintf here? */
+void CBouncerCore::InternalLogError(const char* Format, ...) {
+	char *Format2, *Out;
+	const char* P = g_ErrorFile;
+	va_list marker;
+
+	while (*P++)
+		if (*P == '\\')
+			g_ErrorFile = P + 1;
+
+	asprintf(&Format2, "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
+
+	if (Format2 == NULL) {
+		printf("CBouncerCore::InternalLogError: asprintf() failed.");
+
+		return;
+	}
+
+	va_start(marker, Format);
+	vasprintf(&Out, Format2, marker);
+	va_end(marker);
+
+	free(Format2);
+
+	if (Out == NULL) {
+		printf("CBouncerCore::InternalLogError: vasprintf() failed.");
+
+		free(Format2);
+
+		return;
+	}
+
+	m_Log->InternalWriteLine(Out);
+
+	free(Out);
+}
+
+void CBouncerCore::InternalSetFileAndLine(const char* Filename, unsigned int Line) {
+	g_ErrorFile = Filename;
+	g_ErrorLine = Line;
 }
 
 CBouncerConfig* CBouncerCore::GetConfig(void) {
@@ -573,6 +691,7 @@ void CBouncerCore::Shutdown(void) {
 CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {
 	CBouncerUser* U = GetUser(Username);
 	CBouncerUser** Users;
+	char* Out;
 
 	if (U) {
 		if (Password)
@@ -586,8 +705,11 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 
 	Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
 
-	if (Users == NULL)
+	if (Users == NULL) {
+		LOGERROR("realloc() failed. could not create user");
+
 		return NULL;
+	}
 
 	m_Users = Users;
 	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
@@ -595,12 +717,16 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	if (Password)
 		m_Users[m_UserCount - 1]->SetPassword(Password);
 
-	char Out[1024];
+	asprintf(&Out, "New user created: %s", Username);
 
-	snprintf(Out, sizeof(Out), "New user created: %s", Username);
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+	} else {
+		Log("%s", Out);
+		GlobalNotice(Out, true);
 
-	Log("%s", Out);
-	GlobalNotice(Out, true);
+		free(Out);
+	}
 
 	UpdateUserConfig();
 
@@ -618,13 +744,15 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 }
 
 bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
+	char *Out;
+
 	for (int i = 0; i < m_UserCount; i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
 			for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
-				CModule* M = g_Bouncer->GetModules()[a];
+				CModule* Module = g_Bouncer->GetModules()[a];
 
-				if (M) {
-					M->UserDelete(Username);
+				if (Module) {
+					Module->UserDelete(Username);
 				}
 			}
 
@@ -635,12 +763,18 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 
 			m_Users[i] = NULL;
 
-			char Out[1024];
 
-			snprintf(Out, sizeof(Out), "User removed: %s", Username);
-			m_Log->WriteLine(Out);
+			asprintf(&Out, "User removed: %s", Username);
 
-			GlobalNotice(Out, true);
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+			} else {
+				m_Log->WriteLine(Out);
+
+				GlobalNotice(Out, true);
+
+				free(Out);
+			}
 
 			UpdateUserConfig();
 
@@ -676,7 +810,8 @@ void CBouncerCore::UpdateUserConfig(void) {
 			Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
 
 			if (Out == NULL) {
-				Log("CBouncerCore::UpdateUserConfig: realloc() failed. Userlist in sbnc.conf might be out of date.");
+				LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
+
 				return;
 			}
 
@@ -710,9 +845,10 @@ bool CBouncerCore::Daemonize(void) {
 
 	printf("Daemonizing... ");
 
-	pid=fork();
-	if (pid==-1) {
+	pid = fork();
+	if (pid == -1) {
 		Log("fork() returned -1 (failure)");
+
 		return false;
 	}
 
@@ -841,7 +977,7 @@ void CBouncerCore::RegisterTimer(CTimer* Timer) {
 	last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
 
 	if (last->next == NULL) {
-		g_Bouncer->Log("CBouncerCore::RegisterTimer: malloc() failed. Timer could not be registered.");
+		LOGERROR("malloc() failed. Timer could not be registered.");
 
 		return;
 	}
@@ -905,4 +1041,10 @@ const char* CBouncerCore::GetMotd(void) {
 
 void CBouncerCore::SetMotd(const char* Motd) {
 	m_Config->WriteString("system.motd", Motd);
+}
+
+void CBouncerCore::Fatal(void) {
+	Log("Fatal error occured. Please send this log to gb@shroudbnc.org for further analysis.");
+
+	exit(1);
 }

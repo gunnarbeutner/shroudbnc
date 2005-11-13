@@ -39,6 +39,8 @@ void sigint_handler(int code) {
 #endif
 
 int main(int argc, char* argv[]) {
+	srand(time(NULL));
+
 #ifndef _WIN32
 	if (geteuid() == 0) {
 		printf("You cannot run shroudBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
@@ -54,6 +56,12 @@ int main(int argc, char* argv[]) {
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
+
+	if (Config == NULL) {
+		printf("Fatal: could not create config object.");
+
+		return 1;
+	}
 
 	// constructor sets g_Bouncer
 	new CBouncerCore(Config, argc, argv);

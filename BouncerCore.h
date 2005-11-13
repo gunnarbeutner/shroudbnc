@@ -150,6 +150,10 @@ public:
 
 	virtual const char* GetMotd(void);
 	virtual void SetMotd(const char* Motd);
+
+	virtual void InternalLogError(const char* Format, ...);
+	virtual void InternalSetFileAndLine(const char* Filename, unsigned int Line);
+	virtual void Fatal(void);
 };
 
 extern CBouncerCore* g_Bouncer;

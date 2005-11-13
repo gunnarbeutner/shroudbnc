@@ -42,3 +42,8 @@ void string_free(char* string);
 int keyStrCmp(const void* a, const void* b);
 
 #define BNCVERSION "0.9"
+
+extern const char* g_ErrorFile;
+extern unsigned int g_ErrorLine;
+
+#define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError

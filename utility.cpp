@@ -58,7 +58,7 @@ const char* ArgTokenize(const char* Data) {
 	Copy = (char*)malloc(strlen(Data) + 2);
 
 	if (Copy == NULL) {
-		g_Bouncer->Log("ArgTokenize: malloc() failed. Could not tokenize string.");
+		LOGERROR("malloc() failed. Could not tokenize string (%s).", Data);
 
 		return NULL;
 	}
@@ -311,7 +311,7 @@ char* NickFromHostmask(const char* Hostmask) {
 		char* Copy = strdup(Hostmask);
 
 		if (Copy == NULL) {
-			g_Bouncer->Log("NickFromHostmask: strdup() failed. Could not parse hostmask.");
+			LOGERROR("strdup() failed. Could not parse hostmask (%s).", Hostmask);
 
 			return NULL;
 		}

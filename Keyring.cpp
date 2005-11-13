@@ -34,9 +34,9 @@ const char* CKeyring::GetKey(const char* Channel) {
 	char* Buf = (char*)malloc(5 + strlen(Channel));
 
 	if (Buf == NULL) {
-		g_Bouncer->Log("CKeyring::GetKey: malloc() failed. Key could not be retrieved.");
+		LOGERROR("malloc() failed. Key could not be retrieved (%s).", Channel);
 
-		return false;
+		return NULL;
 	}
 
 	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
@@ -53,7 +53,7 @@ bool CKeyring::AddKey(const char* Channel, const char* Key) {
 	char* Buf = (char*)malloc(5 + strlen(Channel));
 
 	if (Buf == NULL) {
-		g_Bouncer->Log("CKeyring::AddKey: malloc() failed. Key could not be added.");
+		LOGERROR("malloc() failed. Key could not be added (%s, %s).", Channel, Key);
 
 		return false;
 	}
@@ -72,7 +72,7 @@ bool CKeyring::DeleteKey(const char* Channel) {
 	char* Buf = (char*)malloc(5 + strlen(Channel));
 
 	if (Buf == NULL) {
-		g_Bouncer->Log("CKeyring::DeleteKey: malloc() failed. Key could not be removed.");
+		LOGERROR("malloc() failed. Key could not be removed (%s).", Channel);
 
 		return false;
 	}

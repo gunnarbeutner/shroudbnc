@@ -85,20 +85,24 @@ public:
 
 		P->subcount++;
 
-		if (!VolatileKeys)
+		if (!VolatileKeys) {
 			dupKey = strdup(Key);
 
-		if (VolatileKeys || dupKey)
-			newKeys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
+			if (dupKey == NULL) {
+				LOGERROR("strdup() failed.");
 
-		if ((VolatileKeys || dupKey) && newKeys)
-			newValues = (Type*)realloc(P->values, P->subcount * sizeof(Type));
+				P->subcount--;
 
-		if ((!VolatileKeys && dupKey == NULL) || newKeys == NULL || newValues == NULL) {
-			if (g_Bouncer)
-				g_Bouncer->Log("CHashtable::Add: strdup() or realloc() failed. Key/value pair was lost.");
-			else
-				printf("CHashtable::Add: strdup() or realloc() failed. Key/value pair was lost.\n");
+				return false;
+			}
+		}
+
+		newKeys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
+
+		if (newKeys == NULL) {
+			LOGERROR("realloc() failed.");
+
+			free(dupKey);
 
 			P->subcount--;
 
@@ -106,6 +110,19 @@ public:
 		}
 
 		P->keys = newKeys;
+
+		newValues = (Type*)realloc(P->values, P->subcount * sizeof(Type));
+
+		if (newValues == NULL) {
+			LOGERROR("realloc() failed.");
+
+			free(dupKey);
+
+			P->subcount--;
+
+			return false;
+		}
+
 		P->values = newValues;
 
 		if (VolatileKeys)

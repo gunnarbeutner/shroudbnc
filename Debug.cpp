@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if defined(_WIN32) && defined(_WIN32)
+#if defined(_WIN32) && defined(_DEBUG)
 #include "StdAfx.h"
 #include <imagehlp.h>
 
@@ -36,6 +36,10 @@ struct alloc_t {
 } g_Allocations[500000];
 
 int g_AllocationCount = 0;
+int g_IgnoreCount = 0;
+
+#define ALLOCIGNORE 100
+#define ALLOCDIV 150
 
 void Debug_Final(void) {
 	SymCleanup(GetCurrentProcess());
@@ -46,6 +50,9 @@ void Debug_Final(void) {
 
 void* operator new(size_t Size) {
 	unsigned long programcounter;
+
+	if (++g_IgnoreCount > ALLOCIGNORE && rand() < RAND_MAX / ALLOCDIV)
+		return NULL;
 
 	g_Mem += Size;
 
@@ -83,6 +90,9 @@ void* operator new(size_t Size) {
 
 void* DebugMalloc(size_t Size) {
 	unsigned long programcounter;
+
+	if (++g_IgnoreCount > ALLOCIGNORE && rand() < RAND_MAX / ALLOCDIV)
+		return NULL;
 
 	g_Mem += Size;
 
@@ -132,8 +142,27 @@ void operator delete(void* p) {
 }
 
 void DebugFree(void* p) {
+	PROCESS_HEAP_ENTRY he;
+	bool Found = false;
+
 	if (!p)
 		return;
+
+	he.lpData = NULL;
+
+	while (HeapWalk(GetProcessHeap(), &he)) {
+		if (he.lpData == p) {
+			Found = true;
+
+			break;
+		}
+	}
+
+	if (Found == false) {
+		free(p);
+
+		return;
+	}
 
 	g_Mem -= HeapSize(GetProcessHeap(), 0, p);
 
@@ -150,7 +179,10 @@ void DebugFree(void* p) {
 
 void* DebugReAlloc(void* p, size_t newsize) {
 	if (p) {
-	unsigned long programcounter;
+		if (++g_IgnoreCount > ALLOCIGNORE && rand() < RAND_MAX / ALLOCDIV)
+			return NULL;
+
+		unsigned long programcounter;
 		g_Mem -= HeapSize(GetProcessHeap(), 0, p);
 		g_Mem += newsize;
 
@@ -193,6 +225,10 @@ void* DebugReAlloc(void* p, size_t newsize) {
 
 char* DebugStrDup(const char* p) {
 	char* s = (char*)DebugMalloc(strlen(p) + 1);
+
+	if (s == NULL)
+		return NULL;
+
 	strcpy(s, p);
 
 	return s;

@@ -78,9 +78,36 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_LatchedDestruction = false;
 
 	m_QueueHigh = new CQueue();
+
+	if (m_QueueHigh == NULL) {
+		LOGERROR("new operator failed. Could not create queue.");
+
+		g_Bouncer->Fatal();
+	}
+
 	m_QueueMiddle = new CQueue();
+
+	if (m_QueueMiddle == NULL) {
+		LOGERROR("new operator failed. Could not create queue.");
+
+		g_Bouncer->Fatal();
+	}
+
 	m_QueueLow = new CQueue();
+
+	if (m_QueueLow == NULL) {
+		LOGERROR("new operator failed. Could not create queue.");
+
+		g_Bouncer->Fatal();
+	}
+
 	m_FloodControl = new CFloodControl(this);
+
+	if (m_FloodControl == NULL) {
+		LOGERROR("new operator failed. Could not create flood control object.");
+
+		g_Bouncer->Fatal();
+	}
 
 	const char* Password = Owning->GetServerPassword();
 
@@ -93,6 +120,13 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_Owner = Owning;
 
 	m_Channels = new CHashtable<CChannel*, false, 16>();
+
+	if (m_Channels == NULL) {
+		LOGERROR("new operator failed. Could not create channel list.");
+
+		g_Bouncer->Fatal();
+	}
+
 	m_Channels->RegisterValueDestructor(DestroyCChannel);
 
 	m_Server = NULL;
@@ -103,6 +137,12 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_LastBurst = time(NULL);
 
 	m_ISupport = new CBouncerConfig(NULL);
+
+	if (m_ISupport == NULL) {
+		LOGERROR("new operator failed. Could not create ISupport object.");
+
+		g_Bouncer->Fatal();
+	}
 
 	m_ISupport->WriteString("CHANMODES", "bIe,k,l");
 	m_ISupport->WriteString("CHANTYPES", "#&+");
@@ -117,6 +157,8 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 
 	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
 	m_DelayJoinTimer = NULL;
+
+	m_Site = NULL;
 }
 
 CIRCConnection::~CIRCConnection() {
@@ -248,7 +290,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (b_Me) {
 			AddChannel(argv[2]);
 
-			if (!m_Owner->GetClientConnection())
+			/* m_Owner can be NULL if AddChannel failed */
+			if (m_Owner && !m_Owner->GetClientConnection())
 				WriteLine("MODE %s", argv[2]);
 		}
 
@@ -256,6 +299,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan) {
 			Nick = NickFromHostmask(Reply);
+
+			if (Nick == NULL) {
+				LOGERROR("NickFromHostmask() failed.");
+
+				return false;
+			}
+
 			Chan->AddUser(Nick, '\0');
 			free(Nick);
 		}
@@ -286,13 +336,28 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			RemoveChannel(argv[2]);
 
 			if (GetOwningClient()->GetClientConnection() == NULL) {
-				char Out[1024];
+				char* Out;
 
-				snprintf(Out, sizeof(Out), "JOIN %s", argv[2]);
+				asprintf(&Out, "JOIN %s", argv[2]);
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed. Could not rejoin channel.");
+
+					return bRet;
+				}
 
 				m_Owner->Simulate(Out);
 
+				free(Out);
+
 				char* Dup = strdup(Reply);
+
+				if (Dup == NULL) {
+					LOGERROR("strdup() failed. Could not log event.");
+
+					return bRet;
+				}
+
 				char* Delim = strstr(Dup, "!");
 				const char* Host;
 
@@ -416,25 +481,41 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		else
 			GetOwningClient()->ScheduleReconnect(5);
 
-		char Out[1024];
+		char* Out;
 
-		snprintf(Out, sizeof(Out), "Error received for %s: %s", GetOwningClient()->GetUsername(), argv[1]);
+		asprintf(&Out, "Error received for %s: %s", GetOwningClient()->GetUsername(), argv[1]);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			return false;
+		}
 
 		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
+
+		free(Out);
 	} else if (argc > 3 && iRaw == 465) {
-		char Out[1024];
+		char* Out;
 
-		snprintf(Out, sizeof(Out), "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
+		asprintf(&Out, "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			return false;
+		}
 
 		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
+
+		free(Out);
 	} else if (argc > 3 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
@@ -446,7 +527,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			char* Dup = strdup(argv[i]);
 
 			if (Dup == NULL) {
-				g_Bouncer->Log("CIRCConnection::ParseLineArgV: strdup failed. Could not parse 005 reply.");
+				LOGERROR("strdup failed. Could not parse 005 reply.");
 
 				return false;
 			}
@@ -513,9 +594,29 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 5 && iRaw == 353) {
 		CChannel* Chan = GetChannel(argv[4]);
 
-		const char* nicks = ArgTokenize(argv[5]);
-		const char** nickv = ArgToArray(nicks);
-		int nickc = ArgCount(nicks);
+		const char* nicks;
+		const char** nickv;
+		int nickc;
+
+		nicks = ArgTokenize(argv[5]);
+
+		if (nicks == NULL) {
+			LOGERROR("ArgTokenize() failed. could not parse 353 reply for channel %s", argv[4]);
+
+			return false;
+		}
+
+		nickv = ArgToArray(nicks);
+
+		if (nickv == NULL) {
+			LOGERROR("ArgToArray() failed. could not parse 353 reply for channel %s", argv[4]);
+
+			ArgFree(nicks);
+
+			return false;
+		}
+
+		nickc = ArgCount(nicks);
 
 		if (Chan) {
 			for (int i = 0; i < nickc; i++) {
@@ -563,16 +664,26 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan)
 			Chan->GetBanlist()->SetBan(argv[4], argv[5], atoi(argv[6]));
-	} else if (argc > 1 && iRaw == 368) {
+	} else if (argc > 3 && iRaw == 368) {
 		CChannel* Chan = GetChannel(argv[3]);
 
 		if (Chan)
 			Chan->SetHasBans();
+	} else if (argc > 3 && iRaw == 396) {
+		free(m_Site);
+		m_Site = strdup(argv[3]);
+
+		if (m_Site == NULL) {
+			LOGERROR("strdup() failed.");
+		}
 	} else if (argc > 3 && hashRaw == hashPong && strcmpi(argv[3], "sbnc") == 0) {
 		return false;
 	}
 
-	return ModuleEvent(argc, argv);
+	if (m_Owner)
+		return ModuleEvent(argc, argv);
+	else
+		return true;
 }
 
 bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
@@ -596,7 +707,7 @@ void CIRCConnection::ParseLine(const char* Line) {
 	const char* Args = ArgParseServerLine(Line);
 
 	if (Args == NULL) {
-		g_Bouncer->Log("CIRCConnection::ParseLine: ArgParseServerLine returned NULL. Could not parse line.");
+		LOGERROR("ArgParseServerLine() returned NULL. Could not parse line (%s).", Line);
 
 		return;
 	}
@@ -605,7 +716,9 @@ void CIRCConnection::ParseLine(const char* Line) {
 	int argc = ArgCount(Args);
 
 	if (argv == NULL) {
-		g_Bouncer->Log("CIRCConnection::ParseLine: ArgToArray returned NULL. Could not parse line.");
+		LOGERROR("ArgToArray returned NULL. Could not parse line (%s).", Line);
+
+		ArgFree(Args);
 
 		return;
 	}
@@ -644,7 +757,15 @@ const char* CIRCConnection::GetCurrentNick(void) {
 }
 
 void CIRCConnection::AddChannel(const char* Channel) {
-	m_Channels->Add(Channel, new CChannel(Channel, this));
+	CChannel* ChannelObj = new CChannel(Channel, this);
+
+	if (ChannelObj == NULL) {
+		LOGERROR("new operator failed. could not add channel.");
+
+		return;
+	}
+
+	m_Channels->Add(Channel, ChannelObj);
 
 	UpdateChannelConfig();
 }
@@ -677,7 +798,7 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
 
 		if (Out == NULL) {
-			g_Bouncer->Log("CIRCConnection::UpdateChannelConfig: realloc() failed. Channel config file might be out of date.");
+			LOGERROR("realloc() failed. Channel config file might be out of date.");
 
 			return;
 		}
@@ -690,7 +811,9 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		strcat(Out, Chan->Name);
 	}
 
-	m_Owner->SetConfigChannels(Out);
+	/* m_Owner can be NULL if the last channel was not created successfully */
+	if (m_Owner)
+		m_Owner->SetConfigChannels(Out);
 
 	free(Out);
 }
@@ -730,7 +853,7 @@ void CIRCConnection::Write(void) {
 	char* Copy = (char*)malloc(strlen(Line) + 2);
 
 	if (Copy == NULL) {
-		g_Bouncer->Log("CIRCConnection::Write: malloc() failed. Line was lost.");
+		LOGERROR("malloc() failed. Line was lost. (%s)", Line);
 
 		return;
 	}
@@ -762,7 +885,7 @@ int CIRCConnection::RequiresParameter(char Mode) {
 	char* Modes = strdup(GetISupport("CHANMODES"));
 
 	if (Modes == NULL) {
-		g_Bouncer->Log("CIRCConnection::RequiresParameter: strdup() failed.");
+		LOGERROR("strdup() failed.");
 
 		return 0;
 	}
@@ -775,7 +898,7 @@ int CIRCConnection::RequiresParameter(char Mode) {
 	const char* Args = ArgTokenize(Modes);
 
 	if (Args == NULL) {
-		g_Bouncer->Log("CIRCConnection::RequiresParameter: ArgTokenize() failed.");
+		LOGERROR("ArgTokenize() failed.");
 
 		free(Modes);
 
@@ -787,7 +910,7 @@ int CIRCConnection::RequiresParameter(char Mode) {
 	const char** argv = ArgToArray(Args);
 
 	if (argv == NULL) {
-		g_Bouncer->Log("CIRCConnection::RequiresParameter: ArgToArray() failed.");
+		LOGERROR("ArgToArray() failed.");
 
 		ArgFree(Args);
 
@@ -821,6 +944,9 @@ CChannel* CIRCConnection::GetChannel(const char* Name) {
 bool CIRCConnection::IsNickPrefix(char Char) {
 	const char* Prefixes = GetISupport("PREFIX");
 	bool flip = false;
+
+	if (Prefixes == NULL)
+		return false;
 
 	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
 		if (flip) {
@@ -883,7 +1009,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	char* Copy = strdup(Host);
 
 	if (Copy == NULL) {
-		g_Bouncer->Log("CIRCConnection::UpdateHostHelper: strdup() failed. Could not update hostmask.");
+		LOGERROR("strdup() failed. Could not update hostmask. (%s)", Host);
 
 		return;
 	}
@@ -899,9 +1025,25 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		return;
 	}
 
+	if (strcmpi(Nick, m_CurrentNick) == 0) {
+		free(m_Site);
+
+		m_Site = strdup(Site);
+
+		if (m_Site == NULL) {
+			LOGERROR("strdup() failed.");
+		}
+	}
+
 	int i = 0;
 
 	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+		if (Chan->Value->GetNames() == NULL) {
+			free(Copy);
+
+			return;
+		}
+
 		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
 
 		if (NickObj && NickObj->GetSite() == NULL)
@@ -942,41 +1084,60 @@ void CIRCConnection::JoinChannels(void) {
 	const char* Chans = GetOwningClient()->GetConfigChannels();
 
 	if (Chans && *Chans) {
-		char* dup = strdup(Chans);
-		char* tok = strtok(dup, ",");
-		char* Keys = NULL;
-		char* tempKeys;
-		CKeyring* Keyring = m_Owner->GetKeyring();
+		char* dup, *newChanList, *tok, *ChanList = NULL;
+		CKeyring* Keyring;
+
+		dup = strdup(Chans);
+
+		if (dup == NULL) {
+			LOGERROR("strdup() failed. could not join channels (user %s)", m_Owner->GetUsername());
+
+			return;
+		}
+
+		tok = strtok(dup, ",");
+
+		Keyring = m_Owner->GetKeyring();
 
 		while (tok) {
 			const char* Key = Keyring->GetKey(tok);
 
-			if (Key) {
-				bool Valid = (Keys != NULL);
+			if (Key)
+				WriteLine("JOIN %s %s", tok, Key);
+			else {
+				if (ChanList == NULL || strlen(ChanList) > 400) {
+					if (ChanList != NULL) {
+						WriteLine("JOIN %s", ChanList);
+						free(ChanList);
+					}
 
-				tempKeys = (char*)realloc(Keys, (Keys ? strlen(Keys) : 0) + strlen(Key) + 2);
-				
-				if (tempKeys == NULL)
-					break;
+					ChanList = (char*)malloc(strlen(tok) + 1);
+					strcpy(ChanList, tok);
+				} else {
+					newChanList = (char*)realloc(ChanList, strlen(ChanList) + 1 + strlen(tok) + 2);
 
-				Keys = tempKeys;
+					if (newChanList == NULL) {
+						LOGERROR("realloc() failed. Could not join channel.");
 
-				if (Valid)
-					strcat(Keys, ",");
-				else
-					*Keys = '\0';
+						continue;
+					}
 
-				strcat(Keys, Key);
+					ChanList = newChanList;
+
+					strcat(ChanList, ",");
+					strcat(ChanList, tok);
+				}
 			}
 
 			tok = strtok(NULL, ",");
 		}
 
+		if (ChanList) {
+			WriteLine("JOIN %s", ChanList);
+			free(ChanList);
+		}
+
 		free(dup);
-
-		WriteLine(Keys ? "JOIN %s %s" : "JOIN %s", Chans, Keys);
-
-		free(Keys);
 	}
 }
 
@@ -1061,4 +1222,8 @@ void CIRCConnection::AdnsTimeout(void) {
 
 bool CIRCConnection::ShouldDestroy(void) {
 	return m_LatchedDestruction;
+}
+
+const char* CIRCConnection::GetSite(void) {
+	return m_Site;
 }

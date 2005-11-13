@@ -32,8 +32,9 @@ CNick::CNick(const char* Nick) {
 
 	m_Nick = strdup(Nick);
 
-	if (m_Nick == NULL && Nick)
-		g_Bouncer->Log("CNick::CNick: strdup() failed. Nick was lost.");
+	if (m_Nick == NULL && Nick) {
+		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
+	}
 
 	m_Prefixes = NULL;
 	m_Site = NULL;
@@ -82,7 +83,7 @@ bool CNick::AddPrefix(char Prefix) {
 	Prefixes = (char*)realloc(m_Prefixes, n + 2);
 
 	if (Prefixes == NULL) {
-		g_Bouncer->Log("CNick::AddPrefix: realloc() failed. Prefixes for nick %s might be inconsistent.", m_Nick);
+		LOGERROR("realloc() failed. Prefixes might be inconsistent (%s, %c).", m_Nick, Prefix);
 
 		return false;
 	}
@@ -122,7 +123,7 @@ bool CNick::SetPrefixes(const char* Prefixes) {
 		dupPrefixes = strdup(Prefixes);
 
 		if (dupPrefixes == NULL) {
-			g_Bouncer->Log("CNick::SetPrefixes: strdup() failed. New prefixes were lost.");
+			LOGERROR("strdup() failed. New prefixes were lost (%s, %s).", m_Nick, Prefixes);
 
 			return false;
 		} else {
@@ -149,7 +150,7 @@ bool CNick::SetSite(const char* Site) {
 	dupSite = strdup(Site);
 
 	if (dupSite == NULL) {
-		g_Bouncer->Log("CNick::SetSite: strdup() failed. New site was lost.");
+		LOGERROR("strdup() failed. New site was lost (%s, %s).", m_Nick, Site);
 
 		return false;
 	} else {
@@ -180,7 +181,7 @@ bool CNick::SetNick(const char* Nick) {
 	m_Nick = strdup(Nick);
 
 	if (m_Nick == NULL && Nick) {
-		g_Bouncer->Log("CNick::SetNick: strdup() failed. Nick was lost.");
+		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
 
 		return false;
 	} else
@@ -206,7 +207,7 @@ bool CNick::SetTag(const char* Name, const char* Value) {
 		m_Tags = new CBouncerConfig(NULL);
 
 		if (m_Tags == NULL) {
-			g_Bouncer->Log("CNick::SetTag: new operator failed. Tag was lost.");
+			LOGERROR("new operator failed. Tag was lost. (%s, %s)", Name, Value);
 
 			return false;
 		}

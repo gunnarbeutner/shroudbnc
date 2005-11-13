@@ -24,9 +24,21 @@
 //////////////////////////////////////////////////////////////////////
 
 CBouncerLog::CBouncerLog(const char* Filename) {
-	if (Filename)
+	if (Filename) {
 		m_File = strdup(Filename);
-	else
+
+		if (m_File == NULL) {
+			if (g_Bouncer) {
+				LOGERROR("strdup() failed.");
+
+				g_Bouncer->Fatal();
+			} else {
+				printf("CBouncerLog::CBouncerLog: strdup() failed (%s).", Filename);
+
+				exit(1);
+			}
+		}
+	} else
 		m_File = NULL;
 }
 
@@ -58,7 +70,7 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 	FILE* Log;
 
 	if (m_File && (Log = fopen(m_File, "a"))) {
-		char Out[1024];
+		char* Out;
 		tm Now;
 		time_t tNow;
 		char strNow[100];
@@ -72,24 +84,40 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 		strftime(strNow, sizeof(strNow), "%c" , &Now);
 #endif
 
-		snprintf(Out, sizeof(Out), "%s %s\n", strNow, Line);
+		asprintf(&Out, "%s %s\n", strNow, Line);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			return;
+		}
 
 		fputs(Out, Log);
 		printf("%s", Out);
+
+		free(Out);
 
 		fclose(Log);
 	}
 }
 
 void CBouncerLog::WriteLine(const char* Format, ...) {
-	char Out[1024];
+	char* Out;
 	va_list marker;
 
 	va_start(marker, Format);
-	vsnprintf(Out, sizeof(Out), Format, marker);
+	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
+	if (Out == NULL) {
+		LOGERROR("vasprintf() failed.");
+
+		return;
+	}
+
 	InternalWriteLine(Out);
+
+	free(Out);
 }
 
 void CBouncerLog::Clear(void) {

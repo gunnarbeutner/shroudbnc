@@ -38,10 +38,22 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
 	m_Nicks = new CHashtable<CNick*, false, 64, true>();
-	m_Nicks->RegisterValueDestructor(DestroyCNick);
+
+	if (m_Nicks == NULL) {
+		LOGERROR("new operator failed. Could not create nick list.");
+
+		Owner->Kill("Internal error.");
+	} else
+		m_Nicks->RegisterValueDestructor(DestroyCNick);
+
 	m_HasNames = false;
 	m_ModesValid = false;
 	m_Banlist = new CBanlist();
+
+	if (m_Banlist == NULL) {
+		LOGERROR("new operator failed. Could not create ban list.");
+	}
+
 	m_HasBans = false;
 	m_TempModes = NULL;
 }
@@ -171,14 +183,14 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 
 		int ModeType = m_Owner->RequiresParameter(Cur);
 
-		if (Cur == 'b') {
+		if (Cur == 'b' && m_Banlist) {
 			if (flip)
 				m_Banlist->SetBan(pargv[p], source, time(NULL));
 			else
 				m_Banlist->UnsetBan(pargv[p]);
 		}
 
-		if (Cur == 'k' && flip)
+		if (Cur == 'k' && flip && strcmp(pargv[p], "*") != 0)
 			m_Owner->GetOwningClient()->GetKeyring()->AddKey(m_Name, pargv[p]);
 
 		for (int i = 0; i < Count; i++) {
@@ -231,7 +243,7 @@ chanmode_t* CChannel::AllocSlot(void) {
 	Modes = (chanmode_t*)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
 
 	if (Modes == NULL) {
-		g_Bouncer->Log("CChannel::AllocSlot: realloc() failed. Could not allocate slot for channel mode.");
+		LOGERROR("realloc() failed. Could not allocate slot for channel mode.");
 
 		return NULL;
 	}
@@ -298,13 +310,21 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char* Nick, const char* ModeChars) {
 	CNick* N = new CNick(Nick);
 
+	if (N == NULL) {
+		LOGERROR("new operator failed. Could not add user (%s).", Nick);
+
+		return;
+	}
+
 	N->SetPrefixes(ModeChars);
 
-	m_Nicks->Add(N->GetNick(), N);
+	if (m_Nicks)
+		m_Nicks->Add(N->GetNick(), N);
 }
 
 void CChannel::RemoveUser(const char* Nick) {
-	m_Nicks->Remove(Nick);
+	if (m_Nicks)
+		m_Nicks->Remove(Nick);
 }
 
 char CChannel::GetHighestUserFlag(const char* ModeChars) {

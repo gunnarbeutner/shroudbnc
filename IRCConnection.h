@@ -75,6 +75,8 @@ class CIRCConnection : public CConnection, public CDnsEvents {
 
 	adns_query* m_AdnsQuery;
 
+	char* m_Site;
+
 	void AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
@@ -140,4 +142,6 @@ public:
 	virtual void AdnsTimeout(void);
 
 	virtual bool ShouldDestroy(void);
+
+	virtual const char* GetSite(void);
 };

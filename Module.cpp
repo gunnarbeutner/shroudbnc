@@ -24,16 +24,27 @@
 //////////////////////////////////////////////////////////////////////
 
 CModule::CModule(const char* Filename) {
+	char *ErrorMsg, *p;
+
 	m_Far = NULL;
 	m_File = strdup(Filename);
 	m_Image = LoadLibrary(Filename);
 
 	if (!m_Image) {
 #ifdef _WIN32
-	// todo: implement error logging
+		// todo: implement error logging
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char*)&ErrorMsg, 0, NULL);
+
+		p = ErrorMsg;
+
+ 		while (*p++)
+			if (*p == '\r' || *p == '\n')
+				*p = '\0';
 #else
-		g_Bouncer->Log("Could not load module %s: %s", Filename, dlerror());
+		ErrorMsg = dlerror();
 #endif
+
+		g_Bouncer->Log("Could not load module %s: %s", Filename, ErrorMsg);
 	}
 }
 

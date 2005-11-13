@@ -57,10 +57,9 @@ void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
 	Queues = (queue_t*)realloc(m_Queues, ++m_QueueCount * sizeof(queue_t));
 
 	if (Queues == NULL) {
-		g_Bouncer->Log("CFloodControl::AttachInputQueue: realloc() failed. Could not attach queue.");
-		g_Bouncer->Shutdown();
+		LOGERROR("realloc() failed. Could not attach queue.");
 
-		return;
+		g_Bouncer->Fatal();
 	}
 
 	m_Queues = Queues;
@@ -84,6 +83,12 @@ char* CFloodControl::DequeueItem(bool Peek) {
 
 	if (ThatQueue) {
 		const char* PItem = ThatQueue->Queue->PeekItem();
+
+		if (PItem == NULL) {
+			LOGERROR("PeekItem() failed.");
+
+			return NULL;
+		}
 
 		if (m_Control && (strlen(PItem) + m_Bytes > FLOODBYTES - 150 && m_Bytes > 1/4 * FLOODBYTES))
 			return NULL;
@@ -167,8 +172,11 @@ int CFloodControl::CalculatePenaltyAmplifier(const char* Line) {
 	if (Space) {
 		Command = (char*)malloc(Space - Line + 1);
 
-		if (Command == NULL)
+		if (Command == NULL) {
+			LOGERROR("malloc() failed");
+
 			return 1;
+		}
 
 		strncpy(Command, Line, Space - Line);
 		Command[Space - Line] = '\0';

@@ -31,22 +31,30 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_Name = strdup(Name);
 
 	if (m_Name == NULL) {
-		g_Bouncer->Log("CBouncerUser::CBouncerUser: strdup() failed. Could not create user.");
+		LOGERROR("strdup() failed. Could not create user.");
 
-		g_Bouncer->Shutdown();
+		g_Bouncer->Fatal();
 	}
 
 	assert(m_Name != NULL);
 
-	char Out[1024];
-	snprintf(Out, sizeof(Out), "users/%s.conf", Name);
+	char* Out;
+	asprintf(&Out, "users/%s.conf", Name);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+
+		g_Bouncer->Fatal();
+	}
 
 	m_Config = new CBouncerConfig(Out);
 
-	if (m_Config == NULL) {
-		g_Bouncer->Log("CBouncerUser::CBouncerUser: new operator failed. Could not create user.");
+	free(Out);
 
-		g_Bouncer->Shutdown();
+	if (m_Config == NULL) {
+		LOGERROR("new operator failed. Could not create user.");
+
+		g_Bouncer->Fatal();
 	}
 
 	assert(m_Config != NULL);
@@ -56,11 +64,23 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_ReconnectTime = 0;
 	m_LastReconnect = 0;
 
-	snprintf(Out, sizeof(Out), "users/%s.log", Name);
+	asprintf(&Out, "users/%s.log", Name);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+
+		g_Bouncer->Fatal();
+	}
 
 	m_Log = new CBouncerLog(Out);
 
-	assert(m_Log != NULL);
+	free(Out);
+
+	if (m_Log == NULL) {
+		LOGERROR("new operator failed. Could not create user log.");
+
+		g_Bouncer->Fatal();
+	}
 
 	m_BadLogins = NULL;
 	m_BadLoginCount = 0;
@@ -70,9 +90,17 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	unsigned int i = 0;
 	while (true) {
-		snprintf(Out, sizeof(Out), "user.hosts.host%d", i++);
+		asprintf(&Out, "user.hosts.host%d", i++);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			g_Bouncer->Fatal();
+		}
 
 		const char* Hostmask = m_Config->ReadString(Out);
+
+		free(Out);
 
 		if (Hostmask)
 			AddHostAllow(Hostmask, false);
@@ -152,7 +180,7 @@ bool CBouncerUser::IsConnectedToIRC(void) {
 }
 
 void CBouncerUser::Attach(CClientConnection* Client) {
-	char Out[1024];
+	char* Out;
 
 	if (IsLocked()) {
 		const char* Reason = GetSuspendReason();
@@ -160,9 +188,17 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		if (!Reason)
 			Client->Kill("*** You cannot attach to this user.");
 		else {
-			snprintf(Out, sizeof(Out), "*** Your account is suspended. Reason: %s", Reason);
+			asprintf(&Out, "*** Your account is suspended. Reason: %s", Reason);
 
-			Client->Kill(Out);
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+
+				Client->Kill("*** Your account is suspended.");
+			} else {
+				Client->Kill(Out);
+
+				free(Out);
+			}
 		}
 
 		g_Bouncer->Log("Login for user %s failed: User is locked.", m_Name);
@@ -203,11 +239,27 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 			while (Keys[a]) {
 				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), m_Name, m_Client->GetPeerName(), Keys[a]);
 
-				snprintf(Out, sizeof(Out), "TOPIC %s", Keys[a]);
-				m_Client->ParseLine(Out);
+				asprintf(&Out, "TOPIC %s", Keys[a]);
 
-				snprintf(Out, sizeof(Out), "NAMES %s", Keys[a]);
-				m_Client->ParseLine(Out);
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+
+					m_Client->Kill("Internal error.");
+				} else {
+					m_Client->ParseLine(Out);
+					free(Out);
+				}
+
+				asprintf(&Out, "NAMES %s", Keys[a]);
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+
+					m_Client->Kill("Internal error.");
+				} else {
+					m_Client->ParseLine(Out);
+					free(Out);
+				}
 
 				a++;
 			}
@@ -220,9 +272,15 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 	const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
 
 	if (Motd && *Motd) {
-		snprintf(Out, sizeof(Out), "Message of the day: %s", Motd);
+		asprintf(&Out, "Message of the day: %s", Motd);
 		
-		Notice(Out);
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {
+			Notice(Out);
+
+			free(Out);
+		}
 	}
 
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
@@ -296,7 +354,7 @@ void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) 
 	char* C = strdup(Command);
 
 	if (C == NULL) {
-		g_Bouncer->Log("CBouncerUser::Simulate: strdup() failed. Could not simulate command.");
+		LOGERROR("strdup() failed. Could not simulate command (%s, %s).", m_Name, Command);
 
 		return;
 	}
@@ -308,12 +366,17 @@ void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) 
 			sockaddr_in null_peer;
 			memset(&null_peer, 0, sizeof(null_peer));
 			FakeClient = new CClientConnection(INVALID_SOCKET, null_peer);
-			FakeClient->m_Owner = this;
 
-			FakeClient->ParseLine(C);
+			if (FakeClient == NULL) {
+				LOGERROR("new operator failed. Could not simulate command (%s, %s).", m_Name, Command);
+			} else {
+				FakeClient->m_Owner = this;
 
-			FakeClient->m_Owner = NULL;
-			delete FakeClient;
+				FakeClient->ParseLine(C);
+
+				FakeClient->m_Owner = NULL;
+				delete FakeClient;
+			}
 		} else {
 			CBouncerUser* Owner = FakeClient->m_Owner;
 			CClientConnection* Client = m_Client;
@@ -336,7 +399,7 @@ void CBouncerUser::Reconnect(void) {
 		SetIRCConnection(NULL);
 	}
 
-	char Out[1024];
+	char* Out;
 
 	if (m_ReconnectTimer) {
 		m_ReconnectTimer->Destroy();
@@ -347,21 +410,30 @@ void CBouncerUser::Reconnect(void) {
 	int Port = GetPort();
 
 	if (!Server || !Port) {
-		snprintf(Out, sizeof(Out), "%s has no default server. Can't (re)connect.", m_Name);
-
 		ScheduleReconnect(120);
 
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->GetLog()->WriteLine("%s has no default server. Can't (re)connect.", m_Name);
 
 		return;
 	}
 
-	snprintf(Out, sizeof(Out), "Trying to reconnect to %s:%d", Server, Port);
-	g_Bouncer->GetLog()->InternalWriteLine(Out);
-	Notice(Out);
+	asprintf(&Out, "Trying to reconnect to %s:%d", Server, Port);
 
-	snprintf(Out, sizeof(Out), "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
-	g_Bouncer->GlobalNotice(Out, true);
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+	} else {
+		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		Notice(Out);
+		free(Out);
+	}
+
+	asprintf(&Out, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+	} else {
+		g_Bouncer->GlobalNotice(Out, true);
+		free(Out);
+	}
 
 	m_LastReconnect = time(NULL);
 
@@ -427,9 +499,15 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 		m_ReconnectTime = time(NULL) + MaxDelay;
 
 		if (GetServer()) {
-			char Out[1024];
-			snprintf(Out, sizeof(Out), "Scheduled reconnect in %d seconds.", MaxDelay);
-			Notice(Out);
+			char* Out;
+			asprintf(&Out, "Scheduled reconnect in %d seconds.", MaxDelay);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+			} else {
+				Notice(Out);
+				free(Out);
+			}
 		}
 	}
 }
@@ -438,14 +516,14 @@ void CBouncerUser::Notice(const char* Text) {
 	const char* Nick = GetNick();
 
 	if (m_Client && Nick)
-		m_Client->WriteLine(":-sBNC!core@bnc.server PRIVMSG %s :%s", Nick, Text);
+		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org PRIVMSG %s :%s", Nick, Text);
 }
 
 void CBouncerUser::RealNotice(const char* Text) {
 	const char* Nick = GetNick();
 
 	if (m_Client && Nick)
-		m_Client->WriteLine(":-sBNC!core@bnc.server NOTICE %s :%s", Nick, Text);
+		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org NOTICE %s :%s", Nick, Text);
 }
 
 int CBouncerUser::IRCUptime(void) {
@@ -457,14 +535,19 @@ CBouncerLog* CBouncerUser::GetLog(void) {
 }
 
 void CBouncerUser::Log(const char* Format, ...) {
-	char Out[1024];
+	char* Out;
 	va_list marker;
 
 	va_start(marker, Format);
-	vsnprintf(Out, sizeof(Out), Format, marker);
+	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	m_Log->InternalWriteLine(Out);
+	if (Out == NULL) {
+		LOGERROR("vasprintf() failed.");
+	} else {
+		m_Log->InternalWriteLine(Out);
+		free(Out);
+	}
 }
 
 
@@ -484,12 +567,18 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 	if (!IRC && !WasNull) {
 		Notice("Disconnected from the server.");
 
-		char Out[1024];
+		char* Out;
 
-		snprintf(Out, sizeof(Out), "%s disconnected from the server.", GetUsername());
+		asprintf(&Out, "%s disconnected from the server.", GetUsername());
 
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
-		g_Bouncer->GlobalNotice(Out, true);
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {
+			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			g_Bouncer->GlobalNotice(Out, true);
+
+			free(Out);
+		}
 
 		if (m_Client == NULL)
 			Log("Disconnected from the server.");
@@ -518,22 +607,35 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 	if (!m_Client && !Client)
 		return;
 
-	char Out[1024];
+	char* Out;
 
 	if (!m_Client) {
-		snprintf(Out, sizeof(Out), "User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
+		asprintf(&Out, "User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
 
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
-		g_Bouncer->GlobalNotice(Out, true);
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {	
+			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			g_Bouncer->GlobalNotice(Out, true);
+
+			free(Out);
+		}
 
 		m_LastSeen = time(NULL);
 	}
 
 
 	if (m_Client && Client) {
-		snprintf(Out, sizeof(Out), "Seamless transition for %s", GetUsername());
-		g_Bouncer->GlobalNotice(Out, true);
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		asprintf(&Out, "Seamless transition for %s", GetUsername());
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {
+			g_Bouncer->GlobalNotice(Out, true);
+			g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+			free(Out);
+		}
 
 		m_Client->SetOwner(NULL);
 		m_Client->Kill("Another client has connected.");
@@ -545,9 +647,16 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 	if (!Client) {
 		if (!DontSetAway) {
-			snprintf(Out, sizeof(Out), "User %s logged off.", GetUsername());
-			g_Bouncer->GlobalNotice(Out, true);
-			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			asprintf(&Out, "User %s logged off.", GetUsername());
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+			} else {
+				g_Bouncer->GlobalNotice(Out, true);
+				g_Bouncer->GetLog()->InternalWriteLine(Out);
+
+				free(Out);
+			}
 
 			m_LastSeen = time(NULL);
 		}
@@ -684,7 +793,7 @@ void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 	BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
 
 	if (BadLogins) {
-		g_Bouncer->Log("CBouncerUser::LogBadLogin: realloc() failed. Could not add new item.");
+		LOGERROR("realloc() failed. Could not add new item.");
 
 		return;
 	}
@@ -735,7 +844,7 @@ void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 	HostAllows = (char**)realloc(m_HostAllows, sizeof(char*) * ++m_HostAllowCount);
 
 	if (HostAllows == NULL) {
-		g_Bouncer->Log("CBouncerUser::AddHostAllow: realloc() failed. Host could not be added.");
+		LOGERROR("realloc() failed. Host could not be added.");
 
 		return;
 	}
@@ -787,19 +896,34 @@ bool CBouncerUser::CanHostConnect(const char* Host) {
 }
 
 void CBouncerUser::UpdateHosts(void) {
-	char Out[1024];
+	char* Out;
 	int a = 0;
 
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
 		if (m_HostAllows[i]) {
-			snprintf(Out, sizeof(Out), "user.hosts.host%d", a++);
-			m_Config->WriteString(Out, m_HostAllows[i]);
+			asprintf(&Out, "user.hosts.host%d", a++);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed. Could not update hosts");
+
+				g_Bouncer->Fatal();
+			} else {
+				m_Config->WriteString(Out, m_HostAllows[i]);
+				free(Out);
+			}
 		}
 	}
 
-	snprintf(Out, sizeof(Out), "user.hosts.host%d", a);
+	asprintf(&Out, "user.hosts.host%d", a);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed. Could not update hosts.");
+
+		g_Bouncer->Fatal();
+	}
 
 	m_Config->WriteString(Out, NULL);
+	free(Out);
 }
 
 CTrafficStats* CBouncerUser::GetClientStats(void) {

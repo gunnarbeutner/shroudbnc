@@ -27,6 +27,14 @@ CBouncerConfig::CBouncerConfig(const char* Filename) {
 	m_WriteLock = false;
 	m_Settings = new CHashtable<char*, false, 8>();
 
+#ifndef MKCONFIG
+	if (m_Settings == NULL) {
+		LOGERROR("new operator failed.");
+
+		g_Bouncer->Fatal();
+	}
+#endif
+
 	m_Settings->RegisterValueDestructor(string_free);
 
 	if (Filename) {
@@ -46,7 +54,9 @@ bool CBouncerConfig::ParseConfig(const char* Filename) {
 	FILE* Conf = fopen(Filename, "r");
 
 	if (!Conf) {
-		g_Bouncer->Log("CBouncerConfig::ParseConfig: Config file %s could not be opened.", Filename);
+#ifndef MKCONFIG
+		LOGERROR("Config file %s could not be opened.", Filename);
+#endif
 
 		return false;
 	}
@@ -70,19 +80,28 @@ bool CBouncerConfig::ParseConfig(const char* Filename) {
 			dupEq = strdup(++Eq);
 
 			if (dupEq == NULL) {
-				if (g_Bouncer != NULL)
-					g_Bouncer->Log("CBouncerConfig::ParseConfig: strdup() failed. Config option lost.");
-				else {
+#ifndef MKCONFIG
+				if (g_Bouncer != NULL) {
+					LOGERROR("strdup() failed. Config option lost (%s=%s).", Line, Eq);
+
+					g_Bouncer->Fatal();
+				} else {
+#endif
 					printf("CBouncerConfig::ParseConfig: strdup() failed. Config could not be parsed.");
 
 					exit(0);
+#ifndef MKCONFIG
 				}
-
+#endif
 
 				continue;
 			}
 
-			m_Settings->Add(Line, dupEq);
+			if (m_Settings->Add(Line, dupEq) == false) {
+				LOGERROR("CHashtable::Add failed. Config could not be parsed (%s, %s).", Line, Eq);
+
+				g_Bouncer->Fatal();
+			}
 		}
 	}
 
@@ -152,7 +171,9 @@ bool CBouncerConfig::Persist(void) {
 
 		return true;
 	} else {
-		g_Bouncer->Log("CBouncerConfig::Persist: Config file %s could not be opened.", m_File);
+#ifndef MKCONFIG
+		LOGERROR("Config file %s could not be opened.", m_File);
+#endif
 
 		return false;
 	}

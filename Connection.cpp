@@ -42,7 +42,7 @@ CConnection::CConnection(SOCKET Client) {
 	m_RecvQ = new CFIFOBuffer();
 
 	if (m_SendQ == NULL || m_RecvQ == NULL) {
-		g_Bouncer->Log("CConnection::CConnection: new operator failed. Sendq/recvq could not be created.");
+		LOGERROR("new operator failed. Sendq/recvq could not be created.");
 
 		Kill("Internal error.");
 	}
@@ -207,6 +207,12 @@ bool CConnection::ReadLine(char** Out) {
 
 		*Out = strdup(m_RecvQ->Read(NewPtr - old_recvq));
 
+		if (*Out == NULL) {
+			LOGERROR("strdup() failed.");
+			
+			return false;
+		}
+
 		return true;
 	} else {
 		*Out = NULL;
@@ -223,14 +229,22 @@ void CConnection::InternalWriteLine(const char* In) {
 }
 
 void CConnection::WriteLine(const char* Format, ...) {
-	char Out[1024];
+	char* Out;
 	va_list marker;
 
 	va_start(marker, Format);
-	vsnprintf(Out, sizeof(Out), Format, marker);
+	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
+	if (Out == NULL) {
+		LOGERROR("vasprintf() failed. Could not write line (%s).", Format);
+
+		return;
+	}
+
 	InternalWriteLine(Out);
+
+	free(Out);
 }
 
 void CConnection::ParseLine(const char* Line) {
@@ -252,7 +266,7 @@ void CConnection::Kill(const char* Error) {
 			m_Owner = NULL;
 		}
 
-		WriteLine(":Notice!sBNC@shroud.nhq NOTICE * :%s", Error);
+		WriteLine(":Notice!notice!shroudbnc.org NOTICE * :%s", Error);
 	} else if (GetRole() == Role_IRC) {
 		if (m_Owner) {
 			m_Owner->SetIRCConnection(NULL);
