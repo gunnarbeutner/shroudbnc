@@ -89,7 +89,7 @@ public:
 			dupKey = strdup(Key);
 
 			if (dupKey == NULL) {
-				LOGERROR("strdup() failed.");
+/*				LOGERROR("strdup() failed.");*/
 
 				P->subcount--;
 
@@ -100,7 +100,7 @@ public:
 		newKeys = (char**)realloc(P->keys, P->subcount * sizeof(char*));
 
 		if (newKeys == NULL) {
-			LOGERROR("realloc() failed.");
+/*			LOGERROR("realloc() failed.");*/
 
 			free(dupKey);
 
@@ -114,7 +114,7 @@ public:
 		newValues = (Type*)realloc(P->values, P->subcount * sizeof(Type));
 
 		if (newValues == NULL) {
-			LOGERROR("realloc() failed.");
+/*			LOGERROR("realloc() failed.");*/
 
 			free(dupKey);
 
