@@ -48,6 +48,7 @@ class CBouncerCore {
 	CBouncerConfig* m_Config;
 
 	SOCKET m_Listener;
+	SOCKET m_SSLListener;
 
 	CBouncerUser** m_Users;
 	int m_UserCount;
@@ -76,7 +77,11 @@ class CBouncerCore {
 	timerchain_t m_TimerChain;
 #endif
 
-	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote);
+#ifdef USESSL
+	SSL_CTX* m_SSLContext;
+#endif
+
+	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL = false);
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
@@ -154,6 +159,10 @@ public:
 	virtual void InternalLogError(const char* Format, ...);
 	virtual void InternalSetFileAndLine(const char* Filename, unsigned int Line);
 	virtual void Fatal(void);
+
+#ifdef USESSL
+	/* not virtual */ SSL_CTX* GetSSLContext(void);
+#endif
 };
 
 extern CBouncerCore* g_Bouncer;

@@ -41,7 +41,9 @@ void string_free(char* string);
 
 int keyStrCmp(const void* a, const void* b);
 
-#define BNCVERSION "0.9"
+const char* UtilMd5(const char* String);
+
+#define BNCVERSION "1.0"
 
 extern const char* g_ErrorFile;
 extern unsigned int g_ErrorLine;

@@ -38,7 +38,7 @@ struct alloc_t {
 int g_AllocationCount = 0;
 int g_IgnoreCount = 0;
 
-#define ALLOCIGNORE 100
+#define ALLOCIGNORE 10000000
 #define ALLOCDIV 150
 
 void Debug_Final(void) {

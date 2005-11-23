@@ -18,6 +18,13 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include <openssl/err.h>
+
+#if defined(_WIN32) && defined(USESSL)
+extern "C" {
+#include <openssl/applink.c>
+}
+#endif
 
 #define BLOCKSIZE 4096
 #define SENDSIZE 4096
@@ -26,7 +33,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConnection::CConnection(SOCKET Client) {
+CConnection::CConnection(SOCKET Client, bool SSL) {
 	m_Socket = Client;
 	m_Owner = NULL;
 
@@ -46,6 +53,10 @@ CConnection::CConnection(SOCKET Client) {
 
 		Kill("Internal error.");
 	}
+
+#ifdef USESSL
+	m_HasSSL = SSL;
+#endif
 
 	InitSocket();
 }
@@ -69,6 +80,27 @@ void CConnection::InitSocket(void) {
 	setsockopt(m_Socket, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
 	setsockopt(m_Socket, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
 	setsockopt(m_Socket, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
+#endif
+#ifdef USESSL
+	if (m_HasSSL) {
+		BIO* rbio, *wbio;
+
+		m_SSL = SSL_new(g_Bouncer->GetSSLContext());
+
+		rbio = SSL_get_rbio(m_SSL);
+		wbio = SSL_get_wbio(m_SSL);
+
+		BIO_set_nbio(rbio, 1);
+		BIO_set_nbio(wbio, 1);
+
+		SSL_set_fd(m_SSL, m_Socket);
+
+		if (GetRole() == Role_Client)
+			SSL_set_connect_state(m_SSL);
+		else
+			SSL_set_accept_state(m_SSL);
+	} else
+		m_SSL = NULL;
 #endif
 
 }
@@ -100,11 +132,34 @@ void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
 
 bool CConnection::Read(bool DontProcess) {
 	char Buffer[8192];
+	int n, code;
 
 	if (m_Shutdown)
 		return true;
 
-	int n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
+#ifdef USESSL
+	if (m_HasSSL) {
+		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL))
+			return true;
+
+		n = SSL_read(m_SSL, Buffer, sizeof(Buffer));
+
+		if (n < 0) {
+			code = SSL_get_error(m_SSL, n);
+
+			if (code == SSL_ERROR_ZERO_RETURN || code == SSL_ERROR_NONE || code == SSL_ERROR_WANT_READ)
+				return true;
+			else {
+				return false;
+			}
+		}
+	} else
+#endif
+		n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
+
+#ifdef USESSL
+	ERR_print_errors_fp(stdout);
+#endif
 
 	if (n > 0) {
 		m_RecvQ->Write(Buffer, n);
@@ -112,6 +167,11 @@ bool CConnection::Read(bool DontProcess) {
 		if (m_Traffic)
 			m_Traffic->AddInbound(n);
 	} else {
+#ifdef USESSL
+		if (m_HasSSL)
+			SSL_shutdown(m_SSL);
+#endif
+
 		shutdown(m_Socket, SD_BOTH);
 		closesocket(m_Socket);
 
@@ -136,7 +196,20 @@ void CConnection::Write(void) {
 		Size = 0;
 
 	if (Size > 0) {
-		int n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
+		int n;
+
+#ifdef USESSL
+		if (m_HasSSL) {
+			if (SSL_want_read(m_SSL))
+				return;
+
+			n = SSL_write(m_SSL, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size);
+
+			if (n == -1 && SSL_get_error(m_SSL, n) == SSL_ERROR_WANT_READ)
+				return;
+		} else
+#endif
+			n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
 
 		if (n > 0) {
 			if (m_Traffic)
@@ -355,4 +428,12 @@ const char* CConnection::ClassName(void) {
 void CConnection::FlushSendQ(void) {
 	if (m_SendQ)
 		m_SendQ->Flush();
+}
+
+bool CConnection::IsSSL(void) {
+#ifdef USESSL
+	return m_HasSSL;
+#else
+	return false;
+#endif
 }

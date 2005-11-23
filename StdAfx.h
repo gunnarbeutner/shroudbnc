@@ -31,6 +31,10 @@
 #include <fcntl.h>
 #include <signal.h>
 
+#ifdef USESSL
+#include <openssl/ssl.h>
+#endif
+
 #include "snprintf.h"
 
 #ifdef _WIN32

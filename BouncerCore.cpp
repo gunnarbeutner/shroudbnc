@@ -19,11 +19,6 @@
 
 #include "StdAfx.h"
 
-extern "C" {
-	#include "md5-c/global.h"
-	#include "md5-c/md5.h"
-}
-
 extern bool g_Debug;
 
 const char* g_ErrorFile;
@@ -221,20 +216,54 @@ void CBouncerCore::StartMainLoop(void) {
 	}
 
 	int Port = m_Config->ReadInteger("system.port");
+#ifdef USESSL
+	int SSLPort = m_Config->ReadInteger("system.sslport");
 
+	if (Port == 0 && SSLPort == 0)
+#else
 	if (Port == 0)
+#endif
 		Port = 9000;
 
 	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
-	m_Listener = CreateListener(Port, BindIp);
+	if (Port != 0)
+		m_Listener = CreateListener(Port, BindIp);
+	else
+		m_Listener = INVALID_SOCKET;
 
-	if (m_Listener == INVALID_SOCKET) {
+#ifdef USESSL
+	if (SSLPort != 0)
+		m_SSLListener = CreateListener(SSLPort, BindIp);
+	else
+		m_SSLListener = INVALID_SOCKET;
+
+	SSL_library_init();
+	SSL_load_error_strings();
+
+	SSL_METHOD* SSLMethod = SSLv23_method();
+	m_SSLContext = SSL_CTX_new(SSLMethod);
+
+	SSL_CTX_use_certificate_chain_file(m_SSLContext, "sbnc.crt");
+	SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM);
+#endif
+
+	if (Port != 0 && m_Listener != INVALID_SOCKET)
+		Log("Created main listener.");
+	else if (Port != 0) {
 		Log("Could not create listener port");
 		return;
 	}
 
-	Log("Created main listener.");
+
+#ifdef USESSL
+	if (SSLPort != 0 && m_SSLListener != INVALID_SOCKET)
+		Log("Created ssl listener.");
+	else if (SSLPort != 0) {
+		Log("Could not create ssl listener port");
+		return;
+	}
+#endif
 
 	fd_set FDRead, FDWrite;
 
@@ -277,7 +306,12 @@ void CBouncerCore::StartMainLoop(void) {
 			SleepInterval = Best - Now;
 
 		FD_ZERO(&FDRead);
-		FD_SET(m_Listener, &FDRead);
+
+		if (m_Listener != INVALID_SOCKET)
+			FD_SET(m_Listener, &FDRead);
+
+		if (m_SSLListener != INVALID_SOCKET)
+			FD_SET(m_SSLListener, &FDRead);
 
 		FD_ZERO(&FDWrite);
 
@@ -355,12 +389,20 @@ void CBouncerCore::StartMainLoop(void) {
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
-			if (FD_ISSET(m_Listener, &FDRead)) {
+			if (m_Listener != INVALID_SOCKET && FD_ISSET(m_Listener, &FDRead)) {
 				sockaddr_in sin_remote;
 				socklen_t sin_size = sizeof(sin_remote);
 
 				SOCKET Client = accept(m_Listener, (sockaddr*)&sin_remote, &sin_size);
-				HandleConnectingClient(Client, sin_remote);
+				HandleConnectingClient(Client, sin_remote, false);
+			}
+
+			if (m_SSLListener != INVALID_SOCKET && FD_ISSET(m_SSLListener, &FDRead)) {
+				sockaddr_in sin_remote;
+				socklen_t sin_size = sizeof(sin_remote);
+
+				SOCKET Client = accept(m_SSLListener, (sockaddr*)&sin_remote, &sin_size);
+				HandleConnectingClient(Client, sin_remote, true);
 			}
 
 			for (i = 0; i < m_OtherSocketCount; i++) {
@@ -423,14 +465,19 @@ void CBouncerCore::StartMainLoop(void) {
 				Ctx->AsyncDnsFinished(&query, reply);
 		}
 	}
+
+	SSL_CTX_free(m_SSLContext);
 }
 
-void CBouncerCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote) {
+void CBouncerCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL) {
 	if (Client > g_last_sock)
 		g_last_sock = Client;
 
+	unsigned long lTrue = 1;
+	ioctlsocket(Client, FIONBIO, &lTrue);
+
 	// destruction is controlled by the main loop
-	new CClientConnection(Client, Remote);
+	new CClientConnection(Client, Remote, SSL);
 
 	Log("Bouncer client connected...");
 }
@@ -660,391 +707,382 @@ void CBouncerCore::InternalLogError(const char* Format, ...) {
 
 		free(Format2);
 
-		return;
-	}
+			return;
+		}
 
-	m_Log->InternalWriteLine(Out);
-
-	free(Out);
-}
-
-void CBouncerCore::InternalSetFileAndLine(const char* Filename, unsigned int Line) {
-	g_ErrorFile = Filename;
-	g_ErrorLine = Line;
-}
-
-CBouncerConfig* CBouncerCore::GetConfig(void) {
-	return m_Config;
-}
-
-CBouncerLog* CBouncerCore::GetLog(void) {
-	return m_Log;
-}
-
-void CBouncerCore::Shutdown(void) {
-	g_Bouncer->GlobalNotice("Shutdown requested.");
-	g_Bouncer->Log("Shutdown requested.");
-
-	m_Running = false;
-}
-
-CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {
-	CBouncerUser* U = GetUser(Username);
-	CBouncerUser** Users;
-	char* Out;
-
-	if (U) {
-		if (Password)
-			U->SetPassword(Password);
-
-		return U;
-	}
-
-	if (!IsValidUsername(Username))
-		return NULL;
-
-	Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
-
-	if (Users == NULL) {
-		LOGERROR("realloc() failed. could not create user");
-
-		return NULL;
-	}
-
-	m_Users = Users;
-	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
-
-	if (Password)
-		m_Users[m_UserCount - 1]->SetPassword(Password);
-
-	asprintf(&Out, "New user created: %s", Username);
-
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-	} else {
-		Log("%s", Out);
-		GlobalNotice(Out, true);
+		m_Log->InternalWriteLine(Out);
 
 		free(Out);
 	}
 
-	UpdateUserConfig();
-
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
-
-		if (M) {
-			M->UserCreate(Username);
-		}
+	void CBouncerCore::InternalSetFileAndLine(const char* Filename, unsigned int Line) {
+		g_ErrorFile = Filename;
+		g_ErrorLine = Line;
 	}
 
-	m_Users[m_UserCount - 1]->LoadEvent();
+	CBouncerConfig* CBouncerCore::GetConfig(void) {
+		return m_Config;
+	}
 
-	return m_Users[m_UserCount - 1];
-}
+	CBouncerLog* CBouncerCore::GetLog(void) {
+		return m_Log;
+	}
 
-bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
-	char *Out;
+	void CBouncerCore::Shutdown(void) {
+		g_Bouncer->GlobalNotice("Shutdown requested.");
+		g_Bouncer->Log("Shutdown requested.");
 
-	for (int i = 0; i < m_UserCount; i++) {
-		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
-			for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
-				CModule* Module = g_Bouncer->GetModules()[a];
+		m_Running = false;
+	}
 
-				if (Module) {
-					Module->UserDelete(Username);
+	CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {
+		CBouncerUser* U = GetUser(Username);
+		CBouncerUser** Users;
+		char* Out;
+
+		if (U) {
+			if (Password)
+				U->SetPassword(Password);
+
+			return U;
+		}
+
+		if (!IsValidUsername(Username))
+			return NULL;
+
+		Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
+
+		if (Users == NULL) {
+			LOGERROR("realloc() failed. could not create user");
+
+			return NULL;
+		}
+
+		m_Users = Users;
+		m_Users[m_UserCount - 1] = new CBouncerUser(Username);
+
+		if (Password)
+			m_Users[m_UserCount - 1]->SetPassword(Password);
+
+		asprintf(&Out, "New user created: %s", Username);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {
+			Log("%s", Out);
+			GlobalNotice(Out, true);
+
+			free(Out);
+		}
+
+		UpdateUserConfig();
+
+		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
+			CModule* M = g_Bouncer->GetModules()[i];
+
+			if (M) {
+				M->UserCreate(Username);
+			}
+		}
+
+		m_Users[m_UserCount - 1]->LoadEvent();
+
+		return m_Users[m_UserCount - 1];
+	}
+
+	bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
+		char *Out;
+
+		for (int i = 0; i < m_UserCount; i++) {
+			if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
+				for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
+					CModule* Module = g_Bouncer->GetModules()[a];
+
+					if (Module) {
+						Module->UserDelete(Username);
+					}
+				}
+
+				if (RemoveConfig)
+					unlink(m_Users[i]->GetConfig()->GetFilename());
+
+				delete m_Users[i];
+
+				m_Users[i] = NULL;
+
+
+				asprintf(&Out, "User removed: %s", Username);
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+				} else {
+					m_Log->WriteLine(Out);
+
+					GlobalNotice(Out, true);
+
+					free(Out);
+				}
+
+				UpdateUserConfig();
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool CBouncerCore::IsValidUsername(const char* Username) {
+		for (unsigned int i = 0; i < strlen(Username); i++) {
+			if (!isalnum(Username[i]))
+				return false;
+		}
+
+		if (strlen(Username) == 0)
+			return false;
+		else
+			return true;
+	}
+
+	void CBouncerCore::UpdateUserConfig(void) {
+		char* Out = NULL;
+
+		for (int i = 0; i < m_UserCount; i++) {
+			if (m_Users[i]) {
+				bool WasNull = false;
+
+				if (Out == NULL)
+					WasNull = true;
+
+				Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
+
+				if (Out == NULL) {
+					LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
+
+					return;
+				}
+
+				if (WasNull)
+					*Out = '\0';
+
+				if (*Out) {
+					strcat(Out, " ");
+					strcat(Out, m_Users[i]->GetUsername());
+				} else {
+					strcpy(Out, m_Users[i]->GetUsername());
 				}
 			}
-
-			if (RemoveConfig)
-				unlink(m_Users[i]->GetConfig()->GetFilename());
-
-			delete m_Users[i];
-
-			m_Users[i] = NULL;
-
-
-			asprintf(&Out, "User removed: %s", Username);
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
-				m_Log->WriteLine(Out);
-
-				GlobalNotice(Out, true);
-
-				free(Out);
-			}
-
-			UpdateUserConfig();
-
-			return true;
 		}
+
+		if (m_Config)
+			m_Config->WriteString("system.users", Out);
+
+		free(Out);
 	}
 
-	return false;
-}
-
-bool CBouncerCore::IsValidUsername(const char* Username) {
-	for (unsigned int i = 0; i < strlen(Username); i++) {
-		if (!isalnum(Username[i]))
-			return false;
+	time_t CBouncerCore::GetStartup(void) {
+		return m_Startup;
 	}
 
-	if (strlen(Username) == 0)
-		return false;
-	else
-		return true;
-}
-
-void CBouncerCore::UpdateUserConfig(void) {
-	char* Out = NULL;
-
-	for (int i = 0; i < m_UserCount; i++) {
-		if (m_Users[i]) {
-			bool WasNull = false;
-
-			if (Out == NULL)
-				WasNull = true;
-
-			Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
-
-			if (Out == NULL) {
-				LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
-
-				return;
-			}
-
-			if (WasNull)
-				*Out = '\0';
-
-			if (*Out) {
-				strcat(Out, " ");
-				strcat(Out, m_Users[i]->GetUsername());
-			} else {
-				strcpy(Out, m_Users[i]->GetUsername());
-			}
-		}
-	}
-
-	if (m_Config)
-		m_Config->WriteString("system.users", Out);
-
-	free(Out);
-}
-
-time_t CBouncerCore::GetStartup(void) {
-	return m_Startup;
-}
-
-bool CBouncerCore::Daemonize(void) {
+	bool CBouncerCore::Daemonize(void) {
 #ifndef _WIN32
-	pid_t pid;
-	pid_t sid;
-	int fd;
+		pid_t pid;
+		pid_t sid;
+		int fd;
 
-	printf("Daemonizing... ");
+		printf("Daemonizing... ");
 
-	pid = fork();
-	if (pid == -1) {
-		Log("fork() returned -1 (failure)");
+		pid = fork();
+		if (pid == -1) {
+			Log("fork() returned -1 (failure)");
 
-		return false;
-	}
-
-	if (pid) {
-		FILE* pidFile = fopen("sbnc.pid", "w");
-
-		if (pidFile) {
-			fprintf(pidFile, "%d", pid);
-			fclose(pidFile);
+			return false;
 		}
 
-		printf("DONE\n");
-		exit(0);
-	}
+		if (pid) {
+			FILE* pidFile = fopen("sbnc.pid", "w");
 
-	fd = open("/dev/null", O_RDWR);
-	if (fd) {
-		if (fd != 0)
-			dup2(fd, 0);
-		if (fd != 1)
-			dup2(fd, 1);
-		if (fd != 2)
-			dup2(fd, 2);
-		if (fd > 2)
-			close(fd);
-	}
+			if (pidFile) {
+				fprintf(pidFile, "%d", pid);
+				fclose(pidFile);
+			}
 
-	sid=setsid();
-	if (sid==-1)
-		return false;
+			printf("DONE\n");
+			exit(0);
+		}
+
+		fd = open("/dev/null", O_RDWR);
+		if (fd) {
+			if (fd != 0)
+				dup2(fd, 0);
+			if (fd != 1)
+				dup2(fd, 1);
+			if (fd != 2)
+				dup2(fd, 2);
+			if (fd > 2)
+				close(fd);
+		}
+
+		sid=setsid();
+		if (sid==-1)
+			return false;
 #endif
 
-	return true;
-}
-
-const char* CBouncerCore::MD5(const char* String) {
-	MD5_CTX context;
-	static char Result[33];
-	unsigned char digest[16];
-	unsigned int len = strlen(String);
-
-	MD5Init (&context);
-	MD5Update (&context, (unsigned char*)String, len);
-	MD5Final (digest, &context);
-
-#undef sprintf
-
-	for (int i = 0; i < 16; i++) {
-		sprintf(Result + i * 2, "%02x", digest[i]);
+		return true;
 	}
 
-	return Result;
-}
-
-
-int CBouncerCore::GetArgC(void) {
-	return m_argc;
-}
-
-char** CBouncerCore::GetArgV(void) {
-	return m_argv;
-}
-
-CConnection* CBouncerCore::WrapSocket(SOCKET Socket) {
-	CConnection* Wrapper = new CConnection(Socket);
-
-	Wrapper->m_Wrapper = true;
-
-	return Wrapper;
-}
-
-void CBouncerCore::DeleteWrapper(CConnection* Wrapper) {
-	delete Wrapper;
-}
-
-void CBouncerCore::Free(void* Pointer) {
-	free(Pointer);
-}
-
-void* CBouncerCore::Alloc(size_t Size) {
-	return malloc(Size);
-}
-
-bool CBouncerCore::IsRegisteredSocket(CSocketEvents* Events) {
-	for (int i = 0; i < m_OtherSocketCount; i++) {
-		if (m_OtherSockets[i].Events == Events)
-			return true;
+	const char* CBouncerCore::MD5(const char* String) {
+		return UtilMd5(String);
 	}
 
-	return false;
-}
 
-SOCKET CBouncerCore::SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
-	return ::SocketAndConnect(Host, Port, BindIp);
-}
-
-socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
-	int a = 0;
-
-	for (int i = 0; i < m_OtherSocketCount; i++) {
-		socket_t Socket = m_OtherSockets[i];
-
-		if (Socket.Socket == INVALID_SOCKET)
-			continue;
-
-		if (strcmp(Socket.Events->ClassName(), Class) == 0)
-			a++;
-
-		if (a - 1 == Index)
-			return &m_OtherSockets[i];
+	int CBouncerCore::GetArgC(void) {
+		return m_argc;
 	}
 
-	return NULL;
-}
-
-CTimer* CBouncerCore::CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
-	return new CTimer(Interval, Repeat, Function, Cookie);
-}
-
-void CBouncerCore::RegisterTimer(CTimer* Timer) {
-	timerchain_t* last = &m_TimerChain;
-
-	while (last->next)
-		last = last->next;
-
-	last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
-
-	if (last->next == NULL) {
-		LOGERROR("malloc() failed. Timer could not be registered.");
-
-		return;
+	char** CBouncerCore::GetArgV(void) {
+		return m_argv;
 	}
 
-	last->ptr = Timer;
+	CConnection* CBouncerCore::WrapSocket(SOCKET Socket) {
+		CConnection* Wrapper = new CConnection(Socket);
 
-	last->next->next = NULL;
-	last->next->ptr = NULL;
-}
+		Wrapper->m_Wrapper = true;
 
-void CBouncerCore::UnregisterTimer(CTimer* Timer) {
-	timerchain_t* current = &m_TimerChain;
-
-	if (current->ptr == Timer && current->next) {
-		current->ptr = current->next->ptr;
-		current->next = current->next->next;
-
-		return;
+		return Wrapper;
 	}
 
-	while (current) {
-		if (current->next && current->next->ptr == Timer) {
-			timerchain_t* old = current->next;
-			current->next = current->next->next;
+	void CBouncerCore::DeleteWrapper(CConnection* Wrapper) {
+		delete Wrapper;
+	}
 
-			free(old);
+	void CBouncerCore::Free(void* Pointer) {
+		free(Pointer);
+	}
+
+	void* CBouncerCore::Alloc(size_t Size) {
+		return malloc(Size);
+	}
+
+	bool CBouncerCore::IsRegisteredSocket(CSocketEvents* Events) {
+		for (int i = 0; i < m_OtherSocketCount; i++) {
+			if (m_OtherSockets[i].Events == Events)
+				return true;
 		}
 
-		current = current->next;
+		return false;
 	}
-}
 
-int CBouncerCore::GetTimerStats(void) {
-	return g_TimerStats;
-}
+	SOCKET CBouncerCore::SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
+		return ::SocketAndConnect(Host, Port, BindIp);
+	}
 
-bool CBouncerCore::Match(const char* Pattern, const char* String) {
-	return (match(Pattern, String) == 0);
-}
+	socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
+		int a = 0;
 
-int CBouncerCore::GetSendQSize(void) {
-	if (m_SendQSizeCache != -1)
-		return m_SendQSizeCache;
+		for (int i = 0; i < m_OtherSocketCount; i++) {
+			socket_t Socket = m_OtherSockets[i];
 
-	int Size = m_Config->ReadInteger("system.sendq");
+			if (Socket.Socket == INVALID_SOCKET)
+				continue;
 
-	if (Size == 0)
-		return DEFAULT_SENDQ;
-	else
-		return Size;
-}
+			if (strcmp(Socket.Events->ClassName(), Class) == 0)
+				a++;
 
-void CBouncerCore::SetSendQSize(int NewSize) {
-	m_Config->WriteInteger("system.sendq", NewSize);
-	m_SendQSizeCache = NewSize;
-}
+			if (a - 1 == Index)
+				return &m_OtherSockets[i];
+		}
 
-const char* CBouncerCore::GetMotd(void) {
-	return m_Config->ReadString("system.motd");
-}
+		return NULL;
+	}
 
-void CBouncerCore::SetMotd(const char* Motd) {
-	m_Config->WriteString("system.motd", Motd);
-}
+	CTimer* CBouncerCore::CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
+		return new CTimer(Interval, Repeat, Function, Cookie);
+	}
 
-void CBouncerCore::Fatal(void) {
-	Log("Fatal error occured. Please send this log to gb@shroudbnc.org for further analysis.");
+	void CBouncerCore::RegisterTimer(CTimer* Timer) {
+		timerchain_t* last = &m_TimerChain;
 
-	exit(1);
-}
+		while (last->next)
+			last = last->next;
+
+		last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
+
+		if (last->next == NULL) {
+			LOGERROR("malloc() failed. Timer could not be registered.");
+
+			return;
+		}
+
+		last->ptr = Timer;
+
+		last->next->next = NULL;
+		last->next->ptr = NULL;
+	}
+
+	void CBouncerCore::UnregisterTimer(CTimer* Timer) {
+		timerchain_t* current = &m_TimerChain;
+
+		if (current->ptr == Timer && current->next) {
+			current->ptr = current->next->ptr;
+			current->next = current->next->next;
+
+			return;
+		}
+
+		while (current) {
+			if (current->next && current->next->ptr == Timer) {
+				timerchain_t* old = current->next;
+				current->next = current->next->next;
+
+				free(old);
+			}
+
+			current = current->next;
+		}
+	}
+
+	int CBouncerCore::GetTimerStats(void) {
+		return g_TimerStats;
+	}
+
+	bool CBouncerCore::Match(const char* Pattern, const char* String) {
+		return (match(Pattern, String) == 0);
+	}
+
+	int CBouncerCore::GetSendQSize(void) {
+		if (m_SendQSizeCache != -1)
+			return m_SendQSizeCache;
+
+		int Size = m_Config->ReadInteger("system.sendq");
+
+		if (Size == 0)
+			return DEFAULT_SENDQ;
+		else
+			return Size;
+	}
+
+	void CBouncerCore::SetSendQSize(int NewSize) {
+		m_Config->WriteInteger("system.sendq", NewSize);
+		m_SendQSizeCache = NewSize;
+	}
+
+	const char* CBouncerCore::GetMotd(void) {
+		return m_Config->ReadString("system.motd");
+	}
+
+	void CBouncerCore::SetMotd(const char* Motd) {
+		m_Config->WriteString("system.motd", Motd);
+	}
+
+	void CBouncerCore::Fatal(void) {
+		Log("Fatal error occured. Please send this log to gb@shroudbnc.org for further analysis.");
+
+		exit(1);
+	}
+
+#ifdef USESSL
+	SSL_CTX* CBouncerCore::GetSSLContext(void) {
+		return m_SSLContext;
+	}
+#endif

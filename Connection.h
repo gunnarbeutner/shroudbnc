@@ -32,9 +32,10 @@ class CConnection : public CSocketEvents {
 	friend class CBouncerCore;
 	friend class CBouncerUser;
 
+	bool HandleSSLError(int RetVal);
 public:
 #ifndef SWIG
-	CConnection(SOCKET Client);
+	CConnection(SOCKET Client, bool SSL = false);
 #endif
 	virtual ~CConnection(void);
 
@@ -75,6 +76,8 @@ public:
 	virtual void FlushSendQ(void);
 
 	virtual void InitSocket(void);
+
+	virtual bool IsSSL(void);
 protected:
 	virtual void ParseLine(const char* Line);
 #ifndef SWIG
@@ -94,11 +97,14 @@ protected:
 	bool m_Wrapper;
 
 private:
-/*	char* sendq;
-	int sendq_size;
-
-	char* recvq;
-	int recvq_size;*/
+#ifdef USESSL
+	bool m_HasSSL;
+	bool m_WantAccept;
+	int m_SSLError;
+	SSL* m_SSL;
+	BIO* m_In;
+	BIO* m_Out;
+#endif
 
 	CFIFOBuffer* m_SendQ;
 	CFIFOBuffer* m_RecvQ;

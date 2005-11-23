@@ -43,7 +43,7 @@ class CClientConnection : public CConnection, public CDnsEvents {
 	void AdnsTimeout(void);
 public:
 #ifndef SWIG
-	CClientConnection(SOCKET Socket, sockaddr_in Peer);
+	CClientConnection(SOCKET Socket, sockaddr_in Peer, bool SSL = false);
 #endif
 	virtual ~CClientConnection(void);
 
