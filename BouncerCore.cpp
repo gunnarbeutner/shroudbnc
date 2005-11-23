@@ -466,7 +466,9 @@ void CBouncerCore::StartMainLoop(void) {
 		}
 	}
 
+#ifdef USESSL
 	SSL_CTX_free(m_SSLContext);
+#endif
 }
 
 void CBouncerCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL) {
