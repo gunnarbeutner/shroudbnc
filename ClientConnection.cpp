@@ -911,7 +911,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 			}
 
-			if (m_Nick && m_Username && m_Password)
+			if (m_Nick && m_Username && (m_Password || GetPeerCertificate() != NULL))
 				ValidateUser();
 			else if (m_Nick && m_Username && !m_Password)
 				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
@@ -1253,18 +1253,36 @@ void CClientConnection::ParseLine(const char* Line) {
 	}
 }
 
-void CClientConnection::ValidateUser(void) {
-	CBouncerUser* User = g_Bouncer->GetUser(m_Username);
+void CClientConnection::ValidateUser() {
+	X509* Cert = NULL;
+	bool Force = false;
+	CBouncerUser* User;
 
 	bool Blocked = true, Valid = false, ValidHost = false;
 
+	if (IsSSL() && (Cert = (X509*)GetPeerCertificate()) != NULL) {
+		char Buffer[50];
+		X509_NAME* Name = X509_get_subject_name(Cert);
+
+		X509_NAME_get_text_by_NID(Name, NID_commonName, Buffer, sizeof(Buffer));
+
+		if (m_Username)
+			free(m_Username);
+
+		m_Username = strdup(Buffer);
+
+		Force = true;
+	}
+
+	User = g_Bouncer->GetUser(m_Username);
+
 	if (User) {
 		Blocked = User->IsIpBlocked(m_Peer);
-		Valid = User->Validate(m_Password);
+		Valid = (Force || User->Validate(m_Password));
 		ValidHost = User->CanHostConnect(m_PeerName);
 	}
 
-	if (m_Password && User && !Blocked && Valid && ValidHost) {
+	if ((m_Password || Force) && User && !Blocked && Valid && ValidHost) {
 		User->Attach(this);
 		//WriteLine(":Notice!notice@shroudbnc.org NOTICE * :Welcome to the wonderful world of IRC");
 	} else {

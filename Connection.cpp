@@ -56,6 +56,7 @@ CConnection::CConnection(SOCKET Client, bool SSL) {
 
 #ifdef USESSL
 	m_HasSSL = SSL;
+	m_CheckCert = false;
 #endif
 
 	InitSocket();
@@ -153,6 +154,8 @@ bool CConnection::Read(bool DontProcess) {
 				return false;
 			}
 		}
+
+		ERR_print_errors_fp(stdout);
 	} else
 #endif
 		n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
@@ -436,4 +439,14 @@ bool CConnection::IsSSL(void) {
 #else
 	return false;
 #endif
+}
+
+void* CConnection::GetPeerCertificate(void) {
+#ifdef USESSL
+	if (SSL_get_verify_result(m_SSL) == X509_V_OK) {
+		return SSL_get_peer_certificate(m_SSL);
+	}
+#endif
+
+	return NULL;
 }

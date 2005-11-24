@@ -78,6 +78,7 @@ public:
 	virtual void InitSocket(void);
 
 	virtual bool IsSSL(void);
+	/* X509 */ void* GetPeerCertificate(void);
 protected:
 	virtual void ParseLine(const char* Line);
 #ifndef SWIG
@@ -99,11 +100,8 @@ protected:
 private:
 #ifdef USESSL
 	bool m_HasSSL;
-	bool m_WantAccept;
-	int m_SSLError;
+	bool m_CheckCert;
 	SSL* m_SSL;
-	BIO* m_In;
-	BIO* m_Out;
 #endif
 
 	CFIFOBuffer* m_SendQ;

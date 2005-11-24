@@ -39,7 +39,7 @@ class CClientConnection : public CConnection, public CDnsEvents {
 	adns_query m_PeerA;
 #endif
 
-	void ValidateUser(void);
+	void ValidateUser();
 	void AdnsTimeout(void);
 public:
 #ifndef SWIG
