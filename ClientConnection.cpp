@@ -1254,11 +1254,13 @@ void CClientConnection::ParseLine(const char* Line) {
 }
 
 void CClientConnection::ValidateUser() {
-	X509* Cert = NULL;
 	bool Force = false;
 	CBouncerUser* User;
 
 	bool Blocked = true, Valid = false, ValidHost = false;
+
+#ifdef USESSL
+	X509* Cert = NULL;
 
 	if (IsSSL() && (Cert = (X509*)GetPeerCertificate()) != NULL) {
 		char Buffer[50];
@@ -1273,6 +1275,7 @@ void CClientConnection::ValidateUser() {
 
 		Force = true;
 	}
+#endif
 
 	User = g_Bouncer->GetUser(m_Username);
 
