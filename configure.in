@@ -24,8 +24,28 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_STRUCT_TM
 
+SSL_DEV=""
+SSL_LIBS=""
+
+AC_ARG_ENABLE(ssl,
+	[  --enable-ssl=yes          Enable support for ssl
+  --disable-ssl         Disable support for ssl
+  ]
+)
+
 AC_CHECK_LIB(dl, dlsym)
-AC_CHECK_LIB(adns, adns_init)
+AC_CHECK_LIB(adns, adns_init, [], [
+	echo "Error! shroudBNC requires the adns library, which is currently not installed."
+	exit -1
+	])
+
+if test $enable_ssl; then
+	AC_CHECK_HEADERS([openssl/ssl.h])
+	AC_CHECK_LIB(ssl, SSL_new, [ SSL_LIBS="-lssl -lcrypto"; SSL_DEF="-DUSESSL" ])
+fi
+
+AC_SUBST(SSL_LIBS)
+AC_SUBST(SSL_DEF)
 
 # Checks for library functions.
 AC_FUNC_FORK
