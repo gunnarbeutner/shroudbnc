@@ -443,7 +443,7 @@ bool CConnection::IsSSL(void) {
 
 void* CConnection::GetPeerCertificate(void) {
 #ifdef USESSL
-	if (SSL_get_verify_result(m_SSL) == X509_V_OK) {
+	if (m_HasSSL && SSL_get_verify_result(m_SSL) == X509_V_OK) {
 		return SSL_get_peer_certificate(m_SSL);
 	}
 #endif
