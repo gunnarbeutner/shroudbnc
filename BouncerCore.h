@@ -48,7 +48,9 @@ class CBouncerCore {
 	CBouncerConfig* m_Config;
 
 	SOCKET m_Listener;
+#ifdef USESSL
 	SOCKET m_SSLListener;
+#endif
 
 	CBouncerUser** m_Users;
 	int m_UserCount;

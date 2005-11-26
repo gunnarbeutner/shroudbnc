@@ -339,8 +339,10 @@ void CBouncerCore::StartMainLoop(void) {
 		if (m_Listener != INVALID_SOCKET)
 			FD_SET(m_Listener, &FDRead);
 
+#ifdef USESSL
 		if (m_SSLListener != INVALID_SOCKET)
 			FD_SET(m_SSLListener, &FDRead);
+#endif
 
 		FD_ZERO(&FDWrite);
 
@@ -426,6 +428,7 @@ void CBouncerCore::StartMainLoop(void) {
 				HandleConnectingClient(Client, sin_remote, false);
 			}
 
+#ifdef USESSL
 			if (m_SSLListener != INVALID_SOCKET && FD_ISSET(m_SSLListener, &FDRead)) {
 				sockaddr_in sin_remote;
 				socklen_t sin_size = sizeof(sin_remote);
@@ -433,6 +436,7 @@ void CBouncerCore::StartMainLoop(void) {
 				SOCKET Client = accept(m_SSLListener, (sockaddr*)&sin_remote, &sin_size);
 				HandleConnectingClient(Client, sin_remote, true);
 			}
+#endif
 
 			for (i = 0; i < m_OtherSocketCount; i++) {
 				SOCKET Socket = m_OtherSockets[i].Socket;

@@ -120,8 +120,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("hostdel       - removes a hostmask");
 		SENDUSER("partall       - parts all channels and tells sBNC not to rejoin them when you reconnect to a server");
 #ifdef USESSL
-		SENDUSER("savecert      - saves your current client certificate as the default one for public key authentication");
-		SENDUSER("showcert      - shows information about the client certificate you have stored for public key authentication");
+		SENDUSER("savecert      - saves your current client certificate for use with public key authentication");
+		SENDUSER("delcert       - removes a certificate");
+		SENDUSER("showcert      - shows information about your certificates");
 #endif
 
 		if (m_Owner->IsAdmin()) {
@@ -372,49 +373,96 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		} else if (GetPeerCertificate() == NULL) {
 			SENDUSER("Error: You are not using a client certificate.");
 		} else {
-			m_Owner->SetClientCertificate(GetPeerCertificate());
+			m_Owner->AddClientCertificate(GetPeerCertificate());
 
 			SENDUSER("Your certificate was stored and will be used for public key authentication.");
 		}
 
 		return false;
 	} else if (strcmpi(Subcommand, "showcert") == 0) {
+		int i = 0;
 		char Buffer[300];
-		X509* ClientCert = (X509*)m_Owner->GetClientCertificate();
-
-		if (ClientCert == NULL) {
-			SENDUSER("You did not set a client certificate.");
-
-			return false;
-		}
-
+		X509* ClientCert;
 		X509_NAME* name;
-		
-		name = X509_get_issuer_name(ClientCert);
-		X509_NAME_oneline(name, Buffer, sizeof(Buffer));
-		asprintf(&Out, "issuer: %s", Buffer);
+		bool First = true;
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
+		while ((ClientCert = (X509*)m_Owner->GetClientCertificate(i++)) != NULL) {
+			if (ClientCert == NULL && First) {
+				SENDUSER("You did not set a client certificate.");
 
+				return false;
+			}
+
+			if (!First) {
+				SENDUSER("---");
+			}
+
+			First = false;
+
+			asprintf(&Out, "Client Certificate #%d", i);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+
+				return false;
+			}
+
+			SENDUSER(Out);
+
+			free(Out);
+
+			name = X509_get_issuer_name(ClientCert);
+			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+			asprintf(&Out, "issuer: %s", Buffer);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+
+				return false;
+			}
+
+			SENDUSER(Out);
+			free(Out);
+
+			name = X509_get_subject_name(ClientCert);
+			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+			asprintf(&Out, "subject: %s", Buffer);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+
+				return false;
+			}
+
+			SENDUSER(Out);
+			free(Out);
+		}
+
+		SENDUSER("End of CERTIFICATES.");
+
+		return false;
+	} else if (strcmpi(Subcommand, "delcert") == 0) {
+		int id;
+
+		if (argc < 2) {
+			SENDUSER("Syntax: delcert ID");
+			
 			return false;
 		}
 
-		SENDUSER(Out);
-		free(Out);
+		id = atoi(argv[1]);
 
-		name = X509_get_subject_name(ClientCert);
-		X509_NAME_oneline(name, Buffer, sizeof(Buffer));
-		asprintf(&Out, "subject: %s", Buffer);
+		X509* Cert = (X509*)m_Owner->GetClientCertificate(id - 1);
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-
-			return false;
+		if (Cert != NULL) {
+			if (m_Owner->RemoveClientCertificate(Cert)) {
+				SENDUSER("Done.");
+			} else {
+				SENDUSER("An error occured while removing the certificate.");
+			}
+		} else {
+			SENDUSER("The ID you specified is not valid. Use the SHOWCERT command to get a list of valid IDs.");
 		}
-
-		SENDUSER(Out);
-		free(Out);
 
 		return false;
 #endif
@@ -1320,7 +1368,9 @@ bool CClientConnection::ValidateUser() {
 	bool Blocked = true, Valid = false, ValidHost = false;
 
 #ifdef USESSL
-	X509* PeerCert = NULL, * ThisCert;
+	int Count = 0;
+	bool MatchUsername = false;
+	X509* PeerCert = NULL;
 	CBouncerUser* AuthUser = NULL;
 	CBouncerUser** Users = g_Bouncer->GetUsers();
 
@@ -1329,20 +1379,21 @@ bool CClientConnection::ValidateUser() {
 			if (Users[i] == NULL)
 				continue;
 
-			ThisCert = (X509*)Users[i]->GetClientCertificate();
-
-			if (ThisCert && X509_cmp(ThisCert, PeerCert) == 0) {
+			if (Users[i]->FindClientCertificate(PeerCert)) {
 				AuthUser = Users[i];
+				Count++;
 
-				break;
+				if (strcmpi(Users[i]->GetUsername(), m_Username) == 0)
+					MatchUsername = true;
 			}
 		}
 
-		if (AuthUser) {
+		if (AuthUser && Count == 1) { // found a single user who has this public certificate
 			free(m_Username);
 			m_Username = strdup(AuthUser->GetUsername());
 			Force = true;
-		}
+		} else if (MatchUsername == true && Count > 1) // found more than one user with that certificate
+			Force = true;
 	}
 
 	if (AuthUser == NULL && m_Password == NULL)
@@ -1429,7 +1480,7 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	if (response->status != adns_s_ok)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName(*response->rrs.str, false);
+		SetPeerName((char*)response->rrs.bytes, false); // TODO: find out why .str doesn't work for localhost
 }
 
 const char* CClientConnection::ClassName(void) {

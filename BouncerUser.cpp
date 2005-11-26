@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include <openssl/err.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -123,14 +124,22 @@ CBouncerUser::CBouncerUser(const char* Name) {
 #ifdef USESSL
 	asprintf(&Out, "users/%s.crt", Name);
 
+	X509* Cert;
 	FILE* ClientCert = fopen(Out, "r");
 
+	m_ClientCertificates = NULL;
+	m_ClientCertificateCount = 0;
+
 	if (ClientCert != NULL) {
-		m_ClientCertificate = PEM_read_X509(ClientCert, NULL, NULL, NULL);
+		while ((Cert = PEM_read_X509(ClientCert, NULL, NULL, NULL)) != NULL) {
+			m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * ++m_ClientCertificateCount);
+
+			m_ClientCertificates[m_ClientCertificateCount - 1] = Cert;
+		}
 
 		fclose(ClientCert);
 	} else
-		m_ClientCertificate = NULL;
+		m_ClientCertificates = NULL;
 
 	free(Out);
 #endif
@@ -172,8 +181,10 @@ CBouncerUser::~CBouncerUser() {
 	m_BadLoginPulse->Destroy();
 
 #ifdef USESSL
-	if (m_ClientCertificate)
-		X509_free(m_ClientCertificate);
+	for (int i = 0; i < m_ClientCertificateCount; i++)
+		X509_free(m_ClientCertificates[i]);
+
+	free(m_ClientCertificates);
 #endif
 
 	if (m_ReconnectTimer)
@@ -1061,20 +1072,53 @@ void CBouncerUser::SetDropModes(const char* DropModes) {
 	m_Config->WriteString("user.dropmodes", DropModes);
 }
 
-void* CBouncerUser::GetClientCertificate(void) {
+void* CBouncerUser::GetClientCertificate(int Index) {
 #ifdef USESSL
-	return m_ClientCertificate;
+	if (Index >= m_ClientCertificateCount || Index < 0)
+		return NULL;
+	else
+		return m_ClientCertificates[Index];
 #else
 	return NULL;
 #endif
 }
 
-bool CBouncerUser::SetClientCertificate(void* Certificate) {
+bool CBouncerUser::AddClientCertificate(void* Certificate) {
 #ifdef USESSL
+	for (int i = 0; i < m_ClientCertificateCount; i++) {
+		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0)
+			return true;
+	}
+
+	m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * ++m_ClientCertificateCount);
+	m_ClientCertificates[m_ClientCertificateCount - 1] = (X509*)Certificate;
+
+	return PersistCertificates();
+#else
+	return false;
+#endif
+}
+
+bool CBouncerUser::RemoveClientCertificate(void* Certificate) {
+#ifdef USESSL
+	for (int i = 0; i < m_ClientCertificateCount; i++) {
+		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0) {
+			m_ClientCertificates[i] = m_ClientCertificates[m_ClientCertificateCount - 1];
+
+			m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * --m_ClientCertificateCount);
+
+			return PersistCertificates();
+		}
+	}
+#endif
+
+	return false;
+}
+
+#ifdef USESSL
+bool CBouncerUser::PersistCertificates(void) {
 	char *Out;
 	FILE *CertFile;
-
-	m_ClientCertificate = (X509*)Certificate;
 
 	asprintf(&Out, "users/%s.crt", m_Name);
 
@@ -1084,22 +1128,39 @@ bool CBouncerUser::SetClientCertificate(void* Certificate) {
 		return false;
 	}
 
-	CertFile = fopen(Out, "w");
+	if (m_ClientCertificateCount == 0)
+		unlink(Out);
+	else {
+		CertFile = fopen(Out, "w");
 
-	if (CertFile == NULL) {
-		LOGERROR("Unable to open certificate file for writing.");
+		if (CertFile == NULL) {
+			LOGERROR("Unable to open certificate file for writing.");
 
-		return false;
+			return false;
+		}
+
+		for (int i = 0; i < m_ClientCertificateCount; i++) {
+			X509* a = m_ClientCertificates[i];
+			PEM_write_X509(CertFile, m_ClientCertificates[i]);
+			fprintf(CertFile, "\n");
+		}
+
+		fclose(CertFile);
 	}
-
-	PEM_write_X509(CertFile, (X509*)Certificate);
-
-	fclose(CertFile);
 
 	free(Out);
 
 	return true;
-#else
-	return false;
+}
 #endif
+
+bool CBouncerUser::FindClientCertificate(void* Certificate) {
+#ifdef USESSL
+	for (int i = 0; i < m_ClientCertificateCount; i++) {
+		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0)
+			return true;
+	}
+#endif
+
+	return false;
 }

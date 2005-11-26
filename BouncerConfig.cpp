@@ -179,7 +179,6 @@ bool CBouncerConfig::Persist(void) {
 	}
 }
 
-
 const char* CBouncerConfig::GetFilename(void) {
 	return m_File;
 }
