@@ -132,13 +132,14 @@ void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
 }
 
 bool CConnection::Read(bool DontProcess) {
+	int n;
 	char Buffer[8192];
 
 	if (m_Shutdown)
 		return true;
 
 #ifdef USESSL
-	int n, code;
+	int code;
 
 	if (m_HasSSL) {
 		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL))

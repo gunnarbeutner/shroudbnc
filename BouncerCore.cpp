@@ -26,7 +26,9 @@ extern bool g_Debug;
 const char* g_ErrorFile;
 unsigned int g_ErrorLine;
 
+#ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

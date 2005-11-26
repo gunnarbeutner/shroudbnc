@@ -60,3 +60,5 @@ When you want to set the public key you are going to use for your bouncer accoun
 Once you're logged in you can use /sbnc savecert to tell sBNC that the client certificate you are currently using is to be trusted for public key authentication.
 
 Use /sbnc showcert to check that the certificate was saved correctly. You should now be able to log in using this client certificate.
+
+(You can also set your public key by putting a x509 certificate into your users/ directory. The file's name should be <username>.crt, where <username> is your username. However this requires a restart as sBNC only reads the certificate files during startup.)

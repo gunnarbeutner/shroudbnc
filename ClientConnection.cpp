@@ -121,6 +121,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("partall       - parts all channels and tells sBNC not to rejoin them when you reconnect to a server");
 #ifdef USESSL
 		SENDUSER("savecert      - saves your current client certificate as the default one for public key authentication");
+		SENDUSER("showcert      - shows information about the client certificate you have stored for public key authentication");
 #endif
 
 		if (m_Owner->IsAdmin()) {
