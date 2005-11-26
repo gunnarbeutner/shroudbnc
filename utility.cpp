@@ -309,7 +309,7 @@ CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBoun
 }
 
 char* NickFromHostmask(const char* Hostmask) {
-	char* Ex = strstr(Hostmask, "!");
+	const char* Ex = strstr(Hostmask, "!");
 
 	if (!Ex)
 		return NULL;

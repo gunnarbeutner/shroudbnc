@@ -6,7 +6,7 @@ Using the OpenSSL library shroudBNC supports encrypted client connections. Addit
 Why?
 ----
 
-IRC is often used over insecure/unencrypted connections. While the problem of monitoring networks using packet sniffers might not be so obvious for (wired) LAN/WAN connections it becomes apparent when considering wireless connections, e.g. on a campus, where every other WLAN user can tap into another user's data transfers.
+IRC is often used over insecure/unencrypted connections. While the problem of monitoring networks using packet sniffers might not be so obvious for (wired) LAN/WAN connections it becomes apparent when considering wireless connections, e.g. on a campus, where every other WLAN user can tap into your data transfers.
 
 Compiling sBNC with support for SSL
 -----------------------------------
@@ -45,7 +45,6 @@ These settings can be set in the bouncer's main configuration file: sbnc.conf
 
 Once you've enabled SSL sBNC expects to find the following files in your bouncer's directory:
 
-ca.crt - the public key of the certificate authority, client certificates must be signed by this CA
 sbnc.crt - the public part of the server's key
 sbnc.key - the private part of the server's key
 
@@ -56,6 +55,8 @@ Client Certificates
 
 Clients like irssi or mIRC which support client certificates can use such certificates for authentication.
 
-While checking a client certificate the server reads the CN ("common name") field and uses its value as the user's account name. If the certificate is valid and signed by the CA (i.e. ca.crt) the user is being logged on.
+When you want to set the public key you are going to use for your bouncer account you have to log in using your client certificate AND your password (obviously because the bouncer doesn't know your public key yet).
 
-sBNC will not check the values given by the /user and /pass commands if a valid certificate is found.
+Once you're logged in you can use /sbnc savecert to tell sBNC that the client certificate you are currently using is to be trusted for public key authentication.
+
+Use /sbnc showcert to check that the certificate was saved correctly. You should now be able to log in using this client certificate.

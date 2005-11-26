@@ -72,6 +72,10 @@ class CBouncerUser {
 
 	int m_IsAdminCache;
 
+#ifdef USESSL
+	X509* m_ClientCertificate;
+#endif
+
 	void UpdateHosts(void);
 	void BadLoginPulse(void);
 
@@ -177,4 +181,7 @@ public:
 
 	virtual const char* GetDropModes(void);
 	virtual void SetDropModes(const char* DropModes);
+
+	virtual /* X509* */ void* GetClientCertificate(void);
+	virtual bool SetClientCertificate(/* X509* */ void* Certificate);
 };

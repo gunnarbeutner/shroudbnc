@@ -56,7 +56,6 @@ CConnection::CConnection(SOCKET Client, bool SSL) {
 
 #ifdef USESSL
 	m_HasSSL = SSL;
-	m_CheckCert = false;
 #endif
 
 	InitSocket();
@@ -82,6 +81,7 @@ void CConnection::InitSocket(void) {
 	setsockopt(m_Socket, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
 	setsockopt(m_Socket, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
 #endif
+
 #ifdef USESSL
 	if (m_HasSSL) {
 		BIO* rbio, *wbio;
@@ -133,12 +133,13 @@ void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
 
 bool CConnection::Read(bool DontProcess) {
 	char Buffer[8192];
-	int n, code;
 
 	if (m_Shutdown)
 		return true;
 
 #ifdef USESSL
+	int n, code;
+
 	if (m_HasSSL) {
 		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL))
 			return true;
@@ -443,7 +444,7 @@ bool CConnection::IsSSL(void) {
 
 void* CConnection::GetPeerCertificate(void) {
 #ifdef USESSL
-	if (m_HasSSL && SSL_get_verify_result(m_SSL) == X509_V_OK) {
+	if (m_HasSSL/* && SSL_get_verify_result(m_SSL) == X509_V_OK*/) {
 		return SSL_get_peer_certificate(m_SSL);
 	}
 #endif

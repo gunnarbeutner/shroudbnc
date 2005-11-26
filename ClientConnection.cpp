@@ -119,6 +119,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("hostadd       - adds a hostmask");
 		SENDUSER("hostdel       - removes a hostmask");
 		SENDUSER("partall       - parts all channels and tells sBNC not to rejoin them when you reconnect to a server");
+#ifdef USESSL
+		SENDUSER("savecert      - saves your current client certificate as the default one for public key authentication");
+#endif
 
 		if (m_Owner->IsAdmin()) {
 			SENDUSER("status        - tells you the current status");
@@ -361,6 +364,59 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
+#ifdef USESSL
+	} else if (strcmpi(Subcommand, "savecert") == 0) {
+		if (!IsSSL()) {
+			SENDUSER("Error: You are not using an SSL-encrypted connection.");
+		} else if (GetPeerCertificate() == NULL) {
+			SENDUSER("Error: You are not using a client certificate.");
+		} else {
+			m_Owner->SetClientCertificate(GetPeerCertificate());
+
+			SENDUSER("Your certificate was stored and will be used for public key authentication.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "showcert") == 0) {
+		char Buffer[300];
+		X509* ClientCert = (X509*)m_Owner->GetClientCertificate();
+
+		if (ClientCert == NULL) {
+			SENDUSER("You did not set a client certificate.");
+
+			return false;
+		}
+
+		X509_NAME* name;
+		
+		name = X509_get_issuer_name(ClientCert);
+		X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+		asprintf(&Out, "issuer: %s", Buffer);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			return false;
+		}
+
+		SENDUSER(Out);
+		free(Out);
+
+		name = X509_get_subject_name(ClientCert);
+		X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+		asprintf(&Out, "subject: %s", Buffer);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+
+			return false;
+		}
+
+		SENDUSER(Out);
+		free(Out);
+
+		return false;
+#endif
 	} else if (strcmpi(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
 		g_Bouncer->Shutdown();
@@ -911,9 +967,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 			}
 
+			bool ValidSSLCert = false;
+
 			if (m_Nick && m_Username && (m_Password || GetPeerCertificate() != NULL))
-				ValidateUser();
-			else if (m_Nick && m_Username && !m_Password)
+				ValidSSLCert = ValidateUser();
+
+			if (m_Nick && m_Username && !m_Password && !ValidSSLCert)
 				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 
 			return false;
@@ -1253,28 +1312,40 @@ void CClientConnection::ParseLine(const char* Line) {
 	}
 }
 
-void CClientConnection::ValidateUser() {
+bool CClientConnection::ValidateUser() {
 	bool Force = false;
 	CBouncerUser* User;
 
 	bool Blocked = true, Valid = false, ValidHost = false;
 
 #ifdef USESSL
-	X509* Cert = NULL;
+	X509* PeerCert = NULL, * ThisCert;
+	CBouncerUser* AuthUser = NULL;
+	CBouncerUser** Users = g_Bouncer->GetUsers();
 
-	if (IsSSL() && (Cert = (X509*)GetPeerCertificate()) != NULL) {
-		char Buffer[50];
-		X509_NAME* Name = X509_get_subject_name(Cert);
+	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
+		for (int i = 0; i < g_Bouncer->GetUserCount(); i++) {
+			if (Users[i] == NULL)
+				continue;
 
-		X509_NAME_get_text_by_NID(Name, NID_commonName, Buffer, sizeof(Buffer));
+			ThisCert = (X509*)Users[i]->GetClientCertificate();
 
-		if (m_Username)
+			if (ThisCert && X509_cmp(ThisCert, PeerCert) == 0) {
+				AuthUser = Users[i];
+
+				break;
+			}
+		}
+
+		if (AuthUser) {
 			free(m_Username);
-
-		m_Username = strdup(Buffer);
-
-		Force = true;
+			m_Username = strdup(AuthUser->GetUsername());
+			Force = true;
+		}
 	}
+
+	if (AuthUser == NULL && m_Password == NULL)
+		return false;
 #endif
 
 	User = g_Bouncer->GetUser(m_Username);
@@ -1303,6 +1374,8 @@ void CClientConnection::ValidateUser() {
 
 		Kill("*** Unknown user or wrong password.");
 	}
+
+	return true;
 }
 
 

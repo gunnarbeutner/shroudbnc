@@ -19,10 +19,14 @@
 
 #include "StdAfx.h"
 
+#include <openssl/err.h>
+
 extern bool g_Debug;
 
 const char* g_ErrorFile;
 unsigned int g_ErrorLine;
+
+int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -244,17 +248,17 @@ void CBouncerCore::StartMainLoop(void) {
 	SSL_METHOD* SSLMethod = SSLv23_method();
 	m_SSLContext = SSL_CTX_new(SSLMethod);
 
-	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, "sbnc.crt")) {
-		Log("Could not load public key (sbnc.crt).");
-		return;
-	}
-
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
-		Log("Could not load private key (sbnc.key.");
+		Log("Could not load private key (sbnc.key."); ERR_print_errors_fp(stdout);
 		return;
 	}
 
-	if (!SSL_CTX_load_verify_locations(m_SSLContext, "ca.crt", NULL)) {
+	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, "sbnc.crt")) {
+		Log("Could not load public key (sbnc.crt)."); ERR_print_errors_fp(stdout);
+		return;
+	}
+
+/* 	if (!SSL_CTX_load_verify_locations(m_SSLContext, "ca.crt", NULL)) {
 		Log("Could not load CA certificate (ca.crt).");
 		return;
 	}
@@ -264,11 +268,11 @@ void CBouncerCore::StartMainLoop(void) {
 	if (ClientCA == NULL) {
 		Log("Could not load CA certificate (ca.crt).");
 		return;
-	}
+	}*/
 
-	SSL_CTX_set_client_CA_list(m_SSLContext, ClientCA);
+//	SSL_CTX_set_client_CA_list(m_SSLContext, ClientCA);
 
-	SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, NULL);
+	SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 #endif
 
 	if (Port != 0 && m_Listener != INVALID_SOCKET)
@@ -1109,5 +1113,9 @@ void CBouncerCore::Fatal(void) {
 #ifdef USESSL
 SSL_CTX* CBouncerCore::GetSSLContext(void) {
 	return m_SSLContext;
+}
+
+int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
+	return 1;
 }
 #endif

@@ -166,7 +166,7 @@ bool FloodTimer(time_t Now, void* FloodControl) {
 }
 
 int CFloodControl::CalculatePenaltyAmplifier(const char* Line) {
-	char* Space = strstr(Line, " ");
+	const char* Space = strstr(Line, " ");
 	char* Command;
 	
 	if (Space) {

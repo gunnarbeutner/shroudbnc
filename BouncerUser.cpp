@@ -120,6 +120,21 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_IsAdminCache = -1;
 
+#ifdef USESSL
+	asprintf(&Out, "users/%s.crt", Name);
+
+	FILE* ClientCert = fopen(Out, "r");
+
+	if (ClientCert != NULL) {
+		m_ClientCertificate = PEM_read_X509(ClientCert, NULL, NULL, NULL);
+
+		fclose(ClientCert);
+	} else
+		m_ClientCertificate = NULL;
+
+	free(Out);
+#endif
+
 	if (!m_Config->ReadInteger("user.quitted"))
 		ScheduleReconnect(0);
 }
@@ -155,6 +170,11 @@ CBouncerUser::~CBouncerUser() {
 	free(m_BadLogins);
 
 	m_BadLoginPulse->Destroy();
+
+#ifdef USESSL
+	if (m_ClientCertificate)
+		X509_free(m_ClientCertificate);
+#endif
 
 	if (m_ReconnectTimer)
 		delete m_ReconnectTimer;
@@ -1039,4 +1059,47 @@ const char* CBouncerUser::GetDropModes(void) {
 
 void CBouncerUser::SetDropModes(const char* DropModes) {
 	m_Config->WriteString("user.dropmodes", DropModes);
+}
+
+void* CBouncerUser::GetClientCertificate(void) {
+#ifdef USESSL
+	return m_ClientCertificate;
+#else
+	return NULL;
+#endif
+}
+
+bool CBouncerUser::SetClientCertificate(void* Certificate) {
+#ifdef USESSL
+	char *Out;
+	FILE *CertFile;
+
+	m_ClientCertificate = (X509*)Certificate;
+
+	asprintf(&Out, "users/%s.crt", m_Name);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+
+		return false;
+	}
+
+	CertFile = fopen(Out, "w");
+
+	if (CertFile == NULL) {
+		LOGERROR("Unable to open certificate file for writing.");
+
+		return false;
+	}
+
+	PEM_write_X509(CertFile, (X509*)Certificate);
+
+	fclose(CertFile);
+
+	free(Out);
+
+	return true;
+#else
+	return false;
+#endif
 }

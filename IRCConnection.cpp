@@ -973,7 +973,7 @@ bool CIRCConnection::IsNickMode(char Char) {
 
 char CIRCConnection::PrefixForChanMode(char Mode) {
 	const char* Prefixes = GetISupport("PREFIX");
-	char* pref = strstr(Prefixes, ")");
+	const char* pref = strstr(Prefixes, ")");
 
 	Prefixes++;
 

@@ -100,7 +100,6 @@ protected:
 private:
 #ifdef USESSL
 	bool m_HasSSL;
-	bool m_CheckCert;
 	SSL* m_SSL;
 #endif
 
