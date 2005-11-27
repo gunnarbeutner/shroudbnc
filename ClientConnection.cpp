@@ -1062,9 +1062,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				const char* Nick = argv[1];
 
 				if (strcmpi("-sbnc", Nick) == 0) {
-					WriteLine(":bouncer 311 %s -sBNC core bnc.server * :shroudBNC", m_Nick);
-					WriteLine(":bouncer 319 %s -sBNC :/dev/null", m_Nick);
-					WriteLine(":bouncer 312 %s -sBNC bnc.server :shroudBNC Server", m_Nick);
+					WriteLine(":bouncer 311 %s -sBNC core shroudbnc.org * :shroudBNC", m_Nick);
+					WriteLine(":bouncer 312 %s -sBNC shroudbnc.org :shroudBNC IRC Proxy", m_Nick);
 					WriteLine(":bouncer 318 %s -sBNC :End of /WHOIS list.", m_Nick);
 
 					return false;

@@ -23,6 +23,10 @@
 #define FD_SETSIZE 1024
 #endif
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 1
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>

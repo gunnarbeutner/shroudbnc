@@ -122,7 +122,7 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_IsAdminCache = -1;
 
 #ifdef USESSL
-	asprintf(&Out, "users/%s.crt", Name);
+	asprintf(&Out, "users/%s.pem", Name);
 
 	X509* Cert;
 	FILE* ClientCert = fopen(Out, "r");
@@ -1120,7 +1120,7 @@ bool CBouncerUser::PersistCertificates(void) {
 	char *Out;
 	FILE *CertFile;
 
-	asprintf(&Out, "users/%s.crt", m_Name);
+	asprintf(&Out, "users/%s.pem", m_Name);
 
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
