@@ -1479,7 +1479,7 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	if (response->status != adns_s_ok)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName((char*)response->rrs.str, false); // TODO: find out why .str doesn't work for localhost
+		SetPeerName((char*)response->rrs.str, false);
 }
 
 const char* CClientConnection::ClassName(void) {
