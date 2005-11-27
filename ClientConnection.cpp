@@ -1479,7 +1479,7 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	if (response->status != adns_s_ok)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName((char*)response->rrs.str, false);
+		SetPeerName(*(char*)response->rrs.str, false);
 }
 
 const char* CClientConnection::ClassName(void) {
