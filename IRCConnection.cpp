@@ -23,7 +23,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnection(Socket) {
+CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL) : CConnection(Socket, SSL) {
 	m_AdnsTimeout = NULL;
 	m_AdnsQuery = NULL;
 
@@ -32,7 +32,7 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning) : CConnectio
 	InitIrcConnection(Owning);
 }
 
-CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) : CConnection(INVALID_SOCKET) {
+CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) : CConnection(INVALID_SOCKET, SSL) {
 	in_addr ip;
 
 #ifdef _WIN32
@@ -841,13 +841,16 @@ bool CIRCConnection::HasQueuedData(void) {
 	if (m_FloodControl->GetQueueSize())
 		return true;
 	else
-		return false;
+		return CConnection::HasQueuedData();
 }
 
 void CIRCConnection::Write(void) {
 	char* Line = m_FloodControl->DequeueItem();
 
-	if (!Line)
+	CConnection::InternalWriteLine(Line);
+	CConnection::Write();
+
+/*	if (!Line)
 		return;
 
 	char* Copy = (char*)malloc(strlen(Line) + 2);
@@ -865,7 +868,7 @@ void CIRCConnection::Write(void) {
 	if (GetTrafficStats())
 		GetTrafficStats()->AddOutbound(strlen(Copy));
 
-	free(Copy);
+	free(Copy);*/
 	free(Line);
 }
 
@@ -1025,7 +1028,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		return;
 	}
 
-	if (strcmpi(Nick, m_CurrentNick) == 0) {
+	if (m_CurrentNick && strcmpi(Nick, m_CurrentNick) == 0) {
 		free(m_Site);
 
 		m_Site = strdup(Site);

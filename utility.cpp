@@ -302,10 +302,10 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* B
 	return sock;
 }
 
-CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp) {
+CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) {
 	g_LastReconnect = time(NULL);
 
-	return new CIRCConnection(Host, Port, Owning, BindIp);
+	return new CIRCConnection(Host, Port, Owning, BindIp, SSL);
 }
 
 char* NickFromHostmask(const char* Hostmask) {

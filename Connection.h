@@ -22,6 +22,10 @@ class CTrafficStats;
 class CFIFOBuffer;
 struct sockaddr_in;
 
+#ifndef USESSL
+typedef void SSL;
+#endif
+
 enum connection_role_e {
 	Role_Unknown,
 	Role_Client,
@@ -98,10 +102,8 @@ protected:
 	bool m_Wrapper;
 
 private:
-#ifdef USESSL
 	bool m_HasSSL;
 	SSL* m_SSL;
-#endif
 
 	CFIFOBuffer* m_SendQ;
 	CFIFOBuffer* m_RecvQ;

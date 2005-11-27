@@ -18,7 +18,10 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+
+#ifdef USESSL
 #include <openssl/err.h>
+#endif
 
 #if defined(_WIN32) && defined(USESSL)
 extern "C" {
@@ -56,9 +59,11 @@ CConnection::CConnection(SOCKET Client, bool SSL) {
 
 #ifdef USESSL
 	m_HasSSL = SSL;
+	m_SSL = NULL;
 #endif
 
-	InitSocket();
+	if (Client != INVALID_SOCKET)
+		InitSocket();
 }
 
 CConnection::~CConnection() {
@@ -66,6 +71,11 @@ CConnection::~CConnection() {
 	delete m_RecvQ;
 
 	g_Bouncer->UnregisterSocket(m_Socket);
+
+#ifdef USESSL
+	if (IsSSL() && m_SSL)
+		SSL_free(m_SSL);
+#endif
 }
 
 void CConnection::InitSocket(void) {
@@ -83,8 +93,11 @@ void CConnection::InitSocket(void) {
 #endif
 
 #ifdef USESSL
-	if (m_HasSSL) {
+	if (IsSSL()) {
 		BIO* rbio, *wbio;
+
+		if (m_SSL)
+			SSL_free(m_SSL);
 
 		m_SSL = SSL_new(g_Bouncer->GetSSLContext());
 
@@ -96,7 +109,7 @@ void CConnection::InitSocket(void) {
 
 		SSL_set_fd(m_SSL, m_Socket);
 
-		if (GetRole() == Role_Client)
+		if (GetRole() == Role_IRC)
 			SSL_set_connect_state(m_SSL);
 		else
 			SSL_set_accept_state(m_SSL);
@@ -141,7 +154,7 @@ bool CConnection::Read(bool DontProcess) {
 #ifdef USESSL
 	int code;
 
-	if (m_HasSSL) {
+	if (IsSSL()) {
 		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL))
 			return true;
 
@@ -150,7 +163,7 @@ bool CConnection::Read(bool DontProcess) {
 		if (n < 0) {
 			code = SSL_get_error(m_SSL, n);
 
-			if (code == SSL_ERROR_ZERO_RETURN || code == SSL_ERROR_NONE || code == SSL_ERROR_WANT_READ)
+			if (code == SSL_ERROR_ZERO_RETURN || code == SSL_ERROR_NONE || code == SSL_ERROR_WANT_READ || code == SSL_ERROR_WANT_WRITE)
 				return true;
 			else {
 				return false;
@@ -173,7 +186,7 @@ bool CConnection::Read(bool DontProcess) {
 			m_Traffic->AddInbound(n);
 	} else {
 #ifdef USESSL
-		if (m_HasSSL)
+		if (IsSSL())
 			SSL_shutdown(m_SSL);
 #endif
 
@@ -204,7 +217,7 @@ void CConnection::Write(void) {
 		int n;
 
 #ifdef USESSL
-		if (m_HasSSL) {
+		if (IsSSL()) {
 			if (SSL_want_read(m_SSL))
 				return;
 
@@ -302,7 +315,7 @@ void CConnection::InternalWriteLine(const char* In) {
 	if (m_Locked || m_Shutdown)
 		return;
 
-	if (m_SendQ)
+	if (m_SendQ && In)
 		m_SendQ->WriteLine(In);
 }
 

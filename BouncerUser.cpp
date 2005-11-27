@@ -472,10 +472,16 @@ void CBouncerUser::Reconnect(void) {
 
 	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
 
-	if (!BindIp)
+	if (!BindIp || BindIp[0] == '\0') {
 		BindIp = g_Bouncer->GetConfig()->ReadString("system.vhost");
 
-	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp);
+		if (BindIp && BindIp[0] == '\0')
+			BindIp = NULL;
+	}
+
+	bool SSL = (m_Config->ReadInteger("user.ssl") != 0) ? true : false;
+
+	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp, SSL);
 
 	if (!Connection) {
 		Notice("Can't connect..");

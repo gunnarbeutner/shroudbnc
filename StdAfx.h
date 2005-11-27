@@ -24,7 +24,13 @@
 #endif
 
 #ifdef _MSC_VER
+#define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 1
+
+// some newer visual c++ versions define time_t as a 64 bit integer
+// while adns still expects a 32 bit integer
+// -> sbnc crashes while accessing the adns_answer structure
+#define _USE_32BIT_TIME_T
 #endif
 
 #include <stdlib.h>

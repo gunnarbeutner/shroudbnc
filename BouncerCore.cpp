@@ -250,6 +250,8 @@ void CBouncerCore::StartMainLoop(void) {
 	SSL_METHOD* SSLMethod = SSLv23_method();
 	m_SSLContext = SSL_CTX_new(SSLMethod);
 
+	SSL_CTX_set_mode(m_SSLContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
 		Log("Could not load private key (sbnc.key."); ERR_print_errors_fp(stdout);
 		return;
@@ -283,7 +285,6 @@ void CBouncerCore::StartMainLoop(void) {
 		Log("Could not create listener port");
 		return;
 	}
-
 
 #ifdef USESSL
 	if (SSLPort != 0 && m_SSLListener != INVALID_SOCKET)

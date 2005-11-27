@@ -39,7 +39,7 @@ void sigint_handler(int code) {
 #endif
 
 int main(int argc, char* argv[]) {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 
 #ifndef _WIN32
 	if (geteuid() == 0) {

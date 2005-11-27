@@ -88,8 +88,8 @@ class CIRCConnection : public CConnection, public CDnsEvents {
 	void InitIrcConnection(CBouncerUser* Owning);
 public:
 #ifndef SWIG
-	CIRCConnection(SOCKET Socket, CBouncerUser* Owning);
-	CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp);
+	CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL = false);
+	CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL = false);
 #endif
 	virtual ~CIRCConnection();
 

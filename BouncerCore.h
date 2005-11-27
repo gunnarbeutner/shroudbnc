@@ -44,13 +44,15 @@ typedef struct timerchain_s {
 } timerchain_t;
 #endif
 
+#ifndef USESSL
+typedef void SSL_CTX;
+#endif
+
 class CBouncerCore {
 	CBouncerConfig* m_Config;
 
 	SOCKET m_Listener;
-#ifdef USESSL
 	SOCKET m_SSLListener;
-#endif
 
 	CBouncerUser** m_Users;
 	int m_UserCount;
@@ -79,9 +81,7 @@ class CBouncerCore {
 	timerchain_t m_TimerChain;
 #endif
 
-#ifdef USESSL
 	SSL_CTX* m_SSLContext;
-#endif
 
 	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL = false);
 	void UpdateModuleConfig(void);
