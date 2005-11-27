@@ -63,7 +63,7 @@ public:
 
 	static unsigned char Hash(const char* String) {
 		unsigned char Out = 0;
-		unsigned int Len = strlen(String);
+		size_t Len = strlen(String);
 
 		for (size_t i = 0; i < Len; i++)
 			Out ^= CaseSensitive ? String[i] : toupper(String[i]);

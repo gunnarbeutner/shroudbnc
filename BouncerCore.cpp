@@ -311,7 +311,7 @@ void CBouncerCore::StartMainLoop(void) {
 		timerchain_t* current = &m_TimerChain;
 		time_t Now = time(NULL);
 		time_t Best = 0;
-		int SleepInterval = 0;
+		time_t SleepInterval = 0;
 
 		while (current && current->ptr) {
 			timerchain_t* next = current->next;
