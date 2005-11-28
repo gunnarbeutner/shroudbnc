@@ -1230,3 +1230,9 @@ bool CIRCConnection::ShouldDestroy(void) {
 const char* CIRCConnection::GetSite(void) {
 	return m_Site;
 }
+
+int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
+	m_Owner->Notice(Context->cert->name);
+
+	return 1;
+}

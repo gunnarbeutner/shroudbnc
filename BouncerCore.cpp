@@ -28,6 +28,7 @@ unsigned int g_ErrorLine;
 
 #ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
+int g_SSLCustomIndex;
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -251,6 +252,8 @@ void CBouncerCore::StartMainLoop(void) {
 	m_SSLContext = SSL_CTX_new(SSLMethod);
 
 	SSL_CTX_set_mode(m_SSLContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+
+	g_SSLCustomIndex = SSL_get_ex_new_index(0, "CConnection*", NULL, NULL, NULL);
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
 		Log("Could not load private key (sbnc.key."); ERR_print_errors_fp(stdout);
@@ -1117,12 +1120,26 @@ void CBouncerCore::Fatal(void) {
 	exit(1);
 }
 
-#ifdef USESSL
 SSL_CTX* CBouncerCore::GetSSLContext(void) {
 	return m_SSLContext;
 }
 
+int CBouncerCore::GetSSLCustomIndex(void) {
+#ifdef USESSL
+	return g_SSLCustomIndex;
+#else
+	return 0;
+#endif
+}
+
+#ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
-	return 1;
+	SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(x509ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
+	CConnection* Ptr = (CConnection*)SSL_get_ex_data(ssl, g_SSLCustomIndex);
+
+	if (Ptr != NULL)
+		return Ptr->SSLVerify(preverify_ok, x509ctx);
+	else
+		return 0;
 }
 #endif

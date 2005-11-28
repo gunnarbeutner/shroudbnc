@@ -162,9 +162,8 @@ public:
 	virtual void InternalSetFileAndLine(const char* Filename, unsigned int Line);
 	virtual void Fatal(void);
 
-#ifdef USESSL
-	/* not virtual */ SSL_CTX* GetSSLContext(void);
-#endif
+	virtual SSL_CTX* GetSSLContext(void);
+	virtual int GetSSLCustomIndex(void);
 };
 
 extern CBouncerCore* g_Bouncer;

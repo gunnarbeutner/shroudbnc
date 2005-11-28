@@ -24,6 +24,8 @@ struct sockaddr_in;
 
 #ifndef USESSL
 typedef void SSL;
+typedef void X509;
+typedef void X509_STORE_CTX;
 #endif
 
 enum connection_role_e {
@@ -82,7 +84,8 @@ public:
 	virtual void InitSocket(void);
 
 	virtual bool IsSSL(void);
-	/* X509 */ void* GetPeerCertificate(void);
+	virtual X509* GetPeerCertificate(void);
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
 protected:
 	virtual void ParseLine(const char* Line);
 #ifndef SWIG
@@ -103,6 +106,7 @@ protected:
 
 private:
 	bool m_HasSSL;
+	bool m_WantWrite;
 	SSL* m_SSL;
 
 	CFIFOBuffer* m_SendQ;

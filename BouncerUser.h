@@ -189,4 +189,7 @@ public:
 	virtual bool AddClientCertificate(/* X509* */ void* Certificate);
 	virtual bool RemoveClientCertificate(/* X509* */ void* Certificate);
 	virtual bool FindClientCertificate(/* X509* */ void* Certificate);
+
+	virtual void SetSSL(bool SSL);
+	virtual bool GetSSL(void);
 };

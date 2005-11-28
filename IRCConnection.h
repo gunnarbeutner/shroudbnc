@@ -144,4 +144,6 @@ public:
 	virtual bool ShouldDestroy(void);
 
 	virtual const char* GetSite(void);
+
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
 };

@@ -479,9 +479,7 @@ void CBouncerUser::Reconnect(void) {
 			BindIp = NULL;
 	}
 
-	bool SSL = (m_Config->ReadInteger("user.ssl") != 0) ? true : false;
-
-	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp, SSL);
+	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp, GetSSL());
 
 	if (!Connection) {
 		Notice("Can't connect..");
@@ -1169,4 +1167,12 @@ bool CBouncerUser::FindClientCertificate(void* Certificate) {
 #endif
 
 	return false;
+}
+
+void CBouncerUser::SetSSL(bool SSL) {
+	m_Config->WriteInteger("user.ssl", SSL ? 1 : 0);
+}
+
+bool CBouncerUser::GetSSL(void) {
+	return (m_Config->ReadInteger("user.ssl") != 0);
 }

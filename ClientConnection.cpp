@@ -286,6 +286,15 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 
+
+			asprintf(&Out, "ssl - %s", m_Owner->GetSSL() ? "On" : "Off");
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed.");
+			} else {
+				SENDUSER(Out);
+				free(Out);
+			}
+
 			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
 			const char* DropModes = m_Owner->GetDropModes();
@@ -357,6 +366,16 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				m_Owner->SetAutoModes(argv[2]);
 			} else if (strcmpi(argv[1], "dropmodes") == 0) {
 				m_Owner->SetDropModes(argv[2]);
+			} else if (strcmpi(argv[1], "ssl") == 0) {
+				if (strcmpi(argv[2], "on") == 0)
+					m_Owner->SetSSL(true);
+				else if (strcmpi(argv[2], "off") == 0)
+					m_Owner->SetSSL(false);
+				else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
+				}
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -552,7 +571,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "motd") == 0) {
 		if (argc < 2) {
-			const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
+			const char* Motd = g_Bouncer->GetMotd();
 
 			asprintf(&Out, "Current MOTD: %s", Motd ? Motd : "(none)");
 			if (Out == NULL) {
@@ -562,7 +581,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 		} else if (m_Owner->IsAdmin()) {
-			g_Bouncer->GetConfig()->WriteString("system.motd", argv[1]);
+			g_Bouncer->SetMotd(argv[1]);
 			SENDUSER("Done.");
 		}
 
@@ -1479,7 +1498,7 @@ void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* respons
 	if (response->status != adns_s_ok)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName((char*)*response->rrs.str, false);
+		SetPeerName(*response->rrs.str, false);
 }
 
 const char* CClientConnection::ClassName(void) {

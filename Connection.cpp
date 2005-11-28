@@ -113,6 +113,8 @@ void CConnection::InitSocket(void) {
 			SSL_set_connect_state(m_SSL);
 		else
 			SSL_set_accept_state(m_SSL);
+
+		SSL_set_ex_data(m_SSL, g_Bouncer->GetSSLCustomIndex(), this);
 	} else
 		m_SSL = NULL;
 #endif
@@ -155,13 +157,21 @@ bool CConnection::Read(bool DontProcess) {
 	int code;
 
 	if (IsSSL()) {
-		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL))
+		if (SSL_want_write(m_SSL) && !SSL_want_read(m_SSL)) {
+			m_WantWrite = true;
+
 			return true;
+		}
 
 		n = SSL_read(m_SSL, Buffer, sizeof(Buffer));
 
 		if (n < 0) {
 			code = SSL_get_error(m_SSL, n);
+
+			if (code == SSL_ERROR_WANT_WRITE)
+				m_WantWrite = true;
+			else
+				m_WantWrite = false;
 
 			if (code == SSL_ERROR_ZERO_RETURN || code == SSL_ERROR_NONE || code == SSL_ERROR_WANT_READ || code == SSL_ERROR_WANT_WRITE)
 				return true;
@@ -238,6 +248,11 @@ void CConnection::Write(void) {
 	}
 
 	if (m_Shutdown) {
+#ifdef USESSL
+		if (IsSSL())
+			SSL_shutdown(m_SSL);
+#endif
+
 		shutdown(m_Socket, SD_BOTH);
 		closesocket(m_Socket);
 	}
@@ -372,6 +387,11 @@ void CConnection::Kill(const char* Error) {
 }
 
 bool CConnection::HasQueuedData(void) {
+#ifdef USESSL
+	if (m_WantWrite)
+		return true;
+#endif
+
 	if (m_SendQ)
 		return m_SendQ->GetSize() > 0;
 	else
@@ -456,7 +476,7 @@ bool CConnection::IsSSL(void) {
 #endif
 }
 
-void* CConnection::GetPeerCertificate(void) {
+X509* CConnection::GetPeerCertificate(void) {
 #ifdef USESSL
 	if (m_HasSSL/* && SSL_get_verify_result(m_SSL) == X509_V_OK*/) {
 		return SSL_get_peer_certificate(m_SSL);
@@ -464,4 +484,8 @@ void* CConnection::GetPeerCertificate(void) {
 #endif
 
 	return NULL;
+}
+
+int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
+	return 1;
 }

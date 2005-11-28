@@ -24,7 +24,7 @@ typedef struct penalty_s {
 	int Amplifier;
 } penalty_t;
 
-penalty_t penalties [] = {
+static penalty_t penalties [] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
 	{ "WHO", 2 },
