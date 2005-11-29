@@ -11,13 +11,13 @@ all : sbnc md5util
 md5util : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
 
-sbnc : $(OBJS) adns
+sbnc : $(OBJS) @ADNS_LIBS@
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 clean :
 	-rm $(OBJS) $(MD5OBJS)
 
-adns :
+adns/libadns.a :
 ifeq ($(ADNS),yes)
 	$(MAKE) -C adns
 endif

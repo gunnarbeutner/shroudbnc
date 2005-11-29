@@ -36,7 +36,7 @@ AC_ARG_ENABLE(ssl,
 )
 
 AC_CHECK_LIB(dl, dlsym)
-AC_CHECK_LIB(xadns, adns_init, [], [
+AC_CHECK_LIB(adns, adns_init, [], [
 	ADNS_SUBDIR="yes"
 	ADNS_LIBS="adns/libadns.a"
 	])
