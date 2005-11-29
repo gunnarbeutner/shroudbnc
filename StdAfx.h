@@ -78,13 +78,15 @@
 #ifndef SWIG
 #ifdef _WIN32
 	#ifndef NOADNSLIB
-		#pragma comment(lib, "adns\\adns_win32\\lib\\adns_dll.lib")
+		#pragma comment(lib, "adns_win\\adns_win32\\lib\\adns_dll.lib")
 	#endif
 
 	#define ADNS_JGAA_WIN32
-#endif
 
-#include <adns.h>
+	#include "adns_win/src/adns.h"
+#else
+	#include "adns/adns.h"
+#endif
 #endif
 
 #define sprintf __evil_function
@@ -122,11 +124,11 @@ int profilestrcmpi(const char*, const char*);
 #include "Hashtable.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
+#include "Timer.h"
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
 #include "BouncerUser.h"
-#include "Timer.h"
 #include "BouncerCore.h"
 #include "BouncerLog.h"
 #include "BouncerConfig.h"
