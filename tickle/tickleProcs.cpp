@@ -17,13 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
 #include "../StdAfx.h"
+#include "StdAfx.h"
 
 #include "tickle.h"
 #include "tickleProcs.h"
-#include "TclSocket.h"
 #include "TclClientSocket.h"
+#include "TclSocket.h"
 
 static char* g_Context = NULL;
 
@@ -471,7 +471,7 @@ int topicstamp(const char* Channel) {
 	if (!Chan)
 		return 0;
 
-	return Chan->GetTopicStamp();
+	return (int)Chan->GetTopicStamp();
 }
 
 const char* internalchanlist(const char* Channel) {
@@ -735,8 +735,18 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetConfig()->ReadString("user.dropmodes");
 	} else if (strcmpi(Type, "suspendreason") == 0) {
 		return Context->GetConfig()->ReadString("user.suspend");
+	} else if (strcmpi(Type, "sslclient") == 0) {
+		CClientConnection* Client = Context->GetClientConnection();
+
+		if (!Client)
+			return NULL;
+		else {
+			sprintf(Buffer, "%d", Client->IsSSL() ? 1 : 0);
+
+			return Buffer;
+		}
 	} else
-		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason";
+		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -835,6 +845,7 @@ int simul(const char* User, const char* Command) {
 
 const char* getchanhost(const char* Nick, const char*) {
 	CBouncerUser* Context;
+	const char* Host;
 
 	Context = g_Bouncer->GetUser(g_Context);
 
@@ -845,6 +856,13 @@ const char* getchanhost(const char* Nick, const char*) {
 
 		if (IRC) {
 			int a = 0;
+
+			if (strcmpi(IRC->GetCurrentNick(), Nick) == 0) {
+				Host = IRC->GetSite();
+
+				if (Host)
+					return Host;
+			}
 
 			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
@@ -880,7 +898,7 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	if (!User)
 		return 0;
 
-	return User->GetChanJoin();
+	return (int)User->GetChanJoin();
 }
 
 int internalgetchanidle(const char* Nick, const char* Channel) {
@@ -902,7 +920,7 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 	CNick* User = Chan->GetNames()->Get(Nick);
 
 	if (User)
-		return time(NULL) - User->GetIdleSince();
+		return (int)(time(NULL) - User->GetIdleSince());
 	else
 		return 0;
 }
@@ -925,7 +943,7 @@ const char* bncnumversion(void) {
 }
 
 int bncuptime(void) {
-	return g_Bouncer->GetStartup();
+	return (int)g_Bouncer->GetStartup();
 }
 
 int floodcontrol(const char* Function) {
@@ -1283,12 +1301,12 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 
 		const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
-		CTclSocket* TclSocket = new CTclSocket(BindIp, Port, Options);
+		CTclSocket* TclSocket = new CTclSocket(Port, BindIp, Options);
 
 		if (!TclSocket)
 			throw "Could not create object.";
 		else if (!TclSocket->IsValid()) {
-			TclSocket->Destroy();
+			static_cast<CSocketEvents*>(TclSocket)->Destroy();
 			throw "Could not create listener.";
 		}
 

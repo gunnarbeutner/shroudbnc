@@ -17,11 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
 #include "../StdAfx.h"
+#include "StdAfx.h"
 
-#include "TclSocket.h"
 #include "TclClientSocket.h"
+#include "TclSocket.h"
 #include "tickle.h"
 #include "tickleProcs.h"
 
@@ -72,7 +72,7 @@ class CTclSupport : public CModuleFar {
 		int i = 0;
 
 		while (xhash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
-			p->Value->Destroy();
+			static_cast<CSocketEvents*>(p->Value)->Destroy();
 		}
 
 		delete g_TclListeners;

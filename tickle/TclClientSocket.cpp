@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
 #include "../StdAfx.h"
+#include "StdAfx.h"
 #include "TclClientSocket.h"
 
 extern Tcl_Interp* g_Interp;
@@ -174,4 +174,8 @@ bool CTclClientSocket::MayNotEnterDestroy(void) {
 
 void CTclClientSocket::DestroyLater(void) {
 	m_Destroy = true;
+}
+
+bool CTclClientSocket::ShouldDestroy(void) {
+	return false; 
 }
