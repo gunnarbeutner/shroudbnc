@@ -1121,7 +1121,9 @@ const char* CIRCConnection::GetSite(void) {
 }
 
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
+#ifdef USESSL
 	m_Owner->Notice(Context->cert->name);
+#endif
 
 	return 1;
 }
