@@ -20,13 +20,13 @@
 typedef struct queue_item_s {
 	bool Valid;
 	int Priority;
-	char* Line;
+	char *Line;
 } queue_item_t;
 
 class CFloodControl;
 
 class CQueue {
-	queue_item_t* m_Items;
+	queue_item_t *m_Items;
 	int m_ItemCount;
 	CFloodControl* m_Notify;
 public:
@@ -35,10 +35,10 @@ public:
 #endif
 	virtual ~CQueue(void);
 
-	virtual char* DequeueItem(void);
-	virtual const char* PeekItem(void);
-	virtual bool QueueItem(const char* Item);
-	virtual bool QueueItemNext(const char* Item);
+	virtual char *DequeueItem(void);
+	virtual const char *PeekItem(void);
+	virtual bool QueueItem(const char *Item);
+	virtual bool QueueItemNext(const char *Item);
 	virtual int GetQueueSize(void);
 	virtual void FlushQueue(void);
 };

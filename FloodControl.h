@@ -28,36 +28,36 @@ class CIRCConnection;
 class CTimer;
 
 #ifndef SWIG
-bool FloodTimer(time_t Now, void* FloodControl);
+bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
 class CFloodControl : public CQueue {
 #ifndef SWIG
-	friend bool FloodTimer(time_t Now, void* FloodControl);
+	friend bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
-	queue_t* m_Queues;
+	queue_t *m_Queues;
 	int m_QueueCount;
 	int m_Bytes;
-	CIRCConnection* m_Owner;
+	CIRCConnection *m_Owner;
 	bool m_Control;
-	CTimer* m_FloodTimer;
+	CTimer *m_FloodTimer;
 
 	bool Pulse(time_t Time);
 
-	int CalculatePenaltyAmplifier(const char* Line);
+	int CalculatePenaltyAmplifier(const char *Line);
 public:
 #ifndef SWIG
-	CFloodControl(CIRCConnection* Owner);
+	CFloodControl(CIRCConnection *Owner);
 #endif
 	virtual ~CFloodControl(void);
 
-	virtual char* DequeueItem(bool Peek = false);
-	virtual bool QueueItem(const char* Item);
-	virtual bool QueueItemNext(const char* Item);
+	virtual char *DequeueItem(bool Peek = false);
+	virtual bool QueueItem(const char *Item);
+	virtual bool QueueItemNext(const char *Item);
 	virtual int GetQueueSize(void);
 
-	virtual void AttachInputQueue(CQueue* Queue, int Priority);
+	virtual void AttachInputQueue(CQueue *Queue, int Priority);
 	virtual int GetBytes(void);
 	virtual int GetRealQueueSize(void);
 	virtual void FlushQueue(void);

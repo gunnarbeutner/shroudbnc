@@ -26,6 +26,77 @@ public:
 	virtual void Error(void) = 0;
 	virtual bool HasQueuedData(void) = 0;
 	virtual bool DoTimeout(void) = 0;
+	virtual bool ShouldDestroy(void) = 0;
 
-	virtual const char* ClassName(void) = 0;
+	virtual const char *ClassName(void) = 0;
 };
+
+template <typename EventClassName>
+class CListenerBase : public CSocketEvents {
+private:
+	SOCKET m_Listener;
+	EventClassName *m_EventClass;
+
+	virtual void Destroy(void) {
+		delete this;
+	}
+
+	virtual bool Read(bool DontProcess) {
+		sockaddr_in PeerAddress;
+		socklen_t PeerSize = sizeof(PeerAddress);
+		SOCKET Client;
+
+		Client = accept(m_Listener, (sockaddr*)&PeerAddress, &PeerSize);
+
+		if (Client != INVALID_SOCKET)
+			Accept(Client, PeerAddress);
+
+		return true;
+	}
+
+	virtual void Write(void) { }
+	virtual void Error(void) { }
+	virtual bool HasQueuedData(void) { return false; }
+	virtual bool DoTimeout(void) { return false; }
+	virtual bool ShouldDestroy(void) { return false; }
+
+	virtual const char *ClassName(void) { return "CListenerBase"; }
+
+protected:
+	EventClassName *GetEventClass(void) {
+		return m_EventClass;
+	}
+
+	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) { }
+public:
+	CListenerBase(SOCKET Listener, EventClassName *EventClass = NULL) {
+		Init(Listener, EventClass);
+	}
+
+	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventClass = NULL) {
+		Init(g_Bouncer->CreateListener(Port, BindIp), EventClass);
+	}
+
+	void Init(SOCKET Listener, EventClassName *EventClass) {
+		m_EventClass = EventClass;
+		m_Listener = Listener;
+
+		if (m_Listener == INVALID_SOCKET)
+			return;
+
+		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents*>(this));
+	}
+
+	virtual ~CListenerBase(void) {
+		if (m_Listener != INVALID_SOCKET)
+			g_Bouncer->UnregisterSocket(m_Listener);
+
+		closesocket(m_Listener);
+	}
+
+	virtual bool IsValid(void) { 
+		return (m_Listener != INVALID_SOCKET);
+	}
+};
+
+#define IMPL_SOCKETLISTENER(ClassName, EventClassName) class ClassName : public CListenerBase<EventClassName>

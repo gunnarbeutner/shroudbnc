@@ -18,26 +18,26 @@
  *******************************************************************************/
 
 class CBouncerConfig {
-	CHashtable<char*, false, 8>* m_Settings;
+	CHashtable<char *, false, 8> *m_Settings;
 
-	char* m_File;
+	char *m_File;
 	bool m_WriteLock;
 
-	bool ParseConfig(const char* Filename);
+	bool ParseConfig(const char *Filename);
 	bool Persist(void);
 public:
 #ifndef SWIG
-	CBouncerConfig(const char* Filename);
+	CBouncerConfig(const char *Filename);
 #endif
 	virtual ~CBouncerConfig(void);
 
-	virtual int ReadInteger(const char* Setting);
-	virtual const char* ReadString(const char* Setting);
+	virtual int ReadInteger(const char *Setting);
+	virtual const char *ReadString(const char *Setting);
 
-	virtual bool WriteInteger(const char* Setting, const int Value);
-	virtual bool WriteString(const char* Setting, const char* Value);
+	virtual bool WriteInteger(const char *Setting, const int Value);
+	virtual bool WriteString(const char *Setting, const char *Value);
 
-	virtual xhash_t<char*>* Iterate(int Index);
+	virtual xhash_t<char *> *Iterate(int Index);
 
-	virtual const char* GetFilename(void);
+	virtual const char *GetFilename(void);
 };

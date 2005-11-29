@@ -24,58 +24,17 @@
 //////////////////////////////////////////////////////////////////////
 
 CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL) : CConnection(Socket, SSL) {
-	m_AdnsTimeout = NULL;
-	m_AdnsQuery = NULL;
-
-	m_BindIpCache = NULL;
-
 	InitIrcConnection(Owning);
 }
 
-CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) : CConnection(INVALID_SOCKET, SSL) {
-	in_addr ip;
-
-#ifdef _WIN32
-	ip.S_un.S_addr = inet_addr(Host);
-
-	if (ip.S_un.S_addr == INADDR_NONE) {
-#else
-	ip.s_addr = inet_addr(Host);
-
-	if (ip.s_addr == INADDR_NONE) {
-#endif
-		m_Socket = INVALID_SOCKET;
-		m_PortCache = Port;
-		m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
-
-		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
-		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), m_AdnsQuery);
-
-		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
-
-		InitIrcConnection(Owning);
-	} else {
-		m_PortCache = 0;
-		m_BindIpCache = NULL;
-		m_AdnsQuery = NULL;
-		m_AdnsTimeout = NULL;
-
-		InitIrcConnection(Owning);
-
-		m_Socket = SocketAndConnectResolved((in_addr)ip, Port, BindIp);
-
-		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
-
-		InitSocket();
-	}
+CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) : CConnection(Host, Port, BindIp, SSL) {
+	InitIrcConnection(Owning);
 }
 
 void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
-
-	m_LatchedDestruction = false;
 
 	m_QueueHigh = new CQueue();
 
@@ -152,9 +111,6 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
 	m_FloodControl->AttachInputQueue(m_QueueLow, 2);
 
-	if (m_Socket != INVALID_SOCKET)
-		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
-
 	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
 	m_DelayJoinTimer = NULL;
 
@@ -177,24 +133,13 @@ CIRCConnection::~CIRCConnection() {
 	delete m_QueueHigh;
 	delete m_FloodControl;
 
-	g_Bouncer->UnregisterSocket(m_Socket);
-
 	if (m_DelayJoinTimer)
 		m_DelayJoinTimer->Destroy();
 
-	if (m_AdnsTimeout)
-		m_AdnsTimeout->Destroy();
-
-	if (m_AdnsQuery) {
-		adns_cancel(*m_AdnsQuery);
-
-		m_AdnsQuery = NULL;
-	}
-
 	m_PingTimer->Destroy();
 
-	if (m_BindIpCache)
-		free(m_BindIpCache);
+	if (m_Owner != NULL)
+		m_Owner->SetIRCConnection(NULL);
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -780,13 +725,6 @@ const char* CIRCConnection::GetServer(void) {
 	return m_Server;
 }
 
-void CIRCConnection::Destroy(void) {
-	if (m_Owner)
-		m_Owner->SetIRCConnection(NULL);
-
-	delete this;
-}
-
 void CIRCConnection::UpdateChannelConfig(void) {
 	char* Out = NULL;
 
@@ -847,7 +785,9 @@ bool CIRCConnection::HasQueuedData(void) {
 void CIRCConnection::Write(void) {
 	char* Line = m_FloodControl->DequeueItem();
 
-	CConnection::InternalWriteLine(Line);
+	if (Line != NULL)
+		CConnection::InternalWriteLine(Line);
+
 	CConnection::Write();
 
 /*	if (!Line)
@@ -1176,57 +1116,6 @@ CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }
 
-void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
-	free(m_AdnsQuery);
-	m_AdnsQuery = NULL;
-
-	if (response->status != adns_s_ok) {
-		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
-		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
-
-		Destroy();
-
-		return;
-	} else {
-		m_Socket = SocketAndConnectResolved(response->rrs.addr->addr.inet.sin_addr, m_PortCache, m_BindIpCache);
-		free(m_BindIpCache);
-		m_BindIpCache = NULL;
-
-		g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
-
-		InitSocket();
-
-		m_AdnsTimeout->Destroy();
-		m_AdnsTimeout = NULL;
-	}
-}
-
-bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
-	((CIRCConnection*)IRC)->m_AdnsTimeout = NULL;
-
-	((CIRCConnection*)IRC)->AdnsTimeout();
-
-	return false;
-}
-
-void CIRCConnection::AdnsTimeout(void) {
-	m_Owner->Notice("DNS request timed out. Could not connect to server.");
-	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
-
-	m_LatchedDestruction = true;
-
-	if (m_AdnsQuery) {
-		adns_cancel(*m_AdnsQuery);
-
-		free(m_AdnsQuery);
-		m_AdnsQuery = NULL;
-	}
-}
-
-bool CIRCConnection::ShouldDestroy(void) {
-	return m_LatchedDestruction;
-}
-
 const char* CIRCConnection::GetSite(void) {
 	return m_Site;
 }
@@ -1235,4 +1124,20 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
 	m_Owner->Notice(Context->cert->name);
 
 	return 1;
+}
+
+void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+	if (response->status != adns_s_ok) {
+		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
+		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+	}
+
+	CConnection::AsyncDnsFinished(query, response);
+}
+
+void CIRCConnection::AdnsTimeout(void) {
+	m_Owner->Notice("DNS request timed out. Could not connect to server.");
+	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
+
+	CConnection::AdnsTimeout();
 }

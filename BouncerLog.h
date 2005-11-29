@@ -20,16 +20,16 @@
 class CBouncerUser;
 
 class CBouncerLog {
-	char* m_File;
+	char *m_File;
 public:
 #ifndef SWIG
-	CBouncerLog(const char* Filename);
+	CBouncerLog(const char *Filename);
 #endif
 	virtual ~CBouncerLog(void);
 
 	virtual void Clear(void);
-	virtual void InternalWriteLine(const char* Line);
+	virtual void InternalWriteLine(const char *Line);
 	virtual void WriteLine(const char* Format, ...);
-	virtual void PlayToUser(CBouncerUser* User, bool NoticeUser);
+	virtual void PlayToUser(CBouncerUser *User, bool NoticeUser);
 	virtual bool IsEmpty(void);
 };

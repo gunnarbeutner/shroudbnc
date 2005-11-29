@@ -24,24 +24,24 @@ class CClientConnection;
 struct CModuleFar {
 	virtual void Destroy(void) = 0;
 
-	virtual void Init(CBouncerCore* Root) = 0;
+	virtual void Init(CBouncerCore *Root) = 0;
 
-	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv) = 0;
-	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv) = 0;
-	virtual bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) = 0;
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) = 0;
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) = 0;
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) = 0;
 
-	virtual void AttachClient(const char* Client) = 0;
-	virtual void DetachClient(const char* Client) = 0;
+	virtual void AttachClient(const char *Client) = 0;
+	virtual void DetachClient(const char *Client) = 0;
 
-	virtual void ServerDisconnect(const char* Client) = 0;
-	virtual void ServerConnect(const char* Client) = 0;
-	virtual void ServerLogon(const char* Client) = 0;
+	virtual void ServerDisconnect(const char *Client) = 0;
+	virtual void ServerConnect(const char *Client) = 0;
+	virtual void ServerLogon(const char *Client) = 0;
 
-	virtual void UserLoad(const char* User) = 0;
-	virtual void UserCreate(const char* User) = 0;
-	virtual void UserDelete(const char* User) = 0;
+	virtual void UserLoad(const char *User) = 0;
+	virtual void UserCreate(const char *User) = 0;
+	virtual void UserDelete(const char *User) = 0;
 
-	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) = 0;
+	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter) = 0;
 
-	virtual const char* Command(const char* Cmd, const char* Parameters) = 0;
+	virtual const char *Command(const char *Cmd, const char *Parameters) = 0;
 };

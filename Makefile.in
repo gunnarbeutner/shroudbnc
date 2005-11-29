@@ -1,7 +1,8 @@
+ADNS = 		@ADNS_SUBDIR@
 CXX =		@CXX@
 CXXFLAGS =	-g @SSL_DEF@
 CFLAGS =	@SSL_DEF@ @CFLAGS@ @CPPFLAGS@ @DEFS@
-LDFLAGS =	@LDFLAGS@ @LIBS@ @SSL_LIBS@
+LDFLAGS =	@LDFLAGS@ @LIBS@ @SSL_LIBS@ @ADNS_LIBS@
 OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
 
@@ -10,8 +11,13 @@ all : sbnc md5util
 md5util : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
 
-sbnc : $(OBJS)
+sbnc : $(OBJS) adns
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 clean :
-	rm $(OBJS) $(MD5OBJS) | true
+	-rm $(OBJS) $(MD5OBJS)
+
+adns :
+ifeq ($(ADNS),yes)
+	$(MAKE) -C adns
+endif

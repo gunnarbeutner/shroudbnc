@@ -34,14 +34,30 @@ enum connection_role_e {
 	Role_IRC
 };
 
+class CConnectionDnsEvents;
+
 class CConnection : public CSocketEvents {
+#ifndef SWIG
 	friend class CBouncerCore;
 	friend class CBouncerUser;
+	friend class CConnectionDnsEvents;
+	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
+#endif
 
-	bool HandleSSLError(int RetVal);
+	CTimer* m_AdnsTimeout;
+	adns_query* m_AdnsQuery;
+	unsigned short m_PortCache;
+	char* m_BindIpCache;
+	CConnectionDnsEvents* m_DnsEvents;
+
+	bool m_LatchedDestruction;
+	CTrafficStats* m_Traffic;
+
+	void InitConnection(SOCKET Client, bool SSL);
 public:
 #ifndef SWIG
 	CConnection(SOCKET Client, bool SSL = false);
+	CConnection(const char* Host, unsigned short Port, const char* BindIp, bool SSL = false);
 #endif
 	virtual ~CConnection(void);
 
@@ -86,11 +102,16 @@ public:
 	virtual bool IsSSL(void);
 	virtual X509* GetPeerCertificate(void);
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
+
+	virtual bool ShouldDestroy(void);
 protected:
 	virtual void ParseLine(const char* Line);
 #ifndef SWIG
 	void ReadLines(void);
 #endif
+
+	void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	void AdnsTimeout(void);
 
 	CBouncerUser* m_Owner;
 
@@ -100,14 +121,11 @@ protected:
 	bool m_Shutdown;
 	time_t m_Timeout;
 
-	CTrafficStats* m_Traffic;
-
 	bool m_Wrapper;
 
+	SSL* m_SSL;
 private:
 	bool m_HasSSL;
-	bool m_WantWrite;
-	SSL* m_SSL;
 
 	CFIFOBuffer* m_SendQ;
 	CFIFOBuffer* m_RecvQ;

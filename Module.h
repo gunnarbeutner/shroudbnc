@@ -21,39 +21,39 @@ typedef CModuleFar* (* FNGETOBJECT)() ;
 
 class CModule : public CModuleFar {
 	HMODULE m_Image;
-	char* m_File;
-	CModuleFar* m_Far;
+	char *m_File;
+	CModuleFar *m_Far;
 public:
 #ifndef SWIG
-	CModule(const char* Filename);
+	CModule(const char *Filename);
 #endif
 	virtual ~CModule(void);
 
-	virtual CModuleFar* GetModule(void);
-	virtual const char* GetFilename(void);
-	virtual HMODULE CModule::GetHandle(void);
+	virtual CModuleFar *GetModule(void);
+	virtual const char *GetFilename(void);
+	virtual HMODULE GetHandle(void);
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);
 
-	virtual void Init(CBouncerCore* Root);
+	virtual void Init(CBouncerCore *Root);
 
-	virtual bool InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv);
-	virtual bool InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv);
-	virtual bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser);
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char  **argv);
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv);
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
-	virtual void AttachClient(const char* Client);
-	virtual void DetachClient(const char* Client) ;
+	virtual void AttachClient(const char *Client);
+	virtual void DetachClient(const char *Client) ;
 
-	virtual void ServerDisconnect(const char* Client);
-	virtual void ServerConnect(const char* Client);
-	virtual void ServerLogon(const char* Client);
+	virtual void ServerDisconnect(const char *Client);
+	virtual void ServerConnect(const char *Client);
+	virtual void ServerLogon(const char *Client);
 
-	virtual void UserLoad(const char* User);
-	virtual void UserCreate(const char* User);
-	virtual void UserDelete(const char* User);
+	virtual void UserLoad(const char *User);
+	virtual void UserCreate(const char *User);
+	virtual void UserDelete(const char *User);
 
-	virtual void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter);
+	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter);
 
-	virtual const char* Command(const char* Cmd, const char* Parameters);
+	virtual const char *Command(const char *Cmd, const char *Parameters);
 };

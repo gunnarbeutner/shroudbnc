@@ -18,5 +18,24 @@
  *******************************************************************************/
 
 struct CDnsEvents {
-	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response) = 0;
+	virtual void AsyncDnsFinished(adns_query *query, adns_answer *response) = 0;
+	virtual void Destroy(void) = 0;
+};
+
+#define IMPL_DNSEVENTCLASS(ClassName, EventClassName, Function) \
+class ClassName : public CDnsEvents { \
+private: \
+	EventClassName *m_EventClass; \
+\
+	virtual void AsyncDnsFinished(adns_query *query, adns_answer *response) { \
+		m_EventClass->Function(query, response); \
+	} \
+public: \
+	ClassName(EventClassName* EventClass) { \
+		m_EventClass = EventClass; \
+	} \
+\
+	void Destroy(void) { \
+		delete this; \
+	} \
 };

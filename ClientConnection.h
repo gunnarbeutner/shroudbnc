@@ -22,8 +22,9 @@ bool AdnsTimeoutTimer(time_t Now, void* Client);
 #endif
 
 class CTimer;
+class CClientDnsEvents;
 
-class CClientConnection : public CConnection, public CDnsEvents {
+class CClientConnection : public CConnection {
 #ifndef SWIG
 	friend bool AdnsTimeoutTimer(time_t Now, void* Client);
 #endif
@@ -34,6 +35,8 @@ class CClientConnection : public CConnection, public CDnsEvents {
 	sockaddr_in m_Peer;
 	char* m_PeerName;
 	CTimer* m_AdnsTimeout;
+
+	CClientDnsEvents* m_DnsEvents;
 
 #ifndef SWIG
 	adns_query m_PeerA;
@@ -57,7 +60,7 @@ public:
 
 	virtual void SetOwner(CBouncerUser* Owner);
 
-	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	virtual void AsyncDnsFinishedClient(adns_query* query, adns_answer* response);
 	virtual void SetPeerName(const char* PeerName, bool LookupFailure);
 	virtual adns_query GetPeerDNSQuery(void);
 

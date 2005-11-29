@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([sbnc],[0.9],[sbnc-bugs@shroudirc.net])
+AC_INIT([sbnc],[1.0],[sbnc-bugs@shroudirc.net])
 AC_CONFIG_SRCDIR([sbnc.cpp])
 AC_CONFIG_HEADER([config.h])
 
@@ -26,6 +26,8 @@ AC_STRUCT_TM
 
 SSL_DEV=""
 SSL_LIBS=""
+ADNS_SUBDIR="no"
+ADNS_LIBS=""
 
 AC_ARG_ENABLE(ssl,
 	[  --enable-ssl=yes          Enable support for ssl
@@ -34,9 +36,9 @@ AC_ARG_ENABLE(ssl,
 )
 
 AC_CHECK_LIB(dl, dlsym)
-AC_CHECK_LIB(adns, adns_init, [], [
-	echo "Error! shroudBNC requires the adns library, which is currently not installed."
-	exit -1
+AC_CHECK_LIB(xadns, adns_init, [], [
+	ADNS_SUBDIR="yes"
+	ADNS_LIBS="adns/libadns.a"
 	])
 
 if test $enable_ssl; then
@@ -46,6 +48,8 @@ fi
 
 AC_SUBST(SSL_LIBS)
 AC_SUBST(SSL_DEF)
+AC_SUBST(ADNS_SUBDIR)
+AC_SUBST(ADNS_LIBS)
 
 # Checks for library functions.
 AC_FUNC_FORK

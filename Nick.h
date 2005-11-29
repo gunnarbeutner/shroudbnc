@@ -21,20 +21,20 @@ class CNick;
 class CBouncerConfig;
 
 class CNick {
-	char* m_Nick;
-	char* m_Prefixes;
-	char* m_Site;
+	char *m_Nick;
+	char *m_Prefixes;
+	char *m_Site;
 	time_t m_Creation;
 	time_t m_IdleSince;
-	CBouncerConfig* m_Tags;
+	CBouncerConfig *m_Tags;
 public:
 #ifndef SWIG
 	CNick(const char* Nick);
 #endif
 	virtual ~CNick(void);
 
-	virtual const char* GetNick(void);
-	virtual bool SetNick(const char* Nick);
+	virtual const char *GetNick(void);
+	virtual bool SetNick(const char *Nick);
 
 	virtual bool IsOp(void);
 	virtual bool IsVoice(void);
@@ -44,19 +44,19 @@ public:
 	virtual bool AddPrefix(char Prefix);
 	virtual bool RemovePrefix(char Prefix);
 	virtual bool SetPrefixes(const char* Prefixes);
-	virtual const char* GetPrefixes(void);
+	virtual const char *GetPrefixes(void);
 
-	virtual bool SetSite(const char* Site);
-	virtual const char* GetSite(void);
+	virtual bool SetSite(const char *Site);
+	virtual const char *GetSite(void);
 
 	virtual time_t GetChanJoin(void);
 	virtual time_t GetIdleSince(void);
 	virtual bool SetIdleSince(time_t Time);
 	
-	virtual bool SetTag(const char* Name, const char* Value);
-	virtual const char* GetTag(const char* Name);
+	virtual bool SetTag(const char *Name, const char *Value);
+	virtual const char *GetTag(const char *Name);
 };
 
 #ifndef SWIG
-void DestroyCNick(CNick* P);
+void DestroyCNick(CNick *P);
 #endif

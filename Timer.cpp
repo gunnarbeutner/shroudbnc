@@ -25,7 +25,7 @@
 
 int g_TimerStats = 0;
 
-CTimer::CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
+CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
 	m_Interval = Interval; 
 	m_Repeat = Repeat;
 	m_Proc = Function;

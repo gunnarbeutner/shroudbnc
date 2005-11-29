@@ -37,11 +37,14 @@ bool IRCPingTimer(time_t Now, void* IRCConnection);
 bool IrcAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
-class CIRCConnection : public CConnection, public CDnsEvents {
+#ifndef USESSL
+typedef void X509_STORE_CTX;
+#endif
+
+class CIRCConnection : public CConnection {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
-	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
 	connection_state_e m_State;
@@ -65,15 +68,6 @@ class CIRCConnection : public CConnection, public CDnsEvents {
 	CQueue* m_QueueMiddle;
 	CQueue* m_QueueHigh;
 	CFloodControl* m_FloodControl;
-
-	CTimer* m_AdnsTimeout;
-
-	unsigned short m_PortCache;
-	char* m_BindIpCache;
-
-	bool m_LatchedDestruction;
-
-	adns_query* m_AdnsQuery;
 
 	char* m_Site;
 
@@ -105,7 +99,6 @@ public:
 	virtual const char* GetCurrentNick(void);
 	virtual const char* GetServer(void);
 
-	virtual void Destroy(void);
 	virtual const char* ClassName(void);
 
 	virtual bool IsOnChannel(const char* Channel);
@@ -140,8 +133,6 @@ public:
 
 	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
 	virtual void AdnsTimeout(void);
-
-	virtual bool ShouldDestroy(void);
 
 	virtual const char* GetSite(void);
 

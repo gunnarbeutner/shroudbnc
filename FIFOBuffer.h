@@ -20,12 +20,15 @@
 #define BLOCKSIZE 4096
 #define OPTIMIZEBLOCKS 16
 
+#ifdef SWIG
+class CFIFOBuffer;
+#else
 class CFIFOBuffer {
 	char* m_Buffer;
 	unsigned int m_BufferSize;
 	unsigned int m_Offset;
 
-	void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize);
+	void *ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize);
 	inline void Optimize(void);
 public:
 	CFIFOBuffer();
@@ -33,10 +36,11 @@ public:
 
 	unsigned int GetSize(void);
 
-	char* Peek(void);
-	char* Read(unsigned int Bytes);
+	char *Peek(void);
+	char *Read(unsigned int Bytes);
 	void Flush(void);
 
-	void Write(const char* Buffer, unsigned int Size);
-	void WriteLine(const char* Line);
+	void Write(const char *Buffer, unsigned int Size);
+	void WriteLine(const char *Line);
 };
+#endif

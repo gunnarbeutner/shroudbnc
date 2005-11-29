@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-typedef bool (*timerproc)(time_t now, void* cookie);
+typedef bool (*TimerProc)(time_t now, void* cookie);
 
 class CTimer {
 public:
 #ifndef SWIG
-	CTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie);
+	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
 #endif
 	virtual ~CTimer(void);
 
@@ -31,8 +31,8 @@ public:
 	virtual time_t GetNextCall(void);
 
 private:
-	timerproc m_Proc;
-	void* m_Cookie;
+	TimerProc m_Proc;
+	void *m_Cookie;
 	unsigned int m_Interval;
 	bool m_Repeat;
 	time_t m_Next;

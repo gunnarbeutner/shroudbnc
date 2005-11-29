@@ -19,6 +19,8 @@
 
 #include "StdAfx.h"
 
+IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -35,13 +37,17 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 		InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC" BNCVERSION);
 		InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Looking up your hostname");
 
-		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, static_cast<CDnsEvents*>(this), &m_PeerA);
+		m_DnsEvents = new CClientDnsEvents(this);
+
+		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
 
 		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, AdnsTimeoutTimer, this);
 
 		g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
-	} else
+	} else {
 		m_AdnsTimeout = NULL;
+		m_DnsEvents = NULL;
+	}
 }
 
 CClientConnection::~CClientConnection() {
@@ -57,6 +63,9 @@ CClientConnection::~CClientConnection() {
 
 	if (m_AdnsTimeout)
 		m_AdnsTimeout->Destroy();
+
+	if (m_DnsEvents)
+		m_DnsEvents->Destroy();
 }
 
 connection_role_e CClientConnection::GetRole(void) {
@@ -286,7 +295,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 
-
+#ifdef USESSL
 			asprintf(&Out, "ssl - %s", m_Owner->GetSSL() ? "On" : "Off");
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
@@ -294,6 +303,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				SENDUSER(Out);
 				free(Out);
 			}
+#endif
 
 			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
@@ -1489,7 +1499,9 @@ const char* CClientConnection::GetPeerName(void) {
 	return m_PeerName;
 }
 
-void CClientConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+void CClientConnection::AsyncDnsFinishedClient(adns_query* query, adns_answer* response) {
+	m_DnsEvents = NULL;
+
 	if (m_AdnsTimeout) {
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;

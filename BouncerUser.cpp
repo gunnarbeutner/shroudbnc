@@ -1076,7 +1076,7 @@ void CBouncerUser::SetDropModes(const char* DropModes) {
 	m_Config->WriteString("user.dropmodes", DropModes);
 }
 
-void* CBouncerUser::GetClientCertificate(int Index) {
+X509* CBouncerUser::GetClientCertificate(int Index) {
 #ifdef USESSL
 	if (Index >= m_ClientCertificateCount || Index < 0)
 		return NULL;
@@ -1087,15 +1087,15 @@ void* CBouncerUser::GetClientCertificate(int Index) {
 #endif
 }
 
-bool CBouncerUser::AddClientCertificate(void* Certificate) {
+bool CBouncerUser::AddClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
-		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0)
+		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}
 
 	m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * ++m_ClientCertificateCount);
-	m_ClientCertificates[m_ClientCertificateCount - 1] = (X509*)Certificate;
+	m_ClientCertificates[m_ClientCertificateCount - 1] = Certificate;
 
 	return PersistCertificates();
 #else
@@ -1103,10 +1103,10 @@ bool CBouncerUser::AddClientCertificate(void* Certificate) {
 #endif
 }
 
-bool CBouncerUser::RemoveClientCertificate(void* Certificate) {
+bool CBouncerUser::RemoveClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
-		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0) {
+		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			m_ClientCertificates[i] = m_ClientCertificates[m_ClientCertificateCount - 1];
 
 			m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * --m_ClientCertificateCount);
@@ -1158,10 +1158,10 @@ bool CBouncerUser::PersistCertificates(void) {
 }
 #endif
 
-bool CBouncerUser::FindClientCertificate(void* Certificate) {
+bool CBouncerUser::FindClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
-		if (X509_cmp(m_ClientCertificates[i], (X509*)Certificate) == 0)
+		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}
 #endif

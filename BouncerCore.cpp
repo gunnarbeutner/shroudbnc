@@ -31,13 +31,45 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
 int g_SSLCustomIndex;
 #endif
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
 extern int g_TimerStats;
+
+void AcceptHelper(SOCKET Client, sockaddr_in PeerAddress, bool SSL) {
+	unsigned long lTrue = 1;
+
+	if (Client > g_last_sock)
+		g_last_sock = Client;
+
+	ioctlsocket(Client, FIONBIO, &lTrue);
+
+	// destruction is controlled by the main loop
+	new CClientConnection(Client, PeerAddress, SSL);
+
+	g_Bouncer->Log("Bouncer client connected...");
+}
+
+IMPL_SOCKETLISTENER(CClientListener, CBouncerCore) {
+public:
+	CClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase(Port, BindIp, NULL) { }
+
+	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+		AcceptHelper(Client, PeerAddress, false);
+	}
+};
+
+IMPL_SOCKETLISTENER(CSSLClientListener, CBouncerCore) {
+public:
+	CSSLClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase(Port, BindIp, NULL) { }
+
+	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+		AcceptHelper(Client, PeerAddress, true);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
@@ -53,25 +85,16 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 		exit(1);
 	}
 
-	m_TimerChain.next = NULL;
-	m_TimerChain.ptr = NULL;
-
 	g_Bouncer = this;
 
 	m_Config = Config;
 
-	m_Users = NULL;
-	m_UserCount = 0;
-	
-	m_Modules = NULL;
-	m_ModuleCount = 0;
-
-	m_argc = argc;
-	m_argv = argv;
+	m_Args = CVector<char *>(argv, argc);
 
 	m_Ident = new CIdentSupport();
 
-	const char* Users = Config->ReadString("system.users");
+	const char *Users = Config->ReadString("system.users");
+	CBouncerUser *User;
 
 	if (Users) {
 		const char* Args;
@@ -87,23 +110,16 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 		Count = ArgCount(Args);
 
-		m_Users = (CBouncerUser**)malloc(sizeof(CBouncerUser*) * Count);
-		m_UserCount = Count;
-
-		if (m_Users == NULL) {
-			LOGERROR("malloc() failed. could not allocate user array");
-
-			Fatal();
-		}
-
 		for (i = 0; i < Count; i++) {
-			m_Users[i] = new CBouncerUser(ArgGet(Args, i + 1));
+			User = new CBouncerUser(ArgGet(Args, i + 1));
 
-			if (m_Users[i] == NULL) {
+			if (User == NULL) {
 				LOGERROR("Could not create user object");
 
 				Fatal();
 			}
+
+			m_Users.Insert(User);
 		}
 
 		for (i = 0; i < Count; i++)
@@ -116,10 +132,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 		Fatal();
 	}
 
-	m_OtherSockets = NULL;
-	m_OtherSocketCount = 0;
-
-	m_Listener = INVALID_SOCKET;
+	m_Listener = NULL;
+	m_SSLListener = NULL;
 
 	m_Startup = time(NULL);
 
@@ -156,47 +170,36 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 }
 
 CBouncerCore::~CBouncerCore() {
-	if (m_Listener != INVALID_SOCKET)
-		closesocket(m_Listener);
+	if (m_Listener != NULL)
+		delete m_Listener;
 
-	for (int a = 0; a < m_ModuleCount; a++) {
+	if (m_SSLListener != NULL)
+		delete m_SSLListener;
+
+	for (int a = 0; a < m_Modules.Count(); a++) {
 		if (m_Modules[a])
 			delete m_Modules[a];
 	}
 
-	free(m_Modules);
-
-	m_ModuleCount = 0;
-
-	for (int i = 0; i < m_UserCount; i++) {
+	for (int i = 0; i < m_Users.Count(); i++) {
 		if (m_Users[i])
 			delete m_Users[i];
 	}
 
-	free(m_Users);
-
-	for (int c = 0; c < m_OtherSocketCount; c++) {
+	for (int c = 0; c < m_OtherSockets.Count(); c++) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
 			closesocket(m_OtherSockets[c].Socket);
 		}
 	}
 
-	free(m_OtherSockets);
+	for (int d = 0; d < m_Timers.Count(); d++) {
+		if (m_Timers[d])
+			delete m_Timers[d];
+	}
 
 	delete m_Log;
 	delete m_Ident;
-
-	if (m_TimerChain.next) {
-		timerchain_t* current = m_TimerChain.next;
-
-		while (current) {
-			timerchain_t* p = current;
-			current = current->next;
-
-			free(p);
-		}
-	}
 }
 
 void CBouncerCore::StartMainLoop(void) {
@@ -204,8 +207,8 @@ void CBouncerCore::StartMainLoop(void) {
 
 	puts("shroudBNC" BNCVERSION " - an object-oriented IRC bouncer");
 
-	int argc = m_argc;
-	char** argv = m_argv;
+	int argc = m_Args.Count();
+	char** argv = m_Args.GetList();
 
 	for (int a = 1; a < argc; a++) {
 		if (strcmp(argv[a], "-n") == 0)
@@ -235,25 +238,27 @@ void CBouncerCore::StartMainLoop(void) {
 	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 	if (Port != 0)
-		m_Listener = CreateListener(Port, BindIp);
+		m_Listener = new CClientListener(Port, BindIp);
 	else
-		m_Listener = INVALID_SOCKET;
+		m_Listener = NULL;
 
 #ifdef USESSL
 	if (SSLPort != 0)
-		m_SSLListener = CreateListener(SSLPort, BindIp);
+		m_SSLListener = new CSSLClientListener(SSLPort, BindIp);
 	else
-		m_SSLListener = INVALID_SOCKET;
+		m_SSLListener = NULL;
 
 	SSL_library_init();
 	SSL_load_error_strings();
 
 	SSL_METHOD* SSLMethod = SSLv23_method();
 	m_SSLContext = SSL_CTX_new(SSLMethod);
+	m_SSLClientContext = SSL_CTX_new(SSLMethod);
 
 	SSL_CTX_set_mode(m_SSLContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+	SSL_CTX_set_mode(m_SSLClientContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-	g_SSLCustomIndex = SSL_get_ex_new_index(0, "CConnection*", NULL, NULL, NULL);
+	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
 		Log("Could not load private key (sbnc.key."); ERR_print_errors_fp(stdout);
@@ -280,9 +285,10 @@ void CBouncerCore::StartMainLoop(void) {
 //	SSL_CTX_set_client_CA_list(m_SSLContext, ClientCA);
 
 	SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
+	SSL_CTX_set_verify(m_SSLClientContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 #endif
 
-	if (Port != 0 && m_Listener != INVALID_SOCKET)
+	if (Port != 0 && m_Listener != NULL)
 		Log("Created main listener.");
 	else if (Port != 0) {
 		Log("Could not create listener port");
@@ -290,7 +296,7 @@ void CBouncerCore::StartMainLoop(void) {
 	}
 
 #ifdef USESSL
-	if (SSLPort != 0 && m_SSLListener != INVALID_SOCKET)
+	if (SSLPort != 0 && m_SSLListener != NULL)
 		Log("Created ssl listener.");
 	else if (SSLPort != 0) {
 		Log("Could not create ssl listener port");
@@ -312,47 +318,33 @@ void CBouncerCore::StartMainLoop(void) {
 	time_t LastCheck = 0;
 
 	while (m_Running || --m_ShutdownLoop) {
-		timerchain_t* current = &m_TimerChain;
 		time_t Now = time(NULL);
 		time_t Best = 0;
 		time_t SleepInterval = 0;
 
-		while (current && current->ptr) {
-			timerchain_t* next = current->next;
-
-			time_t NextCall = current->ptr->GetNextCall();
+		for (int c = m_Timers.Count() - 1; c >= 0; c--) {
+			time_t NextCall = m_Timers[c]->GetNextCall();
 
 			if (Now >= NextCall && Now > Last) {
 				if (Now - 5 > NextCall)
-					Log("Timer drift for timer %p: %d seconds", current->ptr, Now - NextCall);
+					Log("Timer drift for timer %p: %d seconds", m_Timers[c], Now - NextCall);
 
-				current->ptr->Call(Now);
+				m_Timers[c]->Call(Now);
 				Best = Now + 1;
 			} else if (Best == 0 || NextCall < Best) {
 				Best = NextCall;
 			}
-
-			current = next;
 		}
 
 		if (Best)
 			SleepInterval = Best - Now;
 
 		FD_ZERO(&FDRead);
-
-		if (m_Listener != INVALID_SOCKET)
-			FD_SET(m_Listener, &FDRead);
-
-#ifdef USESSL
-		if (m_SSLListener != INVALID_SOCKET)
-			FD_SET(m_SSLListener, &FDRead);
-#endif
-
 		FD_ZERO(&FDWrite);
 
 		int i;
 
-		for (i = 0; i < m_UserCount; i++) {
+		for (i = 0; i < m_Users.Count(); i++) {
 			CIRCConnection* IRC;
 
 			if (m_Users[i] && (IRC = m_Users[i]->GetIRCConnection())) {
@@ -368,7 +360,7 @@ void CBouncerCore::StartMainLoop(void) {
 		}
 
 		if (LastCheck + 5 < Now) {
-			for (i = 0; i < m_UserCount; i++) {
+			for (i = 0; i < m_Users.Count(); i++) {
 				if (m_Users[i] && m_Users[i]->ShouldReconnect()) {
 					m_Users[i]->ScheduleReconnect();
 
@@ -379,14 +371,18 @@ void CBouncerCore::StartMainLoop(void) {
 			LastCheck = Now;
 		}
 
-		for (i = 0; i < m_OtherSocketCount; i++) {
+		for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 				if (m_OtherSockets[i].Events->DoTimeout())
 					m_OtherSockets[i].Socket = INVALID_SOCKET;
+				else if (m_OtherSockets[i].Events->ShouldDestroy()) {
+					m_OtherSockets[i].Events->Destroy();
+					m_OtherSockets[i].Socket = INVALID_SOCKET;
+				}
 			}
 		}
 
-		for (i = 0; i < m_OtherSocketCount; i++) {
+		for (i = 0; i < m_OtherSockets.Count(); i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 //				if (m_OtherSockets[i].Socket > nfds)
 //					nfds = m_OtherSockets[i].Socket;
@@ -424,7 +420,7 @@ void CBouncerCore::StartMainLoop(void) {
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
-			if (m_Listener != INVALID_SOCKET && FD_ISSET(m_Listener, &FDRead)) {
+/*			if (m_Listener != INVALID_SOCKET && FD_ISSET(m_Listener, &FDRead)) {
 				sockaddr_in sin_remote;
 				socklen_t sin_size = sizeof(sin_remote);
 
@@ -441,8 +437,8 @@ void CBouncerCore::StartMainLoop(void) {
 				HandleConnectingClient(Client, sin_remote, true);
 			}
 #endif
-
-			for (i = 0; i < m_OtherSocketCount; i++) {
+*/
+			for (i = 0; i < m_OtherSockets.Count(); i++) {
 				SOCKET Socket = m_OtherSockets[i].Socket;
 				CSocketEvents* Events = m_OtherSockets[i].Events;
 
@@ -465,7 +461,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 			fd_set set;
 
-			for (i = 0; i < m_OtherSocketCount; i++) {
+			for (i = 0; i < m_OtherSockets.Count(); i++) {
 				SOCKET Socket = m_OtherSockets[i].Socket;
 
 				if (Socket != INVALID_SOCKET) {
@@ -498,13 +494,16 @@ void CBouncerCore::StartMainLoop(void) {
 
 			CDnsEvents* Ctx = (CDnsEvents*)context;
 
-			if (reply)
+			if (reply) {
 				Ctx->AsyncDnsFinished(&query, reply);
+				Ctx->Destroy();
+			}
 		}
 	}
 
 #ifdef USESSL
 	SSL_CTX_free(m_SSLContext);
+	SSL_CTX_free(m_SSLClientContext);
 #endif
 }
 
@@ -525,7 +524,7 @@ CBouncerUser* CBouncerCore::GetUser(const char* Name) {
 	if (!Name)
 		return NULL;
 
-	for (int i = 0; i < m_UserCount; i++) {
+	for (int i = 0; i < m_Users.Count(); i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Name) == 0) {
 			return m_Users[i];
 		}
@@ -535,18 +534,18 @@ CBouncerUser* CBouncerCore::GetUser(const char* Name) {
 }
 
 void CBouncerCore::GlobalNotice(const char* Text, bool AdminOnly) {
-	for (int i = 0; i < m_UserCount; i++) {
+	for (int i = 0; i < m_Users.Count(); i++) {
 		if (m_Users[i] && (!AdminOnly || m_Users[i]->IsAdmin()))
 			m_Users[i]->Notice(Text);
 	}
 }
 
 CBouncerUser** CBouncerCore::GetUsers(void) {
-	return m_Users;
+	return m_Users.GetList();
 }
 
 int CBouncerCore::GetUserCount(void) {
-	return m_UserCount;
+	return m_Users.Count();
 }
 
 
@@ -563,16 +562,15 @@ const char* CBouncerCore::GetIdent(void) {
 }
 
 CModule** CBouncerCore::GetModules(void) {
-	return m_Modules;
+	return m_Modules.GetList();
 }
 
 int CBouncerCore::GetModuleCount(void) {
-	return m_ModuleCount;
+	return m_Modules.Count();
 }
 
 CModule* CBouncerCore::LoadModule(const char* Filename) {
 	CModule* Mod = new CModule(Filename);
-	CModule** Modules;
 
 	if (Mod == NULL) {
 		LOGERROR("new operator failed. Could not load module %s", Filename);
@@ -580,7 +578,7 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 		return NULL;
 	}
 
-	for (int i = 0; i < m_ModuleCount; i++) {
+	for (int i = 0; i < m_Modules.Count(); i++) {
 		if (m_Modules[i] && m_Modules[i]->GetHandle() == Mod->GetHandle()) {
 			delete Mod;
 
@@ -589,20 +587,13 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 	}
 
 	if (Mod->GetModule()) {
-		Modules = (CModule**)realloc(m_Modules, sizeof(CModule*) * ++m_ModuleCount);
-
-		if (Modules == NULL) {
-			--m_ModuleCount;
-
+		if (!m_Modules.Insert(Mod)) {
 			delete Mod;
 
 			LOGERROR("realloc() failed. Could not load module");
 
 			return NULL;
 		}
-
-		m_Modules = Modules;
-		m_Modules[m_ModuleCount - 1] = Mod;
 
 		Log("Loaded module: %s", Mod->GetFilename());
 
@@ -620,27 +611,23 @@ CModule* CBouncerCore::LoadModule(const char* Filename) {
 }
 
 bool CBouncerCore::UnloadModule(CModule* Module) {
-	for (int i = 0; i < m_ModuleCount; i++) {
-		if (m_Modules[i] == Module) {
-			Log("Unloaded module: %s", Module->GetFilename());
+	if (m_Modules.Remove(Module)) {
+		Log("Unloaded module: %s", Module->GetFilename());
 
-			delete Module;
-			m_Modules[i] = NULL;
+		delete Module;
 
-			UpdateModuleConfig();
+		UpdateModuleConfig();
 
-			return true;
-		}
-	}
-
-	return false;
+		return true;
+	} else
+		return false;
 }
 
 void CBouncerCore::UpdateModuleConfig(void) {
 	char* Out;
 	int a = 0;
 
-	for (int i = 0; i < m_ModuleCount; i++) {
+	for (int i = 0; i < m_Modules.Count(); i++) {
 		if (m_Modules[i]) {
 			asprintf(&Out, "system.modules.mod%d", a++);
 
@@ -670,25 +657,23 @@ void CBouncerCore::UpdateModuleConfig(void) {
 }
 
 void CBouncerCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
-	m_OtherSockets = (socket_s*)realloc(m_OtherSockets, sizeof(socket_s) * ++m_OtherSocketCount);
+	socket_s s = { Socket, EventInterface };
 
 	/* TODO: can we safely recover from this situation? return value maybe? */
-	if (m_OtherSockets == NULL) {
+	if (!m_OtherSockets.Insert(s)) {
 		LOGERROR("realloc() failed.");
 
 		Fatal();
 	}
-
-	m_OtherSockets[m_OtherSocketCount - 1].Socket = Socket;
-	m_OtherSockets[m_OtherSocketCount - 1].Events = EventInterface;
 }
 
 
 void CBouncerCore::UnregisterSocket(SOCKET Socket) {
-	for (int i = 0; i < m_OtherSocketCount; i++) {
+	for (int i = 0; i < m_OtherSockets.Count(); i++) {
 		if (m_OtherSockets[i].Socket == Socket) {
-			m_OtherSockets[i].Events = NULL;
-			m_OtherSockets[i].Socket = INVALID_SOCKET;
+			m_OtherSockets.Remove(i);
+
+			return;
 		}
 	}
 }
@@ -775,33 +760,29 @@ void CBouncerCore::Shutdown(void) {
 }
 
 CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Password) {
-	CBouncerUser* U = GetUser(Username);
-	CBouncerUser** Users;
+	CBouncerUser* User = GetUser(Username);
 	char* Out;
 
-	if (U) {
+	if (User) {
 		if (Password)
-			U->SetPassword(Password);
+			User->SetPassword(Password);
 
-		return U;
+		return User;
 	}
 
 	if (!IsValidUsername(Username))
 		return NULL;
 
-	Users = (CBouncerUser**)realloc(m_Users, sizeof(CBouncerUser*) * ++m_UserCount);
+	User = new CBouncerUser(Username);
 
-	if (Users == NULL) {
-		LOGERROR("realloc() failed. could not create user");
+	if (!m_Users.Insert(User)) {
+		delete User;
 
 		return NULL;
 	}
 
-	m_Users = Users;
-	m_Users[m_UserCount - 1] = new CBouncerUser(Username);
-
 	if (Password)
-		m_Users[m_UserCount - 1]->SetPassword(Password);
+		User->SetPassword(Password);
 
 	asprintf(&Out, "New user created: %s", Username);
 
@@ -817,22 +798,22 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 	UpdateUserConfig();
 
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
+		CModule* Module = g_Bouncer->GetModules()[i];
 
-		if (M) {
-			M->UserCreate(Username);
+		if (Module) {
+			Module->UserCreate(Username);
 		}
 	}
 
-	m_Users[m_UserCount - 1]->LoadEvent();
+	User->LoadEvent();
 
-	return m_Users[m_UserCount - 1];
+	return User;
 }
 
 bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	char *Out;
 
-	for (int i = 0; i < m_UserCount; i++) {
+	for (int i = 0; i < m_Users.Count(); i++) {
 		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
 			for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
 				CModule* Module = g_Bouncer->GetModules()[a];
@@ -845,10 +826,7 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 			if (RemoveConfig)
 				unlink(m_Users[i]->GetConfig()->GetFilename());
 
-			delete m_Users[i];
-
-			m_Users[i] = NULL;
-
+			m_Users.Remove(i);
 
 			asprintf(&Out, "User removed: %s", Username);
 
@@ -886,7 +864,7 @@ bool CBouncerCore::IsValidUsername(const char* Username) {
 void CBouncerCore::UpdateUserConfig(void) {
 	char* Out = NULL;
 
-	for (int i = 0; i < m_UserCount; i++) {
+	for (int i = 0; i < m_Users.Count(); i++) {
 		if (m_Users[i]) {
 			bool WasNull = false;
 
@@ -976,11 +954,11 @@ const char* CBouncerCore::MD5(const char* String) {
 
 
 int CBouncerCore::GetArgC(void) {
-	return m_argc;
+	return m_Args.Count();
 }
 
 char** CBouncerCore::GetArgV(void) {
-	return m_argv;
+	return m_Args.GetList();
 }
 
 CConnection* CBouncerCore::WrapSocket(SOCKET Socket) {
@@ -1004,7 +982,7 @@ void* CBouncerCore::Alloc(size_t Size) {
 }
 
 bool CBouncerCore::IsRegisteredSocket(CSocketEvents* Events) {
-	for (int i = 0; i < m_OtherSocketCount; i++) {
+	for (int i = 0; i < m_OtherSockets.Count(); i++) {
 		if (m_OtherSockets[i].Events == Events)
 			return true;
 	}
@@ -1019,7 +997,7 @@ SOCKET CBouncerCore::SocketAndConnect(const char* Host, unsigned short Port, con
 socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
 	int a = 0;
 
-	for (int i = 0; i < m_OtherSocketCount; i++) {
+	for (int i = 0; i < m_OtherSockets.Count(); i++) {
 		socket_t Socket = m_OtherSockets[i];
 
 		if (Socket.Socket == INVALID_SOCKET)
@@ -1035,50 +1013,16 @@ socket_t* CBouncerCore::GetSocketByClass(const char* Class, int Index) {
 	return NULL;
 }
 
-CTimer* CBouncerCore::CreateTimer(unsigned int Interval, bool Repeat, timerproc Function, void* Cookie) {
+CTimer* CBouncerCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
 	return new CTimer(Interval, Repeat, Function, Cookie);
 }
 
 void CBouncerCore::RegisterTimer(CTimer* Timer) {
-	timerchain_t* last = &m_TimerChain;
-
-	while (last->next)
-		last = last->next;
-
-	last->next = (timerchain_t*)malloc(sizeof(timerchain_t));
-
-	if (last->next == NULL) {
-		LOGERROR("malloc() failed. Timer could not be registered.");
-
-		return;
-	}
-
-	last->ptr = Timer;
-
-	last->next->next = NULL;
-	last->next->ptr = NULL;
+	m_Timers.Insert(Timer);
 }
 
 void CBouncerCore::UnregisterTimer(CTimer* Timer) {
-	timerchain_t* current = &m_TimerChain;
-
-	if (current->ptr == Timer && current->next) {
-		current->ptr = current->next->ptr;
-		current->next = current->next->next;
-
-		return;
-	}
-
-	while (current) {
-		if (current->next && current->next->ptr == Timer) {
-			timerchain_t* old = current->next;
-			current->next = current->next->next;
-
-			free(old);
-		}
-
-		current = current->next;
-	}
+	m_Timers.Remove(Timer);
 }
 
 int CBouncerCore::GetTimerStats(void) {
@@ -1122,6 +1066,10 @@ void CBouncerCore::Fatal(void) {
 
 SSL_CTX* CBouncerCore::GetSSLContext(void) {
 	return m_SSLContext;
+}
+
+SSL_CTX* CBouncerCore::GetSSLClientContext(void) {
+	return m_SSLClientContext;
 }
 
 int CBouncerCore::GetSSLCustomIndex(void) {
