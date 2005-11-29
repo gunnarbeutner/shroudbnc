@@ -3853,13 +3853,13 @@ _ACEOF
 fi
 
 
-echo "$as_me:$LINENO: checking for adns_init in -lxadns" >&5
-echo $ECHO_N "checking for adns_init in -lxadns... $ECHO_C" >&6
-if test "${ac_cv_lib_xadns_adns_init+set}" = set; then
+echo "$as_me:$LINENO: checking for adns_init in -ladns" >&5
+echo $ECHO_N "checking for adns_init in -ladns... $ECHO_C" >&6
+if test "${ac_cv_lib_adns_adns_init+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lxadns  $LIBS"
+LIBS="-ladns  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -3903,25 +3903,25 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_xadns_adns_init=yes
+  ac_cv_lib_adns_adns_init=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_cv_lib_xadns_adns_init=no
+ac_cv_lib_adns_adns_init=no
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_xadns_adns_init" >&5
-echo "${ECHO_T}$ac_cv_lib_xadns_adns_init" >&6
-if test $ac_cv_lib_xadns_adns_init = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_lib_adns_adns_init" >&5
+echo "${ECHO_T}$ac_cv_lib_adns_adns_init" >&6
+if test $ac_cv_lib_adns_adns_init = yes; then
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBXADNS 1
+#define HAVE_LIBADNS 1
 _ACEOF
 
-  LIBS="-lxadns $LIBS"
+  LIBS="-ladns $LIBS"
 
 else
 
