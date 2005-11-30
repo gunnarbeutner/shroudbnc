@@ -62,13 +62,13 @@ CConnection::CConnection(const char* Host, unsigned short Port, const char* Bind
 		*m_HostAddr = ip;
 	}
 
-#ifdef _WIN32
 	if (BindIp) {
+#ifdef _WIN32
 		ip.S_un.S_addr = inet_addr(BindIp);
 
 		if (ip.S_un.S_addr != INADDR_NONE) {
 #else
-		ip.s_addr = inet_addr(Host);
+		ip.s_addr = inet_addr(BindIp);
 
 		if (ip.s_addr != INADDR_NONE) {
 #endif

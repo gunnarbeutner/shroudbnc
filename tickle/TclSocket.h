@@ -37,7 +37,7 @@ private:
 	int m_Idx;
 	char *m_TclProc;
 public:
-	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc) : CListenerBase(Port, BindIp, NULL) {
+	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc) : CListenerBase<int>(Port, BindIp, NULL) {
 		char Buf[20];
 
 		m_TclProc = strdup(TclProc);
