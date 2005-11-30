@@ -19,7 +19,9 @@
 
 #include "StdAfx.h"
 
+#ifdef USESSL
 #include <openssl/err.h>
+#endif
 
 extern bool g_Debug;
 
