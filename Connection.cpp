@@ -33,6 +33,7 @@ extern "C" {
 #define SENDSIZE 4096
 
 IMPL_DNSEVENTCLASS(CConnectionDnsEvents, CConnection, AsyncDnsFinished);
+IMPL_DNSEVENTCLASS(CBindIpDnsEvents, CConnection, AsyncBindIpDnsFinished);
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -50,33 +51,59 @@ CConnection::CConnection(const char* Host, unsigned short Port, const char* Bind
 #ifdef _WIN32
 	ip.S_un.S_addr = inet_addr(Host);
 
-	if (ip.S_un.S_addr == INADDR_NONE) {
+	if (ip.S_un.S_addr != INADDR_NONE) {
 #else
 	ip.s_addr = inet_addr(Host);
 
-	if (ip.s_addr == INADDR_NONE) {
+	if (ip.s_addr != INADDR_NONE) {
 #endif
-		m_Socket = INVALID_SOCKET;
-		m_PortCache = Port;
-		m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
+		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
 
-		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
-
-		m_DnsEvents = new CConnectionDnsEvents(this);
-
-		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, m_DnsEvents, m_AdnsQuery);
-
-		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
-	} else {
-		m_PortCache = 0;
-		m_BindIpCache = NULL;
-		m_AdnsQuery = NULL;
-		m_AdnsTimeout = NULL;
-
-		m_Socket = SocketAndConnectResolved((in_addr)ip, Port, BindIp);
-
-		InitSocket();
+		*m_HostAddr = ip;
 	}
+
+#ifdef _WIN32
+	if (BindIp) {
+		ip.S_un.S_addr = inet_addr(BindIp);
+
+		if (ip.S_un.S_addr != INADDR_NONE) {
+#else
+		ip.s_addr = inet_addr(Host);
+
+		if (ip.s_addr != INADDR_NONE) {
+#endif
+			m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
+
+			*m_BindAddr = ip;
+		}
+	}
+
+	m_Socket = INVALID_SOCKET;
+	m_PortCache = Port;
+	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
+
+	if (m_HostAddr == NULL) {
+		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
+		m_DnsEvents = new CConnectionDnsEvents(this);
+		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, m_DnsEvents, m_AdnsQuery);
+	} else {
+		m_AdnsQuery = NULL;
+		m_DnsEvents = NULL;
+	}
+
+	if (m_BindIpCache && m_BindAddr == NULL) {
+		m_BindAdnsQuery = (adns_query*)malloc(sizeof(adns_query));
+		m_BindDnsEvents = new CBindIpDnsEvents(this);
+		adns_submit(g_adns_State, BindIp, adns_r_addr, (adns_queryflags)0, m_BindDnsEvents, m_BindAdnsQuery);
+	} else {
+		m_BindAdnsQuery = NULL;
+		m_BindDnsEvents = NULL;
+	}
+
+	if (m_HostAddr == NULL || m_BindAddr == NULL)
+		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
+	else
+		m_AdnsTimeout = NULL;
 }
 
 void CConnection::InitConnection(SOCKET Client, bool SSL) {
@@ -92,12 +119,17 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_Wrapper = false;
 
 	m_DnsEvents = NULL;
+	m_BindDnsEvents = NULL;
 
 	m_SendQ = new CFIFOBuffer();
 	m_RecvQ = new CFIFOBuffer();
 
 	m_AdnsQuery = NULL;
+	m_BindAdnsQuery = NULL;
 	m_AdnsTimeout = NULL;
+
+	m_HostAddr = NULL;
+	m_BindAddr = NULL;
 
 	m_BindIpCache = NULL;
 	m_PortCache = 0;
@@ -125,11 +157,11 @@ CConnection::~CConnection() {
 
 	g_Bouncer->UnregisterSocket(m_Socket);
 
-	if (m_AdnsQuery) {
+	if (m_AdnsQuery)
 		adns_cancel(*m_AdnsQuery);
 
-		m_AdnsQuery = NULL;
-	}
+	if (m_BindAdnsQuery)
+		adns_cancel(*m_BindAdnsQuery);
 
 	if (m_AdnsTimeout)
 		m_AdnsTimeout->Destroy();
@@ -140,9 +172,15 @@ CConnection::~CConnection() {
 	if (m_DnsEvents)
 		m_DnsEvents->Destroy();
 
+	if (m_BindDnsEvents)
+		m_BindDnsEvents->Destroy();
+
 	if (m_Socket != INVALID_SOCKET)
 		closesocket(m_Socket);
 	
+	free(m_HostAddr);
+	free(m_BindAddr);
+
 #ifdef USESSL
 	if (IsSSL() && m_SSL)
 		SSL_free(m_SSL);
@@ -550,6 +588,14 @@ bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
 	return false;
 }
 
+void CConnection::AsyncConnect(void) {
+	if (m_HostAddr && (m_BindAddr || m_BindIpCache == NULL)) {
+		m_Socket = SocketAndConnectResolved(*m_HostAddr, m_PortCache, m_BindAddr);
+
+		InitSocket();
+	}
+}
+
 void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 	free(m_AdnsQuery);
 	m_AdnsQuery = NULL;
@@ -560,15 +606,30 @@ void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 
 		return;
 	} else {
-		m_Socket = SocketAndConnectResolved(response->rrs.addr->addr.inet.sin_addr, m_PortCache, m_BindIpCache);
-		free(m_BindIpCache);
-		m_BindIpCache = NULL;
+		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
+		*m_HostAddr = response->rrs.addr->addr.inet.sin_addr;
 
 		InitSocket();
 
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;
 	}
+}
+
+void CConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *response) {
+	free(m_BindAdnsQuery);
+	m_BindAdnsQuery = NULL;
+	m_BindDnsEvents = NULL;
+
+	if (response->status == adns_s_ok) {
+		m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
+		*m_BindAddr = response->rrs.addr->addr.inet.sin_addr;
+	}
+
+	free(m_BindIpCache);
+	m_BindIpCache = NULL;
+
+	AsyncConnect();
 }
 
 void CConnection::AdnsTimeout(void) {
@@ -579,6 +640,13 @@ void CConnection::AdnsTimeout(void) {
 
 		free(m_AdnsQuery);
 		m_AdnsQuery = NULL;
+	}
+
+	if (m_BindAdnsQuery) {
+		adns_cancel(*m_BindAdnsQuery);
+
+		free(m_BindAdnsQuery);
+		m_BindAdnsQuery = NULL;
 	}
 }
 

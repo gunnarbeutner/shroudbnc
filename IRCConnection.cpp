@@ -1137,6 +1137,15 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 	CConnection::AsyncDnsFinished(query, response);
 }
 
+void CIRCConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *response) {
+	if (response->status != adns_s_ok) {
+		m_Owner->Notice("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
+		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+	}
+
+	CConnection::AsyncBindIpDnsFinished(query, response);
+}
+
 void CIRCConnection::AdnsTimeout(void) {
 	m_Owner->Notice("DNS request timed out. Could not connect to server.");
 	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());

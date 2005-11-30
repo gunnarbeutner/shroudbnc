@@ -35,23 +35,30 @@ enum connection_role_e {
 };
 
 class CConnectionDnsEvents;
+class CBindIpDnsEvents;
 
 class CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CBouncerCore;
 	friend class CBouncerUser;
 	friend class CConnectionDnsEvents;
+	friend class CBindIpDnsEvents;
 	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
 	CTimer* m_AdnsTimeout;
 	adns_query* m_AdnsQuery;
+	adns_query* m_BindAdnsQuery;
 	unsigned short m_PortCache;
 	char* m_BindIpCache;
 	CConnectionDnsEvents* m_DnsEvents;
+	CBindIpDnsEvents* m_BindDnsEvents;
 
 	bool m_LatchedDestruction;
 	CTrafficStats* m_Traffic;
+
+	in_addr* m_BindAddr;
+	in_addr* m_HostAddr;
 
 	void InitConnection(SOCKET Client, bool SSL);
 public:
@@ -110,7 +117,9 @@ protected:
 	void ReadLines(void);
 #endif
 
-	void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	void AsyncConnect(void);
+	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	virtual void AsyncBindIpDnsFinished(adns_query *query, adns_answer *response);
 	void AdnsTimeout(void);
 
 	CBouncerUser* m_Owner;

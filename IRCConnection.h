@@ -132,6 +132,7 @@ public:
 	virtual bool Read(void);
 
 	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
+	virtual void AsyncBindIpDnsFinished(adns_query *query, adns_answer *response);
 	virtual void AdnsTimeout(void);
 
 	virtual const char* GetSite(void);

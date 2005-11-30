@@ -233,7 +233,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	return sock;
 }
 
-SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* BindIp) {
+SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* BindIp) {
 	if (!Port)
 		return INVALID_SOCKET;
 
@@ -250,29 +250,15 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, const char* B
 
 	sockaddr_in sin, sloc;
 
-	if (BindIp && *BindIp) {
+	if (BindIp) {
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = 0;
 
-		hostent* hent = gethostbyname(BindIp);
-
-		if (hent) {
-			in_addr* peer = (in_addr*)hent->h_addr_list[0];
-
 	#ifdef _WIN32
-			sloc.sin_addr.S_un.S_addr = peer->S_un.S_addr;
+		sloc.sin_addr.S_un.S_addr = BindIp->S_un.S_addr;
 	#else
-			sloc.sin_addr.s_addr = peer->s_addr;
+		sloc.sin_addr.s_addr = BindIp->s_addr;
 	#endif
-		} else {
-			unsigned long addr = inet_addr(BindIp);
-
-	#ifdef _WIN32
-			sloc.sin_addr.S_un.S_addr = addr;
-	#else
-			sloc.sin_addr.s_addr = addr;
-	#endif
-		}
 
 		bind(sock, (sockaddr*)&sloc, sizeof(sloc));
 	}
