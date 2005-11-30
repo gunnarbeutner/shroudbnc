@@ -42,8 +42,6 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
 
 		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, AdnsTimeoutTimer, this);
-
-		g_Bouncer->RegisterSocket(Client, (CSocketEvents*)this);
 	} else {
 		m_AdnsTimeout = NULL;
 		m_DnsEvents = NULL;
@@ -58,8 +56,6 @@ CClientConnection::~CClientConnection() {
 
 	if (!m_PeerName && m_Socket != INVALID_SOCKET)
 		adns_cancel(m_PeerA);
-
-	g_Bouncer->UnregisterSocket(m_Socket);
 
 	if (m_AdnsTimeout)
 		m_AdnsTimeout->Destroy();

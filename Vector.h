@@ -13,8 +13,7 @@ public:
 	}
 
 	CVector(Type *List, int Count, bool ReadOnly = true) {
-		m_List = List;
-		m_Count = Count;
+		SetList(List, Count);
 		m_ReadOnly = ReadOnly;
 	}
 
@@ -78,5 +77,15 @@ public:
 
 	Type *GetList(void) {
 		return m_List;
+	}
+
+	void SetList(Type *List, int Count) {
+		free(m_List);
+
+		m_List = (Type *)malloc(sizeof(Type) * Count);
+		memcpy(m_List, List, sizeof(Type) * Count);
+		m_Count = Count;
+		m_ReadOnly = false;
+
 	}
 };

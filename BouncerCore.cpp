@@ -89,7 +89,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 	m_Config = Config;
 
-	m_Args = CVector<char *>(argv, argc);
+	m_Args.SetList(argv, argc);
 
 	m_Ident = new CIdentSupport();
 
@@ -189,7 +189,6 @@ CBouncerCore::~CBouncerCore() {
 	for (int c = 0; c < m_OtherSockets.Count(); c++) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
-			closesocket(m_OtherSockets[c].Socket);
 		}
 	}
 
@@ -288,7 +287,7 @@ void CBouncerCore::StartMainLoop(void) {
 	SSL_CTX_set_verify(m_SSLClientContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 #endif
 
-	if (Port != 0 && m_Listener != NULL)
+	if (Port != 0 && m_Listener != NULL && m_Listener->IsValid())
 		Log("Created main listener.");
 	else if (Port != 0) {
 		Log("Could not create listener port");
@@ -296,7 +295,7 @@ void CBouncerCore::StartMainLoop(void) {
 	}
 
 #ifdef USESSL
-	if (SSLPort != 0 && m_SSLListener != NULL)
+	if (SSLPort != 0 && m_SSLListener != NULL && m_SSLListener->IsValid())
 		Log("Created ssl listener.");
 	else if (SSLPort != 0) {
 		Log("Could not create ssl listener port");
@@ -374,11 +373,9 @@ void CBouncerCore::StartMainLoop(void) {
 		for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 				if (m_OtherSockets[i].Events->DoTimeout())
-					m_OtherSockets[i].Socket = INVALID_SOCKET;
-				else if (m_OtherSockets[i].Events->ShouldDestroy()) {
+					continue;
+				else if (m_OtherSockets[i].Events->ShouldDestroy())
 					m_OtherSockets[i].Events->Destroy();
-					m_OtherSockets[i].Socket = INVALID_SOCKET;
-				}
 			}
 		}
 
@@ -420,25 +417,7 @@ void CBouncerCore::StartMainLoop(void) {
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
-/*			if (m_Listener != INVALID_SOCKET && FD_ISSET(m_Listener, &FDRead)) {
-				sockaddr_in sin_remote;
-				socklen_t sin_size = sizeof(sin_remote);
-
-				SOCKET Client = accept(m_Listener, (sockaddr*)&sin_remote, &sin_size);
-				HandleConnectingClient(Client, sin_remote, false);
-			}
-
-#ifdef USESSL
-			if (m_SSLListener != INVALID_SOCKET && FD_ISSET(m_SSLListener, &FDRead)) {
-				sockaddr_in sin_remote;
-				socklen_t sin_size = sizeof(sin_remote);
-
-				SOCKET Client = accept(m_SSLListener, (sockaddr*)&sin_remote, &sin_size);
-				HandleConnectingClient(Client, sin_remote, true);
-			}
-#endif
-*/
-			for (i = 0; i < m_OtherSockets.Count(); i++) {
+			for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
 				SOCKET Socket = m_OtherSockets[i].Socket;
 				CSocketEvents* Events = m_OtherSockets[i].Events;
 
@@ -446,12 +425,12 @@ void CBouncerCore::StartMainLoop(void) {
 					if (FD_ISSET(Socket, &FDRead)) {
 						if (!Events->Read()) {
 							Events->Destroy();
-							shutdown(Socket, SD_BOTH); 
-							closesocket(Socket);
+
+							continue;
 						}
 					}
 
-					if (m_OtherSockets[i].Events && FD_ISSET(Socket, &FDWrite)) {
+					if (Events && FD_ISSET(Socket, &FDWrite)) {
 						Events->Write();
 					}
 				}
@@ -461,7 +440,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 			fd_set set;
 
-			for (i = 0; i < m_OtherSockets.Count(); i++) {
+			for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
 				SOCKET Socket = m_OtherSockets[i].Socket;
 
 				if (Socket != INVALID_SOCKET) {
@@ -474,11 +453,6 @@ void CBouncerCore::StartMainLoop(void) {
 					if (code == -1) {
 						m_OtherSockets[i].Events->Error();
 						m_OtherSockets[i].Events->Destroy();
-
-						shutdown(Socket, SD_BOTH);
-						closesocket(Socket);
-
-						m_OtherSockets[i].Socket = INVALID_SOCKET;
 					}
 				}
 			}
@@ -659,6 +633,8 @@ void CBouncerCore::UpdateModuleConfig(void) {
 void CBouncerCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
 	socket_s s = { Socket, EventInterface };
 
+	UnregisterSocket(Socket);
+	
 	/* TODO: can we safely recover from this situation? return value maybe? */
 	if (!m_OtherSockets.Insert(s)) {
 		LOGERROR("realloc() failed.");

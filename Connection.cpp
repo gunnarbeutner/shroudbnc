@@ -140,6 +140,9 @@ CConnection::~CConnection() {
 	if (m_DnsEvents)
 		m_DnsEvents->Destroy();
 
+	if (m_Socket != INVALID_SOCKET)
+		closesocket(m_Socket);
+	
 #ifdef USESSL
 	if (IsSSL() && m_SSL)
 		SSL_free(m_SSL);
@@ -239,10 +242,6 @@ bool CConnection::Read(bool DontProcess) {
 #endif
 		n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
-#ifdef USESSL
-	ERR_print_errors_fp(stdout);
-#endif
-
 	if (n > 0) {
 		m_RecvQ->Write(Buffer, n);
 
@@ -253,9 +252,6 @@ bool CConnection::Read(bool DontProcess) {
 		if (IsSSL())
 			SSL_shutdown(m_SSL);
 #endif
-
-		shutdown(m_Socket, SD_BOTH);
-		closesocket(m_Socket);
 
 		return false;
 	}
@@ -500,9 +496,6 @@ void CConnection::Timeout(int TimeLeft) {
 
 bool CConnection::DoTimeout(void) {
 	if (m_Timeout > 0 && m_Timeout < time(NULL)) {
-		shutdown(m_Socket, SD_BOTH);
-		closesocket(m_Socket);
-
 		delete this;
 
 		return true;
