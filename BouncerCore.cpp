@@ -78,14 +78,15 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	char* Out;
 
 	m_Log = new CBouncerLog("sbnc.log");
-	m_Log->Clear();
-	m_Log->WriteLine("Log system initialized.");
 
 	if (m_Log == NULL) {
 		printf("Log system could not be initialized. Shutting down.");
 
 		exit(1);
 	}
+
+	m_Log->Clear();
+	m_Log->WriteLine("Log system initialized.");
 
 	g_Bouncer = this;
 

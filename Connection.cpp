@@ -609,10 +609,10 @@ void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
 		*m_HostAddr = response->rrs.addr->addr.inet.sin_addr;
 
-		InitSocket();
-
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;
+
+		AsyncConnect();
 	}
 }
 
