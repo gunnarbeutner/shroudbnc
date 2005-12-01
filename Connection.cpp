@@ -86,9 +86,11 @@ CConnection::CConnection(const char* Host, unsigned short Port, const char* Bind
 		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
 		m_DnsEvents = new CConnectionDnsEvents(this);
 		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, m_DnsEvents, m_AdnsQuery);
+		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
 	} else {
 		m_AdnsQuery = NULL;
 		m_DnsEvents = NULL;
+		m_AdnsTimeout = NULL;
 	}
 
 	if (m_BindIpCache && m_BindAddr == NULL) {
@@ -100,10 +102,8 @@ CConnection::CConnection(const char* Host, unsigned short Port, const char* Bind
 		m_BindDnsEvents = NULL;
 	}
 
-	if (m_HostAddr == NULL || m_BindAddr == NULL)
-		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
-	else
-		m_AdnsTimeout = NULL;
+	// try to connect.. maybe we already have both addresses
+	AsyncConnect();
 }
 
 void CConnection::InitConnection(SOCKET Client, bool SSL) {
