@@ -805,6 +805,7 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 			if (RemoveConfig)
 				unlink(m_Users[i]->GetConfig()->GetFilename());
 
+			delete m_Users[i];
 			m_Users.Remove(i);
 
 			asprintf(&Out, "User removed: %s", Username);
