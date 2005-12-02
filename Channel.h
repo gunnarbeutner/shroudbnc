@@ -94,6 +94,10 @@ public:
 	virtual CBanlist* GetBanlist(void);
 	virtual void SetHasBans(void);
 	virtual bool HasBans(void);
+
+	virtual CIRCConnection *GetOwner(void);
+
+	virtual bool SendWhoReply(bool Simulate);
 };
 
 #ifndef SWIG

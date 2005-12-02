@@ -1143,7 +1143,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		} else if (strcmpi(Command, "synth") == 0) {
 			if (argc < 2) {
 				m_Owner->Notice("Syntax: SYNTH command parameter");
-				m_Owner->Notice("supported commands are: mode, topic, names, version");
+				m_Owner->Notice("supported commands are: mode, topic, names, version, who");
 
 				return false;
 			}
@@ -1255,6 +1255,18 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("NAMES %s", argv[2]);
 					}
 				}
+			} else if (strcmpi(argv[1], "who") == 0 && time(NULL) - m_Owner->GetLastSeen() < 300) {
+				CIRCConnection* IRC = m_Owner->GetIRCConnection();
+
+				if (IRC) {
+					CChannel *Channel = IRC->GetChannel(argv[2]);
+
+					if (Channel && Channel->SendWhoReply(true)) {
+						Channel->SendWhoReply(false);
+					} else {
+						IRC->WriteLine("WHO %s", argv[2]);
+					}
+				}
 			} else if (strcmpi(argv[1], "version") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
@@ -1319,7 +1331,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			}
 
 			return false;
-		} else if (strcmpi(Command, "mode") == 0 || strcmpi(Command, "topic") == 0 || strcmpi(Command, "names") == 0) {
+		} else if (strcmpi(Command, "mode") == 0 || strcmpi(Command, "topic") == 0 ||
+				strcmpi(Command, "names") == 0 || strcmpi(Command, "who") == 0) {
 			if (argc == 2 || (strcmpi(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
 				if (argc == 2)
 					asprintf(&Out, "SYNTH %s %s", argv[0], argv[1]);

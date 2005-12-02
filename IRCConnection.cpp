@@ -592,16 +592,19 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan)
 			Chan->SetHasNames();
-	} else if (argc > 7 && iRaw == 352) {
+	} else if (argc > 9 && iRaw == 352) {
 		const char* Ident = argv[4];
 		const char* Host = argv[5];
+		const char* Server = argv[6];
 		const char* Nick = argv[7];
+		const char* Realname = argv[9];
 
 		char* Mask = (char*)malloc(strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1);
 
 		snprintf(Mask, strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1, "%s!%s@%s", Nick, Ident, Host);
 
 		UpdateHostHelper(Mask);
+		UpdateWhoHelper(Nick, Realname, Server);
 
 		free(Mask);
 	} else if (argc > 6 && iRaw == 367) {
@@ -948,6 +951,22 @@ CBouncerConfig* CIRCConnection::GetISupportAll(void) {
 	return m_ISupport;
 }
 
+void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
+	int a = 0, i = 0;
+
+	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+		if (!Chan->Value->HasNames())
+			return;
+
+		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
+
+		if (NickObj) {
+			NickObj->SetRealname(Realname);
+			NickObj->SetServer(Server);
+		}
+	}
+}
+
 void CIRCConnection::UpdateHostHelper(const char* Host) {
 	char* Copy = strdup(Host);
 
@@ -981,11 +1000,8 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	int i = 0;
 
 	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-		if (Chan->Value->GetNames() == NULL) {
-			free(Copy);
-
-			return;
-		}
+		if (!Chan->Value->HasNames())
+			continue;
 
 		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
 

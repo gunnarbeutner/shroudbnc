@@ -76,6 +76,7 @@ class CIRCConnection : public CConnection {
 
 	void UpdateChannelConfig(void);
 	void UpdateHostHelper(const char* Host);
+	void UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server);
 
 	bool ModuleEvent(int argc, const char** argv);
 

@@ -27,7 +27,7 @@ void DestroyCNick(CNick* P) {
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CNick::CNick(const char* Nick) {
+CNick::CNick(CChannel* Owner, const char* Nick) {
 	assert(Nick != NULL);
 
 	m_Nick = strdup(Nick);
@@ -38,10 +38,14 @@ CNick::CNick(const char* Nick) {
 
 	m_Prefixes = NULL;
 	m_Site = NULL;
+	m_Realname = NULL;
+	m_Server = NULL;
 
 	m_IdleSince = m_Creation = time(NULL);
 
 	m_Tags = NULL;
+
+	m_Owner = Owner;
 }
 
 CNick::~CNick() {
@@ -144,24 +148,35 @@ const char* CNick::GetPrefixes(void) {
 	return m_Prefixes;
 }
 
-bool CNick::SetSite(const char* Site) {
-	char* dupSite;
-
-	dupSite = strdup(Site);
-
-	if (dupSite == NULL) {
-		LOGERROR("strdup() failed. New site was lost (%s, %s).", m_Nick, Site);
-
-		return false;
-	} else {
-		free(m_Site);
-		m_Site = dupSite;
-
-		return true;
+#define IMPL_NICKSET(Name, NewValue) \
+	char* dup; \
+\
+	dup = strdup(NewValue); \
+\
+	if (dup == NULL) { \
+		LOGERROR("strdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
+\
+		return false; \
+	} else { \
+		free(Name); \
+		Name = dup; \
+\
+		return true; \
 	}
+
+bool CNick::SetSite(const char* Site) {
+	IMPL_NICKSET(m_Site, Site);
 }
 
-const char* CNick::GetSite(void) {
+bool CNick::SetRealname(const char *Realname) {
+	IMPL_NICKSET(m_Realname, Realname);
+}
+
+bool CNick::SetServer(const char *Server) {
+	IMPL_NICKSET(m_Server, Server);
+}
+
+const char* CNick::InternalGetSite(void) {
 	if (!m_Site)
 		return NULL;
 
@@ -171,6 +186,42 @@ const char* CNick::GetSite(void) {
 		return Host + 1;
 	else
 		return m_Site;
+}
+
+const char *CNick::InternalGetRealname(void) {
+	return m_Realname;
+}
+
+const char *CNick::InternalGetServer(void) {
+	return m_Server;
+}
+
+#define IMPL_NICKACCESSOR(Name) \
+	int a = 0; \
+\
+	while (xhash_t<CChannel*>* Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
+		if (!Chan->Value->HasNames()) \
+			continue; \
+\
+		CNick* NickObj = Chan->Value->GetNames()->Get(m_Nick); \
+\
+		if (NickObj && strcmpi(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
+			return NickObj->Name(); \
+	} \
+\
+	return NULL;
+
+
+const char *CNick::GetSite(void) {
+	IMPL_NICKACCESSOR(InternalGetSite)
+}
+
+const char *CNick::GetRealname(void) {
+	IMPL_NICKACCESSOR(InternalGetRealname)
+}
+
+const char *CNick::GetServer(void) {
+	IMPL_NICKACCESSOR(InternalGetServer)
 }
 
 bool CNick::SetNick(const char* Nick) {
@@ -221,4 +272,8 @@ const char* CNick::GetTag(const char* Name) {
 		return NULL;
 	else
 		return m_Tags->ReadString(Name);
+}
+
+CChannel *CNick::GetChannel(void) {
+	return m_Owner;
 }

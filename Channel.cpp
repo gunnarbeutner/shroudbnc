@@ -308,7 +308,7 @@ void CChannel::SetNoTopic(void) {
 }
 
 void CChannel::AddUser(const char* Nick, const char* ModeChars) {
-	CNick* N = new CNick(Nick);
+	CNick* N = new CNick(this, Nick);
 
 	if (N == NULL) {
 		LOGERROR("new operator failed. Could not add user (%s).", Nick);
@@ -395,4 +395,50 @@ void CChannel::SetHasBans(void) {
 
 bool CChannel::HasBans(void) {
 	return m_HasBans;
+}
+
+CIRCConnection *CChannel::GetOwner(void) {
+	return m_Owner;
+}
+
+bool CChannel::SendWhoReply(bool Simulate) {
+	char *Ident, *Host, *Site;
+	CClientConnection *Client = m_Owner->GetOwningClient()->GetClientConnection();
+
+	if (Client == NULL)
+		return true;
+
+	if (!HasNames())
+		return false;
+
+	int a = 0;
+
+	while (xhash_t<CNick*>* NickHash = GetNames()->Iterate(a++)) {
+		CNick* NickObj = NickHash->Value;
+
+		if (NickObj->GetSite() == NULL || NickObj->GetRealname() == NULL || NickObj->GetServer() == NULL)
+			return false;
+
+		Site = strdup(NickObj->GetSite());
+
+		Ident = Site;
+		Host = strchr(Site, '@');
+
+		if (Host == NULL)
+			return false;
+
+		*Host = '\0';
+		Host++;
+
+		if (!Simulate) {
+			Client->WriteLine(":%s 352 %s %s %s %s %s %s H :%s", m_Owner->GetServer(), m_Owner->GetCurrentNick(),
+				m_Name, Ident, Host, NickObj->GetServer(), NickObj->GetNick(), NickObj->GetRealname());
+		}
+
+		free(Site);
+	}
+
+	Client->WriteLine(":%s 315 %s %s :End of /WHO list.", m_Owner->GetServer(), m_Owner->GetCurrentNick(), m_Name);
+
+	return true;
 }
