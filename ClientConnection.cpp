@@ -1255,17 +1255,23 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("NAMES %s", argv[2]);
 					}
 				}
-			} else if (strcmpi(argv[1], "who") == 0 && time(NULL) - m_Owner->GetLastSeen() < 300) {
+			} else if (strcmpi(argv[1], "who") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
 					CChannel *Channel = IRC->GetChannel(argv[2]);
 
-					if (Channel && Channel->SendWhoReply(true)) {
+					DWORD st = GetTickCount();
+
+					if (Channel && time(NULL) - m_Owner->GetLastSeen() < 300 && Channel->SendWhoReply(true)) {
 						Channel->SendWhoReply(false);
 					} else {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
+
+					DWORD diff = GetTickCount() - st;
+
+					printf("%d\n", diff);
 				}
 			} else if (strcmpi(argv[1], "version") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();

@@ -148,8 +148,11 @@ const char* CNick::GetPrefixes(void) {
 	return m_Prefixes;
 }
 
-#define IMPL_NICKSET(Name, NewValue) \
+#define IMPL_NICKSET(Name, NewValue, Static) \
 	char* dup; \
+\
+	if (Static && Name) \
+		return false; \
 \
 	dup = strdup(NewValue); \
 \
@@ -165,15 +168,15 @@ const char* CNick::GetPrefixes(void) {
 	}
 
 bool CNick::SetSite(const char* Site) {
-	IMPL_NICKSET(m_Site, Site);
+	IMPL_NICKSET(m_Site, Site, false);
 }
 
 bool CNick::SetRealname(const char *Realname) {
-	IMPL_NICKSET(m_Realname, Realname);
+	IMPL_NICKSET(m_Realname, Realname, true);
 }
 
 bool CNick::SetServer(const char *Server) {
-	IMPL_NICKSET(m_Server, Server);
+	IMPL_NICKSET(m_Server, Server, true);
 }
 
 const char* CNick::InternalGetSite(void) {
