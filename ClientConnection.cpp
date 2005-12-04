@@ -1266,8 +1266,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					} else {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
-
-					DWORD diff = GetTickCount() - st;
 				}
 			} else if (strcmpi(argv[1], "version") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();

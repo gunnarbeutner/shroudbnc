@@ -867,7 +867,7 @@ const char* getchanhost(const char* Nick, const char*) {
 			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
-				if (U && U->GetSite() != NULL)
+				if (U/* && U->GetSite() != NULL*/)
 					return U->GetSite();
 			}
 		}
@@ -1725,4 +1725,23 @@ int bncgetsendq(void) {
 
 void bncsetsendq(int NewSize) {
 	g_Bouncer->SetSendQSize(NewSize);
+}
+
+bool synthwho(const char *Channel, bool Simulate) {
+	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return false;
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (IRC == NULL)
+		return false;
+
+	CChannel* ChannelObj = IRC->GetChannel(Channel);
+
+	if (ChannelObj == NULL)
+		return false;
+
+	return ChannelObj->SendWhoReply(Simulate);
 }

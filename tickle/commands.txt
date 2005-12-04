@@ -241,3 +241,9 @@ bncvalidusername <Username>
 
   Description: Checks whether something is a valid username.
   Returns: 1 if the username is valid, 0 otherwise.
+
+synthwho <Channel> <Simulate>
+
+  Description: Synthesizes a /who reply for the given channel.
+  Return: 1 if successful, 0 otherwise. Undefined behaviour can occur
+  when Simulate and the reply are both 0.

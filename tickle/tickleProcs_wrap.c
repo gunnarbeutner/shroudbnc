@@ -3536,6 +3536,45 @@ _wrap_bncsetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
+_wrap_synthwho(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    bool arg2 ;
+    bool result;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    int tempb2 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"oo:synthwho Channel Simulate ",NULL,NULL) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    if (Tcl_GetIntFromObj(interp,objv[2],&tempb2) == TCL_ERROR) SWIG_fail;
+    arg2 = tempb2 ? true : false;
+    {
+        try {
+            result = (bool)synthwho((char const *)arg1,arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4422,6 +4461,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncvalidusername", (swig_wrapper_func) _wrap_bncvalidusername, NULL},
     { SWIG_prefix "bncgetsendq", (swig_wrapper_func) _wrap_bncgetsendq, NULL},
     { SWIG_prefix "bncsetsendq", (swig_wrapper_func) _wrap_bncsetsendq, NULL},
+    { SWIG_prefix "synthwho", (swig_wrapper_func) _wrap_synthwho, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
