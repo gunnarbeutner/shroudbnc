@@ -161,13 +161,12 @@ CBouncerUser::~CBouncerUser() {
 	if (m_Client)
 		m_Client->Kill("Removing user.");
 
-	delete m_Config;
-
 	free(m_Name);
 
 	if (m_IRC)
 		m_IRC->Kill("-)(- If you can't see the fnords, they can't eat you.");
 
+	delete m_Config;
 	delete m_Log;
 
 	delete m_ClientStats;
