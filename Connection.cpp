@@ -510,9 +510,6 @@ void CConnection::Error(void) {
 }
 
 void CConnection::Destroy(void) {
-	if (m_Owner)
-		m_Owner->SetClientConnection(NULL);
-
 	delete this;
 }
 

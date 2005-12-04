@@ -440,7 +440,7 @@ void CBouncerUser::Reconnect(void) {
 	int Port = GetPort();
 
 	if (!Server || !Port) {
-		ScheduleReconnect(120);
+		ScheduleReconnect(600);
 
 		g_Bouncer->GetLog()->WriteLine("%s has no default server. Can't (re)connect.", m_Name);
 
@@ -521,7 +521,7 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 	if (time(NULL) - g_LastReconnect < Interval && MaxDelay < Interval)
 		MaxDelay = Interval;
 
-	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120)
+	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120 && !IsAdmin())
 		MaxDelay = 120;
 
 	if (m_ReconnectTime < time(NULL) + MaxDelay) {
@@ -531,17 +531,17 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
 
 		m_ReconnectTime = time(NULL) + MaxDelay;
+	}
 
-		if (GetServer()) {
-			char* Out;
-			asprintf(&Out, "Scheduled reconnect in %d seconds.", MaxDelay);
+	if (GetServer()) {
+		char* Out;
+		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - time(NULL));
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
-				Notice(Out);
-				free(Out);
-			}
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
+		} else {
+			Notice(Out);
+			free(Out);
 		}
 	}
 }
@@ -594,7 +594,7 @@ void CBouncerUser::Unlock(void) {
 }
 
 void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
-	bool WasNull = m_IRC ? true : false;
+	bool WasNull = (m_IRC == NULL) ? true : false;
 
 	m_IRC = IRC;
 

@@ -402,8 +402,9 @@ CIRCConnection *CChannel::GetOwner(void) {
 }
 
 bool CChannel::SendWhoReply(bool Simulate) {
+	char CopyIdent[50];
 	char *Ident, *Host, *Site;
-	const char *Server, *Realname;
+	const char *Server, *Realname, *SiteTemp;
 	CClientConnection *Client = m_Owner->GetOwningClient()->GetClientConnection();
 
 	if (Client == NULL)
@@ -417,12 +418,10 @@ bool CChannel::SendWhoReply(bool Simulate) {
 	while (xhash_t<CNick*>* NickHash = GetNames()->Iterate(a++)) {
 		CNick* NickObj = NickHash->Value;
 
-		if (NickObj->GetSite() == NULL)
+		if ((SiteTemp = NickObj->GetSite()) == NULL)
 			return false;
 
-		Site = strdup(NickObj->GetSite());
-
-		Ident = Site;
+		Site = const_cast<char*>(SiteTemp);
 		Host = strchr(Site, '@');
 
 		if (Host == NULL) {
@@ -431,7 +430,11 @@ bool CChannel::SendWhoReply(bool Simulate) {
 			return false;
 		}
 
-		*Host = '\0';
+		strncpy(CopyIdent, Site, min(Host - Site - 1, sizeof(CopyIdent)));
+		CopyIdent[Host - Site] = '\0';
+
+		Ident = CopyIdent;
+
 		Host++;
 
 		Server = NickObj->GetServer();
@@ -446,8 +449,6 @@ bool CChannel::SendWhoReply(bool Simulate) {
 			Client->WriteLine(":%s 352 %s %s %s %s %s %s H :%s", m_Owner->GetServer(), m_Owner->GetCurrentNick(),
 				m_Name, Ident, Host, Server, NickObj->GetNick(), Realname);
 		}
-
-		free(Site);
 	}
 
 	if (!Simulate)

@@ -200,7 +200,11 @@ const char *CNick::InternalGetServer(void) {
 }
 
 #define IMPL_NICKACCESSOR(Name) \
+	const char *Value; \
 	int a = 0; \
+\
+	if ((Value = Name()) != NULL) \
+		return Value; \
 \
 	while (xhash_t<CChannel*>* Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
 		if (!Chan->Value->HasNames()) \

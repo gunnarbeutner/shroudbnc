@@ -137,9 +137,6 @@ CIRCConnection::~CIRCConnection() {
 		m_DelayJoinTimer->Destroy();
 
 	m_PingTimer->Destroy();
-
-	if (m_Owner != NULL)
-		m_Owner->SetIRCConnection(NULL);
 }
 
 connection_role_e CIRCConnection::GetRole(void) {
@@ -1033,7 +1030,6 @@ CQueue* CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
 
-/* TODO: this is inconsistent with ircu .12 behaviour regarding keys. fix */
 void CIRCConnection::JoinChannels(void) {
 	if (m_DelayJoinTimer) {
 		m_DelayJoinTimer->Destroy();
@@ -1167,4 +1163,11 @@ void CIRCConnection::AdnsTimeout(void) {
 	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
 
 	CConnection::AdnsTimeout();
+}
+
+void CIRCConnection::Destroy(void) {
+	if (m_Owner)
+		m_Owner->SetIRCConnection(NULL);
+
+	delete this;
 }

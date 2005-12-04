@@ -184,15 +184,15 @@ CBouncerCore::~CBouncerCore() {
 			delete m_Modules[a];
 	}
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		if (m_Users[i])
-			delete m_Users[i];
-	}
-
 	for (int c = 0; c < m_OtherSockets.Count(); c++) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
 		}
+	}
+
+	for (int i = 0; i < m_Users.Count(); i++) {
+		if (m_Users[i])
+			delete m_Users[i];
 	}
 
 	for (int d = 0; d < m_Timers.Count(); d++) {
@@ -354,6 +354,8 @@ void CBouncerCore::StartMainLoop(void) {
 					Log("Closing connection for %s", m_Users[i]->GetUsername());
 					IRC->InternalWriteLine("QUIT :Shutting down.");
 					IRC->Lock();
+
+					m_Users[i]->SetIRCConnection(NULL);
 				}
 
 				if (IRC->ShouldDestroy())

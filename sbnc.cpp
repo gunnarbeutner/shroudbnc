@@ -21,6 +21,8 @@
 
 #if !defined(_WIN32) && !defined(__FreeBSD__)
 typedef __sighandler_t sighandler_t;
+#else
+typedef void (*sighandler_t)(int);
 #endif
 
 CBouncerCore* g_Bouncer;
@@ -28,6 +30,10 @@ CBouncerCore* g_Bouncer;
 //#ifdef ASYNC_DNS
 adns_state g_adns_State;
 //#endif
+
+void sigpipe_handle(int code) {
+	// ignore the signal
+}
 
 #ifndef _WIN32
 void sigint_handler(int code) {
@@ -72,11 +78,13 @@ int main(int argc, char* argv[]) {
 
 #if !defined(_WIN32)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
+	sighandler_t sigpipe_old = signal(SIGPIPE, sigpipe_handle);
 #endif
 
 	g_Bouncer->StartMainLoop();
 
 #if !defined(_WIN32)
+	signal(SIGPIPE, sigpipe_old);
 	signal(SIGINT, oldhandler);
 #endif
 

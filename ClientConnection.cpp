@@ -606,7 +606,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 		
-		asprintf(&Out, "SIMUL %s :QUIT", argv[1]);
+		asprintf(&Out, "SBNC SIMUL %s :QUIT", argv[1]);
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
@@ -623,7 +623,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		asprintf(&Out, "SIMUL %s :PERROR :Requested.", argv[1]);
+		asprintf(&Out, "SBNC SIMUL %s :PERROR :Requested.", argv[1]);
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
@@ -1060,7 +1060,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 		if (strcmpi(Command, "quit") == 0) {
 			bool QuitAsAway = (m_Owner->GetConfig()->ReadInteger("user.quitaway") != 0);
 
-			if (QuitAsAway && argc > 0 && *argv[1])
+			if (QuitAsAway && argc > 1 && *argv[1])
 				m_Owner->SetAwayText(argv[1]);
 
 			Kill("*** Thanks for flying with shroudBNC :P");
@@ -1108,7 +1108,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			m_Owner->MarkQuitted();
 
 			return false;
-		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
+/*		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
 			if (argc < 3) {
 				m_Owner->Notice("Syntax: SIMUL username :command");
 				return false;
@@ -1127,7 +1127,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 			}
 
-			return false;
+			return false;*/
 		} else if (argc > 2 && strcmpi(Command, "privmsg") == 0 && strcmpi(argv[1], "-sbnc") == 0) {
 			const char* Toks = ArgTokenize(argv[2]);
 			const char** Arr = ArgToArray(Toks);
@@ -1261,8 +1261,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel *Channel = IRC->GetChannel(argv[2]);
 
-					DWORD st = GetTickCount();
-
 					if (Channel && time(NULL) - m_Owner->GetLastSeen() < 300 && Channel->SendWhoReply(true)) {
 						Channel->SendWhoReply(false);
 					} else {
@@ -1270,8 +1268,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					}
 
 					DWORD diff = GetTickCount() - st;
-
-					printf("%d\n", diff);
 				}
 			} else if (strcmpi(argv[1], "version") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
