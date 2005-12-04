@@ -245,5 +245,10 @@ bncvalidusername <Username>
 synthwho <Channel> <Simulate>
 
   Description: Synthesizes a /who reply for the given channel.
-  Return: 1 if successful, 0 otherwise. Undefined behaviour can occur
+  Returns: 1 if successful, 0 otherwise. Undefined behaviour can occur
   when Simulate and the reply are both 0.
+
+getchanrealname <Channel> [<Nick>]
+
+  Description: Returns the user's realname.
+  Returns: A string or NULL.

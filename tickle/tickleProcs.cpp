@@ -874,8 +874,34 @@ const char* getchanhost(const char* Nick, const char*) {
 
 		return NULL;
 	}
-
 }
+
+const char* getchanrealname(const char* Nick, const char*) {
+	CBouncerUser* Context;
+	const char* Host;
+
+	Context = g_Bouncer->GetUser(g_Context);
+
+	if (!Context)
+		return NULL;
+	else {
+		CIRCConnection* IRC = Context->GetIRCConnection();
+
+		if (IRC) {
+			int a = 0;
+
+			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+				CNick* U = Chan->Value->GetNames()->Get(Nick);
+
+				if (U/* && U->GetSite() != NULL*/)
+					return U->GetRealname();
+			}
+		}
+
+		return NULL;
+	}
+}
+
 
 int getchanjoin(const char* Nick, const char* Channel) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);

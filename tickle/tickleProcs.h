@@ -148,6 +148,7 @@ int bncgetsendq(void);
 void bncsetsendq(int NewSize);
 
 bool synthwho(const char *Channel, bool Simulate);
+const char* getchanrealname(const char* Nick, const char*);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
