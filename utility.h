@@ -49,3 +49,7 @@ extern const char* g_ErrorFile;
 extern unsigned int g_ErrorLine;
 
 #define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
+
+#ifndef min
+#define min(a, b) ((a)<(b) ? (a) : (b))
+#endif
