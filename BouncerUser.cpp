@@ -825,7 +825,7 @@ void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 
 	BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
 
-	if (BadLogins) {
+	if (!BadLogins) {
 		LOGERROR("realloc() failed. Could not add new item.");
 
 		--m_BadLoginCount;

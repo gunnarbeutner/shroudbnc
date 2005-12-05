@@ -263,7 +263,7 @@ void CBouncerCore::StartMainLoop(void) {
 	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
-		Log("Could not load private key (sbnc.key."); ERR_print_errors_fp(stdout);
+		Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
 		return;
 	}
 

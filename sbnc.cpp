@@ -31,10 +31,6 @@ CBouncerCore* g_Bouncer;
 adns_state g_adns_State;
 //#endif
 
-void sigpipe_handle(int code) {
-	// ignore the signal
-}
-
 #ifndef _WIN32
 void sigint_handler(int code) {
 	g_Bouncer->Log("SIGINT received.");
@@ -78,13 +74,12 @@ int main(int argc, char* argv[]) {
 
 #if !defined(_WIN32)
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
-	sighandler_t sigpipe_old = signal(SIGPIPE, sigpipe_handle);
+	signal(SIGPIPE, SIG_IGN);
 #endif
 
 	g_Bouncer->StartMainLoop();
 
 #if !defined(_WIN32)
-	signal(SIGPIPE, sigpipe_old);
 	signal(SIGINT, oldhandler);
 #endif
 
