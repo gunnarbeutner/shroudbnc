@@ -652,6 +652,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			free(Out);
 		}
 
+		SENDUSER("This is shroudBNC " BNCVERSION);
+
 		asprintf(&Out, "You are %san admin.", m_Owner->IsAdmin() ? "" : "not ");
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");

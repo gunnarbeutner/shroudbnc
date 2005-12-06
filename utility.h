@@ -43,7 +43,7 @@ int keyStrCmp(const void* a, const void* b);
 
 const char* UtilMd5(const char* String);
 
-#define BNCVERSION "1.0"
+#define BNCVERSION "1.0.$Rev$"
 
 extern const char* g_ErrorFile;
 extern unsigned int g_ErrorLine;
