@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 
-#if !defined(_WIN32) && !defined(__FreeBSD__)
+#if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__NetBSD__)
 typedef __sighandler_t sighandler_t;
 #else
 typedef void (*sighandler_t)(int);
