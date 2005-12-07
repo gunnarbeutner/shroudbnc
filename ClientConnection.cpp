@@ -164,7 +164,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		for (int i = 0; i < Count; i++) {
 			if (!Modules[i]) { continue; }
 
-			asprintf(&Out, "%d: 0x%x %s", i + 1, (unsigned int)Modules[i]->GetHandle(), Modules[i]->GetFilename());
+			asprintf(&Out, "%d: 0x%p %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
 
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
