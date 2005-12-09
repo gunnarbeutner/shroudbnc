@@ -315,6 +315,7 @@ char* NickFromHostmask(const char* Hostmask) {
 }
 
 SOCKET CreateListener(unsigned short Port, const char* BindIp) {
+	const int optTrue = 1;
 	int code;
 	SOCKET Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -322,6 +323,8 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 		return INVALID_SOCKET;
 
 	g_last_sock = Listener;
+
+	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, &optTrue, sizeof(optTrue));
 
 	sockaddr_in sin;
 
