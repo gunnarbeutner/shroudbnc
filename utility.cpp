@@ -315,7 +315,7 @@ char* NickFromHostmask(const char* Hostmask) {
 }
 
 SOCKET CreateListener(unsigned short Port, const char* BindIp) {
-	const int optTrue = 1;
+	const char optTrue = 1;
 	int code;
 	SOCKET Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
