@@ -23,8 +23,8 @@
 #include "StdAfx.h"
 
 extern "C" {
-	        #include "md5-c/global.h"
-	        #include "md5-c/md5.h"
+	#include "md5-c/global.h"
+	#include "md5-c/md5.h"
 }
 
 char* g_Args = NULL;
