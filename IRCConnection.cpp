@@ -180,6 +180,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		return Ret;
 	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwningClient()->GetClientConnection()) {
+		const char* Host;
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
@@ -188,9 +189,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			char* Delim = strstr(Dup, "!");
 
-			*Delim = '\0';
+			if (Delim) {
+				*Delim = '\0';
 
-			const char* Host = Delim + 1;
+				Host = Delim + 1;
+			}
 
 			GetOwningClient()->Log("%s (%s): %s", Dup, Delim ? Host : "<unknown host>", argv[3]);
 
@@ -216,15 +219,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
 			char* Dup = strdup(Reply);
 
-			char* Delim = strstr(Dup, "!");
+/*			char* Delim = strstr(Dup, "!");
 
 			*Delim = '\0';
 
-			const char* Host = Delim + 1;
+			const char* Host = Delim + 1;*/
 
 			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
 
-			free(Dup);
+//			free(Dup);
 		}
 
 		free(Nick);
@@ -309,7 +312,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 					Host = Delim + 1;
 				}
 
-				GetOwningClient()->Log("%s (%s) kicked you from %s (%s)", Dup, Host, argv[2], argc > 4 ? argv[4] : "");
+				GetOwningClient()->Log("%s (%s) kicked you from %s (%s)", Dup, Delim ? Host : "<unknown host>", argv[2], argc > 4 ? argv[4] : "");
 
 				free(Dup);
 			}
