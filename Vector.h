@@ -88,4 +88,8 @@ public:
 		m_ReadOnly = false;
 
 	}
+
+	Type *GetAddressOf(int Index) {
+		return &(m_List[Index]);
+	}
 };
