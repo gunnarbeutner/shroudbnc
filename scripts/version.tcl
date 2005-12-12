@@ -18,16 +18,17 @@
 # configuration variables: ::versionreply
 
 foreach user [split $::versionreply] {
+	setctx $user
 	bind ctcp - version sbnc:ctcpversion
 }
 
 proc sbnc:versionflood {} {
-	set flood [getbncuser $user tag flood]
+	set flood [getbncuser [getctx] tag flood]
 
 	if {$flood != "" && $flood > 0} {
 		incr flood -1
 
-		setbncuser $user tag flood $flood
+		setbncuser [getctx] tag flood $flood
 
 		if {$flood > 0} {
 			utimer 10 sbnc:versionflood

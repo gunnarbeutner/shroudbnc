@@ -193,4 +193,7 @@ public:
 
 	virtual void SetSSL(bool SSL);
 	virtual bool GetSSL(void);
+
+	virtual void SetIdent(const char *Ident);
+	virtual const char *GetIdent(void);
 };

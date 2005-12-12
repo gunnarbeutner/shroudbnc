@@ -161,8 +161,6 @@ CBouncerUser::~CBouncerUser() {
 	if (m_Client)
 		m_Client->Kill("Removing user.");
 
-	free(m_Name);
-
 	if (m_IRC)
 		m_IRC->Kill("-)(- If you can't see the fnords, they can't eat you.");
 
@@ -175,6 +173,8 @@ CBouncerUser::~CBouncerUser() {
 	delete m_Keys;
 
 	free(m_BadLogins);
+
+	free(m_Name);
 
 	m_BadLoginPulse->Destroy();
 
@@ -466,7 +466,10 @@ void CBouncerUser::Reconnect(void) {
 
 	m_LastReconnect = time(NULL);
 
-	g_Bouncer->SetIdent(m_Name);
+	if (GetIdent() != NULL)
+		g_Bouncer->SetIdent(GetIdent());
+	else
+		g_Bouncer->SetIdent(m_Name);
 
 	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
 
@@ -1173,4 +1176,12 @@ void CBouncerUser::SetSSL(bool SSL) {
 
 bool CBouncerUser::GetSSL(void) {
 	return (m_Config->ReadInteger("user.ssl") != 0);
+}
+
+void CBouncerUser::SetIdent(const char *Ident) {
+	m_Config->WriteString("user.ident", Ident);
+}
+
+const char *CBouncerUser::GetIdent(void) {
+	return m_Config->ReadString("user.ident");
 }
