@@ -15,3 +15,7 @@ Revision 299:
 	
 Revision 300:
 -bug: fixed "raw" command in iface.tcl (start-index should be 0, not 1)
+
+Revision 304:
+-modularized sbnc so it can be updated without losing any active irc connections
+-bug: fixed various compilation errors on *bsd boxes
