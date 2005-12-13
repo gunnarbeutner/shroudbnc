@@ -51,7 +51,9 @@
 	Tcl_DStringFree(&ds_result);
 }
 
+%header %{
 extern Tcl_Encoding g_Encoding;
+%}
 
 struct CTclSocket;
 struct CTclClientSocket;
@@ -148,7 +150,9 @@ int bncgetsendq(void);
 void bncsetsendq(int NewSize);
 
 bool synthwho(const char *Channel, bool Simulate);
-const char* getchanrealname(const char* Nick, const char*);
+const char* getchanrealname(const char* Nick, const char* Channel = 0);
+
+const char *impulse(int imp);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

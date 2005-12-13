@@ -55,7 +55,11 @@ bool CBouncerConfig::ParseConfig(const char* Filename) {
 
 	if (!Conf) {
 #ifndef MKCONFIG
-		LOGERROR("Config file %s could not be opened.", Filename);
+		if (g_Bouncer) {
+			LOGERROR("Config file %s could not be opened.", Filename);
+		} else {
+			printf("Config file %s could not be opened.", Filename);
+		}
 #endif
 
 		return false;

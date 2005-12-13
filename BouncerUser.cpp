@@ -439,7 +439,7 @@ void CBouncerUser::Reconnect(void) {
 	int Port = GetPort();
 
 	if (!Server || !Port) {
-		ScheduleReconnect(600);
+		ScheduleReconnect(120);
 
 		g_Bouncer->GetLog()->WriteLine("%s has no default server. Can't (re)connect.", m_Name);
 
@@ -634,6 +634,13 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 				M->ServerConnect(GetUsername());
 			}
 		}
+
+		if (m_ReconnectTimer) {
+			m_ReconnectTimer->Destroy();
+			m_ReconnectTimer = NULL;
+		}
+
+		m_LastReconnect = time(NULL);
 
 		IRC->AttachStats(m_IRCStats);
 	}

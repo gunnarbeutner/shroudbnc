@@ -18,6 +18,9 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "sbnc.h"
+
+extern loaderparams_s *g_LoaderParameters;
 
 IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
 
@@ -111,6 +114,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("erasemainlog  - erases the bouncer's log");
 			SENDUSER("gvhost        - sets the default/global vhost");
 			SENDUSER("motd          - sets the bouncer's MOTD");
+			SENDUSER("reload        - reloads shroudBNC from a shared object file");
 			SENDUSER("die           - terminates the bouncer");
 			SENDUSER("--");
 			SENDUSER("User commands:");
@@ -494,6 +498,18 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcmpi(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
 		g_Bouncer->Shutdown();
+
+		return false;
+	} else if (strcmpi(Subcommand, "reload") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: RELOAD sbnc-module.so");
+			return false;
+		}
+
+		g_Bouncer->GetLoaderParameters()->SetModule(argv[1]);
+		g_Bouncer->Log("Reload requested by %s", m_Owner->GetUsername());
+		g_Bouncer->InitializeFreeze();
+		g_LoaderParameters->SetAutoReload(true);
 
 		return false;
 	} else if (strcmpi(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {

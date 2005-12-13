@@ -74,7 +74,7 @@ public:
 	}
 
 	virtual ~CListenerBase(void) {
-		if (m_Listener != INVALID_SOCKET)
+		if (g_Bouncer && m_Listener != INVALID_SOCKET)
 			g_Bouncer->UnregisterSocket(m_Listener);
 
 		closesocket(m_Listener);
@@ -82,6 +82,14 @@ public:
 
 	virtual bool IsValid(void) { 
 		return (m_Listener != INVALID_SOCKET);
+	}
+
+	virtual SOCKET GetSocket(void) {
+		return m_Listener;
+	}
+
+	virtual void SetSocket(SOCKET Socket) {
+		m_Listener = Socket;
 	}
 };
 

@@ -745,8 +745,10 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 			return Buffer;
 		}
+	} else if (strcmpi(Type, "ident") == 0) {
+		return Context->GetIdent();
 	} else
-		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient";
+		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient realserver ident";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -799,8 +801,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.dropmodes", Value);
 	else if (strcmpi(Type, "suspendreason") == 0)
 		Context->GetConfig()->WriteString("user.suspend", Value);
+	else if (strcmpi(Type, "ident") == 0)
+		Context->SetIdent(Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason";
+		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident";
 
 	return 1;
 }
@@ -878,7 +882,6 @@ const char* getchanhost(const char* Nick, const char*) {
 
 const char* getchanrealname(const char* Nick, const char*) {
 	CBouncerUser* Context;
-	const char* Host;
 
 	Context = g_Bouncer->GetUser(g_Context);
 
@@ -1770,4 +1773,8 @@ bool synthwho(const char *Channel, bool Simulate) {
 		return false;
 
 	return ChannelObj->SendWhoReply(Simulate);
+}
+
+const char *impulse(int imp) {
+	return g_Bouncer->DebugImpulse(imp);
 }

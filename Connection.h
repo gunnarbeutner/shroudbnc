@@ -107,10 +107,12 @@ public:
 	virtual void InitSocket(void);
 
 	virtual bool IsSSL(void);
+	virtual void SetSSL(bool SSL); // don't use unless you know what you're doing
 	virtual X509* GetPeerCertificate(void);
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
 
 	virtual bool ShouldDestroy(void);
+
 protected:
 	virtual void ParseLine(const char* Line);
 #ifndef SWIG

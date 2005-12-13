@@ -1,18 +1,23 @@
 ADNS = 		@ADNS_SUBDIR@
 CXX =		@CXX@
-CXXFLAGS =	-g @SSL_DEF@
-CFLAGS =	@SSL_DEF@ @CFLAGS@ @CPPFLAGS@ @DEFS@
+CXXFLAGS =	-g -DSBNC @SSL_DEF@ -fPIC
+CFLAGS =	@SSL_DEF@ @CFLAGS@ @CPPFLAGS@ @DEFS@ -fPIC
 LDFLAGS =	@LDFLAGS@ @LIBS@ @SSL_LIBS@ @ADNS_LIBS@
 OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
 
-all : sbnc md5util
+all : sbnc sbnc.so sbncloader md5util
 
 md5util : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
 
-sbnc : $(OBJS) @ADNS_LIBS@
-	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
+sbnc.so : $(OBJS) @ADNS_LIBS@
+	ld -Bdynamic -shared -o $@ $(OBJS) $(LDFLAGS)
+
+sbnc :
+	$(MAKE) -C sbncloader
+	-rm sbnc
+	ln -s ./sbncloader/sbncloader ./sbnc
 
 clean :
 	-rm $(OBJS) $(MD5OBJS)

@@ -48,9 +48,11 @@
 //#ifdef ASYNC_DNS
 #ifdef _WIN32
 	#define ADNS_JGAA_WIN32
+	#include "../adns_win/src/adns.h"
+#else
+	#include "../adns/adns.h"
 #endif
 
-#include <adns.h>
 //#endif
 
 //{{AFX_INSERT_LOCATION}}

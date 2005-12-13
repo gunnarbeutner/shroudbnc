@@ -23,9 +23,6 @@
 
 #ifndef _WIN32
 
-void Socket_Init(void) {}
-void Socket_Final(void) {}
-
 HMODULE LoadLibrary(const char* lpLibFileName) {
 	return dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL);
 }

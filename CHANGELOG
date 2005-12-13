@@ -12,3 +12,6 @@ Revision 299:
 	flood blocks didn't work because the variable $user didn't exist
 -users' idents can be overriden using User->SetIdent("ident")
 	(tcl: setbncuser USER ident new-ident)
+	
+Revision 300:
+-bug: fixed "raw" command in iface.tcl (start-index should be 0, not 1)

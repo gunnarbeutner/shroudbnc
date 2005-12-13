@@ -30,6 +30,7 @@ class CChannel;
 class CQueue;
 class CFloodControl;
 class CTimer;
+class CAssocArray;
 
 #ifndef SWIG
 bool DelayJoinTimer(time_t Now, void* IRCConnection);
@@ -71,7 +72,7 @@ class CIRCConnection : public CConnection {
 
 	char* m_Site;
 
-	void AddChannel(const char* Channel);
+	CChannel *AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
 	void UpdateChannelConfig(void);
@@ -80,11 +81,12 @@ class CIRCConnection : public CConnection {
 
 	bool ModuleEvent(int argc, const char** argv);
 
-	void InitIrcConnection(CBouncerUser* Owning);
+	void InitIrcConnection(CBouncerUser* Owning, bool Unfreezing = false);
 public:
 #ifndef SWIG
 	CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL = false);
 	CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL = false);
+	CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Owning);
 #endif
 	virtual ~CIRCConnection();
 
@@ -140,4 +142,6 @@ public:
 	virtual const char* GetSite(void);
 
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
+
+	virtual bool Freeze(CAssocArray *Box);
 };

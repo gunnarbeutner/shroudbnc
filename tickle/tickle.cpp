@@ -69,6 +69,10 @@ class CTclSupport : public CModuleFar {
 
 		Tcl_DeleteInterp(g_Interp);
 
+		Tcl_Release(g_Interp);
+
+		Tcl_Finalize();
+
 		int i = 0;
 
 		while (xhash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
@@ -114,6 +118,8 @@ class CTclSupport : public CModuleFar {
 		Tcl_SetVar(g_Interp, "tcl_interactive", "0", TCL_GLOBAL_ONLY);
 
 		Tcl_AppInit(g_Interp);
+
+		Tcl_Preserve(g_Interp);
 
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
 	}

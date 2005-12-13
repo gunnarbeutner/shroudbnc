@@ -20,9 +20,6 @@
 // win32 specific header
 
 #ifdef _WIN32
-void Socket_Init(void);
-void Socket_Final(void);
-
 #if !defined(socklen_t)
 typedef int socklen_t;
 #endif

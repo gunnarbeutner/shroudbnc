@@ -346,8 +346,10 @@ void CConnection::Write(void) {
 			SSL_shutdown(m_SSL);
 #endif
 
-		shutdown(m_Socket, SD_BOTH);
-		closesocket(m_Socket);
+		if (m_Socket != INVALID_SOCKET) {
+			shutdown(m_Socket, SD_BOTH);
+			closesocket(m_Socket);
+		}
 	}
 }
 
@@ -649,4 +651,8 @@ void CConnection::AdnsTimeout(void) {
 
 bool CConnection::ShouldDestroy(void) {
 	return m_LatchedDestruction;
+}
+
+void CConnection::SetSSL(bool SSL) {
+	m_HasSSL = SSL;
 }

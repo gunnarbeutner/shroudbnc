@@ -23,14 +23,6 @@
 
 #ifdef _WIN32
 
-void Socket_Init(void) {
-	WSADATA wsaData;
 
-	WSAStartup(MAKEWORD(1,1), &wsaData);
-}
-
-void Socket_Final(void) {
-	WSACleanup();
-}
 
 #endif

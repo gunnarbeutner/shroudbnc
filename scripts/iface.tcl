@@ -171,6 +171,9 @@ proc sbnc:ifacemsg {socket line} {
 			"unadmin" {
 				setbncuser [lindex $params 0] admin 0
 			}
+			"setident" {
+				setbncuser [lindex $params 0] ident [lindex $params 1]
+			}
 		}
 	}
 

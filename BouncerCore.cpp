@@ -18,12 +18,15 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "sbnc.h"
 
 #ifdef USESSL
 #include <openssl/err.h>
 #endif
 
 extern bool g_Debug;
+extern bool g_Freeze;
+extern loaderparams_s *g_LoaderParameters;
 
 const char* g_ErrorFile;
 unsigned int g_ErrorLine;
@@ -54,6 +57,7 @@ void AcceptHelper(SOCKET Client, sockaddr_in PeerAddress, bool SSL) {
 IMPL_SOCKETLISTENER(CClientListener, CBouncerCore) {
 public:
 	CClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase<CBouncerCore>(Port, BindIp, NULL) { }
+	CClientListener(SOCKET Listener, CBouncerCore *EventClass = NULL) : CListenerBase<CBouncerCore>(Listener, EventClass) { }
 
 	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
 		AcceptHelper(Client, PeerAddress, false);
@@ -63,6 +67,7 @@ public:
 IMPL_SOCKETLISTENER(CSSLClientListener, CBouncerCore) {
 public:
 	CSSLClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase<CBouncerCore>(Port, BindIp, NULL) { }
+	CSSLClientListener(SOCKET Listener, CBouncerCore *EventClass = NULL) : CListenerBase<CBouncerCore>(Listener, EventClass) { }
 
 	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
 		AcceptHelper(Client, PeerAddress, true);
@@ -76,6 +81,8 @@ public:
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
 	char* Out;
+
+	m_Running = false;
 
 	m_Log = new CBouncerLog("sbnc.log");
 
@@ -173,35 +180,39 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 }
 
 CBouncerCore::~CBouncerCore() {
-	if (m_Listener != NULL)
+/*	if (m_Listener != NULL)
 		delete m_Listener;
 
 	if (m_SSLListener != NULL)
-		delete m_SSLListener;
+		delete m_SSLListener;*/
 
-	for (int a = 0; a < m_Modules.Count(); a++) {
+	for (int a = m_Modules.Count() - 1; a >= 0; a--) {
 		if (m_Modules[a])
 			delete m_Modules[a];
+
+		m_Modules.Remove(a);
 	}
 
-	for (int c = 0; c < m_OtherSockets.Count(); c++) {
+	for (int c = m_OtherSockets.Count() - 1; c >= 0; c--) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
 		}
 	}
 
-	for (int i = 0; i < m_Users.Count(); i++) {
+	for (int i = m_Users.Count() - 1; i >= 0; i--) {
 		if (m_Users[i])
 			delete m_Users[i];
 	}
 
-	for (int d = 0; d < m_Timers.Count(); d++) {
+	for (int d = m_Timers.Count() - 1; d >= 0 ; d--) {
 		if (m_Timers[d])
 			delete m_Timers[d];
 	}
 
 	delete m_Log;
 	delete m_Ident;
+
+	g_Bouncer = NULL;
 }
 
 void CBouncerCore::StartMainLoop(void) {
@@ -239,16 +250,20 @@ void CBouncerCore::StartMainLoop(void) {
 
 	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
-	if (Port != 0)
-		m_Listener = new CClientListener(Port, BindIp);
-	else
-		m_Listener = NULL;
+	if (m_Listener == NULL) {
+		if (Port != 0)
+			m_Listener = new CClientListener(Port, BindIp);
+		else
+			m_Listener = NULL;
+	}
 
 #ifdef USESSL
-	if (SSLPort != 0)
-		m_SSLListener = new CSSLClientListener(SSLPort, BindIp);
-	else
-		m_SSLListener = NULL;
+	if (m_SSLListener == NULL) {
+		if (SSLPort != 0)
+			m_SSLListener = new CSSLClientListener(SSLPort, BindIp);
+		else
+			m_SSLListener = NULL;
+	}
 
 	SSL_library_init();
 	SSL_load_error_strings();
@@ -313,13 +328,17 @@ void CBouncerCore::StartMainLoop(void) {
 	if (!b_DontDetach)
 		Daemonize();
 
+	WritePidFile();
+
 	m_Running = true;
 	int m_ShutdownLoop = 5;
+
+	g_LoaderParameters->SigEnable();
 
 	time_t Last = 0;
 	time_t LastCheck = 0;
 
-	while (m_Running || --m_ShutdownLoop) {
+	while ((m_Running || --m_ShutdownLoop) && !g_Freeze) {
 		time_t Now = time(NULL);
 		time_t Best = 0;
 		time_t SleepInterval = 0;
@@ -899,13 +918,6 @@ bool CBouncerCore::Daemonize(void) {
 	}
 
 	if (pid) {
-		FILE* pidFile = fopen("sbnc.pid", "w");
-
-		if (pidFile) {
-			fprintf(pidFile, "%d", pid);
-			fclose(pidFile);
-		}
-
 		printf("DONE\n");
 		exit(0);
 	}
@@ -928,6 +940,21 @@ bool CBouncerCore::Daemonize(void) {
 #endif
 
 	return true;
+}
+
+void CBouncerCore::WritePidFile(void) {
+#ifndef _WIN32
+	pid_t pid = getpid();
+
+	if (pid) {
+		FILE* pidFile = fopen("sbnc.pid", "w");
+
+		if (pidFile) {
+			fprintf(pidFile, "%d", pid);
+			fclose(pidFile);
+		}
+	}
+#endif
 }
 
 const char* CBouncerCore::MD5(const char* String) {
@@ -1073,3 +1100,84 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 		return 0;
 }
 #endif
+
+const char *CBouncerCore::DebugImpulse(int impulse) {
+	if (impulse == 5) {
+		InitializeFreeze();
+		g_LoaderParameters->SetAutoReload(true);
+
+		return "1";
+	}
+
+	return NULL;
+}
+
+bool CBouncerCore::Freeze(CAssocArray *Box) {
+	if (m_Listener) {
+		Box->AddInteger("~listener", m_Listener->GetSocket());
+		m_Listener->SetSocket(INVALID_SOCKET);
+	}
+
+	if (m_SSLListener) {
+		Box->AddInteger("~ssllistener", m_SSLListener->GetSocket());
+		m_SSLListener->SetSocket(INVALID_SOCKET);
+	}
+
+	for (int i = 0; i < m_Users.Count(); i++) {
+		const char *Name = m_Users[i]->GetUsername();
+		CIRCConnection *IRC = m_Users[i]->GetIRCConnection();
+
+		if (IRC) {
+			CAssocArray *IrcBox = Box->Create();
+
+			if (IRC->Freeze(IrcBox))
+				Box->AddBox(Name, IrcBox);
+		}
+	}
+
+	delete this;
+
+	return true;
+}
+
+bool CBouncerCore::Unfreeze(CAssocArray *Box) {
+	SOCKET Listener, SSLListener;
+
+	Listener = Box->ReadInteger("~listener");
+
+	if (Listener != INVALID_SOCKET)
+		m_Listener = new CClientListener(Listener, (CBouncerCore*)NULL);
+
+	SSLListener = Box->ReadInteger("~ssllistener");
+
+	if (SSLListener != INVALID_SOCKET)
+		m_SSLListener = new CSSLClientListener(Listener, (CBouncerCore*)NULL);
+
+	for (int i = 0; i < m_Users.Count(); i++) {
+		const char *Name = m_Users[i]->GetUsername();
+		CIRCConnection *IRC;
+
+		CAssocArray *IrcBox = (CAssocArray *)Box->ReadBox(Name);
+
+		if (IrcBox) {
+			IRC = new CIRCConnection((SOCKET)IrcBox->ReadInteger("irc.fd"), IrcBox, m_Users[i]);
+
+			m_Users[i]->SetIRCConnection(IRC);
+		}
+	}
+
+	return true;
+}
+
+bool CBouncerCore::InitializeFreeze(void) {
+	if (!m_Running)
+		return false;
+
+	g_Freeze = true;
+
+	return true;
+}
+
+const loaderparams_s *CBouncerCore::GetLoaderParameters(void) {
+	return g_LoaderParameters;
+}

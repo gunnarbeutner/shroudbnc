@@ -1,4 +1,5 @@
 .PHONY: all clean
+CFLAGS=-fPIC
 
 all : libadns.a
 

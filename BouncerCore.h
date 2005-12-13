@@ -28,8 +28,10 @@ class CIdentSupport;
 class CModule;
 class CConnection;
 class CTimer;
+class CAssocArray;
 struct CSocketEvents;
 struct sockaddr_in;
+struct loaderparams_s;
 //template <typename value_type, bool casesensitive, int Size, bool VolatileKeys> class CHashtable;
 
 typedef struct socket_s {
@@ -75,6 +77,7 @@ class CBouncerCore {
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
+	void WritePidFile(void);
 public:
 #ifndef SWIG
 	CBouncerCore(CBouncerConfig *Config, int argc, char **argv);
@@ -153,6 +156,13 @@ public:
 	virtual SSL_CTX *GetSSLContext(void);
 	virtual SSL_CTX *GetSSLClientContext(void);
 	virtual int GetSSLCustomIndex(void);
+
+	virtual const char *DebugImpulse(int impulse);
+
+	virtual bool Freeze(CAssocArray *Box);
+	virtual bool Unfreeze(CAssocArray *Box);
+	virtual bool InitializeFreeze(void);
+	virtual const loaderparams_s *GetLoaderParameters(void);
 };
 
 extern CBouncerCore *g_Bouncer;

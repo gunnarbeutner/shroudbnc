@@ -23,6 +23,8 @@
 #error This module cannot be used on *nix systems.
 #endif
 
+CBouncerCore* g_Bouncer;
+
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
                        LPVOID lpReserved
@@ -31,18 +33,15 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 }
 
 class CIdentClient : public CSocketEvents {
-	CBouncerCore* m_Core;
 	CConnection* m_Wrap;
 public:
-	CIdentClient(SOCKET Client, CBouncerCore* Core) {
-		m_Wrap = Core->WrapSocket(Client);
-
-		m_Core = Core;
+	CIdentClient(SOCKET Client) {
+		m_Wrap = g_Bouncer->WrapSocket(Client);
 	}
 
 	virtual ~CIdentClient(void) {
-		m_Core->UnregisterSocket(m_Wrap->GetSocket());
-		m_Core->DeleteWrapper(m_Wrap);
+		g_Bouncer->UnregisterSocket(m_Wrap->GetSocket());
+		g_Bouncer->DeleteWrapper(m_Wrap);
 	}
 
 	bool Read(bool DontProcess) {
@@ -59,17 +58,28 @@ public:
 		while (m_Wrap->ReadLine(&Line)) {
 			ParseLine(Line);
 
-			m_Core->Free(Line);
+			g_Bouncer->Free(Line);
 		}
 
 		return true;
 	}
 
 	void ParseLine(const char* Line) {
-		// 113 , 3559 : USERID : UNIX : shroud
-		m_Wrap->WriteLine("%s : USERID : UNIX : %s", Line, m_Core->GetIdent());
+		if (*Line == '\0')
+			return;
 
-		m_Core->Log("Answered ident-request for %s", m_Core->GetIdent());
+		if (g_Bouncer->GetIdent() == NULL) {
+			LOGERROR("GetIdent() failed. identd not functional.");
+
+			Destroy();
+
+			return;
+		}
+
+		// 113 , 3559 : USERID : UNIX : shroud
+		m_Wrap->WriteLine("%s : USERID : UNIX : %s", Line, g_Bouncer->GetIdent());
+
+		g_Bouncer->Log("Answered ident-request for %s", g_Bouncer->GetIdent());
 	}
 
 	void Write(void) {
@@ -92,6 +102,8 @@ public:
 		return m_Wrap->DoTimeout();
 	}
 
+	bool ShouldDestroy(void) { return false; }
+
 	const char* ClassName(void) {
 		return "CIdentClient";
 	}
@@ -99,29 +111,28 @@ public:
 
 class CIdentModule : public CModuleFar, public CSocketEvents {
 	SOCKET m_Listener;
-	CBouncerCore* m_Core;
-
 	void Destroy(void) {
-		m_Core->Log("Destroying identd-listener.");
+		g_Bouncer->Log("Destroying identd-listener.");
 
+		g_Bouncer->UnregisterSocket(m_Listener);
 		closesocket(m_Listener);
 
 		delete this;
 	}
 
 	void Init(CBouncerCore* Root) {
-		m_Core = Root;
+		g_Bouncer = Root;
 
-		m_Listener = m_Core->CreateListener(113);
+		m_Listener = g_Bouncer->CreateListener(113);
 
 		if (m_Listener == INVALID_SOCKET) {
-			m_Core->Log("Could not create listener for identd.");
+			g_Bouncer->Log("Could not create listener for identd.");
 			return;
 		}
 
-		m_Core->Log("Created identd listener.");
+		g_Bouncer->Log("Created identd listener.");
 
-		m_Core->RegisterSocket(m_Listener, this);
+		g_Bouncer->RegisterSocket(m_Listener, this);
 	}
 
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
@@ -138,9 +149,9 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 
 		SOCKET Client = accept(m_Listener, (sockaddr*)&sin, &len);
 
-		CIdentClient* Handler = new CIdentClient(Client, m_Core);
+		CIdentClient* Handler = new CIdentClient(Client);
 
-		m_Core->RegisterSocket(Client, Handler);
+		g_Bouncer->RegisterSocket(Client, Handler);
 
 		return true;
 	}
@@ -154,6 +165,8 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	bool HasQueuedData(void) {
 		return false;
 	}
+
+	bool ShouldDestroy(void) { return false; }
 
 	bool DoTimeout(void) { return false; }
 

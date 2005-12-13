@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+#include "sbnc.h"
 
 #if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__NetBSD__)
 typedef __sighandler_t sighandler_t;
@@ -25,7 +26,9 @@ typedef __sighandler_t sighandler_t;
 typedef void (*sighandler_t)(int);
 #endif
 
-CBouncerCore* g_Bouncer;
+CBouncerCore* g_Bouncer = NULL;
+bool g_Freeze;
+loaderparams_s *g_LoaderParameters;
 
 //#ifdef ASYNC_DNS
 adns_state g_adns_State;
@@ -40,7 +43,13 @@ void sigint_handler(int code) {
 }
 #endif
 
-int main(int argc, char* argv[]) {
+extern "C" int sbncLoad(loaderparams_s *Parameters) {
+	if (Parameters->Version != 200) {
+		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
+
+		return 1;
+	}
+
 	srand((unsigned int)time(NULL));
 
 #ifndef _WIN32
@@ -53,8 +62,6 @@ int main(int argc, char* argv[]) {
 	setrlimit(RLIMIT_CORE, &core_limit);
 #endif
 
-	Socket_Init();
-
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
 
 	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
@@ -65,8 +72,13 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
+	g_LoaderParameters = Parameters;
+
 	// constructor sets g_Bouncer
-	new CBouncerCore(Config, argc, argv);
+	new CBouncerCore(Config, Parameters->argc, Parameters->argv);
+
+	if (Parameters->Box)
+		g_Bouncer->Unfreeze(Parameters->Box);
 
 #if defined(_WIN32) && defined(_DEBUG)
 	CTimer* DebugTimer = g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
@@ -76,6 +88,8 @@ int main(int argc, char* argv[]) {
 	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
 #endif
+
+	g_Freeze = false;
 
 	g_Bouncer->StartMainLoop();
 
@@ -87,12 +101,27 @@ int main(int argc, char* argv[]) {
 	DebugTimer->Destroy();
 #endif
 
-	delete g_Bouncer;
+	if (g_Bouncer) {
+		if (g_Freeze) {
+			CAssocArray *Box;
+
+			Parameters->GetBox(&Box);
+
+			g_Bouncer->Freeze(Box);
+		} else {
+			delete g_Bouncer;
+		}
+	}
+
 	delete Config;
 
 	adns_finish(g_adns_State);
 
-	Socket_Final();
-
 	return 0;
+}
+
+extern "C" bool sbncPrepareFreeze(void) {
+	g_Freeze = true;
+
+	return true;
 }

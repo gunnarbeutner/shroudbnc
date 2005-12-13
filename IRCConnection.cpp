@@ -31,7 +31,34 @@ CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUs
 	InitIrcConnection(Owning);
 }
 
-void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
+CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Socket, false) {
+	InitIrcConnection(Owning);
+
+	m_CurrentNick = strdup(Box->ReadString("irc.nick"));
+	m_Server = strdup(Box->ReadString("irc.server"));
+	
+	if (Box->ReadInteger("irc.ssl"))
+		SetSSL(true);
+
+	char *Out;
+	int Count = Box->ReadInteger("irc.channels");
+
+	WriteLine("VERSION");
+
+	for (int i = 0; i < Count; i++) {
+		CChannel *Channel;
+		asprintf(&Out, "irc.channel%d", i);
+
+		const char *Name = Box->ReadString(Out);
+
+		if (Name)
+			Channel = AddChannel(Name);
+
+		Channel->AddUser(m_CurrentNick, '\0');
+	}
+}
+
+void CIRCConnection::InitIrcConnection(CBouncerUser* Owning, bool Unfreezing) {
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
@@ -68,13 +95,15 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning) {
 		g_Bouncer->Fatal();
 	}
 
-	const char* Password = Owning->GetServerPassword();
+	if (!Unfreezing) {
+		const char* Password = Owning->GetServerPassword();
 
-	if (Password)
-		WriteLine("PASS :%s", Password);
+		if (Password)
+			WriteLine("PASS :%s", Password);
 
-	WriteLine("NICK %s", Owning->GetNick());
-	WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
+		WriteLine("NICK %s", Owning->GetNick());
+		WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
+	}
 
 	m_Owner = Owning;
 
@@ -704,18 +733,20 @@ const char* CIRCConnection::GetCurrentNick(void) {
 	return m_CurrentNick;
 }
 
-void CIRCConnection::AddChannel(const char* Channel) {
+CChannel *CIRCConnection::AddChannel(const char* Channel) {
 	CChannel* ChannelObj = new CChannel(Channel, this);
 
 	if (ChannelObj == NULL) {
 		LOGERROR("new operator failed. could not add channel.");
 
-		return;
+		return NULL;
 	}
 
 	m_Channels->Add(Channel, ChannelObj);
 
 	UpdateChannelConfig();
+
+	return ChannelObj;
 }
 
 void CIRCConnection::RemoveChannel(const char* Channel) {
@@ -1173,4 +1204,34 @@ void CIRCConnection::Destroy(void) {
 		m_Owner->SetIRCConnection(NULL);
 
 	delete this;
+}
+
+bool CIRCConnection::Freeze(CAssocArray *Box) {
+	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET)
+		return false;
+
+	Box->AddString("irc.nick", m_CurrentNick);
+	Box->AddString("irc.server", m_Server);
+	Box->AddInteger("irc.fd", GetSocket());
+	Box->AddInteger("irc.ssl", IsSSL());
+
+	Box->AddInteger("irc.channels", m_Channels->Count());
+
+	char *Out;
+	int i = 0;
+	xhash_t<CChannel *> *Hash;
+
+	while ((Hash =  m_Channels->Iterate(i++)) != NULL) {
+		asprintf(&Out, "irc.channel%d", i - 1);
+		Box->AddString(Out, Hash->Name);
+		free(Out);
+	}
+
+	// protect the socket from being closed
+	g_Bouncer->UnregisterSocket(m_Socket);
+	m_Socket = INVALID_SOCKET;
+
+	Destroy();
+
+	return true;
 }
