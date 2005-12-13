@@ -28,6 +28,7 @@ SSL_DEV=""
 SSL_LIBS=""
 ADNS_SUBDIR="no"
 ADNS_LIBS=""
+DL_LIB=""
 
 AC_ARG_ENABLE(ssl,
 	[  --enable-ssl=yes          Enable support for ssl
@@ -40,6 +41,8 @@ AC_CHECK_LIB(adns, adns_init, [], [
 	ADNS_LIBS="adns/libadns.a"
 	])
 
+AC_CHECK_LIB(dl, dlopen, [ DL_LIB="-ldl" ])
+
 if test $enable_ssl; then
 	AC_CHECK_HEADERS([openssl/ssl.h])
 	AC_CHECK_LIB(ssl, SSL_new, [ SSL_LIBS="-lssl -lcrypto"; SSL_DEF="-DUSESSL" ])
@@ -49,6 +52,7 @@ AC_SUBST(SSL_LIBS)
 AC_SUBST(SSL_DEF)
 AC_SUBST(ADNS_SUBDIR)
 AC_SUBST(ADNS_LIBS)
+AC_SUBST(DL_LIB)
 
 # Checks for library functions.
 AC_FUNC_FORK

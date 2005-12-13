@@ -20,12 +20,6 @@
 #include "StdAfx.h"
 #include "../sbnc.h"
 
-#if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__NetBSD__)
-typedef __sighandler_t sighandler_t;
-#else
-typedef void (*sighandler_t)(int);
-#endif
-
 #ifdef _WIN32
 #define SBNC_MODULE "sbnc.dll"
 #else

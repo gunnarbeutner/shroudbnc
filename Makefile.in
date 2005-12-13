@@ -5,6 +5,8 @@ CFLAGS =	@SSL_DEF@ @CFLAGS@ @CPPFLAGS@ @DEFS@ -fPIC
 LDFLAGS =	@LDFLAGS@ @LIBS@ @SSL_LIBS@ @ADNS_LIBS@
 OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
+DL_LIB =	@DL_LIB@
+export DL_LIB
 
 all : sbnc sbnc.so sbncloader md5util
 
@@ -21,6 +23,7 @@ sbnc :
 
 clean :
 	-rm $(OBJS) $(MD5OBJS)
+	$(MAKE) -C sbncloader clean
 
 adns/libadns.a :
 ifeq ($(ADNS),yes)
