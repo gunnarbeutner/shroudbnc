@@ -1,6 +1,6 @@
 .PHONY: all sbncloader clean
 CXXFLAGS = -g
-OBJS = sbncloader.o AssocArray.o SimpleIRCConnection.o ../snprintf.o ../unix.o
+OBJS = sbncloader.o AssocArray.o ../snprintf.o ../unix.o
 
 all : sbncloader
 

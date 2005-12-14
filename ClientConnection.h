@@ -23,6 +23,7 @@ bool AdnsTimeoutTimer(time_t Now, void* Client);
 
 class CTimer;
 class CClientDnsEvents;
+class CAssocArray;
 
 class CClientConnection : public CConnection {
 #ifndef SWIG
@@ -47,6 +48,7 @@ class CClientConnection : public CConnection {
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, sockaddr_in Peer, bool SSL = false);
+	CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning);
 #endif
 	virtual ~CClientConnection(void);
 
@@ -71,4 +73,6 @@ public:
 	virtual void Destroy(void);
 	virtual const char* ClassName(void);
 	virtual void InternalWriteLine(const char* In);
+
+	virtual bool Freeze(CAssocArray *Box);
 };

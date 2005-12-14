@@ -19,3 +19,6 @@ Revision 300:
 Revision 304:
 -modularized sbnc so it can be updated without losing any active irc connections
 -bug: fixed various compilation errors on *bsd boxes
+
+Revision 307:
+-client connections are kept alive during reloads

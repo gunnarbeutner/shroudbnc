@@ -1,3 +1,5 @@
+.PHONY: all md5util clean
+
 ADNS = 		@ADNS_SUBDIR@
 CXX =		@CXX@
 CXXFLAGS =	-g -DSBNC @SSL_DEF@ -fPIC
@@ -19,7 +21,7 @@ sbnc.so : $(OBJS) @ADNS_LIBS@
 sbnc :
 	$(MAKE) -C sbncloader
 	-rm sbnc
-	ln -s ./sbncloader/sbncloader ./sbnc
+	cp sbncloader/sbncloader ./sbnc
 
 clean :
 	-rm $(OBJS) $(MD5OBJS)

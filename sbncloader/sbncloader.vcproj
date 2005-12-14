@@ -187,10 +187,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SimpleIRCConnection.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\snprintf.c"
 				>
 			</File>
@@ -202,10 +198,6 @@
 			>
 			<File
 				RelativePath=".\AssocArray.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleIRCConnection.h"
 				>
 			</File>
 			<File

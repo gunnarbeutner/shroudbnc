@@ -1126,12 +1126,32 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 	for (int i = 0; i < m_Users.Count(); i++) {
 		const char *Name = m_Users[i]->GetUsername();
 		CIRCConnection *IRC = m_Users[i]->GetIRCConnection();
+		CClientConnection *Client = m_Users[i]->GetClientConnection();
 
 		if (IRC) {
 			CAssocArray *IrcBox = Box->Create();
 
 			if (IRC->Freeze(IrcBox))
 				Box->AddBox(Name, IrcBox);
+			else
+				IrcBox->Destroy();
+		}
+
+		if (Client) {
+			CAssocArray *ClientBox;
+			CAssocArray *ClientsBox = Box->ReadBox("~clients");
+
+			if (ClientsBox == NULL) {
+				ClientsBox = Box->Create();
+				Box->AddBox("~clients", ClientsBox);
+			}
+
+			ClientBox = Box->Create();
+			
+			if (Client->Freeze(ClientBox))
+				ClientsBox->AddBox(Name, ClientBox);
+			else
+				ClientBox->Destroy();
 		}
 	}
 
@@ -1142,6 +1162,7 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 
 bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 	SOCKET Listener, SSLListener;
+	CAssocArray *ClientsBox;
 
 	Listener = Box->ReadInteger("~listener");
 
@@ -1153,16 +1174,29 @@ bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 	if (SSLListener != INVALID_SOCKET)
 		m_SSLListener = new CSSLClientListener(Listener, (CBouncerCore*)NULL);
 
+	ClientsBox = Box->ReadBox("~clients");
+
 	for (int i = 0; i < m_Users.Count(); i++) {
 		const char *Name = m_Users[i]->GetUsername();
 		CIRCConnection *IRC;
 
-		CAssocArray *IrcBox = (CAssocArray *)Box->ReadBox(Name);
+		CAssocArray *IrcBox = Box->ReadBox(Name);
 
 		if (IrcBox) {
 			IRC = new CIRCConnection((SOCKET)IrcBox->ReadInteger("irc.fd"), IrcBox, m_Users[i]);
 
 			m_Users[i]->SetIRCConnection(IRC);
+		}
+
+		if (ClientsBox) {
+			CAssocArray *ClientBox = ClientsBox->ReadBox(Name);
+
+			CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, m_Users[i]);
+
+			m_Users[i]->SetClientConnection(Client);
+
+			if (m_Users[i]->IsAdmin())
+				m_Users[i]->Notice("shroudBNC was reloaded.");
 		}
 	}
 

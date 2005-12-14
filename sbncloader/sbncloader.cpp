@@ -21,7 +21,11 @@
 #include "../sbnc.h"
 
 #ifdef _WIN32
+#ifndef _DEBUG
 #define SBNC_MODULE "sbnc.dll"
+#else
+#define SBNC_MODULE "..\\Debug\\sbnc.dll"
+#endif
 #else
 #define SBNC_MODULE "./sbnc.so"
 #endif

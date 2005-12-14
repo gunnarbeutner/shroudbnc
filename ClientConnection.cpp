@@ -51,6 +51,26 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 	}
 }
 
+CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Client, false) {
+	m_Owner = Owning;
+
+	m_Nick = strdup(Box->ReadString("client.nick"));
+	m_Password = NULL;
+	m_Username = NULL;
+
+	int SocketLen = sizeof(m_Peer);
+	getpeername(Client, (sockaddr *)&m_Peer, &SocketLen);
+
+	m_PeerName = strdup(Box->ReadString("client.peername"));
+
+	m_Socket = (SOCKET)Box->ReadInteger("client.fd");
+
+	m_AdnsTimeout = NULL;
+	m_DnsEvents = NULL;
+
+	InitSocket();
+}
+
 CClientConnection::~CClientConnection() {
 	free(m_Nick);
 	free(m_Password);
@@ -1582,4 +1602,22 @@ void CClientConnection::InternalWriteLine(const char* In) {
 		CConnection::InternalWriteLine("");
 		Kill("SendQ exceeded.");
 	}
+}
+
+bool CClientConnection::Freeze(CAssocArray *Box) {
+	// too bad we can't preserve ssl encrypted connections
+	if (m_AdnsTimeout || m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
+		return false;
+
+	Box->AddString("client.peername", m_PeerName);
+	Box->AddString("client.nick", m_Nick);
+	Box->AddInteger("client.fd", GetSocket());
+
+	// protect the socket from being closed
+	g_Bouncer->UnregisterSocket(m_Socket);
+	m_Socket = INVALID_SOCKET;
+
+	Destroy();
+
+	return true;
 }
