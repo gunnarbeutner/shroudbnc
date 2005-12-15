@@ -32,3 +32,4 @@ Revision 309:
 -added commands: "make install" and "make update"
 -simplified build procedure
 -changed name of example configuration files
+-updated readme file to reflect recent changes

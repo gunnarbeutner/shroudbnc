@@ -1,4 +1,4 @@
-shroudBNC 0.9
+shroudBNC 1.0
 -------------
 
 shroudBNC is a modular framework for IRC clients. It supports TCL scripting and can be used as a bouncer.
@@ -16,26 +16,29 @@ In order to compile and install sbnc you will have to use the 'configure' script
 
 ./configure
 make
+make install
 
-Once you've compiled sbnc you will need to edit sbnc's configuration files:
+(Keep in mind that you need to change your current directory to ~/sbnc after executing "make install".)
+
+Once you've compiled sbnc you will need to edit shroudBNC's configuration files:
 
 sbnc.conf, users/username.conf and sbnc.tcl
 
 The default sbnc.conf looks like this:
 
 system.port=9000
-system.users=fnords
+system.users=example
 system.md5=1
 
-Simply replace 'fnords' with your desired username and set the bnc's port. If you want that sbnc listens on a specific ip address, you can add the following setting:
+Simply replace 'example' with your desired username and set the bnc's port. If you want that sbnc listens on a specific ip address, you can add the following setting:
 
 system.ip=your.ip.address.here
 
-Rename the default user config file 'fnords.conf' (in the users directory) to match the username you've chosen. E.g. if your username is 'test' you should use 'test.conf' for the config file.
+Rename the default user config file 'example.conf' (in the users directory) to match the username you've chosen. E.g. if your username is 'test' you should use 'test.conf' for the config file.
 
-Edit the user config like you've edited the sbnc.conf. You will need the md5util tool to generate an md5 hash for your password:
+Edit the user config like you've edited the sbnc.conf. You will need the 'md5tool' utility to generate an md5 hash for your password:
 
-dev@zero:~/sbnc$ md5util/md5util password
+dev@zero:~/sbnc$ ./md5tool password
 5f4dcc3b5aa765d61d8327deb882cf99
 dev@zero:~/sbnc$
 
@@ -45,13 +48,15 @@ Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts you w
 
 You can start sbnc using './sbnc' or './sbnc -n' if you want to see the console output:
 
-dev@zero:~/sbnc$ ./sbnc
-Mon May 16 08:33:12 2005 Log system initialized.
-sBNC0.8 - an object-oriented IRC bouncer
-Mon May 16 08:33:12 2005 Created main listener.
-Mon May 16 08:33:12 2005 Starting main loop.
+test@temple:~/sbnc$ ./sbnc
+shroudBNC loader
+Loading shroudBNC from /home/test/sbnc/sbnc-20051215034250.so
+Thu Dec 15 03:43:11 2005 Log system initialized.
+shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
+Thu Dec 15 03:43:11 2005 Created main listener.
+Thu Dec 15 03:43:11 2005 Starting main loop.
 Daemonizing... DONE
-dev@zero:~/sbnc$
+test@temple:~/sbnc$
 
 Usage
 -----
@@ -84,17 +89,31 @@ For example, if your include files are in /usr/include/tcl8.4 and your libtcl8.x
 
 g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /usr/lib/libtcl8.4.so
 
+Updating shroudBNC
+------------------
+
+shroudBNC can be updated while it is running - without losing any active irc or client connections. In order to update it you need to extract a clean copy of shroudBNC somewhere.
+After compiling it you can run the "make update" script which will automatically update your currently running shroudBNC. (The script assumes that the bouncer's directory is ~/sbnc/).
+
+If you want to manually reload shroudBNC you need to copy the "sbnc.so" file which is created by the "make" command into your ~/sbnc directory. You must not use the filename of a currently loaded module as this would cause shroudBNC to segfault.
+
+For example:
+
+shroudBNC is running using the module file "sbnc.so". You could compile the updated version of shroudBNC somewhere and rename the new "sbnc.so" file to "sbnc-2.so". Then just copy it into ~/sbnc and use the command "/sbnc reload sbnc-2.so" to load the new module.
+
+Please note that you might need to unload certain modules like tickle.so before upgrading shroudBNC as the old versions of the modules might not be compatible with the new shroudBNC version.
+
 Security
 --------
 
-It is vital that you understand that any bnc admin has access to:
+It is vital that you understand that any bouncer admin has access to:
 
-a) the shell account where the bnc is running
+a) the shell account where bouncer bnc is running
 b) any user connections
 
 Using the TCL module any admin can perform shell commands (using the exec command) and send IRC commands for any user's connection. Thus you should choose your admins wisely. Do not load arbitrary scripts and make sure you understand any scripts you want to load.
 
-Giving someone you don't trust shell access and an array of irc connections is potentially dangerous.
+Giving shell access to someone you don't trust is potentially dangerous.
 
 Credits
 -------
@@ -104,4 +123,6 @@ I'd like to thank all the beta testers who have been using shroudBNC so far. Fea
 In case you encounter problems while compiling and/or using shroudBNC you can contact me on IRC:
 
 server: irc.quakenet.org / 6667
-channel: #shroud
+channel: #sbnc
+
+or send an e-mail to gb@prco23.org

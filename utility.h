@@ -22,30 +22,30 @@ char* LastArg(char* Args);
 class CIRCConnection;
 class CBouncerUser;
 
-const char* ArgParseServerLine(const char* Data);
-const char* ArgTokenize(const char* Data);
-const char** ArgToArray(const char* Args);
-void ArgFree(const char* Args);
-void ArgFreeArray(const char** Array);
-const char* ArgGet(const char* Args, int Arg);
-int ArgCount(const char* Args);
+const char *ArgParseServerLine(const char *Data);
+const char *ArgTokenize(const char *Data);
+const char **ArgToArray(const char *Args);
+void ArgFree(const char *Args);
+void ArgFreeArray(const char **Array);
+const char *ArgGet(const char *Args, int Arg);
+int ArgCount(const char *Args);
 
-SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp = NULL);
-SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* BindIp);
+SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
+SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr *BindIp);
 
-CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp = NULL, bool SSL = false);
-SOCKET CreateListener(unsigned short Port, const char* BindIp = NULL);
+CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CBouncerUser *Owning, const char *BindIp = NULL, bool SSL = false);
+SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 
-char* NickFromHostmask(const char* Hostmask);
-void string_free(char* string);
+char* NickFromHostmask(const char *Hostmask);
+void string_free(char *string);
 
-int keyStrCmp(const void* a, const void* b);
+int keyStrCmp(const void *a, const void *b);
 
-const char* UtilMd5(const char* String);
+const char *UtilMd5(const char *String);
 
 #define BNCVERSION "1.0 $Revision$"
 
-extern const char* g_ErrorFile;
+extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
 
 #define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
