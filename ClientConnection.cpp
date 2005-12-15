@@ -529,7 +529,6 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		g_Bouncer->GetLoaderParameters()->SetModule(argv[1]);
 		g_Bouncer->Log("Reload requested by %s", m_Owner->GetUsername());
 		g_Bouncer->InitializeFreeze();
-		g_LoaderParameters->SetAutoReload(true);
 
 		return false;
 	} else if (strcmpi(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {

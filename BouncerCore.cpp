@@ -1104,7 +1104,6 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 const char *CBouncerCore::DebugImpulse(int impulse) {
 	if (impulse == 5) {
 		InitializeFreeze();
-		g_LoaderParameters->SetAutoReload(true);
 
 		return "1";
 	}

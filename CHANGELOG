@@ -26,3 +26,9 @@ Revision 307:
 Revision 308:
 -bug: fixed a minor memory leak in sbncloader
 -bug: fixed compilation errors on linux
+
+Revision 309:
+-changed directory name in the .tar.gz package
+-added commands: "make install" and "make update"
+-simplified build procedure
+-changed name of example configuration files

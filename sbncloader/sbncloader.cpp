@@ -32,9 +32,7 @@
 
 CAssocArray *g_Box;
 char *g_Mod;
-bool g_Freeze;
-bool g_Usr2;
-bool g_Reload;
+bool g_Freeze, g_Signal;
 
 sbncLoad g_LoadFunc;
 sbncPrepareFreeze g_PrepareFreezeFunc;
@@ -47,22 +45,12 @@ void Socket_Final(void) {}
 #define Sleep(x) usleep(x * 1000)
 
 void sig_usr1(int code) {
-	if (g_Freeze)
-		return; // already frozen
-
 	signal(SIGUSR1, SIG_IGN);
 
 	if (g_PrepareFreezeFunc())
 		g_Freeze = true;
 	else
 		signal(SIGUSR1, sig_usr1);
-}
-
-void sig_usr2(int code) {
-	if (!g_Freeze)
-		return; // not frozen
-
-	g_Usr2 = true;
 }
 
 #else
@@ -86,8 +74,12 @@ void sbncSigEnable(void) {
 }
 
 bool sbncGetBox(CAssocArray **Box) {
+	delete g_Box;
+	g_Box = NULL;
+
 	g_Box = new CAssocArray();
 	g_Freeze = true;
+	g_Signal = true;
 
 	*Box = g_Box;
 
@@ -100,7 +92,28 @@ void sbncSetModule(const char *Module) {
 }
 
 void sbncSetAutoReload(bool Reload) {
-	g_Reload = Reload;
+}
+
+void sbncReadIpcFile(void) {
+	FILE *ipcFile = fopen("sbnc.ipc", "r");
+
+	if (ipcFile != NULL) {
+		char *n;
+		char FileBuf[512];
+
+		if ((n = fgets(FileBuf, sizeof(FileBuf) - 1, ipcFile)) != 0) {
+			if (FileBuf[strlen(FileBuf) - 1] == '\n')
+				FileBuf[strlen(FileBuf) - 1] = '\0';
+
+			if (FileBuf[strlen(FileBuf) - 1] == '\r')
+				FileBuf[strlen(FileBuf) - 1] = '\0';
+
+			free(g_Mod);
+			g_Mod = strdup(FileBuf);
+		}
+
+		fclose(ipcFile);
+	}
 }
 
 HMODULE sbncLoadModule(void) {
@@ -145,6 +158,7 @@ HMODULE sbncLoadModule(void) {
 }
 
 int main(int argc, char **argv) {
+	HMODULE hMod;
 	char *ThisMod;
 
 	printf("shroudBNC loader\n");
@@ -152,15 +166,28 @@ int main(int argc, char **argv) {
 	g_Mod = strdup(SBNC_MODULE);
 	ThisMod = strdup(g_Mod);
 
-#ifndef _WIN32
-	signal(SIGUSR2, sig_usr2);
-#endif
-
 	Socket_Init();
 
-	HMODULE hMod;
+	sbncReadIpcFile();
 
 	hMod = sbncLoadModule();
+
+	if (hMod == NULL) {
+		free(g_Mod);
+		g_Mod = strdup(SBNC_MODULE);
+
+		printf("Trying failsafe module...\n");
+
+		hMod = sbncLoadModule();
+
+		if (hMod == NULL) {
+			free(g_Mod);
+
+			printf("Giving up...\n");
+
+			return 1;
+		}
+	}
 
 	if (hMod == NULL)
 		return 1;
@@ -175,7 +202,7 @@ int main(int argc, char **argv) {
 	Parameters.SetModule = sbncSetModule;
 	Parameters.SetAutoReload = sbncSetAutoReload;
 
-	g_Reload = false;
+	g_Signal = false;
 
 	while (true) {
 		g_Freeze = false;
@@ -184,9 +211,6 @@ int main(int argc, char **argv) {
 
 		g_LoadFunc(&Parameters);
 
-		delete g_Box;
-		g_Box = NULL;
-
 		if (!g_Freeze)
 			break;
 
@@ -194,13 +218,10 @@ int main(int argc, char **argv) {
 
 		FreeLibrary(hMod);
 
-		g_Usr2 = false;
+		if (g_Signal == true)
+			sbncReadIpcFile();
 
-		while (!g_Reload && g_Freeze && !g_Usr2) {
-			Sleep(500);
-		}
-
-		g_Reload = false;
+		g_Signal = false;
 
 		hMod = sbncLoadModule();
 

@@ -1,4 +1,4 @@
-.PHONY: all md5util clean
+.PHONY: all clean install update
 
 ADNS = 		@ADNS_SUBDIR@
 CXX =		@CXX@
@@ -10,13 +10,14 @@ MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
 DL_LIB =	@DL_LIB@
 export DL_LIB
 
-all : sbnc sbnc.so sbncloader md5util
+all : sbnc sbnc.so md5tool
 
-md5util : $(MD5OBJS)
+md5tool : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
+	@cp md5util/$@ md5tool
 
 sbnc.so : $(OBJS) @ADNS_LIBS@
-	ld -Bdynamic -shared -o $@ $(OBJS) $(LDFLAGS)
+	g++ -g -shared -fPIC -o $@ $(OBJS) $(LDFLAGS)
 
 sbnc :
 	$(MAKE) -C sbncloader
@@ -26,6 +27,27 @@ sbnc :
 clean :
 	-rm $(OBJS) $(MD5OBJS)
 	$(MAKE) -C sbncloader clean
+
+install : sbnc sbnc.so
+	@if [ ! -x ~/sbnc ]; then mkdir ~/sbnc; fi
+	@cp sbnc ~/sbnc
+	@cp sbnc.so ~/sbnc
+	@cp -R scripts ~/sbnc
+	@if [ ! -x ~/sbnc/users ]; then mkdir ~/sbnc/users; fi
+	@cp users/example.conf ~/sbnc/users
+	@if [ ! -r ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc; fi
+	@if [ ! -r ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc; fi
+	@cp README* ~/sbnc
+	@echo "shroudBNC was installed in ${HOME}/sbnc. Please change to this directory before you proceed with editing your configuration files."
+
+update : sbnc.so
+	@echo `date +%Y%m%d%H%M%S` > /tmp/ts.tag;
+	@cp sbnc.so ~/sbnc/sbnc-`cat /tmp/ts.tag`.so
+	@echo "${HOME}/sbnc/sbnc-`cat /tmp/ts.tag`.so" > ~/sbnc/sbnc.ipc
+	@echo "Reloading shroudBNC..."
+	@-kill -USR1 `cat ~/sbnc/sbnc.pid`
+	@echo "New shroudBNC module was copied to ${HOME}/sbnc/sbnc-`cat /tmp/ts.tag`.so"
+	@echo "You might need to update your TCL scripts manually."
 
 adns/libadns.a :
 ifeq ($(ADNS),yes)

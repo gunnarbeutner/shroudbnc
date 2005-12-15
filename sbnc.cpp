@@ -40,6 +40,8 @@ void sigint_handler(int code) {
 	g_Bouncer->GlobalNotice("SIGINT received.", true);
 
 	g_Bouncer->Shutdown();
+
+	signal(SIGINT, SIG_IGN);
 }
 #endif
 
@@ -85,7 +87,7 @@ extern "C" int sbncLoad(loaderparams_s *Parameters) {
 #endif
 
 #if !defined(_WIN32)
-	sighandler_t oldhandler = signal(SIGINT, sigint_handler);
+	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
 #endif
 
@@ -94,7 +96,7 @@ extern "C" int sbncLoad(loaderparams_s *Parameters) {
 	g_Bouncer->StartMainLoop();
 
 #if !defined(_WIN32)
-	signal(SIGINT, oldhandler);
+	signal(SIGINT, SIG_IGN);
 #endif
 
 #if defined(_WIN32) && defined(_DEBUG)

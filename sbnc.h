@@ -16,7 +16,7 @@ struct loaderparams_s {
 	GetBoxProc GetBox;
 	SigEnableProc SigEnable;
 	SetModuleProc SetModule;
-	SetAutoReloadProc SetAutoReload;
+	SetAutoReloadProc unused;
 };
 
 #ifndef SBNC
