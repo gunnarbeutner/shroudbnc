@@ -32,7 +32,7 @@ CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUs
 }
 
 CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Socket, false) {
-	InitIrcConnection(Owning);
+	InitIrcConnection(Owning, true);
 
 	m_CurrentNick = strdup(Box->ReadString("irc.nick"));
 	m_Server = strdup(Box->ReadString("irc.server"));
@@ -55,6 +55,8 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Ow
 			Channel = AddChannel(Name);
 
 		Channel->AddUser(m_CurrentNick, '\0');
+
+		WriteLine("NAMES %s", Name);
 	}
 }
 

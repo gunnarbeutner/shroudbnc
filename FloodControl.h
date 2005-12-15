@@ -42,6 +42,7 @@ class CFloodControl : public CQueue {
 	CIRCConnection *m_Owner;
 	bool m_Control;
 	CTimer *m_FloodTimer;
+	time_t m_LastCommand;
 
 	bool Pulse(time_t Time);
 

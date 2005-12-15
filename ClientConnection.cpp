@@ -56,7 +56,7 @@ CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUs
 
 	m_Nick = strdup(Box->ReadString("client.nick"));
 	m_Password = NULL;
-	m_Username = NULL;
+	m_Username = strdup(Owning->GetUsername());
 
 	socklen_t SocketLen = sizeof(m_Peer);
 	getpeername(Client, (sockaddr *)&m_Peer, &SocketLen);

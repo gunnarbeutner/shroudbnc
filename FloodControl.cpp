@@ -24,6 +24,8 @@ typedef struct penalty_s {
 	int Amplifier;
 } penalty_t;
 
+#define FLOOD_WAIT 2
+
 static penalty_t penalties [] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
@@ -42,6 +44,7 @@ CFloodControl::CFloodControl(CIRCConnection* Owner) {
 	m_Owner = Owner;
 	m_Control = true;
 	m_FloodTimer = NULL;
+	m_LastCommand = 0;
 }
 
 CFloodControl::~CFloodControl() {
@@ -74,6 +77,9 @@ char* CFloodControl::DequeueItem(bool Peek) {
 	if (m_Control && (m_Bytes > FLOODBYTES - 100))
 		return NULL;
 
+	if (time(NULL) - m_LastCommand < FLOOD_WAIT)
+		return NULL;
+
 	for (int i = 0; i < m_QueueCount; i++) {
 		if (m_Queues[i].Priority < LowestPriority && m_Queues[i].Queue->GetQueueSize() > 0) {
 			LowestPriority = m_Queues[i].Priority;
@@ -103,6 +109,8 @@ char* CFloodControl::DequeueItem(bool Peek) {
 			if (m_FloodTimer == NULL)
 				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
 		}
+
+		m_LastCommand = time(NULL);
 
 		return Item;
 	} else

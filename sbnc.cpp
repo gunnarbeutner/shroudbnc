@@ -40,7 +40,7 @@ void sigint_handler(int code) {
 #endif
 
 extern "C" int sbncLoad(loaderparams_s *Parameters) {
-	if (Parameters->Version != 200) {
+	if (Parameters->Version < 200) {
 		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
 
 		return 1;

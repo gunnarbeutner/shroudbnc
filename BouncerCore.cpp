@@ -333,7 +333,8 @@ void CBouncerCore::StartMainLoop(void) {
 	m_Running = true;
 	int m_ShutdownLoop = 5;
 
-	g_LoaderParameters->SigEnable();
+	if (g_LoaderParameters->SigEnable)
+		g_LoaderParameters->SigEnable();
 
 	time_t Last = 0;
 	time_t LastCheck = 0;
