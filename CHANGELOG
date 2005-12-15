@@ -33,3 +33,6 @@ Revision 309:
 -simplified build procedure
 -changed name of example configuration files
 -updated readme file to reflect recent changes
+
+Revision 317:
+-finally fixed freeze while unloading the tcl module

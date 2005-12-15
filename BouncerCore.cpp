@@ -147,31 +147,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 	m_Startup = time(NULL);
 
-	m_LoadingModules = true;
-
-	i = 0;
-	while (true) {
-		asprintf(&Out, "system.modules.mod%d", i++);
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed. Module could not be loaded.");
-
-			continue;
-		}
-
-		const char* File = m_Config->ReadString(Out);
-
-		free(Out);
-
-		if (File)
-			LoadModule(File);
-		else
-			break;
-	}
-
 	m_SendQSizeCache = -1;
-
-	m_LoadingModules = false;
 
 #if defined(_DEBUG) && defined(_WIN32)
 	if (Config->ReadInteger("system.debug"))
@@ -329,6 +305,31 @@ void CBouncerCore::StartMainLoop(void) {
 		Daemonize();
 
 	WritePidFile();
+
+	/* Note: We need to load the modules after using fork() as otherwise tcl cannot be cleanly unloaded */
+	m_LoadingModules = true;
+
+	i = 0;
+	while (true) {
+		asprintf(&Out, "system.modules.mod%d", i++);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed. Module could not be loaded.");
+
+			continue;
+		}
+
+		const char* File = m_Config->ReadString(Out);
+
+		free(Out);
+
+		if (File)
+			LoadModule(File);
+		else
+			break;
+	}
+
+	m_LoadingModules = false;
 
 	m_Running = true;
 	int m_ShutdownLoop = 5;
