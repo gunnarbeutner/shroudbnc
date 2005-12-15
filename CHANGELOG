@@ -22,3 +22,7 @@ Revision 304:
 
 Revision 307:
 -client connections are kept alive during reloads
+
+Revision 308:
+-bug: fixed a minor memory leak in sbncloader
+-bug: fixed compilation errors on linux

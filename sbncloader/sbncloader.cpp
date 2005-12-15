@@ -184,6 +184,9 @@ int main(int argc, char **argv) {
 
 		g_LoadFunc(&Parameters);
 
+		delete g_Box;
+		g_Box = NULL;
+
 		if (!g_Freeze)
 			break;
 

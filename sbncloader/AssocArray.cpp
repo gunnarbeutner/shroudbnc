@@ -11,6 +11,8 @@ CAssocArray::~CAssocArray(void) {
 
 		if (m_Values[i].Type == ASSOC_STRING)
 			free(m_Values[i].ValueString);
+		else if (m_Values[i].Type == ASSOC_POINTER)
+			delete m_Values[i].ValueBox;
 	}
 
 	free(m_Values);
