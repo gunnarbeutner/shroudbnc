@@ -1174,7 +1174,7 @@ bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 	SSLListener = Box->ReadInteger("~ssllistener");
 
 	if (SSLListener != INVALID_SOCKET)
-		m_SSLListener = new CSSLClientListener(Listener, (CBouncerCore*)NULL);
+		m_SSLListener = new CSSLClientListener(SSLListener, (CBouncerCore*)NULL);
 
 	ClientsBox = Box->ReadBox("~clients");
 
