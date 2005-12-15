@@ -1,7 +1,6 @@
 .PHONY: all sbncloader clean
-CXXFLAGS = -g
+CXXFLAGS = -g -fPIC
 OBJS = sbncloader.o AssocArray.o ../snprintf.o ../unix.o
-CFLAGS = -fPIC
 
 all : sbncloader
 
