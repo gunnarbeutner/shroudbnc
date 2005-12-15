@@ -80,7 +80,6 @@ public:
 
 CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	int i;
-	char* Out;
 
 	m_Running = false;
 
@@ -309,7 +308,9 @@ void CBouncerCore::StartMainLoop(void) {
 	/* Note: We need to load the modules after using fork() as otherwise tcl cannot be cleanly unloaded */
 	m_LoadingModules = true;
 
-	i = 0;
+	int i = 0;
+	char *Out;
+
 	while (true) {
 		asprintf(&Out, "system.modules.mod%d", i++);
 
