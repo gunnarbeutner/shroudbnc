@@ -1193,12 +1193,14 @@ bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 		if (ClientsBox) {
 			CAssocArray *ClientBox = ClientsBox->ReadBox(Name);
 
-			CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, m_Users[i]);
+			if (ClientBox) {
+				CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, m_Users[i]);
 
-			m_Users[i]->SetClientConnection(Client);
+				m_Users[i]->SetClientConnection(Client);
 
-			if (m_Users[i]->IsAdmin())
-				m_Users[i]->Notice("shroudBNC was reloaded.");
+				if (m_Users[i]->IsAdmin())
+					m_Users[i]->Notice("shroudBNC was reloaded.");
+			}
 		}
 	}
 
