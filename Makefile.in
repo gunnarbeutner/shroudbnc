@@ -9,6 +9,7 @@ OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utilit
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
 DL_LIB =	@DL_LIB@
 export DL_LIB
+export CFLAGS
 
 all : sbnc sbnc.so md5tool
 

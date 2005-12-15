@@ -20,12 +20,6 @@
 #include "StdAfx.h"
 #include "sbnc.h"
 
-#if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__NetBSD__)
-typedef __sighandler_t sighandler_t;
-#else
-typedef void (*sighandler_t)(int);
-#endif
-
 CBouncerCore* g_Bouncer = NULL;
 bool g_Freeze;
 loaderparams_s *g_LoaderParameters;

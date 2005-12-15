@@ -53,17 +53,8 @@ bool CBouncerConfig::ParseConfig(const char* Filename) {
 
 	FILE* Conf = fopen(Filename, "r");
 
-	if (!Conf) {
-#ifndef MKCONFIG
-		if (g_Bouncer) {
-			LOGERROR("Config file %s could not be opened.", Filename);
-		} else {
-			printf("Config file %s could not be opened.", Filename);
-		}
-#endif
-
+	if (!Conf)
 		return false;
-	}
 
 	m_WriteLock = true;
 
