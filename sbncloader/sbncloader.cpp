@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 	Parameters.GetBox = sbncGetBox;
 	Parameters.SigEnable = sbncSigEnable;
 	Parameters.SetModule = sbncSetModule;
-	Parameters.SetAutoReload = sbncSetAutoReload;
+	Parameters.unused = sbncSetAutoReload;
 
 	g_Signal = false;
 
