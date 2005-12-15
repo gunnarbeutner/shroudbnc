@@ -49,6 +49,7 @@ update : sbnc.so
 	@-kill -USR1 `cat ~/sbnc/sbnc.pid`
 	@echo "New shroudBNC module was copied to ${HOME}/sbnc/sbnc-`cat /tmp/ts.tag`.so"
 	@echo "You might need to update your TCL scripts manually."
+	@-rm /tmp/ts.tag
 
 adns/libadns.a :
 ifeq ($(ADNS),yes)
