@@ -29,7 +29,7 @@ proc sbnc:ifacecmd {command params account} {
 			set result 1
 		}
 		"raw" {
-			puthelp [join [lrange $params 1 end]]
+			puthelp [join [lrange $params 0 end]]
 		}
 		"nick" {
 			set result $::botnick
