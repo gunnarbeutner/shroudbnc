@@ -120,14 +120,14 @@ CBouncerUser::CBouncerUser(const char* Name) {
 
 	m_IsAdminCache = -1;
 
+	m_ClientCertificates = NULL;
+	m_ClientCertificateCount = 0;
+
 #ifdef USESSL
 	asprintf(&Out, "users/%s.pem", Name);
 
 	X509* Cert;
 	FILE* ClientCert = fopen(Out, "r");
-
-	m_ClientCertificates = NULL;
-	m_ClientCertificateCount = 0;
 
 	if (ClientCert != NULL) {
 		while ((Cert = PEM_read_X509(ClientCert, NULL, NULL, NULL)) != NULL) {

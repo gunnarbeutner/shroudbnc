@@ -1118,11 +1118,15 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 	if (m_Listener) {
 		Box->AddInteger("~listener", m_Listener->GetSocket());
 		m_Listener->SetSocket(INVALID_SOCKET);
+	} else {
+		Box->AddInteger("~listener", INVALID_SOCKET);
 	}
 
 	if (m_SSLListener) {
 		Box->AddInteger("~ssllistener", m_SSLListener->GetSocket());
 		m_SSLListener->SetSocket(INVALID_SOCKET);
+	} else {
+		Box->AddInteger("~ssllistener", INVALID_SOCKET);
 	}
 
 	for (int i = 0; i < m_Users.Count(); i++) {
