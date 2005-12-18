@@ -40,3 +40,6 @@ Revision 317:
 Revision 323:
 -updated /sbnc kill command (was killing the wrong user, i.e. the one who used the command)
 -updated README.ssl
+
+Revision 324:
+-added uptime module
