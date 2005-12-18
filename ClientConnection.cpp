@@ -640,16 +640,15 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("Syntax: KILL username");
 			return false;
 		}
-		
-		asprintf(&Out, "SBNC SIMUL %s :QUIT", argv[1]);
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
-			ParseLine(Out);
-			free(Out);
-		}
 
-		SENDUSER("Done.");
+		CBouncerUser *User = g_Bouncer->GetUser(argv[1]);
+
+		if (User && User->GetClientConnection()) {
+			User->GetClientConnection()->Kill("Requested.");
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There is no such user or that user is not currently logged in.");
+		}
 
 		return false;
 	} else if (strcmpi(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
