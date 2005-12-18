@@ -36,3 +36,7 @@ Revision 309:
 
 Revision 317:
 -finally fixed freeze while unloading the tcl module
+
+Revision 323:
+-updated /sbnc kill command (was killing the wrong user, i.e. the one who used the command)
+-updated README.ssl
