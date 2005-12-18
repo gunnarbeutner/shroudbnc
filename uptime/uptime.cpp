@@ -178,7 +178,7 @@ class CUptimeModule : public CModuleFar {
 
 		g_UptimeSocket = new CUdpSocket(uptimeport);
 
-		g_UptimeTimer = g_Bouncer->CreateTimer(60 * 3600, true, UptimeTimerProc, NULL);
+		g_UptimeTimer = g_Bouncer->CreateTimer(6 * 3600, true, UptimeTimerProc, NULL);
 
 		uptimehost = strdup(UPTIME_HOST);
 
