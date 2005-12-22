@@ -540,7 +540,7 @@ bool isop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		if (IRC->GetChannels() == NULL)
-			return NULL;
+			return false;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsOp()) {
@@ -576,7 +576,7 @@ bool isvoice(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		if (IRC->GetChannels() == NULL)
-			return NULL;
+			return false;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsVoice()) {
@@ -612,7 +612,7 @@ bool ishalfop(const char* Nick, const char* Channel) {
 		int a = 0;
 
 		if (IRC->GetChannels() == NULL)
-			return NULL;
+			return false;
 
 		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsHalfop()) {
