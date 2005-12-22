@@ -15,6 +15,40 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+# iface commands:
+# +user:
+# null
+# raw text
+# nick
+# value parameter
+# tag parameter
+# network
+# channels
+# uptimehr
+# traffic
+# chanmode channel
+# topic channel
+# chanlist channel
+# usercount channel
+# jump
+# set option value
+# log
+# eraselog
+# simul text
+# +admin
+# tcl command
+# userlist
+# adm user command parameters
+# mainlog
+# erasemainlog
+# adduser user password
+# deluser user
+# admin user
+# unadmin user
+# getident user
+# setident user ident
+# vgroupsupport
+
 catch {listen 8090 script sbnc:iface}
 
 proc sbnc:iface {socket} {
@@ -71,7 +105,7 @@ proc sbnc:ifacecmd {command params account} {
 		}
 
 		"set" {
-			if {[lsearch -exact [list server port realname nick awaynick away channels tag vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
+			if {[lsearch -exact [list server port realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
 				set result "denied"
 			} else {
 				setbncuser $account [lindex $params 0] [join [lrange $params 1 end]]
@@ -99,6 +133,12 @@ proc sbnc:ifacecmd {command params account} {
 		"simul" {
 			simul $account [join $params]
 		}
+	}
+
+	if {[lsearch -exact [info commands] "virtual:ifacecmd"] != -1} {
+		set tempResult [virtual:ifacecmd $command $params $account]
+
+		if {$tempResult != ""} { set result $tempResult }
 	}
 
 	return $result
@@ -171,8 +211,18 @@ proc sbnc:ifacemsg {socket line} {
 			"unadmin" {
 				setbncuser [lindex $params 0] admin 0
 			}
+			"getident" {
+				set result [getbncuser [lindex $params 0] ident]
+			}
 			"setident" {
 				setbncuser [lindex $params 0] ident [lindex $params 1]
+			}
+			"vgroupsupport" {
+				if {[lsearch -exact [info commands] "virtual:ifacecmd"] != -1} {
+					set result 1
+				} else {
+					set result 0
+				}
 			}
 		}
 	}

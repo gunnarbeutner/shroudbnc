@@ -194,7 +194,7 @@ class CUptimeModule : public CModuleFar {
 		sockaddr_in sloc;
 		CBouncerUser *FirstUser;
 		hostent *hent;
-		char *Server;
+		const char *Server;
 
 		uptimecookie = (uptimecookie + 1) * 18457;
 		upPack.cookie = htonl(uptimecookie);

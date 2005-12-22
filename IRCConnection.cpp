@@ -46,10 +46,19 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Ow
 	WriteLine("VERSION");
 
 	for (int i = 0; i < Count; i++) {
+		const char *Name;
 		CChannel *Channel;
 		asprintf(&Out, "irc.channel%d", i);
 
-		const char *Name = Box->ReadString(Out);
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed during unfreezing an irc connection.");
+
+			g_Bouncer->Fatal();
+		}
+
+		Name = Box->ReadString(Out);
+
+		free(Out);
 
 		if (Name)
 			Channel = AddChannel(Name);
