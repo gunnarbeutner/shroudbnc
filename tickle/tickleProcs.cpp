@@ -800,7 +800,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		char* Buf = (char*)malloc(strlen(Value) + 5);
 		sprintf(Buf, "tag.%s", Value);
 
-		Context->GetConfig()->WriteString(Buf, Parameter2);
+		Context->GetConfig()->WriteString(Buf, Parameter2[0] ? Parameter2 : NULL);
 
 		free(Buf);
 	} else if (strcmpi(Type, "appendts") == 0)

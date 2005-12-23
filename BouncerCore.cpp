@@ -491,11 +491,11 @@ void CBouncerCore::StartMainLoop(void) {
 		for (adns_forallqueries_begin(g_adns_State); (query = adns_forallqueries_next(g_adns_State, &context));) {
 			adns_answer* reply = NULL;
 
-			adns_check(g_adns_State, &query, &reply, &context);
+			int retval = adns_check(g_adns_State, &query, &reply, &context);
 
-			CDnsEvents* Ctx = (CDnsEvents*)context;
+			if (retval == 0 && reply) {
+				CDnsEvents* Ctx = (CDnsEvents*)context;
 
-			if (reply) {
 				Ctx->AsyncDnsFinished(&query, reply);
 				Ctx->Destroy();
 			}
