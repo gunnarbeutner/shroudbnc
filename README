@@ -8,7 +8,7 @@ Installation
 
 First of all make sure that you have the following libraries installed:
 
-- libadns (for asynchronois support, mandatory) and libadns-dev (the header files)
+- libadns (for asynchronous support, mandatory) and libadns-dev (the header files)
 - tcl (if you're going to use the tcl module, version 8.4 or later, earlier versions have not been tested)
 - lua (if you want to use the lua scripting language, version 5.x or later)
 
@@ -81,13 +81,15 @@ Installing the TCL module might sometimes be a bit tricky. You should know this 
 -the path of your TCL libraries
 -the path of the include files
 
-The command for compiling the TCL module looks like this:
+The command for compiling the TCL module looks like this (You need to execute it in the sbnc-1.0/tickle directory):
 
 g++ -I/include/directory -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /path/to/your/libtcl8.x.so
 
 For example, if your include files are in /usr/include/tcl8.4 and your libtcl8.x.so can be found at /usr/lib/libtcl8.4.so you can use this command to compile the TCL module:
 
 g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /usr/lib/libtcl8.4.so
+
+Once you've compiled the TCL module there should be a file called "tickle.so". Copy it into the ~/sbnc directory and load it using this command (while connected to the bouncer): /sbnc insmod ./tickle.so
 
 Updating shroudBNC
 ------------------
