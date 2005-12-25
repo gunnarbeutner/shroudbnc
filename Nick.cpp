@@ -52,6 +52,8 @@ CNick::~CNick() {
 	free(m_Nick);
 	free(m_Prefixes);
 	free(m_Site);
+	free(m_Realname);
+	free(m_Server);
 
 	if (m_Tags)
 		delete m_Tags;
