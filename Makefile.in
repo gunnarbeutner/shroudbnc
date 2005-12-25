@@ -30,14 +30,14 @@ clean :
 	$(MAKE) -C sbncloader clean
 
 install : sbnc sbnc.so
-	@if [ -d ~/sbnc ]; then mkdir ~/sbnc; fi
+	@if [ ! -d ~/sbnc ]; then mkdir ~/sbnc; fi
 	@cp sbnc ~/sbnc
 	@cp sbnc.so ~/sbnc
 	@cp -R scripts ~/sbnc
-	@if [ -d ~/sbnc/users ]; then mkdir ~/sbnc/users; fi
+	@if [ ! -d ~/sbnc/users ]; then mkdir ~/sbnc/users; fi
 	@cp users/example.conf ~/sbnc/users
-	@if [ -d ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc; fi
-	@if [ -d ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc; fi
+	@if [ ! -f ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc; fi
+	@if [ ! -f ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc; fi
 	@cp README* ~/sbnc
 	@echo "shroudBNC was installed in ${HOME}/sbnc. Please change to this directory before you proceed with editing your configuration files."
 
