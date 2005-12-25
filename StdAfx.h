@@ -29,6 +29,12 @@
 #define _USE_32BIT_TIME_T
 #endif
 
+#ifdef _WIN32
+	#include "win32.h"
+#else
+	#include "unix.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -44,16 +50,12 @@
 #include "snprintf.h"
 
 #ifdef _WIN32
-	#include "win32.h"
-
 #ifndef RUBY
 	#include <windows.h>
 	#include <winsock2.h>
 	#include <assert.h>
 #endif
 #else
-	#include "unix.h"
-
 	#include <dlfcn.h>
 	#include <ctype.h>
 	#include <string.h>

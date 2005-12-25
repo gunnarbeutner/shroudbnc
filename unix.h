@@ -27,6 +27,7 @@ typedef int SOCKET;
 #define closesocket close
 #define wsprintf sprintf
 #define INVALID_SOCKET (-1)
+#undef FD_SETSIZE
 #define FD_SETSIZE 4096
 #define ioctlsocket ioctl
 
