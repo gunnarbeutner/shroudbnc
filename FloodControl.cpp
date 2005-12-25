@@ -77,7 +77,7 @@ char* CFloodControl::DequeueItem(bool Peek) {
 	if (m_Control && (m_Bytes > FLOODBYTES - 100))
 		return NULL;
 
-	if (time(NULL) - m_LastCommand < FLOOD_WAIT)
+	if (m_Control && (time(NULL) - m_LastCommand < FLOOD_WAIT))
 		return NULL;
 
 	for (int i = 0; i < m_QueueCount; i++) {

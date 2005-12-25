@@ -1186,7 +1186,7 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
 }
 
 void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
-	if (response->status != adns_s_ok) {
+	if (response && response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
@@ -1195,7 +1195,7 @@ void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) 
 }
 
 void CIRCConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *response) {
-	if (response->status != adns_s_ok) {
+	if (!response || response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
@@ -1245,4 +1245,18 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 	Destroy();
 
 	return true;
+}
+
+void CIRCConnection::Kill(const char *Error) {
+	if (m_Owner) {
+		m_Owner->SetIRCConnection(NULL);
+		m_Owner = NULL;
+	}
+
+	m_FloodControl->FlushQueue();
+	m_FloodControl->Disable();
+	
+	WriteLine("QUIT :%s", Error);
+
+	CConnection::Kill(Error);
 }

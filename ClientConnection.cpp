@@ -354,6 +354,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					m_Owner->ScheduleReconnect(0);
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
+
+					return false;
 				}
 			} else if (strcmpi(argv[1], "realname") == 0) {
 				m_Owner->SetRealname(argv[2]);
@@ -1552,7 +1554,7 @@ void CClientConnection::AsyncDnsFinishedClient(adns_query* query, adns_answer* r
 		m_AdnsTimeout = NULL;
 	}
 
-	if (response->status != adns_s_ok)
+	if (!response || response->status != adns_s_ok)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
 		SetPeerName(*response->rrs.str, false);
@@ -1618,4 +1620,15 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 	Destroy();
 
 	return true;
+}
+
+void CClientConnection::Kill(const char *Error) {
+	if (m_Owner) {
+		m_Owner->SetClientConnection(NULL);
+		m_Owner = NULL;
+	}
+
+	WriteLine(":Notice!notice!shroudbnc.org NOTICE * :%s", Error);
+
+	CConnection::Kill(Error);
 }

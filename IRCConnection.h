@@ -144,4 +144,6 @@ public:
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
 
 	virtual bool Freeze(CAssocArray *Box);
+
+	virtual void Kill(const char *Error);
 };

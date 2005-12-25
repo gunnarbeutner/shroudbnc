@@ -175,8 +175,10 @@ CConnection::~CConnection() {
 	if (m_BindDnsEvents)
 		m_BindDnsEvents->Destroy();
 
-	if (m_Socket != INVALID_SOCKET)
+	if (m_Socket != INVALID_SOCKET) {
+		shutdown(m_Socket, SD_BOTH);
 		closesocket(m_Socket);
+	}
 	
 	free(m_HostAddr);
 	free(m_BindAddr);
@@ -422,7 +424,7 @@ bool CConnection::ReadLine(char** Out) {
 }
 
 void CConnection::InternalWriteLine(const char* In) {
-	if (m_Locked || m_Shutdown)
+	if (m_Locked)
 		return;
 
 	if (m_SendQ && In)
@@ -432,6 +434,9 @@ void CConnection::InternalWriteLine(const char* In) {
 void CConnection::WriteLine(const char* Format, ...) {
 	char* Out;
 	va_list marker;
+
+	if (m_Shutdown)
+		return;
 
 	va_start(marker, Format);
 	vasprintf(&Out, Format, marker);
@@ -460,22 +465,6 @@ void CConnection::Kill(const char* Error) {
 		return;
 
 	AttachStats(NULL);
-
-	if (GetRole() == Role_Client) {
-		if (m_Owner) {
-			m_Owner->SetClientConnection(NULL);
-			m_Owner = NULL;
-		}
-
-		WriteLine(":Notice!notice!shroudbnc.org NOTICE * :%s", Error);
-	} else if (GetRole() == Role_IRC) {
-		if (m_Owner) {
-			m_Owner->SetIRCConnection(NULL);
-			m_Owner = NULL;
-		}
-
-		WriteLine("QUIT :%s", Error);
-	}
 
 	Shutdown();
 	Timeout(10);
@@ -533,7 +522,7 @@ void CConnection::Timeout(int TimeLeft) {
 
 bool CConnection::DoTimeout(void) {
 	if (m_Timeout > 0 && m_Timeout < time(NULL)) {
-		delete this;
+		Destroy();
 
 		return true;
 	} else
@@ -600,7 +589,7 @@ void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 	m_AdnsQuery = NULL;
 	m_DnsEvents = NULL;
 
-	if (response->status != adns_s_ok) {
+	if (!response || response->status != adns_s_ok) {
 		Destroy();
 
 		return;
@@ -620,7 +609,7 @@ void CConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *respons
 	m_BindAdnsQuery = NULL;
 	m_BindDnsEvents = NULL;
 
-	if (response->status == adns_s_ok) {
+	if (!response || response->status == adns_s_ok) {
 		m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
 		*m_BindAddr = response->rrs.addr->addr.inet.sin_addr;
 	}

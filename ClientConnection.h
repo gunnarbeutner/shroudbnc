@@ -75,4 +75,6 @@ public:
 	virtual void InternalWriteLine(const char* In);
 
 	virtual bool Freeze(CAssocArray *Box);
+
+	virtual void Kill(const char *Error);
 };

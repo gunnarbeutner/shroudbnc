@@ -485,19 +485,29 @@ void CBouncerCore::StartMainLoop(void) {
 			}
 		}
 
-		void* context;
+		CDnsEvents *Ctx;
 		adns_query query;
 
-		for (adns_forallqueries_begin(g_adns_State); (query = adns_forallqueries_next(g_adns_State, &context));) {
+		adns_forallqueries_begin(g_adns_State);
+
+		while ((query = adns_forallqueries_next(g_adns_State, (void **)&Ctx)) != NULL) {
 			adns_answer* reply = NULL;
 
-			int retval = adns_check(g_adns_State, &query, &reply, &context);
+			int retval = adns_check(g_adns_State, &query, &reply, (void **)&Ctx);
 
-			if (retval == 0 && reply) {
-				CDnsEvents* Ctx = (CDnsEvents*)context;
+			switch (retval) {
+				case 0:
+					Ctx->AsyncDnsFinished(&query, reply);
+					Ctx->Destroy();
 
-				Ctx->AsyncDnsFinished(&query, reply);
-				Ctx->Destroy();
+					 break;
+				case EAGAIN:
+					break;
+				default:
+					Ctx->AsyncDnsFinished(&query, NULL);
+					Ctx->Destroy();
+
+					break;
 			}
 		}
 	}

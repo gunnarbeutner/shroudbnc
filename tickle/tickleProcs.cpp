@@ -665,6 +665,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 	if (strcmpi(Type, "server") == 0)
 		return Context->GetServer();
+	else if (strcmpi(Type, "serverpass") == 0)
+		return Context->GetServerPassword();
 	else if (strcmpi(Type, "realserver") == 0) {
 		CIRCConnection* IRC = Context->GetIRCConnection();;
 
@@ -760,7 +762,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcmpi(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else
-		throw "Type should be one of: server port client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient realserver ident";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient realserver ident";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -771,6 +773,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 
 	if (strcmpi(Type, "server") == 0)
 		Context->SetServer(Value);
+	else if (strcmpi(Type, "serverpass") == 0)
+		Context->SetServerPassword(Value);
 	else if (strcmpi(Type, "port") == 0)
 		Context->SetPort(atoi(Value));
 	else if (strcmpi(Type, "realname") == 0)
@@ -816,7 +820,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcmpi(Type, "ident") == 0)
 		Context->SetIdent(Value);
 	else
-		throw "Type should be one of: server port realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident";
+		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident";
 
 	return 1;
 }
