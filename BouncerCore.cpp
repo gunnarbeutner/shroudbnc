@@ -437,7 +437,7 @@ void CBouncerCore::StartMainLoop(void) {
 
 		Last = time(NULL);
 
-		int ready = select(MAX_SOCKETS, &FDRead, &FDWrite, &FDError, &interval);
+		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
 		adns_afterselect(g_adns_State, nfds, &FDRead, &FDWrite, &FDError, NULL);
 
@@ -475,7 +475,7 @@ void CBouncerCore::StartMainLoop(void) {
 					FD_SET(Socket, &set);
 
 					timeval zero = { 0, 0 };
-					int code = select(MAX_SOCKETS, &set, NULL, NULL, &zero);
+					int code = select(FD_SETSIZE - 1, &set, NULL, NULL, &zero);
 
 					if (code == -1) {
 						m_OtherSockets[i].Events->Error();

@@ -24,5 +24,5 @@
 typedef int socklen_t;
 #endif
 
-#define MAX_SOCKETS 1024
+#define FD_SETSIZE 4096
 #endif

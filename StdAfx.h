@@ -19,10 +19,6 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-#if defined(SWIG) && defined(_WIN32)
-#define FD_SETSIZE 1024
-#endif
-
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 1

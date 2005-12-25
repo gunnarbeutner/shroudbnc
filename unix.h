@@ -27,7 +27,7 @@ typedef int SOCKET;
 #define closesocket close
 #define wsprintf sprintf
 #define INVALID_SOCKET (-1)
-#define MAX_SOCKETS 1024
+#define FD_SETSIZE 4096
 #define ioctlsocket ioctl
 
 typedef void* HMODULE;

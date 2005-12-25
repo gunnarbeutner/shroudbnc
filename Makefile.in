@@ -22,7 +22,7 @@ sbnc.so : $(OBJS) @ADNS_LIBS@
 
 sbnc :
 	$(MAKE) -C sbncloader
-	-rm sbnc
+	if [ -f sbnc ]; then rm sbnc; fi
 	cp sbncloader/sbncloader ./sbnc
 
 clean :
