@@ -7,11 +7,12 @@ CFLAGS =	@SSL_DEF@ @CFLAGS@ @CPPFLAGS@ @DEFS@ -fPIC
 LDFLAGS =	@LDFLAGS@ @LIBS@ @SSL_LIBS@ @ADNS_LIBS@
 OBJS =		Connection.o Module.o Channel.o FloodControl.o ClientConnection.o utility.o Queue.o BouncerUser.o IRCConnection.o BouncerConfig.o BouncerCore.o sbnc.o IdentSupport.o BouncerLog.o Nick.o unix.o md5-c/md5c.o Match.o TrafficStats.o Keyring.o Banlist.o Timer.o FIFOBuffer.o @LIBOBJS@
 MD5OBJS = 	md5util/md5util.o md5util/StdAfx.o md5-c/md5c.o @LIBOBJS@
+MKCONFIGOBJS =	mkconfig/mkconfig.o BouncerConfig.o md5-c/md5c.o
 DL_LIB =	@DL_LIB@
 export DL_LIB
 export CFLAGS
 
-all : sbnc sbnc.so md5tool
+all : sbnc sbnc.so md5tool conftool
 
 md5tool : $(MD5OBJS)
 	$(CXX) -o md5util/$@ $(MD5OBJS) $(LDFLAGS)
@@ -25,11 +26,15 @@ sbnc :
 	if [ -f sbnc ]; then rm sbnc; fi
 	cp sbncloader/sbncloader ./sbnc
 
+conftool : $(MKCONFIGOBJS)
+	g++ -g -o mkconfig/$@ $(MKCONFIGOBJS)
+	@cp mkconfig/$@ conftool
+
 clean :
 	-rm $(OBJS) $(MD5OBJS)
 	$(MAKE) -C sbncloader clean
 
-install : sbnc sbnc.so
+install : sbnc sbnc.so conftool md5tool
 	@if [ ! -d ~/sbnc ]; then mkdir ~/sbnc; fi
 	@cp sbnc ~/sbnc
 	@cp sbnc.so ~/sbnc
@@ -38,6 +43,8 @@ install : sbnc sbnc.so
 	@cp users/example.conf ~/sbnc/users
 	@if [ ! -f ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc; fi
 	@if [ ! -f ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc; fi
+	@cp conftool ~/sbnc
+	@cp md5tool ~/sbnc
 	@cp README* ~/sbnc
 	@echo "shroudBNC was installed in ${HOME}/sbnc. Please change to this directory before you proceed with editing your configuration files."
 
