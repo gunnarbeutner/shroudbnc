@@ -3160,9 +3160,6 @@ echo "${ECHO_T}file not found" >&6
 
 
 
-TCL_MAJOR_VERSION=8
-TCL_MINOR_VERSION=3
-
 if test \( "$TCL_MAJOR_VERSION" -lt 8 \) -o \( \( "$TCL_MAJOR_VERSION" -eq 8 \) -a \( "$TCL_MINOR_VERSION" -lt 4 \) \); then
 	{ { echo "$as_me:$LINENO: error: You need at least TCL 8.4 for this module." >&5
 echo "$as_me: error: You need at least TCL 8.4 for this module." >&2;}
