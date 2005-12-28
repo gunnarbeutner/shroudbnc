@@ -37,7 +37,7 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CHashtable<CNick*, false, 64, true>();
+	m_Nicks = new CHashtable<CNick*, false, 64>();
 
 	if (m_Nicks == NULL) {
 		LOGERROR("new operator failed. Could not create nick list.");
@@ -308,18 +308,22 @@ void CChannel::SetNoTopic(void) {
 }
 
 void CChannel::AddUser(const char* Nick, const char* ModeChars) {
-	CNick* N = new CNick(this, Nick);
+	CNick* NickObj;
 
-	if (N == NULL) {
+	if (m_Nicks == NULL)
+		return;
+
+	NickObj = new CNick(this, Nick);
+
+	if (NickObj == NULL) {
 		LOGERROR("new operator failed. Could not add user (%s).", Nick);
 
 		return;
 	}
 
-	N->SetPrefixes(ModeChars);
+	NickObj->SetPrefixes(ModeChars);
 
-	if (m_Nicks)
-		m_Nicks->Add(N->GetNick(), N);
+	m_Nicks->Add(Nick, NickObj);
 }
 
 void CChannel::RemoveUser(const char* Nick) {
@@ -357,7 +361,7 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CHashtable<CNick*, false, 64, true>* CChannel::GetNames(void) {
+CHashtable<CNick*, false, 64>* CChannel::GetNames(void) {
 	return m_Nicks;
 }
 

@@ -120,7 +120,8 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 		Count = ArgCount(Args);
 
 		for (i = 0; i < Count; i++) {
-			User = new CBouncerUser(ArgGet(Args, i + 1));
+			const char *Name = ArgGet(Args, i + 1);
+			User = new CBouncerUser(Name);
 
 			if (User == NULL) {
 				LOGERROR("Could not create user object");
@@ -128,11 +129,13 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 				Fatal();
 			}
 
-			m_Users.Insert(User);
+			m_Users.Add(Name, User);
 		}
 
-		for (i = 0; i < Count; i++)
-			m_Users[i]->LoadEvent();
+		i = 0;
+		while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+			User->Value->LoadEvent();
+		}
 
 		ArgFree(Args);
 	} else {
@@ -155,31 +158,32 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 }
 
 CBouncerCore::~CBouncerCore() {
+	int a, c, d, i;
 /*	if (m_Listener != NULL)
 		delete m_Listener;
 
 	if (m_SSLListener != NULL)
 		delete m_SSLListener;*/
 
-	for (int a = m_Modules.Count() - 1; a >= 0; a--) {
+	for (a = m_Modules.Count() - 1; a >= 0; a--) {
 		if (m_Modules[a])
 			delete m_Modules[a];
 
 		m_Modules.Remove(a);
 	}
 
-	for (int c = m_OtherSockets.Count() - 1; c >= 0; c--) {
+	for (c = m_OtherSockets.Count() - 1; c >= 0; c--) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
 		}
 	}
 
-	for (int i = m_Users.Count() - 1; i >= 0; i--) {
-		if (m_Users[i])
-			delete m_Users[i];
+	i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		delete User->Value;
 	}
 
-	for (int d = m_Timers.Count() - 1; d >= 0 ; d--) {
+	for (d = m_Timers.Count() - 1; d >= 0 ; d--) {
 		if (m_Timers[d])
 			delete m_Timers[d];
 	}
@@ -368,33 +372,33 @@ void CBouncerCore::StartMainLoop(void) {
 
 		int i;
 
-		for (i = 0; i < m_Users.Count(); i++) {
+		i = 0;
+		bool LastCheckDone = false;
+		while (xhash_t<CBouncerUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection* IRC;
 
-			if (m_Users[i] && (IRC = m_Users[i]->GetIRCConnection())) {
+			if (UserHash->Value && (IRC = UserHash->Value->GetIRCConnection())) {
 				if (!m_Running && !IRC->IsLocked()) {
-					Log("Closing connection for %s", m_Users[i]->GetUsername());
+					Log("Closing connection for %s", UserHash->Name);
 					IRC->InternalWriteLine("QUIT :Shutting down.");
 					IRC->Lock();
 
-					m_Users[i]->SetIRCConnection(NULL);
+					UserHash->Value->SetIRCConnection(NULL);
 				}
 
 				if (IRC->ShouldDestroy())
 					IRC->Destroy();
-			}
-		}
 
-		if (LastCheck + 5 < Now) {
-			for (i = 0; i < m_Users.Count(); i++) {
-				if (m_Users[i] && m_Users[i]->ShouldReconnect()) {
-					m_Users[i]->ScheduleReconnect();
+				if (LastCheck + 5 < Now && LastCheckDone == false) {
+					if (UserHash->Value->ShouldReconnect()) {
+						UserHash->Value->ScheduleReconnect();
 
-					break;
+						LastCheckDone = true;
+					}
+
+					LastCheck = Now;
 				}
 			}
-
-			LastCheck = Now;
 		}
 
 		for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
@@ -535,30 +539,24 @@ CBouncerUser* CBouncerCore::GetUser(const char* Name) {
 	if (!Name)
 		return NULL;
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Name) == 0) {
-			return m_Users[i];
-		}
-	}
-
-	return NULL;
+	return m_Users.Get(Name);
 }
 
 void CBouncerCore::GlobalNotice(const char* Text, bool AdminOnly) {
-	for (int i = 0; i < m_Users.Count(); i++) {
-		if (m_Users[i] && (!AdminOnly || m_Users[i]->IsAdmin()))
-			m_Users[i]->Notice(Text);
+	int i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		if (!AdminOnly || User->Value->IsAdmin())
+			User->Value->Notice(Text);
 	}
 }
 
-CBouncerUser** CBouncerCore::GetUsers(void) {
-	return m_Users.GetList();
+CHashtable<CBouncerUser *, false, 64> *CBouncerCore::GetUsers(void) {
+	return &m_Users;
 }
 
 int CBouncerCore::GetUserCount(void) {
 	return m_Users.Count();
 }
-
 
 void CBouncerCore::SetIdent(const char* Ident) {
 	if (m_Ident)
@@ -788,7 +786,7 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 
 	User = new CBouncerUser(Username);
 
-	if (!m_Users.Insert(User)) {
+	if (!m_Users.Add(Username, User)) {
 		delete User;
 
 		return NULL;
@@ -810,8 +808,8 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 
 	UpdateUserConfig();
 
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* Module = g_Bouncer->GetModules()[i];
+	for (int i = 0; i < m_Modules.Count(); i++) {
+		CModule* Module = m_Modules[i];
 
 		if (Module) {
 			Module->UserCreate(Username);
@@ -826,41 +824,41 @@ CBouncerUser* CBouncerCore::CreateUser(const char* Username, const char* Passwor
 bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	char *Out;
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		if (m_Users[i] && strcmpi(m_Users[i]->GetUsername(), Username) == 0) {
-			for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
-				CModule* Module = g_Bouncer->GetModules()[a];
+	CBouncerUser *User = GetUser(Username);
 
-				if (Module) {
-					Module->UserDelete(Username);
-				}
-			}
+	if (User == NULL)
+		return false;
 
-			if (RemoveConfig)
-				unlink(m_Users[i]->GetConfig()->GetFilename());
 
-			delete m_Users[i];
-			m_Users.Remove(i);
+	for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
+		CModule* Module = g_Bouncer->GetModules()[a];
 
-			asprintf(&Out, "User removed: %s", Username);
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
-				m_Log->WriteLine(Out);
-
-				GlobalNotice(Out, true);
-
-				free(Out);
-			}
-
-			UpdateUserConfig();
-
-			return true;
+		if (Module) {
+			Module->UserDelete(Username);
 		}
 	}
 
-	return false;
+	if (RemoveConfig)
+		unlink(User->GetConfig()->GetFilename());
+
+	delete User;
+	m_Users.Remove(Username);
+
+	asprintf(&Out, "User removed: %s", Username);
+
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
+	} else {
+		m_Log->WriteLine(Out);
+
+		GlobalNotice(Out, true);
+
+		free(Out);
+	}
+
+	UpdateUserConfig();
+
+	return true;
 }
 
 bool CBouncerCore::IsValidUsername(const char* Username) {
@@ -876,32 +874,32 @@ bool CBouncerCore::IsValidUsername(const char* Username) {
 }
 
 void CBouncerCore::UpdateUserConfig(void) {
+	int i;
 	char* Out = NULL;
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		if (m_Users[i]) {
-			bool WasNull = false;
+	i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		bool WasNull = false;
 
-			if (Out == NULL)
-				WasNull = true;
+		if (Out == NULL)
+			WasNull = true;
 
-			Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(m_Users[i]->GetUsername()) + 10);
+		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(User->Name) + 10);
 
-			if (Out == NULL) {
-				LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
+		if (Out == NULL) {
+			LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
 
-				return;
-			}
+			return;
+		}
 
-			if (WasNull)
-				*Out = '\0';
+		if (WasNull)
+			*Out = '\0';
 
-			if (*Out) {
-				strcat(Out, " ");
-				strcat(Out, m_Users[i]->GetUsername());
-			} else {
-				strcpy(Out, m_Users[i]->GetUsername());
-			}
+		if (*Out) {
+			strcat(Out, " ");
+			strcat(Out, User->Name);
+		} else {
+			strcpy(Out, User->Name);
 		}
 	}
 
@@ -1115,10 +1113,48 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 #endif
 
 const char *CBouncerCore::DebugImpulse(int impulse) {
+	char *Out;
+	int i;
+	CBouncerUser *User;
+
 	if (impulse == 5) {
 		InitializeFreeze();
 
 		return "1";
+	}
+
+	if (impulse == 6) {
+		int a = 23, b = 0, c;
+		
+		c = a / b;
+	}
+
+	if (impulse == 7) {
+		_exit(0);
+	}
+
+	if (impulse == 8) {
+		for (i = 0; i < 200; i++) {
+			asprintf(&Out, "test%d", i);
+			User = CreateUser(Out, "eris");
+
+			User->SetServer("85.25.15.190");
+			User->SetPort(6667);
+
+			User->SetConfigChannels("#test,#test3,#test4");
+
+			User->Reconnect();
+
+			free(Out);
+		}
+	}
+
+	if (impulse == 9) {
+		for (i = 0; i < 200; i++) {
+			asprintf(&Out, "test%d", i);
+			RemoveUser(Out);
+			free(Out);
+		}
 	}
 
 	return NULL;
@@ -1139,16 +1175,16 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 		Box->AddInteger("~ssllistener", INVALID_SOCKET);
 	}
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		const char *Name = m_Users[i]->GetUsername();
-		CIRCConnection *IRC = m_Users[i]->GetIRCConnection();
-		CClientConnection *Client = m_Users[i]->GetClientConnection();
+	int i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		CIRCConnection *IRC = User->Value->GetIRCConnection();
+		CClientConnection *Client = User->Value->GetClientConnection();
 
 		if (IRC) {
 			CAssocArray *IrcBox = Box->Create();
 
 			if (IRC->Freeze(IrcBox))
-				Box->AddBox(Name, IrcBox);
+				Box->AddBox(User->Name, IrcBox);
 			else
 				IrcBox->Destroy();
 		}
@@ -1165,7 +1201,7 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 			ClientBox = Box->Create();
 			
 			if (Client->Freeze(ClientBox))
-				ClientsBox->AddBox(Name, ClientBox);
+				ClientsBox->AddBox(User->Name, ClientBox);
 			else
 				ClientBox->Destroy();
 		}
@@ -1192,28 +1228,28 @@ bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 
 	ClientsBox = Box->ReadBox("~clients");
 
-	for (int i = 0; i < m_Users.Count(); i++) {
-		const char *Name = m_Users[i]->GetUsername();
+	int i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		CIRCConnection *IRC;
 
-		CAssocArray *IrcBox = Box->ReadBox(Name);
+		CAssocArray *IrcBox = Box->ReadBox(User->Name);
 
 		if (IrcBox) {
-			IRC = new CIRCConnection((SOCKET)IrcBox->ReadInteger("irc.fd"), IrcBox, m_Users[i]);
+			IRC = new CIRCConnection((SOCKET)IrcBox->ReadInteger("irc.fd"), IrcBox, User->Value);
 
-			m_Users[i]->SetIRCConnection(IRC);
+			User->Value->SetIRCConnection(IRC);
 		}
 
 		if (ClientsBox) {
-			CAssocArray *ClientBox = ClientsBox->ReadBox(Name);
+			CAssocArray *ClientBox = ClientsBox->ReadBox(User->Name);
 
 			if (ClientBox) {
-				CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, m_Users[i]);
+				CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, User->Value);
 
-				m_Users[i]->SetClientConnection(Client);
+				User->Value->SetClientConnection(Client);
 
-				if (m_Users[i]->IsAdmin())
-					m_Users[i]->Notice("shroudBNC was reloaded.");
+				if (User->Value->IsAdmin())
+					User->Value->Notice("shroudBNC was reloaded.");
 			}
 		}
 	}

@@ -22,6 +22,7 @@ template <typename Type> struct xhash_t {
 	Type Value;
 };
 
+// note: VolatileKeys == true -> keys are managed by the user of this class
 template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false> class CHashtable {
 	typedef void (DestroyValue)(Type P);
 

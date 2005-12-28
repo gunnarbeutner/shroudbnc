@@ -110,7 +110,7 @@ Security
 
 It is vital that you understand that any bouncer admin has access to:
 
-a) the shell account where bouncer bnc is running
+a) the shell account where the bouncer is running
 b) any user connections
 
 Using the TCL module any admin can perform shell commands (using the exec command) and send IRC commands for any user's connection. Thus you should choose your admins wisely. Do not load arbitrary scripts and make sure you understand any scripts you want to load.

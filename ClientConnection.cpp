@@ -737,13 +737,28 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
-		CBouncerUser** Users = g_Bouncer->GetUsers();
-		int lUsers = g_Bouncer->GetUserCount();
+	} else if (strcmpi(Subcommand, "impulse") == 0 && m_Owner->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: impulse <internal-command>");
 
-		for (int i = 0; i < lUsers; i++) {
+			return false;
+		}
+
+		const char *Reply = g_Bouncer->DebugImpulse(atoi(argv[1]));
+
+		if (Reply != NULL) {
+			SENDUSER(Reply);
+		} else {
+			SENDUSER("No return value.");
+		}
+
+		return false;
+	} else if (strcmpi(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
+		int i = 0;
+
+		while (xhash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			const char* Server, *ClientAddr;
-			CBouncerUser* User = Users[i];
+			CBouncerUser* User = UserHash->Value;
 
 			if (!User)
 				continue;
@@ -1238,7 +1253,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
-						CHashtable<CNick*, false, 64, true>* H = Chan->GetNames();
+						CHashtable<CNick*, false, 64>* H = Chan->GetNames();
 
 						int a = 0;
 
@@ -1381,6 +1396,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					LOGERROR("asprintf() failed.");
 				} else {
 					ParseLine(Out);
+					free(Out);
 				}
 
 				return false;
@@ -1447,18 +1463,16 @@ bool CClientConnection::ValidateUser() {
 	bool MatchUsername = false;
 	X509* PeerCert = NULL;
 	CBouncerUser* AuthUser = NULL;
-	CBouncerUser** Users = g_Bouncer->GetUsers();
 
 	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
-		for (int i = 0; i < g_Bouncer->GetUserCount(); i++) {
-			if (Users[i] == NULL)
-				continue;
+		int i = 0;
 
-			if (Users[i]->FindClientCertificate(PeerCert)) {
-				AuthUser = Users[i];
+		while (xhash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+			if (UserHash->Value->FindClientCertificate(PeerCert)) {
+				AuthUser = UserHash->Value;
 				Count++;
 
-				if (strcmpi(Users[i]->GetUsername(), m_Username) == 0)
+				if (strcmpi(UserHash->Name, m_Username) == 0)
 					MatchUsername = true;
 			}
 		}

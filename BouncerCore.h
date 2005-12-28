@@ -52,7 +52,7 @@ class CBouncerCore {
 	CClientListener *m_Listener;
 	CSSLClientListener *m_SSLListener;
 
-	CVector<CBouncerUser *> m_Users;
+	CHashtable<CBouncerUser *, false, 64> m_Users;
 	CVector<CModule *> m_Modules;
 	CVector<socket_s> m_OtherSockets;
 	CVector<CTimer *>m_Timers;
@@ -90,7 +90,7 @@ public:
 
 	virtual void GlobalNotice(const char *Text, bool AdminOnly = false);
 
-	virtual CBouncerUser **GetUsers(void);
+	virtual CHashtable<CBouncerUser *, false, 64> *GetUsers(void);
 	virtual int GetUserCount(void);
 
 	virtual CModule **GetModules(void);

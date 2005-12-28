@@ -100,7 +100,7 @@ const char* ArgGet(const char* Args, int Arg) {
 	for (int i = 0; i < Arg - 1; i++) {
 		Args += strlen(Args) + 1;
 
-		if (strlen(Args) == 0)
+		if (Args[0] == '\0')
 			return NULL;
 	}
 

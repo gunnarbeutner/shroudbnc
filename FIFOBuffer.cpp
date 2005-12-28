@@ -83,7 +83,9 @@ char* CFIFOBuffer::Read(unsigned int Bytes) {
 }
 
 void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
-	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
+	char* tempBuffer;
+
+	tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
 
 	if (tempBuffer == NULL) {
 		LOGERROR("realloc() failed. Lost %d bytes.", Size);

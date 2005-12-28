@@ -212,10 +212,8 @@ class CUptimeModule : public CModuleFar {
 
 		upPack.uptime = htonl(g_Bouncer->GetStartup());
 
-		CBouncerUser **Users = g_Bouncer->GetUsers();
-
 		if (g_Bouncer->GetUserCount() != 0) {
-			FirstUser = Users[0];
+			FirstUser = g_Bouncer->GetUsers()->Iterate(0)->Value;
 
 			upPack.ontime = htonl(Now - FirstUser->IRCUptime());
 		} else

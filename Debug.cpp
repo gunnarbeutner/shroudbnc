@@ -83,6 +83,8 @@ void* operator new(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
 
+	printf("operator new(%d) from %s\n", Size, sym->Name);
+
 	HeapFree(GetProcessHeap(), 0, sym);
 
 	return ptr;
@@ -122,6 +124,8 @@ void* DebugMalloc(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].size = Size;
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
+
+	printf("malloc(%d) from %s\n", Size, sym->Name);
 
 	HeapFree(GetProcessHeap(), 0, sym);
 

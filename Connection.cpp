@@ -236,23 +236,6 @@ CBouncerUser* CConnection::GetOwningClient(void) {
 	return m_Owner;
 }
 
-void* ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
-	if (OldSize != 0)
-		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
-
-	unsigned int CeilNewSize = NewSize + BLOCKSIZE - (NewSize % BLOCKSIZE);
-
-	unsigned int OldBlocks = OldSize / BLOCKSIZE;
-	unsigned int NewBlocks = CeilNewSize / BLOCKSIZE;
-
-	assert(NewBlocks * BLOCKSIZE > NewSize);
-
-	if (NewBlocks != OldBlocks)
-		return realloc(Buffer, NewBlocks * BLOCKSIZE);
-	else
-		return Buffer;
-}
-
 bool CConnection::Read(bool DontProcess) {
 	int n;
 	char Buffer[8192];

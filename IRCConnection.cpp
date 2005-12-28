@@ -212,7 +212,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	static CHashCompare hashPong("PONG");
 	// END of HASH values
 
-	if (!GetOwningClient()->GetClientConnection() && iRaw == 433) {
+	if (argc > 3 && !GetOwningClient()->GetClientConnection() && iRaw == 433) {
 		bool Ret = ModuleEvent(argc, argv);
 
 		if (Ret)
@@ -225,9 +225,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		char* Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
-			char* Dup = strdup(Reply);
+			char* Dup;
+			char* Delim;
 
-			char* Delim = strstr(Dup, "!");
+			Dup = strdup(Reply);
+
+			if (Dup == NULL) {
+				LOGERROR("strdup() failed.");
+
+				free(Nick);
+
+				return true;
+			}
+
+			Delim = strstr(Dup, "!");
 
 			if (Delim) {
 				*Delim = '\0';
@@ -257,17 +268,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		char* Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
-			char* Dup = strdup(Reply);
-
-/*			char* Delim = strstr(Dup, "!");
-
-			*Delim = '\0';
-
-			const char* Host = Delim + 1;*/
-
 			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
-
-//			free(Dup);
 		}
 
 		free(Nick);
@@ -305,8 +306,16 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			CChannel* Chan = GetChannel(argv[2]);
 
 			if (Chan) {
-				Nick = NickFromHostmask(Reply);
+				Nick = ::NickFromHostmask(Reply);
+
+				if (Nick == NULL) {
+					LOGERROR("NickFromHostmask() failed.");
+
+					return false;
+				}
+
 				Chan->RemoveUser(Nick);
+
 				free(Nick);
 			}
 		}
@@ -314,7 +323,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Reply);
 
 		return bRet;
-	} else if (argc > 2 && hashRaw == hashKick) {
+	} else if (argc > 3 && hashRaw == hashKick) {
 		bool bRet = ModuleEvent(argc, argv);
 
 		if (m_CurrentNick && strcmpi(argv[3], m_CurrentNick) == 0) {
@@ -380,7 +389,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		free(m_Server);
 		m_Server = strdup(Reply);
-	} else if (argc > 1 && hashRaw == hashNick) {
+	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
 			free(m_CurrentNick);
 			m_CurrentNick = strdup(argv[2]);
@@ -391,7 +400,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int i = 0;
 
 		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			CHashtable<CNick*, false, 64, true>* Nicks = Chan->Value->GetNames();
+			CHashtable<CNick*, false, 64>* Nicks = Chan->Value->GetNames();
 
 			CNick* NickObj = Nicks->Get(Nick);
 
@@ -400,7 +409,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 				NickObj->SetNick(argv[2]);
 
-				Nicks->Add(NickObj->GetNick(), NickObj);
+				Nicks->Add(argv[2], NickObj);
 			}
 		}
 
@@ -501,7 +510,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			GetOwningClient()->GetLog()->InternalWriteLine(Out);
 
 		free(Out);
-	} else if (argc > 3 && iRaw == 351) {
+	} else if (argc > 5 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
 
@@ -1010,7 +1019,18 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 }
 
 void CIRCConnection::UpdateHostHelper(const char* Host) {
-	char* Copy = strdup(Host);
+	const char *NickEnd;
+	int Offset;
+	char* Copy;
+
+	NickEnd = strstr(Host, "!");
+
+	if (NickEnd == NULL)
+		return;
+
+	Offset = NickEnd - Host;
+
+	Copy = strdup(Host);
 
 	if (Copy == NULL) {
 		LOGERROR("strdup() failed. Could not update hostmask. (%s)", Host);
@@ -1019,15 +1039,10 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	}
 
 	const char* Nick = Copy;
-	char* Site = strstr(Copy, "!");
+	char* Site = Copy + Offset;
 
-	if (Site) {
-		*Site = '\0';
-		Site++;
-	} else {
-		free(Copy);
-		return;
-	}
+	*Site = '\0';
+	Site++;
 
 	if (m_CurrentNick && strcmpi(Nick, m_CurrentNick) == 0) {
 		free(m_Site);

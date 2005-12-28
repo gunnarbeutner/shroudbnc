@@ -47,15 +47,19 @@
 # unadmin user
 # getident user
 # setident user ident
-# vgroupsupport
+# hasplugin plugin
 
 catch {listen 8090 script sbnc:iface}
+
+set ::ifacehandlers [list]
 
 proc sbnc:iface {socket} {
 	control $socket sbnc:ifacemsg
 }
 
 proc sbnc:ifacecmd {command params account} {
+	global ifacehandlers
+
 	set result ""
 
 	switch -- $command {
@@ -105,7 +109,7 @@ proc sbnc:ifacecmd {command params account} {
 		}
 
 		"set" {
-			if {[lsearch -exact [list server port realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
+			if {[lsearch -exact [list server port serverpass realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
 				set result "denied"
 			} else {
 				setbncuser $account [lindex $params 0] [join [lrange $params 1 end]]
@@ -133,18 +137,35 @@ proc sbnc:ifacecmd {command params account} {
 		"simul" {
 			simul $account [join $params]
 		}
+		"hasplugin" {
+			set result 0
+
+			foreach plugin $ifacehandlers {
+				if {[string equal -nocase [lindex $plugin 0] [lindex $params 0]]} {
+					set result 1
+					break
+				}
+			}
+		}
 	}
 
-	if {[lsearch -exact [info commands] "virtual:ifacecmd"] != -1} {
-		set tempResult [virtual:ifacecmd $command $params $account]
+	if {[info exists ifacehandlers]} {
+		foreach handler $ifacehandlers {
+			set tempResult [[lindex $handler 1] $command $params $account]
 
-		if {$tempResult != ""} { set result $tempResult }
+			if {$tempResult != ""} {
+				set result $tempResult
+				break
+			}
+		}
 	}
 
 	return $result
 }
 
 proc sbnc:ifacemsg {socket line} {
+	global ifacehandlers
+
 	set toks [split $line]
 
 	set code [lindex $toks 0]
@@ -217,17 +238,20 @@ proc sbnc:ifacemsg {socket line} {
 			"setident" {
 				setbncuser [lindex $params 0] ident [lindex $params 1]
 			}
-			"vgroupsupport" {
-				if {[lsearch -exact [info commands] "virtual:ifacecmd"] != -1} {
-					set result 1
-				} else {
-					set result 0
-				}
-			}
 		}
 	}
 
 	putdcc $socket "$code $result"
+}
+
+proc registerifacehandler {plugin handler} {
+	if {![info exists ::ifacehandlers]} {
+		set ::ifacehandlers [list [list $plugin $handler]]
+	} else {
+		lappend ::ifacehandlers [list $plugin $handler]
+	}
+
+	return ""
 }
 
 return ""

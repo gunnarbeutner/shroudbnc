@@ -121,3 +121,17 @@ extern "C" bool sbncPrepareFreeze(void) {
 
 	return true;
 }
+
+/* for debugging */
+int main(int argc, char **argv) {
+	loaderparams_s p;
+
+	p.Version = 200;
+	p.argc = argc;
+	p.argv = argv;
+	p.Box = NULL;
+
+	sbncLoad(&p);
+
+	return 0;
+}

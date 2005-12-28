@@ -61,15 +61,17 @@ const char* getctx(void) {
 }
 
 const char* bncuserlist(void) {
+	int i;
 	int Count = g_Bouncer->GetUserCount();
-	CBouncerUser** Users = g_Bouncer->GetUsers();
 
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-	for (int i = 0; i < Count; i++) {
-		if (Users[i])
-			argv[argc++] = Users[i]->GetUsername();
+	CHashtable<CBouncerUser *, false, 64> *Users = g_Bouncer->GetUsers();
+
+	i = 0;
+	while (xhash_t<CBouncerUser *> *User = Users->Iterate(i++)) {
+		argv[argc++] = User->Name;
 	}
 
 	static char* List = NULL;
@@ -493,7 +495,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	CHashtable<CNick*, false, 64, true>* Names = Chan->GetNames();
+	CHashtable<CNick*, false, 64>* Names = Chan->GetNames();
 
 	int Count = Names->Count();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
