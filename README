@@ -22,27 +22,18 @@ make install
 
 Once you've compiled sbnc you will need to edit shroudBNC's configuration files:
 
-sbnc.conf, users/username.conf and sbnc.tcl
+The "conftool" can be used to generate a basic configuration file. Execute it using "./conftool":
 
-The default sbnc.conf looks like this:
+"test@temple:~/sbnc$ ./conftool
+shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
+*** configuration generator
 
-system.port=9000
-system.users=example
-system.md5=1
-
-Simply replace 'example' with your desired username and set the bnc's port. If you want that sbnc listens on a specific ip address, you can add the following setting:
-
-system.ip=your.ip.address.here
-
-Rename the default user config file 'example.conf' (in the users directory) to match the username you've chosen. E.g. if your username is 'test' you should use 'test.conf' for the config file.
-
-Edit the user config like you've edited the sbnc.conf. You will need the 'md5tool' utility to generate an md5 hash for your password:
-
-dev@zero:~/sbnc$ ./md5tool password
-5f4dcc3b5aa765d61d8327deb882cf99
-dev@zero:~/sbnc$
-
-You will have the opportunity to change your password again once the bouncer is online.
+This utility will automatically generate a suitable configuration
+for you once it has asked you some questions.
+1. Which port should the bouncer listen on? 5000
+2. What should the first user's name be? test
+3. Please enter a password for the first user: moo
+Writing config..."
 
 Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts you want.
 
@@ -81,15 +72,13 @@ Installing the TCL module might sometimes be a bit tricky. You should know this 
 -the path of your TCL libraries
 -the path of the include files
 
-The command for compiling the TCL module looks like this (You need to execute it in the sbnc-1.0/tickle directory):
+The commands for compiling the TCL module look like this (You need to execute them in the sbnc-1.0/tickle directory):
 
-g++ -I/include/directory -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /path/to/your/libtcl8.x.so
+./configure
+make
+make install
 
-For example, if your include files are in /usr/include/tcl8.4 and your libtcl8.x.so can be found at /usr/lib/libtcl8.4.so you can use this command to compile the TCL module:
-
-g++ -I/usr/include/tcl8.4 -shared -Wl,-soname,ticklebnc -fPIC -o tickle.so *.cpp tickleProcs_wrap.c itoa.c -g /usr/lib/libtcl8.4.so
-
-Once you've compiled the TCL module there should be a file called "tickle.so". Copy it into the ~/sbnc directory and load it using this command (while connected to the bouncer): /sbnc insmod ./tickle.so
+Once you've compiled the TCL module there should be a file called "tickle.so" in the ~/sbnc directory. Load it using this command (while connected to the bouncer): /sbnc insmod ./tickle.so
 
 Updating shroudBNC
 ------------------
