@@ -1,0 +1,8 @@
+CC=$(CXX)
+OBJS=TclClientSocket.o TclSocket.o tickle.o tickleProcs.o tickleProcs_wrap.o itoa.o
+CFLAGS=@TCL_INCLUDE_SPEC@ -fPIC
+CXXFLAGS=@TCL_INCLUDE_SPEC@ -fPIC
+LDFLAGS=@TCL_LIB_SPEC@
+
+tickle.so: $(OBJS)
+	$(CXX) $(LDFLAGS) -g -o $@ $(OBJS)
