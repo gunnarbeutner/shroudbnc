@@ -16,6 +16,10 @@ sinclude(tcl.m4)
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 
+if test \( "$TCL_MAJOR_VERSION" -lt 8 \) -o \( \( "$TCL_MAJOR_VERSION" -eq 8 \) -a \( "$TCL_MINOR_VERSION" -lt 4 \) \); then
+	AC_MSG_ERROR([You need at least TCL 8.4 for this module.])
+fi
+
 AC_SUBST(TCL_INCLUDE_SPEC)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(TCL_LIB_SPEC)
