@@ -66,8 +66,6 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 char* NickFromHostmask(const char *Hostmask);
 void string_free(char *string);
 
-int keyStrCmp(const void *a, const void *b);
-
 const char *UtilMd5(const char *String);
 
 void FlushCommands(commandlist_t *Commands);

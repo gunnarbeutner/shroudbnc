@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-int keyStrCmp(const void *a, const void *b);
-
 template <typename Type> struct xhash_t {
 	char* Name;
 	Type Value;
 };
+
+int keyStrCmp(const void* a, const void* b);
 
 // note: VolatileKeys == true -> keys are managed by the user of this class
 template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false> class CHashtable {

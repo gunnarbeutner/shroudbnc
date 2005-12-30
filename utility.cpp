@@ -164,12 +164,12 @@ const char **ArgDupArray(const char **ArgV) {
 	for (int i = 0; i < Count; i++)
 		Len += strlen(ArgV[i]) + 1;
 
-	Dup = (char **)malloc(Count * sizeof(char *) + Len + 1);
+	Dup = (char **)malloc(Count * sizeof(char *) + Len + 2);
 
 	Offset = (char *)Dup + Count * sizeof(char *) - ArgV[0];
 
 	memcpy(Dup, ArgV, Count * sizeof(char *));
-	memcpy((char *)Dup + Count * sizeof(char *), ArgV[0], Len + 1);
+	memcpy((char *)Dup + Count * sizeof(char *), ArgV[0], Len + 2);
 
 	for (int i = 0; i < Count; i++)
 		Dup[i] += Offset;
@@ -417,10 +417,6 @@ void string_free(char* string) {
 	free(string);
 }
 
-int keyStrCmp(const void* a, const void* b) {
-	return strcmp(*(const char**)a, *(const char**)b);
-}
-
 const char* UtilMd5(const char* String) {
 	MD5_CTX context;
 	static char Result[33];
@@ -486,4 +482,8 @@ void DestroyCommandT(command_t *Command) {
 	free(Command->Description);
 	free(Command->HelpText);
 	free(Command);
+}
+
+int keyStrCmp(const void* a, const void* b) {
+	return strcmp(*(const char**)a, *(const char**)b);
 }
