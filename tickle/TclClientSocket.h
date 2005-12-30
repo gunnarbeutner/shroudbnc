@@ -26,7 +26,7 @@
 
 class CTclClientSocket : public CSocketEvents {
 public:
-	CTclClientSocket(SOCKET Socket);
+	CTclClientSocket(SOCKET Socket, bool IsClient, bool SSL);
 	virtual ~CTclClientSocket();
 
 	virtual void Destroy(void);

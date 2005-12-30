@@ -22,9 +22,36 @@ char* LastArg(char* Args);
 class CIRCConnection;
 class CBouncerUser;
 
+typedef struct command_s {
+	char *Category;
+	char *Description;
+	char *HelpText;
+} command_t;
+
+typedef class CHashtable<command_t *, false, 16> *commandlist_t;
+
+typedef struct utility_s {
+	const char *(*ArgParseServerLine)(const char *Data);
+	const char *(*ArgTokenize)(const char *Data);
+	const char **(*ArgToArray)(const char *Args);
+	void (*ArgRejoinArray)(const char **ArgV, int Index);
+	const char **(*ArgDupArray)(const char **ArgV);
+	void (*ArgFree)(const char *Args);
+	void (*ArgFreeArray)(const char **Array);
+	const char *(*ArgGet)(const char *Args, int Arg);
+	int (*ArgCount)(const char *Args);
+
+	void (*FlushCommands)(commandlist_t *Commands);
+	void (*AddCommand)(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
+	void (*DeleteCommand)(commandlist_t *Commands, const char *Name);
+	int (*CmpCommandT)(const void *pA, const void *pB);
+} utility_t;
+
 const char *ArgParseServerLine(const char *Data);
 const char *ArgTokenize(const char *Data);
 const char **ArgToArray(const char *Args);
+void ArgRejoinArray(const char **ArgV, int Index);
+const char **ArgDupArray(const char **ArgV);
 void ArgFree(const char *Args);
 void ArgFreeArray(const char **Array);
 const char *ArgGet(const char *Args, int Arg);
@@ -42,6 +69,12 @@ void string_free(char *string);
 int keyStrCmp(const void *a, const void *b);
 
 const char *UtilMd5(const char *String);
+
+void FlushCommands(commandlist_t *Commands);
+void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
+void DeleteCommand(commandlist_t *Commands, const char *Name);
+int CmpCommandT(const void *pA, const void *pB);
+void DestroyCommandT(command_t *Command);
 
 #define BNCVERSION "1.0 $Revision$"
 

@@ -43,3 +43,12 @@ Revision 323:
 
 Revision 324:
 -added uptime module
+
+Revision 351:
+-several minor bugfixes
+-added plugin support for iface
+-added ssl support for tcl sockets
+-added ssl support for iface
+-added support for overriding built-in iface commands
+-improved performance
+-made /sbnc help editable using modules

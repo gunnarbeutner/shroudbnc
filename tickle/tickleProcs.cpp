@@ -1346,7 +1346,7 @@ void bncjoinchans(const char* User) {
 		Context->GetIRCConnection()->JoinChannels();
 }
 
-int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag) {
+int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag, bool SSL) {
 	if (strcmpi(Type, "script") == 0) {
 		if (Options == NULL)
 			throw "You need to specifiy a control proc.";
@@ -1354,7 +1354,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 
 		const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
-		CTclSocket* TclSocket = new CTclSocket(Port, BindIp, Options);
+		CTclSocket* TclSocket = new CTclSocket(Port, BindIp, Options, SSL);
 
 		if (!TclSocket)
 			throw "Could not create object.";
@@ -1407,13 +1407,13 @@ void internalsocketwriteln(int Socket, const char* Line) {
 	SockPtr->WriteLine(Line);
 }
 
-int internalconnect(const char* Host, unsigned short Port) {
+int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 	SOCKET Socket = g_Bouncer->SocketAndConnect(Host, Port, NULL);
 
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
 
-	CTclClientSocket* Wrapper = new CTclClientSocket(Socket);
+	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, true, SSL);
 
 	return Wrapper->GetIdx();
 }
@@ -1801,4 +1801,38 @@ bool synthwho(const char *Channel, bool Simulate) {
 
 const char *impulse(int imp) {
 	return g_Bouncer->DebugImpulse(imp);
+}
+
+void bncaddcommand(const char *Name, const char *Category, const char *Description, const char *HelpText) {
+	CBouncerUser *Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return;
+
+	CClientConnection *Client = Context->GetClientConnection();
+
+	if (Client == NULL)
+		return;
+
+	commandlist_t *List = Client->GetCommandList();
+	const utility_t *Utils = g_Bouncer->GetUtilities();
+
+	Utils->AddCommand(List, Name, Category, Description, HelpText);
+}
+
+void bncdeletecommand(const char *Name) {
+	CBouncerUser *Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		return;
+
+	CClientConnection *Client = Context->GetClientConnection();
+
+	if (Client == NULL)
+		return;
+
+	commandlist_t *List = Client->GetCommandList();
+	const utility_t *Utils = g_Bouncer->GetUtilities();
+
+	Utils->DeleteCommand(List, Name);
 }

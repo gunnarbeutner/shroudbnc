@@ -46,8 +46,13 @@ CBouncerLog::~CBouncerLog() {
 	free(m_File);
 }
 
-void CBouncerLog::PlayToUser(CBouncerUser* User, bool NoticeUser) {
+void CBouncerLog::PlayToUser(CBouncerUser* User, int Type) {
 	FILE* Log;
+
+	CIRCConnection *IRC = User->GetIRCConnection();
+	CClientConnection *Client = User->GetClientConnection();
+	const char *Nick;
+	const char *Server;
 
 	if (m_File && (Log = fopen(m_File, "r"))) {
 		char Line[500];
@@ -55,15 +60,30 @@ void CBouncerLog::PlayToUser(CBouncerUser* User, bool NoticeUser) {
 			char* n = fgets(Line, sizeof(Line), Log);
 
 			if (n) {
-				if (NoticeUser)
+				if (Type == Log_Notice)
 					User->RealNotice(Line);
-				else
+				else if (Type == Log_Message)
 					User->Notice(Line);
+				else if (Type == Log_Motd) {
+					if (IRC) {
+						Nick = IRC->GetCurrentNick();
+						Server = IRC->GetServer();
+					} else {
+						Nick = Client->GetNick();
+						Server = "bouncer.shroudbnc.org";
+					}
+
+					if (Client)
+						Client->WriteLine(":%s 372 %s :%s", Server, Nick, Line);
+				}
 			}
 		}
 
 		fclose(Log);
 	}
+
+	if (Type == Log_Motd && Client)
+		Client->WriteLine(":%s 376 %s :End of /MOTD command.", Server, Nick);
 }
 
 void CBouncerLog::InternalWriteLine(const char* Line) {

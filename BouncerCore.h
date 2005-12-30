@@ -124,7 +124,7 @@ public:
 	virtual int GetArgC(void);
 	virtual char **GetArgV(void);
 
-	virtual CConnection *WrapSocket(SOCKET Socket);
+	virtual CConnection *WrapSocket(SOCKET Socket, bool IsClient = true, bool SSL = false);
 	virtual void DeleteWrapper(CConnection *Wrapper);
 
 	virtual void Free(void *Pointer);
@@ -163,6 +163,8 @@ public:
 	virtual bool Unfreeze(CAssocArray *Box);
 	virtual bool InitializeFreeze(void);
 	virtual const loaderparams_s *GetLoaderParameters(void);
+
+	virtual const utility_t *GetUtilities(void);
 };
 
 extern CBouncerCore *g_Bouncer;

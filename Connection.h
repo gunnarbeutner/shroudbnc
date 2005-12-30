@@ -60,10 +60,12 @@ class CConnection : public CSocketEvents {
 	in_addr* m_BindAddr;
 	in_addr* m_HostAddr;
 
+	connection_role_e m_Role;
+
 	void InitConnection(SOCKET Client, bool SSL);
 public:
 #ifndef SWIG
-	CConnection(SOCKET Client, bool SSL = false);
+	CConnection(SOCKET Client, bool SSL = false, connection_role_e Role = Role_IRC);
 	CConnection(const char* Host, unsigned short Port, const char* BindIp, bool SSL = false);
 #endif
 	virtual ~CConnection(void);

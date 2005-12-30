@@ -15,6 +15,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+# options
+set ::ifaceport 8090
+set ::ifacessl 0
+
 # iface commands:
 # +user:
 # null
@@ -45,11 +49,10 @@
 # deluser user
 # admin user
 # unadmin user
-# getident user
 # setident user ident
 # hasplugin plugin
 
-catch {listen 8090 script sbnc:iface}
+catch [list listen $::ifaceport script sbnc:iface "" $::ifacessl]
 
 set ::ifacehandlers [list]
 
@@ -61,6 +64,16 @@ proc sbnc:ifacecmd {command params account} {
 	global ifacehandlers
 
 	set result ""
+
+	if {[info exists ifacehandlers]} {
+		foreach handler $ifacehandlers {
+			set tempResult [[lindex $handler 1] $command $params $account]
+
+			if {$tempResult != ""} {
+				return $tempResult
+			}
+		}
+	}
 
 	switch -- $command {
 		"null" {
@@ -149,17 +162,6 @@ proc sbnc:ifacecmd {command params account} {
 		}
 	}
 
-	if {[info exists ifacehandlers]} {
-		foreach handler $ifacehandlers {
-			set tempResult [[lindex $handler 1] $command $params $account]
-
-			if {$tempResult != ""} {
-				set result $tempResult
-				break
-			}
-		}
-	}
-
 	return $result
 }
 
@@ -231,9 +233,6 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"unadmin" {
 				setbncuser [lindex $params 0] admin 0
-			}
-			"getident" {
-				set result [getbncuser [lindex $params 0] ident]
 			}
 			"setident" {
 				setbncuser [lindex $params 0] ident [lindex $params 1]

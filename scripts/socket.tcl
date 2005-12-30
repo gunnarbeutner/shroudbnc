@@ -15,12 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-proc listen {port type {mask ""} {flag ""}} {
-	return [internallisten $port $type $mask $flag]
+proc listen {port type {mask ""} {flag ""} {ssl 0}} {
+	return [internallisten $port $type $mask $flag $ssl]
 }
 
-proc connect {host port} {
-	return [internalconnect $host $port]
+proc connect {host port {ssl 0}} {
+	return [internalconnect $host $port $ssl]
 }
 
 proc putdcc {idx text} {

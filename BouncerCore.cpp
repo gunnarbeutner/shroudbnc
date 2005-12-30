@@ -31,6 +31,8 @@ extern loaderparams_s *g_LoaderParameters;
 const char* g_ErrorFile;
 unsigned int g_ErrorLine;
 
+CHashtable<command_t, false, 16> *g_Commands = NULL;
+
 #ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
 int g_SSLCustomIndex;
@@ -981,8 +983,8 @@ char** CBouncerCore::GetArgV(void) {
 	return m_Args.GetList();
 }
 
-CConnection* CBouncerCore::WrapSocket(SOCKET Socket) {
-	CConnection* Wrapper = new CConnection(Socket);
+CConnection* CBouncerCore::WrapSocket(SOCKET Socket, bool IsClient, bool SSL) {
+	CConnection* Wrapper = new CConnection(Socket, SSL, IsClient ? Role_IRC : Role_Client);
 
 	Wrapper->m_Wrapper = true;
 
@@ -1268,4 +1270,29 @@ bool CBouncerCore::InitializeFreeze(void) {
 
 const loaderparams_s *CBouncerCore::GetLoaderParameters(void) {
 	return g_LoaderParameters;
+}
+
+const utility_t *CBouncerCore::GetUtilities(void) {
+	static utility_t *Utils = NULL;
+
+	if (Utils == NULL) {
+		Utils = (utility_t *)malloc(sizeof(utility_t));
+
+		Utils->ArgParseServerLine = ArgParseServerLine;
+		Utils->ArgTokenize = ArgTokenize;
+		Utils->ArgToArray = ArgToArray;
+		Utils->ArgRejoinArray = ArgRejoinArray;
+		Utils->ArgDupArray = ArgDupArray;
+		Utils->ArgFree = ArgFree;
+		Utils->ArgFreeArray = ArgFreeArray;
+		Utils->ArgGet = ArgGet;
+		Utils->ArgCount = ArgCount;
+
+		Utils->FlushCommands = FlushCommands;
+		Utils->AddCommand = AddCommand;
+		Utils->DeleteCommand = DeleteCommand;
+		Utils->CmpCommandT = CmpCommandT;
+	}
+
+	return Utils;
 }

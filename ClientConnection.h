@@ -39,6 +39,8 @@ class CClientConnection : public CConnection {
 
 	CClientDnsEvents* m_DnsEvents;
 
+	commandlist_t m_CommandList;
+
 #ifndef SWIG
 	adns_query m_PeerA;
 #endif
@@ -77,4 +79,6 @@ public:
 	virtual bool Freeze(CAssocArray *Box);
 
 	virtual void Kill(const char *Error);
+
+	virtual commandlist_t *GetCommandList(void);
 };

@@ -116,9 +116,9 @@ void bncreply(const char* Text);
 int trafficstats(const char* User, const char* ConnectionType = NULL, const char* Type = NULL);
 void bncjoinchans(const char* User);
 
-int internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0);
+int internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0, bool SSL = false);
 void internalsocketwriteln(int Socket, const char* Line);
-int internalconnect(const char* Host, unsigned short Port);
+int internalconnect(const char* Host, unsigned short Port, bool SSL = false);
 void internalclosesocket(int Socket);
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter = 0);
@@ -148,6 +148,9 @@ bool bncvalidusername(const char* Name);
 
 int bncgetsendq(void);
 void bncsetsendq(int NewSize);
+
+void bncaddcommand(const char *Name, const char *Category, const char *Description, const char *HelpText = 0);
+void bncdeletecommand(const char *Name);
 
 bool synthwho(const char *Channel, bool Simulate);
 const char* getchanrealname(const char* Nick, const char* Channel = 0);

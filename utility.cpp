@@ -73,7 +73,7 @@ const char* ArgTokenize(const char* Data) {
 	Copy[strlen(Data) + 1] = '\0';
 
 	for (unsigned int i = 0; i < strlen(Data); i++) {
-		if (Copy[i] == ' ') {
+		if (Copy[i] == ' ' && Copy[i + 1] != ' ') {
 //			if (++Count == MaxArgs && MaxArgs != -1)
 //				break;
 
@@ -140,6 +140,41 @@ const char** ArgToArray(const char* Args) {
 	}
 
 	return ArgArray;
+}
+
+void ArgRejoinArray(const char **ArgV, int Index) {
+	int Count = ArgCount(ArgV[0]);
+
+	if (Count - 1 <= Index)
+		return;
+
+	for (int i = Index + 1; i < Count; i++) {
+		char *Arg = const_cast<char *>(ArgV[i]);
+
+		*(Arg - 1) = ' ';
+	}
+}
+
+const char **ArgDupArray(const char **ArgV) {
+	char **Dup;
+	int Len = 0;
+	int Offset;
+	int Count = ArgCount(ArgV[0]);
+
+	for (int i = 0; i < Count; i++)
+		Len += strlen(ArgV[i]) + 1;
+
+	Dup = (char **)malloc(Count * sizeof(char *) + Len + 1);
+
+	Offset = (char *)Dup + Count * sizeof(char *) - ArgV[0];
+
+	memcpy(Dup, ArgV, Count * sizeof(char *));
+	memcpy((char *)Dup + Count * sizeof(char *), ArgV[0], Len + 1);
+
+	for (int i = 0; i < Count; i++)
+		Dup[i] += Offset;
+
+	return (const char **)Dup;
 }
 
 void ArgFree(const char* Args) {
@@ -403,4 +438,52 @@ const char* UtilMd5(const char* String) {
 	}
 
 	return Result;
+}
+
+void FlushCommands(commandlist_t *Commands) {
+	if (*Commands != NULL) {
+		delete *Commands;
+		*Commands = NULL;
+	}
+}
+
+void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText) {
+	command_t *Command = (command_t *)malloc(sizeof(command_t));
+
+	Command->Category = strdup(Category);
+	Command->Description = strdup(Description);
+	Command->HelpText = HelpText ? strdup(HelpText) : NULL;
+
+	if (*Commands == NULL) {
+		*Commands = new CHashtable<command_t *, false, 16>();
+		(*Commands)->RegisterValueDestructor(DestroyCommandT);
+	}
+
+	(*Commands)->Add(Name, Command);
+}
+
+void DeleteCommand(commandlist_t *Commands, const char *Name) {
+	if (*Commands == NULL)
+		return;
+	else
+		(*Commands)->Remove(Name);
+}
+
+int CmpCommandT(const void *pA, const void *pB) {
+	const xhash_t<command_t *> *a = (const xhash_t<command_t *> *)pA;
+	const xhash_t<command_t *> *b = (const xhash_t<command_t *> *)pB;
+
+	int CmpCat = strcmpi(a->Value->Category, b->Value->Category);
+
+	if (CmpCat == 0)
+		return strcmpi(a->Name, b->Name);
+	else
+		return CmpCat;
+}
+
+void DestroyCommandT(command_t *Command) {
+	free(Command->Category);
+	free(Command->Description);
+	free(Command->HelpText);
+	free(Command);
 }

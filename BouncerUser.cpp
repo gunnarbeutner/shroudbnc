@@ -239,6 +239,8 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	SetClientConnection(Client, true);
 
+	CBouncerLog *Motd = new CBouncerLog("sbnc.motd");
+
 	if (m_IRC) {
 		m_IRC->InternalWriteLine("AWAY");
 
@@ -257,7 +259,11 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 
-			m_Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
+			if (Motd->IsEmpty()) {
+				m_Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
+			} else{
+				Motd->PlayToUser(this, Log_Motd);
+			}
 
 			m_Client->ParseLine("VERSION");
 
@@ -295,13 +301,17 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 			free(Keys);
 		}
-	} else
+	} else {
+		if (!Motd->IsEmpty())
+			Motd->PlayToUser(this, Log_Motd);
+
 		ScheduleReconnect(0);
+	}
 
-	const char* Motd = g_Bouncer->GetConfig()->ReadString("system.motd");
+	const char* MotdText = g_Bouncer->GetConfig()->ReadString("system.motd");
 
-	if (Motd && *Motd) {
-		asprintf(&Out, "Message of the day: %s", Motd);
+	if (MotdText && *MotdText) {
+		asprintf(&Out, "Message of the day: %s", MotdText);
 		
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
@@ -725,7 +735,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 
 			const char* Away = m_Config->ReadString("user.away");
 
-			if (Away) {
+			if (Away && *Away) {
 				bool AppendTS = (m_Config->ReadInteger("user.ts") != 0);
 
 				if (!AppendTS)

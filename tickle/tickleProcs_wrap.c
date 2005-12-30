@@ -2797,6 +2797,7 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     char *arg2 = (char *) 0 ;
     char *arg3 = (char *) 0 ;
     char *arg4 = (char *) 0 ;
+    bool arg5 = (bool) false ;
     int result;
     Tcl_DString ds_2 ;
     bool ds_use_2 = false ;
@@ -2804,8 +2805,9 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     bool ds_use_3 = false ;
     Tcl_DString ds_4 ;
     bool ds_use_4 = false ;
+    int tempb5 ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"ho|oo:internallisten Port Type ?Options? ?Flag? ",&arg1,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"ho|ooo:internallisten Port Type ?Options? ?Flag? ?SSL? ",&arg1,(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
     {
         ds_use_2 = true;
         arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
@@ -2822,9 +2824,13 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
             arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
         }
     }
+    if (objc > 5) {
+        if (Tcl_GetIntFromObj(interp,objv[5],&tempb5) == TCL_ERROR) SWIG_fail;
+        arg5 = tempb5 ? true : false;
+    }
     {
         try {
-            result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -2900,18 +2906,24 @@ static int
 _wrap_internalconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     unsigned short arg2 ;
+    bool arg3 = (bool) false ;
     int result;
     Tcl_DString ds_1 ;
     bool ds_use_1 = false ;
+    int tempb3 ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"oh:internalconnect Host Port ",(void *)0,&arg2) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"oh|o:internalconnect Host Port ?SSL? ",(void *)0,&arg2,(void *)0) == TCL_ERROR) SWIG_fail;
     {
         ds_use_1 = true;
         arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
     }
+    if (objc > 3) {
+        if (Tcl_GetIntFromObj(interp,objv[3],&tempb3) == TCL_ERROR) SWIG_fail;
+        arg3 = tempb3 ? true : false;
+    }
     {
         try {
-            result = (int)internalconnect((char const *)arg1,arg2);
+            result = (int)internalconnect((char const *)arg1,arg2,arg3);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -3557,6 +3569,121 @@ _wrap_bncsetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
+_wrap_bncaddcommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_2 ;
+    bool ds_use_2 = false ;
+    Tcl_DString ds_3 ;
+    bool ds_use_3 = false ;
+    Tcl_DString ds_4 ;
+    bool ds_use_4 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"ooo|o:bncaddcommand Name Category Description ?HelpText? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    {
+        ds_use_2 = true;
+        arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+    }
+    {
+        ds_use_3 = true;
+        arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
+    }
+    if (objc > 4) {
+        {
+            ds_use_4 = true;
+            arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
+        }
+    }
+    {
+        try {
+            bncaddcommand((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    {
+        if (ds_use_4)
+        Tcl_DStringFree(&ds_4);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncdeletecommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o:bncdeletecommand Name ",(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    {
+        try {
+            bncdeletecommand((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_synthwho(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     bool arg2 ;
@@ -4110,7 +4237,7 @@ _wrap_jump(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         }
     }
     
-     return TCL_OK;
+    return TCL_OK;
     fail:
     return TCL_ERROR;
 }
@@ -4565,6 +4692,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncvalidusername", (swig_wrapper_func) _wrap_bncvalidusername, NULL},
     { SWIG_prefix "bncgetsendq", (swig_wrapper_func) _wrap_bncgetsendq, NULL},
     { SWIG_prefix "bncsetsendq", (swig_wrapper_func) _wrap_bncsetsendq, NULL},
+    { SWIG_prefix "bncaddcommand", (swig_wrapper_func) _wrap_bncaddcommand, NULL},
+    { SWIG_prefix "bncdeletecommand", (swig_wrapper_func) _wrap_bncdeletecommand, NULL},
     { SWIG_prefix "synthwho", (swig_wrapper_func) _wrap_synthwho, NULL},
     { SWIG_prefix "getchanrealname", (swig_wrapper_func) _wrap_getchanrealname, NULL},
     { SWIG_prefix "impulse", (swig_wrapper_func) _wrap_impulse, NULL},

@@ -35,9 +35,10 @@ extern Tcl_Interp* g_Interp;
 IMPL_SOCKETLISTENER(CTclSocket, int) {
 private:
 	int m_Idx;
+	bool m_SSL;
 	char *m_TclProc;
 public:
-	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc) : CListenerBase<int>(Port, BindIp, NULL) {
+	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<int>(Port, BindIp, NULL) {
 		char Buf[20];
 
 		m_TclProc = strdup(TclProc);
@@ -45,6 +46,8 @@ public:
 		itoa(g_SocketIdx, Buf, 10);
 		m_Idx = g_SocketIdx;
 		g_SocketIdx++;
+
+		m_SSL = SSL;
 
 		g_TclListeners->Add(Buf, this);
 	}
@@ -72,10 +75,10 @@ public:
 		Tcl_Obj* objv[2];
 		CTclClientSocket *TclClient;
 
-		TclClient = new CTclClientSocket(Client);
+		TclClient = new CTclClientSocket(Client, false, m_SSL);
 
 		itoa(TclClient->GetIdx(), ptr, 10);
-		
+
 		objv[0] = Tcl_NewStringObj(m_TclProc, strlen(m_TclProc));
 		Tcl_IncrRefCount(objv[0]);
 

@@ -689,8 +689,9 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 
 	for (int i = 0; i < Count; i++) {
 		if (Modules[i]) {
-			if (!Modules[i]->InterceptIRCMessage(this, argc, argv))
+			if (!Modules[i]->InterceptIRCMessage(this, argc, argv)) {
 				return false;
+			}
 		}
 	}
 

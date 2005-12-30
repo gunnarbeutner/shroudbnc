@@ -1,0 +1,7 @@
+shroudBNC: sbnc.motd
+--------------------
+
+If you create a file called "sbnc.motd" in your bouncer's directory this
+file will be presented to users of your bouncer whenever they connect to it.
+shroudBNC uses the same irc replies (372 and 376) for this like the ircd
+command /MOTD.

@@ -30,9 +30,9 @@ extern int g_SocketIdx;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CTclClientSocket::CTclClientSocket(SOCKET Socket) {
+CTclClientSocket::CTclClientSocket(SOCKET Socket, bool IsClient, bool SSL) {
 	m_Socket = Socket;
-	m_Wrap = g_Bouncer->WrapSocket(Socket);
+	m_Wrap = g_Bouncer->WrapSocket(Socket, IsClient, SSL);
 	g_Bouncer->RegisterSocket(Socket, this);
 
 	char Buf[20];

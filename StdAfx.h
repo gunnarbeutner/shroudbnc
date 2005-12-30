@@ -118,9 +118,9 @@ int profilestrcmpi(const char*, const char*);
 #endif
 #endif
 
-#include "utility.h"
 #include "Vector.h"
 #include "Hashtable.h"
+#include "utility.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Timer.h"

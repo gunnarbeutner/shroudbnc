@@ -109,7 +109,7 @@ bool CNick::RemovePrefix(char Prefix) {
 
 	char* Copy = (char*)malloc(strlen(m_Prefixes) + 1);
 
-	int Len = strlen(m_Prefixes);
+	unsigned int Len = strlen(m_Prefixes);
 	for (unsigned int i = 0; i < Len; i++) {
 		if (m_Prefixes[i] != Prefix)
 			Copy[a++] = m_Prefixes[i];

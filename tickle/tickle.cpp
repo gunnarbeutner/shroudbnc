@@ -213,8 +213,17 @@ class CTclSupport : public CModuleFar {
 			setctx(User->GetUsername());
 
 			Tcl_DString dsScript;
+			const utility_t *Utils;
+			const char **argvdup;
 
-			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argv[1], -1, &dsScript), -1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
+			Utils = g_Bouncer->GetUtilities();
+
+			argvdup = Utils->ArgDupArray(argv);
+			Utils->ArgRejoinArray(argvdup, 1);
+
+			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argvdup[1], -1, &dsScript), -1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
+
+			Utils->ArgFreeArray(argvdup);
 
 			Tcl_DStringFree(&dsScript);
 

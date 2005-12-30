@@ -39,7 +39,9 @@ IMPL_DNSEVENTCLASS(CBindIpDnsEvents, CConnection, AsyncBindIpDnsFinished);
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConnection::CConnection(SOCKET Client, bool SSL) {
+CConnection::CConnection(SOCKET Client, bool SSL, connection_role_e Role) {
+	m_Role = Role;
+
 	InitConnection(Client, SSL);
 }
 
@@ -440,7 +442,7 @@ void CConnection::ParseLine(const char* Line) {
 }
 
 connection_role_e CConnection::GetRole(void) {
-	return Role_Unknown;
+	return m_Role;
 }
 
 void CConnection::Kill(const char* Error) {

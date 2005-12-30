@@ -252,3 +252,14 @@ getchanrealname <Channel> [<Nick>]
 
   Description: Returns the user's realname.
   Returns: A string or NULL.
+
+bncaddcommand <Name> <Category> <Description> [<HelpText>]
+
+  Description: Adds a new command for /sbnc help. This command can only
+  be used in an "internalbind command"-proc which was triggered for the command "help".
+  Returns: Nothing.
+
+bncdeletecommand <Name>
+
+  Description: Removes a command from the command list.
+  Returns: Nothing.

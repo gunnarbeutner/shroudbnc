@@ -49,6 +49,8 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 		m_AdnsTimeout = NULL;
 		m_DnsEvents = NULL;
 	}
+
+	m_CommandList = NULL;
 }
 
 CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Client, false) {
@@ -67,6 +69,8 @@ CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUs
 
 	m_AdnsTimeout = NULL;
 	m_DnsEvents = NULL;
+
+	m_CommandList = NULL;
 
 	InitSocket();
 }
@@ -109,56 +113,56 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	}
 
 	if (strcmpi(Subcommand, "help") == 0) {
-		SENDUSER("--The following commands are available to you--");
-		SENDUSER("--Used as '/sbnc <command>', or '/msg -sbnc <command>'");
-		SENDUSER("--");
-
-		if (m_Owner->IsAdmin()) {
-			SENDUSER("Admin commands:");
-			SENDUSER("adduser       - creates a new user");
-			SENDUSER("deluser       - removes a user");
-			SENDUSER("resetpass     - sets a user's password");
-			SENDUSER("who           - shows users");
-			SENDUSER("admin         - gives someone admin privileges");
-			SENDUSER("unadmin       - removes someone's admin privileges");
-			SENDUSER("suspend       - suspends a user");
-			SENDUSER("unsuspend     - unsuspends a user");
-			SENDUSER("lsmod         - lists loaded modules");
-			SENDUSER("insmod        - loads a module");
-			SENDUSER("rmmod         - unloads a module");
-			SENDUSER("simul         - simulates a command on another user's connection");
-			SENDUSER("global        - sends a global notice to all bouncer users");
-			SENDUSER("kill          - disconnects a user from the bouncer");
-			SENDUSER("disconnect    - disconnects a user from the IRC server");
-			SENDUSER("playmainlog   - plays the bouncer's log");
-			SENDUSER("erasemainlog  - erases the bouncer's log");
-			SENDUSER("gvhost        - sets the default/global vhost");
-			SENDUSER("motd          - sets the bouncer's MOTD");
-			SENDUSER("reload        - reloads shroudBNC from a shared object file");
-			SENDUSER("die           - terminates the bouncer");
-			SENDUSER("--");
-			SENDUSER("User commands:");
+		if (argc <= 1) {
+			SENDUSER("--The following commands are available to you--");
+			SENDUSER("--Used as '/sbnc <command>', or '/msg -sbnc <command>'");
 		}
 
-		SENDUSER("read          - plays your message log");
-		SENDUSER("erase         - erases your message log");
-		SENDUSER("set           - sets configurable settings for your user");
-		SENDUSER("jump          - reconnects to the IRC server");
-		SENDUSER("hosts         - lists all hostmasks, which are permitted to use this account");
-		SENDUSER("hostadd       - adds a hostmask");
-		SENDUSER("hostdel       - removes a hostmask");
-		SENDUSER("partall       - parts all channels and tells sBNC not to rejoin them when you reconnect to a server");
+		FlushCommands(&m_CommandList);
+
+		if (m_Owner->IsAdmin()) {
+			AddCommand(&m_CommandList, "adduser", "Admin", "creates a new user", NULL);
+			AddCommand(&m_CommandList, "deluser", "Admin", "removes a user", NULL);
+			AddCommand(&m_CommandList, "resetpass", "Admin", "sets a user's password", NULL);
+			AddCommand(&m_CommandList, "who", "Admin", "shows users", NULL);
+			AddCommand(&m_CommandList, "admin", "Admin", "gives someone admin privileges", NULL);
+			AddCommand(&m_CommandList, "unadmin", "Admin", "removes someone's admin privileges", NULL);
+			AddCommand(&m_CommandList, "suspend", "Admin", "suspends a user", NULL);
+			AddCommand(&m_CommandList, "unsuspend", "Admin", "unsuspends a user", NULL);
+			AddCommand(&m_CommandList, "lsmod", "Admin", "lists loaded modules", NULL);
+			AddCommand(&m_CommandList, "insmod", "Admin", "loads a module", NULL);
+			AddCommand(&m_CommandList, "rmmod", "Admin", "unloads a module", NULL);
+			AddCommand(&m_CommandList, "simul", "Admin", "simulates a command on another user's connection", NULL);
+			AddCommand(&m_CommandList, "global", "Admin", "sends a global notice to all bouncer users", NULL);
+			AddCommand(&m_CommandList, "kill", "Admin", "disconnects a user from the bouncer", NULL);
+			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server", NULL);
+			AddCommand(&m_CommandList, "playmainlog", "Admin", "plays the bouncer's log", NULL);
+			AddCommand(&m_CommandList, "erasemainlog", "Admin", "erases the bouncer's log", NULL);
+			AddCommand(&m_CommandList, "gvhost", "Admin", "sets the default/global vhost", NULL);
+			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd", NULL);
+			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC from a shared object file", NULL);
+			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer", NULL);
+		}
+
+		AddCommand(&m_CommandList, "read", "User", "plays your message log", NULL);
+		AddCommand(&m_CommandList, "erase", "User", "erases your message log", NULL);
+		AddCommand(&m_CommandList, "set", "User", "sets configurable options for your user", NULL);
+		AddCommand(&m_CommandList, "jump", "User", "reconnects to the irc server", NULL);
+		AddCommand(&m_CommandList, "hosts", "User", "lists all hostmasks, which are permitted to use this account", NULL);
+		AddCommand(&m_CommandList, "hostadd", "User", "adds a hostmask", NULL);
+		AddCommand(&m_CommandList, "hostdel", "User", "removes a hostmask", NULL);
+		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells sBNC not to rejoin them when you reconnect to a server", NULL);
 #ifdef USESSL
-		SENDUSER("savecert      - saves your current client certificate for use with public key authentication");
-		SENDUSER("delcert       - removes a certificate");
-		SENDUSER("showcert      - shows information about your certificates");
+		AddCommand(&m_CommandList, "savecert", "User", "saves your current client certificate for use with public key authentication", NULL);
+		AddCommand(&m_CommandList, "delcert", "User", "removes a certificate", NULL);
+		AddCommand(&m_CommandList, "showcert", "User", "shows information about your certificates", NULL);
 #endif
 
 		if (m_Owner->IsAdmin()) {
-			SENDUSER("status        - tells you the current status");
+			AddCommand(&m_CommandList, "help", "User", "tells you the current status", NULL);
 		}
 
-		SENDUSER("help          - oh well, guess what..");
+		AddCommand(&m_CommandList, "help", "User", "oh well, guess what..", NULL);
 	}
 
 	CModule** Modules = g_Bouncer->GetModules();
@@ -173,7 +177,64 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	}
 
 	if (strcmpi(Subcommand, "help") == 0) {
-		SENDUSER("End of HELP.");
+		if (argc <= 1) {
+			// show help
+			xhash_t<command_t *> *Hash;
+			xhash_t<command_t *> *CommandList;
+			int i = 0, Align = 0, Len;
+
+			CommandList = (xhash_t<command_t *> *)malloc(sizeof(xhash_t<command_t *>) * m_CommandList->Count());
+
+			while ((Hash = m_CommandList->Iterate(i++)) != NULL) {
+				CommandList[i - 1] = *Hash;
+
+				Len = strlen(Hash->Name);
+
+				if (Len > Align)
+					Align = Len;
+			}
+
+			qsort(CommandList, m_CommandList->Count(), sizeof(xhash_t<command_t *>), CmpCommandT);
+
+			char *Category = NULL;
+			char *Format;
+
+			asprintf(&Format, "%%-%ds - %%s", Align);
+
+			for (i = 0; i < m_CommandList->Count(); i++) {
+				if (Category == NULL || strcmpi(CommandList[i].Value->Category, Category) != 0) {
+					if (Category)
+						SENDUSER("--");
+
+					Category = CommandList[i].Value->Category;
+
+					asprintf(&Out, "%s commands", Category);
+					SENDUSER(Out);
+					free(Out);
+				}
+
+				asprintf(&Out, Format, CommandList[i].Name, CommandList[i].Value->Description);
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			FlushCommands(&m_CommandList);
+
+			free(Format);
+			free(CommandList);
+
+			SENDUSER("End of HELP.");
+		} else {
+			command_t *Command = m_CommandList->Get(argv[1]);
+
+			if (Command == NULL) {
+				SENDUSER("There is no such command.");
+			} else if (Command && Command->HelpText == NULL) {
+				SENDUSER("No help is available for this command.");
+			} else {
+				SENDUSER(Command->HelpText);
+			}
+		}
 
 		return false;
 	}
@@ -358,10 +419,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				}
 			} else if (strcmpi(argv[1], "realname") == 0) {
+				ArgRejoinArray(argv, 2);
 				m_Owner->SetRealname(argv[2]);
 			} else if (strcmpi(argv[1], "awaynick") == 0) {
 				m_Owner->SetAwayNick(argv[2]);
 			} else if (strcmpi(argv[1], "away") == 0) {
+				ArgRejoinArray(argv, 2);
 				m_Owner->SetAwayText(argv[2]);
 			} else if (strcmpi(argv[1], "vhost") == 0) {
 				m_Owner->SetVHost(argv[2]);
@@ -395,8 +458,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				}
 			} else if (strcmpi(argv[1], "automodes") == 0) {
+				ArgRejoinArray(argv, 2);
 				m_Owner->SetAutoModes(argv[2]);
 			} else if (strcmpi(argv[1], "dropmodes") == 0) {
+				ArgRejoinArray(argv, 2);
 				m_Owner->SetDropModes(argv[2]);
 			} else if (strcmpi(argv[1], "ssl") == 0) {
 				if (strcmpi(argv[2], "on") == 0)
@@ -570,6 +635,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
+			ArgRejoinArray(argv, 2);
 			User->Simulate(argv[2], this);
 
 			SENDUSER("Done.");
@@ -592,6 +658,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
+		ArgRejoinArray(argv, 1);
 		IRC->InternalWriteLine(argv[1]);
 
 		return false;
@@ -624,6 +691,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 		} else if (m_Owner->IsAdmin()) {
+			ArgRejoinArray(argv, 1);
 			g_Bouncer->SetMotd(argv[1]);
 			SENDUSER("Done.");
 		}
@@ -635,6 +703,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
+		ArgRejoinArray(argv, 1);
 		g_Bouncer->GlobalNotice(argv[1]);
 		return false;
 	} else if (strcmpi(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
@@ -739,7 +808,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcmpi(Subcommand, "impulse") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
-			SENDUSER("Syntax: impulse <internal-command>");
+			SENDUSER("Syntax: impulse command");
 
 			return false;
 		}
@@ -947,7 +1016,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			User->MarkQuitted();
 
-			User->SetSuspendReason(argc > 2 ? argv[2] : "Suspended.");
+			if (argc > 2) {
+				ArgRejoinArray(argv, 2);
+				User->SetSuspendReason(argv[2]);
+			} else {
+				User->SetSuspendReason("Suspended.");
+			}
 
 			asprintf(&Out, "User %s has been suspended.", User->GetUsername());
 			if (Out == NULL) {
@@ -1645,4 +1719,8 @@ void CClientConnection::Kill(const char *Error) {
 	WriteLine(":Notice!notice!shroudbnc.org NOTICE * :%s", Error);
 
 	CConnection::Kill(Error);
+}
+
+commandlist_t *CClientConnection::GetCommandList(void) {
+	return &m_CommandList;
 }
