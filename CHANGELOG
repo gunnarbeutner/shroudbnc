@@ -52,3 +52,4 @@ Revision 351:
 -added support for overriding built-in iface commands
 -improved performance
 -made /sbnc help editable using modules
+-added a new special file: "sbnc.motd"

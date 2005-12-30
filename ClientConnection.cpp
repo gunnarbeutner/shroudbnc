@@ -121,48 +121,85 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		FlushCommands(&m_CommandList);
 
 		if (m_Owner->IsAdmin()) {
-			AddCommand(&m_CommandList, "adduser", "Admin", "creates a new user", NULL);
-			AddCommand(&m_CommandList, "deluser", "Admin", "removes a user", NULL);
-			AddCommand(&m_CommandList, "resetpass", "Admin", "sets a user's password", NULL);
-			AddCommand(&m_CommandList, "who", "Admin", "shows users", NULL);
-			AddCommand(&m_CommandList, "admin", "Admin", "gives someone admin privileges", NULL);
-			AddCommand(&m_CommandList, "unadmin", "Admin", "removes someone's admin privileges", NULL);
-			AddCommand(&m_CommandList, "suspend", "Admin", "suspends a user", NULL);
-			AddCommand(&m_CommandList, "unsuspend", "Admin", "unsuspends a user", NULL);
-			AddCommand(&m_CommandList, "lsmod", "Admin", "lists loaded modules", NULL);
-			AddCommand(&m_CommandList, "insmod", "Admin", "loads a module", NULL);
-			AddCommand(&m_CommandList, "rmmod", "Admin", "unloads a module", NULL);
-			AddCommand(&m_CommandList, "simul", "Admin", "simulates a command on another user's connection", NULL);
-			AddCommand(&m_CommandList, "global", "Admin", "sends a global notice to all bouncer users", NULL);
-			AddCommand(&m_CommandList, "kill", "Admin", "disconnects a user from the bouncer", NULL);
-			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server", NULL);
-			AddCommand(&m_CommandList, "playmainlog", "Admin", "plays the bouncer's log", NULL);
-			AddCommand(&m_CommandList, "erasemainlog", "Admin", "erases the bouncer's log", NULL);
-			AddCommand(&m_CommandList, "gvhost", "Admin", "sets the default/global vhost", NULL);
-			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd", NULL);
-			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC from a shared object file", NULL);
-			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer", NULL);
+			AddCommand(&m_CommandList, "adduser", "Admin", "creates a new user",
+				"Syntax: adduser <username> <password>\nCreates a new user.");
+			AddCommand(&m_CommandList, "deluser", "Admin", "removes a user",
+				"Syntax: deluser <username>\nDeletes a user.");
+			AddCommand(&m_CommandList, "resetpass", "Admin", "sets a user's password",
+				"Syntax: resetpass <user> <password>\nResets another user's password.");
+			AddCommand(&m_CommandList, "who", "Admin", "shows users",
+				"Syntax: who\nShows a list of all users.\nFlags (which are displayed in front of the username):\n"
+				"@ user is an admin\n* user is currently logged in\n! user is suspended");
+			AddCommand(&m_CommandList, "admin", "Admin", "gives someone admin privileges",
+				"Syntax: admin <username>\nGives admin privileges to a user.");
+			AddCommand(&m_CommandList, "unadmin", "Admin", "removes someone's admin privileges",
+				"Syntax: unadmin <username>\nRemoves someone's admin privileges.");
+			AddCommand(&m_CommandList, "suspend", "Admin", "suspends a user",
+				"Syntax: suspend <username> [reason]\nSuspends an account. An optional reason can be specified.");
+			AddCommand(&m_CommandList, "unsuspend", "Admin", "unsuspends a user",
+				"Syntax: unsuspend <username>\nRemoves a suspension from the specified account.");
+			AddCommand(&m_CommandList, "lsmod", "Admin", "lists loaded modules",
+				"Syntax: lsmod\nLists all currently loaded modules.");
+			AddCommand(&m_CommandList, "insmod", "Admin", "loads a module",
+				"Syntax: insmod <filename>\nLoads a module.");
+			AddCommand(&m_CommandList, "rmmod", "Admin", "unloads a module",
+				"Syntax: rmmod <index>\nUnloads a module. Use the \"lsmod\" command to list all modules.");
+			AddCommand(&m_CommandList, "simul", "Admin", "simulates a command on another user's connection",
+				"Syntax: simul <username> <command>\nExecutes a command in another user's context.");
+			AddCommand(&m_CommandList, "global", "Admin", "sends a global notice to all bouncer users",
+				"Syntax: global <text>\nSends a notice to all currently connected users.");
+			AddCommand(&m_CommandList, "kill", "Admin", "disconnects a user from the bouncer",
+				"Syntax: kill <username>\nDisconnects a user from the bouncer.");
+			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server",
+				"Syntax: disconnect <username>\nDisconnects a user from the IRC server which he is currently connected to.");
+			AddCommand(&m_CommandList, "playmainlog", "Admin", "plays the bouncer's log",
+				"Syntax: playmainlog\nDisplays the bouncer's log.");
+			AddCommand(&m_CommandList, "erasemainlog", "Admin", "erases the bouncer's log",
+				"Syntax: erasemainlog\nErases the bouncer's log.");
+			AddCommand(&m_CommandList, "gvhost", "Admin", "sets the default/global vhost",
+				"Syntax: gvhost <host>\nSets the bouncer's default vhost.");
+			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd",
+				"Syntax: motd [text]\nShows or modifies the motd.");
+			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC from a shared object file",
+				"Syntax: reload <filename>\nReloads shroudBNC from a new .so file.");
+			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
+				"Syntax: die\nTerminates the bouncer.");
 		}
 
-		AddCommand(&m_CommandList, "read", "User", "plays your message log", NULL);
-		AddCommand(&m_CommandList, "erase", "User", "erases your message log", NULL);
-		AddCommand(&m_CommandList, "set", "User", "sets configurable options for your user", NULL);
-		AddCommand(&m_CommandList, "jump", "User", "reconnects to the irc server", NULL);
-		AddCommand(&m_CommandList, "hosts", "User", "lists all hostmasks, which are permitted to use this account", NULL);
-		AddCommand(&m_CommandList, "hostadd", "User", "adds a hostmask", NULL);
-		AddCommand(&m_CommandList, "hostdel", "User", "removes a hostmask", NULL);
-		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells sBNC not to rejoin them when you reconnect to a server", NULL);
+		AddCommand(&m_CommandList, "read", "User", "plays your message log",
+			"Syntax: read\nDisplays your private log.");
+		AddCommand(&m_CommandList, "erase", "User", "erases your message log",
+			"Syntax: erase\nErases your private log.");
+		AddCommand(&m_CommandList, "set", "User", "sets configurable options for your user",
+			"Syntax: set [option] [value]\nDisplays or changes configurable options for your user.");
+		AddCommand(&m_CommandList, "jump", "User", "reconnects to the irc server",
+			"Syntax: jump\nReconnects to the irc server.");
+		AddCommand(&m_CommandList, "hosts", "User", "lists all hostmasks, which are permitted to use this account",
+			"Syntax: hosts\nLists all hosts which are permitted to use this account.");
+		AddCommand(&m_CommandList, "hostadd", "User", "adds a hostmask",
+			"Syntax: hostadd <host>\nAdds a host to your hostlist. E.g. *.tiscali.de");
+		AddCommand(&m_CommandList, "hostdel", "User", "removes a hostmask",
+			"Syntax: hostdel <host>\nRemoves a host from your hostlist.");
+		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells sBNC not to rejoin them when you reconnect to a server",
+			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
+			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
 #ifdef USESSL
-		AddCommand(&m_CommandList, "savecert", "User", "saves your current client certificate for use with public key authentication", NULL);
-		AddCommand(&m_CommandList, "delcert", "User", "removes a certificate", NULL);
-		AddCommand(&m_CommandList, "showcert", "User", "shows information about your certificates", NULL);
+		AddCommand(&m_CommandList, "savecert", "User", "saves your current client certificate for use with public key authentication",
+			"Syntax: savecert\nSaves your current client certificate for use with public key authentication.\n"
+			"Once you have saved your certificate you can use it for logging in without a password.");
+		AddCommand(&m_CommandList, "delcert", "User", "removes a certificate",
+			"Syntax: delcert <id>\nRemoves the specified certificate.");
+		AddCommand(&m_CommandList, "showcert", "User", "shows information about your certificates",
+			"Syntax: showcert\nShows a list of certificates which can be used for logging in.");
 #endif
 
 		if (m_Owner->IsAdmin()) {
-			AddCommand(&m_CommandList, "help", "User", "tells you the current status", NULL);
+			AddCommand(&m_CommandList, "status", "User", "tells you the current status",
+				"Syntax: status\nDisplays information about your user. This command is used for debugging.");
 		}
 
-		AddCommand(&m_CommandList, "help", "User", "oh well, guess what..", NULL);
+		AddCommand(&m_CommandList, "help", "User", "displays a list of commands or information about individual commands",
+			"Syntax: help [command]\nDisplays a list of commands or information about individual commands.");
 	}
 
 	CModule** Modules = g_Bouncer->GetModules();
@@ -232,7 +269,26 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} else if (Command && Command->HelpText == NULL) {
 				SENDUSER("No help is available for this command.");
 			} else {
-				SENDUSER(Command->HelpText);
+				char *Help = strdup(Command->HelpText);
+				char *HelpBase = Help;
+
+				while (true) {
+					char *NextLine = strstr(Help, "\n");
+
+					if (NextLine) {
+						NextLine[0] = '\0';
+						NextLine++;
+					}
+
+					SENDUSER(Help);
+
+					if (NextLine == NULL)
+						break;
+					else
+						Help = NextLine;
+				}
+
+				free(HelpBase);
 			}
 		}
 
