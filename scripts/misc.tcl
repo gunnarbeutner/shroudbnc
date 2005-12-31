@@ -183,3 +183,16 @@ proc handonchan {handle {channel ""}} {
 		return 0
 	}
 }
+
+proc putcmdlog {text} {
+	putlog "(command) $text"
+}
+
+proc putxferlog {text} {
+	putlog "(xfer) $text"
+}
+
+proc putloglev {level channel text} {
+	putlog "(level: $level, channel: $channel) $text"
+}
+

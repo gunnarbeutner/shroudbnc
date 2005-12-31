@@ -21,7 +21,7 @@
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 1
+#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
 
 // some newer visual c++ versions define time_t as a 64 bit integer
 // while adns still expects a 32 bit integer

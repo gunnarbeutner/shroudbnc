@@ -378,11 +378,20 @@ int putclient(const char* text) {
 	return 1;
 }
 
-void jump(void) {
+void jump(const char *Server, unsigned int Port, const char *Password) {
 	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return;
+
+	if (Server)
+		Context->SetServer(Server);
+
+	if (Port != 0)
+		Context->SetPort(Port);
+
+	if (Password)
+		Context->SetServerPassword(Password);
 
 	Context->Reconnect();
 	SetLatchedReturnValue(false);

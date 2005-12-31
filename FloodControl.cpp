@@ -37,7 +37,7 @@ static penalty_t penalties [] = {
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFloodControl::CFloodControl(CIRCConnection* Owner) {
+CFloodControl::CFloodControl(CIRCConnection *Owner) {
 	m_Queues = NULL;
 	m_QueueCount = 0;
 	m_Bytes = 0;
@@ -54,10 +54,10 @@ CFloodControl::~CFloodControl() {
 		m_FloodTimer->Destroy();
 }
 
-void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
-	queue_t* Queues;
+void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
+	queue_t *Queues;
 
-	Queues = (queue_t*)realloc(m_Queues, ++m_QueueCount * sizeof(queue_t));
+	Queues = (queue_t *)realloc(m_Queues, ++m_QueueCount * sizeof(queue_t));
 
 	if (Queues == NULL) {
 		LOGERROR("realloc() failed. Could not attach queue.");
@@ -70,9 +70,9 @@ void CFloodControl::AttachInputQueue(CQueue* Queue, int Priority) {
 	m_Queues[m_QueueCount - 1].Queue = Queue;
 }
 
-char* CFloodControl::DequeueItem(bool Peek) {
+char *CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
-	queue_t* ThatQueue = NULL;
+	queue_t *ThatQueue = NULL;
 
 	if (m_Control && (m_Bytes > FLOODBYTES - 100))
 		return NULL;
@@ -88,7 +88,7 @@ char* CFloodControl::DequeueItem(bool Peek) {
 	}
 
 	if (ThatQueue) {
-		const char* PItem = ThatQueue->Queue->PeekItem();
+		const char *PItem = ThatQueue->Queue->PeekItem();
 
 		if (PItem == NULL) {
 			LOGERROR("PeekItem() failed.");
@@ -101,7 +101,7 @@ char* CFloodControl::DequeueItem(bool Peek) {
 		else if (Peek)
 			return const_cast<char*>(PItem);
 
-		char* Item = ThatQueue->Queue->DequeueItem();
+		char *Item = ThatQueue->Queue->DequeueItem();
 		
 		if (Item && m_Control) {
 			m_Bytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
@@ -117,11 +117,11 @@ char* CFloodControl::DequeueItem(bool Peek) {
 		return NULL;
 }
 
-bool CFloodControl::QueueItem(const char* Item) {
+bool CFloodControl::QueueItem(const char *Item) {
 	throw "Not supported.";
 }
 
-bool CFloodControl::QueueItemNext(const char* Item) {
+bool CFloodControl::QueueItemNext(const char *Item) {
 	throw "Not supported.";
 }
 
@@ -169,16 +169,16 @@ void CFloodControl::Disable(void) {
 	m_Control = false;
 }
 
-bool FloodTimer(time_t Now, void* FloodControl) {
+bool FloodTimer(time_t Now, void *FloodControl) {
 	return ((CFloodControl*)FloodControl)->Pulse(Now);
 }
 
-int CFloodControl::CalculatePenaltyAmplifier(const char* Line) {
-	const char* Space = strstr(Line, " ");
-	char* Command;
+int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
+	const char *Space = strstr(Line, " ");
+	char *Command;
 	
 	if (Space) {
-		Command = (char*)malloc(Space - Line + 1);
+		Command = (char *)malloc(Space - Line + 1);
 
 		if (Command == NULL) {
 			LOGERROR("malloc() failed");

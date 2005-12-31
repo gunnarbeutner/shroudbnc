@@ -4227,18 +4227,57 @@ _wrap_getchanhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 static int
 _wrap_jump(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    if (SWIG_GetArgs(interp, objc, objv,":jump ") == TCL_ERROR) SWIG_fail;
+    char *arg1 = (char *) 0 ;
+    unsigned int arg2 = (unsigned int) 0 ;
+    char *arg3 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_3 ;
+    bool ds_use_3 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"|ooo:jump ?Server? ?Port? ?Password? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    if (objc > 1) {
+        {
+            ds_use_1 = true;
+            arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+        }
+    }
+    if (objc > 2) {
+        arg2 = (unsigned int) strtoul(Tcl_GetStringFromObj(objv[2],NULL), 0, 0);
+    }
+    if (objc > 3) {
+        {
+            ds_use_3 = true;
+            arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
+        }
+    }
     {
         try {
-            jump();
+            jump((char const *)arg1,arg2,(char const *)arg3);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
         }
     }
     
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
     return TCL_OK;
     fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
     return TCL_ERROR;
 }
 

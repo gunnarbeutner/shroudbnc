@@ -23,9 +23,9 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBouncerConfig::CBouncerConfig(const char* Filename) {
+CBouncerConfig::CBouncerConfig(const char *Filename) {
 	m_WriteLock = false;
-	m_Settings = new CHashtable<char*, false, 8>();
+	m_Settings = new CHashtable<char *, false, 8>();
 
 	if (m_Settings == NULL && g_Bouncer != NULL) {
 		LOGERROR("new operator failed.");
@@ -42,7 +42,7 @@ CBouncerConfig::CBouncerConfig(const char* Filename) {
 		m_File = NULL;
 }
 
-bool CBouncerConfig::ParseConfig(const char* Filename) {
+bool CBouncerConfig::ParseConfig(const char *Filename) {
 	char Line[4096];
 	char* dupEq;
 
@@ -106,17 +106,22 @@ CBouncerConfig::~CBouncerConfig() {
 	delete m_Settings;
 }
 
-const char* CBouncerConfig::ReadString(const char* Setting) {
-	return m_Settings->Get(Setting);
+const char *CBouncerConfig::ReadString(const char *Setting) {
+	char *Value = m_Settings->Get(Setting);
+
+	if (Value && *Value)
+		return Value;
+	else
+		return NULL;
 }
 
-int CBouncerConfig::ReadInteger(const char* Setting) {
-	const char* Value = m_Settings->Get(Setting);
+int CBouncerConfig::ReadInteger(const char *Setting) {
+	const char *Value = m_Settings->Get(Setting);
 
 	return Value ? atoi(Value) : 0;
 }
 
-bool CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
+bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
 	char ValueStr[50];
 
 	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
@@ -124,7 +129,7 @@ bool CBouncerConfig::WriteInteger(const char* Setting, const int Value) {
 	return WriteString(Setting, ValueStr);
 }
 
-bool CBouncerConfig::WriteString(const char* Setting, const char* Value) {
+bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
 	bool RetVal;
 
 	if (Value)
@@ -170,10 +175,10 @@ bool CBouncerConfig::Persist(void) {
 	}
 }
 
-const char* CBouncerConfig::GetFilename(void) {
+const char *CBouncerConfig::GetFilename(void) {
 	return m_File;
 }
 
-xhash_t<char*>* CBouncerConfig::Iterate(int Index) {
+xhash_t<char *> *CBouncerConfig::Iterate(int Index) {
 	return m_Settings->Iterate(Index);
 }

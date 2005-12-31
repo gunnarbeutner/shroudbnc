@@ -23,7 +23,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CModule::CModule(const char* Filename) {
+CModule::CModule(const char *Filename) {
 	m_Far = NULL;
 	m_File = strdup(Filename);
 	m_Image = LoadLibrary(Filename);
@@ -58,7 +58,7 @@ CModule::~CModule() {
 	free(m_File);
 }
 
-CModuleFar* CModule::GetModule(void) {
+CModuleFar *CModule::GetModule(void) {
 	if (!m_Image) {
 		return NULL;
 	}
@@ -77,7 +77,7 @@ CModuleFar* CModule::GetModule(void) {
 	}
 }
 
-const char* CModule::GetFilename(void) {
+const char *CModule::GetFilename(void) {
 	return m_File;
 }
 
@@ -89,58 +89,58 @@ void CModule::Destroy(void) {
 	m_Far->Destroy();
 }
 
-void CModule::Init(CBouncerCore* Root) {
+void CModule::Init(CBouncerCore *Root) {
 	m_Far->Init(Root);
 }
 
-bool CModule::InterceptIRCMessage(CIRCConnection* Connection, int argc, const char** argv) {
+bool CModule::InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) {
 	return m_Far->InterceptIRCMessage(Connection, argc, argv);
 }
 
-bool CModule::InterceptClientMessage(CClientConnection* Connection, int argc, const char** argv) {
+bool CModule::InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) {
 	return m_Far->InterceptClientMessage(Connection, argc, argv);
 }
 
-void CModule::AttachClient(const char* Client) {
+void CModule::AttachClient(const char *Client) {
 	m_Far->AttachClient(Client);
 }
 
-void CModule::DetachClient(const char* Client) {
+void CModule::DetachClient(const char *Client) {
 	m_Far->DetachClient(Client);
 }
 
-void CModule::ServerDisconnect(const char* Client) {
+void CModule::ServerDisconnect(const char *Client) {
 	m_Far->ServerDisconnect(Client);
 }
 
-void CModule::ServerConnect(const char* Client) {
+void CModule::ServerConnect(const char *Client) {
 	m_Far->ServerConnect(Client);
 }
 
-void CModule::ServerLogon(const char* Client) {
+void CModule::ServerLogon(const char *Client) {
 	m_Far->ServerLogon(Client);
 }
 
-void CModule::UserLoad(const char* User) {
+void CModule::UserLoad(const char *User) {
 	m_Far->UserLoad(User);
 }
 
-void CModule::UserCreate(const char* User) {
+void CModule::UserCreate(const char *User) {
 	m_Far->UserCreate(User);
 }
 
-void CModule::UserDelete(const char* User) {
+void CModule::UserDelete(const char *User) {
 	m_Far->UserDelete(User);
 }
 
-void CModule::SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
+void CModule::SingleModeChange(CIRCConnection *Connection, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter) {
 	m_Far->SingleModeChange(Connection, Channel, Source, Flip, Mode, Parameter);
 }
 
-const char* CModule::Command(const char* Cmd, const char* Parameters) {
+const char *CModule::Command(const char *Cmd, const char *Parameters) {
 	return m_Far->Command(Cmd, Parameters);
 }
 
-bool CModule::InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
+bool CModule::InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
 	return m_Far->InterceptClientCommand(Connection, Subcommand, argc, argv, NoticeUser);
 }

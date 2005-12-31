@@ -33,7 +33,7 @@ CFIFOBuffer::~CFIFOBuffer() {
 	free(m_Buffer);
 }
 
-void* CFIFOBuffer::ResizeBuffer(void* Buffer, unsigned int OldSize, unsigned int NewSize) {
+void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize) {
 	if (OldSize != 0)
 		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
 
@@ -52,7 +52,7 @@ void CFIFOBuffer::Optimize(void) {
 	if (m_Offset <= OPTIMIZEBLOCKS * BLOCKSIZE)
 		return;
 
-	char* NewBuffer = (char*)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
+	char *NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
 
 	if (NewBuffer == NULL)
 		return;
@@ -69,11 +69,11 @@ unsigned int CFIFOBuffer::GetSize(void) {
 	return m_BufferSize - m_Offset;
 }
 
-char* CFIFOBuffer::Peek(void) {
+char *CFIFOBuffer::Peek(void) {
 	return m_Buffer + m_Offset;
 }
 
-char* CFIFOBuffer::Read(unsigned int Bytes) {
+char *CFIFOBuffer::Read(unsigned int Bytes) {
 	char* ReturnValue = m_Buffer + m_Offset;
 	m_Offset += Bytes > GetSize() ? GetSize() : Bytes;
 
@@ -82,10 +82,10 @@ char* CFIFOBuffer::Read(unsigned int Bytes) {
 	return ReturnValue;
 }
 
-void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
-	char* tempBuffer;
+void CFIFOBuffer::Write(const char *Buffer, unsigned int Size) {
+	char *tempBuffer;
 
-	tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
+	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
 
 	if (tempBuffer == NULL) {
 		LOGERROR("realloc() failed. Lost %d bytes.", Size);
@@ -98,10 +98,10 @@ void CFIFOBuffer::Write(const char* Buffer, unsigned int Size) {
 	m_BufferSize += Size;
 }
 
-void CFIFOBuffer::WriteLine(const char* Line) {
+void CFIFOBuffer::WriteLine(const char *Line) {
 	unsigned int Len = strlen(Line);
 
-	char* tempBuffer = (char*)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
+	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
 
 	if (tempBuffer == NULL) {
 		LOGERROR("realloc failed(). Lost %d bytes.", Len + 2);

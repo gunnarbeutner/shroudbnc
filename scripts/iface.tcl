@@ -52,7 +52,11 @@ set ::ifacessl 0
 # setident user ident
 # hasplugin plugin
 
-catch [list listen $::ifaceport script sbnc:iface "" $::ifacessl]
+if {$::ifacessl} {
+	catch [list listen $::ifaceport script sbnc:iface "" 1]
+} else {
+	catch [list listen $::ifaceport script sbnc:iface]
+}
 
 set ::ifacehandlers [list]
 
@@ -237,6 +241,28 @@ proc sbnc:ifacemsg {socket line} {
 			"setident" {
 				setbncuser [lindex $params 0] ident [lindex $params 1]
 			}
+			"suspend" {
+				setbncuser [lindex $params 0] lock 1
+				setbncuser [lindex $params 0] suspendreason [lrange $params 1 end]
+			}
+			"unsuspend" {
+				setbncuser [lindex $params 0] lock 0
+				setbncuser [lindex $params 0] suspendreason ""
+			}
+			"global" {
+				foreach user [bncuserlist] {
+					bncnotc [join [lrange $params 0 end]]
+				}
+			}
+			"bncuserkill" {
+				setctx [lindex $params 0]
+				bnckill [join [lrange $params 1 end]]
+			}
+			"bncuserdisconnect" {
+				setctx [lindex $params 0]
+				bncdisconnect [join [lrange $params 1 end]]
+			}
+
 		}
 	}
 

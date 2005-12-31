@@ -167,7 +167,7 @@ bool isop(const char* Nick, const char* Channel = 0);
 bool isvoice(const char* Nick, const char* Channel = 0);
 bool ishalfop(const char* Nick, const char* Channel = 0);
 const char* getchanhost(const char* Nick, const char* Channel = 0);
-void jump(void);
+void jump(const char *Server = 0, unsigned int Port = 0, const char *Password = 0);
 void rehash(void);
 void die(void);
 int putserv(const char* text);

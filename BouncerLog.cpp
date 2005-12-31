@@ -23,7 +23,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBouncerLog::CBouncerLog(const char* Filename) {
+CBouncerLog::CBouncerLog(const char *Filename) {
 	if (Filename) {
 		m_File = strdup(Filename);
 
@@ -46,8 +46,8 @@ CBouncerLog::~CBouncerLog() {
 	free(m_File);
 }
 
-void CBouncerLog::PlayToUser(CBouncerUser* User, int Type) {
-	FILE* Log;
+void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
+	FILE *Log;
 
 	CIRCConnection *IRC = User->GetIRCConnection();
 	CClientConnection *Client = User->GetClientConnection();
@@ -87,10 +87,10 @@ void CBouncerLog::PlayToUser(CBouncerUser* User, int Type) {
 }
 
 void CBouncerLog::InternalWriteLine(const char* Line) {
-	FILE* Log;
+	FILE *Log;
 
-	if (m_File && (Log = fopen(m_File, "a"))) {
-		char* Out;
+	if (m_File && (Log = fopen(m_File, "a")) != NULL) {
+		char *Out;
 		tm Now;
 		time_t tNow;
 		char strNow[100];
@@ -122,7 +122,7 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 }
 
 void CBouncerLog::WriteLine(const char* Format, ...) {
-	char* Out;
+	char *Out;
 	va_list marker;
 
 	va_start(marker, Format);
@@ -141,27 +141,26 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
 }
 
 void CBouncerLog::Clear(void) {
-	FILE* Log;
+	FILE *Log;
 	
-	if (m_File && (Log = fopen(m_File, "w")))
+	if (m_File && (Log = fopen(m_File, "w")) != NULL)
 		fclose(Log);
 }
 
 bool CBouncerLog::IsEmpty(void) {
-	FILE* Log;
+	FILE *Log;
 
-	if (m_File && (Log = fopen(m_File, "r"))) {
+	if (m_File && (Log = fopen(m_File, "r")) != NULL) {
 		char Line[500];
 
 		while (!feof(Log)) {
-			char* n = fgets(Line, sizeof(Line), Log);
+			char *n = fgets(Line, sizeof(Line), Log);
 
 			if (n) {
 				fclose(Log);
 
 				return false;
 			}
-				
 		}
 
 		fclose(Log);

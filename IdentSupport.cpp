@@ -31,11 +31,11 @@ CIdentSupport::~CIdentSupport(void) {
 	free(m_Ident);
 }
 
-void CIdentSupport::SetIdent(const char* Ident) {
+void CIdentSupport::SetIdent(const char *Ident) {
 #ifndef _WIN32
-	char* homedir = getenv("HOME");
+	char *homedir = getenv("HOME");
 
-	char* Out = (char*)malloc(strlen(homedir) + 50);
+	char *Out = (char *)malloc(strlen(homedir) + 50);
 
 	if (Out == NULL) {
 		LOGERROR("malloc failed. Could not set new ident (%s).", Ident);
@@ -46,10 +46,10 @@ void CIdentSupport::SetIdent(const char* Ident) {
 	if (homedir) {
 		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
 
-		FILE* identConfig = fopen(Out, "w");
+		FILE *identConfig = fopen(Out, "w");
 
 		if (identConfig) {
-			char* Buf = (char*)malloc(strlen(Ident) + 50);
+			char *Buf = (char *)malloc(strlen(Ident) + 50);
 
 			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
 			fputs(Buf, identConfig);
@@ -71,6 +71,6 @@ void CIdentSupport::SetIdent(const char* Ident) {
 	}
 }
 
-const char* CIdentSupport::GetIdent(void) {
+const char *CIdentSupport::GetIdent(void) {
 	return m_Ident;
 }

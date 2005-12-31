@@ -37,9 +37,9 @@ CQueue::~CQueue() {
 	free(m_Items);
 }
 
-const char* CQueue::PeekItem(void) {
+const char *CQueue::PeekItem(void) {
 	int LowestPriority = 100;
-	queue_item_t* ThatItem = NULL;
+	queue_item_t *ThatItem = NULL;
 
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (m_Items[i].Valid && m_Items[i].Priority < LowestPriority) {
@@ -54,9 +54,9 @@ const char* CQueue::PeekItem(void) {
 		return NULL;
 }
 
-char* CQueue::DequeueItem(void) {
+char *CQueue::DequeueItem(void) {
 	int LowestPriority = 100;
-	queue_item_t* ThatItem = NULL;
+	queue_item_t *ThatItem = NULL;
 
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (m_Items[i].Valid && m_Items[i].Priority < LowestPriority) {
@@ -74,9 +74,9 @@ char* CQueue::DequeueItem(void) {
 		return NULL;
 }
 
-bool CQueue::QueueItem(const char* Item) {
-	queue_item_t* Items;
-	char* dupItem;
+bool CQueue::QueueItem(const char *Item) {
+	queue_item_t *Items;
+	char *dupItem;
 
 	if (Item == NULL)
 		return false;
@@ -99,10 +99,12 @@ bool CQueue::QueueItem(const char* Item) {
 		}
 	}
 
-	Items = (queue_item_t*)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
+	Items = (queue_item_t *)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
 
 	if (Items == NULL) {
 		LOGERROR("realloc() failed. An item was lost (%s).", Item);
+
+		free(dupItem);
 
 		m_ItemCount--;
 
@@ -117,7 +119,7 @@ bool CQueue::QueueItem(const char* Item) {
 	return true;
 }
 
-bool CQueue::QueueItemNext(const char* Item) {
+bool CQueue::QueueItemNext(const char *Item) {
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (m_Items[i].Valid)
 			m_Items[i].Priority++;

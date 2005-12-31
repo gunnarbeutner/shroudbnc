@@ -23,14 +23,14 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-void DestroyBan(ban_t* Obj) {
+void DestroyBan(ban_t *Obj) {
 	free(Obj->Mask);
 	free(Obj->Nick);
 	free(Obj);
 }
 
 CBanlist::CBanlist() {
-	m_Bans = new CHashtable<ban_t*, false, 5>();
+	m_Bans = new CHashtable<ban_t *, false, 5>();
 
 	if (m_Bans)
 		m_Bans->RegisterValueDestructor(DestroyBan);
@@ -40,7 +40,7 @@ CBanlist::~CBanlist() {
 	delete m_Bans;
 }
 
-bool CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
+bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
 	ban_t* Obj;
 
 	if (m_Bans == NULL) {
@@ -49,7 +49,7 @@ bool CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
 		return false;
 	}
 
-	Obj = (ban_t*)malloc(sizeof(ban_t));
+	Obj = (ban_t *)malloc(sizeof(ban_t));
 
 	if (Obj) {
 		Obj->Mask = strdup(Mask);
@@ -61,15 +61,15 @@ bool CBanlist::SetBan(const char* Mask, const char* Nick, time_t TS) {
 		return false;
 }
 
-bool CBanlist::UnsetBan(const char* Mask) {
+bool CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL && m_Bans)
 		return m_Bans->Remove(Mask);
 	else
 		return false;
 }
 
-const ban_t* CBanlist::Iterate(int Skip) {
-	xhash_t<ban_t*>* Obj;
+const ban_t *CBanlist::Iterate(int Skip) {
+	xhash_t<ban_t *> *Obj;
 
 	if (m_Bans == NULL)
 		return NULL;
@@ -82,7 +82,7 @@ const ban_t* CBanlist::Iterate(int Skip) {
 		return NULL;
 }
 
-const ban_t* CBanlist::GetBan(const char* Mask) {
+const ban_t *CBanlist::GetBan(const char *Mask) {
 	if (m_Bans == NULL)
 		return NULL;
 	else
