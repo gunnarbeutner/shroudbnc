@@ -157,6 +157,9 @@ const char* getchanrealname(const char* Nick, const char* Channel = 0);
 
 const char *impulse(int imp);
 
+void bncsetglobaltag(const char *Tag, const char *Value = 0);
+const char *bncgetglobaltag(const char *Tag);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

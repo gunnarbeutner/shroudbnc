@@ -1845,3 +1845,25 @@ void bncdeletecommand(const char *Name) {
 
 	Utils->DeleteCommand(List, Name);
 }
+
+void bncsetglobaltag(const char *Tag, const char *Value) {
+	char *tagName = (char *)malloc(4 + strlen(Tag) + 1);
+
+	sprintf(tagName, "tag.%s", Tag);
+
+	g_Bouncer->GetConfig()->WriteString(tagName, Value);
+
+	free(tagName);
+}
+
+const char *bncgetglobaltag(const char *Tag) {
+	char *tagName = (char *)malloc(4 + strlen(Tag) + 1);
+
+	sprintf(tagName, "tag.%s", Tag);
+
+	const char *ReturnValue = g_Bouncer->GetConfig()->ReadString(tagName);
+
+	free(tagName);
+
+	return ReturnValue;
+}

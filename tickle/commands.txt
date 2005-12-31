@@ -263,3 +263,13 @@ bncdeletecommand <Name>
 
   Description: Removes a command from the command list.
   Returns: Nothing.
+
+bncsetglobaltag <Name> <Value>
+
+  Description: Creates/sets a global tag. Global tags are stored in the sbnc.conf configuration file.
+  Returns: Nothing.
+
+bncgetglobaltag <Name>
+
+  Description: Returns the value of a global tag.
+  Returns: A string or NULL.

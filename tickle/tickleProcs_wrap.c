@@ -3806,6 +3806,97 @@ _wrap_impulse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 
 static int
+_wrap_bncsetglobaltag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_2 ;
+    bool ds_use_2 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o|o:bncsetglobaltag Tag ?Value? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    if (objc > 2) {
+        {
+            ds_use_2 = true;
+            arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+        }
+    }
+    {
+        try {
+            bncsetglobaltag((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncgetglobaltag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *result;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o:bncgetglobaltag Tag ",(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    {
+        try {
+            result = (char *)bncgetglobaltag((char const *)arg1);
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    {
+        Tcl_DString ds_result;
+        
+        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_DStringFree(&ds_result);
+    }
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4736,6 +4827,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "synthwho", (swig_wrapper_func) _wrap_synthwho, NULL},
     { SWIG_prefix "getchanrealname", (swig_wrapper_func) _wrap_getchanrealname, NULL},
     { SWIG_prefix "impulse", (swig_wrapper_func) _wrap_impulse, NULL},
+    { SWIG_prefix "bncsetglobaltag", (swig_wrapper_func) _wrap_bncsetglobaltag, NULL},
+    { SWIG_prefix "bncgetglobaltag", (swig_wrapper_func) _wrap_bncgetglobaltag, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},
