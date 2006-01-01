@@ -84,7 +84,7 @@ proc sbnc:ifacecmd {command params account} {
 			set result 1
 		}
 		"raw" {
-			puthelp [join [lrange $params 0 end]]
+			puthelp [join $params]
 		}
 		"nick" {
 			set result $::botnick
@@ -153,6 +153,9 @@ proc sbnc:ifacecmd {command params account} {
 
 		"simul" {
 			simul $account [join $params]
+		}
+		"setlanguage" {
+			setbncuser $account tag lang [lindex $params 0]
 		}
 		"hasplugin" {
 			set result 0
@@ -243,7 +246,9 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"suspend" {
 				setbncuser [lindex $params 0] lock 1
-				setbncuser [lindex $params 0] suspendreason [lrange $params 1 end]
+				setbncuser [lindex $params 0] suspendreason [join [lrange $params 1 end]]
+				setctx [lindex $params 0]
+				bncdisconnect "Your account has been suspended: [join [lrange $params 1 end]]"
 			}
 			"unsuspend" {
 				setbncuser [lindex $params 0] lock 0
@@ -251,7 +256,7 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"global" {
 				foreach user [bncuserlist] {
-					bncnotc [join [lrange $params 0 end]]
+					bncnotc [join $params]
 				}
 			}
 			"bncuserkill" {
@@ -270,10 +275,16 @@ proc sbnc:ifacemsg {socket line} {
 }
 
 proc registerifacehandler {plugin handler} {
-	if {![info exists ::ifacehandlers]} {
-		set ::ifacehandlers [list [list $plugin $handler]]
+	global ifacehandlers
+
+	if {![info exists ifacehandlers]} {
+		set ifacehandlers [list [list $plugin $handler]]
 	} else {
-		lappend ::ifacehandlers [list $plugin $handler]
+		foreach existinghandler $ifacehandlers {
+			if {[string equal [lindex $existinghandler 0] $plugin]} { return }
+		}
+
+		lappend ifacehandlers [list $plugin $handler]
 	}
 
 	return ""

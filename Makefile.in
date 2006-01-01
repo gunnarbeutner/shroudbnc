@@ -36,13 +36,14 @@ clean :
 
 install : sbnc sbnc.so conftool md5tool
 	@if [ ! -d ~/sbnc ]; then mkdir ~/sbnc; fi
-	@cp sbnc ~/sbnc
-	@cp sbnc.so ~/sbnc
+	@cp sbnc ~/sbnc/sbnc
+	@cp sbnc.so ~/sbnc/sbnc.so
 	@cp -R scripts ~/sbnc
 	@if [ ! -d ~/sbnc/users ]; then mkdir ~/sbnc/users; fi
-	@cp users/example.conf ~/sbnc/users
-	@if [ ! -f ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc; fi
-	@if [ ! -f ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc; fi
+	@cp users/example.conf ~/sbnc/users/example.conf
+	@if [ ! -f ~/sbnc/sbnc.conf ]; then cp sbnc.conf ~/sbnc/sbnc.conf; fi
+	@if [ ! -f ~/sbnc/sbnc.tcl ]; then cp sbnc.tcl ~/sbnc/sbnc.tcl; fi
+	@if [ -f ~/sbnc/sbnc.ipc ]; then rm ~/sbnc/sbnc.ipc; fi
 	@cp conftool ~/sbnc
 	@cp md5tool ~/sbnc
 	@cp README* ~/sbnc

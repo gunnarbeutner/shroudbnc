@@ -575,6 +575,9 @@ void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 	m_DnsEvents = NULL;
 
 	if (!response || response->status != adns_s_ok) {
+		// we cannot destroy the object here as there might still be the other
+		// adns query (bind ip) in the queue which would get destroyed in the
+		// destructor; this causes a crash in the StartMainLoop() function
 		m_LatchedDestruction = true;
 	} else {
 		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));

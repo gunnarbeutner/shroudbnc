@@ -12,7 +12,9 @@ tickle.so: $(OBJS)
 	$(CXX) -shared $(LDFLAGS) -g -o $@ $(OBJS)
 
 install: tickle.so
-	cp tickle.so ~/sbnc
+	@cp tickle.so ~/sbnc/tickle.so
+	@echo "tickle.so was copied to ~/sbnc/tickle.so"
+	@echo "You will now have to load it by using /sbnc insmod ./tickle.so (while you're connected to the bouncer."
 
 clean:
 	-rm $(OBJS)
