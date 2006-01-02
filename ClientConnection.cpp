@@ -28,7 +28,7 @@ IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL) {
+CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL, Role_Client) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
