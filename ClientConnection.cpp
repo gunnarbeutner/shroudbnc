@@ -53,7 +53,7 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 	m_CommandList = NULL;
 }
 
-CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Client, false) {
+CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Client, false, Role_Client) {
 	m_Owner = Owning;
 
 	m_Nick = strdup(Box->ReadString("client.nick"));

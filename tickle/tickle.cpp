@@ -206,14 +206,21 @@ class CTclSupport : public CModuleFar {
 
 	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 		CBouncerUser* User = Client->GetOwningClient();
+		const utility_t *Utils;
 
 		g_NoticeUser = NoticeUser;
+
+		if (strcmpi(Subcommand, "help") == 0 && User && User->IsAdmin()) {
+			commandlist_t *Commands = Client->GetCommandList();
+			Utils = g_Bouncer->GetUtilities();
+
+			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: tcl command\nExecutes the specified tcl command.");
+		}
 
 		if (argc > 1 && strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 			setctx(User->GetUsername());
 
 			Tcl_DString dsScript;
-			const utility_t *Utils;
 			const char **argvdup;
 
 			Utils = g_Bouncer->GetUtilities();
