@@ -52,15 +52,31 @@ proc virtual:commandiface {client parameters} {
 			bncaddcommand "setlimit" "VAdmin" "sets a group's limit"
 			bncaddcommand "groups" "VAdmin" "lists all groups"
 
+			set help "Syntax: who \[group\]\n"
+			append help "Shows a list of all users (in a specific group).\n"
+			append help "Flags (which are displayed in front of the username):\n"
+			append help "@ user is an admin\n"
+			append help "* user is currently logged in\n"
+			append help "! user is suspended\n"
+			append help "\$ user is a virtual admin"
+			bncaddcommand "who" "Admin" "shows users" $help
 		} else {
-			bncaddcommand "adduser" "Admin" "creates a new user"
+			bncaddcommand "adduser" "Admin" "creates a new user" "Syntax: adduser <username> <password>\nCreates a new user."
 
 			if {$vsbncdeluser} {
-				bncaddcommand "deluser" "Admin" "removes a user"
+				bncaddcommand "deluser" "Admin" "removes a user" "Syntax: deluser <username>\nDeletes a user."
 			}
 
-			bncaddcommand "resetpass" "Admin" "sets a user's password"
-			bncaddcommand "who" "Admin" "shows users"
+			bncaddcommand "resetpass" "Admin" "sets a user's password" "Syntax: resetpass <user> <password>\nResets another user's password."
+
+			set help "Syntax: who\n"
+			append help "Shows a list of all users.\n"
+			append help "Flags (which are displayed in front of the username):\n"
+			append help "@ user is an admin\n"
+			append help "\$ user is a virtual admin"
+			append help "* user is currently logged in\n"
+			append help "! user is suspended\n"
+			bncaddcommand "who" "Admin" "shows users" $help
 		}
 	}
 }
@@ -168,10 +184,10 @@ proc virtual:cmd:who {account parameters} {
 
 			append out "\]"
 
-			if {[getbncuser $account admin] && $group != ""} {
-				set group [virtual:getgroup $user]
-				if {$group == ""} { set group "<none>" }
-				append out " $group"
+			if {[getbncuser $account admin] && $group == ""} {
+				set grp [virtual:getgroup $user]
+				if {$grp == ""} { set grp "<none>" }
+				append out " $grp"
 			}
 
 			append out " :[getbncuser $user realname]"
