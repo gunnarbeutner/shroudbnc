@@ -51,6 +51,11 @@ set ::ifacessl 0
 # unadmin user
 # setident user ident
 # hasplugin plugin
+# suspend user reason
+# unsuspend user
+# global text
+# bncuserkill user reason
+# bncuserdisconnect user reason
 
 if {$::ifacessl} {
 	catch [list listen $::ifaceport script sbnc:iface "" 1]
@@ -64,14 +69,18 @@ proc sbnc:iface {socket} {
 	control $socket sbnc:ifacemsg
 }
 
-proc sbnc:ifacecmd {command params account} {
+proc sbnc:ifacecmd {command params account override} {
 	global ifacehandlers
 
 	set result ""
 
 	if {[info exists ifacehandlers]} {
 		foreach handler $ifacehandlers {
-			set tempResult [[lindex $handler 1] $command $params $account]
+			if {[llength [info args [lindex $handler 1]]] > 3} {
+				set tempResult [[lindex $handler 1] $command $params $account $override]
+			} else {
+				set tempResult [[lindex $handler 1] $command $params $account]
+			}
 
 			if {$tempResult != ""} {
 				return $tempResult
@@ -196,7 +205,9 @@ proc sbnc:ifacemsg {socket line} {
 
 	set result ""
 
-	set result [sbnc:ifacecmd $command $params $account]
+	set override 0
+
+	set result [sbnc:ifacecmd $command $params $account $override]
 
 	if {[getbncuser $account admin]} {
 		switch -- $command {
@@ -211,7 +222,8 @@ proc sbnc:ifacemsg {socket line} {
 			"adm" {
 				setctx [lindex $params 0]
 				set account [getctx]
-				set result [sbnc:ifacecmd [lindex $params 1] [lrange $params 2 end] [getctx]]
+				set override 1
+				set result [sbnc:ifacecmd [lindex $params 1] [lrange $params 2 end] [getctx] $override]
 			}
 			"mainlog" {
 				set error [catch {open sbnc.log r} file]
@@ -256,6 +268,7 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"global" {
 				foreach user [bncuserlist] {
+					setctx $user
 					bncnotc [join $params]
 				}
 			}

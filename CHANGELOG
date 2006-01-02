@@ -53,3 +53,13 @@ Revision 351:
 -improved performance
 -made /sbnc help editable using modules
 -added a new special file: "sbnc.motd"
+
+Revision 358:
+-version: 1.1
+-added: awaymessage.tcl
+-added: contact.tcl
+-added: lock.tcl
+-added: qauth.tcl
+-added: vhost.tcl
+-added: virtual.tcl
+-added several tcl commands which are required by the new web interface

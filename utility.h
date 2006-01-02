@@ -74,7 +74,7 @@ void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 void DestroyCommandT(command_t *Command);
 
-#define BNCVERSION "1.0 $Revision$"
+#define BNCVERSION "1.1 $Revision$"
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
