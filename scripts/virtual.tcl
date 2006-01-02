@@ -34,6 +34,7 @@ proc virtual:commandiface {client parameters} {
 		if {[string equal -nocase $command "vunadmin"]} { virtual:cmd:vunadmin $client $parameters }
 		if {[string equal -nocase $command "getlimit"]} { virtual:cmd:getlimit $client $parameters }
 		if {[string equal -nocase $command "setlimit"]} { virtual:cmd:setlimit $client $parameters }
+		if {[string equal -nocase $command "groups"]} { virtual:cmd:groups $client $parameters }
 	}
 
 	if {[string equal -nocase $command "who"]} { virtual:cmd:who $client $parameters }
@@ -49,6 +50,7 @@ proc virtual:commandiface {client parameters} {
 			bncaddcommand "vunadmin" "VAdmin" "removes a user's virtual admin privileges"
 			bncaddcommand "getlimit" "VAdmin" "gets a group's limit"
 			bncaddcommand "setlimit" "VAdmin" "sets a group's limit"
+			bncaddcommand "groups" "VAdmin" "lists all groups"
 
 		} else {
 			bncaddcommand "adduser" "Admin" "creates a new user"
@@ -164,7 +166,15 @@ proc virtual:cmd:who {account parameters} {
 				append out [strftime "%c" [getbncuser $user seen]]
 			}
 
-			append out "\] :[getbncuser $user realname]"
+			append out "\]"
+
+			if {[getbncuser $account admin] && $group != ""} {
+				set group [virtual:getgroup $user]
+				if {$group == ""} { set group "<none>" }
+				append out " $group"
+			}
+
+			append out " :[getbncuser $user realname]"
 
 			setctx $account
 			bncnotc $out
@@ -583,6 +593,33 @@ proc virtual:vgroupusers {group} {
 	}
 
 	return $bncs
+}
+
+proc virtual:cmd:groups {client parameters} {
+	set bncs [list]
+	foreach u [bncuserlist] {
+		if {[virtual:getgroup $u] != ""} {
+			lappend bncs [virtual:getgroup $u]
+		}
+	}
+
+	set groups [sbnc:uniq $bncs]
+
+	bncreply "Groups:"
+
+	foreach group $groups {
+		set bncs [list]
+		foreach u [bncuserlist] {
+			if {[string equal -nocase $group [getbncuser $u tag group]]} {
+				lappend bncs $u
+			}
+		}
+
+		bncreply "$group [llength $bncs]/[virtual:getmaxbncs $group]"
+	}
+
+	bncreply "End of GROUPS."
+	haltoutput 
 }
 
 # iface commands
