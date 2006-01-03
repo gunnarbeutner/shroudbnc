@@ -21,8 +21,6 @@ set ::vsbncserver [list irc.quakenet.org 6667]
 set ::vsbncdeluser 0
 
 proc virtual:commandiface {client parameters} {
-	global vsbncdeluser
-
 	if {![virtual:isadmin $client] && ![getbncuser $client admin]} { return }
 
 	set command [lindex $parameters 0]
@@ -39,7 +37,7 @@ proc virtual:commandiface {client parameters} {
 
 	if {[string equal -nocase $command "who"]} { virtual:cmd:who $client $parameters }
 	if {[string equal -nocase $command "resetpass"]} { virtual:cmd:resetpass $client $parameters }
-	if {$vsbncdeluser && [string equal -nocase $command "deluser"]} { virtual:cmd:deluser $client $parameters }
+	if {[string equal -nocase $command "deluser"]} { virtual:cmd:deluser $client $parameters }
 	if {[string equal -nocase $command "adduser"]} { virtual:cmd:adduser $client $parameters }
 
 	if {[string equal -nocase $command "help"]} {
@@ -62,10 +60,7 @@ proc virtual:commandiface {client parameters} {
 			bncaddcommand "who" "Admin" "shows users" $help
 		} else {
 			bncaddcommand "adduser" "Admin" "creates a new user" "Syntax: adduser <username> <password>\nCreates a new user."
-
-			if {$vsbncdeluser} {
-				bncaddcommand "deluser" "Admin" "removes a user" "Syntax: deluser <username>\nDeletes a user."
-			}
+			bncaddcommand "deluser" "Admin" "removes a user" "Syntax: deluser <username>\nDeletes a user."
 
 			bncaddcommand "resetpass" "Admin" "sets a user's password" "Syntax: resetpass <user> <password>\nResets another user's password."
 
