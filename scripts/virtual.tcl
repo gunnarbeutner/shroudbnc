@@ -39,8 +39,8 @@ proc virtual:commandiface {client parameters} {
 
 	if {[string equal -nocase $command "who"]} { virtual:cmd:who $client $parameters }
 	if {[string equal -nocase $command "resetpass"]} { virtual:cmd:resetpass $client $parameters }
-	if {[string equal -nocase $command "deluser"]} { virtual:cmd:deluser $client $parameters }
-	if {$vsbncdeluser && [string equal -nocase $command "adduser"]} { virtual:cmd:adduser $client $parameters }
+	if {$vsbncdeluser && [string equal -nocase $command "deluser"]} { virtual:cmd:deluser $client $parameters }
+	if {[string equal -nocase $command "adduser"]} { virtual:cmd:adduser $client $parameters }
 
 	if {[string equal -nocase $command "help"]} {
 		if {[getbncuser $client admin]} {
