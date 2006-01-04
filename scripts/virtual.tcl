@@ -782,6 +782,9 @@ proc virtual:ifacecmd {command params account} {
 			"vsetgroup" {
 				setbncuser [lindex $params 0] tag group [lindex $params 1]
 			}
+			"vgetadmin" {
+				return [virtual:getadmin [lindex $params 0]]
+			}
 		}
 	}
 }
