@@ -236,7 +236,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
 
-	hostent* hent = gethostbyname(Host);
+	hent = gethostbyname(Host);
 
 	if (hent) {
 		in_addr* peer = (in_addr*)hent->h_addr_list[0];
