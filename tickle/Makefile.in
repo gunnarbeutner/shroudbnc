@@ -14,7 +14,7 @@ tickle.so: $(OBJS)
 install: tickle.so
 	@cp tickle.so ${HOME}/sbnc/tickle.so
 	@echo "tickle.so was copied to ${HOME}/sbnc/tickle.so"
-	@echo "You will now have to load it by using /sbnc insmod ./tickle.so (while you're connected to the bouncer."
+	@echo "You will now have to load it by using /sbnc insmod ./tickle.so (while you're connected to the bouncer)."
 
 clean:
 	-rm $(OBJS)

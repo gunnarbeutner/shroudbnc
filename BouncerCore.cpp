@@ -268,20 +268,6 @@ void CBouncerCore::StartMainLoop(void) {
 		return;
 	}
 
-/* 	if (!SSL_CTX_load_verify_locations(m_SSLContext, "ca.crt", NULL)) {
-		Log("Could not load CA certificate (ca.crt).");
-		return;
-	}
-
-	STACK_OF(X509)* ClientCA = SSL_load_client_CA_file("ca.crt");
-
-	if (ClientCA == NULL) {
-		Log("Could not load CA certificate (ca.crt).");
-		return;
-	}*/
-
-//	SSL_CTX_set_client_CA_list(m_SSLContext, ClientCA);
-
 	SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 	SSL_CTX_set_verify(m_SSLClientContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 #endif
@@ -1051,7 +1037,7 @@ int CBouncerCore::GetTimerStats(void) {
 	return g_TimerStats;
 }
 
-bool CBouncerCore::Match(const char* Pattern, const char* String) {
+bool CBouncerCore::Match(const char *Pattern, const char *String) {
 	return (match(Pattern, String) == 0);
 }
 
@@ -1072,7 +1058,7 @@ void CBouncerCore::SetSendQSize(int NewSize) {
 	m_SendQSizeCache = NewSize;
 }
 
-const char* CBouncerCore::GetMotd(void) {
+const char *CBouncerCore::GetMotd(void) {
 	return m_Config->ReadString("system.motd");
 }
 
@@ -1081,16 +1067,16 @@ void CBouncerCore::SetMotd(const char* Motd) {
 }
 
 void CBouncerCore::Fatal(void) {
-	Log("Fatal error occured. Please send this log to gb@shroudbnc.org for further analysis.");
+	Log("Fatal error occured. Please send this log to gb@prco23.org for further analysis.");
 
 	exit(1);
 }
 
-SSL_CTX* CBouncerCore::GetSSLContext(void) {
+SSL_CTX *CBouncerCore::GetSSLContext(void) {
 	return m_SSLContext;
 }
 
-SSL_CTX* CBouncerCore::GetSSLClientContext(void) {
+SSL_CTX *CBouncerCore::GetSSLClientContext(void) {
 	return m_SSLClientContext;
 }
 
@@ -1104,8 +1090,8 @@ int CBouncerCore::GetSSLCustomIndex(void) {
 
 #ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
-	SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(x509ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-	CConnection* Ptr = (CConnection*)SSL_get_ex_data(ssl, g_SSLCustomIndex);
+	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
+	CConnection *Ptr = (CConnection *)SSL_get_ex_data(ssl, g_SSLCustomIndex);
 
 	if (Ptr != NULL)
 		return Ptr->SSLVerify(preverify_ok, x509ctx);

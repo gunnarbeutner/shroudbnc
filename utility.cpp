@@ -186,27 +186,31 @@ void ArgFreeArray(const char** Array) {
 }
 
 SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
+	unsigned long lTrue = 1;
+	sockaddr_in sin, sloc;
+	SOCKET Socket;
+	hostent *hent;
+	unsigned long addr;
+	int code;
+
 	if (!Host || !Port)
 		return INVALID_SOCKET;
 
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	if (sock == INVALID_SOCKET)
+	if (Socket == INVALID_SOCKET)
 		return INVALID_SOCKET;
 
-	unsigned long lTrue = 1;
-	ioctlsocket(sock, FIONBIO, &lTrue);
+	ioctlsocket(Socket, FIONBIO, &lTrue);
 
-	if (g_last_sock < sock)
-		g_last_sock = sock;
-
-	sockaddr_in sin, sloc;
+	if (g_last_sock < Socket)
+		g_last_sock = Socket;
 
 	if (BindIp && *BindIp) {
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = 0;
 
-		hostent* hent = gethostbyname(BindIp);
+		hent = gethostbyname(BindIp);
 
 		if (hent) {
 			in_addr* peer = (in_addr*)hent->h_addr_list[0];
@@ -217,7 +221,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 			sloc.sin_addr.s_addr = peer->s_addr;
 	#endif
 		} else {
-			unsigned long addr = inet_addr(BindIp);
+			addr = inet_addr(BindIp);
 
 	#ifdef _WIN32
 			sloc.sin_addr.S_un.S_addr = addr;
@@ -226,7 +230,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	#endif
 		}
 
-		bind(sock, (sockaddr*)&sloc, sizeof(sloc));
+		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
 	sin.sin_family = AF_INET;
@@ -243,7 +247,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		sin.sin_addr.s_addr = peer->s_addr;
 #endif
 	} else {
-		unsigned long addr = inet_addr(Host);
+		addr = inet_addr(Host);
 
 #ifdef _WIN32
 		sin.sin_addr.S_un.S_addr = addr;
@@ -252,38 +256,40 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 #endif
 	}
 
-	int code = connect(sock, (const sockaddr*)&sin, sizeof(sin));
+	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
 
 #ifdef _WIN32
 	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else
 	if (code != 0 && errno != EINPROGRESS) {
 #endif
-		closesocket(sock);
+		closesocket(Socket);
+
 		return INVALID_SOCKET;
 	}
 
 	g_LastReconnect = time(NULL);
 
-	return sock;
+	return Socket;
 }
 
 SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* BindIp) {
+	unsigned long lTrue = 1;
+	sockaddr_in sin, sloc;
+	int code;
+
 	if (!Port)
 		return INVALID_SOCKET;
 
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	if (sock == INVALID_SOCKET)
+	if (Socket == INVALID_SOCKET)
 		return INVALID_SOCKET;
 
-	unsigned long lTrue = 1;
-	ioctlsocket(sock, FIONBIO, &lTrue);
+	ioctlsocket(Socket, FIONBIO, &lTrue);
 
-	if (g_last_sock < sock)
-		g_last_sock = sock;
-
-	sockaddr_in sin, sloc;
+	if (g_last_sock < Socket)
+		g_last_sock = Socket;
 
 	if (BindIp) {
 		sloc.sin_family = AF_INET;
@@ -295,7 +301,7 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 		sloc.sin_addr.s_addr = BindIp->s_addr;
 	#endif
 
-		bind(sock, (sockaddr*)&sloc, sizeof(sloc));
+		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
 	sin.sin_family = AF_INET;
@@ -307,35 +313,36 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 	sin.sin_addr = Host;
 #endif
 
-	int code = connect(sock, (const sockaddr*)&sin, sizeof(sin));
+	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
 
 #ifdef _WIN32
 	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else
 	if (code != 0 && errno != EINPROGRESS) {
 #endif
-		closesocket(sock);
+		closesocket(Socket);
+
 		return INVALID_SOCKET;
 	}
 
 	g_LastReconnect = time(NULL);
 
-	return sock;
+	return Socket;
 }
 
-CIRCConnection* CreateIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) {
+CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CBouncerUser *Owning, const char *BindIp, bool SSL) {
 	g_LastReconnect = time(NULL);
 
 	return new CIRCConnection(Host, Port, Owning, BindIp, SSL);
 }
 
-char* NickFromHostmask(const char* Hostmask) {
-	const char* Ex = strstr(Hostmask, "!");
+char *NickFromHostmask(const char *Hostmask) {
+	const char *Ex = strstr(Hostmask, "!");
 
 	if (!Ex)
 		return NULL;
 	else {
-		char* Copy = strdup(Hostmask);
+		char *Copy = strdup(Hostmask);
 
 		if (Copy == NULL) {
 			LOGERROR("strdup() failed. Could not parse hostmask (%s).", Hostmask);
@@ -350,8 +357,8 @@ char* NickFromHostmask(const char* Hostmask) {
 }
 
 SOCKET CreateListener(unsigned short Port, const char* BindIp) {
-	const char optTrue = 1;
-	int code;
+	const int optTrue = 1;
+	bool Bound = false;
 	SOCKET Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Listener == INVALID_SOCKET)
@@ -359,14 +366,12 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 
 	g_last_sock = Listener;
 
-	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, &optTrue, sizeof(optTrue));
+	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 
 	sockaddr_in sin;
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
-
-	bool bound = false;
 
 	if (BindIp) {
 		hostent* hent = gethostbyname(BindIp);
@@ -380,12 +385,11 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 			sin.sin_addr.s_addr = peer->s_addr;
 	#endif
 
-			bound = true;
+			Bound = true;
 		}
 	}
 
-
-	if (!bound) {
+	if (!Bound) {
 #ifdef _WIN32
 		sin.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 #else
@@ -393,17 +397,13 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 #endif
 	}
 
-	code = bind(Listener, (sockaddr*)&sin, sizeof(sin));
-
-	if (code != 0) {
+	if (bind(Listener, (sockaddr*)&sin, sizeof(sin)) != 0) {
 		closesocket(Listener);
 
 		return INVALID_SOCKET;
 	}
 
-	code = listen(Listener, SOMAXCONN);
-
-	if (code != 0) {
+	if (listen(Listener, SOMAXCONN) != 0) {
 		closesocket(Listener);
 
 		return INVALID_SOCKET;
@@ -484,6 +484,6 @@ void DestroyCommandT(command_t *Command) {
 	free(Command);
 }
 
-int keyStrCmp(const void* a, const void* b) {
-	return strcmp(*(const char**)a, *(const char**)b);
+int keyStrCmp(const void *a, const void *b) {
+	return strcmp(*(const char **)a, *(const char **)b);
 }
