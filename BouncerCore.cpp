@@ -424,6 +424,9 @@ void CBouncerCore::StartMainLoop(void) {
 
 		FD_ZERO(&FDError);
 
+		if (m_Running == false && SleepInterval > 5)
+			interval.tv_sec = 5;
+
 		// &FDError was 'NULL'
 		adns_beforeselect(g_adns_State, &nfds, &FDRead, &FDWrite, &FDError, &tvp, &interval, NULL);
 
