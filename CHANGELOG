@@ -63,3 +63,8 @@ Revision 358:
 -added: vhost.tcl
 -added: virtual.tcl
 -added several tcl commands which are required by the new web interface
+
+Revision 370:
+-fixed "ping timeout" bug when reloading sbnc, possibly fixed a bug in "make update"
+-updated README
+-added java-style comments for some files

@@ -24,8 +24,6 @@ public:
 #ifndef SWIG
 	CKeyring(CBouncerConfig *Config);
 #endif
-	virtual ~CKeyring(void);
-
 	virtual const char *GetKey(const char *Channel);
 	virtual bool AddKey(const char *Channel, const char *Key);
 	virtual bool DeleteKey(const char *Channel);

@@ -23,7 +23,7 @@ class CBouncerConfig {
 	char *m_File;
 	bool m_WriteLock;
 
-	bool ParseConfig(const char *Filename);
+	bool ParseConfig(void);
 	bool Persist(void);
 public:
 #ifndef SWIG

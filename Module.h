@@ -23,6 +23,7 @@ class CModule : public CModuleFar {
 	HMODULE m_Image;
 	char *m_File;
 	CModuleFar *m_Far;
+	char *m_Error;
 public:
 #ifndef SWIG
 	CModule(const char *Filename);
@@ -32,6 +33,7 @@ public:
 	virtual CModuleFar *GetModule(void);
 	virtual const char *GetFilename(void);
 	virtual HMODULE GetHandle(void);
+	virtual const char *GetError(void);
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);

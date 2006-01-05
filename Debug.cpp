@@ -41,6 +41,8 @@ int g_IgnoreCount = 0;
 #define ALLOCIGNORE 100000000
 #define ALLOCDIV 150
 
+#undef ALLOC_DEBUG
+
 void Debug_Final(void) {
 	SymCleanup(GetCurrentProcess());
 }
@@ -83,7 +85,9 @@ void* operator new(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
 
+#ifdef ALLOC_DEBUG
 	printf("operator new(%d) from %s\n", Size, sym->Name);
+#endif
 
 	HeapFree(GetProcessHeap(), 0, sym);
 
@@ -125,7 +129,9 @@ void* DebugMalloc(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
 	}
 
+#ifdef ALLOC_DEBUG
 	printf("malloc(%d) from %s\n", Size, sym->Name);
+#endif
 
 	HeapFree(GetProcessHeap(), 0, sym);
 
@@ -250,7 +256,9 @@ bool ReportMemory(time_t Now, void* Cookie) {
 		}
 	}
 
+#ifdef ALLOC_DEBUG
 	printf("%d bytes\n", g_Mem);
+#endif
 
 	return true;
 }

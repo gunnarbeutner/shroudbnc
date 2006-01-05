@@ -95,6 +95,8 @@ extern "C" int sbncLoad(loaderparams_s *Parameters) {
 
 #if defined(_WIN32) && defined(_DEBUG)
 	DebugTimer->Destroy();
+
+	ReportMemory(time(NULL), NULL);
 #endif
 
 	if (g_Bouncer) {

@@ -305,7 +305,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		for (int i = 0; i < Count; i++) {
 			if (!Modules[i]) { continue; }
 
-			asprintf(&Out, "%d: 0x%p %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
+			asprintf(&Out, "%d: %x %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
 
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
@@ -326,12 +326,24 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CModule* Module = g_Bouncer->LoadModule(argv[1]);
+		const char *Error = NULL;
 
-		if (Module) {
+		CModule* Module = g_Bouncer->LoadModule(argv[1], &Error);
+
+		if (Module != NULL) {
 			SENDUSER("Module was loaded.");
 		} else {
-			SENDUSER("Module could not be loaded.");
+			asprintf(&Out, "Module could not be loaded: %s", Error);
+
+			if (Out == NULL) {
+				LOGERROR("asprintf() failed");
+
+				return false;
+			}
+
+			SENDUSER(Out);
+
+			free(Out);
 		}
 
 		return false;

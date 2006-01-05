@@ -40,7 +40,7 @@ public:
 	char *Read(unsigned int Bytes);
 	void Flush(void);
 
-	void Write(const char *Buffer, unsigned int Size);
+	void Write(const char *Data, unsigned int Size);
 	void WriteLine(const char *Line);
 };
 #endif

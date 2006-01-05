@@ -24,7 +24,7 @@ typedef struct penalty_s {
 	int Amplifier;
 } penalty_t;
 
-#define FLOOD_WAIT 2
+#define FLOOD_WAIT 0
 
 static penalty_t penalties [] = {
 	{ "MODE", 2 },

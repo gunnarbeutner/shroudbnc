@@ -317,7 +317,7 @@ void CBouncerCore::StartMainLoop(void) {
 		free(Out);
 
 		if (File)
-			LoadModule(File);
+			LoadModule(File, NULL);
 		else
 			break;
 	}
@@ -566,42 +566,60 @@ int CBouncerCore::GetModuleCount(void) {
 	return m_Modules.Count();
 }
 
-CModule* CBouncerCore::LoadModule(const char* Filename) {
-	CModule* Mod = new CModule(Filename);
+CModule* CBouncerCore::LoadModule(const char* Filename, const char **Error) {
+	CModule* Module = new CModule(Filename);
 
-	if (Mod == NULL) {
+	if (Module == NULL) {
 		LOGERROR("new operator failed. Could not load module %s", Filename);
+
+		if (Error)
+			*Error = "new operator failed.";
 
 		return NULL;
 	}
 
 	for (int i = 0; i < m_Modules.Count(); i++) {
-		if (m_Modules[i] && m_Modules[i]->GetHandle() == Mod->GetHandle()) {
-			delete Mod;
+		if (m_Modules[i] && m_Modules[i]->GetHandle() == Module->GetHandle()) {
+			delete Module;
+
+			if (Error)
+				*Error = "This module is already loaded.";
 
 			return NULL;
 		}
 	}
 
-	if (Mod->GetModule()) {
-		if (!m_Modules.Insert(Mod)) {
-			delete Mod;
+	if (Module->GetModule() != NULL) {
+		if (!m_Modules.Insert(Module)) {
+			delete Module;
 
 			LOGERROR("realloc() failed. Could not load module");
+
+			if (Error)
+				*Error = "realloc() failed.";
 
 			return NULL;
 		}
 
-		Log("Loaded module: %s", Mod->GetFilename());
+		Log("Loaded module: %s", Module->GetFilename());
 
-		Mod->Init(this);
+		Module->Init(this);
 
 		if (!m_LoadingModules)
 			UpdateModuleConfig();
 
-		return Mod;
+		return Module;
 	} else {
-		delete Mod;
+		static char *ErrorMessage = NULL;
+
+		free(ErrorMessage);
+
+		if (Error) {
+			ErrorMessage = strdup(Module->GetError());
+			*Error = ErrorMessage;
+		}
+
+		delete Module;
 
 		return NULL;
 	}
@@ -1165,6 +1183,7 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 
 	int i = 0;
 	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		char *Username = strdup(User->Name);
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
 		CClientConnection *Client = User->Value->GetClientConnection();
 
@@ -1172,7 +1191,7 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 			CAssocArray *IrcBox = Box->Create();
 
 			if (IRC->Freeze(IrcBox))
-				Box->AddBox(User->Name, IrcBox);
+				Box->AddBox(Username, IrcBox);
 			else
 				IrcBox->Destroy();
 		}
@@ -1189,10 +1208,12 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 			ClientBox = Box->Create();
 			
 			if (Client->Freeze(ClientBox))
-				ClientsBox->AddBox(User->Name, ClientBox);
+				ClientsBox->AddBox(Username, ClientBox);
 			else
 				ClientBox->Destroy();
 		}
+
+		free(Username);
 	}
 
 	delete this;

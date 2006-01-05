@@ -95,7 +95,7 @@ public:
 
 	virtual CModule **GetModules(void);
 	virtual int GetModuleCount(void);
-	virtual CModule *LoadModule(const char *Filename);
+	virtual CModule *LoadModule(const char *Filename, const char **Error);
 	virtual bool UnloadModule(CModule *Module);
 
 	virtual void SetIdent(const char *Ident);

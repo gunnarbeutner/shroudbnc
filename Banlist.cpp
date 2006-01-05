@@ -19,16 +19,24 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
-void DestroyBan(ban_t *Obj) {
-	free(Obj->Mask);
-	free(Obj->Nick);
-	free(Obj);
+/**
+ * DestroyBan
+ *
+ * Used by CHashtable to destroy individual bans
+ *
+ * @param Ban the ban which is going to be destroyed
+ */
+void DestroyBan(ban_t *Ban) {
+	free(Ban->Mask);
+	free(Ban->Nick);
+	free(Ban);
 }
 
+/**
+ * CBanlist
+ *
+ * Constructs an empty banlist
+ */
 CBanlist::CBanlist() {
 	m_Bans = new CHashtable<ban_t *, false, 5>();
 
@@ -36,15 +44,30 @@ CBanlist::CBanlist() {
 		m_Bans->RegisterValueDestructor(DestroyBan);
 }
 
+/**
+ * ~CBanlist
+ *
+ * Destroys a banlist
+ */
 CBanlist::~CBanlist() {
 	delete m_Bans;
 }
 
+/**
+ * SetBan
+ *
+ * Creates a new ban
+ *
+ * @param Mask the banmask
+ * @param Nick the nick of the user who set the ban
+ * @param TS the timestamp of the ban
+ */
 bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
 	ban_t* Obj;
 
 	if (m_Bans == NULL) {
-		LOGERROR("could not set ban (%s, %s, %d). internal banlist is not available.", Mask, Nick, TS);
+		LOGERROR("could not set ban (%s, %s, %d). internal banlist is not "
+			"available.", Mask, Nick, TS);
 
 		return false;
 	}
@@ -61,6 +84,13 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
 		return false;
 }
 
+/**
+ * UnsetBan
+ *
+ * Removes a ban from the banlist.
+ *
+ * @param Mask the mask of the ban which is going to be removed
+ */
 bool CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL && m_Bans)
 		return m_Bans->Remove(Mask);
@@ -68,6 +98,13 @@ bool CBanlist::UnsetBan(const char *Mask) {
 		return false;
 }
 
+/**
+ * Iterate
+ *
+ * Iterates through the banlist
+ *
+ * @param Skip the index of the ban which is to be returned
+ */
 const ban_t *CBanlist::Iterate(int Skip) {
 	xhash_t<ban_t *> *Obj;
 
@@ -82,6 +119,13 @@ const ban_t *CBanlist::Iterate(int Skip) {
 		return NULL;
 }
 
+/**
+ * GetBan
+ *
+ * Returns the ban whose banmask matches the given Mask
+ *
+ * @param Mask the banmask
+ */
 const ban_t *CBanlist::GetBan(const char *Mask) {
 	if (m_Bans == NULL)
 		return NULL;

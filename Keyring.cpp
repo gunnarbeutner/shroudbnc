@@ -19,17 +19,26 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CKeyring
+ *
+ * Constructs a new keyring object which can be used for storing channel keys.
+ *
+ * @param Config the configuration object which should be used for storing
+ *               the keys
+ */
 CKeyring::CKeyring(CBouncerConfig *Config) {
 	m_Config = Config;
 }
 
-CKeyring::~CKeyring(void) {
-}
-
+/**
+ * GetKey
+ *
+ * Returns the key for the specified channel or NULL if there is no key
+ * or the key is unknown.
+ *
+ * @param Channel the channel for which the key should be retrieved
+ */
 const char *CKeyring::GetKey(const char* Channel) {
 	char *Buf = (char *)malloc(5 + strlen(Channel));
 
@@ -48,12 +57,22 @@ const char *CKeyring::GetKey(const char* Channel) {
 	return Ret;
 }
 
+/**
+ * AddKey
+ *
+ * Saves a key for a specific channel in the keyring. Returns true if the key
+ * was successfully saves, false otherwise.
+ *
+ * @param Channel the channel
+ * @param Key the key
+ */
 bool CKeyring::AddKey(const char *Channel, const char *Key) {
 	bool RetVal;
 	char *Buf = (char *)malloc(5 + strlen(Channel));
 
 	if (Buf == NULL) {
-		LOGERROR("malloc() failed. Key could not be added (%s, %s).", Channel, Key);
+		LOGERROR("malloc() failed. Key could not be added (%s, %s).",
+			Channel, Key);
 
 		return false;
 	}
@@ -67,6 +86,12 @@ bool CKeyring::AddKey(const char *Channel, const char *Key) {
 	return RetVal;
 }
 
+/**
+ * DeleteKey
+ *
+ * Removes a channel key from the keyring. Returns true if the key was
+ * successfully removed, false otherwise.
+ */
 bool CKeyring::DeleteKey(const char *Channel) {
 	bool RetVal;
 	char *Buf = (char *)malloc(5 + strlen(Channel));

@@ -57,8 +57,6 @@ CBouncerUser::CBouncerUser(const char* Name) {
 		g_Bouncer->Fatal();
 	}
 
-	assert(m_Config != NULL);
-
 	m_IRC = NULL;
 
 	m_ReconnectTime = 0;

@@ -19,10 +19,14 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CBouncerLog
+ *
+ * Constructs a log object.
+ *
+ * @param Filename the filename of the log, can be NULL to indicate that
+ *                 any log messages should be discarded
+ */
 CBouncerLog::CBouncerLog(const char *Filename) {
 	if (Filename) {
 		m_File = strdup(Filename);
@@ -33,7 +37,8 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 
 				g_Bouncer->Fatal();
 			} else {
-				printf("CBouncerLog::CBouncerLog: strdup() failed (%s).", Filename);
+				printf("CBouncerLog::CBouncerLog: strdup() failed (%s).",
+					Filename);
 
 				exit(1);
 			}
@@ -42,10 +47,26 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 		m_File = NULL;
 }
 
+/**
+ * ~CBouncerLog
+ *
+ * Destructs a log object.
+ */
 CBouncerLog::~CBouncerLog() {
 	free(m_File);
 }
 
+/**
+ * PlayToUser
+ *
+ * Sends the log to the specified user.
+ *
+ * @param User the user who should receive the log
+ * @param Type specifies how the log should be sent, can be one of:
+ *             Log_Notices - use IRC notices
+ *             Log_Messages - use IRC messages
+ *             Log_Motd - use IRC motd replies
+ */
 void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
 	FILE *Log;
 
@@ -73,8 +94,10 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
 						Server = "bouncer.shroudbnc.org";
 					}
 
-					if (Client)
-						Client->WriteLine(":%s 372 %s :%s", Server, Nick, Line);
+					if (Client) {
+						Client->WriteLine(":%s 372 %s :%s", Server,
+							Nick, Line);
+					}
 				}
 			}
 		}
@@ -86,6 +109,13 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
 		Client->WriteLine(":%s 376 %s :End of /MOTD command.", Server, Nick);
 }
 
+/**
+ * InternalWriteLine
+ *
+ * Writes a new log entry.
+ *
+ * @param Line the log entry
+ */
 void CBouncerLog::InternalWriteLine(const char* Line) {
 	FILE *Log;
 
@@ -121,6 +151,14 @@ void CBouncerLog::InternalWriteLine(const char* Line) {
 	}
 }
 
+/**
+ * WriteLine
+ *
+ * Formats a string and writes it into the log.
+ *
+ * @param Format the format string
+ * @param ... parameters used in the format string
+ */
 void CBouncerLog::WriteLine(const char* Format, ...) {
 	char *Out;
 	va_list marker;
@@ -140,6 +178,11 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
 	free(Out);
 }
 
+/**
+ * Clear
+ *
+ * Erases the contents of the log.
+ */
 void CBouncerLog::Clear(void) {
 	FILE *Log;
 	
@@ -147,6 +190,11 @@ void CBouncerLog::Clear(void) {
 		fclose(Log);
 }
 
+/**
+ * IsEmpty
+ *
+ * Checks whether the log is empty.
+ */
 bool CBouncerLog::IsEmpty(void) {
 	FILE *Log;
 

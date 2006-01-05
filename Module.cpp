@@ -46,6 +46,10 @@ CModule::CModule(const char *Filename) {
 #endif
 
 		g_Bouncer->Log("Could not load module %s: %s", Filename, ErrorMsg);
+
+		m_Error = strdup(ErrorMsg);
+	} else {
+		m_Error = NULL;
 	}
 }
 
@@ -56,6 +60,8 @@ CModule::~CModule() {
 	FreeLibrary(m_Image);
 
 	free(m_File);
+
+	free(m_Error);
 }
 
 CModuleFar *CModule::GetModule(void) {
@@ -83,6 +89,10 @@ const char *CModule::GetFilename(void) {
 
 HMODULE CModule::GetHandle(void) {
 	return m_Image;
+}
+
+const char *CModule::GetError(void) {
+	return m_Error;
 }
 
 void CModule::Destroy(void) {

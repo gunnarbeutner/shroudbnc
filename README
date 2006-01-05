@@ -1,28 +1,33 @@
-shroudBNC 1.0
+shroudBNC 1.1
 -------------
 
-shroudBNC is a modular framework for IRC clients. It supports TCL scripting and can be used as a bouncer.
+shroudBNC is a modular framework for IRC clients. It supports TCL scripting
+and can be used as a bouncer.
 
 Installation
 ------------
 
 First of all make sure that you have the following libraries installed:
 
-- libadns (for asynchronous support, mandatory) and libadns-dev (the header files)
-- tcl (if you're going to use the tcl module, version 8.4 or later, earlier versions have not been tested)
+- tcl (if you're going to use the tcl module, version 8.4 or later, earlier
+       versions have not been tested)
 - lua (if you want to use the lua scripting language, version 5.x or later)
 
-In order to compile and install sbnc you will have to use the 'configure' script which is included in the distribution of sbnc:
+In order to compile and install sbnc you will have to use the 'configure'
+script which is included in the distribution of sbnc:
 
 ./configure
 make
 make install
 
-(Keep in mind that you need to change your current directory to ~/sbnc after executing "make install".)
+(Keep in mind that you need to change your current directory to ~/sbnc after
+executing "make install".)
 
-Once you've compiled sbnc you will need to edit shroudBNC's configuration files:
+Once you've compiled sbnc you will need to edit shroudBNC's configuration
+files:
 
-The "conftool" can be used to generate a basic configuration file. Execute it using "./conftool":
+The "conftool" can be used to generate a basic configuration file. Execute it
+using "./conftool":
 
 "test@temple:~/sbnc$ ./conftool
 shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
@@ -30,14 +35,16 @@ shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
 
 This utility will automatically generate a suitable configuration
 for you once it has asked you some questions.
-1. Which port should the bouncer listen on? 5000
+1. Which port should the bouncer listen on? [9000] 5000
 2. What should the first user's name be? test
 3. Please enter a password for the first user: moo
 Writing config..."
 
-Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts you want.
+Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts
+you want.
 
-You can start sbnc using './sbnc' or './sbnc -n' if you want to see the console output:
+You can start sbnc using './sbnc' or './sbnc -n' if you want to see the
+console output:
 
 test@temple:~/sbnc$ ./sbnc
 shroudBNC loader
@@ -52,47 +59,72 @@ test@temple:~/sbnc$
 Usage
 -----
 
-Just connect to the bnc using your favorite IRC client. You will have to set your username (i.e. e-mail address in most clients) to the accountname you've chosen for your bnc.
+Just connect to the bnc using your favorite IRC client. You will have to set
+your username (i.e. e-mail address in most clients) to the accountname you've
+chosen for your bnc.
 
-Once you're connected you should type /sbnc help to get a list of available commands.
+Once you're connected you should type /sbnc help to get a list of available
+commands.
 
 If you've compiled the TCL module you can load it using:
 
 /sbnc insmod tickle/tickle.so
 
-A list of loaded modules can be viewed using /sbnc lsmod. /sbnc rmmod <module-id> removes a module.
+A list of loaded modules can be viewed using /sbnc lsmod.
+/sbnc rmmod <module-id> removes a module.
 
-shroudBNC supports oidentd in order to provide custom idents for each user. You will need to enable ident-spoofing for the unix account you're using to run shroudBNC. Read oidentd's manual for more details.
+shroudBNC supports oidentd in order to provide custom idents for each user. You
+will need to enable ident-spoofing for the unix account you're using to run
+shroudBNC. Read oidentd's manual for more details.
 
 TCL
 ---
 
-Installing the TCL module might sometimes be a bit tricky. You should know this before you start to compile the TCL module:
+Installing the TCL module might sometimes be a bit tricky. You should know this
+before you start to compile the TCL module:
 
 -the path of your TCL libraries
 -the path of the include files
 
-The commands for compiling the TCL module look like this (You need to execute them in the sbnc-1.0/tickle directory):
+The commands for compiling the TCL module look like this (You need to execute
+them in the sbnc-1.1/tickle directory):
 
 ./configure
 make
 make install
 
-Once you've compiled the TCL module there should be a file called "tickle.so" in the ~/sbnc directory. Load it using this command (while connected to the bouncer): /sbnc insmod ./tickle.so
+Once you've compiled the TCL module there should be a file called "tickle.so"
+in the ~/sbnc directory. Load it using this command (while connected to the
+bouncer):
+
+/sbnc insmod ./tickle.so
 
 Updating shroudBNC
 ------------------
 
-shroudBNC can be updated while it is running - without losing any active irc or client connections. In order to update it you need to extract a clean copy of shroudBNC somewhere.
-After compiling it you can run the "make update" script which will automatically update your currently running shroudBNC. (The script assumes that the bouncer's directory is ~/sbnc/).
+shroudBNC can be updated while it is running - without losing any active irc
+or client connections. In order to update it you need to extract a clean copy
+of shroudBNC somewhere.
 
-If you want to manually reload shroudBNC you need to copy the "sbnc.so" file which is created by the "make" command into your ~/sbnc directory. You must not use the filename of a currently loaded module as this would cause shroudBNC to segfault.
+After compiling it you can run the "make update" script which will
+automatically update your currently running shroudBNC. (The script assumes
+that the bouncer's directory is ~/sbnc/).
+
+If you want to manually reload shroudBNC you need to copy the "sbnc.so" file
+which is created by the "make" command into your ~/sbnc directory. You must
+not use the filename of a currently loaded module as this would cause
+shroudBNC to segfault.
 
 For example:
 
-shroudBNC is running using the module file "sbnc.so". You could compile the updated version of shroudBNC somewhere and rename the new "sbnc.so" file to "sbnc-2.so". Then just copy it into ~/sbnc and use the command "/sbnc reload sbnc-2.so" to load the new module.
+shroudBNC is running using the module file "sbnc.so". You could compile the
+updated version of shroudBNC somewhere and rename the new "sbnc.so" file to
+"sbnc-2.so". Then just copy it into ~/sbnc and use the command "/sbnc reload
+sbnc-2.so" to load the new module.
 
-Please note that you might need to unload certain modules like tickle.so before upgrading shroudBNC as the old versions of the modules might not be compatible with the new shroudBNC version.
+Please note that you might need to unload certain modules like tickle.so before
+ upgrading shroudBNC as the old versions of the modules might not be compatible
+ with the new shroudBNC version.
 
 Security
 --------
@@ -102,18 +134,21 @@ It is vital that you understand that any bouncer admin has access to:
 a) the shell account where the bouncer is running
 b) any user connections
 
-Using the TCL module any admin can perform shell commands (using the exec command) and send IRC commands for any user's connection. Thus you should choose your admins wisely. Do not load arbitrary scripts and make sure you understand any scripts you want to load.
+Using the TCL module any admin can perform shell commands (using the exec
+command) and send IRC commands for any user's connection. Thus you should
+choose your admins wisely. Do not load arbitrary scripts and make sure you
+understand any scripts you want to load.
 
 Giving shell access to someone you don't trust is potentially dangerous.
 
 Credits
 -------
 
-I'd like to thank all the beta testers who have been using shroudBNC so far. Feature requests and bug reports are welcome; please send them to: sbnc-bugs@shroudirc.net
+I'd like to thank all the beta testers who have been using shroudBNC so far.
+Feature requests and bug reports are welcome; please send them to: 
+gb@prco23.org
 
-In case you encounter problems while compiling and/or using shroudBNC you can contact me on IRC:
+In case you encounter problems while compiling and/or using shroudBNC you can contact us on IRC:
 
 server: irc.quakenet.org / 6667
 channel: #sbnc
-
-or send an e-mail to gb@prco23.org

@@ -19,10 +19,16 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CBouncerConfig
+ *
+ * Constructs a new configuration object and loads the given filename
+ * if specified. If you specify NULL as the filename, a volatile
+ * configuration object is constructed. Changes made to such an object
+ * are not stored to disk.
+ *
+ * @param Filename the filename of the configuration file, can be NULL
+ */
 CBouncerConfig::CBouncerConfig(const char *Filename) {
 	m_WriteLock = false;
 	m_Settings = new CHashtable<char *, false, 8>();
@@ -37,19 +43,27 @@ CBouncerConfig::CBouncerConfig(const char *Filename) {
 
 	if (Filename) {
 		m_File = strdup(Filename);
-		ParseConfig(Filename);
+		ParseConfig();
 	} else
 		m_File = NULL;
 }
 
-bool CBouncerConfig::ParseConfig(const char *Filename) {
+/**
+ * ParseConfig
+ *
+ * Parses a configuration file. Valid lines of the configuration file
+ * have this syntax:
+ *
+ * setting=value
+ */
+bool CBouncerConfig::ParseConfig(void) {
 	char Line[4096];
 	char* dupEq;
 
-	if (!Filename)
+	if (m_File == NULL)
 		return false;
 
-	FILE* Conf = fopen(Filename, "r");
+	FILE* Conf = fopen(m_File, "r");
 
 	if (!Conf)
 		return false;
@@ -74,11 +88,13 @@ bool CBouncerConfig::ParseConfig(const char *Filename) {
 
 			if (dupEq == NULL) {
 				if (g_Bouncer != NULL) {
-					LOGERROR("strdup() failed. Config option lost (%s=%s).", Line, Eq);
+					LOGERROR("strdup() failed. Config option lost (%s=%s).",
+						Line, Eq);
 
 					g_Bouncer->Fatal();
 				} else {
-					printf("CBouncerConfig::ParseConfig: strdup() failed. Config could not be parsed.");
+					printf("CBouncerConfig::ParseConfig: strdup() failed."
+						" Config could not be parsed.");
 
 					exit(0);
 				}
@@ -87,7 +103,8 @@ bool CBouncerConfig::ParseConfig(const char *Filename) {
 			}
 
 			if (m_Settings->Add(Line, dupEq) == false) {
-				LOGERROR("CHashtable::Add failed. Config could not be parsed (%s, %s).", Line, Eq);
+				LOGERROR("CHashtable::Add failed. Config could not be parsed"
+					" (%s, %s).", Line, Eq);
 
 				g_Bouncer->Fatal();
 			}
@@ -101,11 +118,24 @@ bool CBouncerConfig::ParseConfig(const char *Filename) {
 	return true;
 }
 
+/**
+ * ~CBouncerConfig
+ *
+ * Destructs the configuration object.
+ */
 CBouncerConfig::~CBouncerConfig() {
 	free(m_File);
 	delete m_Settings;
 }
 
+/**
+ * ReadString
+ *
+ * Reads a configuration setting as a string. If the specified setting does
+ * not exist, NULL is returned.
+ *
+ * @param Setting the configuration setting
+ */
 const char *CBouncerConfig::ReadString(const char *Setting) {
 	char *Value = m_Settings->Get(Setting);
 
@@ -115,20 +145,29 @@ const char *CBouncerConfig::ReadString(const char *Setting) {
 		return NULL;
 }
 
+/**
+ * ReadInteger
+ *
+ * Reads a configuration setting as an integer. If the specified setting does
+ * not exist, 0 is returned.
+ *
+ * @param Setting the configuration setting
+ */
 int CBouncerConfig::ReadInteger(const char *Setting) {
 	const char *Value = m_Settings->Get(Setting);
 
 	return Value ? atoi(Value) : 0;
 }
 
-bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
-	char ValueStr[50];
-
-	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
-
-	return WriteString(Setting, ValueStr);
-}
-
+/**
+ * WriteString
+ *
+ * Set a configuration setting.
+ *
+ * @param Setting the configuration setting
+ * @param Value the new value for the setting, can be NULL to indicate that
+ *              the configuration setting is to be removed
+ */
 bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
 	bool RetVal;
 
@@ -147,6 +186,28 @@ bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
 	return true;
 }
 
+/**
+ * WriteInteger
+ *
+ * Sets a configuration setting.
+ *
+ * @param Setting the configuration setting
+ * @param Value the new value for the setting
+ */
+bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
+	char ValueStr[50];
+
+	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
+
+	return WriteString(Setting, ValueStr);
+}
+
+/**
+ * Persist
+ *
+ * Saves changes which have been made to the configuration object to disk
+ * unless the configuration object is volatile.
+ */
 bool CBouncerConfig::Persist(void) {
 	if (!m_File)
 		return false;
@@ -175,10 +236,23 @@ bool CBouncerConfig::Persist(void) {
 	}
 }
 
+/**
+ * GetFilename
+ *
+ * Returns the filename of the configuration object. The return value will
+ * be NULL if the configuration object is volatile.
+ */
 const char *CBouncerConfig::GetFilename(void) {
 	return m_File;
 }
 
+/**
+ * Iterate
+ *
+ * Iterates through the configuration object's settings.
+ *
+ * @param Index specifies the index of the setting which is to be returned
+ */
 xhash_t<char *> *CBouncerConfig::Iterate(int Index) {
 	return m_Settings->Iterate(Index);
 }

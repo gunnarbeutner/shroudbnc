@@ -19,21 +19,39 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CFIFOBuffer
+ *
+ * Constructs a new fifo buffer.
+ */
 CFIFOBuffer::CFIFOBuffer() {
 	m_Buffer = NULL;
 	m_BufferSize = 0;
 	m_Offset = 0;
 }
 
+/**
+ * ~CFIFOBuffer
+ *
+ * Destructs a fifo buffer.
+ */
 CFIFOBuffer::~CFIFOBuffer() {
 	free(m_Buffer);
 }
 
-void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize) {
+/**
+ * ResizeBuffer
+ *
+ * Resizes a buffer. The new size of the buffer will be a multiple
+ * of BLOCKSIZE. NULL is returned if the buffer could not be successfully
+ * resized.
+ *
+ * @param Buffer the buffer which is to be resized
+ * @param OldSize the old size of the buffer
+ * @param NewSize the new size of the buffer
+ */
+void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize,
+								unsigned int NewSize) {
 	if (OldSize != 0)
 		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
 
@@ -48,6 +66,11 @@ void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int
 		return Buffer;
 }
 
+/**
+ * Optimize
+ *
+ * Optimizes the memory usage of a buffer.
+ */
 void CFIFOBuffer::Optimize(void) {
 	if (m_Offset <= OPTIMIZEBLOCKS * BLOCKSIZE)
 		return;
@@ -65,14 +88,31 @@ void CFIFOBuffer::Optimize(void) {
 	m_Offset = 0;
 }
 
+/**
+ * GetSize
+ *
+ * Returns the size of the buffer.
+ */
 unsigned int CFIFOBuffer::GetSize(void) {
 	return m_BufferSize - m_Offset;
 }
 
+/**
+ * Peek
+ *
+ * Returns a pointer to the buffer's data without advancing the read pointer.
+ */
 char *CFIFOBuffer::Peek(void) {
 	return m_Buffer + m_Offset;
 }
 
+/**
+ * Reads and returns the specified amount of bytes from the buffer.
+ *
+ * @param Bytes the number of bytes which should be read from the buffer.
+ *              If this value is greater than the size of the buffer,
+ *              GetSize() bytes are read instead.
+ */
 char *CFIFOBuffer::Read(unsigned int Bytes) {
 	char* ReturnValue = m_Buffer + m_Offset;
 	m_Offset += Bytes > GetSize() ? GetSize() : Bytes;
@@ -82,10 +122,19 @@ char *CFIFOBuffer::Read(unsigned int Bytes) {
 	return ReturnValue;
 }
 
-void CFIFOBuffer::Write(const char *Buffer, unsigned int Size) {
+/**
+ * Write
+ *
+ * Saves data in the buffer.
+ *
+ * @param Buffer a pointer to the data
+ * @param Size the number of bytes which should be written
+ */
+void CFIFOBuffer::Write(const char *Data, unsigned int Size) {
 	char *tempBuffer;
 
-	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Size);
+	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
+		m_BufferSize + Size);
 
 	if (tempBuffer == NULL) {
 		LOGERROR("realloc() failed. Lost %d bytes.", Size);
@@ -94,14 +143,22 @@ void CFIFOBuffer::Write(const char *Buffer, unsigned int Size) {
 	}
 
 	m_Buffer = tempBuffer;
-	memcpy(m_Buffer + m_BufferSize, Buffer, Size);
+	memcpy(m_Buffer + m_BufferSize, Data, Size);
 	m_BufferSize += Size;
 }
 
+/**
+ * WriteLine
+ *
+ * Writes a line into the buffer.
+ *
+ * @param Line the line
+ */
 void CFIFOBuffer::WriteLine(const char *Line) {
 	unsigned int Len = strlen(Line);
 
-	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize, m_BufferSize + Len + 2);
+	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
+		m_BufferSize + Len + 2);
 
 	if (tempBuffer == NULL) {
 		LOGERROR("realloc failed(). Lost %d bytes.", Len + 2);
@@ -115,6 +172,11 @@ void CFIFOBuffer::WriteLine(const char *Line) {
 	m_BufferSize += Len + 2;
 }
 
+/**
+ * Flush
+ *
+ * Removes all data which is currently stored in the buffer.
+ */
 void CFIFOBuffer::Flush(void) {
 	Read(GetSize());
 }
