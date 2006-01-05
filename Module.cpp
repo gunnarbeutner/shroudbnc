@@ -62,6 +62,8 @@ CModule::CModule(const char *Filename) {
 		if (pfGetInterfaceVersion != NULL && pfGetInterfaceVersion() < INTERFACEVERSION) {
 			m_Error = strdup("This module was compiled for an earlier version"
 				" of shroudBNC. Please recompile the module and try again.");
+
+			return;
 		}
 
 		m_Error = NULL;
