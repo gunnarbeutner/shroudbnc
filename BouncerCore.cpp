@@ -589,7 +589,7 @@ CModule* CBouncerCore::LoadModule(const char* Filename, const char **Error) {
 		}
 	}
 
-	if (Module->GetModule() != NULL) {
+	if (Module->GetError() != NULL) {
 		if (!m_Modules.Insert(Module)) {
 			delete Module;
 
