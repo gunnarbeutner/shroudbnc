@@ -23,8 +23,8 @@ sbnc.so : $(OBJS) @ADNS_LIBS@
 
 sbnc :
 	$(MAKE) -C sbncloader
-	if [ -f sbnc ]; then rm sbnc; fi
-	cp sbncloader/sbncloader ./sbnc
+	@if [ -f sbnc ]; then rm sbnc; fi
+	@cp sbncloader/sbncloader ./sbnc
 
 conftool : $(MKCONFIGOBJS)
 	g++ -g -o mkconfig/$@ $(MKCONFIGOBJS)
