@@ -58,6 +58,10 @@ class CHelloClass : public CModuleFar {
 		m_Bot->ScheduleReconnect();
 	}
 
+	int GetInterfaceVersion(void) {
+		return INTERFACEVERSION;
+	}
+
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		if (IRC == m_Bot->GetIRCConnection()) {
 			if (argc >= 3 && strcmpi(argv[1], "privmsg") == 0 && strcmpi(argv[3], "!hello") == 0) {
@@ -105,6 +109,10 @@ class CHelloClass : public CModuleFar {
 	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return true; }
 };
 
-extern "C" CModuleFar* bncGetObject(void) {
+extern "C" EXPORT CModuleFar* bncGetObject(void) {
 	return (CModuleFar*)new CHelloClass();
+}
+
+extern "C" EXPORT int bncGetInterfaceVersion(void) {
+	return INTERFACEVERSION;
 }

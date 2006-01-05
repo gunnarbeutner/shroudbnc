@@ -1,3 +1,0 @@
-LIBRARY identd32
-EXPORTS
-	bncGetObject

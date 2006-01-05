@@ -212,8 +212,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	static CHashCompare hashPong("PONG");
 	// END of HASH values
 
-	if (argc > 3 && !GetOwningClient()->GetClientConnection() && iRaw == 433) {
+	if (argc > 3 && iRaw == 433) {
 		bool Ret = ModuleEvent(argc, argv);
+
+		if (GetCurrentNick() != NULL && GetOwningClient()->GetClientConnection() != NULL)
+			return true;
 
 		if (Ret)
 			WriteLine("NICK :%s_", argv[3]);

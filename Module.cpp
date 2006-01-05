@@ -49,6 +49,21 @@ CModule::CModule(const char *Filename) {
 
 		m_Error = strdup(ErrorMsg);
 	} else {
+		if (GetModule() == NULL) {
+			m_Error = strdup("GetModule() failed.");
+
+			return;
+		}
+
+		FNGETINTERFACEVERSION pfGetInterfaceVersion =
+			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,
+			"bncGetInterfaceVersion");
+
+		if (pfGetInterfaceVersion != NULL && pfGetInterfaceVersion() < INTERFACEVERSION) {
+			m_Error = strdup("This module was compiled for an earlier version"
+				" of shroudBNC. Please recompile the module and try again.");
+		}
+
 		m_Error = NULL;
 	}
 }

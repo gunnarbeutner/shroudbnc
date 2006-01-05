@@ -75,6 +75,7 @@ int CmpCommandT(const void *pA, const void *pB);
 void DestroyCommandT(command_t *Command);
 
 #define BNCVERSION "1.1 $Revision$"
+#define INTERFACEVERSION 20
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;

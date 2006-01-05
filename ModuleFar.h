@@ -23,7 +23,6 @@ class CClientConnection;
 
 struct CModuleFar {
 	virtual void Destroy(void) = 0;
-
 	virtual void Init(CBouncerCore *Root) = 0;
 
 	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) = 0;

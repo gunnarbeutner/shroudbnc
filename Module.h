@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 typedef CModuleFar* (* FNGETOBJECT)() ;
+typedef int (* FNGETINTERFACEVERSION)() ;
 
 class CModule : public CModuleFar {
 	HMODULE m_Image;
@@ -37,7 +38,6 @@ public:
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);
-
 	virtual void Init(CBouncerCore *Root);
 
 	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char  **argv);

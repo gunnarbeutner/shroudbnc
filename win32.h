@@ -19,10 +19,10 @@
 
 // win32 specific header
 
-#ifdef _WIN32
 #if !defined(socklen_t)
 typedef int socklen_t;
 #endif
 
+#define EXPORT __declspec(dllexport)
+
 #define FD_SETSIZE 4096
-#endif

@@ -68,3 +68,6 @@ Revision 370:
 -fixed "ping timeout" bug when reloading sbnc, possibly fixed a bug in "make update"
 -updated README
 -added java-style comments for some files
+
+Revision 371:
+-added version tags to compiled modules

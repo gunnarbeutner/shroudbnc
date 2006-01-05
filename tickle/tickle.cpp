@@ -97,7 +97,6 @@ class CTclSupport : public CModuleFar {
 			}
 		}
 
-
 		delete this;
 	}
 
@@ -285,9 +284,13 @@ public:
 
 };
 
-extern "C" CModuleFar* bncGetObject(void) {
+extern "C" EXPORT CModuleFar* bncGetObject(void) {
 	g_Tcl = new CTclSupport();
 	return (CModuleFar*)g_Tcl;
+}
+
+extern "C" EXPORT int bncGetInterfaceVersion(void) {
+	return INTERFACEVERSION;
 }
 
 void RehashInterpreter(void) {

@@ -38,6 +38,8 @@ HMODULE LoadLibrary(const char* lpLibFileName);
 BOOL FreeLibrary(HMODULE hLibModule);
 void* GetProcAddress(HMODULE hModule, const char* lpProcName);
 
+#define EXPORT
+
 #ifdef __FreeBSD__
 #define sighandler_t sig_t
 #endif

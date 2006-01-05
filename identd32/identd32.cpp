@@ -135,6 +135,10 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 		g_Bouncer->RegisterSocket(m_Listener, this);
 	}
 
+	int GetInterfaceVersion(void) {
+		return INTERFACEVERSION;
+	}
+
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		return true;
 	}
@@ -192,6 +196,10 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return false; }
 };
 
-extern "C" CModuleFar* bncGetObject(void) {
+extern "C" EXPORT CModuleFar* bncGetObject(void) {
 	return (CModuleFar*)new CIdentModule();
+}
+
+extern "C" EXPORT int bncGetInterfaceVersion(void) {
+	return INTERFACEVERSION;
 }

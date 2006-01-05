@@ -81,7 +81,7 @@
 				OutputFile=".\Debug/tickle.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				ModuleDefinitionFile=".\tickle.def"
+				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/tickle.pdb"
 				ImportLibrary=".\Debug/tickle.lib"
@@ -184,7 +184,7 @@
 				OutputFile="../bin/tickle.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ModuleDefinitionFile=".\tickle.def"
+				ModuleDefinitionFile=""
 				GenerateMapFile="true"
 				MapFileName="../bin/tickle.map"
 				BaseAddress="0x12000000"
@@ -327,26 +327,6 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;TICKLE_EXPORTS;NOADNSLIB;$(NoInherit)"
 						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="tickle.def"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
 			</File>

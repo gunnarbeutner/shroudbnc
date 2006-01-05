@@ -459,7 +459,15 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			const char* DropModes = m_Owner->GetDropModes();
 			bool ValidDropModes = DropModes && *DropModes;
 
-			asprintf(&Out, ValidAutoModes ? "automodes - +%s" : "automodes - %s", ValidAutoModes ? AutoModes : "Not set");
+			const char *AutoModesPrefix = "+", *DropModesPrefix = "-";
+
+			if (!ValidAutoModes || (AutoModes && *AutoModes == '+'))
+				AutoModesPrefix = "";
+
+			if (!ValidDropModes || (DropModes && *DropModes == '-'))
+				DropModesPrefix = "";
+
+			asprintf(&Out, "automodes - %s%s", AutoModesPrefix, ValidAutoModes ? AutoModes : "Not set");
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
 			} else {
@@ -467,7 +475,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 
-			asprintf(&Out, ValidDropModes ? "dropmodes - -%s" : "dropmodes - %s", ValidDropModes ? DropModes : "Not set");
+			asprintf(&Out, "dropmodes - %s%s", DropModesPrefix, ValidDropModes ? DropModes : "Not set");
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
 			} else {
