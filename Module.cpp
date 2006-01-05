@@ -45,16 +45,8 @@ CModule::CModule(const char *Filename) {
 		ErrorMsg = dlerror();
 #endif
 
-		g_Bouncer->Log("Could not load module %s: %s", Filename, ErrorMsg);
-
 		m_Error = strdup(ErrorMsg);
 	} else {
-		if (GetModule() == NULL) {
-			m_Error = strdup("GetModule() failed.");
-
-			return;
-		}
-
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =
 			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,
 			"bncGetInterfaceVersion");
@@ -62,6 +54,12 @@ CModule::CModule(const char *Filename) {
 		if (pfGetInterfaceVersion != NULL && pfGetInterfaceVersion() < INTERFACEVERSION) {
 			m_Error = strdup("This module was compiled for an earlier version"
 				" of shroudBNC. Please recompile the module and try again.");
+
+			return;
+		}
+
+		if (GetModule() == NULL) {
+			m_Error = strdup("GetModule() failed.");
 
 			return;
 		}

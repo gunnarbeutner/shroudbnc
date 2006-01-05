@@ -300,8 +300,6 @@ void RehashInterpreter(void) {
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
 	Tcl_Obj** listv;
 
-	//DebugBreak();
-
 	CBouncerUser* User = g_Bouncer->GetUser(user);
 
 	if (User)

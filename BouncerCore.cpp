@@ -592,7 +592,7 @@ CModule* CBouncerCore::LoadModule(const char* Filename, const char **Error) {
 		}
 	}
 
-	if (Module->GetError() != NULL) {
+	if (Module->GetError() == NULL) {
 		if (!m_Modules.Insert(Module)) {
 			delete Module;
 
@@ -621,6 +621,8 @@ CModule* CBouncerCore::LoadModule(const char* Filename, const char **Error) {
 			ErrorMessage = strdup(Module->GetError());
 			*Error = ErrorMessage;
 		}
+
+		Log("Module %s could not be loaded: %s", Filename, Module->GetError());
 
 		delete Module;
 
