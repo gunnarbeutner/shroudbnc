@@ -34,9 +34,9 @@ typedef int SOCKET;
 typedef void* HMODULE;
 typedef int BOOL;
 
-HMODULE LoadLibrary(const char* lpLibFileName);
-BOOL FreeLibrary(HMODULE hLibModule);
-void* GetProcAddress(HMODULE hModule, const char* lpProcName);
+#define LoadLibrary(lpLibFileName) dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL)
+#define FreeLibrary(hLibModule) hLibModule ? !dlclose(hLibModule) : 0
+#define GetProcAddress(hModule, lpProcName) dlsym(hModule, lpProcName)
 
 #define EXPORT
 
