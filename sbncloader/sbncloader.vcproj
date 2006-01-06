@@ -61,7 +61,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="kernel32.lib ws2_32.lib"
-				OutputFile="bin\$(ProjectName).exe"
+				OutputFile="Debug\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -187,7 +187,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\snprintf.c"
+				RelativePath="..\src\snprintf.c"
 				>
 			</File>
 		</Filter>
@@ -198,10 +198,6 @@
 			>
 			<File
 				RelativePath=".\AssocArray.h"
-				>
-			</File>
-			<File
-				RelativePath=".\StdAfx.h"
 				>
 			</File>
 		</Filter>

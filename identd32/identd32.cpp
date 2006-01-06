@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "../StdAfx.h"
+#include "../src/StdAfx.h"
 
 #ifndef _WIN32
 #error This module cannot be used on *nix systems.

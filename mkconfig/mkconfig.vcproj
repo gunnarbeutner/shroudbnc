@@ -208,26 +208,8 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\BouncerConfig.cpp"
+				RelativePath="..\src\BouncerConfig.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\md5-c\md5c.c"
@@ -252,48 +234,12 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="mkconfig.cpp"
+				RelativePath="..\src\mkconfig.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\snprintf.c"
+				RelativePath="..\src\snprintf.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_MBCS;NOADNSLIB"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter

@@ -17,8 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
-#include "../sbnc.h"
+#define NOADNSLIB
+#include "../src/StdAfx.h"
+#include "../src/sbnc.h"
 
 #ifdef _WIN32
 #ifndef _DEBUG
@@ -27,7 +28,7 @@
 #define SBNC_MODULE "..\\Debug\\sbnc.dll"
 #endif
 #else
-#define SBNC_MODULE "./sbnc.so"
+#define SBNC_MODULE "./libsbnc.so"
 #endif
 
 CAssocArray *g_Box;

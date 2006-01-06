@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#define NOADNSLIB
+#include "../src/StdAfx.h"
 
 CAssocArray::CAssocArray(void) {
 	m_Values = NULL;
