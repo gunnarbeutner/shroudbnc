@@ -18,6 +18,8 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
+
+#define SBNC
 #include "sbnc.h"
 
 CBouncerCore* g_Bouncer = NULL;
