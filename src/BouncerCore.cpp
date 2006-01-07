@@ -1113,7 +1113,7 @@ void CBouncerCore::SetMotd(const char* Motd) {
 }
 
 void CBouncerCore::Fatal(void) {
-	Log("Fatal error occured. Please send this log to gb@prco23.org for further analysis.");
+	Log("Fatal error occured.");
 
 	exit(1);
 }
@@ -1377,7 +1377,7 @@ bool CBouncerCore::MakeConfig(void) {
 	rename("sbnc.conf", "sbnc.conf.old");
 	mkdir("users");
 
-	MainConfig = new CBouncerConfig("sbnc.so");
+	MainConfig = new CBouncerConfig("sbnc.conf");
 
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
@@ -1400,6 +1400,8 @@ bool CBouncerCore::MakeConfig(void) {
 	delete UserConfig;
 
 	printf(" DONE\n");
+
+	free(File);
 
 	return true;
 }
