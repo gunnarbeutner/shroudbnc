@@ -116,7 +116,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	const char *Users;
 	CBouncerUser *User;
 
-	while ((Users = Config->ReadString("system.users")) != NULL) {
+	while ((Users = Config->ReadString("system.users")) == NULL) {
 		if (MakeConfig() == false) {
 			LOGERROR("Configuration file could not be created.");
 
