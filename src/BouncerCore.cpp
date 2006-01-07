@@ -272,7 +272,7 @@ void CBouncerCore::StartMainLoop(void) {
 	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
-		if (Port != 0) {
+		if (SSLPort != 0) {
 			Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
 			return;
 		} else {
@@ -1397,7 +1397,7 @@ bool CBouncerCore::MakeConfig(void) {
 	UserConfig->WriteString("user.password", UtilMd5(Password));
 	UserConfig->WriteInteger("user.admin", 1);
 
-	puts("Writing first user's configuration file...");
+	printf("Writing first user's configuration file...");
 
 	delete UserConfig;
 
