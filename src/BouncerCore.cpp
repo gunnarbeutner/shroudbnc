@@ -259,13 +259,23 @@ void CBouncerCore::StartMainLoop(void) {
 	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
-		Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
-		return;
+		if (m_SSLListener) {
+			Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
+			return;
+		} else {
+			SSL_CTX_free(m_SSLContext);
+			m_SSLContext = NULL;
+		}
 	}
 
 	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, "sbnc.crt")) {
-		Log("Could not load public key (sbnc.crt)."); ERR_print_errors_fp(stdout);
-		return;
+		if (m_SSLListener) {
+			Log("Could not load public key (sbnc.crt)."); ERR_print_errors_fp(stdout);
+			return;
+		} else {
+			SSL_CTX_free(m_SSLContext);
+			m_SSLContext = NULL;
+		}
 	}
 
 	SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);

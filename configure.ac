@@ -20,6 +20,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
+AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
@@ -80,10 +81,24 @@ else
 	AC_MSG_WARN([TCL is not installed. TCL module support disabled.])
 fi
 
+SSLCFLAGS=
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ USESSL=yes ], [ USESSL=no; AC_MSG_WARN([You need the OpenSSL headers for SSL support. SSL support has been disabled.]) ])
+
+if test ${USESSL} = yes; then
+	AC_CHECK_HEADERS([openssl/ssl.h])
+	AC_CHECK_LIB(ssl, SSL_new, [ SSLCFLAGS=-DUSESSL ], AC_MSG_WARN([You need the OpenSSL libraries for SSL support. SSL support has been disabled.]))
+
+	if test x"${SSLCFLAGS}" != x; then
+		SSLLDFLAGS=-lssl
+	fi
+fi
+
 AC_SUBST(TCL_INCLUDE_SPEC)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(BNCTCL_MODULE)
+AC_SUBST(SSLCFLAGS)
+AC_SUBST(SSLLDFLAGS)
 
 AC_CONFIG_FILES([Makefile
                  bnctcl/Makefile

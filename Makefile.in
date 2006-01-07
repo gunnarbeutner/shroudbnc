@@ -109,6 +109,8 @@ SHLIB_LD = @SHLIB_LD@
 SHLIB_LD_FLAGS = @SHLIB_LD_FLAGS@
 SHLIB_LD_LIBS = @SHLIB_LD_LIBS@
 SHLIB_SUFFIX = @SHLIB_SUFFIX@
+SSLCFLAGS = @SSLCFLAGS@
+SSLLDFLAGS = @SSLLDFLAGS@
 STLIB_LD = @STLIB_LD@
 STRIP = @STRIP@
 TCL_BIN_DIR = @TCL_BIN_DIR@
@@ -424,4 +426,3 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-

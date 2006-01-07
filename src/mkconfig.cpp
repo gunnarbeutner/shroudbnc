@@ -21,8 +21,8 @@
 #include "StdAfx.h"
 
 extern "C" {
-	#include "../md5-c/global.h"
-	#include "../md5-c/md5.h"
+	#include "md5/global.h"
+	#include "md5/md5.h"
 }
 
 #ifndef _WIN32
