@@ -40,4 +40,6 @@ public:
 	virtual xhash_t<char *> *Iterate(int Index);
 
 	virtual const char *GetFilename(void);
+
+	virtual void Reload(void);
 };

@@ -31,21 +31,14 @@
  */
 CBouncerConfig::CBouncerConfig(const char *Filename) {
 	m_WriteLock = false;
-	m_Settings = new CHashtable<char *, false, 8>();
-
-	if (m_Settings == NULL && g_Bouncer != NULL) {
-		LOGERROR("new operator failed.");
-
-		g_Bouncer->Fatal();
-	}
-
-	m_Settings->RegisterValueDestructor(string_free);
+	m_Settings = NULL;
 
 	if (Filename) {
 		m_File = strdup(Filename);
-		ParseConfig();
 	} else
 		m_File = NULL;
+
+	Reload();
 }
 
 /**
@@ -255,4 +248,27 @@ const char *CBouncerConfig::GetFilename(void) {
  */
 xhash_t<char *> *CBouncerConfig::Iterate(int Index) {
 	return m_Settings->Iterate(Index);
+}
+
+/**
+ * Reload
+ *
+ * Reloads all settings from disk.
+ */
+void CBouncerConfig::Reload(void) {
+	if (m_Settings)
+		delete m_Settings;
+
+	m_Settings = new CHashtable<char *, false, 8>();
+
+	if (m_Settings == NULL && g_Bouncer != NULL) {
+		LOGERROR("new operator failed.");
+
+		g_Bouncer->Fatal();
+	}
+
+	m_Settings->RegisterValueDestructor(string_free);
+
+	if (m_File)
+		ParseConfig();
 }

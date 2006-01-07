@@ -24,6 +24,15 @@
 #include <openssl/err.h>
 #endif
 
+#ifndef _WIN32
+	#include <sys/stat.h>
+
+	#define mkdir(X) mkdir(X, 0700)
+#else
+	#include <direct.h>
+	#define mkdir _mkdir
+#endif
+
 extern bool g_Debug;
 extern bool g_Freeze;
 extern loaderparams_s *g_LoaderParameters;
@@ -104,47 +113,51 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 
 	m_Ident = new CIdentSupport();
 
-	const char *Users = Config->ReadString("system.users");
+	const char *Users;
 	CBouncerUser *User;
 
-	if (Users) {
-		const char* Args;
-		int Count;
-
-		Args = ArgTokenize(Users);
-
-		if (Args == NULL) {
-			LOGERROR("ArgTokenize() failed.");
+	while ((Users = Config->ReadString("system.users")) != NULL) {
+		if (MakeConfig() == false) {
+			LOGERROR("Configuration file could not be created.");
 
 			Fatal();
 		}
 
-		Count = ArgCount(Args);
+		Config->Reload();
+	}
 
-		for (i = 0; i < Count; i++) {
-			const char *Name = ArgGet(Args, i + 1);
-			User = new CBouncerUser(Name);
+	const char* Args;
+	int Count;
 
-			if (User == NULL) {
-				LOGERROR("Could not create user object");
+	Args = ArgTokenize(Users);
 
-				Fatal();
-			}
-
-			m_Users.Add(Name, User);
-		}
-
-		i = 0;
-		while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
-			User->Value->LoadEvent();
-		}
-
-		ArgFree(Args);
-	} else {
-		Log("No users were found in the config file.");
+	if (Args == NULL) {
+		LOGERROR("ArgTokenize() failed.");
 
 		Fatal();
 	}
+
+	Count = ArgCount(Args);
+
+	for (i = 0; i < Count; i++) {
+		const char *Name = ArgGet(Args, i + 1);
+		User = new CBouncerUser(Name);
+
+		if (User == NULL) {
+			LOGERROR("Could not create user object");
+
+			Fatal();
+		}
+
+		m_Users.Add(Name, User);
+	}
+
+	i = 0;
+	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+		User->Value->LoadEvent();
+	}
+
+	ArgFree(Args);
 
 	m_Listener = NULL;
 	m_SSLListener = NULL;
@@ -1317,4 +1330,76 @@ const utility_t *CBouncerCore::GetUtilities(void) {
 	}
 
 	return Utils;
+}
+
+bool CBouncerCore::MakeConfig(void) {
+	int Port = -1;
+	char User[81], Password[81];
+	char *File;
+	CBouncerConfig *MainConfig, *UserConfig;
+
+	printf("No valid configuration file has been found. A basic\n"
+		"configuration file can be created for you automatically. Please\n"
+		"answer the following questions:\n");
+
+	while (Port == -1) {
+		printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
+		scanf("%d", &Port);
+
+		if (Port == 0)
+			return false;
+
+		if (Port <= 1024 || Port >= 65536)
+			printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
+	}
+
+	while (true) {
+		printf("2. What should the first user's name be? ");
+		scanf("%s", User);
+	
+		if (strlen(User) == 0)
+			return false;
+
+		if (IsValidUsername(User) == false)
+			printf("Sorry, this is not a valid username. Try again.\n");
+		else
+			break;
+	}
+
+	printf("3. Please enter a password for the first user: ");
+	scanf("%s", Password);
+
+	if (strlen(Password) == 0)
+		return false;
+
+	asprintf(&File, "users/%s.conf", User);
+
+	rename("sbnc.conf", "sbnc.conf.old");
+	mkdir("users");
+
+	MainConfig = new CBouncerConfig("sbnc.so");
+
+	MainConfig->WriteInteger("system.port", Port);
+	MainConfig->WriteInteger("system.md5", 1);
+	MainConfig->WriteString("system.users", User);
+	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.so");
+
+	printf("Writing main configuration file...");
+
+	delete MainConfig;
+
+	printf(" DONE\n");
+
+	UserConfig = new CBouncerConfig(File);
+
+	UserConfig->WriteString("user.password", UtilMd5(Password));
+	UserConfig->WriteInteger("user.admin", 1);
+
+	puts("Writing first user's configuration file...");
+
+	delete UserConfig;
+
+	printf(" DONE\n");
+
+	return true;
 }

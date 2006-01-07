@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
 	int iPort = 9000;
 
-	printf("1. Which port should the bouncer listen on? [9000] ");
+	printf("1. Which port should the bouncer listen on? ");
 	scanf("%d", &iPort);
 
 	if (iPort <= 1024 || iPort >= 65536) {

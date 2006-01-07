@@ -78,6 +78,7 @@ class CBouncerCore {
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
 	void WritePidFile(void);
+	bool MakeConfig(void);
 public:
 #ifndef SWIG
 	CBouncerCore(CBouncerConfig *Config, int argc, char **argv);
