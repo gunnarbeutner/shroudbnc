@@ -9,6 +9,7 @@ Installation
 
 First of all make sure that you have the following libraries installed:
 
+- openssl (if you're going to use ssl-encrypted connections)
 - tcl (if you're going to use the tcl module, version 8.4 or later, earlier
        versions have not been tested)
 - lua (if you want to use the lua scripting language, version 5.x or later)
@@ -20,41 +21,42 @@ script which is included in the distribution of sbnc:
 make
 make install
 
-(Keep in mind that you need to change your current directory to ~/sbnc after
-executing "make install".)
+"make install" will install shroudBNC in a directory named "sbnc" in your home
+directory.
+
+Keep in mind that you need to change your current directory to ~/sbnc once you've
+run "make install".
 
 Once you've compiled sbnc you will need to edit shroudBNC's configuration
 files:
 
-The "conftool" can be used to generate a basic configuration file. Execute it
-using "./conftool":
+You can do that by simply starting shroudBNC in the installation directory:
 
-"test@temple:~/sbnc$ ./conftool
-shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
-*** configuration generator
-
-This utility will automatically generate a suitable configuration
-for you once it has asked you some questions.
-1. Which port should the bouncer listen on? [9000] 5000
+"test@temple:~/sbnc$ ./sbnc
+shroudBNC loader
+Loading shroudBNC from ./libsbnc.so
+Sat Jan  7 03:32:02 2006 Log system initialized.
+No valid configuration file has been found. A basic
+configuration file can be created for you automatically. Please
+answer the following questions:
+1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): 4545
 2. What should the first user's name be? test
 3. Please enter a password for the first user: moo
-Writing config..."
-
-Also edit the sbnc.tcl if you plan to use the TCL module. Load any scripts
-you want.
-
-You can start sbnc using './sbnc' or './sbnc -n' if you want to see the
-console output:
-
-test@temple:~/sbnc$ ./sbnc
-shroudBNC loader
-Loading shroudBNC from /home/test/sbnc/sbnc-20051215034250.so
-Thu Dec 15 03:43:11 2005 Log system initialized.
-shroudBNC1.0 $Revision$ - an object-oriented IRC bouncer
-Thu Dec 15 03:43:11 2005 Created main listener.
-Thu Dec 15 03:43:11 2005 Starting main loop.
+Writing main configuration file... DONE
+Writing first user's configuration file... DONE
+shroudBNC1.1 $Revision$ - an object-oriented IRC bouncer
+Sat Jan  7 03:32:07 2006 Created main listener.
+Sat Jan  7 03:32:07 2006 Starting main loop.
 Daemonizing... DONE
-test@temple:~/sbnc$
+test@temple:~/sbnc$"
+
+Basically you're finished here. Your bouncer is now configured and running.
+
+You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
+any scripts you want. You will have to rehash the tcl module after every
+change you make to sbnc.tcl or any other .tcl script which you have loaded:
+
+/sbnc tcl rehash (while you're connected to the bouncer using an irc client)
 
 Usage
 -----
@@ -66,13 +68,6 @@ chosen for your bnc.
 Once you're connected you should type /sbnc help to get a list of available
 commands.
 
-If you've compiled the TCL module you can load it using:
-
-/sbnc insmod tickle/tickle.so
-
-A list of loaded modules can be viewed using /sbnc lsmod.
-/sbnc rmmod <module-id> removes a module.
-
 shroudBNC supports oidentd in order to provide custom idents for each user. You
 will need to enable ident-spoofing for the unix account you're using to run
 shroudBNC. Read oidentd's manual for more details.
@@ -80,24 +75,8 @@ shroudBNC. Read oidentd's manual for more details.
 TCL
 ---
 
-Installing the TCL module might sometimes be a bit tricky. You should know this
-before you start to compile the TCL module:
-
--the path of your TCL libraries
--the path of the include files
-
-The commands for compiling the TCL module look like this (You need to execute
-them in the sbnc-1.1/tickle directory):
-
-./configure
-make
-make install
-
-Once you've compiled the TCL module there should be a file called "tickle.so"
-in the ~/sbnc directory. Load it using this command (while connected to the
-bouncer):
-
-/sbnc insmod ./tickle.so
+The tcl module is automatically built and installed if the configure script
+was able to find the appropriate libraries and headers.
 
 Updating shroudBNC
 ------------------
