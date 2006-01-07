@@ -1335,7 +1335,7 @@ const utility_t *CBouncerCore::GetUtilities(void) {
 }
 
 bool CBouncerCore::MakeConfig(void) {
-	int Port = -1;
+	int Port;
 	char User[81], Password[81];
 	char *File;
 	CBouncerConfig *MainConfig, *UserConfig;
@@ -1344,7 +1344,7 @@ bool CBouncerCore::MakeConfig(void) {
 		"configuration file can be created for you automatically. Please\n"
 		"answer the following questions:\n");
 
-	while (Port == -1) {
+	while (true) {
 		printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
 		scanf("%d", &Port);
 
