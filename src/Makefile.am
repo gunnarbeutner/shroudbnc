@@ -8,7 +8,3 @@ libsbnc_la_SOURCES=Banlist.cpp BouncerConfig.cpp BouncerCore.cpp BouncerLog.cpp 
 libsbnc_la_LIBADD=adns/libadns.la md5/libmd5.la @SSLLDFLAGS@
 AM_CFLAGS=@SSLCFLAGS@
 AM_CPPFLAGS=@SSLCFLAGS@
-
-bin_PROGRAMS=mkconfig
-mkconfig_SOURCES=mkconfig.cpp BouncerConfig.cpp
-mkconfig_LDADD=md5/libmd5.la

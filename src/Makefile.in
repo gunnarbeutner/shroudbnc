@@ -142,10 +142,6 @@ libsbnc_la_SOURCES = Banlist.cpp BouncerConfig.cpp BouncerCore.cpp BouncerLog.cp
 libsbnc_la_LIBADD = adns/libadns.la md5/libmd5.la @SSLLDFLAGS@
 AM_CFLAGS = @SSLCFLAGS@
 AM_CPPFLAGS = @SSLCFLAGS@
-
-bin_PROGRAMS = mkconfig
-mkconfig_SOURCES = mkconfig.cpp BouncerConfig.cpp
-mkconfig_LDADD = md5/libmd5.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
@@ -162,12 +158,6 @@ BouncerLog.lo BouncerUser.lo Channel.lo ClientConnection.lo \
 Connection.lo Debug.lo FIFOBuffer.lo FloodControl.lo IdentSupport.lo \
 IRCConnection.lo Keyring.lo Match.lo Module.lo Nick.lo Queue.lo sbnc.lo \
 snprintf.lo Timer.lo TrafficStats.lo utility.lo
-bin_PROGRAMS =  mkconfig$(EXEEXT)
-PROGRAMS =  $(bin_PROGRAMS)
-
-mkconfig_OBJECTS =  mkconfig.$(OBJEXT) BouncerConfig.$(OBJEXT)
-mkconfig_DEPENDENCIES =  md5/libmd5.la
-mkconfig_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -190,9 +180,9 @@ DEP_FILES =  .deps/Banlist.P .deps/BouncerConfig.P .deps/BouncerCore.P \
 .deps/FIFOBuffer.P .deps/FloodControl.P .deps/IRCConnection.P \
 .deps/IdentSupport.P .deps/Keyring.P .deps/Match.P .deps/Module.P \
 .deps/Nick.P .deps/Queue.P .deps/Timer.P .deps/TrafficStats.P \
-.deps/mkconfig.P .deps/sbnc.P .deps/snprintf.P .deps/utility.P
-SOURCES = $(libsbnc_la_SOURCES) $(mkconfig_SOURCES)
-OBJECTS = $(libsbnc_la_OBJECTS) $(mkconfig_OBJECTS)
+.deps/sbnc.P .deps/snprintf.P .deps/utility.P
+SOURCES = $(libsbnc_la_SOURCES)
+OBJECTS = $(libsbnc_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -270,35 +260,6 @@ maintainer-clean-libtool:
 
 libsbnc.la: $(libsbnc_la_OBJECTS) $(libsbnc_la_DEPENDENCIES)
 	$(CXXLINK) -rpath $(pkglibdir) $(libsbnc_la_LDFLAGS) $(libsbnc_la_OBJECTS) $(libsbnc_la_LIBADD) $(LIBS)
-
-mostlyclean-binPROGRAMS:
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-
-distclean-binPROGRAMS:
-
-maintainer-clean-binPROGRAMS:
-
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	done
-
-mkconfig$(EXEEXT): $(mkconfig_OBJECTS) $(mkconfig_DEPENDENCIES)
-	@rm -f mkconfig$(EXEEXT)
-	$(CXXLINK) $(mkconfig_LDFLAGS) $(mkconfig_OBJECTS) $(mkconfig_LDADD) $(LIBS)
 .cpp.o:
 	$(CXXCOMPILE) -c $<
 .cpp.obj:
@@ -484,7 +445,7 @@ check-am: all-am
 check: check-recursive
 installcheck-am:
 installcheck: installcheck-recursive
-install-exec-am: install-pkglibLTLIBRARIES install-binPROGRAMS
+install-exec-am: install-pkglibLTLIBRARIES
 install-exec: install-exec-recursive
 
 install-data-am:
@@ -493,15 +454,15 @@ install-data: install-data-recursive
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-recursive
-uninstall-am: uninstall-pkglibLTLIBRARIES uninstall-binPROGRAMS
+uninstall-am: uninstall-pkglibLTLIBRARIES
 uninstall: uninstall-recursive
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LTLIBRARIES)
 all-redirect: all-recursive
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs: installdirs-recursive
 installdirs-am:
-	$(mkinstalldirs)  $(DESTDIR)$(pkglibdir) $(DESTDIR)$(bindir)
+	$(mkinstalldirs)  $(DESTDIR)$(pkglibdir)
 
 
 mostlyclean-generic:
@@ -514,29 +475,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-pkglibLTLIBRARIES mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-binPROGRAMS \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-recursive
 
 clean-am:  clean-pkglibLTLIBRARIES clean-compile clean-libtool \
-		clean-binPROGRAMS clean-tags clean-depend clean-generic \
-		mostlyclean-am
+		clean-tags clean-depend clean-generic mostlyclean-am
 
 clean: clean-recursive
 
 distclean-am:  distclean-pkglibLTLIBRARIES distclean-compile \
-		distclean-libtool distclean-binPROGRAMS distclean-tags \
-		distclean-depend distclean-generic clean-am
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
 	-rm -f libtool
 
 distclean: distclean-recursive
 
 maintainer-clean-am:  maintainer-clean-pkglibLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-binPROGRAMS maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -547,9 +506,7 @@ clean-pkglibLTLIBRARIES maintainer-clean-pkglibLTLIBRARIES \
 uninstall-pkglibLTLIBRARIES install-pkglibLTLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool mostlyclean-binPROGRAMS \
-distclean-binPROGRAMS clean-binPROGRAMS maintainer-clean-binPROGRAMS \
-uninstall-binPROGRAMS install-binPROGRAMS install-data-recursive \
+clean-libtool maintainer-clean-libtool install-data-recursive \
 uninstall-data-recursive install-exec-recursive \
 uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
 all-recursive check-recursive installcheck-recursive info-recursive \
