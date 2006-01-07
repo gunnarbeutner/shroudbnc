@@ -1353,6 +1353,8 @@ bool CBouncerCore::MakeConfig(void) {
 
 		if (Port <= 1024 || Port >= 65536)
 			printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
+		else
+			break;
 	}
 
 	while (true) {
