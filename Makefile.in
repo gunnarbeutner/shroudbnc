@@ -135,7 +135,7 @@ TK_SRC_DIR = @TK_SRC_DIR@
 TK_VERSION = @TK_VERSION@
 VERSION = @VERSION@
 
-SUBDIRS = sbncloader src @BNCTCL_MODULE@
+SUBDIRS = sbncloader src scripts @BNCTCL_MODULE@
 EXTRA_DIST = aclocal.m4 tcl.m4 sbnc.tcl ca.crt ca.key sbnc.crt sbnc.key README README.ssl README.motd
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
