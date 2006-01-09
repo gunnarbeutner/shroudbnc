@@ -216,3 +216,13 @@ bool CBouncerLog::IsEmpty(void) {
 
 	return true;
 }
+
+/**
+ * GetFilename
+ *
+ * Returns the filename of the log, or NULL
+ * if the log is not persistant.
+ */
+const char *CBouncerLog::GetFilename(void) {
+	return m_File;
+}

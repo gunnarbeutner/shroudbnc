@@ -36,4 +36,5 @@ public:
 	virtual void WriteLine(const char* Format, ...);
 	virtual void PlayToUser(CBouncerUser *User, int Type);
 	virtual bool IsEmpty(void);
+	virtual const char *GetFilename(void);
 };

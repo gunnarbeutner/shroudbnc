@@ -801,6 +801,7 @@ proc userlist {{flags "-"}} {
 
 internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
+internalbind usrdelete sbnc:userconfdelete
 
 proc sbnc:userpulse {} {
 	foreach user [bncuserlist] {
@@ -814,6 +815,10 @@ proc sbnc:userunload { } {
 		setctx $user
 		save
 	}
+}
+
+proc sbnc:userconfdelete {client} {
+	file delete "users/$client.user"
 }
 
 if {![info exists sbnc:userinit]} {

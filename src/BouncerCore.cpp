@@ -874,8 +874,10 @@ bool CBouncerCore::RemoveUser(const char* Username, bool RemoveConfig) {
 		}
 	}
 
-	if (RemoveConfig)
+	if (RemoveConfig) {
 		unlink(User->GetConfig()->GetFilename());
+		unlink(User->GetLog()->GetFilename());
+	}
 
 	delete User;
 	m_Users.Remove(Username);
