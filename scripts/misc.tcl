@@ -196,3 +196,12 @@ proc putloglev {level channel text} {
 	putlog "(level: $level, channel: $channel) $text"
 }
 
+proc stripcodes {flags string} {
+	variable result
+
+	regsub -all "\[\002\017\]" $string "" result
+	regsub -all "\003\[0-9\]\[0-9\]?\(,\[0-9\]\[0-9\]?\)?" $result "" result
+	regsub -all "\[\003\017\026\037\]" $result "" result
+
+	return $result
+}

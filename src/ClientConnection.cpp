@@ -697,6 +697,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
+		if (strcmpi(argv[1], m_Owner->GetUsername()) == 0) {
+			SENDUSER("You cannot remove yourself.");
+
+			return false;
+		}
+
 		g_Bouncer->RemoveUser(argv[1]);
 
 		SENDUSER("Done.");

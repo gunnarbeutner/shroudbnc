@@ -66,6 +66,7 @@
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
+				AllowIsolation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -138,11 +139,13 @@
 				AdditionalDependencies="kernel32.lib ws2_32.lib"
 				OutputFile="..\bin\$(ProjectName).exe"
 				LinkIncremental="1"
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
+				AllowIsolation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"

@@ -135,7 +135,7 @@ proc lock:islocked {account setting} {
 		return 1
 	} else {
 		if {[lsearch -exact $globallocks $setting] != -1} {
-			return 1
+			return 2
 		} else {
 			return 0
 		}
@@ -154,7 +154,7 @@ proc lock:set {account setting value} {
 	if {[getbncuser $account admin]} {
 		return 1
 	} else {
-		if {[lock:islocked $account $setting]} {
+		if {![string equal [lock:islocked $account $setting] "0"]} {
 			return 0
 		} else {
 			return 1

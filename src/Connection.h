@@ -37,6 +37,8 @@ enum connection_role_e {
 class CConnectionDnsEvents;
 class CBindIpDnsEvents;
 
+bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
+
 class CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CBouncerCore;

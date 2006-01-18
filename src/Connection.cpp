@@ -149,7 +149,7 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_SSL = NULL;
 
 	if (m_Role == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL == true) {
-		m_HasSSL == false;
+		m_HasSSL = false;
 
 		LOGERROR("No SSL server certificate available. Falling back to non-SSL mode.");
 	}

@@ -386,28 +386,25 @@ void CBouncerCore::StartMainLoop(void) {
 		int i;
 
 		i = 0;
-		bool LastCheckDone = false;
 		while (xhash_t<CBouncerUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection* IRC;
 
-			if (UserHash->Value && (IRC = UserHash->Value->GetIRCConnection())) {
-				if (!m_Running && !IRC->IsLocked()) {
-					Log("Closing connection for %s", UserHash->Name);
-					IRC->InternalWriteLine("QUIT :Shutting down.");
-					IRC->Lock();
+			if (UserHash->Value) {
+				if (IRC = UserHash->Value->GetIRCConnection()) {
+					if (!m_Running && !IRC->IsLocked()) {
+						Log("Closing connection for %s", UserHash->Name);
+						IRC->InternalWriteLine("QUIT :Shutting down.");
+						IRC->Lock();
 
-					UserHash->Value->SetIRCConnection(NULL);
+						UserHash->Value->SetIRCConnection(NULL);
+					}
+
+					if (IRC->ShouldDestroy())
+						IRC->Destroy();
 				}
 
-				if (IRC->ShouldDestroy())
-					IRC->Destroy();
-
-				if (LastCheck + 5 < Now && LastCheckDone == false) {
-					if (UserHash->Value->ShouldReconnect()) {
-						UserHash->Value->ScheduleReconnect();
-
-						LastCheckDone = true;
-					}
+				if (LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
+					UserHash->Value->ScheduleReconnect();
 
 					LastCheck = Now;
 				}

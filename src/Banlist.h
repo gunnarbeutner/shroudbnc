@@ -33,7 +33,7 @@ public:
 	virtual bool SetBan(const char *Mask, const char *Nick, time_t TS);
 	virtual bool UnsetBan(const char *Mask);
 
-	virtual const ban_t *CBanlist::GetBan(const char *Mask);
+	virtual const ban_t *GetBan(const char *Mask);
 	virtual const ban_t *Iterate(int Skip);
 private:
 	CHashtable<ban_t *, false, 5, false> *m_Bans;

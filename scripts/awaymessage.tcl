@@ -33,11 +33,15 @@ proc awaymsg:command {client parameters} {
 
 	if {[string equal -nocase $command "set"]} {
 		if {[string equal -nocase [lindex $parameters 1] "awaymessage"] && [llength $parameters] >= 3} {
-			if {![getbncuser $client tag lockawaymessage]} {
-				setbncuser $client tag awaymessage [lindex $parameters 2]
-				bncreply "Done."
-				haltoutput
+		    if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
+		        set locked [lock:islocked $client awaymessage]
+			if {![string equal $locked "0"]} { 
+			    return
 			}
+		    }
+		    setbncuser $client tag awaymessage [lindex $parameters 2]
+		    bncreply "Done."
+		    haltoutput
 		} elseif {[string equal [lindex $parameters 2] ""]} {
 			utimer 0 [list bncreply "awaymessage - [getbncuser $client tag awaymessage]"]
 		}
@@ -49,7 +53,7 @@ proc awaymsg:ifacecmd {command params account} {
 	switch -- $command {
 		"set" {
 			if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-				if {[lock:islocked $account "vhost"]} { return }
+				if {![string equal [lock:islocked $account "awaymessage"] "0"]} { return }
 			}
 
 			if {[string equal -nocase [lindex $params 0] "awaymessage"]} {

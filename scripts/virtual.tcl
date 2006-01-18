@@ -341,6 +341,9 @@ proc virtual:vadduser {user pass group {checklimits 1} {override 0}} {
 		vhost:autosetvhost $user
 	}
 
+	setctx $user
+	bncdisconnect "No reason."
+
 	return [list 0]
 }
 

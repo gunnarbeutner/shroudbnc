@@ -26,13 +26,29 @@ set ::defaulthost "192.168.4.1"
 
 internalbind command vhost:command
 
+proc vhost:host2ip {host} {
+	global trust
+
+	foreach vh $trust {
+		if {[string equal -nocase [lindex $vh 2] $host]} {
+			return [lindex $vh 0]
+		}
+	}
+
+	return $host
+}
+
 proc vhost:countvhost {ip} {
+	global defaulthost
+
 	set count 0
 
-	if {$ip == ""} { set ip $::defaulthost }
+	set ip [vhost:host2ip $ip]
+
+	if {$ip == ""} { set ip $defaulthost }
 
 	foreach user [bncuserlist] {
-		if {[string equal [getbncuser $user vhost] $ip] || ([getbncuser $user vhost] == "" && [string equal $ip $::defaulthost])} {
+		if {[string equal [getbncuser $user vhost] $ip] || ([getbncuser $user vhost] == "" && [string equal $ip $defaulthost])} {
 			incr count
 		}
 	}
@@ -41,9 +57,13 @@ proc vhost:countvhost {ip} {
 }
 
 proc vhost:getlimit {ip} {
-	if {$ip == ""} { set ip $::defaulthost }
+	global trust defaulthost
 
-	set res [lsearch -inline $::trust "$ip *"]
+	set ip [vhost:host2ip $ip]
+
+	if {$ip == ""} { set ip $defaulthost }
+
+	set res [lsearch -inline $trust "$ip *"]
 
 	if {$res != ""} {
 		return [lindex $res 1]
@@ -53,9 +73,11 @@ proc vhost:getlimit {ip} {
 }
 
 proc vhost:command {client parameters} {
+	global trust
+
 	if {![getbncuser $client admin] && [string equal -nocase [lindex $parameters 0] "set"] && [string equal -nocase [lindex $parameters 1] "vhost"]} {
 		if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-			if {[lock:islocked $account "vhost"]} { return }
+			if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
 		}
 
 		if {![regexp {(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)} [lindex $parameters 2]]} {
@@ -68,7 +90,7 @@ proc vhost:command {client parameters} {
 		set limit [vhost:getlimit [lindex $parameters 2]]
 
 		if {$limit == 0} {
-			bncreply "Sorry, you may not use this IP address."
+			bncreply "Sorry, you may not use this IP address/hostname."
 
 			haltoutput
 			return
@@ -81,7 +103,7 @@ proc vhost:command {client parameters} {
 	}
 
 	if {[string equal -nocase [lindex $parameters 0] "vhosts"]} {
-		foreach ip $::trust {
+		foreach ip $trust {
 			if {[lindex $ip 1] > 0} {
 				bncreply "[lindex $ip 0] ([lindex $ip 2]) [vhost:countvhost [lindex $ip 0]]/[vhost:getlimit [lindex $ip 0]] connections"
 			}
@@ -98,10 +120,12 @@ proc vhost:command {client parameters} {
 }
 
 proc vhost:findip {} {
+	global trust
+
 	set min 9000
 	set minip ""
 
-	foreach ip $::trust {
+	foreach ip $trust {
 		if {[vhost:countvhost [lindex $ip 0]] < $min} {
 			set min [vhost:countvhost [lindex $ip 0]]
 			set minip [lindex $ip 0]
@@ -124,13 +148,15 @@ proc vhost:autosetvhost {user} {
 # vhosts
 
 proc vhost:ifacecmd {command params account} {
+	global trust
+
 	switch -- $command {
 		"freeip" {
 			return [vhost:findip]
 		}
 		"set" {
 			if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-				if {[lock:islocked $account "vhost"]} { return }
+				if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
 			}
 
 			if {![getbncuser $account admin] && [string equal -nocase [lindex $params 0] "vhost"]} {
@@ -149,11 +175,20 @@ proc vhost:ifacecmd {command params account} {
 		"vhosts" {
 			set vhosts [list]
 
-			foreach host $::trust {
+			foreach host $trust {
 				lappend vhosts [list [lindex $host 0] [vhost:countvhost [lindex $host 0]] [lindex $host 1] [lindex $host 2]]
 			}
 
 			return [join $vhosts \005]
+		}
+		"adduser" {
+			set res [catch [list addbncuser [lindex $params 0] [lindex $params 1]]]
+
+			if {!$res} {
+				vhost:autosetvhost [lindex $params 0]
+			}
+
+			return $res
 		}
 	}
 }
