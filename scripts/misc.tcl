@@ -196,12 +196,16 @@ proc putloglev {level channel text} {
 	putlog "(level: $level, channel: $channel) $text"
 }
 
-proc stripcodes {flags string} {
-	variable result
+proc int2ip {num} {
+	binary scan [binary format I $num] cccc a b c d
 
-	regsub -all "\[\002\017\]" $string "" result
-	regsub -all "\003\[0-9\]\[0-9\]?\(,\[0-9\]\[0-9\]?\)?" $result "" result
-	regsub -all "\[\003\017\026\037\]" $result "" result
+	return [format %d.%d.%d.%d [expr $a&255] [expr $b&255] [expr $c&255] [expr $d&255]]
+}
 
-	return $result
+proc ip2int {ip} {
+	foreach {a b c d} [split $ip .] {
+		break
+	}
+
+	return [expr ($a<<8+$b<<8+$c<<8)+$d]
 }

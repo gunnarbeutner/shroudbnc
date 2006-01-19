@@ -18,7 +18,7 @@
 internalbind command virtual:commandiface
 
 set ::vsbncserver [list irc.quakenet.org 6667]
-set ::vsbncdeluser 0
+set ::vsbncdeluser 1
 
 proc virtual:commandiface {client parameters} {
 	if {![virtual:isadmin $client] && ![getbncuser $client admin]} { return }
