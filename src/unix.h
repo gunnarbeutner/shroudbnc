@@ -38,7 +38,11 @@ typedef int BOOL;
 #define FreeLibrary(hLibModule) hLibModule ? !dlclose(hLibModule) : 0
 #define GetProcAddress(hModule, lpProcName) dlsym(hModule, lpProcName)
 
-#define EXPORT
+#ifdef __CYGWIN__
+	#define EXPORT __declspec(dllexport)
+#else
+	#define EXPORT
+#endif
 
 #ifdef __FreeBSD__
 #define sighandler_t sig_t

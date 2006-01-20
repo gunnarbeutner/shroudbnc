@@ -41,7 +41,7 @@ void sigint_handler(int code) {
 }
 #endif
 
-extern "C" int sbncLoad(loaderparams_s *Parameters) {
+extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	if (Parameters->Version < 200) {
 		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
 
@@ -120,14 +120,14 @@ extern "C" int sbncLoad(loaderparams_s *Parameters) {
 	return 0;
 }
 
-extern "C" bool sbncPrepareFreeze(void) {
+extern "C" EXPORT bool sbncPrepareFreeze(void) {
 	g_Freeze = true;
 
 	return true;
 }
 
 /* for debugging */
-int main(int argc, char **argv) {
+/*int main(int argc, char **argv) {
 	loaderparams_s p;
 
 	p.Version = 200;
@@ -139,3 +139,4 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+*/

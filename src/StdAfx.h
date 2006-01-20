@@ -42,6 +42,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <ctype.h>
 
 #ifdef USESSL
 #include <openssl/ssl.h>
@@ -57,7 +58,6 @@
 #endif
 #else
 	#include <dlfcn.h>
-	#include <ctype.h>
 	#include <string.h>
 	#include <unistd.h>
 	#include <netdb.h>

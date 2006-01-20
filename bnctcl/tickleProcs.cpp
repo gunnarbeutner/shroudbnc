@@ -760,6 +760,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetConfig()->ReadString("user.dropmodes");
 	} else if (strcmpi(Type, "suspendreason") == 0) {
 		return Context->GetConfig()->ReadString("user.suspend");
+	} else if (strcmpi(Type, "ssl") == 0) {
+		return Context->GetSSL(); ? "1" : "0";
 	} else if (strcmpi(Type, "sslclient") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
@@ -773,7 +775,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcmpi(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason sslclient realserver ident";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -804,6 +806,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetAwayText(Value);
 	else if (strcmp(Type, "password") == 0)
 		Context->SetPassword(Value);
+	else if (strcmp(Type, "ssl") == 0)
+		Context->SetSSL(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcmpi(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();

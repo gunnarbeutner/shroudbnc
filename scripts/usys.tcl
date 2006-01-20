@@ -427,6 +427,9 @@ proc setuser {args} {
 		comment {
 			set u(comment) "{$setting}"
 		}
+		pass {
+			set u(pass) [md5 $setting]
+		}
 		xtra {
 			set name [lindex [split $setting] 0]
 			set arg [lrange [split $setting] 1 end]
@@ -510,6 +513,13 @@ proc getuser {args} {
 		comment {
 			if {[info exists u(comment)]} {
 				return [join $u(comment)]
+			} else {
+				return
+			}
+		}
+		pass {
+			if {[info exists u(pass)]} {
+				return $u(pass)
 			} else {
 				return
 			}
@@ -797,6 +807,18 @@ proc userlist {{flags "-"}} {
 
 	return $ret
 
+}
+
+proc passwdok {handle pass} {
+	set upass [getuser $handle PASS]
+
+	if {$upass == ""} {
+		return 0
+	} elseif {[string equal -nocase [md5 $pass] $upass]} {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 internaltimer 300 1 sbnc:userpulse

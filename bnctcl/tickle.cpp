@@ -216,7 +216,17 @@ class CTclSupport : public CModuleFar {
 			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: tcl command\nExecutes the specified tcl command.");
 		}
 
-		if (argc > 1 && strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
+		if (strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
+
+			if (argc <= 1) {
+				if (NoticeUser)
+					User->RealNotice("Syntax: tcl :command");
+				else
+					User->Notice("Syntax: tcl :command");
+
+				return true;
+			}
+
 			setctx(User->GetUsername());
 
 			Tcl_DString dsScript;

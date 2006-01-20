@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="tickle"
+	Name="bnctcl"
 	ProjectGUID="{0D38A9A5-5699-4B9D-9447-1FE1C1E5EBC8}"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Microsoft Visual Studio.NET\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -78,7 +78,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="tcl84.lib ws2_32.lib"
-				OutputFile=".\Debug/tickle.dll"
+				OutputFile=".\Debug/bnctcl.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=""
@@ -86,6 +86,7 @@
 				ProgramDatabaseFile=".\Debug/tickle.pdb"
 				ImportLibrary=".\Debug/tickle.lib"
 				TargetMachine="1"
+				AllowIsolation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -120,7 +121,7 @@
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Microsoft Visual Studio.NET\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -181,7 +182,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/ALIGN:512"
 				AdditionalDependencies="tcl84.lib ws2_32.lib"
-				OutputFile="../bin/tickle.dll"
+				OutputFile="../bin/bnctcl.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=""
@@ -190,6 +191,7 @@
 				BaseAddress="0x12000000"
 				ImportLibrary=".\Release/tickle.lib"
 				TargetMachine="1"
+				AllowIsolation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"

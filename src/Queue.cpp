@@ -89,13 +89,17 @@ bool CQueue::QueueItem(const char *Item) {
 		return false;
 	}
 
+	bool doneInsert = false
+
 	for (int i = 0; i < m_ItemCount; i++) {
-		if (!m_Items[i].Valid) {
+		if (!m_Items[i].Valid && !doneInsert) {
 			m_Items[i].Priority = 0;
 			m_Items[i].Line = dupItem;
 			m_Items[i].Valid = true;
 
-			return true;
+			doneInsert = true;
+		} else {
+			m_Items[i].Priority--;
 		}
 	}
 
