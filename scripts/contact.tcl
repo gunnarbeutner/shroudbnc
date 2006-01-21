@@ -37,7 +37,7 @@ proc contact:ifacecmd {command params account} {
 			if {[lsearch -exact $contactuser $u] != -1 || ([string equal -nocase $contactuser "all"]) && [getbncuser $u admin]} {
 				setctx $u
 
-				foreach $line [split $text \5] {
+				foreach line [split $text \5] {
 					if {[getbncuser $u hasclient]} {
 						bncnotc $line
 					} else {
