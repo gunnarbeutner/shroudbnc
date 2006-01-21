@@ -34,13 +34,15 @@ proc contact:ifacecmd {command params account} {
 		set text "Message from user $account: [join $params]"
 
 		foreach u [bncuserlist] {
-			if {([string equal -nocase $u $contactuser] || [string equal -nocase $contactuser "all"]) && [getbncuser $u admin]} {
+			if {[lsearch -exact $contactuser $u] != -1 || ([string equal -nocase $contactuser "all"]) && [getbncuser $u admin]} {
 				setctx $u
 
-				if {[getbncuser $u hasclient]} {
-					bncnotc $text
-				} else {
-					putlog $text
+				foreach $line [split $text \5] {
+					if {[getbncuser $u hasclient]} {
+						bncnotc $line
+					} else {
+						putlog $line
+					}
 				}
 			}
 		}
