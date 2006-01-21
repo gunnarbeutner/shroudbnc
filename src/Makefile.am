@@ -1,4 +1,4 @@
-SUBDIRS=md5 adns
+SUBDIRS=md5 adns libltdl
 
 pkglibdir=$(exec_prefix)
 bindir=$(exec_prefix)

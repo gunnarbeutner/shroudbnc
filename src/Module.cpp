@@ -26,29 +26,29 @@
 CModule::CModule(const char *Filename) {
 	m_Far = NULL;
 	m_File = strdup(Filename);
-	m_Image = LoadLibrary(Filename);
+	m_Image = lt_dlopen(Filename);
 
 	if (!m_Image) {
-#ifdef _WIN32
-		char *ErrorMsg, *p;
-
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char*)&ErrorMsg, 0, NULL);
-
-		p = ErrorMsg;
-
- 		while (*p++)
-			if (*p == '\r' || *p == '\n')
-				*p = '\0';
-#else
+//#ifdef _WIN32
+//		char *ErrorMsg, *p;
+//
+//		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char*)&ErrorMsg, 0, NULL);
+//
+//		p = ErrorMsg;
+//
+//		while (*p++)
+//			if (*p == '\r' || *p == '\n')
+//				*p = '\0';
+//#else
 		const char *ErrorMsg;
 
-		ErrorMsg = dlerror();
-#endif
+		ErrorMsg = lt_dlerror();
+//#endif
 
 		m_Error = strdup(ErrorMsg);
 	} else {
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =
-			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,
+			(FNGETINTERFACEVERSION)lt_dlsym(m_Image,
 			"bncGetInterfaceVersion");
 
 		if (pfGetInterfaceVersion != NULL && pfGetInterfaceVersion() < INTERFACEVERSION) {
@@ -72,7 +72,8 @@ CModule::~CModule() {
 	if (m_Far)
 		m_Far->Destroy();
 
-	FreeLibrary(m_Image);
+	if (m_Image)
+		lt_dlclose(m_Image);
 
 	free(m_File);
 
@@ -87,7 +88,7 @@ CModuleFar *CModule::GetModule(void) {
 	if (m_Far)
 		return m_Far;
 	else {
-		FNGETOBJECT pfGetObject = (FNGETOBJECT)GetProcAddress(m_Image, "bncGetObject");
+		FNGETOBJECT pfGetObject = (FNGETOBJECT)lt_dlsym(m_Image, "bncGetObject");
 
 		if (pfGetObject) {
 			m_Far = pfGetObject();
@@ -102,7 +103,7 @@ const char *CModule::GetFilename(void) {
 	return m_File;
 }
 
-HMODULE CModule::GetHandle(void) {
+lt_dlhandle CModule::GetHandle(void) {
 	return m_Image;
 }
 

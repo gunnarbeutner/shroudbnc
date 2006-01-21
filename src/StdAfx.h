@@ -71,6 +71,8 @@
 	#include <errno.h>
 	#include <sys/resource.h>
 	#include <limits.h>
+
+	#include "libltdl/ltdl.h"
 #endif
 
 #ifndef SWIG
