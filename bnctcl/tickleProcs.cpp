@@ -761,7 +761,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcmpi(Type, "suspendreason") == 0) {
 		return Context->GetConfig()->ReadString("user.suspend");
 	} else if (strcmpi(Type, "ssl") == 0) {
-		return Context->GetSSL(); ? "1" : "0";
+		return Context->GetSSL() ? "1" : "0";
 	} else if (strcmpi(Type, "sslclient") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 

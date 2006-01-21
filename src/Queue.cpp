@@ -38,7 +38,7 @@ CQueue::~CQueue() {
 }
 
 const char *CQueue::PeekItem(void) {
-	int LowestPriority = 100;
+	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
 	for (int i = 0; i < m_ItemCount; i++) {
@@ -89,7 +89,7 @@ bool CQueue::QueueItem(const char *Item) {
 		return false;
 	}
 
-	bool doneInsert = false
+	bool doneInsert = false;
 
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (!m_Items[i].Valid && !doneInsert) {
@@ -102,6 +102,9 @@ bool CQueue::QueueItem(const char *Item) {
 			m_Items[i].Priority--;
 		}
 	}
+
+	if (doneInsert)
+		return true;
 
 	Items = (queue_item_t *)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
 

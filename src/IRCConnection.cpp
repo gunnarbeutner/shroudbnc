@@ -848,25 +848,6 @@ void CIRCConnection::Write(void) {
 
 	CConnection::Write();
 
-/*	if (!Line)
-		return;
-
-	char* Copy = (char*)malloc(strlen(Line) + 2);
-
-	if (Copy == NULL) {
-		LOGERROR("malloc() failed. Line was lost. (%s)", Line);
-
-		return;
-	}
-
-	snprintf(Copy, strlen(Line) + 2, "%s\n", Line);
-
-	send(m_Socket, Copy, strlen(Copy), 0);
-
-	if (GetTrafficStats())
-		GetTrafficStats()->AddOutbound(strlen(Copy));
-
-	free(Copy);*/
 	free(Line);
 }
 
