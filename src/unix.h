@@ -31,12 +31,12 @@ typedef int SOCKET;
 #define FD_SETSIZE 4096
 #define ioctlsocket ioctl
 
-typedef void* HMODULE;
+typedef lt_dlhandle HMODULE;
 typedef int BOOL;
 
-#define LoadLibrary(lpLibFileName) dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL)
-#define FreeLibrary(hLibModule) hLibModule ? !dlclose(hLibModule) : 0
-#define GetProcAddress(hModule, lpProcName) dlsym(hModule, lpProcName)
+#define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL)
+#define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose(hLibModule) : 0
+#define GetProcAddress(hModule, lpProcName) lt_dlsym(hModule, lpProcName)
 
 #ifdef __CYGWIN__
 	#define EXPORT __declspec(dllexport)

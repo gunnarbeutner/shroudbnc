@@ -1,3 +1,4 @@
+CONVENIENCE_LTDL=1
 SUBDIRS=md5 adns libltdl
 
 pkglibdir=$(exec_prefix)

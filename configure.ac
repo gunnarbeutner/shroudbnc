@@ -49,10 +49,12 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul])
+AC_LIB_LTDL
 
 AC_CHECK_LIB(dl, dlopen)
 
 sinclude(./tcl.m4)
+sinclude(./src/libltdl/acinclude.m4)
 
 SC_PATH_TCLCONFIG
 
@@ -100,10 +102,14 @@ AC_SUBST(BNCTCL_MODULE)
 AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 
+AM_CONDITIONAL(INSTALL_LTDL, test "x" = "y")
+AM_CONDITIONAL(CONVENIENCE_LTDL, test "x" = "x")
+
 AC_CONFIG_FILES([Makefile
                  bnctcl/Makefile
                  sbncloader/Makefile
                  src/Makefile
                  src/adns/Makefile
-		 src/md5/Makefile])
+		 src/md5/Makefile
+		 src/libltdl/Makefile])
 AC_OUTPUT

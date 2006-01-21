@@ -21,7 +21,7 @@ typedef CModuleFar* (* FNGETOBJECT)() ;
 typedef int (* FNGETINTERFACEVERSION)() ;
 
 class CModule : public CModuleFar {
-	lt_dlhandle m_Image;
+	HMODULE m_Image;
 	char *m_File;
 	CModuleFar *m_Far;
 	char *m_Error;
@@ -33,7 +33,7 @@ public:
 
 	virtual CModuleFar *GetModule(void);
 	virtual const char *GetFilename(void);
-	virtual lt_dlhandle GetHandle(void);
+	virtual HMODULE GetHandle(void);
 	virtual const char *GetError(void);
 
 	// proxy implementation of CModuleFar
