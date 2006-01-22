@@ -25951,26 +25951,13 @@ fi
 
 
 
-
-
-if test "x" = "y"; then
-  INSTALL_LTDL_TRUE=
-  INSTALL_LTDL_FALSE='#'
-else
-  INSTALL_LTDL_TRUE='#'
-  INSTALL_LTDL_FALSE=
-fi
-
-
-if test "x" = "x"; then
-  CONVENIENCE_LTDL_TRUE=
-  CONVENIENCE_LTDL_FALSE='#'
-else
-  CONVENIENCE_LTDL_TRUE='#'
-  CONVENIENCE_LTDL_FALSE=
-fi
-
-                                                                      ac_config_files="$ac_config_files Makefile src/libltdl/Makefile bnctcl/Makefile src/sbncloader/Makefile src/Makefile src/adns/Makefile src/md5/Makefile"
+                                                                      ac_config_files="$ac_config_files Makefile
+ src/libltdl/Makefile
+ bnctcl/Makefile
+ src/sbncloader/Makefile
+ src/Makefile
+ src/adns/Makefile
+ src/md5/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -26507,12 +26494,24 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
-  "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-  "src/libltdl/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile" ;;
-  "bnctcl/Makefile" ) CONFIG_FILES="$CONFIG_FILES bnctcl/Makefile" ;;
-  "src/sbncloader/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/sbncloader/Makefile" ;;
-  "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-  "src/adns/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/adns/Makefile" ;;
+  "Makefile
+" ) CONFIG_FILES="$CONFIG_FILES Makefile
+" ;;
+  "src/libltdl/Makefile
+" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile
+" ;;
+  "bnctcl/Makefile
+" ) CONFIG_FILES="$CONFIG_FILES bnctcl/Makefile
+" ;;
+  "src/sbncloader/Makefile
+" ) CONFIG_FILES="$CONFIG_FILES src/sbncloader/Makefile
+" ;;
+  "src/Makefile
+" ) CONFIG_FILES="$CONFIG_FILES src/Makefile
+" ;;
+  "src/adns/Makefile
+" ) CONFIG_FILES="$CONFIG_FILES src/adns/Makefile
+" ;;
   "src/md5/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/md5/Makefile" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
