@@ -36,7 +36,7 @@ pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
 
-top_builddir = ..
+top_builddir = ../..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -79,6 +79,7 @@ F77 = @F77@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 HAVE_LIB = @HAVE_LIB@
+INCLTDL = @INCLTDL@
 INSTALL_LIB = @INSTALL_LIB@
 INSTALL_STUB_LIB = @INSTALL_STUB_LIB@
 LDFLAGS = @LDFLAGS@
@@ -87,6 +88,8 @@ LDFLAGS_DEFAULT = @LDFLAGS_DEFAULT@
 LDFLAGS_OPTIMIZE = @LDFLAGS_OPTIMIZE@
 LD_SEARCH_FLAGS = @LD_SEARCH_FLAGS@
 LIB = @LIB@
+LIBADD_DL = @LIBADD_DL@
+LIBLTDL = @LIBLTDL@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIB = @LTLIB@
@@ -107,6 +110,8 @@ SHLIB_LD = @SHLIB_LD@
 SHLIB_LD_FLAGS = @SHLIB_LD_FLAGS@
 SHLIB_LD_LIBS = @SHLIB_LD_LIBS@
 SHLIB_SUFFIX = @SHLIB_SUFFIX@
+SSLCFLAGS = @SSLCFLAGS@
+SSLLDFLAGS = @SSLLDFLAGS@
 STLIB_LD = @STLIB_LD@
 STRIP = @STRIP@
 TCL_BIN_DIR = @TCL_BIN_DIR@
@@ -134,19 +139,19 @@ VERSION = @VERSION@
 bindir = $(exec_prefix)
 bin_PROGRAMS = sbnc
 sbnc_SOURCES = sbncloader.cpp AssocArray.cpp AssocArray.h
+sbnc_LDADD = ../libltdl/libltdlc.la
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_HEADER = ../config.h
+CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
 bin_PROGRAMS =  sbnc$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) -I..
+DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 sbnc_OBJECTS =  sbncloader.$(OBJEXT) AssocArray.$(OBJEXT)
-sbnc_LDADD = $(LDADD)
-sbnc_DEPENDENCIES = 
+sbnc_DEPENDENCIES =  ../libltdl/libltdlc.la
 sbnc_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -172,7 +177,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cpp .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu sbncloader/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/sbncloader/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -283,14 +288,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = sbncloader
+subdir = src/sbncloader
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu sbncloader/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/sbncloader/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
