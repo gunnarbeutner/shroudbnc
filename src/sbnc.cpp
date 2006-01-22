@@ -91,8 +91,6 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 #if !defined(_WIN32)
 	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
-
-	lt_dlexit();
 #endif
 
 	g_Freeze = false;
@@ -124,6 +122,10 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	delete Config;
 
 	adns_finish(g_adns_State);
+
+#ifndef _WIN32
+	lt_dlexit();
+#endif
 
 	return 0;
 }

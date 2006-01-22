@@ -1390,7 +1390,12 @@ bool CBouncerCore::MakeConfig(void) {
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
 	MainConfig->WriteString("system.users", User);
-	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.so");
+
+#ifdef _WIN32
+	MainConfig->WriteLine("system.modules.mod0", "bnctcl.dll");
+#else
+	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.la");
+#endif
 
 	printf("Writing main configuration file...");
 

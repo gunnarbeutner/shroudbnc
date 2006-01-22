@@ -45,6 +45,9 @@ CModule::CModule(const char *Filename) {
 		ErrorMsg = lt_dlerror();
 #endif
 
+		if (ErrorMsg == NULL)
+			ErrorMsg = "Unknown error.";
+
 		m_Error = strdup(ErrorMsg);
 	} else {
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =

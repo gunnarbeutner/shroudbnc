@@ -102,9 +102,6 @@ AC_SUBST(BNCTCL_MODULE)
 AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 
-AM_CONDITIONAL(INSTALL_LTDL, test "x" = "y")
-AM_CONDITIONAL(CONVENIENCE_LTDL, test "x" = "x")
-
 AC_CONFIG_FILES([Makefile
                  src/libltdl/Makefile
                  bnctcl/Makefile
