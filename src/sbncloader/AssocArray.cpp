@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#define NOADNSLIB
+#include "../StdAfx.h"
 
 CAssocArray::CAssocArray(void) {
 	m_Values = NULL;
@@ -74,11 +75,11 @@ CAssocArray *CAssocArray::ReadBox(const char *Name) {
 			if (m_Values[i].Type == ASSOC_POINTER)
 				return m_Values[i].ValueBox;
 			else
-				return 0;
+				return NULL;
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
 CAssocArray *CAssocArray::Create(void) {
