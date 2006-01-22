@@ -58,6 +58,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 
 	rlimit core_limit = { INT_MAX, INT_MAX };
 	setrlimit(RLIMIT_CORE, &core_limit);
+
+	lt_dlinit();
 #endif
 
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
@@ -66,6 +68,10 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");
+
+#ifndef _WIN32
+		lt_dlexit();
+#endif
 
 		return 1;
 	}
@@ -85,6 +91,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 #if !defined(_WIN32)
 	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
+
+	lt_dlexit();
 #endif
 
 	g_Freeze = false;

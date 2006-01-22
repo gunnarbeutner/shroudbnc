@@ -168,6 +168,9 @@ int main(int argc, char **argv) {
 	ThisMod = strdup(g_Mod);
 
 	Socket_Init();
+#ifndef _WIN32
+	lt_dlinit();
+#endif
 
 	sbncReadIpcFile();
 
@@ -247,6 +250,11 @@ int main(int argc, char **argv) {
 
 					printf("Giving up...\n");
 
+					Socket_Final();
+#ifndef _WIN32
+					lt_dlexit();
+#endif
+
 					return 1;
 				}
 			}
@@ -257,6 +265,10 @@ int main(int argc, char **argv) {
 	}
 
 	Socket_Final();
+
+#ifndef _WIN32
+	lt_dlexit();
+#endif
 
 	free(g_Mod);
 

@@ -57,7 +57,7 @@ proc awaymsg:ifacecmd {command params account} {
 			}
 
 			if {[string equal -nocase [lindex $params 0] "awaymessage"]} {
-				setbncuser $account awaymessage [join [lrange $params 0 end]]
+				setbncuser $account tag awaymessage [join [lrange $params 1 end]]
 			}
 		}
 		"value" {

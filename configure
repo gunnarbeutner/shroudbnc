@@ -25970,7 +25970,7 @@ else
   CONVENIENCE_LTDL_FALSE=
 fi
 
-                                                                      ac_config_files="$ac_config_files Makefile bnctcl/Makefile sbncloader/Makefile src/Makefile src/adns/Makefile src/md5/Makefile src/libltdl/Makefile"
+                                                                      ac_config_files="$ac_config_files Makefile src/libltdl/Makefile bnctcl/Makefile src/sbncloader/Makefile src/Makefile src/adns/Makefile src/md5/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -26508,12 +26508,12 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "src/libltdl/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile" ;;
   "bnctcl/Makefile" ) CONFIG_FILES="$CONFIG_FILES bnctcl/Makefile" ;;
-  "sbncloader/Makefile" ) CONFIG_FILES="$CONFIG_FILES sbncloader/Makefile" ;;
+  "src/sbncloader/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/sbncloader/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "src/adns/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/adns/Makefile" ;;
   "src/md5/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/md5/Makefile" ;;
-  "src/libltdl/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

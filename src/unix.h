@@ -34,7 +34,7 @@ typedef int SOCKET;
 typedef lt_dlhandle HMODULE;
 typedef int BOOL;
 
-#define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName, RTLD_NOW | RTLD_GLOBAL)
+#define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName)
 #define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose(hLibModule) : 0
 #define GetProcAddress(hModule, lpProcName) lt_dlsym(hModule, lpProcName)
 

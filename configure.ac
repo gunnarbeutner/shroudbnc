@@ -106,10 +106,10 @@ AM_CONDITIONAL(INSTALL_LTDL, test "x" = "y")
 AM_CONDITIONAL(CONVENIENCE_LTDL, test "x" = "x")
 
 AC_CONFIG_FILES([Makefile
+                 src/libltdl/Makefile
                  bnctcl/Makefile
-                 sbncloader/Makefile
+                 src/sbncloader/Makefile
                  src/Makefile
                  src/adns/Makefile
-		 src/md5/Makefile
-		 src/libltdl/Makefile])
+		 src/md5/Makefile])
 AC_OUTPUT

@@ -133,7 +133,6 @@ proc sbnc:ifacecmd {command params account override} {
 		"jump" {
 			jump
 		}
-
 		"set" {
 			if {[lsearch -exact [list server port serverpass realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
 				set result "denied"
@@ -142,7 +141,6 @@ proc sbnc:ifacecmd {command params account override} {
 				set result 1
 			}
 		}
-
 		"log" {
 			set error [catch "open users/$account.log r" file]
 
@@ -165,6 +163,15 @@ proc sbnc:ifacecmd {command params account override} {
 		}
 		"setlanguage" {
 			setbncuser $account tag lang [lindex $params 0]
+		}
+		"addhost" {
+			addbnchost [lindex $params 0]
+		}
+		"delhost" {
+			delbnchost [lindex $params 0]
+		}
+		"hosts" {
+			set result [join [getbnchosts]]
 		}
 		"hasplugin" {
 			set result 0
@@ -266,12 +273,6 @@ proc sbnc:ifacemsg {socket line} {
 				setbncuser [lindex $params 0] lock 0
 				setbncuser [lindex $params 0] suspendreason ""
 			}
-			"global" {
-				foreach user [bncuserlist] {
-					setctx $user
-					bncnotc [join $params]
-				}
-			}
 			"bncuserkill" {
 				setctx [lindex $params 0]
 				bnckill [join [lrange $params 1 end]]
@@ -279,6 +280,22 @@ proc sbnc:ifacemsg {socket line} {
 			"bncuserdisconnect" {
 				setctx [lindex $params 0]
 				bncdisconnect [join [lrange $params 1 end]]
+			}
+			"sendmessagetouser" {
+				set user [lindex $params 0]
+				set text [join [lrange $params 1 end]]
+				setctx $user
+				if {[getbncuser $user hasclient]} {
+				    bncnotc $text
+				} else {
+				    putlog $text
+				}
+			}
+			"clearhost" {
+				setctx [lindex $params 0]
+				foreach hosts [getbnchosts] {
+				    delbnchost $hosts
+				}
 			}
 
 		}
@@ -304,3 +321,4 @@ proc registerifacehandler {plugin handler} {
 }
 
 return ""
+

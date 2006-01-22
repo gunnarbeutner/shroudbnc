@@ -32,6 +32,8 @@
 #ifdef _WIN32
 	#include "win32.h"
 #else
+	#include "libltdl/ltdl.h"
+
 	#include "unix.h"
 #endif
 
@@ -71,8 +73,6 @@
 	#include <errno.h>
 	#include <sys/resource.h>
 	#include <limits.h>
-
-	#include "libltdl/ltdl.h"
 #endif
 
 #ifndef SWIG
