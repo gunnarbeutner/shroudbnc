@@ -147,4 +147,4 @@ int profilestrcmpi(const char*, const char*);
 #include "FloodControl.h"
 #include "Listener.h"
 
-#include "../sbncloader/AssocArray.h"
+#include "sbncloader/AssocArray.h"
