@@ -323,7 +323,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			Tcl_DString dsProc;
 
-			if (g_Binds[i].user && strcmpi(g_Binds[i].user, user) != 0)
+			if (g_Binds[i].user && user && strcmpi(g_Binds[i].user, user) != 0)
 				continue;
 
 			bool Match = false;
