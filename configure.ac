@@ -102,11 +102,11 @@ AC_SUBST(BNCTCL_MODULE)
 AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 
-AC_CONFIG_FILES([Makefile
-                 src/libltdl/Makefile
-                 bnctcl/Makefile
-                 src/sbncloader/Makefile
-                 src/Makefile
-                 src/adns/Makefile
-		 src/md5/Makefile])
+AC_CONFIG_FILES([Makefile \
+                 bnctcl/Makefile \
+                 src/sbncloader/Makefile \
+                 src/Makefile \
+                 src/adns/Makefile \
+                 src/libltdl/Makefile \
+                 src/md5/Makefile])
 AC_OUTPUT
