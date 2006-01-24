@@ -272,3 +272,12 @@ void CBouncerConfig::Reload(void) {
 	if (m_File)
 		ParseConfig();
 }
+
+/**
+ * Count
+ *
+ * Returns the number of items in the config.
+ */
+int CBouncerConfig::Count(void) {
+	return m_Settings->Count();
+}

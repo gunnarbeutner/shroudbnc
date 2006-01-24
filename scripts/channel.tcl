@@ -46,6 +46,10 @@ proc channel {option chan args} {
 	upvar [getns]::channels channels
 	upvar [getns]::chanoptions chanoptions
 
+	if {[botonchan $chan] && ![info exists channels($chan)]} {
+		set channels($chan) ""
+	}
+
 	if {[info exists channels($chan)]} {
 		array set channel $channels($chan)
 	} else {
@@ -61,19 +65,38 @@ proc channel {option chan args} {
 			return 1
 		}
 		set {
-			if {[llength $args] < 2} { return -code error "Too few parameters" }
+			if {[llength $args] < 1} { return -code error "Too few parameters" }
 
-			if {![info exists chanoptions([lindex $args 0])]} {
-				return -code error "No such option."
-			} elseif {[string equal -nocase $chanoptions([lindex $args 0]) "int"] && ![string is digit [lindex $args 1]]} {
-				return -code error "Value is not an integer."
-			} elseif {[string equal -nocase $chanoptions([lindex $args 0]) "flag"] && [lindex $args 1] != "1" && [lindex $args 1] != "0"} {
-				return -code error "Value is not a flag."
-			} elseif {![validchan [lindex $args 0]]} {
-				return -code error "no such channel record"
+			set first [string index [lindex $args 0] 0]
+
+			if {$first == "+" || $first == "-"} {
+				set option [string range [lindex $args 0] 1 end]
+			} else {
+				set option [lindex $args 0]
 			}
 
-			set channel([lindex $args 0]) [lindex $args 1]
+			set value [lindex $args 1]
+
+			if {![info exists chanoptions($option)]} {
+				return -code error "No such option."
+			} elseif {[string equal -nocase $chanoptions($option) "int"]} {
+				if {[llength $args] < 2} { return -code error "Too few parameters" }
+				elseif {![string is digit $value]} { return -code error "Value is not an integer." }
+
+				set channel($option) $value
+			} elseif {$first == "+" || $first == "-"} {
+				if {![string equal -nocase $chanoptions($option) "flag"]} { return -code error "Value is not a flag." }
+
+				if {$first == "+"} {
+					set channel($option) 1
+				} else {
+					set channel($option) 0
+				}
+			} elseif {![validchan [lindex $args 0]]} {
+				return -code error "no such channel record"
+			} else {
+				set channel($option) $value
+			}
 
 			set channels([string tolower $chan]) [array get channel]
 
@@ -147,7 +170,13 @@ proc channels {} {
 
 	upvar [getns]::channels channels
 
-	return [array names channels]
+	set tmpchans [array names channels]
+
+	foreach chan [internalchannels] {
+		lappend tmpchans $chan
+	}
+
+	return [sbnc:uniq $tmpchans]
 }
 
 proc validchan {channel} {

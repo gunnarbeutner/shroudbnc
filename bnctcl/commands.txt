@@ -1,6 +1,10 @@
-sBNC Tcl Commands
-Version: 0.9
+shroudBNC Tcl Commands
+Version: 1.2
 -------------------------------------
+
+Commands and variables which have been implemented as part of the eggdrop emulation
+are not listed in this file. For a list of such commands you should read "tcl-commands.doc"
+(which is part of the eggdrop package) instead.
 
 *** User management ***
 
@@ -21,7 +25,7 @@ setbncuser <User> <Type> [<Value>] [<Value2>]
 
 addbncuser <User> <Password>
 
-  Description: Creates a new bouncer user.
+  Description: Creates a new bouncer user. If the user already exists his password is modified.
   Returns: Nothing.
 
 delbncuser <User>
@@ -36,8 +40,9 @@ bnccheckpassword <User> <Password>
 
 trafficstats <User> [<ConnectionType>] [<Type>]
 
-  Description:
-  Returns:
+  Description: Returns traffic statistics for the specified user. ConnectionType can be either
+    server or client. Type can be in or out.
+  Returns: The traffic (in bytes).
 
 *** User interaction ***
 
@@ -48,7 +53,7 @@ putclient <Text>
 
 simul <User> <Command>
 
-  Description: Simulates <Command> in the context of <User>. sBNC performs the <Command> as if the user has typed /<Command>.
+  Description: Simulates <Command> in the context of <User>. shroudBNC performs the <Command> as if the user has typed /<Command>.
   Returns: 1 if successful, 0 otherwise, e.g. when <User> is not a valid user.
 
 floodcontrol <Function>
@@ -77,18 +82,18 @@ getctx
 
 internalchanlist <Channel>
 
-  Description: Returns the list of nicks for a given channel.
+  Description: Do not use this. Use chanlist instead. See tcl-commands.doc for more details.
   Returns: A tcl list.
 
 internalchannels
 
-  Description: Returns a list of channels which the user is on.
+  Description: Do not use this. Use channels instead. See tcl-commands.doc for more details.
   Returns: A tcl list.
 
 internalgetchanidle <Nick> <Channel>
 
-  Description:
-  Returns:
+  Description: Do not use this. Use getchanidle instead. See tcl-commands.doc for more details.
+  Returns: The nick's idletime in seconds.
 
 internallisten <Port> <Type> <Options> <Flag>
 
@@ -110,12 +115,12 @@ internalclosesocket <idx>
   Description:  Do not use this. Use killdcc instead. See tcl-commands.doc for more details.
   Returns: Nothing.
 
-internalbind <Type> <Proc>
+internalbind <Type> <Proc> [<Pattern>] [<User>]
 
   Description:
   Returns:
 
-internalunbind <Type> <Proc>
+internalunbind <Type> <Proc> [<Pattern>] [<User>]
 
   Description:
   Returns:
@@ -179,23 +184,24 @@ bncgettag <Channel> <Nick> <Tag>
 
 getisupport <Feature>
 
-  Description:
-  Returns:
+  Description: Returns a specific feature's value from the server's 005 replies.
+  Returns: The value of the feature.
 
 requiresparam <Mode>
 
-  Description:
-  Returns:
+  Description: Returns whether a channel-mode requires a parameter.
+  Returns: 3 if the mode is a list (e.g. the banlist) and requires a parameter for setting and unsetting, 2 if the mode needs a parameter for setting and unsetting. 1 if the mode requires a parameter for setting it, 0 if the mode does not require a parameter
+    requires a parameter for setting it. 
 
 isprefixmode <Mode>
 
-  Description:
-  Returns:
+  Description: Returns whether a channel-mode can be applied to nicks (e.g. +o or +v).
+  Returns: 1 if the mode can be applied to nicks, 0 otherwise.
 
 getchanprefix <Channel> <Nick>
 
-  Description:
-  Returns:
+  Description: Returns the "best" prefix of a nick.
+  Returns: The prefix (e.g. @ or +).
 
 bnckill <Reason>
 
@@ -273,3 +279,8 @@ bncgetglobaltag <Name>
 
   Description: Returns the value of a global tag.
   Returns: A string or NULL.
+
+bncgetglobaltags
+
+  Description: Returns a list of global tags.
+  Returns: A list.

@@ -3897,6 +3897,31 @@ _wrap_bncgetglobaltag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
 
 static int
+_wrap_bncgetglobaltags(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":bncgetglobaltags ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)bncgetglobaltags();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    {
+        Tcl_DString ds_result;
+        
+        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_DStringFree(&ds_result);
+    }
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4829,6 +4854,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "impulse", (swig_wrapper_func) _wrap_impulse, NULL},
     { SWIG_prefix "bncsetglobaltag", (swig_wrapper_func) _wrap_bncsetglobaltag, NULL},
     { SWIG_prefix "bncgetglobaltag", (swig_wrapper_func) _wrap_bncgetglobaltag, NULL},
+    { SWIG_prefix "bncgetglobaltags", (swig_wrapper_func) _wrap_bncgetglobaltags, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -42,4 +42,5 @@ public:
 	virtual const char *GetFilename(void);
 
 	virtual void Reload(void);
+	virtual int Count(void);
 };

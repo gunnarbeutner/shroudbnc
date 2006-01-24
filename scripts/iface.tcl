@@ -61,6 +61,9 @@ set ::ifacessl 0
 # bncuserdisconnect user reason
 # sendmessagetouser user text
 # clearhost
+# getglobaltags
+# getglobaltag tag
+# setglobaltag tag value
 
 if {$::ifacessl} {
 	catch [list listen $::ifaceport script sbnc:iface "" 1]
@@ -307,6 +310,9 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"getglobaltag" {
 				set result [bncgetglobaltag [lindex $params 0]]
+			}
+			"getglobaltags" {
+				set result [bncgetglobaltags]
 			}
 		}
 	}

@@ -159,6 +159,7 @@ const char *impulse(int imp);
 
 void bncsetglobaltag(const char *Tag, const char *Value = 0);
 const char *bncgetglobaltag(const char *Tag);
+const char *bncgetglobaltags(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

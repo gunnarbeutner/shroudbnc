@@ -1855,6 +1855,9 @@ void bncsetglobaltag(const char *Tag, const char *Value) {
 
 	sprintf(tagName, "tag.%s", Tag);
 
+	if (Value && *Value == '\0')
+		Value = NULL;
+
 	g_Bouncer->GetConfig()->WriteString(tagName, Value);
 
 	free(tagName);
@@ -1870,4 +1873,32 @@ const char *bncgetglobaltag(const char *Tag) {
 	free(tagName);
 
 	return ReturnValue;
+}
+
+const char *bncgetglobaltags(void) {
+	CBouncerConfig *Config = g_Bouncer->GetConfig();
+	int Count = Config->Count();
+
+	int argc = 0;
+	const char** argv = (const char**)malloc(Count * sizeof(const char*));
+
+	for (int i = 0; i < Count; i++) {
+		xhash_t<char *> *Item = Config->Iterate(i);
+
+		if (strstr(Item->Name, "tag.") == Item->Name) {
+			argv[argc] = Item->Name + 4;
+			argc++;
+		}
+	}
+
+	static char* List = NULL;
+
+	if (List)
+		Tcl_Free(List);
+
+	List = Tcl_Merge(argc, argv);
+
+	free(argv);
+
+	return List;
 }

@@ -1392,7 +1392,7 @@ bool CBouncerCore::MakeConfig(void) {
 	MainConfig->WriteString("system.users", User);
 
 #ifdef _WIN32
-	MainConfig->WriteLine("system.modules.mod0", "bnctcl.dll");
+	MainConfig->WriteString("system.modules.mod0", "bnctcl.dll");
 #else
 	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.la");
 #endif
