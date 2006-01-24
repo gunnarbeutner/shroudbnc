@@ -207,6 +207,8 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 		Bind->type = Type_UsrDelete;
 	else if (strcmpi(type, "command") == 0)
 		Bind->type = Type_Command;
+	else if (strcmpi(type, "settag") == 0)
+		Bind->type = Type_SetTag;
 	else {
 		Bind->type = Type_Invalid;
 
@@ -262,6 +264,8 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 		bindtype = Type_UsrDelete;
 	else if (strcmpi(type, "command") == 0)
 		bindtype = Type_Command;
+	else if (strcmpi(type, "settag") == 0)
+		bindtype = Type_SetTag;
 	else
 		return 0;
 
@@ -1851,6 +1855,7 @@ void bncdeletecommand(const char *Name) {
 }
 
 void bncsetglobaltag(const char *Tag, const char *Value) {
+	const char *argv[2];
 	char *tagName = (char *)malloc(4 + strlen(Tag) + 1);
 
 	sprintf(tagName, "tag.%s", Tag);
@@ -1859,6 +1864,10 @@ void bncsetglobaltag(const char *Tag, const char *Value) {
 		Value = NULL;
 
 	g_Bouncer->GetConfig()->WriteString(tagName, Value);
+
+	argv[0] = Tag;
+	argv[1] = Value;
+	CallBinds(Type_SetTag, NULL, 2, argv);
 
 	free(tagName);
 }

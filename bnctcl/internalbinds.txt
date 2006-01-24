@@ -4,7 +4,6 @@ type		proc
 -----------------------------------
 client		{client parameters}
 server		{client parameters}
-pulse		{time}
 pre		{}
 post		{}
 attach		{client}
@@ -15,5 +14,7 @@ svrconnect	{client}
 svrdisconnect	{client}
 svrlogon	{client}
 usrload		{client}
+usrcreate	{client}
 usrdelete	{client}
 command		{client parameters}
+settag		{params}

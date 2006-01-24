@@ -316,6 +316,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		setctx(user);
 
 	int objc = 3;
+	int idx = 1;
 	Tcl_Obj* objv[3];
 	bool lazyConversionDone = false;
 
@@ -343,19 +344,14 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 			if (Match) {
 				if (!lazyConversionDone) {
-					objv[0] = NULL;
-
 					if (user) {
 						Tcl_DString dsUser;
 
 						Tcl_ExternalToUtfDString(g_Encoding, user ? user : "", -1, &dsUser);
-						objv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
+						objv[idx++] = Tcl_NewStringObj(Tcl_DStringValue(&dsUser), Tcl_DStringLength(&dsUser));
 						Tcl_DStringFree(&dsUser);
 
-						Tcl_IncrRefCount(objv[1]);
-					} else {
-						objv[1] = NULL;
-						objc = 1;
+						Tcl_IncrRefCount(objv[idx - 1]);
 					}
 
 					if (argc) {
@@ -371,13 +367,8 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 							Tcl_IncrRefCount(listv[a]);
 						}
 
-						objv[2] = Tcl_NewListObj(argc, listv);
-						Tcl_IncrRefCount(objv[2]);
-					} else {
-						objv[2] = NULL;
-
-						if (objc > 2)
-							objc = 2;
+						objv[idx++] = Tcl_NewListObj(argc, listv);
+						Tcl_IncrRefCount(objv[idx - 1]);
 					}
 
 					lazyConversionDone = true;
@@ -389,7 +380,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 				Tcl_IncrRefCount(objv[0]);
 
-				Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+				Tcl_EvalObjv(g_Interp, idx, objv, TCL_EVAL_GLOBAL);
 
 				Tcl_DecrRefCount(objv[0]);
 			}
@@ -397,8 +388,11 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 	}
 
 	if (lazyConversionDone) {
-		if (user)
-			Tcl_DecrRefCount(objv[1]);
+		for (int i = 1; i < idx; i++) {
+			if (objv[i])
+				Tcl_DecrRefCount(objv[i]);
+		}
+
 
 		if (argc) {
 			for (int a = 0; a < argc; a++) {
@@ -406,8 +400,6 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 			}
 
 			free(listv);
-
-			Tcl_DecrRefCount(objv[2]);
 		}
 	}
 }

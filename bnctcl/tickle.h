@@ -35,7 +35,8 @@ enum binding_type_e {
 	Type_UsrLoad,
 	Type_UsrCreate,
 	Type_UsrDelete,
-	Type_Command
+	Type_Command,
+	Type_SetTag
 };
 
 typedef struct binding_s {
