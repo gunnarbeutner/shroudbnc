@@ -18,6 +18,7 @@
 internaltimer 120 1 sbnc:channelflush
 internalbind unload sbnc:channelflush
 internalbind usrdelete sbnc:channelconfdelete
+internalbind server sbnc:channelpart PART
 
 proc sbnc:channelflush {} {
 	foreach user [bncuserlist] {
@@ -35,6 +36,14 @@ proc sbnc:channelflush {} {
 
 proc sbnc:channelconfdelete {client} {
 	file delete "users/$client.chan"
+}
+
+proc sbnc:channelpart {client params} {
+	if {![string equal -nocase [lindex [split [lindex $params 0] "!"] 0] $::botnick]} { return }
+
+	if {[string equal -nocase [lindex $params 1] "PART"]} {
+		channel remove [lindex $params 2]
+	}
 }
 
 proc channel {option chan args} {
