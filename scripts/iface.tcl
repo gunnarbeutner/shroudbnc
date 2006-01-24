@@ -39,6 +39,9 @@ set ::ifacessl 0
 # log
 # eraselog
 # simul text
+# addhost host
+# delhost host
+# hosts
 # +admin
 # tcl command
 # userlist
@@ -56,6 +59,8 @@ set ::ifacessl 0
 # global text
 # bncuserkill user reason
 # bncuserdisconnect user reason
+# sendmessagetouser user text
+# clearhost
 
 if {$::ifacessl} {
 	catch [list listen $::ifaceport script sbnc:iface "" 1]
@@ -297,7 +302,12 @@ proc sbnc:ifacemsg {socket line} {
 				    delbnchost $hosts
 				}
 			}
-
+			"setglobaltag" {
+				bncsetglobaltag [lindex $params 0] [join [lrange $params 1 end]]
+			}
+			"getglobaltag" {
+				set result [bncgetglobaltag [lindex $params 0]]
+			}
 		}
 	}
 
