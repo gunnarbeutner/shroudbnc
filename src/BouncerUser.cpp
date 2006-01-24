@@ -114,8 +114,6 @@ CBouncerUser::CBouncerUser(const char* Name) {
 	m_BadLoginPulse = g_Bouncer->CreateTimer(200, true, BadLoginTimer, this);
 	m_ReconnectTimer = NULL;
 
-	m_LastSeen = 0;
-
 	m_IsAdminCache = -1;
 
 	m_ClientCertificates = NULL;
@@ -672,7 +670,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 			free(Out);
 		}
 
-		m_LastSeen = time(NULL);
+		m_Config->WriteInteger("user.seen", time(NULL));
 	}
 
 
@@ -709,7 +707,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 				free(Out);
 			}
 
-			m_LastSeen = time(NULL);
+			m_Config->WriteInteger("user.seen", time(NULL));
 		}
 
 		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
@@ -1017,7 +1015,7 @@ bool UserReconnectTimer(time_t Now, void* User) {
 }
 
 time_t CBouncerUser::GetLastSeen(void) {
-	return m_LastSeen;
+	return m_Config->ReadInteger("user.seen");
 }
 
 const char* CBouncerUser::GetAwayNick(void) {
@@ -1026,6 +1024,9 @@ const char* CBouncerUser::GetAwayNick(void) {
 
 void CBouncerUser::SetAwayNick(const char* Nick) {
 	m_Config->WriteString("user.awaynick", Nick);
+
+	if (m_Client == NULL && m_IRC != NULL)
+		m_IRC->WriteLine("Nick :%s", Nick);
 }
 
 const char* CBouncerUser::GetAwayText(void) {
@@ -1034,6 +1035,9 @@ const char* CBouncerUser::GetAwayText(void) {
 
 void CBouncerUser::SetAwayText(const char* Reason) {
 	m_Config->WriteString("user.away", Reason);
+
+	if (m_Client == NULL && m_IRC != NULL)
+		m_IRC->WriteLine("AWAY :%s", Reason);
 }
 
 const char* CBouncerUser::GetVHost(void) {

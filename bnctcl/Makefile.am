@@ -9,3 +9,7 @@ libbnctcl_la_LDFLAGS=-version-info 0:0:0
 AM_CXXFLAGS=@TCL_INCLUDE_SPEC@
 AM_CFLAGS=@TCL_INCLUDE_SPEC@
 CC=@CXX@
+
+install:
+	@if [ -d $(exec_prefix)/tickle.so ]; then rm $(exec_prefix)/tickle.so; fi
+	@ln -s $(exec_prefix)/libbnctcl.la $(exec_prefix)/tickle.so

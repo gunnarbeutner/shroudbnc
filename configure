@@ -25660,7 +25660,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 		CFLAGS=$CFLAGS_TMP
 
 		if test x"${TCLINC}" != x ; then
-			BNCTCL_MODULE=bnctcl
+			BNCTCL_MODULE="bnctcl scripts"
 		else
 			{ echo "$as_me:$LINENO: WARNING: TCL header files could not be found." >&5
 echo "$as_me: WARNING: TCL header files could not be found." >&2;}
@@ -25951,13 +25951,7 @@ fi
 
 
 
-                                                                      ac_config_files="$ac_config_files Makefile
- src/libltdl/Makefile
- bnctcl/Makefile
- src/sbncloader/Makefile
- src/Makefile
- src/adns/Makefile
- src/md5/Makefile"
+                                                                                ac_config_files="$ac_config_files Makefile scripts/Makefile src/libltdl/Makefile bnctcl/Makefile src/sbncloader/Makefile src/Makefile src/adns/Makefile src/md5/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -26494,24 +26488,13 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
-  "Makefile
-" ) CONFIG_FILES="$CONFIG_FILES Makefile
-" ;;
-  "src/libltdl/Makefile
-" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile
-" ;;
-  "bnctcl/Makefile
-" ) CONFIG_FILES="$CONFIG_FILES bnctcl/Makefile
-" ;;
-  "src/sbncloader/Makefile
-" ) CONFIG_FILES="$CONFIG_FILES src/sbncloader/Makefile
-" ;;
-  "src/Makefile
-" ) CONFIG_FILES="$CONFIG_FILES src/Makefile
-" ;;
-  "src/adns/Makefile
-" ) CONFIG_FILES="$CONFIG_FILES src/adns/Makefile
-" ;;
+  "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "scripts/Makefile" ) CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
+  "src/libltdl/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/libltdl/Makefile" ;;
+  "bnctcl/Makefile" ) CONFIG_FILES="$CONFIG_FILES bnctcl/Makefile" ;;
+  "src/sbncloader/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/sbncloader/Makefile" ;;
+  "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+  "src/adns/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/adns/Makefile" ;;
   "src/md5/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/md5/Makefile" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;

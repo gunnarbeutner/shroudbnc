@@ -72,8 +72,6 @@ class CBouncerUser {
 	CTimer *m_BadLoginPulse;
 	CTimer *m_ReconnectTimer;
 
-	time_t m_LastSeen;
-
 	int m_IsAdminCache;
 
 	X509 **m_ClientCertificates;

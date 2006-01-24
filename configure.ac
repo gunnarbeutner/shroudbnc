@@ -74,7 +74,7 @@ if test x"${no_tcl}" = x ; then
 		CFLAGS=$CFLAGS_TMP
 	
 		if test x"${TCLINC}" != x ; then
-			BNCTCL_MODULE=bnctcl
+			BNCTCL_MODULE="bnctcl scripts"
 		else
 			AC_MSG_WARN([TCL header files could not be found.])
 		fi
@@ -103,10 +103,11 @@ AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 
 AC_CONFIG_FILES([Makefile \
+                 scripts/Makefile \
+                 src/libltdl/Makefile \
                  bnctcl/Makefile \
                  src/sbncloader/Makefile \
                  src/Makefile \
                  src/adns/Makefile \
-                 src/libltdl/Makefile \
-                 src/md5/Makefile])
+		 src/md5/Makefile])
 AC_OUTPUT

@@ -892,7 +892,7 @@ const char* getchanhost(const char* Nick, const char*) {
 		if (IRC) {
 			int a = 0;
 
-			if (strcmpi(IRC->GetCurrentNick(), Nick) == 0) {
+			if (IRC->GetCurrentNick() && strcmpi(IRC->GetCurrentNick(), Nick) == 0) {
 				Host = IRC->GetSite();
 
 				if (Host)
