@@ -49,7 +49,9 @@ int g_SSLCustomIndex;
 
 SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
+#ifdef _DEBUG
 extern int g_TimerStats;
+#endif
 
 void AcceptHelper(SOCKET Client, sockaddr_in PeerAddress, bool SSL) {
 	unsigned long lTrue = 1;
@@ -1086,7 +1088,11 @@ void CBouncerCore::UnregisterTimer(CTimer* Timer) {
 }
 
 int CBouncerCore::GetTimerStats(void) {
+#ifdef _DEBUG
 	return g_TimerStats;
+#else
+	return 0;
+#endif
 }
 
 bool CBouncerCore::Match(const char *Pattern, const char *String) {

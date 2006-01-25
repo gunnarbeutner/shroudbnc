@@ -20,6 +20,8 @@
 typedef bool (*TimerProc)(time_t now, void* cookie);
 
 class CTimer {
+	friend class CBouncerCore;
+
 public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
@@ -27,13 +29,13 @@ public:
 	virtual ~CTimer(void);
 
 	virtual void Destroy(void);
-	virtual bool Call(time_t Now);
-	virtual time_t GetNextCall(void);
-
 private:
 	TimerProc m_Proc;
 	void *m_Cookie;
 	unsigned int m_Interval;
 	bool m_Repeat;
 	time_t m_Next;
+
+	virtual bool Call(time_t Now);
+	virtual time_t GetNextCall(void);
 };

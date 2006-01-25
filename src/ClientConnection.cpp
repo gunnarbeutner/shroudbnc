@@ -180,7 +180,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			"Syntax: hostadd <host>\nAdds a host to your hostlist. E.g. *.tiscali.de");
 		AddCommand(&m_CommandList, "hostdel", "User", "removes a hostmask",
 			"Syntax: hostdel <host>\nRemoves a host from your hostlist.");
-		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells sBNC not to rejoin them when you reconnect to a server",
+		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells shroudBNC not to rejoin them when you reconnect to a server",
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
 #ifdef USESSL

@@ -33,10 +33,11 @@ CBouncerConfig::CBouncerConfig(const char *Filename) {
 	m_WriteLock = false;
 	m_Settings = NULL;
 
-	if (Filename) {
+	if (Filename != NULL) {
 		m_File = strdup(Filename);
-	} else
+	} else {
 		m_File = NULL;
+	}
 
 	Reload();
 }
@@ -51,20 +52,22 @@ CBouncerConfig::CBouncerConfig(const char *Filename) {
  */
 bool CBouncerConfig::ParseConfig(void) {
 	char Line[4096];
-	char* dupEq;
+	char *dupEq;
 
-	if (m_File == NULL)
+	if (m_File == NULL) {
 		return false;
+	}
 
-	FILE* Conf = fopen(m_File, "r");
+	FILE *ConfigFile = fopen(m_File, "r");
 
-	if (!Conf)
+	if (ConfigFile == NULL) {
 		return false;
+	}
 
 	m_WriteLock = true;
 
-	while (!feof(Conf)) {
-		fgets(Line, sizeof(Line), Conf);
+	while (!feof(ConfigFile)) {
+		fgets(Line, sizeof(Line), ConfigFile);
 
 		if (Line[strlen(Line) - 1] == '\n')
 			Line[strlen(Line) - 1] = '\0';
@@ -104,7 +107,7 @@ bool CBouncerConfig::ParseConfig(void) {
 		}
 	}
 
-	fclose(Conf);
+	fclose(ConfigFile);
 
 	m_WriteLock = false;
 
@@ -118,7 +121,10 @@ bool CBouncerConfig::ParseConfig(void) {
  */
 CBouncerConfig::~CBouncerConfig() {
 	free(m_File);
-	delete m_Settings;
+
+	if (m_Settings != NULL) {
+		delete m_Settings;
+	}
 }
 
 /**
@@ -132,10 +138,11 @@ CBouncerConfig::~CBouncerConfig() {
 const char *CBouncerConfig::ReadString(const char *Setting) {
 	char *Value = m_Settings->Get(Setting);
 
-	if (Value && *Value)
+	if (Value != NULL && *Value != '\0') {
 		return Value;
-	else
+	} else {
 		return NULL;
+	}
 }
 
 /**
@@ -149,7 +156,11 @@ const char *CBouncerConfig::ReadString(const char *Setting) {
 int CBouncerConfig::ReadInteger(const char *Setting) {
 	const char *Value = m_Settings->Get(Setting);
 
-	return Value ? atoi(Value) : 0;
+	if (Value != NULL) {
+		return atoi(Value);
+	} else {
+		return 0;
+	}
 }
 
 /**
@@ -162,21 +173,23 @@ int CBouncerConfig::ReadInteger(const char *Setting) {
  *              the configuration setting is to be removed
  */
 bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
-	bool RetVal;
+	bool ReturnValue;
 
-	if (Value)
+	if (Value != NULL) {
 		RetVal = m_Settings->Add(Setting, strdup(Value));
-	else
+	} else {
 		RetVal = m_Settings->Remove(Setting);
+	}
 
-	if (RetVal == false)
+	if (ReturnValue == false) {
 		return false;
+	}
 
-	if (!m_WriteLock)
-		if (Persist() == false)
-			return false;
-
-	return true;
+	if (m_WriteLock == false && Persist() == false) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
 /**
@@ -202,20 +215,21 @@ bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
  * unless the configuration object is volatile.
  */
 bool CBouncerConfig::Persist(void) {
-	if (!m_File)
+	if (m_File == NULL) {
 		return false;
+	}
 
-	FILE* Config = fopen(m_File, "w");
+	FILE *ConfigFile = fopen(m_File, "w");
 
-	if (Config) {
+	if (ConfigFile != NULL) {
 		int i = 0;
-		while (xhash_t<char*>* P = m_Settings->Iterate(i++)) {
-			if (P->Name && P->Value) {
-				fprintf(Config, "%s=%s\n", P->Name, P->Value);
+		while (xhash_t<char*>* SettingHash = m_Settings->Iterate(i++)) {
+			if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
+				fprintf(Config, "%s=%s\n", SettingHash->Name, SettingHash->Value);
 			}
 		}
 
-		fclose(Config);
+		fclose(ConfigFile);
 
 		return true;
 	} else {
@@ -256,8 +270,9 @@ xhash_t<char *> *CBouncerConfig::Iterate(int Index) {
  * Reloads all settings from disk.
  */
 void CBouncerConfig::Reload(void) {
-	if (m_Settings)
+	if (m_Settings != NULL) {
 		delete m_Settings;
+	}
 
 	m_Settings = new CHashtable<char *, false, 8>();
 
@@ -269,8 +284,9 @@ void CBouncerConfig::Reload(void) {
 
 	m_Settings->RegisterValueDestructor(string_free);
 
-	if (m_File)
+	if (m_File != NULL) {
 		ParseConfig();
+	}
 }
 
 /**
@@ -279,5 +295,9 @@ void CBouncerConfig::Reload(void) {
  * Returns the number of items in the config.
  */
 int CBouncerConfig::Count(void) {
-	return m_Settings->Count();
+	if (m_Settings == NULL) {
+		return 0;
+	} else {
+		return m_Settings->Count();
+	}
 }

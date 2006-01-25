@@ -40,8 +40,9 @@ void DestroyBan(ban_t *Ban) {
 CBanlist::CBanlist() {
 	m_Bans = new CHashtable<ban_t *, false, 5>();
 
-	if (m_Bans)
+	if (m_Bans != NULL) {
 		m_Bans->RegisterValueDestructor(DestroyBan);
+	}
 }
 
 /**
@@ -50,7 +51,9 @@ CBanlist::CBanlist() {
  * Destroys a banlist
  */
 CBanlist::~CBanlist() {
-	delete m_Bans;
+	if (m_Bans != NULL) {
+		delete m_Bans;
+	}
 }
 
 /**
@@ -63,7 +66,7 @@ CBanlist::~CBanlist() {
  * @param TS the timestamp of the ban
  */
 bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
-	ban_t* Obj;
+	ban_t *Ban;
 
 	if (m_Bans == NULL) {
 		LOGERROR("could not set ban (%s, %s, %d). internal banlist is not "
@@ -72,16 +75,17 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
 		return false;
 	}
 
-	Obj = (ban_t *)malloc(sizeof(ban_t));
+	Ban = (ban_t *)malloc(sizeof(ban_t));
 
-	if (Obj) {
-		Obj->Mask = strdup(Mask);
-		Obj->Nick = strdup(Nick);
-		Obj->TS = TS;
+	if (Ban != NULL) {
+		Ban->Mask = strdup(Mask);
+		Ban->Nick = strdup(Nick);
+		Ban->TS = TS;
 
-		return m_Bans->Add(Mask, Obj);
-	} else
+		return m_Bans->Add(Mask, Ban);
+	} else {
 		return false;
+	}
 }
 
 /**
@@ -92,7 +96,7 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
  * @param Mask the mask of the ban which is going to be removed
  */
 bool CBanlist::UnsetBan(const char *Mask) {
-	if (Mask != NULL && m_Bans)
+	if (Mask != NULL && m_Bans != NULL)
 		return m_Bans->Remove(Mask);
 	else
 		return false;
@@ -106,15 +110,15 @@ bool CBanlist::UnsetBan(const char *Mask) {
  * @param Skip the index of the ban which is to be returned
  */
 const ban_t *CBanlist::Iterate(int Skip) {
-	xhash_t<ban_t *> *Obj;
+	xhash_t<ban_t *> *BanHash;
 
 	if (m_Bans == NULL)
 		return NULL;
 
-	Obj = m_Bans->Iterate(Skip);
+	BanHash = m_Bans->Iterate(Skip);
 
-	if (Obj)
-		return Obj->Value;
+	if (BanHash != NULL)
+		return BanHash->Value;
 	else
 		return NULL;
 }

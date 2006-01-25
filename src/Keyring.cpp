@@ -40,50 +40,50 @@ CKeyring::CKeyring(CBouncerConfig *Config) {
  * @param Channel the channel for which the key should be retrieved
  */
 const char *CKeyring::GetKey(const char* Channel) {
-	char *Buf = (char *)malloc(5 + strlen(Channel));
+	char *Setting = (char *)malloc(5 + strlen(Channel));
 
-	if (Buf == NULL) {
+	if (Setting == NULL) {
 		LOGERROR("malloc() failed. Key could not be retrieved (%s).", Channel);
 
 		return NULL;
 	}
 
-	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
+	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
 
-	const char *Ret = m_Config->ReadString(Buf);
+	const char *ReturnValue = m_Config->ReadString(Setting);
 
-	free(Buf);
+	free(Setting);
 
-	return Ret;
+	return ReturnValue;
 }
 
 /**
  * AddKey
  *
  * Saves a key for a specific channel in the keyring. Returns true if the key
- * was successfully saves, false otherwise.
+ * was successfully saved, false otherwise.
  *
  * @param Channel the channel
  * @param Key the key
  */
 bool CKeyring::AddKey(const char *Channel, const char *Key) {
-	bool RetVal;
-	char *Buf = (char *)malloc(5 + strlen(Channel));
+	bool ReturnValue;
+	char *Setting = (char *)malloc(5 + strlen(Channel));
 
-	if (Buf == NULL) {
+	if (Setting == NULL) {
 		LOGERROR("malloc() failed. Key could not be added (%s, %s).",
 			Channel, Key);
 
 		return false;
 	}
 
-	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
+	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
 
-	RetVal = m_Config->WriteString(Buf, Key);
+	ReturnValue = m_Config->WriteString(Setting, Key);
 
-	free(Buf);
+	free(Setting);
 
-	return RetVal;
+	return ReturnValue;
 }
 
 /**
@@ -93,20 +93,20 @@ bool CKeyring::AddKey(const char *Channel, const char *Key) {
  * successfully removed, false otherwise.
  */
 bool CKeyring::DeleteKey(const char *Channel) {
-	bool RetVal;
-	char *Buf = (char *)malloc(5 + strlen(Channel));
+	bool ReturnValue;
+	char *Setting = (char *)malloc(5 + strlen(Channel));
 
-	if (Buf == NULL) {
+	if (Setting == NULL) {
 		LOGERROR("malloc() failed. Key could not be removed (%s).", Channel);
 
 		return false;
 	}
 
-	snprintf(Buf, 5 + strlen(Channel), "key.%s", Channel);
+	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
 
-	RetVal = m_Config->WriteString(Buf, NULL);
+	ReturnValue = m_Config->WriteString(Setting, NULL);
 
-	free(Buf);
+	free(Setting);
 
-	return RetVal;
+	return ReturnValue;
 }

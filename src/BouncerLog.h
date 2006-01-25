@@ -19,8 +19,8 @@
 
 class CBouncerUser;
 
-#define Log_Notice true
-#define Log_Message false
+#define Log_Notice 1
+#define Log_Message 0
 #define Log_Motd 2
 
 class CBouncerLog {

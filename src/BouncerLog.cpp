@@ -28,7 +28,7 @@
  *                 any log messages should be discarded
  */
 CBouncerLog::CBouncerLog(const char *Filename) {
-	if (Filename) {
+	if (Filename != NULL) {
 		m_File = strdup(Filename);
 
 		if (m_File == NULL) {
@@ -43,8 +43,9 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 				exit(1);
 			}
 		}
-	} else
+	} else {
 		m_File = NULL;
+	}
 }
 
 /**
@@ -68,45 +69,47 @@ CBouncerLog::~CBouncerLog() {
  *             Log_Motd - use IRC motd replies
  */
 void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
-	FILE *Log;
+	FILE *LogFile;
 
 	CIRCConnection *IRC = User->GetIRCConnection();
 	CClientConnection *Client = User->GetClientConnection();
 	const char *Nick;
 	const char *Server;
 
-	if (m_File && (Log = fopen(m_File, "r"))) {
+	if (m_File != NULL && (LogFile = fopen(m_File, "r")) != NULL) {
 		char Line[500];
-		while (!feof(Log)) {
-			char* n = fgets(Line, sizeof(Line), Log);
+		while (!feof(LogFile)) {
+			char* LinePtr = fgets(Line, sizeof(Line), LogFile);
 
-			if (n) {
-				if (Type == Log_Notice)
-					User->RealNotice(Line);
-				else if (Type == Log_Message)
-					User->Notice(Line);
-				else if (Type == Log_Motd) {
-					if (IRC) {
-						Nick = IRC->GetCurrentNick();
-						Server = IRC->GetServer();
-					} else {
-						Nick = Client->GetNick();
-						Server = "bouncer.shroudbnc.org";
-					}
+			if (LinePtr == NULL) {
+				continue;
+			}
 
-					if (Client) {
-						Client->WriteLine(":%s 372 %s :%s", Server,
-							Nick, Line);
-					}
+			if (Type == Log_Notice) {
+				User->RealNotice(Line);
+			} else if (Type == Log_Message) {
+				User->Notice(Line);
+			} else if (Type == Log_Motd) {
+				if (IRC) {
+					Nick = IRC->GetCurrentNick();
+					Server = IRC->GetServer();
+				} else {
+					Nick = Client->GetNick();
+					Server = "bouncer.shroudbnc.org";
+				}
+
+				if (Client) {
+					Client->WriteLine(":%s 372 %s :%s", Server,	Nick, Line);
 				}
 			}
 		}
 
-		fclose(Log);
+		fclose(LogFile);
 	}
 
-	if (Type == Log_Motd && Client)
+	if (Type == Log_Motd && Client != NULL) {
 		Client->WriteLine(":%s 376 %s :End of /MOTD command.", Server, Nick);
+	}
 }
 
 /**
@@ -117,38 +120,39 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
  * @param Line the log entry
  */
 void CBouncerLog::InternalWriteLine(const char* Line) {
-	FILE *Log;
+	char *Out;
+	tm Now;
+	time_t tNow;
+	char strNow[100];
+	FILE *LogFile;
 
-	if (m_File && (Log = fopen(m_File, "a")) != NULL) {
-		char *Out;
-		tm Now;
-		time_t tNow;
-		char strNow[100];
+	if (m_File == NULL || (LogFile = fopen(m_File, "a")) == NULL) {
+		return;
+	}
 
-		time(&tNow);
-		Now = *localtime(&tNow);
+	time(&tNow);
+	Now = *localtime(&tNow);
 
 #ifdef _WIN32
-		strftime(strNow, sizeof(strNow), "%#c" , &Now);
+	strftime(strNow, sizeof(strNow), "%#c" , &Now);
 #else
-		strftime(strNow, sizeof(strNow), "%c" , &Now);
+	strftime(strNow, sizeof(strNow), "%c" , &Now);
 #endif
 
-		asprintf(&Out, "%s %s\n", strNow, Line);
+	asprintf(&Out, "%s %s\n", strNow, Line);
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
+	if (Out == NULL) {
+		LOGERROR("asprintf() failed.");
 
-			return;
-		}
-
-		fputs(Out, Log);
-		printf("%s", Out);
-
-		free(Out);
-
-		fclose(Log);
+		return;
 	}
+
+	fputs(Out, LogFile);
+	printf("%s", Out);
+
+	free(Out);
+
+	fclose(LogFile);
 }
 
 /**
@@ -184,10 +188,10 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
  * Erases the contents of the log.
  */
 void CBouncerLog::Clear(void) {
-	FILE *Log;
+	FILE *LogFile;
 	
-	if (m_File && (Log = fopen(m_File, "w")) != NULL)
-		fclose(Log);
+	if (m_File != NULL && (LogFile = fopen(m_File, "w")) != NULL)
+		fclose(LogFile);
 }
 
 /**
@@ -196,22 +200,22 @@ void CBouncerLog::Clear(void) {
  * Checks whether the log is empty.
  */
 bool CBouncerLog::IsEmpty(void) {
-	FILE *Log;
+	FILE *LogFile;
 
-	if (m_File && (Log = fopen(m_File, "r")) != NULL) {
+	if (m_File != NULL && (LogFile = fopen(m_File, "r")) != NULL) {
 		char Line[500];
 
-		while (!feof(Log)) {
-			char *n = fgets(Line, sizeof(Line), Log);
+		while (!feof(LogFile)) {
+			char *LinePtr = fgets(Line, sizeof(Line), LogFile);
 
-			if (n) {
+			if (LinePtr != NULL) {
 				fclose(Log);
 
 				return false;
 			}
 		}
 
-		fclose(Log);
+		fclose(LogFile);
 	}
 
 	return true;

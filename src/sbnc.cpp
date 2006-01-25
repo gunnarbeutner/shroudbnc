@@ -22,15 +22,17 @@
 #define SBNC
 #include "sbnc.h"
 
-CBouncerCore* g_Bouncer = NULL;
+CBouncerCore *g_Bouncer = NULL;
 bool g_Freeze;
 loaderparams_s *g_LoaderParameters;
-
-//#ifdef ASYNC_DNS
 adns_state g_adns_State;
-//#endif
 
 #ifndef _WIN32
+/**
+ * sigint_handler
+ *
+ * The "signal" handler for SIGINT (i.e. Ctrl+C).
+ */
 void sigint_handler(int code) {
 	g_Bouncer->Log("SIGINT received.");
 	g_Bouncer->GlobalNotice("SIGINT received.", true);
@@ -41,6 +43,11 @@ void sigint_handler(int code) {
 }
 #endif
 
+/**
+ * sbncLoad
+ *
+ * Used by "sbncloader" to start shroudBNC
+ */
 extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	if (Parameters->Version < 200) {
 		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
@@ -130,6 +137,12 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	return 0;
 }
 
+/**
+ * sbncPrepareFreeze
+ *
+ * Used by "sbncloader" to notify shroudBNC that it is going
+ * to be "freezed" (i.e. reloaded/restarted).
+ */
 extern "C" EXPORT bool sbncPrepareFreeze(void) {
 	g_Freeze = true;
 

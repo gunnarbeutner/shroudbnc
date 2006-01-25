@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 
 	hMod = sbncLoadModule();
 
-	if (hMod == NULL) {
+	if (hMod == NULL && strcmpi(g_Mod, SBNC_MODULE) != 0) {
 		free(g_Mod);
 		g_Mod = strdup(SBNC_MODULE);
 

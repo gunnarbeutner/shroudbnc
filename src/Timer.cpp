@@ -19,12 +19,13 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 int g_TimerStats = 0;
 
+/**
+ * CTimer
+ *
+ * Constructs a timer
+ */
 CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
 	m_Interval = Interval; 
 	m_Repeat = Repeat;
@@ -35,22 +36,42 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Coo
 	g_Bouncer->RegisterTimer(this);
 }
 
+/**
+ * ~CTimer
+ *
+ * Destroys a timer
+ */
 CTimer::~CTimer(void) {
 	g_Bouncer->UnregisterTimer(this);
 }
 
+/**
+ * Destroy
+ *
+ * Manually destroys a timer
+ */
 void CTimer::Destroy(void) {
 	delete this;
 }
 
+/**
+ * Call
+ *
+ * Calls the timer's function
+ */
 bool CTimer::Call(time_t Now) {
+	bool ReturnValue;
+
+#ifndef _DEBUG
 	g_TimerStats++;
+#endif
 
-	if (m_Interval)
+	if (m_Interval != 0) {
 		m_Next = Now + m_Interval;
+	}
 
-	if (!m_Proc) {
-		if (!m_Interval) {
+	if (m_Proc == NULL) {
+		if (m_Interval == 0) {
 			Destroy();
 
 			return false;
@@ -59,9 +80,9 @@ bool CTimer::Call(time_t Now) {
 		return true;
 	}
 
-	bool Ret = m_Proc(Now, m_Cookie);
+	ReturnValue = m_Proc(Now, m_Cookie);
 
-	if (!Ret || !m_Repeat) {
+	if (ReturnValue == false || m_Repeat == false) {
 		Destroy();
 
 		return false;
@@ -70,6 +91,11 @@ bool CTimer::Call(time_t Now) {
 	return true;
 }
 
+/**
+ * GetNextCall
+ *
+ * Returns the next scheduled time of exection
+ */
 time_t CTimer::GetNextCall(void) {
 	return m_Next;
 }

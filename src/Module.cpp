@@ -46,9 +46,14 @@ CModule::CModule(const char *Filename) {
 #endif
 
 		if (ErrorMsg == NULL)
-			ErrorMsg = "Unknown error.";
+			m_Error = strdup("Unknown error.");
+		else
+			m_Error = strdup(ErrorMsg);
 
-		m_Error = strdup(ErrorMsg);
+#ifdef _WIN32
+		if (ErrorMsg)
+			LocalFree(ErrorMsg);
+#endif
 	} else {
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =
 			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,

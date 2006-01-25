@@ -19,24 +19,30 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CQueue
+ *
+ * Constructs an empty queue
+ */
 CQueue::CQueue() {
 	m_Items = NULL;
 	m_ItemCount = 0;
 }
 
+/**
+ * ~CQueue
+ *
+ * Destroy a queue
+ */
 CQueue::~CQueue() {
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid)
-			free(m_Items[i].Line);
-	}
-
-	free(m_Items);
+	FlushQueue();
 }
 
+/**
+ * PeekItems
+ *
+ * Retrieves the next item from the queue without removing it
+ */
 const char *CQueue::PeekItem(void) {
 	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
@@ -48,14 +54,20 @@ const char *CQueue::PeekItem(void) {
 		}
 	}
 
-	if (ThatItem)
+	if (ThatItem != NULL) {
 		return ThatItem->Line;
-	else
+	} else {
 		return NULL;
+	}
 }
 
+/**
+ * DequeueItem
+ *
+ * Retrieves the next item from the queue and removes it
+ */
 char *CQueue::DequeueItem(void) {
-	int LowestPriority = 100;
+	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
 	for (int i = 0; i < m_ItemCount; i++) {
@@ -65,21 +77,30 @@ char *CQueue::DequeueItem(void) {
 		}
 	}
 
-	if (ThatItem) {
+	if (ThatItem != NULL) {
 		// Caller is now the owner of the object
 		ThatItem->Valid = false;
 
 		return ThatItem->Line;
-	} else
+	} else {
 		return NULL;
+	}
 }
 
+/**
+ * QueueItem
+ *
+ * Inserts a new item at the end of the queue
+ *
+ * @param Item the item which is to be inserted
+ */
 bool CQueue::QueueItem(const char *Item) {
 	queue_item_t *Items;
 	char *dupItem;
 
-	if (Item == NULL)
+	if (Item == NULL) {
 		return false;
+	}
 
 	dupItem = strdup(Item);
 
@@ -103,10 +124,12 @@ bool CQueue::QueueItem(const char *Item) {
 		}
 	}
 
-	if (doneInsert)
+	if (doneInsert) {
 		return true;
+	}
 
-	Items = (queue_item_t *)realloc(m_Items, ++m_ItemCount * sizeof(queue_item_t));
+	Items = (queue_item_t *)realloc(m_Items,
+		++m_ItemCount * sizeof(queue_item_t));
 
 	if (Items == NULL) {
 		LOGERROR("realloc() failed. An item was lost (%s).", Item);
@@ -126,31 +149,54 @@ bool CQueue::QueueItem(const char *Item) {
 	return true;
 }
 
+/**
+ * QueueItemNext
+ *
+ * Inserts a new item at the front of the queue
+ *
+ * @param Item the item which is to be inserted
+ */
 bool CQueue::QueueItemNext(const char *Item) {
 	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid)
+		if (m_Items[i].Valid) {
 			m_Items[i].Priority++;
+		}
 	}
 
 	return QueueItem(Item);
 }
 
+/**
+ * GetQueueSize
+ *
+ * Returns the number of items which are in the queue
+ */
 int CQueue::GetQueueSize(void) {
-	int a = 0;
+	int Count = 0;
 	
 	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid)
-			a++;
+		if (m_Items[i].Valid) {
+			Count++;
+		}
 	}
 
-	return a;
+	return Count;
 }
 
+/**
+ * FlushQueue
+ *
+ * Removes all items from the queue
+ */
 void CQueue::FlushQueue(void) {
 	for (int i = 0; i < m_ItemCount; i++) {
 		if (m_Items[i].Valid) {
 			free(m_Items[i].Line);
-			m_Items[i].Valid = false;
 		}
 	}
+
+	free(m_Items);
+
+	m_Items = NULL;
+	m_ItemCount = 0;
 }
