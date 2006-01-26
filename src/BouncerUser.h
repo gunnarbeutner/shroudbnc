@@ -26,8 +26,8 @@ class CKeyring;
 class CTimer;
 
 typedef struct badlogin_s {
-	sockaddr_in ip;
-	unsigned int count;
+	sockaddr_in Address;
+	unsigned int Count;
 } badlogin_t;
 
 #ifndef SWIG

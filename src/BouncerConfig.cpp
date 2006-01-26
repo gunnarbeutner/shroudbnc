@@ -34,9 +34,9 @@ CBouncerConfig::CBouncerConfig(const char *Filename) {
 	m_Settings = NULL;
 
 	if (Filename != NULL) {
-		m_File = strdup(Filename);
+		m_Filename = strdup(Filename);
 	} else {
-		m_File = NULL;
+		m_Filename = NULL;
 	}
 
 	Reload();
@@ -54,11 +54,11 @@ bool CBouncerConfig::ParseConfig(void) {
 	char Line[4096];
 	char *dupEq;
 
-	if (m_File == NULL) {
+	if (m_Filename == NULL) {
 		return false;
 	}
 
-	FILE *ConfigFile = fopen(m_File, "r");
+	FILE *ConfigFile = fopen(m_Filename, "r");
 
 	if (ConfigFile == NULL) {
 		return false;
@@ -120,7 +120,7 @@ bool CBouncerConfig::ParseConfig(void) {
  * Destructs the configuration object.
  */
 CBouncerConfig::~CBouncerConfig() {
-	free(m_File);
+	free(m_Filename);
 
 	if (m_Settings != NULL) {
 		delete m_Settings;
@@ -176,9 +176,9 @@ bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
 	bool ReturnValue;
 
 	if (Value != NULL) {
-		RetVal = m_Settings->Add(Setting, strdup(Value));
+		ReturnValue = m_Settings->Add(Setting, strdup(Value));
 	} else {
-		RetVal = m_Settings->Remove(Setting);
+		ReturnValue = m_Settings->Remove(Setting);
 	}
 
 	if (ReturnValue == false) {
@@ -215,17 +215,17 @@ bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
  * unless the configuration object is volatile.
  */
 bool CBouncerConfig::Persist(void) {
-	if (m_File == NULL) {
+	if (m_Filename == NULL) {
 		return false;
 	}
 
-	FILE *ConfigFile = fopen(m_File, "w");
+	FILE *ConfigFile = fopen(m_Filename, "w");
 
 	if (ConfigFile != NULL) {
 		int i = 0;
-		while (xhash_t<char*>* SettingHash = m_Settings->Iterate(i++)) {
+		while (hash_t<char*>* SettingHash = m_Settings->Iterate(i++)) {
 			if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
-				fprintf(Config, "%s=%s\n", SettingHash->Name, SettingHash->Value);
+				fprintf(ConfigFile, "%s=%s\n", SettingHash->Name, SettingHash->Value);
 			}
 		}
 
@@ -234,9 +234,9 @@ bool CBouncerConfig::Persist(void) {
 		return true;
 	} else {
 		if (g_Bouncer != NULL) {
-			LOGERROR("Config file %s could not be opened.", m_File);
+			LOGERROR("Config file %s could not be opened.", m_Filename);
 		} else {
-			printf("Config file %s could not be opened.", m_File);
+			printf("Config file %s could not be opened.", m_Filename);
 		}
 
 		return false;
@@ -250,7 +250,7 @@ bool CBouncerConfig::Persist(void) {
  * be NULL if the configuration object is volatile.
  */
 const char *CBouncerConfig::GetFilename(void) {
-	return m_File;
+	return m_Filename;
 }
 
 /**
@@ -260,7 +260,7 @@ const char *CBouncerConfig::GetFilename(void) {
  *
  * @param Index specifies the index of the setting which is to be returned
  */
-xhash_t<char *> *CBouncerConfig::Iterate(int Index) {
+hash_t<char *> *CBouncerConfig::Iterate(int Index) {
 	return m_Settings->Iterate(Index);
 }
 
@@ -284,7 +284,7 @@ void CBouncerConfig::Reload(void) {
 
 	m_Settings->RegisterValueDestructor(string_free);
 
-	if (m_File != NULL) {
+	if (m_Filename != NULL) {
 		ParseConfig();
 	}
 }

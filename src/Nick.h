@@ -71,7 +71,3 @@ public:
 
 	virtual CChannel *GetChannel(void);
 };
-
-#ifndef SWIG
-void DestroyCNick(CNick *P);
-#endif

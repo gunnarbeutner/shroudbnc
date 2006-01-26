@@ -155,7 +155,7 @@ CBouncerCore::CBouncerCore(CBouncerConfig* Config, int argc, char** argv) {
 	}
 
 	i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		User->Value->LoadEvent();
 	}
 
@@ -196,7 +196,7 @@ CBouncerCore::~CBouncerCore() {
 	}
 
 	i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		delete User->Value;
 	}
 
@@ -393,7 +393,7 @@ void CBouncerCore::StartMainLoop(void) {
 		int i;
 
 		i = 0;
-		while (xhash_t<CBouncerUser *> *UserHash = m_Users.Iterate(i++)) {
+		while (hash_t<CBouncerUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection* IRC;
 
 			if (UserHash->Value) {
@@ -564,7 +564,7 @@ CBouncerUser* CBouncerCore::GetUser(const char* Name) {
 
 void CBouncerCore::GlobalNotice(const char* Text, bool AdminOnly) {
 	int i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		if (!AdminOnly || User->Value->IsAdmin())
 			User->Value->Notice(Text);
 	}
@@ -920,7 +920,7 @@ void CBouncerCore::UpdateUserConfig(void) {
 	char* Out = NULL;
 
 	i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		bool WasNull = false;
 
 		if (Out == NULL)
@@ -1222,7 +1222,7 @@ bool CBouncerCore::Freeze(CAssocArray *Box) {
 	}
 
 	int i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		char *Username = strdup(User->Name);
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
 		CClientConnection *Client = User->Value->GetClientConnection();
@@ -1278,7 +1278,7 @@ bool CBouncerCore::Unfreeze(CAssocArray *Box) {
 	ClientsBox = Box->ReadBox("~clients");
 
 	int i = 0;
-	while (xhash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = m_Users.Iterate(i++)) {
 		CIRCConnection *IRC;
 
 		CAssocArray *IrcBox = Box->ReadBox(User->Name);

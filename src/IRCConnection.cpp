@@ -126,7 +126,7 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning, bool Unfreezing) {
 		g_Bouncer->Fatal();
 	}
 
-	m_Channels->RegisterValueDestructor(DestroyCChannel);
+	m_Channels->RegisterValueDestructor(DestroyObject<CChannel>);
 
 	m_Server = NULL;
 
@@ -193,7 +193,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	int iRaw = atoi(Raw);
 
 	bool b_Me = false;
-	if (m_CurrentNick && Nick && strcmpi(Nick, m_CurrentNick) == 0)
+	if (m_CurrentNick && Nick && strcasecmp(Nick, m_CurrentNick) == 0)
 		b_Me = true;
 
 	free(Nick);
@@ -227,7 +227,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			char* Dup;
 			char* Delim;
 
@@ -270,7 +270,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcmpi(Dest, m_CurrentNick) == 0 && strcmpi(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 
@@ -329,7 +329,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 3 && hashRaw == hashKick) {
 		bool bRet = ModuleEvent(argc, argv);
 
-		if (m_CurrentNick && strcmpi(argv[3], m_CurrentNick) == 0) {
+		if (m_CurrentNick && strcasecmp(argv[3], m_CurrentNick) == 0) {
 			RemoveChannel(argv[2]);
 
 			if (GetOwningClient()->GetClientConnection() == NULL) {
@@ -402,7 +402,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		int i = 0;
 
-		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
 			CHashtable<CNick*, false, 64>* Nicks = Chan->Value->GetNames();
 
 			CNick* NickObj = Nicks->Get(Nick);
@@ -424,7 +424,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		int i = 0;
 
-		while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
 			Chan->Value->GetNames()->Remove(Nick);
 		}
 
@@ -472,7 +472,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
 
 		m_State = State_Connected;
-	} else if (argc > 1 && strcmpi(Reply, "ERROR") == 0) {
+	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL)
 			GetOwningClient()->ScheduleReconnect(50);
 		else
@@ -676,7 +676,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (m_Site == NULL) {
 			LOGERROR("strdup() failed.");
 		}
-	} else if (argc > 3 && hashRaw == hashPong && strcmpi(argv[3], "sbnc") == 0) {
+	} else if (argc > 3 && hashRaw == hashPong && strcasecmp(argv[3], "sbnc") == 0) {
 		return false;
 	}
 
@@ -725,7 +725,7 @@ void CIRCConnection::ParseLine(const char* Line) {
 	}
 
 	if (ParseLineArgV(argc, argv)) {
-		if (strcmpi(argv[0], "ping") == 0 && argc > 1) {
+		if (strcasecmp(argv[0], "ping") == 0 && argc > 1) {
 			WriteLine("PONG :%s", argv[1]);
 
 			if (m_State != State_Connected)
@@ -788,7 +788,7 @@ void CIRCConnection::UpdateChannelConfig(void) {
 
 	int a = 0;
 
-	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
 		bool WasNull = (Out == NULL);
 
 		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
@@ -817,8 +817,8 @@ void CIRCConnection::UpdateChannelConfig(void) {
 bool CIRCConnection::IsOnChannel(const char* Channel) {
 	int a = 0;
 
-	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
-		if (strcmpi(Chan->Name, Channel) == 0)
+	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+		if (strcasecmp(Chan->Name, Channel) == 0)
 			return true;
 	}
 
@@ -990,7 +990,7 @@ CBouncerConfig* CIRCConnection::GetISupportAll(void) {
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
 	int a = 0, i = 0;
 
-	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
 		if (!Chan->Value->HasNames())
 			return;
 
@@ -1029,7 +1029,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	*Site = '\0';
 	Site++;
 
-	if (m_CurrentNick && strcmpi(Nick, m_CurrentNick) == 0) {
+	if (m_CurrentNick && strcasecmp(Nick, m_CurrentNick) == 0) {
 		free(m_Site);
 
 		m_Site = strdup(Site);
@@ -1041,7 +1041,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 
 	int i = 0;
 
-	while (xhash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
 		if (!Chan->Value->HasNames())
 			continue;
 
@@ -1230,7 +1230,7 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 
 	char *Out;
 	int i = 0;
-	xhash_t<CChannel *> *Hash;
+	hash_t<CChannel *> *Hash;
 
 	while ((Hash =  m_Channels->Iterate(i++)) != NULL) {
 		asprintf(&Out, "irc.channel%d", i - 1);

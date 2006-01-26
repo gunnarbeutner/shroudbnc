@@ -29,9 +29,9 @@
  */
 CBouncerLog::CBouncerLog(const char *Filename) {
 	if (Filename != NULL) {
-		m_File = strdup(Filename);
+		m_Filename = strdup(Filename);
 
-		if (m_File == NULL) {
+		if (m_Filename == NULL) {
 			if (g_Bouncer) {
 				LOGERROR("strdup() failed.");
 
@@ -44,7 +44,7 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 			}
 		}
 	} else {
-		m_File = NULL;
+		m_Filename = NULL;
 	}
 }
 
@@ -54,7 +54,7 @@ CBouncerLog::CBouncerLog(const char *Filename) {
  * Destructs a log object.
  */
 CBouncerLog::~CBouncerLog() {
-	free(m_File);
+	free(m_Filename);
 }
 
 /**
@@ -76,7 +76,7 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
 	const char *Nick;
 	const char *Server;
 
-	if (m_File != NULL && (LogFile = fopen(m_File, "r")) != NULL) {
+	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
 		char Line[500];
 		while (!feof(LogFile)) {
 			char* LinePtr = fgets(Line, sizeof(Line), LogFile);
@@ -119,14 +119,14 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
  *
  * @param Line the log entry
  */
-void CBouncerLog::InternalWriteLine(const char* Line) {
+void CBouncerLog::InternalWriteLine(const char *Line) {
 	char *Out;
 	tm Now;
 	time_t tNow;
 	char strNow[100];
 	FILE *LogFile;
 
-	if (m_File == NULL || (LogFile = fopen(m_File, "a")) == NULL) {
+	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "a")) == NULL) {
 		return;
 	}
 
@@ -190,8 +190,9 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
 void CBouncerLog::Clear(void) {
 	FILE *LogFile;
 	
-	if (m_File != NULL && (LogFile = fopen(m_File, "w")) != NULL)
+	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
 		fclose(LogFile);
+	}
 }
 
 /**
@@ -200,23 +201,24 @@ void CBouncerLog::Clear(void) {
  * Checks whether the log is empty.
  */
 bool CBouncerLog::IsEmpty(void) {
+	char Line[500];
 	FILE *LogFile;
 
-	if (m_File != NULL && (LogFile = fopen(m_File, "r")) != NULL) {
-		char Line[500];
-
-		while (!feof(LogFile)) {
-			char *LinePtr = fgets(Line, sizeof(Line), LogFile);
-
-			if (LinePtr != NULL) {
-				fclose(Log);
-
-				return false;
-			}
-		}
-
-		fclose(LogFile);
+	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "r")) == NULL) {
+		return true;
 	}
+
+	while (!feof(LogFile)) {
+		char *LinePtr = fgets(Line, sizeof(Line), LogFile);
+
+		if (LinePtr != NULL) {
+			fclose(LogFile);
+
+			return false;
+		}
+	}
+
+	fclose(LogFile);
 
 	return true;
 }
@@ -228,5 +230,5 @@ bool CBouncerLog::IsEmpty(void) {
  * if the log is not persistant.
  */
 const char *CBouncerLog::GetFilename(void) {
-	return m_File;
+	return m_Filename;
 }

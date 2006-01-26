@@ -70,7 +70,7 @@ const char* bncuserlist(void) {
 	CHashtable<CBouncerUser *, false, 64> *Users = g_Bouncer->GetUsers();
 
 	i = 0;
-	while (xhash_t<CBouncerUser *> *User = Users->Iterate(i++)) {
+	while (hash_t<CBouncerUser *> *User = Users->Iterate(i++)) {
 		argv[argc++] = User->Name;
 	}
 
@@ -108,7 +108,7 @@ const char* internalchannels(void) {
 
 	int a = 0;
 
-	while (xhash_t<CChannel*>* Chan = H->Iterate(a)) {
+	while (hash_t<CChannel*>* Chan = H->Iterate(a)) {
 		argv[a] = Chan->Name;
 		a++;
 	}
@@ -154,7 +154,7 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && strcmp(g_Binds[i].proc, proc) == 0
 			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
-			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcmpi(user, g_Binds[i].user) == 0)))
+			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcasecmp(user, g_Binds[i].user) == 0)))
 
 			return 0;
 	}
@@ -177,37 +177,37 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 
 	Bind->valid = false;
 
-	if (strcmpi(type, "client") == 0)
+	if (strcasecmp(type, "client") == 0)
 		Bind->type = Type_Client;
-	else if (strcmpi(type, "server") == 0)
+	else if (strcasecmp(type, "server") == 0)
 		Bind->type = Type_Server;
-	else if (strcmpi(type, "pre") == 0)
+	else if (strcasecmp(type, "pre") == 0)
 		Bind->type = Type_PreScript;
-	else if (strcmpi(type, "post") == 0)
+	else if (strcasecmp(type, "post") == 0)
 		Bind->type = Type_PostScript;
-	else if (strcmpi(type, "attach") == 0)
+	else if (strcasecmp(type, "attach") == 0)
 		Bind->type = Type_Attach;
-	else if (strcmpi(type, "detach") == 0)
+	else if (strcasecmp(type, "detach") == 0)
 		Bind->type = Type_Detach;
-	else if (strcmpi(type, "modec") == 0)
+	else if (strcasecmp(type, "modec") == 0)
 		Bind->type = Type_SingleMode;
-	else if (strcmpi(type, "unload") == 0)
+	else if (strcasecmp(type, "unload") == 0)
 		Bind->type = Type_Unload;
-	else if (strcmpi(type, "svrdisconnect") == 0)
+	else if (strcasecmp(type, "svrdisconnect") == 0)
 		Bind->type = Type_SvrDisconnect;
-	else if (strcmpi(type, "svrconnect") == 0)
+	else if (strcasecmp(type, "svrconnect") == 0)
 		Bind->type = Type_SvrConnect;
-	else if (strcmpi(type, "svrlogon") == 0)
+	else if (strcasecmp(type, "svrlogon") == 0)
 		Bind->type = Type_SvrLogon;
-	else if (strcmpi(type, "usrload") == 0)
+	else if (strcasecmp(type, "usrload") == 0)
 		Bind->type = Type_UsrLoad;
-	else if (strcmpi(type, "usrcreate") == 0)
+	else if (strcasecmp(type, "usrcreate") == 0)
 		Bind->type = Type_UsrCreate;
-	else if (strcmpi(type, "usrdelete") == 0)
+	else if (strcasecmp(type, "usrdelete") == 0)
 		Bind->type = Type_UsrDelete;
-	else if (strcmpi(type, "command") == 0)
+	else if (strcasecmp(type, "command") == 0)
 		Bind->type = Type_Command;
-	else if (strcmpi(type, "settag") == 0)
+	else if (strcasecmp(type, "settag") == 0)
 		Bind->type = Type_SetTag;
 	else {
 		Bind->type = Type_Invalid;
@@ -234,37 +234,37 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 int internalunbind(const char* type, const char* proc, const char* pattern, const char* user) {
 	binding_type_e bindtype;
 
-	if (strcmpi(type, "client") == 0)
+	if (strcasecmp(type, "client") == 0)
 		bindtype = Type_Client;
-	else if (strcmpi(type, "server") == 0)
+	else if (strcasecmp(type, "server") == 0)
 		bindtype = Type_Server;
-	else if (strcmpi(type, "pre") == 0)
+	else if (strcasecmp(type, "pre") == 0)
 		bindtype = Type_PreScript;
-	else if (strcmpi(type, "post") == 0)
+	else if (strcasecmp(type, "post") == 0)
 		bindtype = Type_PostScript;
-	else if (strcmpi(type, "attach") == 0)
+	else if (strcasecmp(type, "attach") == 0)
 		bindtype = Type_Attach;
-	else if (strcmpi(type, "detach") == 0)
+	else if (strcasecmp(type, "detach") == 0)
 		bindtype = Type_Detach;
-	else if (strcmpi(type, "modec") == 0)
+	else if (strcasecmp(type, "modec") == 0)
 		bindtype = Type_SingleMode;
-	else if (strcmpi(type, "unload") == 0)
+	else if (strcasecmp(type, "unload") == 0)
 		bindtype = Type_Unload;
-	else if (strcmpi(type, "svrdisconnect") == 0)
+	else if (strcasecmp(type, "svrdisconnect") == 0)
 		bindtype = Type_SvrDisconnect;
-	else if (strcmpi(type, "svrconnect") == 0)
+	else if (strcasecmp(type, "svrconnect") == 0)
 		bindtype = Type_SvrConnect;
-	else if (strcmpi(type, "svrlogon") == 0)
+	else if (strcasecmp(type, "svrlogon") == 0)
 		bindtype = Type_SvrLogon;
-	else if (strcmpi(type, "usrload") == 0)
+	else if (strcasecmp(type, "usrload") == 0)
 		bindtype = Type_UsrLoad;
-	else if (strcmpi(type, "usrcreate") == 0)
+	else if (strcasecmp(type, "usrcreate") == 0)
 		bindtype = Type_UsrCreate;
-	else if (strcmpi(type, "usrdelete") == 0)
+	else if (strcasecmp(type, "usrdelete") == 0)
 		bindtype = Type_UsrDelete;
-	else if (strcmpi(type, "command") == 0)
+	else if (strcasecmp(type, "command") == 0)
 		bindtype = Type_Command;
-	else if (strcmpi(type, "settag") == 0)
+	else if (strcasecmp(type, "settag") == 0)
 		bindtype = Type_SetTag;
 	else
 		return 0;
@@ -272,7 +272,7 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && g_Binds[i].type == bindtype && strcmp(g_Binds[i].proc, proc) == 0
 			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
-			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcmpi(user, g_Binds[i].user) == 0))) {
+			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcasecmp(user, g_Binds[i].user) == 0))) {
 
 			free(g_Binds[i].proc);
 			free(g_Binds[i].pattern);
@@ -425,7 +425,7 @@ bool onchan(const char* Nick, const char* Channel) {
 		if (IRC->GetChannels() == NULL)
 			return false;
 
-		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick)) {
 				return true;
 			}
@@ -515,7 +515,7 @@ const char* internalchanlist(const char* Channel) {
 
 	int a = 0;
 
-	while (xhash_t<CNick*>* NickHash = Names->Iterate(a++)) {
+	while (hash_t<CNick*>* NickHash = Names->Iterate(a++)) {
 		argv[a-1] = NickHash->Name;
 	}
 
@@ -557,7 +557,7 @@ bool isop(const char* Nick, const char* Channel) {
 		if (IRC->GetChannels() == NULL)
 			return false;
 
-		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsOp()) {
 				return true;
 			}
@@ -593,7 +593,7 @@ bool isvoice(const char* Nick, const char* Channel) {
 		if (IRC->GetChannels() == NULL)
 			return false;
 
-		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsVoice()) {
 				return true;
 			}
@@ -629,7 +629,7 @@ bool ishalfop(const char* Nick, const char* Channel) {
 		if (IRC->GetChannels() == NULL)
 			return false;
 
-		while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 			if (Chan->Value->GetNames()->Get(Nick) && Chan->Value->GetNames()->Get(Nick)->IsHalfop()) {
 				return true;
 			}
@@ -678,46 +678,46 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	if (!Context)
 		throw "Invalid user.";
 
-	if (strcmpi(Type, "server") == 0)
+	if (strcasecmp(Type, "server") == 0)
 		return Context->GetServer();
-	else if (strcmpi(Type, "serverpass") == 0)
+	else if (strcasecmp(Type, "serverpass") == 0)
 		return Context->GetServerPassword();
-	else if (strcmpi(Type, "realserver") == 0) {
+	else if (strcasecmp(Type, "realserver") == 0) {
 		CIRCConnection* IRC = Context->GetIRCConnection();;
 
 		if (IRC)
 			return IRC->GetServer();
 		else
 			return NULL;
-	} else if (strcmpi(Type, "port") == 0) {
+	} else if (strcasecmp(Type, "port") == 0) {
 		sprintf(Buffer, "%d", Context->GetPort());
 
 		return Buffer;
-	} else if (strcmpi(Type, "realname") == 0)
+	} else if (strcasecmp(Type, "realname") == 0)
 		return Context->GetRealname();
-	else if (strcmpi(Type, "nick") == 0)
+	else if (strcasecmp(Type, "nick") == 0)
 		return Context->GetNick();
-	else if (strcmpi(Type, "awaynick") == 0)
+	else if (strcasecmp(Type, "awaynick") == 0)
 		return Context->GetAwayNick();
-	else if (strcmpi(Type, "away") == 0)
+	else if (strcasecmp(Type, "away") == 0)
 		return Context->GetAwayText();
-	else if (strcmpi(Type, "vhost") == 0)
+	else if (strcasecmp(Type, "vhost") == 0)
 		return Context->GetVHost() ? Context->GetVHost() : g_Bouncer->GetConfig()->ReadString("system.ip");
-	else if (strcmpi(Type, "channels") == 0)
+	else if (strcasecmp(Type, "channels") == 0)
 		return Context->GetConfigChannels();
-	else if (strcmpi(Type, "uptime") == 0) {
+	else if (strcasecmp(Type, "uptime") == 0) {
 		sprintf(Buffer, "%d", Context->IRCUptime());
 
 		return Buffer;
-	} else if (strcmpi(Type, "lock") == 0)
+	} else if (strcasecmp(Type, "lock") == 0)
 		return Context->IsLocked() ? "1" : "0";
-	else if (strcmpi(Type, "admin") == 0)
+	else if (strcasecmp(Type, "admin") == 0)
 		return Context->IsAdmin() ? "1" : "0";
-	else if (strcmpi(Type, "hasserver") == 0)
+	else if (strcasecmp(Type, "hasserver") == 0)
 		return Context->GetIRCConnection() ? "1" : "0";
-	else if (strcmpi(Type, "hasclient") == 0)
+	else if (strcasecmp(Type, "hasclient") == 0)
 		return Context->GetClientConnection() ? "1" : "0";
-	else if (strcmpi(Type, "delayjoin") == 0) {
+	else if (strcasecmp(Type, "delayjoin") == 0) {
 		int DelayJoin = Context->GetDelayJoin();
 
 		if (DelayJoin == 1)
@@ -726,7 +726,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 			return "0";
 		else
 			return "-1";
-	} else if (strcmpi(Type, "client") == 0) {
+	} else if (strcasecmp(Type, "client") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
 		if (!Client)
@@ -734,7 +734,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return Client->GetPeerName();
 	}
-	else if (strcmpi(Type, "tag") == 0) {
+	else if (strcasecmp(Type, "tag") == 0) {
 		if (!Parameter2)
 			return NULL;
 
@@ -746,27 +746,27 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		free(Buf);
 
 		return Result;
-	} else if (strcmpi(Type, "seen") == 0) {
+	} else if (strcasecmp(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
 		return Buffer;
-	} else if (strcmpi(Type, "appendts") == 0) {
+	} else if (strcasecmp(Type, "appendts") == 0) {
 		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.ts") != 0 ? 1 : 0);
 
 		return Buffer;
-	} else if (strcmpi(Type, "quitasaway") == 0) {
+	} else if (strcasecmp(Type, "quitasaway") == 0) {
 		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
 		return Buffer;
-	} else if (strcmpi(Type, "automodes") == 0) {
+	} else if (strcasecmp(Type, "automodes") == 0) {
 		return Context->GetConfig()->ReadString("user.automodes");
-	} else if (strcmpi(Type, "dropmodes") == 0) {
+	} else if (strcasecmp(Type, "dropmodes") == 0) {
 		return Context->GetConfig()->ReadString("user.dropmodes");
-	} else if (strcmpi(Type, "suspendreason") == 0) {
+	} else if (strcasecmp(Type, "suspendreason") == 0) {
 		return Context->GetConfig()->ReadString("user.suspend");
-	} else if (strcmpi(Type, "ssl") == 0) {
+	} else if (strcasecmp(Type, "ssl") == 0) {
 		return Context->GetSSL() ? "1" : "0";
-	} else if (strcmpi(Type, "sslclient") == 0) {
+	} else if (strcasecmp(Type, "sslclient") == 0) {
 		CClientConnection* Client = Context->GetClientConnection();
 
 		if (!Client)
@@ -776,7 +776,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 			return Buffer;
 		}
-	} else if (strcmpi(Type, "ident") == 0) {
+	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else
 		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident";
@@ -788,55 +788,55 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	if (!Context)
 		throw "Invalid user.";
 
-	if (strcmpi(Type, "server") == 0)
+	if (strcasecmp(Type, "server") == 0)
 		Context->SetServer(Value);
-	else if (strcmpi(Type, "serverpass") == 0)
+	else if (strcasecmp(Type, "serverpass") == 0)
 		Context->SetServerPassword(Value);
-	else if (strcmpi(Type, "port") == 0)
+	else if (strcasecmp(Type, "port") == 0)
 		Context->SetPort(atoi(Value));
-	else if (strcmpi(Type, "realname") == 0)
+	else if (strcasecmp(Type, "realname") == 0)
 		Context->SetRealname(Value);
-	else if (strcmpi(Type, "nick") == 0)
+	else if (strcasecmp(Type, "nick") == 0)
 		Context->SetNick(Value);
-	else if (strcmpi(Type, "awaynick") == 0)
+	else if (strcasecmp(Type, "awaynick") == 0)
 		Context->SetAwayNick(Value);
-	else if (strcmpi(Type, "vhost") == 0)
+	else if (strcasecmp(Type, "vhost") == 0)
 		Context->SetVHost(Value);
-	else if (strcmpi(Type, "channels") == 0)
+	else if (strcasecmp(Type, "channels") == 0)
 		Context->SetConfigChannels(Value);
-	else if (strcmpi(Type, "delayjoin") == 0)
+	else if (strcasecmp(Type, "delayjoin") == 0)
 		Context->SetDelayJoin(atoi(Value));
-	else if (strcmpi(Type, "away") == 0)
+	else if (strcasecmp(Type, "away") == 0)
 		Context->SetAwayText(Value);
 	else if (strcmp(Type, "password") == 0)
 		Context->SetPassword(Value);
 	else if (strcmp(Type, "ssl") == 0)
 		Context->SetSSL(Value ? (atoi(Value) ? true : false) : false);
-	else if (strcmpi(Type, "lock") == 0) {
+	else if (strcasecmp(Type, "lock") == 0) {
 		if (atoi(Value))
 			Context->Lock();
 		else
 			Context->Unlock();
-	} else if (strcmpi(Type, "admin") == 0)
+	} else if (strcasecmp(Type, "admin") == 0)
 		Context->SetAdmin(Value ? (atoi(Value) ? true : false) : false);
-	else if (strcmpi(Type, "tag") == 0 && Value) {
+	else if (strcasecmp(Type, "tag") == 0 && Value) {
 		char* Buf = (char*)malloc(strlen(Value) + 5);
 		sprintf(Buf, "tag.%s", Value);
 
 		Context->GetConfig()->WriteString(Buf, (Parameter2 && Parameter2[0]) ? Parameter2 : NULL);
 
 		free(Buf);
-	} else if (strcmpi(Type, "appendts") == 0)
+	} else if (strcasecmp(Type, "appendts") == 0)
 		Context->GetConfig()->WriteString("user.ts", Value);
-	else if (strcmpi(Type, "quitasaway") == 0)
+	else if (strcasecmp(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
-	else if (strcmpi(Type, "automodes") == 0)
+	else if (strcasecmp(Type, "automodes") == 0)
 		Context->GetConfig()->WriteString("user.automodes", Value);
-	else if (strcmpi(Type, "dropmodes") == 0)
+	else if (strcasecmp(Type, "dropmodes") == 0)
 		Context->GetConfig()->WriteString("user.dropmodes", Value);
-	else if (strcmpi(Type, "suspendreason") == 0)
+	else if (strcasecmp(Type, "suspendreason") == 0)
 		Context->GetConfig()->WriteString("user.suspend", Value);
-	else if (strcmpi(Type, "ident") == 0)
+	else if (strcasecmp(Type, "ident") == 0)
 		Context->SetIdent(Value);
 	else
 		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident";
@@ -896,7 +896,7 @@ const char* getchanhost(const char* Nick, const char*) {
 		if (IRC) {
 			int a = 0;
 
-			if (IRC->GetCurrentNick() && strcmpi(IRC->GetCurrentNick(), Nick) == 0) {
+			if (IRC->GetCurrentNick() && strcasecmp(IRC->GetCurrentNick(), Nick) == 0) {
 				Host = IRC->GetSite();
 
 				if (Host)
@@ -906,7 +906,7 @@ const char* getchanhost(const char* Nick, const char*) {
 			if (IRC->GetChannels() == NULL)
 				return NULL;
 
-			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
 				if (U/* && U->GetSite() != NULL*/)
@@ -934,7 +934,7 @@ const char* getchanrealname(const char* Nick, const char*) {
 			if (IRC->GetChannels() == NULL)
 				return NULL;
 
-			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				CNick* U = Chan->Value->GetNames()->Get(Nick);
 
 				if (U/* && U->GetSite() != NULL*/)
@@ -1031,14 +1031,14 @@ int floodcontrol(const char* Function) {
 
 	int Result;
 
-	if (strcmpi(Function, "bytes") == 0)
+	if (strcasecmp(Function, "bytes") == 0)
 		Result = FloodControl->GetBytes();
-	else if (strcmpi(Function, "items") == 0)
+	else if (strcasecmp(Function, "items") == 0)
 		Result = FloodControl->GetRealQueueSize();
-	else if (strcmpi(Function, "on") == 0) {
+	else if (strcasecmp(Function, "on") == 0) {
 		FloodControl->Enable();
 		Result = 1;
-	} else if (strcmpi(Function, "off") == 0) {
+	} else if (strcasecmp(Function, "off") == 0) {
 		FloodControl->Disable();
 		Result = 1;
 	} else
@@ -1060,13 +1060,13 @@ int clearqueue(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	if (strcmpi(Queue, "mode") == 0)
+	if (strcasecmp(Queue, "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Queue, "server") == 0)
+	else if (strcasecmp(Queue, "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Queue, "help") == 0)
+	else if (strcasecmp(Queue, "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Queue, "all") == 0)
+	else if (strcasecmp(Queue, "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
 	else
 		throw "Queue should be one of: mode server help all";
@@ -1096,13 +1096,13 @@ int queuesize(const char* Queue) {
 
 	CQueue* TheQueue = NULL;
 
-	if (strcmpi(Queue, "mode") == 0)
+	if (strcasecmp(Queue, "mode") == 0)
 		TheQueue = IRC->GetQueueHigh();
-	else if (strcmpi(Queue, "server") == 0)
+	else if (strcasecmp(Queue, "server") == 0)
 		TheQueue = IRC->GetQueueMiddle();
-	else if (strcmpi(Queue, "help") == 0)
+	else if (strcasecmp(Queue, "help") == 0)
 		TheQueue = IRC->GetQueueLow();
-	else if (strcmpi(Queue, "all") == 0)
+	else if (strcasecmp(Queue, "all") == 0)
 		TheQueue = (CQueue*)IRC->GetFloodControl();
 	else
 		throw "Queue should be one of: mode server help all";
@@ -1330,22 +1330,22 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 
 	unsigned int Bytes = 0;
 
-	if (!ConnectionType || strcmpi(ConnectionType, "client") == 0) {
-		if (!Type || strcmpi(Type, "in") == 0) {
+	if (!ConnectionType || strcasecmp(ConnectionType, "client") == 0) {
+		if (!Type || strcasecmp(Type, "in") == 0) {
 			Bytes += Context->GetClientStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Type, "out") == 0) {
+		if (!Type || strcasecmp(Type, "out") == 0) {
 			Bytes += Context->GetClientStats()->GetOutbound();
 		}
 	}
 
-	if (!ConnectionType || strcmpi(ConnectionType, "server") == 0) {
-		if (!Type || strcmpi(Type, "in") == 0) {
+	if (!ConnectionType || strcasecmp(ConnectionType, "server") == 0) {
+		if (!Type || strcasecmp(Type, "in") == 0) {
 			Bytes += Context->GetIRCStats()->GetInbound();
 		}
 
-		if (!Type || strcmpi(Type, "out") == 0) {
+		if (!Type || strcasecmp(Type, "out") == 0) {
 			Bytes += Context->GetIRCStats()->GetOutbound();
 		}
 	}
@@ -1364,7 +1364,7 @@ void bncjoinchans(const char* User) {
 }
 
 int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag, bool SSL) {
-	if (strcmpi(Type, "script") == 0) {
+	if (strcasecmp(Type, "script") == 0) {
 		if (Options == NULL)
 			throw "You need to specifiy a control proc.";
 
@@ -1381,7 +1381,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 		}
 
 		return TclSocket->GetIdx();
-	} else if (strcmpi(Type, "off") == 0) {
+	} else if (strcasecmp(Type, "off") == 0) {
 		int i = 0;
 		socket_t* Socket;
 
@@ -1525,11 +1525,11 @@ char* chanbans(const char* Channel) {
 
 	int i = 0;
 	while (const ban_t* Ban = Banlist->Iterate(i)) {
-		char TS[20];
+		char Timestamp[20];
 
-		sprintf(TS, "%d", Ban->TS);
+		sprintf(Timestamp, "%d", Ban->Timestamp);
 
-		char* ThisBan[3] = { Ban->Mask, Ban->Nick, TS };
+		char* ThisBan[3] = { Ban->Mask, Ban->Nick, Timestamp };
 
 		char* List = Tcl_Merge(3, ThisBan);
 
@@ -1892,7 +1892,7 @@ const char *bncgetglobaltags(void) {
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
 	for (int i = 0; i < Count; i++) {
-		xhash_t<char *> *Item = Config->Iterate(i);
+		hash_t<char *> *Item = Config->Iterate(i);
 
 		if (strstr(Item->Name, "tag.") == Item->Name) {
 			argv[argc] = Item->Name + 4;

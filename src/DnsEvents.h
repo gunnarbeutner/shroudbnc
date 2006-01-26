@@ -25,14 +25,14 @@ struct CDnsEvents {
 #define IMPL_DNSEVENTCLASS(ClassName, EventClassName, Function) \
 class ClassName : public CDnsEvents { \
 private: \
-	EventClassName *m_EventClass; \
+	EventClassName *m_EventObject; \
 \
 	virtual void AsyncDnsFinished(adns_query *query, adns_answer *response) { \
-		m_EventClass->Function(query, response); \
+		m_EventObject->Function(query, response); \
 	} \
 public: \
-	ClassName(EventClassName* EventClass) { \
-		m_EventClass = EventClass; \
+	ClassName(EventClassName* EventObject) { \
+		m_EventObject = EventObject; \
 	} \
 \
 	void Destroy(void) { \

@@ -63,14 +63,14 @@ CBanlist::~CBanlist() {
  *
  * @param Mask the banmask
  * @param Nick the nick of the user who set the ban
- * @param TS the timestamp of the ban
+ * @param Timestamp the timestamp of the ban
  */
-bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
+bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
 	if (m_Bans == NULL) {
 		LOGERROR("could not set ban (%s, %s, %d). internal banlist is not "
-			"available.", Mask, Nick, TS);
+			"available.", Mask, Nick, Timestamp);
 
 		return false;
 	}
@@ -80,7 +80,7 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t TS) {
 	if (Ban != NULL) {
 		Ban->Mask = strdup(Mask);
 		Ban->Nick = strdup(Nick);
-		Ban->TS = TS;
+		Ban->Timestamp = Timestamp;
 
 		return m_Bans->Add(Mask, Ban);
 	} else {
@@ -110,7 +110,7 @@ bool CBanlist::UnsetBan(const char *Mask) {
  * @param Skip the index of the ban which is to be returned
  */
 const ban_t *CBanlist::Iterate(int Skip) {
-	xhash_t<ban_t *> *BanHash;
+	hash_t<ban_t *> *BanHash;
 
 	if (m_Bans == NULL)
 		return NULL;

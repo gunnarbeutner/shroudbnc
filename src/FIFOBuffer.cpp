@@ -135,7 +135,7 @@ char *CFIFOBuffer::Read(unsigned int Bytes) {
  *
  * Saves data in the buffer.
  *
- * @param Buffer a pointer to the data
+ * @param Data a pointer to the data
  * @param Size the number of bytes which should be written
  */
 void CFIFOBuffer::Write(const char *Data, unsigned int Size) {

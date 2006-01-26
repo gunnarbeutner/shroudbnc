@@ -19,10 +19,6 @@
 
 #include "StdAfx.h"
 
-void DestroyCNick(CNick* P) {
-	delete P;
-}
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -209,13 +205,13 @@ const char *CNick::InternalGetServer(void) {
 	if ((Value = Name()) != NULL) \
 		return Value; \
 \
-	while (xhash_t<CChannel*>* Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
+	while (hash_t<CChannel*>* Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
 		if (!Chan->Value->HasNames()) \
 			continue; \
 \
 		CNick* NickObj = Chan->Value->GetNames()->Get(m_Nick); \
 \
-		if (NickObj && strcmpi(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
+		if (NickObj && strcasecmp(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
 			return NickObj->Name(); \
 	} \
 \

@@ -112,7 +112,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	}
 
-	if (strcmpi(Subcommand, "help") == 0) {
+	if (strcasecmp(Subcommand, "help") == 0) {
 		if (argc <= 1) {
 			SENDUSER("--The following commands are available to you--");
 			SENDUSER("--Used as '/sbnc <command>', or '/msg -sbnc <command>'");
@@ -213,14 +213,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			latchedRetVal = false;
 	}
 
-	if (strcmpi(Subcommand, "help") == 0) {
+	if (strcasecmp(Subcommand, "help") == 0) {
 		if (argc <= 1) {
 			// show help
-			xhash_t<command_t *> *Hash;
-			xhash_t<command_t *> *CommandList;
+			hash_t<command_t *> *Hash;
+			hash_t<command_t *> *CommandList;
 			int i = 0, Align = 0, Len;
 
-			CommandList = (xhash_t<command_t *> *)malloc(sizeof(xhash_t<command_t *>) * m_CommandList->Count());
+			CommandList = (hash_t<command_t *> *)malloc(sizeof(hash_t<command_t *>) * m_CommandList->Count());
 
 			while ((Hash = m_CommandList->Iterate(i++)) != NULL) {
 				CommandList[i - 1] = *Hash;
@@ -231,7 +231,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					Align = Len;
 			}
 
-			qsort(CommandList, m_CommandList->Count(), sizeof(xhash_t<command_t *>), CmpCommandT);
+			qsort(CommandList, m_CommandList->Count(), sizeof(hash_t<command_t *>), CmpCommandT);
 
 			char *Category = NULL;
 			char *Format;
@@ -239,7 +239,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			asprintf(&Format, "%%-%ds - %%s", Align);
 
 			for (i = 0; i < m_CommandList->Count(); i++) {
-				if (Category == NULL || strcmpi(CommandList[i].Value->Category, Category) != 0) {
+				if (Category == NULL || strcasecmp(CommandList[i].Value->Category, Category) != 0) {
 					if (Category)
 						SENDUSER("--");
 
@@ -298,7 +298,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	if (!latchedRetVal)
 		return false;
 
-	if (strcmpi(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
+	if (strcasecmp(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
 		CModule** Modules = g_Bouncer->GetModules();
 		int Count = g_Bouncer->GetModuleCount();
 
@@ -320,7 +320,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("End of MODULES.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "insmod") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "insmod") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: INSMOD module-path");
 			return false;
@@ -347,7 +347,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "rmmod") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "rmmod") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: RMMOD module-id");
 			return false;
@@ -372,7 +372,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "set") == 0) {
+	} else if (strcasecmp(Subcommand, "set") == 0) {
 		CBouncerConfig* Config = m_Owner->GetConfig();
 		if (argc < 3) {
 			SENDUSER("Configurable settings:");
@@ -483,7 +483,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 		} else {
-			if (strcmpi(argv[1], "server") == 0) {
+			if (strcasecmp(argv[1], "server") == 0) {
 				if (argc > 3) {
 					m_Owner->SetServer(argv[2]);
 					m_Owner->SetPort(atoi(argv[3]));
@@ -494,55 +494,55 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 					return false;
 				}
-			} else if (strcmpi(argv[1], "realname") == 0) {
+			} else if (strcasecmp(argv[1], "realname") == 0) {
 				ArgRejoinArray(argv, 2);
 				m_Owner->SetRealname(argv[2]);
-			} else if (strcmpi(argv[1], "awaynick") == 0) {
+			} else if (strcasecmp(argv[1], "awaynick") == 0) {
 				m_Owner->SetAwayNick(argv[2]);
-			} else if (strcmpi(argv[1], "away") == 0) {
+			} else if (strcasecmp(argv[1], "away") == 0) {
 				ArgRejoinArray(argv, 2);
 				m_Owner->SetAwayText(argv[2]);
-			} else if (strcmpi(argv[1], "vhost") == 0) {
+			} else if (strcasecmp(argv[1], "vhost") == 0) {
 				m_Owner->SetVHost(argv[2]);
-			} else if (strcmpi(argv[1], "serverpass") == 0) {
+			} else if (strcasecmp(argv[1], "serverpass") == 0) {
 				m_Owner->SetServerPassword(argv[2]);
-			} else if (strcmpi(argv[1], "password") == 0) {
+			} else if (strcasecmp(argv[1], "password") == 0) {
 				if (strlen(argv[2]) < 6 || argc > 3) {
 					SENDUSER("Your password is too short or contains invalid characters.");
 					return false;
 				} else {
 					m_Owner->SetPassword(argv[2]);
 				}
-			} else if (strcmpi(argv[1], "appendtimestamp") == 0) {
-				if (strcmpi(argv[2], "on") == 0)
+			} else if (strcasecmp(argv[1], "appendtimestamp") == 0) {
+				if (strcasecmp(argv[2], "on") == 0)
 					Config->WriteInteger("user.ts", 1);
-				else if (strcmpi(argv[2], "off") == 0)
+				else if (strcasecmp(argv[2], "off") == 0)
 					Config->WriteInteger("user.ts", 0);
 				else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 
 					return false;
 				}
-			} else if (strcmpi(argv[1], "usequitasaway") == 0) {
-				if (strcmpi(argv[2], "on") == 0)
+			} else if (strcasecmp(argv[1], "usequitasaway") == 0) {
+				if (strcasecmp(argv[2], "on") == 0)
 					Config->WriteInteger("user.quitaway", 1);
-				else if (strcmpi(argv[2], "off") == 0)
+				else if (strcasecmp(argv[2], "off") == 0)
 					Config->WriteInteger("user.quitaway", 0);
 				else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 
 					return false;
 				}
-			} else if (strcmpi(argv[1], "automodes") == 0) {
+			} else if (strcasecmp(argv[1], "automodes") == 0) {
 				ArgRejoinArray(argv, 2);
 				m_Owner->SetAutoModes(argv[2]);
-			} else if (strcmpi(argv[1], "dropmodes") == 0) {
+			} else if (strcasecmp(argv[1], "dropmodes") == 0) {
 				ArgRejoinArray(argv, 2);
 				m_Owner->SetDropModes(argv[2]);
-			} else if (strcmpi(argv[1], "ssl") == 0) {
-				if (strcmpi(argv[2], "on") == 0)
+			} else if (strcasecmp(argv[1], "ssl") == 0) {
+				if (strcasecmp(argv[2], "on") == 0)
 					m_Owner->SetSSL(true);
-				else if (strcmpi(argv[2], "off") == 0)
+				else if (strcasecmp(argv[2], "off") == 0)
 					m_Owner->SetSSL(false);
 				else {
 					SENDUSER("Value must be either 'on' or 'off'.");
@@ -559,7 +559,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 #ifdef USESSL
-	} else if (strcmpi(Subcommand, "savecert") == 0) {
+	} else if (strcasecmp(Subcommand, "savecert") == 0) {
 		if (!IsSSL()) {
 			SENDUSER("Error: You are not using an SSL-encrypted connection.");
 		} else if (GetPeerCertificate() == NULL) {
@@ -571,7 +571,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "showcert") == 0) {
+	} else if (strcasecmp(Subcommand, "showcert") == 0) {
 		int i = 0;
 		char Buffer[300];
 		X509* ClientCert;
@@ -633,7 +633,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("End of CERTIFICATES.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "delcert") == 0) {
+	} else if (strcasecmp(Subcommand, "delcert") == 0) {
 		int id;
 
 		if (argc < 2) {
@@ -658,12 +658,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 #endif
-	} else if (strcmpi(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "die") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", m_Owner->GetUsername());
 		g_Bouncer->Shutdown();
 
 		return false;
-	} else if (strcmpi(Subcommand, "reload") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "reload") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: RELOAD sbnc-module.so");
 			return false;
@@ -674,7 +674,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		g_Bouncer->InitializeFreeze();
 
 		return false;
-	} else if (strcmpi(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "adduser") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 3) {
 			SENDUSER("Syntax: ADDUSER username password");
 			return false;
@@ -691,13 +691,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 
-	} else if (strcmpi(Subcommand, "deluser") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "deluser") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: DELUSER username");
 			return false;
 		}
 
-		if (strcmpi(argv[1], m_Owner->GetUsername()) == 0) {
+		if (strcasecmp(argv[1], m_Owner->GetUsername()) == 0) {
 			SENDUSER("You cannot remove yourself.");
 
 			return false;
@@ -708,7 +708,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 3) {
 			SENDUSER("Syntax: SIMUL username :command");
 			return false;
@@ -732,7 +732,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "direct") == 0) {
+	} else if (strcasecmp(Subcommand, "direct") == 0) {
 		if (argc < 2) {
 			SENDUSER("Syntax: DIRECT :command");
 			return false;
@@ -744,7 +744,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		IRC->InternalWriteLine(argv[1]);
 
 		return false;
-	} else if (strcmpi(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			const char* Ip = g_Bouncer->GetConfig()->ReadString("system.vhost");
 
@@ -761,7 +761,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "motd") == 0) {
+	} else if (strcasecmp(Subcommand, "motd") == 0) {
 		if (argc < 2) {
 			const char* Motd = g_Bouncer->GetMotd();
 
@@ -779,7 +779,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "global") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "global") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: GLOBAL :text");
 			return false;
@@ -788,7 +788,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		ArgRejoinArray(argv, 1);
 		g_Bouncer->GlobalNotice(argv[1]);
 		return false;
-	} else if (strcmpi(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: KILL username");
 			return false;
@@ -804,7 +804,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: disconnect username");
 			return false;
@@ -821,7 +821,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "jump") == 0) {
+	} else if (strcasecmp(Subcommand, "jump") == 0) {
 		if (m_Owner->GetIRCConnection()) {
 			m_Owner->GetIRCConnection()->Kill("Reconnecting");
 
@@ -830,7 +830,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		m_Owner->ScheduleReconnect(2);
 		return false;
-	} else if (strcmpi(Subcommand, "status") == 0) {
+	} else if (strcasecmp(Subcommand, "status") == 0) {
 		asprintf(&Out, "Username: %s", m_Owner->GetUsername());
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
@@ -872,7 +872,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			int a = 0;
 
-			while (xhash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
 				SENDUSER(Chan->Name);
 			}
 
@@ -888,7 +888,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "impulse") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "impulse") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: impulse command");
 
@@ -904,10 +904,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
 		int i = 0;
 
-		while (xhash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		while (hash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			const char* Server, *ClientAddr;
 			CBouncerUser* User = UserHash->Value;
 
@@ -955,7 +955,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("End of USERS.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "read") == 0) {
+	} else if (strcasecmp(Subcommand, "read") == 0) {
 		m_Owner->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
 		if (NoticeUser)
@@ -964,12 +964,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			m_Owner->Notice("End of LOG. Use '/msg -sBNC erase' to remove this log.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "erase") == 0) {
+	} else if (strcasecmp(Subcommand, "erase") == 0) {
 		m_Owner->GetLog()->Clear();
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
 		if (NoticeUser)
@@ -978,13 +978,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			m_Owner->Notice("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->GetLog()->Clear();
 		g_Bouncer->Log("User %s erased the main log", m_Owner->GetUsername());
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "hosts") == 0) {
+	} else if (strcasecmp(Subcommand, "hosts") == 0) {
 		char** Hosts = m_Owner->GetHostAllows();
 		unsigned int a = 0;
 
@@ -1004,7 +1004,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("End of HOSTS.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "hostadd") == 0) {
+	} else if (strcasecmp(Subcommand, "hostadd") == 0) {
 		if (argc <= 1) {
 			SENDUSER("Syntax: HOSTADD hostmask");
 
@@ -1030,7 +1030,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "hostdel") == 0 && argc > 1) {
+	} else if (strcasecmp(Subcommand, "hostdel") == 0 && argc > 1) {
 		if (argc <= 1) {
 			SENDUSER("Syntax: HOSTDEL hostmask");
 
@@ -1042,7 +1042,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcmpi(Subcommand, "admin") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "admin") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: ADMIN username");
 
@@ -1060,7 +1060,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "unadmin") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "unadmin") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: UNADMIN username");
 
@@ -1078,7 +1078,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "suspend") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "suspend") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: SUSPEND username :reason");
 
@@ -1119,7 +1119,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "unsuspend") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "unsuspend") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: UNSUSPEND username");
 
@@ -1147,7 +1147,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "resetpass") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "resetpass") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 3) {
 			SENDUSER("Syntax: RESETPASS username new-password");
 
@@ -1165,7 +1165,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcmpi(Subcommand, "partall") == 0) {
+	} else if (strcasecmp(Subcommand, "partall") == 0) {
 		if (m_Owner->GetIRCConnection()) {
 			const char* Channels = m_Owner->GetConfigChannels();
 
@@ -1207,7 +1207,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	const char* Command = argv[0];
 
 	if (!m_Owner) {
-		if (strcmpi(Command, "nick") == 0 && argc > 1) {
+		if (strcasecmp(Command, "nick") == 0 && argc > 1) {
 			const char* Nick = argv[1];
 
 			if (m_Nick != NULL) {
@@ -1226,7 +1226,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				ValidateUser();
 			else if (m_Username)
 				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
-		} else if (strcmpi(Command, "pass") == 0) {
+		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 			} else {
@@ -1237,7 +1237,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				ValidateUser();
 
 			return false;
-		} else if (strcmpi(Command, "user") == 0 && argc > 1) {
+		} else if (strcasecmp(Command, "user") == 0 && argc > 1) {
 			if (m_Username) {
 				WriteLine(":bouncer 462 %s :You may not reregister", m_Nick);
 			} else {
@@ -1259,14 +1259,14 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 
 			return false;
-		} else if (strcmpi(Command, "quit") == 0) {
+		} else if (strcasecmp(Command, "quit") == 0) {
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;
 		}
 	}
 
 	if (m_Owner) {
-		if (strcmpi(Command, "quit") == 0) {
+		if (strcasecmp(Command, "quit") == 0) {
 			bool QuitAsAway = (m_Owner->GetConfig()->ReadInteger("user.quitaway") != 0);
 
 			if (QuitAsAway && argc > 1 && *argv[1])
@@ -1274,13 +1274,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;
-		} else if (strcmpi(Command, "nick") == 0) {
+		} else if (strcasecmp(Command, "nick") == 0) {
 			if (argc >= 2) {
 				free(m_Nick);
 				m_Nick = strdup(argv[1]);
 				m_Owner->GetConfig()->WriteString("user.nick", argv[1]);
 			}
-		} else if (argc > 1 && strcmpi(Command, "join") == 0) {
+		} else if (argc > 1 && strcasecmp(Command, "join") == 0) {
 			CIRCConnection* IRC;
 			const char* Key;
 
@@ -1291,11 +1291,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 				return false;
 			}
-		} else if (strcmpi(Command, "whois") == 0) {
+		} else if (strcasecmp(Command, "whois") == 0) {
 			if (argc >= 2) {
 				const char* Nick = argv[1];
 
-				if (strcmpi("-sbnc", Nick) == 0) {
+				if (strcasecmp("-sbnc", Nick) == 0) {
 					WriteLine(":bouncer 311 %s -sBNC core shroudbnc.org * :shroudBNC", m_Nick);
 					WriteLine(":bouncer 312 %s -sBNC shroudbnc.org :shroudBNC IRC Proxy", m_Nick);
 					WriteLine(":bouncer 318 %s -sBNC :End of /WHOIS list.", m_Nick);
@@ -1303,7 +1303,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 			}
-		} else if (strcmpi(Command, "perror") == 0) {
+		} else if (strcasecmp(Command, "perror") == 0) {
 			if (argc < 2) {
 				m_Owner->Notice("Syntax: PERROR :quit-msg");
 				return false;
@@ -1317,7 +1317,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			m_Owner->MarkQuitted();
 
 			return false;
-/*		} else if (strcmpi(Command, "simul") == 0 && m_Owner->IsAdmin()) {
+/*		} else if (strcasecmp(Command, "simul") == 0 && m_Owner->IsAdmin()) {
 			if (argc < 3) {
 				m_Owner->Notice("Syntax: SIMUL username :command");
 				return false;
@@ -1337,7 +1337,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			}
 
 			return false;*/
-		} else if (argc > 2 && strcmpi(Command, "privmsg") == 0 && strcmpi(argv[1], "-sbnc") == 0) {
+		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0 && strcasecmp(argv[1], "-sbnc") == 0) {
 			const char* Toks = ArgTokenize(argv[2]);
 			const char** Arr = ArgToArray(Toks);
 
@@ -1347,9 +1347,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			ArgFree(Toks);
 
 			return false;
-		} else if (strcmpi(Command, "sbnc") == 0) {
+		} else if (strcasecmp(Command, "sbnc") == 0) {
 			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
-		} else if (strcmpi(Command, "synth") == 0) {
+		} else if (strcasecmp(Command, "synth") == 0) {
 			if (argc < 2) {
 				m_Owner->Notice("Syntax: SYNTH command parameter");
 				m_Owner->Notice("supported commands are: mode, topic, names, version, who");
@@ -1357,7 +1357,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			if (strcmpi(argv[1], "mode") == 0 && argc > 2) {
+			if (strcasecmp(argv[1], "mode") == 0 && argc > 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
@@ -1376,7 +1376,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							int i = 0; 
 
 							while (const ban_t* Ban = Bans->Iterate(i++)) {
-								WriteLine(":%s 367 %s %s %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Ban->Mask, Ban->Nick, Ban->TS);
+								WriteLine(":%s 367 %s %s %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Ban->Mask, Ban->Nick, Ban->Timestamp);
 							}
 
 							WriteLine(":%s 368 %s %s :End of Channel Ban List", IRC->GetServer(), IRC->GetCurrentNick(), argv[2]);
@@ -1384,7 +1384,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							IRC->WriteLine("MODE %s +b", argv[2]);
 					}
 				}
-			} else if (strcmpi(argv[1], "topic") == 0 && argc > 2) {
+			} else if (strcasecmp(argv[1], "topic") == 0 && argc > 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
@@ -1399,7 +1399,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("TOPIC %s", argv[2]);
 					}
 				}
-			} else if (strcmpi(argv[1], "names") == 0 && argc > 2) {
+			} else if (strcasecmp(argv[1], "names") == 0 && argc > 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
@@ -1413,7 +1413,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 						int a = 0;
 
-						while (xhash_t<CNick*>* NickHash = H->Iterate(a++)) {
+						while (hash_t<CNick*>* NickHash = H->Iterate(a++)) {
 							CNick* NickObj = NickHash->Value;
 
 							const char* Prefix = NickObj->GetPrefixes();
@@ -1464,7 +1464,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("NAMES %s", argv[2]);
 					}
 				}
-			} else if (strcmpi(argv[1], "who") == 0) {
+			} else if (strcasecmp(argv[1], "who") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
@@ -1476,7 +1476,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
 				}
-			} else if (strcmpi(argv[1], "version") == 0) {
+			} else if (strcasecmp(argv[1], "version") == 0) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
@@ -1492,7 +1492,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 					int a = 0, i = 0;
 
-					while (xhash_t<char*>* Feat = IRC->GetISupportAll()->Iterate(i++)) {
+					while (hash_t<char*>* Feat = IRC->GetISupportAll()->Iterate(i++)) {
 						char* Name = Feat->Name;
 						char* Value = Feat->Value;
 
@@ -1540,9 +1540,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			}
 
 			return false;
-		} else if (strcmpi(Command, "mode") == 0 || strcmpi(Command, "topic") == 0 ||
-				strcmpi(Command, "names") == 0 || strcmpi(Command, "who") == 0) {
-			if (argc == 2 || (strcmpi(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
+		} else if (strcasecmp(Command, "mode") == 0 || strcasecmp(Command, "topic") == 0 ||
+				strcasecmp(Command, "names") == 0 || strcasecmp(Command, "who") == 0) {
+			if (argc == 2 || (strcasecmp(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
 				if (argc == 2)
 					asprintf(&Out, "SYNTH %s %s", argv[0], argv[1]);
 				else
@@ -1557,7 +1557,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 				return false;
 			}
-		} else if (strcmpi(Command, "version") == 0) {
+		} else if (strcasecmp(Command, "version") == 0) {
 			ParseLine("SYNTH VERSION");
 
 			return false;
@@ -1623,12 +1623,12 @@ bool CClientConnection::ValidateUser() {
 	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
-		while (xhash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		while (hash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			if (UserHash->Value->FindClientCertificate(PeerCert)) {
 				AuthUser = UserHash->Value;
 				Count++;
 
-				if (strcmpi(UserHash->Name, m_Username) == 0)
+				if (strcasecmp(UserHash->Name, m_Username) == 0)
 					MatchUsername = true;
 			}
 		}

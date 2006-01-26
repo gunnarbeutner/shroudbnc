@@ -23,6 +23,8 @@
 typedef int socklen_t;
 #endif
 
+#define strcasecmp strcmpi
+
 #define EXPORT __declspec(dllexport)
 
 #define FD_SETSIZE 4096

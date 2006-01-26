@@ -17,11 +17,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * CBouncerConfig
+ *
+ * Represents a shroudBNC configuration file
+ */
 class CBouncerConfig {
-	CHashtable<char *, false, 8> *m_Settings;
+	CHashtable<char *, false, 8> *m_Settings; /**< the settings */
 
-	char *m_File;
-	bool m_WriteLock;
+	char *m_Filename; /**< the filename of the config */
+	bool m_WriteLock; /**< marks whether the configuration file should be
+						   updated when settings are added/removed */
 
 	bool ParseConfig(void);
 	bool Persist(void);
@@ -37,7 +43,7 @@ public:
 	virtual bool WriteInteger(const char *Setting, const int Value);
 	virtual bool WriteString(const char *Setting, const char *Value);
 
-	virtual xhash_t<char *> *Iterate(int Index);
+	virtual hash_t<char *> *Iterate(int Index);
 
 	virtual const char *GetFilename(void);
 

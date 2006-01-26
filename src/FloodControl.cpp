@@ -199,7 +199,7 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 		if (penalty.Command == NULL)
 			break;
 
-		if (strcmpi(penalty.Command, Command) == 0) {
+		if (strcasecmp(penalty.Command, Command) == 0) {
 			if (Space)
 				free(Command);
 

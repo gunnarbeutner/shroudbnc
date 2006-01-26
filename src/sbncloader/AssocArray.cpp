@@ -45,7 +45,7 @@ void CAssocArray::AddBox(const char *Name, CAssocArray *Value) {
 
 const char *CAssocArray::ReadString(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
-		if (strcmpi(m_Values[i].Name, Name) == 0) {
+		if (strcasecmp(m_Values[i].Name, Name) == 0) {
 			if (m_Values[i].Type == ASSOC_STRING)
 				return m_Values[i].ValueString;
 			else
@@ -58,7 +58,7 @@ const char *CAssocArray::ReadString(const char *Name) {
 
 int CAssocArray::ReadInteger(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
-		if (strcmpi(m_Values[i].Name, Name) == 0) {
+		if (strcasecmp(m_Values[i].Name, Name) == 0) {
 			if (m_Values[i].Type == ASSOC_INT)
 				return m_Values[i].ValueInt;
 			else
@@ -71,7 +71,7 @@ int CAssocArray::ReadInteger(const char *Name) {
 
 CAssocArray *CAssocArray::ReadBox(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
-		if (strcmpi(m_Values[i].Name, Name) == 0) {
+		if (strcasecmp(m_Values[i].Name, Name) == 0) {
 			if (m_Values[i].Type == ASSOC_POINTER)
 				return m_Values[i].ValueBox;
 			else

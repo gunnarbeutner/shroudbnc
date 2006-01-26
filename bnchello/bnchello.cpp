@@ -64,12 +64,12 @@ class CHelloClass : public CModuleFar {
 
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		if (IRC == m_Bot->GetIRCConnection()) {
-			if (argc >= 3 && strcmpi(argv[1], "privmsg") == 0 && strcmpi(argv[3], "!hello") == 0) {
+			if (argc >= 3 && strcasecmp(argv[1], "privmsg") == 0 && strcasecmp(argv[3], "!hello") == 0) {
 				char Out[1024];
 
 				const char* Other;
 
-				if (strcmpi(argv[2], IRC->GetCurrentNick()) == 0)
+				if (strcasecmp(argv[2], IRC->GetCurrentNick()) == 0)
 					Other = IRC->NickFromHostmask(argv[0]);
 				else
 					Other = argv[2];

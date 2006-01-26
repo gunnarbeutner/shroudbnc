@@ -19,10 +19,6 @@
 
 #include "StdAfx.h"
 
-void DestroyCChannel(CChannel* P) {
-	delete P;
-}
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -43,8 +39,9 @@ CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
 		LOGERROR("new operator failed. Could not create nick list.");
 
 		Owner->Kill("Internal error.");
-	} else
-		m_Nicks->RegisterValueDestructor(DestroyCNick);
+	} else {
+		m_Nicks->RegisterValueDestructor(DestroyObject<CNick>);
+	}
 
 	m_HasNames = false;
 	m_ModesValid = false;
@@ -167,7 +164,7 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 				}
 			}
 
-			if (flip && Cur == 'o' && strcmpi(pargv[p], m_Owner->GetCurrentNick()) == 0) {
+			if (flip && Cur == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
 				SetModesValid(false);
 
 				if (!m_Owner->GetOwningClient()->GetClientConnection())
@@ -419,7 +416,7 @@ bool CChannel::SendWhoReply(bool Simulate) {
 
 	int a = 0;
 
-	while (xhash_t<CNick*>* NickHash = GetNames()->Iterate(a++)) {
+	while (hash_t<CNick*>* NickHash = GetNames()->Iterate(a++)) {
 		CNick* NickObj = NickHash->Value;
 
 		if ((SiteTemp = NickObj->GetSite()) == NULL)

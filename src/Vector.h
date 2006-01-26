@@ -1,33 +1,60 @@
+/**
+ * CVector
+ *
+ * A generic list.
+ */
 template <typename Type>
 class CVector {
 private:
-	bool m_ReadOnly;
-	Type* m_List;
-	unsigned m_Count;
+	bool m_ReadOnly; /**< indicates whether the list is read-only */
+	Type *m_List; /**< the actual list */
+	unsigned m_Count; /**< the number of items in the list */
 
 public:
+	/**
+	 * CVector
+	 *
+	 * Constructs an empty list
+	 */
 	CVector(void) {
 		m_List = NULL;
 		m_Count = 0;
 		m_ReadOnly = false;
 	}
 
-	CVector(Type *List, int Count, bool ReadOnly = true) {
-		SetList(List, Count);
-		m_ReadOnly = ReadOnly;
-	}
+	/**
+	 * CVector
+	 *
+	 * Constructs a list by copying an existing array
+	 */
+//	CVector(Type *List, int Count, bool ReadOnly = true) {
+//		SetList(List, Count);
+//		m_ReadOnly = ReadOnly;
+//	}
 
+	/**
+	 * ~CVector
+	 *
+	 * Destroys a list
+	 */
 	~CVector(void) {
 		free(m_List);
 	}
 
-	bool Insert(Type T) {
-		Type* NewList;
+	/**
+	 * Insert
+	 *
+	 * Inserts a new item into the list
+	 *
+	 * @param Item the item which is to be inserted
+	 */
+	bool Insert(Type Item) {
+		Type *NewList;
 
 		if (m_ReadOnly)
 			return false;
 
-		NewList = (Type*)realloc(m_List, sizeof(Type) * ++m_Count);
+		NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
 
 		if (NewList == NULL) {
 			m_Count--;
@@ -36,11 +63,18 @@ public:
 		}
 
 		m_List = NewList;
-		m_List[m_Count - 1] = T;
+		m_List[m_Count - 1] = Item;
 
 		return true;
 	}
 
+	/**
+	 * Remove
+	 *
+	 * Removes an item from the list
+	 *
+	 * @param Index the index of the item which is to be removed
+	 */
 	bool Remove(int Index) {
 		if (m_ReadOnly)
 			return false;
@@ -52,11 +86,18 @@ public:
 		return true;
 	}
 
-	bool Remove(Type T) {
+	/**
+	 * Remove
+	 *
+	 * Removes an item from the list
+	 *
+	 * @param Item the item which is to be removed
+	 */
+	bool Remove(Type Item) {
 		bool ReturnValue = false;
 
 		for (int i = m_Count - 1; i >= 0; i--) {
-			if (m_List[i] == T) {
+			if (m_List[i] == Item) {
 				if (Remove(i))
 					ReturnValue = true;
 			}
@@ -65,20 +106,42 @@ public:
 		return ReturnValue;
 	}
 
+	/**
+	 * operator []
+	 *
+	 * Returns an item
+	 *
+	 * @param Index the index of the item which is to be returned
+	 */
 	Type& operator[] (int Index) {
 		// check m_Count
 
 		return m_List[Index];
 	}
 
+	/**
+	 * Count
+	 *
+	 * Returns the number of items
+	 */
 	int Count(void) {
 		return m_Count;
 	}
 
+	/**
+	 * GetList
+	 *
+	 * Returns the actual list which is used for storing the items
+	 */
 	Type *GetList(void) {
 		return m_List;
 	}
 
+	/**
+	 * SetList
+	 *
+	 * Sets a new internal list by copying the items from another list
+	 */
 	void SetList(Type *List, int Count) {
 		free(m_List);
 
@@ -86,9 +149,15 @@ public:
 		memcpy(m_List, List, sizeof(Type) * Count);
 		m_Count = Count;
 		m_ReadOnly = false;
-
 	}
 
+	/**
+	 * GetAddressOf
+	 *
+	 * Returns the address of an item
+	 *
+	 * @param Index the index of the item
+	 */
 	Type *GetAddressOf(int Index) {
 		return &(m_List[Index]);
 	}

@@ -17,28 +17,33 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-template <typename Type> struct xhash_t {
+template <typename Type> struct hash_t {
 	char* Name;
 	Type Value;
 };
 
 int keyStrCmp(const void* a, const void* b);
 
+template<typename Type>
+void DestroyObject(Type *Object) {
+	delete Object;
+}
+
 // note: VolatileKeys == true -> keys are managed by the user of this class
 template<typename Type, bool CaseSensitive, int Size, bool VolatileKeys = false> class CHashtable {
-	typedef void (DestroyValue)(Type P);
+	typedef void (DestroyValue)(Type Object);
 
-	template <typename HType> struct hash_t {
+	template <typename HType> struct hashlist_t {
 		int subcount;
 		char** keys;
 		HType* values;
 	};
 
-	hash_t<Type> m_Items[Size];
+	hashlist_t<Type> m_Items[Size];
 	DestroyValue* m_DestructorFunc;
 public:
 	CHashtable(void) {
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			m_Items[i].subcount = 0;
 			m_Items[i].keys = NULL;
 			m_Items[i].values = NULL;
@@ -48,8 +53,8 @@ public:
 	}
 
 	~CHashtable(void) {
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
-			hash_t<Type>* P = &m_Items[i];
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+			hashlist_t<Type>* P = &m_Items[i];
 
 			for (int a = 0; a < P->subcount; a++) {
 				if (!VolatileKeys)
@@ -84,7 +89,7 @@ public:
 
 		Remove(Key);
 
-		hash_t<Type>* P = &m_Items[Hash(Key)];
+		hashlist_t<Type>* P = &m_Items[Hash(Key)];
 
 		P->subcount++;
 
@@ -142,13 +147,13 @@ public:
 		if (!Key)
 			return NULL;
 
-		hash_t<Type>* P = &m_Items[Hash(Key)];
+		hashlist_t<Type>* P = &m_Items[Hash(Key)];
 
 		if (P->subcount == 0)
 			return NULL;
 		else {
 			for (int i = 0; i < P->subcount; i++)
-				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcmpi(P->keys[i], Key)) == 0)
+				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcasecmp(P->keys[i], Key)) == 0)
 					return P->values[i];
 
 			return NULL;
@@ -158,7 +163,7 @@ public:
 	int Count(void) {
 		int Count = 0;
 
-		for (int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++)
+		for (int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++)
 			Count += m_Items[i].subcount;
 
 		return Count;
@@ -168,11 +173,11 @@ public:
 		if (!Key)
 			return false;
 
-		hash_t<Type>* P = &m_Items[Hash(Key)];
+		hashlist_t<Type>* P = &m_Items[Hash(Key)];
 
 		if (P->subcount == 0)
 			return true;
-		else if (P->subcount == 1 && (CaseSensitive ? strcmp(P->keys[0], Key) : strcmpi(P->keys[0], Key)) == 0) {
+		else if (P->subcount == 1 && (CaseSensitive ? strcmp(P->keys[0], Key) : strcasecmp(P->keys[0], Key)) == 0) {
 			if (m_DestructorFunc && !NoRelease)
 				m_DestructorFunc(P->values[0]);
 
@@ -186,7 +191,7 @@ public:
 			P->values = NULL;
 		} else {
 			for (int i = 0; i < P->subcount; i++) {
-				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcmpi(P->keys[i], Key)) == 0) {
+				if (P->keys[i] && (CaseSensitive ? strcmp(P->keys[i], Key) : strcasecmp(P->keys[i], Key)) == 0) {
 					if (!VolatileKeys)
 						free(P->keys[i]);
 
@@ -210,13 +215,13 @@ public:
 		m_DestructorFunc = Func;
 	}
 
-	xhash_t<Type>* Iterate(int Index) {
+	hash_t<Type>* Iterate(int Index) {
 		int Skip = 0;
 
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			for (int a = 0; a < m_Items[i].subcount; a++) {
 				if (Skip == Index) {
-					static xhash_t<Type> H;
+					static hash_t<Type> H;
 
 					H.Name = m_Items[i].keys[a];
 					H.Value = m_Items[i].values[a];
@@ -235,7 +240,7 @@ public:
 		char** Keys = NULL;
 		unsigned int Count = 0;
 
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hash_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			Keys = (char**)realloc(Keys, (Count + m_Items[i].subcount) * sizeof(char*));
 
 			for (int a = 0; a < m_Items[i].subcount; a++) {
@@ -273,6 +278,6 @@ public:
 		if (m_Hash != Other.m_Hash)
 			return false;
 		else
-			return (strcmpi(m_String, Other.m_String) == 0);
+			return (strcasecmp(m_String, Other.m_String) == 0);
 	}
 };

@@ -89,9 +89,8 @@
 #endif
 #endif
 
+// Do NOT use sprintf.
 #define sprintf __evil_function
-#undef wsprintf
-#define wsprintf __evil_function
 
 #ifdef _WIN32
 #ifdef _DEBUG
@@ -102,19 +101,19 @@ void DebugFree(void* p);
 char* DebugStrDup(const char* p);
 void* DebugReAlloc(void* p, size_t newsize);
 bool ReportMemory(time_t Now, void* Cookie);
-int profilestrcmpi(const char*, const char*);
+int profilestrcasecmp(const char*, const char*);
 
 #define real_malloc malloc
 #define real_free free
 #define real_strdup strdup
 #define real_realloc realloc
-#define real_strcmpi strcmpi
+#define real_strcasecmp strcasecmp
 
 #define malloc DebugMalloc
 #define free DebugFree
+#undef strdup
 #define strdup DebugStrDup
 #define realloc DebugReAlloc
-#define strcmpi profilestrcmpi
 
 #endif
 #endif

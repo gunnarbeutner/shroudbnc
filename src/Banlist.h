@@ -17,12 +17,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * ban_s
+ *
+ * The structure used for storing bans.
+ */
 typedef struct ban_s {
 	char *Mask;
 	char *Nick;
-	time_t TS;
+	time_t Timestamp;
 } ban_t;
 
+/**
+ * CBanlist
+ *
+ * a list of bans
+ */
 class CBanlist {
 public:
 #ifndef SWIG
@@ -30,11 +40,11 @@ public:
 #endif
 	virtual ~CBanlist();
 
-	virtual bool SetBan(const char *Mask, const char *Nick, time_t TS);
+	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);
 	virtual bool UnsetBan(const char *Mask);
 
 	virtual const ban_t *GetBan(const char *Mask);
 	virtual const ban_t *Iterate(int Skip);
 private:
-	CHashtable<ban_t *, false, 5, false> *m_Bans;
+	CHashtable<ban_t *, false, 5, false> *m_Bans; /**< the actual list of bans. */
 };

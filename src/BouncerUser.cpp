@@ -816,30 +816,30 @@ void CBouncerUser::MarkQuitted(void) {
 }
 
 void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
-	badlogin_t* BadLogins;
+	badlogin_t *BadLogins;
 
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 #ifdef _WIN32
-		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].count < 3) {
+		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].Count < 3) {
 #else
-		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr && m_BadLogins[i].count < 3) {
+		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr && m_BadLogins[i].Count < 3) {
 #endif
-			m_BadLogins[i].count++;
+			m_BadLogins[i].Count++;
 
 			return;
 		}
 	}
 
 	for (unsigned int a = 0; a < m_BadLoginCount; a++) {
-		if (m_BadLogins[a].count == 0) {
-			m_BadLogins[a].ip = Peer;
-			m_BadLogins[a].count = 1;
+		if (m_BadLogins[a].Count == 0) {
+			m_BadLogins[a].Address = Peer;
+			m_BadLogins[a].Count = 1;
 
 			return;
 		}
 	}
 
-	BadLogins = (badlogin_t*)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
+	BadLogins = (badlogin_t *)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
 
 	if (!BadLogins) {
 		LOGERROR("realloc() failed. Could not add new item.");
@@ -850,18 +850,18 @@ void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 	}
 
 	m_BadLogins = BadLogins;
-	m_BadLogins[m_BadLoginCount - 1].ip = Peer;
-	m_BadLogins[m_BadLoginCount - 1].count = 1;
+	m_BadLogins[m_BadLoginCount - 1].Address = Peer;
+	m_BadLogins[m_BadLoginCount - 1].Count = 1;
 }
 
 bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 #ifdef _WIN32
-		if (m_BadLogins[i].ip.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
+		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
 #else
-		if (m_BadLogins[i].ip.sin_addr.s_addr == Peer.sin_addr.s_addr) {
+		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr) {
 #endif
-			if (m_BadLogins[i].count > 2)
+			if (m_BadLogins[i].Count > 2)
 				return true;
 			else
 				return false;
@@ -873,8 +873,9 @@ bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
 
 void CBouncerUser::BadLoginPulse(void) {
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
-		if (m_BadLogins[i].count)
-			m_BadLogins[i].count--;
+		if (m_BadLogins[i].Count > 0) {
+			m_BadLogins[i].Count--;
+		}
 	}
 }
 
@@ -909,7 +910,7 @@ void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 
 void CBouncerUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
-		if (m_HostAllows[i] && strcmpi(m_HostAllows[i], Mask) == 0) {
+		if (m_HostAllows[i] && strcasecmp(m_HostAllows[i], Mask) == 0) {
 			free(m_HostAllows[i]);
 			m_HostAllows[i] = NULL;
 

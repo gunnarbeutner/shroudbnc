@@ -75,7 +75,7 @@ class CTclSupport : public CModuleFar {
 
 		int i = 0;
 
-		while (xhash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
+		while (hash_t<CTclSocket*>* p = g_TclListeners->Iterate(i)) {
 			static_cast<CSocketEvents*>(p->Value)->Destroy();
 		}
 
@@ -83,7 +83,7 @@ class CTclSupport : public CModuleFar {
 
 		i = 0;
 
-		while (xhash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
+		while (hash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
 			p->Value->Destroy();
 		}
 
@@ -190,7 +190,7 @@ class CTclSupport : public CModuleFar {
 	}
 
 	const char* Command(const char* Cmd, const char* Parameters) {
-		if (strcmpi(Cmd, "tcl:eval") == 0) {
+		if (strcasecmp(Cmd, "tcl:eval") == 0) {
 			Tcl_Eval(g_Interp, Parameters);
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
@@ -209,14 +209,14 @@ class CTclSupport : public CModuleFar {
 
 		g_NoticeUser = NoticeUser;
 
-		if (strcmpi(Subcommand, "help") == 0 && User && User->IsAdmin()) {
+		if (strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
 			commandlist_t *Commands = Client->GetCommandList();
 			Utils = g_Bouncer->GetUtilities();
 
 			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: tcl command\nExecutes the specified tcl command.");
 		}
 
-		if (strcmpi(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
+		if (strcasecmp(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 
 			if (argc <= 1) {
 				if (NoticeUser)
@@ -324,7 +324,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			Tcl_DString dsProc;
 
-			if (g_Binds[i].user && user && strcmpi(g_Binds[i].user, user) != 0)
+			if (g_Binds[i].user && user && strcasecmp(g_Binds[i].user, user) != 0)
 				continue;
 
 			bool Match = false;

@@ -21,11 +21,8 @@
 
 typedef int SOCKET;
 
-#define strcmpi strcasecmp
-
 #define SD_BOTH SHUT_RDWR
 #define closesocket close
-#define wsprintf sprintf
 #define INVALID_SOCKET (-1)
 #undef FD_SETSIZE
 #define FD_SETSIZE 4096

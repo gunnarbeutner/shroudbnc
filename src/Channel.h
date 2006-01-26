@@ -19,37 +19,42 @@
 
 class CIRCConnection;
 
+/**
+ * chanmode_s
+ *
+ * A channel mode and its parameter.
+ */
 typedef struct chanmode_s {
-	char Mode;
-	char* Parameter;
+	char Mode; /**< the channel mode */
+	char* Parameter; /**< the associated parameter, or NULL if there is none */
 } chanmode_t;
 
 class CNick;
 class CBanlist;
 
 class CChannel {
-	char* m_Name;
+	CIRCConnection* m_Owner; /**< the owner of this channel object */
 
-	chanmode_t* m_Modes;
-	int m_ModeCount;
-	char* m_TempModes;
+	char* m_Name; /**< the name of the channel */
+	time_t m_Creation; /**< the time when the channel was created */
 
-	char* m_Topic;
-	char* m_TopicNick;
-	time_t m_TopicStamp;
-	int m_HasTopic;
-	bool m_ModesValid;
-	bool m_HasBans;
+	chanmode_t* m_Modes; /**< the channel modes */
+	int m_ModeCount; /**< the number of channel modes */
+	bool m_ModesValid; /**< indicates whether the channelmodes are known */
+	char* m_TempModes; /**< string-representation of the channel modes, used
+							by GetChanModes() */
 
-	time_t m_Creation;
+	char* m_Topic; /**< the channel's topic */
+	char* m_TopicNick; /**< the nick of the user who set the topic */
+	time_t m_TopicStamp; /**< the time when the topic was set */
+	int m_HasTopic; /**< indicates whether there is actually a topic */
 
-	CHashtable<CNick*, false, 64>* m_Nicks;
+	CHashtable<CNick*, false, 64>* m_Nicks; /**< a list of nicks who are
+												 on this channel */
+	bool m_HasNames; /**< indicates whether m_Nicks is valid */
 
-	bool m_HasNames;
-
-	CIRCConnection* m_Owner;
-
-	CBanlist* m_Banlist;
+	CBanlist* m_Banlist; /**< a list of bans for this channel */
+	bool m_HasBans; /**< indicates whether the banlist is known */
 
 	chanmode_t* AllocSlot(void);
 	chanmode_t* FindSlot(char Mode);
@@ -99,7 +104,3 @@ public:
 
 	virtual bool SendWhoReply(bool Simulate);
 };
-
-#ifndef SWIG
-void DestroyCChannel(CChannel* P);
-#endif

@@ -24,7 +24,7 @@ class CBouncerUser;
 #define Log_Motd 2
 
 class CBouncerLog {
-	char *m_File;
+	char *m_Filename; /**< the filename of the log, can be NULL */
 public:
 #ifndef SWIG
 	CBouncerLog(const char *Filename);
@@ -33,7 +33,7 @@ public:
 
 	virtual void Clear(void);
 	virtual void InternalWriteLine(const char *Line);
-	virtual void WriteLine(const char* Format, ...);
+	virtual void WriteLine(const char *Format, ...);
 	virtual void PlayToUser(CBouncerUser *User, int Type);
 	virtual bool IsEmpty(void);
 	virtual const char *GetFilename(void);

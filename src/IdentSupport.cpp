@@ -32,7 +32,7 @@ CIdentSupport::~CIdentSupport(void) {
 }
 
 void CIdentSupport::SetIdent(const char *Ident) {
-	char *Ident;
+	char *NewIdent;
 
 #ifndef _WIN32
 	char *homedir = getenv("HOME");
@@ -65,8 +65,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 	free(Out);
 #endif
 
-	free(m_Ident);
-	Ident = strdup(Ident);
+	NewIdent = strdup(Ident);
 
 	if (m_Ident == NULL) {
 		LOGERROR("strdup failed. Could not set new ident.");
@@ -74,7 +73,8 @@ void CIdentSupport::SetIdent(const char *Ident) {
 		return;
 	}
 
-	m_Ident = Ident;
+	free(m_Ident);
+	m_Ident = NewIdent;
 }
 
 const char *CIdentSupport::GetIdent(void) {

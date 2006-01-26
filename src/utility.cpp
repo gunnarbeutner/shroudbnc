@@ -466,13 +466,13 @@ void DeleteCommand(commandlist_t *Commands, const char *Name) {
 }
 
 int CmpCommandT(const void *pA, const void *pB) {
-	const xhash_t<command_t *> *a = (const xhash_t<command_t *> *)pA;
-	const xhash_t<command_t *> *b = (const xhash_t<command_t *> *)pB;
+	const hash_t<command_t *> *a = (const hash_t<command_t *> *)pA;
+	const hash_t<command_t *> *b = (const hash_t<command_t *> *)pB;
 
-	int CmpCat = strcmpi(a->Value->Category, b->Value->Category);
+	int CmpCat = strcasecmp(a->Value->Category, b->Value->Category);
 
 	if (CmpCat == 0)
-		return strcmpi(a->Name, b->Name);
+		return strcasecmp(a->Name, b->Name);
 	else
 		return CmpCat;
 }

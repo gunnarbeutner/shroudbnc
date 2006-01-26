@@ -21,7 +21,7 @@ template <typename EventClassName>
 class CListenerBase : public CSocketEvents {
 private:
 	SOCKET m_Listener;
-	EventClassName *m_EventClass;
+	EventClassName *m_EventObject;
 
 	virtual void Destroy(void) {
 		delete this;
@@ -49,39 +49,45 @@ private:
 	virtual const char *ClassName(void) { return "CListenerBase"; }
 
 protected:
-	EventClassName *GetEventClass(void) {
-		return m_EventClass;
+	EventClassName *GetEventObject(void) {
+		return m_EventObject;
 	}
 
 	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) { }
 public:
-	CListenerBase(SOCKET Listener, EventClassName *EventClass = NULL) {
-		Init(Listener, EventClass);
+	CListenerBase(SOCKET Listener, EventClassName *EventObject = NULL) {
+		Init(Listener, EventObject);
 	}
 
-	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventClass = NULL) {
-		Init(g_Bouncer->CreateListener(Port, BindIp), EventClass);
+	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventObject = NULL) {
+		Init(g_Bouncer->CreateListener(Port, BindIp), EventObject);
 	}
 
-	void Init(SOCKET Listener, EventClassName *EventClass) {
-		m_EventClass = EventClass;
+	void Init(SOCKET Listener, EventClassName *EventObject) {
+		m_EventObject = EventObject;
 		m_Listener = Listener;
 
-		if (m_Listener == INVALID_SOCKET)
+		if (m_Listener == INVALID_SOCKET) {
 			return;
+		}
 
-		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents*>(this));
+		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
 	}
 
 	virtual ~CListenerBase(void) {
-		if (g_Bouncer && m_Listener != INVALID_SOCKET)
+		if (g_Bouncer && m_Listener != INVALID_SOCKET) {
 			g_Bouncer->UnregisterSocket(m_Listener);
+		}
 
 		closesocket(m_Listener);
 	}
 
 	virtual bool IsValid(void) { 
-		return (m_Listener != INVALID_SOCKET);
+		if (m_Listener != INVALID_SOCKET) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	virtual SOCKET GetSocket(void) {
