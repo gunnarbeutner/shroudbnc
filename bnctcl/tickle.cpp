@@ -29,7 +29,7 @@
 
 class CTclSupport;
 
-CBouncerCore* g_Bouncer;
+CCore* g_Bouncer;
 Tcl_Interp* g_Interp;
 CTclSupport* g_Tcl;
 bool g_Ret;
@@ -100,7 +100,7 @@ class CTclSupport : public CModuleFar {
 		delete this;
 	}
 
-	void Init(CBouncerCore* Root) {
+	void Init(CCore* Root) {
 		g_Bouncer = Root;
 
 		g_TclListeners = new CHashtable<CTclSocket*, false, 5>;
@@ -136,7 +136,7 @@ class CTclSupport : public CModuleFar {
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		g_Ret = true;
 
-		CBouncerUser* User = Client->GetOwningClient();
+		CUser* User = Client->GetOwningClient();
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Client, User ? User->GetUsername() : NULL, argc, argv);
@@ -204,7 +204,7 @@ class CTclSupport : public CModuleFar {
 	}
 
 	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
-		CBouncerUser* User = Client->GetOwningClient();
+		CUser* User = Client->GetOwningClient();
 		const utility_t *Utils;
 
 		g_NoticeUser = NoticeUser;
@@ -310,7 +310,7 @@ void RehashInterpreter(void) {
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
 	Tcl_Obj** listv;
 
-	CBouncerUser* User = g_Bouncer->GetUser(user);
+	CUser* User = g_Bouncer->GetUser(user);
 
 	if (User)
 		setctx(user);

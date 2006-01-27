@@ -54,7 +54,7 @@ char *uptimehost;
 #define UPTIME_SBNC 2
 #define UPTIME_HOST "uptime.eggheads.org"
 
-CBouncerCore *g_Bouncer;
+CCore *g_Bouncer;
 CUptimeModule *g_UptimeMod;
 CTimer *g_UptimeTimer;
 CUdpSocket *g_UptimeSocket;
@@ -164,7 +164,7 @@ class CUptimeModule : public CModuleFar {
 		delete this;
 	}
 
-	void Init(CBouncerCore* Root) {
+	void Init(CCore* Root) {
 		g_Bouncer = Root;
 
 		upPack.regnr = 0;
@@ -192,7 +192,7 @@ class CUptimeModule : public CModuleFar {
 		PackUp *mem;
 		int len;
 		sockaddr_in sloc;
-		CBouncerUser *FirstUser;
+		CUser *FirstUser;
 		hostent *hent;
 		const char *Server;
 

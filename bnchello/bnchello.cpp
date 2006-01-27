@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) { return 0; }
 #endif
 
 class CHelloClass : public CModuleFar {
-	CBouncerCore* m_Core;
-	CBouncerUser* m_Bot;
+	CCore* m_Core;
+	CUser* m_Bot;
 
 	void Destroy(void) {
 		m_Core->RemoveUser(m_Bot->GetUsername());
@@ -40,7 +40,7 @@ class CHelloClass : public CModuleFar {
 		delete this;
 	}
 
-	void Init(CBouncerCore* Root) {
+	void Init(CCore* Root) {
 		m_Core = Root;
 
 		m_Bot = m_Core->CreateUser("bot", NULL);

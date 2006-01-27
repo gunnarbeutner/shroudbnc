@@ -23,7 +23,7 @@
 #error This module cannot be used on *nix systems.
 #endif
 
-CBouncerCore* g_Bouncer;
+CCore* g_Bouncer;
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -120,7 +120,7 @@ class CIdentModule : public CModuleFar, public CSocketEvents {
 		delete this;
 	}
 
-	void Init(CBouncerCore* Root) {
+	void Init(CCore* Root) {
 		g_Bouncer = Root;
 
 		m_Listener = g_Bouncer->CreateListener(113);

@@ -24,7 +24,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class CBouncerCore;
+class CCore;
 class CConnection;
 class CTclSocket;
 

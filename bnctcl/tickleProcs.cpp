@@ -67,10 +67,10 @@ const char* bncuserlist(void) {
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-	CHashtable<CBouncerUser *, false, 64> *Users = g_Bouncer->GetUsers();
+	CHashtable<CUser *, false, 64> *Users = g_Bouncer->GetUsers();
 
 	i = 0;
-	while (hash_t<CBouncerUser *> *User = Users->Iterate(i++)) {
+	while (hash_t<CUser *> *User = Users->Iterate(i++)) {
 		argv[argc++] = User->Name;
 	}
 
@@ -87,7 +87,7 @@ const char* bncuserlist(void) {
 }
 
 const char* internalchannels(void) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -126,7 +126,7 @@ const char* internalchannels(void) {
 }
 
 const char* getchanmode(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -351,7 +351,7 @@ const char* internalbinds(void) {
 }
 
 int putserv(const char* text) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -367,7 +367,7 @@ int putserv(const char* text) {
 }
 
 int putclient(const char* text) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -383,7 +383,7 @@ int putclient(const char* text) {
 }
 
 void jump(const char *Server, unsigned int Port, const char *Password) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return;
@@ -402,7 +402,7 @@ void jump(const char *Server, unsigned int Port, const char *Password) {
 }
 
 bool onchan(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return false;
@@ -436,7 +436,7 @@ bool onchan(const char* Nick, const char* Channel) {
 }
 
 const char* topic(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -455,7 +455,7 @@ const char* topic(const char* Channel) {
 }
 
 const char* topicnick(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -474,7 +474,7 @@ const char* topicnick(const char* Channel) {
 }
 
 int topicstamp(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return 0;
@@ -493,7 +493,7 @@ int topicstamp(const char* Channel) {
 }
 
 const char* internalchanlist(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -532,7 +532,7 @@ const char* internalchanlist(const char* Channel) {
 }
 
 bool isop(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return false;
@@ -568,7 +568,7 @@ bool isop(const char* Nick, const char* Channel) {
 }
 
 bool isvoice(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return false;
@@ -604,7 +604,7 @@ bool isvoice(const char* Nick, const char* Channel) {
 }
 
 bool ishalfop(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return false;
@@ -640,7 +640,7 @@ bool ishalfop(const char* Nick, const char* Channel) {
 }
 
 const char* getchanprefix(const char* Channel, const char* Nick) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -673,7 +673,7 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
 	static char Buffer[1024];
 
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		throw "Invalid user.";
@@ -783,7 +783,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		throw "Invalid user.";
@@ -847,7 +847,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 void addbncuser(const char* User, const char* Password) {
 	char* Context = strdup(getctx());
 
-	CBouncerUser* U = g_Bouncer->CreateUser(User, Password);
+	CUser* U = g_Bouncer->CreateUser(User, Password);
 
 	if (!U)
 		throw "Could not create user.";
@@ -869,7 +869,7 @@ void delbncuser(const char* User) {
 }
 
 int simul(const char* User, const char* Command) {
-	CBouncerUser* Context;
+	CUser* Context;
 
 	Context = g_Bouncer->GetUser(User);
 
@@ -883,7 +883,7 @@ int simul(const char* User, const char* Command) {
 }
 
 const char* getchanhost(const char* Nick, const char*) {
-	CBouncerUser* Context;
+	CUser* Context;
 	const char* Host;
 
 	Context = g_Bouncer->GetUser(g_Context);
@@ -919,7 +919,7 @@ const char* getchanhost(const char* Nick, const char*) {
 }
 
 const char* getchanrealname(const char* Nick, const char*) {
-	CBouncerUser* Context;
+	CUser* Context;
 
 	Context = g_Bouncer->GetUser(g_Context);
 
@@ -948,7 +948,7 @@ const char* getchanrealname(const char* Nick, const char*) {
 
 
 int getchanjoin(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return 0;
@@ -972,7 +972,7 @@ int getchanjoin(const char* Nick, const char* Channel) {
 }
 
 int internalgetchanidle(const char* Nick, const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return 0;
@@ -1017,7 +1017,7 @@ int bncuptime(void) {
 }
 
 int floodcontrol(const char* Function) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+	CUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
 		return 0;
@@ -1048,7 +1048,7 @@ int floodcontrol(const char* Function) {
 }
 
 int clearqueue(const char* Queue) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+	CUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
 		return 0;
@@ -1084,7 +1084,7 @@ int clearqueue(const char* Queue) {
 }
 
 int queuesize(const char* Queue) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+	CUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
 		return 0;
@@ -1118,7 +1118,7 @@ int queuesize(const char* Queue) {
 }
 
 int puthelp(const char* text) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -1134,7 +1134,7 @@ int puthelp(const char* text) {
 }
 
 int putquick(const char* text) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -1150,7 +1150,7 @@ int putquick(const char* text) {
 }
 
 const char* getisupport(const char* Feature) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return NULL;
@@ -1164,7 +1164,7 @@ const char* getisupport(const char* Feature) {
 }
 
 int requiresparam(char Mode) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -1178,7 +1178,7 @@ int requiresparam(char Mode) {
 }
 
 bool isprefixmode(char Mode) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -1233,7 +1233,7 @@ const char* bncmodules(void) {
 }
 
 int bncsettag(const char* channel, const char* nick, const char* tag, const char* value) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return 0;
@@ -1259,7 +1259,7 @@ int bncsettag(const char* channel, const char* nick, const char* tag, const char
 }
 
 const char* bncgettag(const char* channel, const char* nick, const char* tag) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -1316,14 +1316,14 @@ void debugout(const char* String) {
 }
 
 void putlog(const char* Text) {
-	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
+	CUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (User && Text)
 		User->GetLog()->WriteLine("%s", Text);
 }
 
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return 0;
@@ -1354,7 +1354,7 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 }
 
 void bncjoinchans(const char* User) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return;
@@ -1450,7 +1450,7 @@ void internalclosesocket(int Socket) {
 }
 
 bool bnccheckpassword(const char* User, const char* Password) {
-	CBouncerUser* Context = g_Bouncer->GetUser(User);
+	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
 		return false;
@@ -1461,7 +1461,7 @@ bool bnccheckpassword(const char* User, const char* Password) {
 }
 
 void bncdisconnect(const char* Reason) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return;
@@ -1477,7 +1477,7 @@ void bncdisconnect(const char* Reason) {
 }
 
 void bnckill(const char* Reason) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return;
@@ -1491,7 +1491,7 @@ void bnckill(const char* Reason) {
 }
 
 void bncreply(const char* Text) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return;
@@ -1503,7 +1503,7 @@ void bncreply(const char* Text) {
 }
 
 char* chanbans(const char* Channel) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
 		return NULL;
@@ -1666,7 +1666,7 @@ int timerstats(void) {
 }
 
 const char* getcurrentnick(void) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return NULL;
@@ -1694,7 +1694,7 @@ void bncsetgvhost(const char* GVHost) {
 }
 
 const char* getbnchosts(void) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return NULL;
@@ -1723,7 +1723,7 @@ const char* getbnchosts(void) {
 }
 
 void delbnchost(const char* Host) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return;
@@ -1732,7 +1732,7 @@ void delbnchost(const char* Host) {
 }
 
 int addbnchost(const char* Host) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
@@ -1754,7 +1754,7 @@ int addbnchost(const char* Host) {
 }
 
 bool bncisipblocked(const char* Ip) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return false;
@@ -1775,7 +1775,7 @@ bool bncisipblocked(const char* Ip) {
 }
 
 bool bnccanhostconnect(const char* Host) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return false;
@@ -1798,7 +1798,7 @@ void bncsetsendq(int NewSize) {
 }
 
 bool synthwho(const char *Channel, bool Simulate) {
-	CBouncerUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return false;
@@ -1821,7 +1821,7 @@ const char *impulse(int imp) {
 }
 
 void bncaddcommand(const char *Name, const char *Category, const char *Description, const char *HelpText) {
-	CBouncerUser *Context = g_Bouncer->GetUser(g_Context);
+	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return;
@@ -1838,7 +1838,7 @@ void bncaddcommand(const char *Name, const char *Category, const char *Descripti
 }
 
 void bncdeletecommand(const char *Name) {
-	CBouncerUser *Context = g_Bouncer->GetUser(g_Context);
+	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return;
@@ -1885,7 +1885,7 @@ const char *bncgetglobaltag(const char *Tag) {
 }
 
 const char *bncgetglobaltags(void) {
-	CBouncerConfig *Config = g_Bouncer->GetConfig();
+	CConfig *Config = g_Bouncer->GetConfig();
 	int Count = Config->Count();
 
 	int argc = 0;
