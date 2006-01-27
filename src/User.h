@@ -35,10 +35,6 @@ bool BadLoginTimer(time_t Now, void *User);
 bool UserReconnectTimer(time_t Now, void *User);
 #endif
 
-#ifndef USESSL
-typedef void X509;
-#endif
-
 class CUser {
 	friend class CCore;
 #ifndef SWIG

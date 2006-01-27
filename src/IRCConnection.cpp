@@ -440,13 +440,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			JoinChannels();
 
 		if (m_State != State_Connected) {
-			CModule** Modules = g_Bouncer->GetModules();
+			CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-			for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-				CModule* M = Modules[i];
-
-				if (M)
-					M->ServerLogon(m_Owner->GetUsername());
+			for (int i = 0; i < Modules->Count(); i++) {
+				Modules->Get(i)->ServerLogon(m_Owner->GetUsername());
 			}
 
 			GetOwningClient()->Notice("Connected to an IRC server.");
@@ -687,14 +684,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 }
 
 bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
-	CModule** Modules = g_Bouncer->GetModules();
-	int Count = g_Bouncer->GetModuleCount();
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Count; i++) {
-		if (Modules[i]) {
-			if (!Modules[i]->InterceptIRCMessage(this, argc, argv)) {
-				return false;
-			}
+	for (int i = 0; i < Modules->Count(); i++) {
+		if (!Modules->Get(i)->InterceptIRCMessage(this, argc, argv)) {
+			return false;
 		}
 	}
 

@@ -133,8 +133,7 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 		m_TempModes = NULL;
 	}
 
-	CModule** Modules = g_Bouncer->GetModules();
-	int Count = g_Bouncer->GetModuleCount();
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < strlen(modes); i++) {
 		char Cur = modes[i];
@@ -158,10 +157,8 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 					P->RemovePrefix(m_Owner->PrefixForChanMode(Cur));
 			}
 
-			for (int i = 0; i < Count; i++) {
-				if (Modules[i]) {
-					Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, pargv[p]);
-				}
+			for (int i = 0; i < Modules->Count(); i++) {
+				Modules->Get(i)->SingleModeChange(m_Owner, m_Name, source, flip, Cur, pargv[p]);
 			}
 
 			if (flip && Cur == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
@@ -190,10 +187,8 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 		if (Cur == 'k' && flip && strcmp(pargv[p], "*") != 0)
 			m_Owner->GetOwningClient()->GetKeyring()->AddKey(m_Name, pargv[p]);
 
-		for (int i = 0; i < Count; i++) {
-			if (Modules[i]) {
-				Modules[i]->SingleModeChange(m_Owner, m_Name, source, flip, Cur, ((flip && ModeType) || (!flip && ModeType && ModeType != 1)) ? pargv[p] : NULL);
-			}
+		for (int i = 0; i < Modules->Count(); i++) {
+			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, source, flip, Cur, ((flip && ModeType) || (!flip && ModeType && ModeType != 1)) ? pargv[p] : NULL);
 		}
 
 		if (flip) {

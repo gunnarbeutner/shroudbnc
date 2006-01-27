@@ -1194,27 +1194,24 @@ bool isprefixmode(char Mode) {
 const char* bncmodules(void) {
 	static char* Buffer = NULL;
 
-	CModule** Modules = g_Bouncer->GetModules();
-	int ModuleCount = g_Bouncer->GetModuleCount();
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	if (Buffer)
 		*Buffer = '\0';
 
 	int a = 0;
-	char** List = (char**)malloc(ModuleCount * sizeof(const char*));
+	char** List = (char**)malloc(Modules->Count() * sizeof(const char*));
 
-	for (int i = 0; i < ModuleCount; i++) {
-		if (Modules[i]) {
-			char BufId[200], Buf1[200], Buf2[200];
+	for (int i = 0; i < Modules->Count(); i++) {
+		char BufId[200], Buf1[200], Buf2[200];
 
-			sprintf(BufId, "%d", i);
-			sprintf(Buf1, "%p", Modules[i]->GetHandle());
-			sprintf(Buf2, "%p", Modules[i]->GetModule());
+		sprintf(BufId, "%d", i);
+		sprintf(Buf1, "%p", Modules->Get(i)->GetHandle());
+		sprintf(Buf2, "%p", Modules->Get(i)->GetModule());
 
-			const char* Mod[4] = { BufId, Modules[i]->GetFilename(), Buf1, Buf2 };
+		const char* Mod[4] = { BufId, Modules->Get(i)->GetFilename(), Buf1, Buf2 };
 
-			List[a++] = Tcl_Merge(4, Mod);
-		}
+		List[a++] = Tcl_Merge(4, Mod);
 	}
 
 	static char* Mods = NULL;
@@ -1287,15 +1284,13 @@ void haltoutput(void) {
 }
 
 const char* bnccommand(const char* Cmd, const char* Parameters) {
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-		if (M) {
-			const char* Result = M->Command(Cmd, Parameters);
+	for (int i = 0; i < Modules->Count(); i++) {
+		const char* Result = Modules->Get(i)->Command(Cmd, Parameters);
 
-			if (Result)
-				return Result;
-		}
+		if (Result)
+			return Result;
 	}
 
 	return NULL;
@@ -1404,7 +1399,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 
 void control(int Socket, const char* Proc) {
 	char Buf[20];
-	itoa(Socket, Buf, 10);
+	sprintf(Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
@@ -1415,7 +1410,7 @@ void control(int Socket, const char* Proc) {
 
 void internalsocketwriteln(int Socket, const char* Line) {
 	char Buf[20];
-	itoa(Socket, Buf, 10);
+	sprintf(Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
@@ -1437,7 +1432,7 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 
 void internalclosesocket(int Socket) {
 	char Buf[20];
-	itoa(Socket, Buf, 10);
+	sprintf(Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))

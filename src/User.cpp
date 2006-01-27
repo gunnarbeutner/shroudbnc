@@ -144,12 +144,10 @@ CUser::CUser(const char* Name) {
 }
 
 void CUser::LoadEvent(void) {
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-		if (M) {
-			M->UserLoad(m_Name);
-		}
+	for (int i = 0; i < Modules->Count(); i++) {
+		Modules->Get(i)->UserLoad(m_Name);
 	}
 }
 
@@ -318,12 +316,10 @@ void CUser::Attach(CClientConnection* Client) {
 		}
 	}
 
-	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-		CModule* M = g_Bouncer->GetModules()[i];
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-		if (M) {
-			M->AttachClient(GetUsername());
-		}
+	for (int i = 0; i < Modules->Count(); i++) {
+		Modules->Get(i)->AttachClient(GetUsername());
 	}
 
 	if (m_IRC == NULL && GetServer() == NULL)
@@ -602,9 +598,12 @@ void CUser::Unlock(void) {
 }
 
 void CUser::SetIRCConnection(CIRCConnection* IRC) {
+	CVector<CModule *> *Modules;
 	bool WasNull = (m_IRC == NULL) ? true : false;
 
 	m_IRC = IRC;
+
+	Modules = g_Bouncer->GetModules();
 
 	if (!IRC && !WasNull) {
 		Notice("Disconnected from the server.");
@@ -625,20 +624,12 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 		if (m_Client == NULL)
 			Log("Disconnected from the server.");
 
-		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-			CModule* M = g_Bouncer->GetModules()[i];
-
-			if (M) {
-				M->ServerDisconnect(GetUsername());
-			}
+		for (int i = 0; i < Modules->Count(); i++) {
+			Modules->Get(i)->ServerDisconnect(GetUsername());
 		}
 	} else if (IRC) {
-		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-			CModule* M = g_Bouncer->GetModules()[i];
-
-			if (M) {
-				M->ServerConnect(GetUsername());
-			}
+		for (int i = 0; i < Modules->Count(); i++) {
+			Modules->Get(i)->ServerConnect(GetUsername());
 		}
 
 		if (m_ReconnectTimer) {
@@ -710,12 +701,10 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 			m_Config->WriteInteger("user.seen", time(NULL));
 		}
 
-		for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
-			CModule* M = g_Bouncer->GetModules()[i];
+		CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-			if (M) {
-				M->DetachClient(GetUsername());
-			}
+		for (int i = 0; i < Modules->Count(); i++) {
+			Modules->Get(i)->DetachClient(GetUsername());
 		}
 
 		if (m_IRC && !DontSetAway) {

@@ -48,6 +48,9 @@
 
 #ifdef USESSL
 #include <openssl/ssl.h>
+#else
+typedef void X509;
+typedef void SSL_CTX;
 #endif
 
 #include "snprintf.h"

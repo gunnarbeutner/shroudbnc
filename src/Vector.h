@@ -37,7 +37,7 @@ public:
 	 *
 	 * Destroys a list
 	 */
-	~CVector(void) {
+	virtual ~CVector(void) {
 		free(m_List);
 	}
 
@@ -48,7 +48,7 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	bool Insert(Type Item) {
+	virtual bool Insert(Type Item) {
 		Type *NewList;
 
 		if (m_ReadOnly)
@@ -75,7 +75,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be removed
 	 */
-	bool Remove(int Index) {
+	virtual bool Remove(int Index) {
 		if (m_ReadOnly)
 			return false;
 
@@ -93,11 +93,11 @@ public:
 	 *
 	 * @param Item the item which is to be removed
 	 */
-	bool Remove(Type Item) {
+	virtual bool Remove(Type Item) {
 		bool ReturnValue = false;
 
 		for (int i = m_Count - 1; i >= 0; i--) {
-			if (m_List[i] == Item) {
+			if (memcmp(&m_List[i], &Item, sizeof(Item)) == 0) {
 				if (Remove(i))
 					ReturnValue = true;
 			}
@@ -113,9 +113,20 @@ public:
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
-	Type& operator[] (int Index) {
+	virtual Type& operator[] (int Index) {
 		// check m_Count
 
+		return m_List[Index];
+	}
+
+	/**
+	 * Get
+	 *
+	 * Returns an item
+	 *
+	 * @param Index the index of the item which is to be returned
+	 */
+	virtual Type& Get(int Index) {
 		return m_List[Index];
 	}
 
@@ -124,7 +135,7 @@ public:
 	 *
 	 * Returns the number of items
 	 */
-	int Count(void) {
+	virtual int Count(void) {
 		return m_Count;
 	}
 
@@ -133,7 +144,7 @@ public:
 	 *
 	 * Returns the actual list which is used for storing the items
 	 */
-	Type *GetList(void) {
+	virtual Type *GetList(void) {
 		return m_List;
 	}
 
@@ -142,7 +153,7 @@ public:
 	 *
 	 * Sets a new internal list by copying the items from another list
 	 */
-	void SetList(Type *List, int Count) {
+	virtual void SetList(Type *List, int Count) {
 		free(m_List);
 
 		m_List = (Type *)malloc(sizeof(Type) * Count);
@@ -158,7 +169,7 @@ public:
 	 *
 	 * @param Index the index of the item
 	 */
-	Type *GetAddressOf(int Index) {
+	virtual Type *GetAddressOf(int Index) {
 		return &(m_List[Index]);
 	}
 };

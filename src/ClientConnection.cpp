@@ -202,14 +202,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			"Syntax: help [command]\nDisplays a list of commands or information about individual commands.");
 	}
 
-	CModule** Modules = g_Bouncer->GetModules();
-	int Count = g_Bouncer->GetModuleCount();
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 	bool latchedRetVal = true;
 
-	for (int i = 0; i < Count; i++) {
-		if (!Modules[i]) { continue; }
-
-		if (Modules[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
+	for (int i = 0; i < Modules->Count(); i++) {
+		if (Modules->Get(i)->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
 			latchedRetVal = false;
 	}
 
@@ -299,13 +296,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
-		CModule** Modules = g_Bouncer->GetModules();
-		int Count = g_Bouncer->GetModuleCount();
-
-		for (int i = 0; i < Count; i++) {
-			if (!Modules[i]) { continue; }
-
-			asprintf(&Out, "%d: %x %s", i + 1, Modules[i]->GetHandle(), Modules[i]->GetFilename());
+		for (int i = 0; i < Modules->Count(); i++) {
+			asprintf(&Out, "%d: %x %s", i + 1, Modules->Get(i)->GetHandle(), Modules->Get(i)->GetFilename());
 
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
@@ -355,10 +347,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		int idx = atoi(argv[1]);
 
-		if (idx < 1 || idx > g_Bouncer->GetModuleCount()) {
+		if (idx < 1 || idx > Modules->Count()) {
 			SENDUSER("There is no such module.");
 		} else {
-			CModule* Mod = g_Bouncer->GetModules()[idx - 1];
+			CModule* Mod = Modules->Get(idx - 1);
 
 			if (!Mod) {
 				SENDUSER("This module is already unloaded.");
@@ -1194,14 +1186,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	if (argc == 0)
 		return false;
 
-	CModule** Modules = g_Bouncer->GetModules();
-	int Count = g_Bouncer->GetModuleCount();
+	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Count; i++) {
-		if (Modules[i]) {
-			if (!Modules[i]->InterceptClientMessage(this, argc, argv))
-				return false;
-		}
+	for (int i = 0; i < Modules->Count(); i++) {
+		if (!Modules->Get(i)->InterceptClientMessage(this, argc, argv))
+			return false;
 	}
 
 	const char* Command = argv[0];

@@ -590,12 +590,8 @@ const char* CCore::GetIdent(void) {
 		return NULL;
 }
 
-CModule** CCore::GetModules(void) {
-	return m_Modules.GetList();
-}
-
-int CCore::GetModuleCount(void) {
-	return m_Modules.Count();
+CVector<CModule *> *CCore::GetModules(void) {
+	return &m_Modules;
 }
 
 CModule* CCore::LoadModule(const char* Filename, const char **Error) {
@@ -869,13 +865,10 @@ bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	if (User == NULL)
 		return false;
 
+	for (int a = 0; a < m_Modules.Count(); a++) {
+		CModule *Module = m_Modules[a];
 
-	for (int a = 0; a < g_Bouncer->GetModuleCount(); a++) {
-		CModule* Module = g_Bouncer->GetModules()[a];
-
-		if (Module) {
-			Module->UserDelete(Username);
-		}
+		Module->UserDelete(Username);
 	}
 
 	if (RemoveConfig) {

@@ -39,14 +39,14 @@ typedef struct socket_s {
 	CSocketEvents *Events;
 } socket_t;
 
-#ifndef USESSL
-typedef void SSL_CTX;
-#endif
-
 class CClientListener;
 class CSSLClientListener;
 
 class CCore {
+#ifndef SWIG
+	friend class CTimer;
+#endif
+
 	CConfig *m_Config;
 
 	CClientListener *m_Listener;
@@ -54,7 +54,7 @@ class CCore {
 
 	CHashtable<CUser *, false, 64> m_Users;
 	CVector<CModule *> m_Modules;
-	CVector<socket_s> m_OtherSockets;
+	CVector<socket_t> m_OtherSockets;
 	CVector<CTimer *>m_Timers;
 
 	time_t m_Startup;
@@ -79,6 +79,9 @@ class CCore {
 	bool Daemonize(void);
 	void WritePidFile(void);
 	bool MakeConfig(void);
+
+	void RegisterTimer(CTimer *Timer);
+	void UnregisterTimer(CTimer *Timer);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
@@ -94,10 +97,9 @@ public:
 	virtual CHashtable<CUser *, false, 64> *GetUsers(void);
 	virtual int GetUserCount(void);
 
-	virtual CModule **GetModules(void);
-	virtual int GetModuleCount(void);
 	virtual CModule *LoadModule(const char *Filename, const char **Error);
 	virtual bool UnloadModule(CModule *Module);
+	virtual CVector<CModule *> *GetModules(void);
 
 	virtual void SetIdent(const char *Ident);
 	virtual const char *GetIdent(void);
@@ -137,8 +139,6 @@ public:
 	virtual socket_t *GetSocketByClass(const char *Class, int Index);
 
 	virtual CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
-	virtual void RegisterTimer(CTimer *Timer);
-	virtual void UnregisterTimer(CTimer *Timer);
 
 	virtual int GetTimerStats(void);
 
