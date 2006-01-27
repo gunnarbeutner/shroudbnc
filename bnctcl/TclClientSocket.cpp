@@ -37,7 +37,7 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, bool IsClient, bool SSL) {
 
 	char Buf[20];
 
-	itoa(g_SocketIdx, Buf, 10);
+	sprintf(Buf, "%d", g_SocketIdx);
 	m_Idx = g_SocketIdx;
 	g_SocketIdx++;
 
@@ -54,7 +54,7 @@ CTclClientSocket::~CTclClientSocket() {
 	closesocket(m_Socket);
 
 	char Buf[20];
-	itoa(m_Idx, Buf, 10);
+	sprintf(Buf, "%d", m_Idx);
 
 	g_TclClientSockets->Remove(Buf);
 }
@@ -64,7 +64,7 @@ void CTclClientSocket::Destroy(void) {
 		Tcl_Obj* objv[3];
 
 		char ptr[20];
-		itoa(m_Idx, ptr, 10);
+		sprintf(ptr, "%d", m_Idx);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
@@ -99,7 +99,7 @@ bool CTclClientSocket::Read(bool DontProcess) {
 		Tcl_Obj* objv[3];
 		
 		char ptr[20];
-		itoa(m_Idx, ptr, 10);
+		sprintf(ptr, "%d", m_Idx);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
