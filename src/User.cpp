@@ -80,12 +80,6 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	}
 
-	m_BadLogins = NULL;
-	m_BadLoginCount = 0;
-
-	m_HostAllows = NULL;
-	m_HostAllowCount = 0;
-
 	unsigned int i = 0;
 	while (true) {
 		asprintf(&Out, "user.hosts.host%d", i++);
@@ -116,9 +110,6 @@ CUser::CUser(const char* Name) {
 
 	m_IsAdminCache = -1;
 
-	m_ClientCertificates = NULL;
-	m_ClientCertificateCount = 0;
-
 #ifdef USESSL
 	asprintf(&Out, "users/%s.pem", Name);
 
@@ -127,14 +118,11 @@ CUser::CUser(const char* Name) {
 
 	if (ClientCert != NULL) {
 		while ((Cert = PEM_read_X509(ClientCert, NULL, NULL, NULL)) != NULL) {
-			m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * ++m_ClientCertificateCount);
-
-			m_ClientCertificates[m_ClientCertificateCount - 1] = Cert;
+			m_ClientCertificates.Insert(Cert);
 		}
 
 		fclose(ClientCert);
-	} else
-		m_ClientCertificates = NULL;
+	}
 
 	free(Out);
 #endif
@@ -166,21 +154,21 @@ CUser::~CUser() {
 
 	delete m_Keys;
 
-	free(m_BadLogins);
-
 	free(m_Name);
 
 	m_BadLoginPulse->Destroy();
 
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificateCount; i++)
+	for (int i = 0; i < m_ClientCertificates.Count(); i++)
 		X509_free(m_ClientCertificates[i]);
-
-	free(m_ClientCertificates);
 #endif
 
 	if (m_ReconnectTimer)
 		delete m_ReconnectTimer;
+
+	for (int i = 0; i < m_HostAllows.Count(); i++) {
+		free(m_HostAllows.Get(i));
+	}
 }
 
 SOCKET CUser::GetIRCSocket(void) {
@@ -805,9 +793,9 @@ void CUser::MarkQuitted(void) {
 }
 
 void CUser::LogBadLogin(sockaddr_in Peer) {
-	badlogin_t *BadLogins;
+	badlogin_t BadLogin;
 
-	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+	for (int i = 0; i < m_BadLogins.Count(); i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].Count < 3) {
 #else
@@ -819,32 +807,14 @@ void CUser::LogBadLogin(sockaddr_in Peer) {
 		}
 	}
 
-	for (unsigned int a = 0; a < m_BadLoginCount; a++) {
-		if (m_BadLogins[a].Count == 0) {
-			m_BadLogins[a].Address = Peer;
-			m_BadLogins[a].Count = 1;
+	BadLogin.Count = 1;
+	BadLogin.Address = Peer;
 
-			return;
-		}
-	}
-
-	BadLogins = (badlogin_t *)realloc(m_BadLogins, sizeof(badlogin_t) * ++m_BadLoginCount);
-
-	if (!BadLogins) {
-		LOGERROR("realloc() failed. Could not add new item.");
-
-		--m_BadLoginCount;
-
-		return;
-	}
-
-	m_BadLogins = BadLogins;
-	m_BadLogins[m_BadLoginCount - 1].Address = Peer;
-	m_BadLogins[m_BadLoginCount - 1].Count = 1;
+	m_BadLogins.Insert(BadLogin);
 }
 
 bool CUser::IsIpBlocked(sockaddr_in Peer) {
-	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+	for (unsigned int i = 0; i < m_BadLogins.Count(); i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
 #else
@@ -861,47 +831,45 @@ bool CUser::IsIpBlocked(sockaddr_in Peer) {
 }
 
 void CUser::BadLoginPulse(void) {
-	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
+	for (unsigned int i = m_BadLogins.Count() - 1; i >= 0; i--) {
 		if (m_BadLogins[i].Count > 0) {
 			m_BadLogins[i].Count--;
+
+			if (m_BadLogins[i].Count <= 0) {
+				m_BadLogins.Remove(i);
+			}
 		}
 	}
 }
 
 void CUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
-	char** HostAllows;
+	char *dupMask;
 
-	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
-		if (!m_HostAllows[i]) {
-			m_HostAllows[i] = strdup(Mask);
-
-			if (UpdateConfig)
-				UpdateHosts();
-
-			return;
-		}
-	}
-
-	HostAllows = (char**)realloc(m_HostAllows, sizeof(char*) * ++m_HostAllowCount);
-
-	if (HostAllows == NULL) {
-		LOGERROR("realloc() failed. Host could not be added.");
-
+	if (Mask == NULL || CanHostConnect(Mask)) {
 		return;
 	}
 
-	m_HostAllows = HostAllows;
-	m_HostAllows[m_HostAllowCount - 1] = strdup(Mask);
+	dupMask = strdup(Mask);
+
+	if (dupMask == NULL) {
+		return;
+	}
+
+	if (m_HostAllows.Insert(dupMask) == false) {
+		LOGERROR("Insert() failed. Host could not be added.");
+
+		return;
+	}
 
 	if (UpdateConfig)
 		UpdateHosts();
 }
 
 void CUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
-	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
-		if (m_HostAllows[i] && strcasecmp(m_HostAllows[i], Mask) == 0) {
+	for (unsigned int i = m_HostAllows.Count() - 1; i >= 0; i--) {
+		if (strcasecmp(m_HostAllows[i], Mask) == 0) {
 			free(m_HostAllows[i]);
-			m_HostAllows[i] = NULL;
+			m_HostAllows.Remove(i);
 
 			if (UpdateConfig)
 				UpdateHosts();
@@ -911,26 +879,22 @@ void CUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
 	}
 }
 
-char** CUser::GetHostAllows(void) {
-	return m_HostAllows;
-}
-
-unsigned int CUser::GetHostAllowCount(void) {
-	return m_HostAllowCount;
+CVector<char *> *CUser::GetHostAllows(void) {
+	return &m_HostAllows;
 }
 
 bool CUser::CanHostConnect(const char* Host) {
-	unsigned int c = 0;
+	unsigned int Count = 0;
 
-	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
-		if (m_HostAllows[i])
-			if (mmatch(m_HostAllows[i], Host) == 0)
-				return true;
-			else
-				c++;
+	for (unsigned int i = 0; i < m_HostAllows.Count(); i++) {
+		if (mmatch(m_HostAllows[i], Host) == 0) {
+			return true;
+		} else {
+			Count++;
+		}
 	}
 
-	if (c > 0)
+	if (Count > 0)
 		return false;
 	else
 		return true;	
@@ -940,18 +904,16 @@ void CUser::UpdateHosts(void) {
 	char* Out;
 	int a = 0;
 
-	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
-		if (m_HostAllows[i]) {
-			asprintf(&Out, "user.hosts.host%d", a++);
+	for (unsigned int i = 0; i < m_HostAllows.Count(); i++) {
+		asprintf(&Out, "user.hosts.host%d", a++);
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed. Could not update hosts");
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed. Could not update hosts");
 
-				g_Bouncer->Fatal();
-			} else {
-				m_Config->WriteString(Out, m_HostAllows[i]);
-				free(Out);
-			}
+			g_Bouncer->Fatal();
+		} else {
+			m_Config->WriteString(Out, m_HostAllows[i]);
+			free(Out);
 		}
 	}
 
@@ -1086,12 +1048,9 @@ void CUser::SetDropModes(const char* DropModes) {
 	m_Config->WriteString("user.dropmodes", DropModes);
 }
 
-X509* CUser::GetClientCertificate(int Index) {
+CVector<X509 *> *CUser::GetClientCertificates(void) {
 #ifdef USESSL
-	if (Index >= m_ClientCertificateCount || Index < 0)
-		return NULL;
-	else
-		return m_ClientCertificates[Index];
+	return &m_ClientCertificates;
 #else
 	return NULL;
 #endif
@@ -1099,13 +1058,12 @@ X509* CUser::GetClientCertificate(int Index) {
 
 bool CUser::AddClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificateCount; i++) {
+	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}
 
-	m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * ++m_ClientCertificateCount);
-	m_ClientCertificates[m_ClientCertificateCount - 1] = Certificate;
+	m_ClientCertificates.Insert(Certificate);
 
 	return PersistCertificates();
 #else
@@ -1115,11 +1073,9 @@ bool CUser::AddClientCertificate(X509* Certificate) {
 
 bool CUser::RemoveClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificateCount; i++) {
+	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
-			m_ClientCertificates[i] = m_ClientCertificates[m_ClientCertificateCount - 1];
-
-			m_ClientCertificates = (X509**)realloc(m_ClientCertificates, sizeof(X509*) * --m_ClientCertificateCount);
+			m_ClientCertificates.Remove(i);
 
 			return PersistCertificates();
 		}
@@ -1142,9 +1098,9 @@ bool CUser::PersistCertificates(void) {
 		return false;
 	}
 
-	if (m_ClientCertificateCount == 0)
+	if (m_ClientCertificates.Count() == 0) {
 		unlink(Out);
-	else {
+	} else {
 		CertFile = fopen(Out, "w");
 
 		if (CertFile == NULL) {
@@ -1153,7 +1109,7 @@ bool CUser::PersistCertificates(void) {
 			return false;
 		}
 
-		for (int i = 0; i < m_ClientCertificateCount; i++) {
+		for (int i = 0; i < m_ClientCertificates.Count(); i++) {
 			X509* a = m_ClientCertificates[i];
 			PEM_write_X509(CertFile, m_ClientCertificates[i]);
 			fprintf(CertFile, "\n");
@@ -1170,7 +1126,7 @@ bool CUser::PersistCertificates(void) {
 
 bool CUser::FindClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificateCount; i++) {
+	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}

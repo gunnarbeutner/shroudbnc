@@ -17,16 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_TCLSOCKET_H__840815A2_F117_4D3D_8593_4F97538DE148__INCLUDED_)
-#define AFX_TCLSOCKET_H__840815A2_F117_4D3D_8593_4F97538DE148__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 class CCore;
 class CConnection;
 class CTclSocket;
+
+#undef sprintf
 
 extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
 extern int g_SocketIdx;
@@ -43,7 +38,7 @@ public:
 
 		m_TclProc = strdup(TclProc);
 
-		itoa(g_SocketIdx, Buf, 10);
+		sprintf(Buf, "%d", g_SocketIdx);
 		m_Idx = g_SocketIdx;
 		g_SocketIdx++;
 
@@ -57,7 +52,7 @@ public:
 
 		free(m_TclProc);
 
-		itoa(m_Idx, Buf, 10);
+		sprintf(Buf, "%d", m_Idx);
 
 		g_TclListeners->Remove(Buf);
 	}
@@ -77,7 +72,7 @@ public:
 
 		TclClient = new CTclClientSocket(Client, false, m_SSL);
 
-		itoa(TclClient->GetIdx(), ptr, 10);
+		sprintf(ptr, "%d", TclClient->GetIdx());
 
 		objv[0] = Tcl_NewStringObj(m_TclProc, strlen(m_TclProc));
 		Tcl_IncrRefCount(objv[0]);
@@ -95,32 +90,3 @@ public:
 		}
 	}
 };
-
-#if 0
-class CTclSocket : public CSocketEvents {
-public:
-	CTclSocket(const char* BindIp, unsigned short Port, const char* TclProc);
-	virtual ~CTclSocket();
-
-	virtual void Destroy(void);
-
-	virtual bool Read(bool DontProcess);
-	virtual void Write(void);
-	virtual void Error(void);
-	virtual bool HasQueuedData(void);
-	virtual bool DoTimeout(void);
-	virtual bool ShouldDestroy(void);
-
-
-	virtual const char* ClassName(void);
-
-	virtual bool IsValid(void);
-	virtual int GetIdx(void);
-private:
-	SOCKET m_Listener;
-	char* m_TclProc;
-	int m_Idx;
-};
-#endif
-
-#endif // !defined(AFX_TCLSOCKET_H__840815A2_F117_4D3D_8593_4F97538DE148__INCLUDED_)

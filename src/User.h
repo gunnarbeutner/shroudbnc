@@ -25,6 +25,11 @@ class CTrafficStats;
 class CKeyring;
 class CTimer;
 
+/**
+ * badlogin_t
+ *
+ * Describes a failed login attempt.
+ */
 typedef struct badlogin_s {
 	sockaddr_in Address;
 	unsigned int Count;
@@ -42,36 +47,33 @@ class CUser {
 	friend bool UserReconnectTimer(time_t Now, void *User);
 #endif
 
-	CClientConnection *m_Client;
-	CIRCConnection *m_IRC;
-	CConfig *m_Config;
-	CLog *m_Log;
+	char *m_Name; /**< the name of the user */
 
-	char *m_Name;
+	CClientConnection *m_Client; /**< the user's client connection */
+	CIRCConnection *m_IRC; /**< the user's irc connection */
+	CConfig *m_Config; /**< the user's configuration object */
+	CLog *m_Log; /**< the user's log file */
 
 	time_t m_ReconnectTime;
 	time_t m_LastReconnect;
 
-	bool m_Locked;
+	bool m_Locked; /**< determines whether the user is locked/suspended */
 
-	badlogin_t *m_BadLogins;
-	unsigned int m_BadLoginCount;
+	CVector<badlogin_t> m_BadLogins; /**< a list of failed login attempts for this user */
 
-	char **m_HostAllows;
-	unsigned int m_HostAllowCount;
+	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this account */
 
-	CTrafficStats *m_ClientStats;
-	CTrafficStats *m_IRCStats;
+	CTrafficStats *m_ClientStats; /**< traffic stats for the user's client connection(s) */
+	CTrafficStats *m_IRCStats; /**< traffic stats for the user's irc connection(s) */
 
-	CKeyring *m_Keys;
+	CKeyring *m_Keys; /**< a list of channel keys */
 
 	CTimer *m_BadLoginPulse;
 	CTimer *m_ReconnectTimer;
 
-	int m_IsAdminCache;
+	int m_IsAdminCache; /**< cached value which determines whether the user is an admin */
 
-	X509 **m_ClientCertificates;
-	int m_ClientCertificateCount;
+	CVector<X509 *> m_ClientCertificates;
 
 	bool PersistCertificates(void);
 
@@ -142,8 +144,7 @@ public:
 
 	virtual void AddHostAllow(const char *Mask, bool UpdateConfig = true);
 	virtual void RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual char **GetHostAllows(void);
-	virtual unsigned int GetHostAllowCount(void);
+	virtual CVector<char *> *GetHostAllows(void);
 	virtual bool CanHostConnect(const char *Host);
 
 	virtual CTrafficStats *GetClientStats(void);
@@ -180,7 +181,7 @@ public:
 	virtual const char *GetDropModes(void);
 	virtual void SetDropModes(const char *DropModes);
 
-	virtual X509 *GetClientCertificate(int Index);
+	virtual CVector<X509 *> *GetClientCertificates(void);
 	virtual bool AddClientCertificate(X509 *Certificate);
 	virtual bool RemoveClientCertificate(X509 *Certificate);
 	virtual bool FindClientCertificate(X509 *Certificate);

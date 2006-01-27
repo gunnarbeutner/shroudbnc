@@ -21,6 +21,11 @@ class CCore;
 class CIRCConnection;
 class CClientConnection;
 
+/**
+ * CModuleFar
+ *
+ * The interface for modules.
+ */
 struct CModuleFar {
 	virtual void Destroy(void) = 0;
 	virtual void Init(CCore *Root) = 0;

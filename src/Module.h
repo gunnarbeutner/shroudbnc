@@ -20,11 +20,16 @@
 typedef CModuleFar* (* FNGETOBJECT)() ;
 typedef int (* FNGETINTERFACEVERSION)() ;
 
+/**
+ * CModule
+ *
+ * A dynamically loaded shroudBNC module.
+ */
 class CModule : public CModuleFar {
-	HMODULE m_Image;
-	char *m_File;
-	CModuleFar *m_Far;
-	char *m_Error;
+	HMODULE m_Image; /**< the os-specific module handle */
+	char *m_File; /**< the filename of the module */
+	CModuleFar *m_Far; /**< the module's implementation of the CModuleFar class */
+	char *m_Error; /**< the last error */
 public:
 #ifndef SWIG
 	CModule(const char *Filename);

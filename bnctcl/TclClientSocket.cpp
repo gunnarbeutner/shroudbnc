@@ -21,6 +21,8 @@
 #include "StdAfx.h"
 #include "TclClientSocket.h"
 
+#undef sprintf
+
 extern Tcl_Interp* g_Interp;
 
 CHashtable<CTclClientSocket*, false, 5>* g_TclClientSockets;

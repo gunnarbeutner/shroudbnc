@@ -30,12 +30,12 @@ public:
 
 	virtual void Destroy(void);
 private:
-	TimerProc m_Proc;
-	void *m_Cookie;
-	unsigned int m_Interval;
-	bool m_Repeat;
-	time_t m_Next;
+	TimerProc m_Proc; /**< the function which should be called for the timer */
+	void *m_Cookie; /**< a user-specific pointer which is passed to the timer's function */
+	unsigned int m_Interval; /**< the timer's interval */
+	bool m_Repeat; /**< determines whether the timer is executed repeatedly */
+	time_t m_Next; /**< the next scheduled time of execution */
 
-	virtual bool Call(time_t Now);
-	virtual time_t GetNextCall(void);
+	bool Call(time_t Now);
+	time_t GetNextCall(void);
 };

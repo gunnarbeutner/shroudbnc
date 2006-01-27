@@ -566,22 +566,20 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "showcert") == 0) {
 		int i = 0;
 		char Buffer[300];
-		X509* ClientCert;
+		CVector<X509 *> *Certificates;
 		X509_NAME* name;
 		bool First = true;
 
-		while ((ClientCert = (X509*)m_Owner->GetClientCertificate(i++)) != NULL) {
-			if (ClientCert == NULL && First) {
-				SENDUSER("You did not set a client certificate.");
+		Certificates = m_Owner->GetClientCertificates();
 
-				return false;
-			}
+		for (int i = 0; i < Certificates->Count(); i++) {
+			X509 *Certificate = Certificates->Get(i);
 
-			if (!First) {
+			if (First == false) {
 				SENDUSER("---");
+			} else {
+				First = false;
 			}
-
-			First = false;
 
 			asprintf(&Out, "Client Certificate #%d", i);
 
@@ -595,7 +593,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			free(Out);
 
-			name = X509_get_issuer_name(ClientCert);
+			name = X509_get_issuer_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
 			asprintf(&Out, "issuer: %s", Buffer);
 
@@ -608,7 +606,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER(Out);
 			free(Out);
 
-			name = X509_get_subject_name(ClientCert);
+			name = X509_get_subject_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
 			asprintf(&Out, "subject: %s", Buffer);
 
@@ -636,10 +634,17 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		id = atoi(argv[1]);
 
-		X509* Cert = (X509*)m_Owner->GetClientCertificate(id - 1);
+		X509 *Certificate;
+		CVector<X509 *> *Certificates = m_Owner->GetClientCertificates();
 
-		if (Cert != NULL) {
-			if (m_Owner->RemoveClientCertificate(Cert)) {
+		if (id < 1 || Certificates->Count() > id) {
+			Certificate = NULL;
+		} else {
+			Certificate = Certificates->Get(id - 1);
+		}
+
+		if (Certificate != NULL) {
+			if (m_Owner->RemoveClientCertificate(Certificate)) {
 				SENDUSER("Done.");
 			} else {
 				SENDUSER("An error occured while removing the certificate.");
@@ -977,20 +982,16 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "hosts") == 0) {
-		char** Hosts = m_Owner->GetHostAllows();
-		unsigned int a = 0;
+		CVector<char *> *Hosts = m_Owner->GetHostAllows();
 
 		SENDUSER("Hostmasks");
 		SENDUSER("---------");
 
-		for (unsigned int i = 0; i < m_Owner->GetHostAllowCount(); i++) {
-			if (Hosts[i]) {
-				SENDUSER(Hosts[i]);
-				a++;
-			}
+		for (unsigned int i = 0; i < Hosts->Count(); i++) {
+			SENDUSER(Hosts->Get(i));
 		}
 
-		if (a == 0)
+		if (Hosts->Count() == 0)
 			SENDUSER("*");
 
 		SENDUSER("End of HOSTS.");
@@ -1003,17 +1004,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		char** Hosts = m_Owner->GetHostAllows();
-		unsigned int a = 0;
+		CVector<char *> *Hosts = m_Owner->GetHostAllows();
 
-		for (unsigned int i = 0; i < m_Owner->GetHostAllowCount(); i++) {
-			if (Hosts[i])
-				a++;
-		}
-
-		if (m_Owner->CanHostConnect(argv[1]) && a) {
+		if (m_Owner->CanHostConnect(argv[1]) && Hosts->Count() > 0) {
 			SENDUSER("This hostmask is already added or another hostmask supercedes it.");
-		} else if (a >= 50) {
+		} else if (Hosts->Count() >= 50) {
 			SENDUSER("You may not add more than 50 hostmasks.");
 		} else {
 			m_Owner->AddHostAllow(argv[1]);

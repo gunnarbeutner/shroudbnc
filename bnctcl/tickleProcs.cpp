@@ -1694,15 +1694,13 @@ const char* getbnchosts(void) {
 	if (Context == NULL)
 		return NULL;
 
-	int Count = Context->GetHostAllowCount();
-	char** Hosts = Context->GetHostAllows();
+	CVector<char *> *Hosts = Context->GetHostAllows();
 
 	int argc = 0;
-	const char** argv = (const char**)malloc(Count * sizeof(const char*));
+	const char** argv = (const char**)malloc(Hosts->Count() * sizeof(const char*));
 
-	for (int i = 0; i < Count; i++) {
-		if (Hosts[i])
-			argv[argc++] = Hosts[i];
+	for (int i = 0; i < Hosts->Count(); i++) {
+		argv[argc++] = Hosts->Get(i);
 	}
 
 	static char* List = NULL;
@@ -1732,18 +1730,12 @@ int addbnchost(const char* Host) {
 	if (Context == NULL)
 		return 0;
 
-	char** Hosts = Context->GetHostAllows();
-	unsigned int a = 0;
+	CVector<char *> *Hosts = Context->GetHostAllows();
 
-	for (unsigned int i = 0; i < Context->GetHostAllowCount(); i++) {
-		if (Hosts[i])
-			a++;
-	}
-
-	if (Context->CanHostConnect(Host) && a)
+	if (Context->CanHostConnect(Host) && Hosts->Count() > 0)
 		return 0;
 
-	Context->AddHostAllow(Host, true);
+	Context->AddHostAllow(Host);
 
 	return 1;
 }

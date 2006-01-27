@@ -22,7 +22,3 @@
 #ifdef _MSC_VER
 #pragma warning( disable : 4996 )
 #endif
-
-#ifndef _WIN32
-#include "itoa.h"
-#endif
