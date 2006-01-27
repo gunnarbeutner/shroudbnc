@@ -26,9 +26,8 @@ typedef struct queue_item_s {
 class CFloodControl;
 
 class CQueue {
-	queue_item_t *m_Items;
-	int m_ItemCount;
-	CFloodControl* m_Notify;
+	queue_item_t *m_Items; /**< the items which are in the queue */
+	int m_ItemCount; /**< the number of items */
 public:
 #ifndef SWIG
 	CQueue(void);

@@ -23,8 +23,15 @@ class CBouncerUser;
 #define Log_Message 0
 #define Log_Motd 2
 
+/**
+ * CBouncerLog
+ *
+ * A log file.
+ */
 class CBouncerLog {
 	char *m_Filename; /**< the filename of the log, can be NULL */
+
+	void InternalWriteLine(const char *Line);
 public:
 #ifndef SWIG
 	CBouncerLog(const char *Filename);
@@ -32,7 +39,6 @@ public:
 	virtual ~CBouncerLog(void);
 
 	virtual void Clear(void);
-	virtual void InternalWriteLine(const char *Line);
 	virtual void WriteLine(const char *Format, ...);
 	virtual void PlayToUser(CBouncerUser *User, int Type);
 	virtual bool IsEmpty(void);

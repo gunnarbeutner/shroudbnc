@@ -457,7 +457,7 @@ void CBouncerUser::Reconnect(void) {
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
 	} else {
-		g_Bouncer->GetLog()->InternalWriteLine(Out);
+		g_Bouncer->Log("%s", Out);
 		Notice(Out);
 		free(Out);
 	}
@@ -587,7 +587,7 @@ void CBouncerUser::Log(const char* Format, ...) {
 	if (Out == NULL) {
 		LOGERROR("vasprintf() failed.");
 	} else {
-		m_Log->InternalWriteLine(Out);
+		m_Log->WriteLine("%s", Out);
 		free(Out);
 	}
 }
@@ -616,7 +616,7 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
-			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			g_Bouncer->Log("%s", Out);
 			g_Bouncer->GlobalNotice(Out, true);
 
 			free(Out);
@@ -664,7 +664,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {	
-			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			g_Bouncer->Log("%s", Out);
 			g_Bouncer->GlobalNotice(Out, true);
 
 			free(Out);
@@ -681,7 +681,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 			LOGERROR("asprintf() failed.");
 		} else {
 			g_Bouncer->GlobalNotice(Out, true);
-			g_Bouncer->GetLog()->InternalWriteLine(Out);
+			g_Bouncer->Log("%s", Out);
 
 			free(Out);
 		}
@@ -702,7 +702,7 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 				LOGERROR("asprintf() failed.");
 			} else {
 				g_Bouncer->GlobalNotice(Out, true);
-				g_Bouncer->GetLog()->InternalWriteLine(Out);
+				g_Bouncer->Log("%s", Out);
 
 				free(Out);
 			}

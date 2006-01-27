@@ -18,22 +18,30 @@
  *******************************************************************************/
 
 class CChannel;
-class CNick;
 class CBouncerConfig;
 
+/**
+ * CNick
+ *
+ * Represents a user on a single channel.
+ */
 class CNick {
-	CChannel *m_Owner;
-	char *m_Nick;
-	char *m_Prefixes;
-	char *m_Site;
-	char *m_Realname;
-	char *m_Server;
-	time_t m_Creation;
-	time_t m_IdleSince;
-	CBouncerConfig *m_Tags;
+	CChannel *m_Owner; /**< the channel which this nick object belongs to */
+	char *m_Nick; /**< the nickname of the user */
+	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
+	char *m_Site; /**< the ident\@host of the user */
+	char *m_Realname; /**< the realname of the user */
+	char *m_Server; /**< the server this user is using */
+	time_t m_Creation; /**< a timestamp, when this user object was created */
+	time_t m_IdleSince; /**< a timestamp, when the user last said something */
+	CBouncerConfig *m_Tags; /**< any tags which belong to this nick object */
+
+	const char *InternalGetSite(void);
+	const char *InternalGetRealname(void);
+	const char *InternalGetServer(void);
 public:
 #ifndef SWIG
-	CNick(CChannel* Owner, const char* Nick);
+	CNick(CChannel *Owner, const char *Nick);
 #endif
 	virtual ~CNick(void);
 
@@ -51,18 +59,16 @@ public:
 	virtual const char *GetPrefixes(void);
 
 	virtual bool SetSite(const char *Site);
-	virtual bool SetRealname(const char *Realname);
-	virtual bool SetServer(const char *Server);
-
-	virtual const char *InternalGetSite(void);
-	virtual const char *InternalGetRealname(void);
-	virtual const char *InternalGetServer(void);
-
 	virtual const char *GetSite(void);
+
+	virtual bool SetRealname(const char *Realname);
 	virtual const char *GetRealname(void);
+
+	virtual bool SetServer(const char *Server);
 	virtual const char *GetServer(void);
 
 	virtual time_t GetChanJoin(void);
+
 	virtual time_t GetIdleSince(void);
 	virtual bool SetIdleSince(time_t Time);
 	

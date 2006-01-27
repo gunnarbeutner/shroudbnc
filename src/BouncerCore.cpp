@@ -748,7 +748,7 @@ void CBouncerCore::Log(const char* Format, ...) {
 		return;
 	}
 
-	m_Log->InternalWriteLine(Out);
+	m_Log->WriteLine("%s", Out);
 
 	free(Out);
 }
@@ -785,7 +785,7 @@ void CBouncerCore::InternalLogError(const char* Format, ...) {
 		return;
 	}
 
-	m_Log->InternalWriteLine(Out);
+	m_Log->WriteLine("%s", Out);
 
 	free(Out);
 }

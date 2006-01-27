@@ -144,7 +144,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
  * sbncPrepareFreeze
  *
  * Used by "sbncloader" to notify shroudBNC that it is going
- * to be "freezed" (i.e. reloaded/restarted).
+ * to be "frozen" (i.e. reloaded/restarted).
  */
 extern "C" EXPORT bool sbncPrepareFreeze(void) {
 	g_Freeze = true;

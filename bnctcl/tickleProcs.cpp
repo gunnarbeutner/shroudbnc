@@ -1319,7 +1319,7 @@ void putlog(const char* Text) {
 	CBouncerUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (User && Text)
-		User->GetLog()->InternalWriteLine(Text);
+		User->GetLog()->WriteLine("%s", Text);
 }
 
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {

@@ -24,9 +24,10 @@
 class CFIFOBuffer;
 #else
 class CFIFOBuffer {
-	char* m_Buffer;
-	unsigned int m_BufferSize;
-	unsigned int m_Offset;
+	char* m_Buffer; /**< the fifo buffer's data */
+	unsigned int m_BufferSize; /**< the size of the buffer */
+	unsigned int m_Offset; /**< the number of unused bytes at the
+								beginning of the buffer */
 
 	void *ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize);
 	inline void Optimize(void);

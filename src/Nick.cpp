@@ -23,12 +23,20 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CNick::CNick(CChannel* Owner, const char* Nick) {
+/**
+ * CNick
+ *
+ * Constructs a new nick object.
+ *
+ * @param Owner the owning channel of this nick object
+ * @param Nick the nickname of the user
+ */
+CNick::CNick(CChannel *Owner, const char *Nick) {
 	assert(Nick != NULL);
 
 	m_Nick = strdup(Nick);
 
-	if (m_Nick == NULL && Nick) {
+	if (m_Nick == NULL) {
 		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
 	}
 
@@ -44,6 +52,11 @@ CNick::CNick(CChannel* Owner, const char* Nick) {
 	m_Owner = Owner;
 }
 
+/**
+ * ~CNick
+ *
+ * Destroys a nick object.
+ */
 CNick::~CNick() {
 	free(m_Nick);
 	free(m_Prefixes);
@@ -51,26 +64,77 @@ CNick::~CNick() {
 	free(m_Realname);
 	free(m_Server);
 
-	if (m_Tags)
+	if (m_Tags) {
 		delete m_Tags;
+	}
 }
 
-const char* CNick::GetNick(void) {
+/**
+ * GetNick
+ *
+ * Returns the current nick of the user.
+ */
+const char *CNick::GetNick(void) {
 	return m_Nick;
 }
 
+/**
+ * SetNick
+ *
+ * Sets the user's nickname.
+ *
+ * @param Nick the new nickname
+ */
+bool CNick::SetNick(const char *Nick) {
+	assert(Nick != NULL);
+
+	free(m_Nick);
+
+	m_Nick = strdup(Nick);
+
+	if (m_Nick == NULL && Nick) {
+		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
+
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * IsOp
+ *
+ * Returns whether the user is an op.
+ */
 bool CNick::IsOp(void) {
 	return HasPrefix('@');
 }
 
+/**
+ * IsVoice
+ *
+ * Returns whether the user is voiced.
+ */
 bool CNick::IsVoice(void) {
 	return HasPrefix('+');
 }
 
+/**
+ * IsHalfop
+ *
+ * Returns whether the user is a half-op.
+ */
 bool CNick::IsHalfop(void) {
 	return HasPrefix('%');
 }
 
+/**
+ * HasPrefix
+ *
+ * Returns whether the user has the given prefix.
+ *
+ * @param Prefix the prefix (e.g. @, +)
+ */
 bool CNick::HasPrefix(char Prefix) {
 	if (m_Prefixes && strchr(m_Prefixes, Prefix) != NULL)
 		return true;
@@ -78,11 +142,18 @@ bool CNick::HasPrefix(char Prefix) {
 		return false;
 }
 
+/**
+ * AddPrefix
+ *
+ * Adds a prefix to a user.
+ *
+ * @param Prefix the new prefix
+ */
 bool CNick::AddPrefix(char Prefix) {
-	char* Prefixes;
-	int n = m_Prefixes ? strlen(m_Prefixes) : 0;
+	char *Prefixes;
+	int LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
 
-	Prefixes = (char*)realloc(m_Prefixes, n + 2);
+	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
 
 	if (Prefixes == NULL) {
 		LOGERROR("realloc() failed. Prefixes might be inconsistent (%s, %c).", m_Nick, Prefix);
@@ -91,24 +162,35 @@ bool CNick::AddPrefix(char Prefix) {
 	}
 
 	m_Prefixes = Prefixes;
-	m_Prefixes[n] = Prefix;
-	m_Prefixes[n + 1] = '\0';
+	m_Prefixes[LengthPrefixes] = Prefix;
+	m_Prefixes[LengthPrefixes + 1] = '\0';
 
 	return true;
 }
 
+/**
+ * RemovePrefix
+ *
+ * Removes the specified prefix from the user.
+ *
+ * @param Prefix the prefix
+ */
 bool CNick::RemovePrefix(char Prefix) {
 	int a = 0;
+	unsigned int LengthPrefixes;
 
-	if (!m_Prefixes)
+	if (m_Prefixes == NULL) {
 		return true;
+	}
 
-	char* Copy = (char*)malloc(strlen(m_Prefixes) + 1);
+	LengthPrefixes = strlen(m_Prefixes);
 
-	unsigned int Len = strlen(m_Prefixes);
-	for (unsigned int i = 0; i < Len; i++) {
-		if (m_Prefixes[i] != Prefix)
+	char *Copy = (char *)malloc(LengthPrefixes + 1);
+
+	for (unsigned int i = 0; i < LengthPrefixes; i++) {
+		if (m_Prefixes[i] != Prefix) {
 			Copy[a++] = m_Prefixes[i];
+		}
 	}
 
 	Copy[a] = '\0';
@@ -119,8 +201,15 @@ bool CNick::RemovePrefix(char Prefix) {
 	return true;
 }
 
-bool CNick::SetPrefixes(const char* Prefixes) {
-	char* dupPrefixes;
+/**
+ * SetPrefixes
+ *
+ * Sets the prefixes for a user.
+ *
+ * @param Prefixes the new prefixes
+ */
+bool CNick::SetPrefixes(const char *Prefixes) {
+	char *dupPrefixes;
 
 	if (Prefixes) {
 		dupPrefixes = strdup(Prefixes);
@@ -143,73 +232,137 @@ bool CNick::SetPrefixes(const char* Prefixes) {
 	}
 }
 
-const char* CNick::GetPrefixes(void) {
+/**
+ * GetPrefixes
+ *
+ * Returns all prefixes for a user.
+ */
+const char *CNick::GetPrefixes(void) {
 	return m_Prefixes;
 }
 
+/**
+ * IMPL_NICKSET
+ *
+ * Implements a Set*() function
+ *
+ * @param Name the name of the attribute
+ * @param NewValue the new value
+ * @param Static indicates whether the attribute can be modified
+ *		  once its initial value has been set
+ */
 #define IMPL_NICKSET(Name, NewValue, Static) \
-	char* dup; \
+	char *DuplicateValue; \
 \
-	if (Static && Name) \
+	if (Static && Name != NULL) { \
 		return false; \
+	} \
 \
-	dup = strdup(NewValue); \
+	DuplicateValue = strdup(NewValue); \
 \
-	if (dup == NULL) { \
+	if (DuplicateValue == NULL) { \
 		LOGERROR("strdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
 \
 		return false; \
 	} else { \
 		free(Name); \
-		Name = dup; \
+		Name = DuplicateValue; \
 \
 		return true; \
 	}
 
-bool CNick::SetSite(const char* Site) {
+/**
+ * SetSite
+ *
+ * Sets the site (ident\@host) for a user.
+ *
+ * @param Site the user's new site
+ */
+bool CNick::SetSite(const char *Site) {
 	IMPL_NICKSET(m_Site, Site, false);
 }
 
+/**
+ * SetRealname
+ *
+ * Sets the user's realname.
+ *
+ * @param Realname the new realname
+ */
 bool CNick::SetRealname(const char *Realname) {
 	IMPL_NICKSET(m_Realname, Realname, true);
 }
 
+/**
+ * SetServer
+ *
+ * Sets the server for a user.
+ *
+ * @param Server the server which the user is using
+ */
 bool CNick::SetServer(const char *Server) {
 	IMPL_NICKSET(m_Server, Server, true);
 }
 
-const char* CNick::InternalGetSite(void) {
+/**
+ * InternalGetSite
+ *
+ * Returns the user's site without querying other nick
+ * objects if the information is not available.
+ */
+const char *CNick::InternalGetSite(void) {
 	if (!m_Site)
 		return NULL;
 
-	char* Host = strstr(m_Site, "!");
+	char *Host = strstr(m_Site, "!");
 
-	if (Host)
+	if (Host) {
 		return Host + 1;
-	else
+	} else {
 		return m_Site;
+	}
 }
 
+/**
+ * InternalGetRealname
+ *
+ * Returns the user's realname without querying other nick
+ * objects if the information is not available.
+ */
 const char *CNick::InternalGetRealname(void) {
 	return m_Realname;
 }
 
+/**
+ * InternalGetServer
+ *
+ * Returns the user's server without querying other nick
+ * objects if the information is not available.
+ */
 const char *CNick::InternalGetServer(void) {
 	return m_Server;
 }
 
+/**
+ * IMPL_NICKACCESSOR
+ *
+ * Implements a Get*() function
+ *
+ * @param Name the name of the attribute
+ */
 #define IMPL_NICKACCESSOR(Name) \
 	const char *Value; \
 	int a = 0; \
 \
-	if ((Value = Name()) != NULL) \
+	if ((Value = Name()) != NULL) { \
 		return Value; \
+	} \
 \
-	while (hash_t<CChannel*>* Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
+	while (hash_t<CChannel *> *Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
 		if (!Chan->Value->HasNames()) \
 			continue; \
 \
-		CNick* NickObj = Chan->Value->GetNames()->Get(m_Nick); \
+		CNick *NickObj = Chan->Value->GetNames()->Get(m_Nick); \
 \
 		if (NickObj && strcasecmp(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
 			return NickObj->Name(); \
@@ -217,49 +370,90 @@ const char *CNick::InternalGetServer(void) {
 \
 	return NULL;
 
-
+/**
+ * GetSite
+ *
+ * Returns the user's site.
+ */
 const char *CNick::GetSite(void) {
 	IMPL_NICKACCESSOR(InternalGetSite)
 }
 
+/**
+ * GetRealname
+ *
+ * Returns the user's realname.
+ */
 const char *CNick::GetRealname(void) {
 	IMPL_NICKACCESSOR(InternalGetRealname)
 }
 
+/**
+ * GetServer
+ *
+ * Returns the user's server.
+ */
 const char *CNick::GetServer(void) {
 	IMPL_NICKACCESSOR(InternalGetServer)
 }
 
-bool CNick::SetNick(const char* Nick) {
-	assert(Nick != NULL);
-
-	free(m_Nick);
-
-	m_Nick = strdup(Nick);
-
-	if (m_Nick == NULL && Nick) {
-		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
-
-		return false;
-	} else
-		return true;
-}
-
+/**
+ * GetChanJoin
+ *
+ * Returns a timestamp which determines when
+ * the user joined the channel.
+ */
 time_t CNick::GetChanJoin(void) {
 	return m_Creation;
 }
 
+/**
+ * GetIdleSince
+ *
+ * Returns a timestamp which determines when
+ * the user last said something.
+ */
 time_t CNick::GetIdleSince(void) {
 	return m_IdleSince;
 }
 
+/**
+ * SetIdleSince
+ *
+ * Sets the timestamp of the user's last channel PRIVMSG.
+ *
+ * @param Time the new timestamp
+ */
 bool CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
 
 	return true;
 }
 
-bool CNick::SetTag(const char* Name, const char* Value) {
+/**
+ * GetTag
+ *
+ * Returns the value of a user-specific tag.
+ *
+ * @param Name the name of the tag
+ */
+const char *CNick::GetTag(const char *Name) {
+	if (m_Tags == NULL) {
+		return NULL;
+	} else {
+		return m_Tags->ReadString(Name);
+	}
+}
+
+/**
+ * SetTag
+ *
+ * Sets a user-specific tag.
+ *
+ * @param Name the name of the tag
+ * @param Value the value of the tag
+ */
+bool CNick::SetTag(const char *Name, const char *Value) {
 	if (m_Tags == NULL) {
 		m_Tags = new CBouncerConfig(NULL);
 
@@ -273,13 +467,11 @@ bool CNick::SetTag(const char* Name, const char* Value) {
 	return m_Tags->WriteString(Name, Value);
 }
 
-const char* CNick::GetTag(const char* Name) {
-	if (m_Tags == NULL)
-		return NULL;
-	else
-		return m_Tags->ReadString(Name);
-}
-
+/**
+ * GetChannel
+ *
+ * Returns the channel which this user is on.
+ */
 CChannel *CNick::GetChannel(void) {
 	return m_Owner;
 }

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-typedef bool (*TimerProc)(time_t now, void* cookie);
+typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
 class CTimer {
 	friend class CBouncerCore;

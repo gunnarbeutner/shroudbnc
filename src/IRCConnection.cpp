@@ -492,7 +492,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
-			GetOwningClient()->GetLog()->InternalWriteLine(Out);
+			GetOwningClient()->GetLog()->WriteLine("%s", Out);
 
 		free(Out);
 	} else if (argc > 3 && iRaw == 465) {
@@ -510,7 +510,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		g_Bouncer->Log("%s", Out);
 
 		if (!GetOwningClient()->GetClientConnection())
-			GetOwningClient()->GetLog()->InternalWriteLine(Out);
+			GetOwningClient()->GetLog()->WriteLine("%s", Out);
 
 		free(Out);
 	} else if (argc > 5 && iRaw == 351) {

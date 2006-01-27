@@ -67,7 +67,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 	NewIdent = strdup(Ident);
 
-	if (m_Ident == NULL) {
+	if (NewIdent == NULL) {
 		LOGERROR("strdup failed. Could not set new ident.");
 
 		return;
