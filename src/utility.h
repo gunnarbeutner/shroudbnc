@@ -20,7 +20,7 @@
 char* LastArg(char* Args);
 
 class CIRCConnection;
-class CBouncerUser;
+class CUser;
 
 typedef struct command_s {
 	char *Category;
@@ -60,7 +60,7 @@ int ArgCount(const char *Args);
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr *BindIp);
 
-CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CBouncerUser *Owning, const char *BindIp = NULL, bool SSL = false);
+CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CUser *Owning, const char *BindIp = NULL, bool SSL = false);
 SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 
 char* NickFromHostmask(const char *Hostmask);

@@ -123,7 +123,7 @@ void CModule::Destroy(void) {
 	m_Far->Destroy();
 }
 
-void CModule::Init(CBouncerCore *Root) {
+void CModule::Init(CCore *Root) {
 	m_Far->Init(Root);
 }
 

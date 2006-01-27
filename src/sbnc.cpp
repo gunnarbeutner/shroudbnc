@@ -25,7 +25,7 @@
 
 #include "sbnc.h"
 
-CBouncerCore *g_Bouncer = NULL;
+CCore *g_Bouncer = NULL;
 bool g_Freeze;
 loaderparams_s *g_LoaderParameters;
 adns_state g_adns_State;
@@ -74,7 +74,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
 
-	CBouncerConfig* Config = new CBouncerConfig("sbnc.conf");
+	CConfig* Config = new CConfig("sbnc.conf");
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");
@@ -89,7 +89,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	g_LoaderParameters = Parameters;
 
 	// constructor sets g_Bouncer
-	new CBouncerCore(Config, Parameters->argc, Parameters->argv);
+	new CCore(Config, Parameters->argc, Parameters->argv);
 
 	if (Parameters->Box)
 		g_Bouncer->Unfreeze(Parameters->Box);

@@ -19,9 +19,9 @@
 
 #define DEFAULT_SENDQ (10 * 1024)
 
-class CBouncerConfig;
-class CBouncerUser;
-class CBouncerLog;
+class CConfig;
+class CUser;
+class CLog;
 class CClientConnection;
 class CIRCConnection;
 class CIdentSupport;
@@ -46,20 +46,20 @@ typedef void SSL_CTX;
 class CClientListener;
 class CSSLClientListener;
 
-class CBouncerCore {
-	CBouncerConfig *m_Config;
+class CCore {
+	CConfig *m_Config;
 
 	CClientListener *m_Listener;
 	CSSLClientListener *m_SSLListener;
 
-	CHashtable<CBouncerUser *, false, 64> m_Users;
+	CHashtable<CUser *, false, 64> m_Users;
 	CVector<CModule *> m_Modules;
 	CVector<socket_s> m_OtherSockets;
 	CVector<CTimer *>m_Timers;
 
 	time_t m_Startup;
 
-	CBouncerLog *m_Log;
+	CLog *m_Log;
 
 	CIdentSupport *m_Ident;
 
@@ -81,17 +81,17 @@ class CBouncerCore {
 	bool MakeConfig(void);
 public:
 #ifndef SWIG
-	CBouncerCore(CBouncerConfig *Config, int argc, char **argv);
+	CCore(CConfig *Config, int argc, char **argv);
 #endif
-	virtual ~CBouncerCore(void);
+	virtual ~CCore(void);
 
 	virtual void StartMainLoop(void);
 
-	virtual CBouncerUser *GetUser(const char *Name);
+	virtual CUser *GetUser(const char *Name);
 
 	virtual void GlobalNotice(const char *Text, bool AdminOnly = false);
 
-	virtual CHashtable<CBouncerUser *, false, 64> *GetUsers(void);
+	virtual CHashtable<CUser *, false, 64> *GetUsers(void);
 	virtual int GetUserCount(void);
 
 	virtual CModule **GetModules(void);
@@ -102,7 +102,7 @@ public:
 	virtual void SetIdent(const char *Ident);
 	virtual const char *GetIdent(void);
 
-	virtual CBouncerConfig *GetConfig(void);
+	virtual CConfig *GetConfig(void);
 
 	virtual void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
 	virtual void UnregisterSocket(SOCKET Socket);
@@ -110,11 +110,11 @@ public:
 	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 
 	virtual void Log(const char *Format, ...);
-	virtual CBouncerLog *GetLog(void);
+	virtual CLog *GetLog(void);
 
 	virtual void Shutdown(void);
 
-	virtual CBouncerUser *CreateUser(const char *Username, const char *Password);
+	virtual CUser *CreateUser(const char *Username, const char *Password);
 	virtual bool RemoveUser(const char *Username, bool RemoveConfig = true);
 	virtual bool IsValidUsername(const char *Username);
 
@@ -168,7 +168,7 @@ public:
 	virtual const utility_t *GetUtilities(void);
 };
 
-extern CBouncerCore *g_Bouncer;
+extern CCore *g_Bouncer;
 
 #ifndef SWIG
 extern adns_state g_adns_State;

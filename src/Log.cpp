@@ -20,14 +20,14 @@
 #include "StdAfx.h"
 
 /**
- * CBouncerLog
+ * CLog
  *
  * Constructs a log object.
  *
  * @param Filename the filename of the log, can be NULL to indicate that
  *                 any log messages should be discarded
  */
-CBouncerLog::CBouncerLog(const char *Filename) {
+CLog::CLog(const char *Filename) {
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
 
@@ -37,7 +37,7 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 
 				g_Bouncer->Fatal();
 			} else {
-				printf("CBouncerLog::CBouncerLog: strdup() failed (%s).",
+				printf("CLog::CLog: strdup() failed (%s).",
 					Filename);
 
 				exit(1);
@@ -49,11 +49,11 @@ CBouncerLog::CBouncerLog(const char *Filename) {
 }
 
 /**
- * ~CBouncerLog
+ * ~CLog
  *
  * Destructs a log object.
  */
-CBouncerLog::~CBouncerLog() {
+CLog::~CLog() {
 	free(m_Filename);
 }
 
@@ -68,7 +68,7 @@ CBouncerLog::~CBouncerLog() {
  *             Log_Messages - use IRC messages
  *             Log_Motd - use IRC motd replies
  */
-void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
+void CLog::PlayToUser(CUser *User, int Type) {
 	FILE *LogFile;
 
 	CIRCConnection *IRC = User->GetIRCConnection();
@@ -119,7 +119,7 @@ void CBouncerLog::PlayToUser(CBouncerUser *User, int Type) {
  *
  * @param Line the log entry
  */
-void CBouncerLog::InternalWriteLine(const char *Line) {
+void CLog::InternalWriteLine(const char *Line) {
 	char *Out;
 	tm Now;
 	time_t tNow;
@@ -163,7 +163,7 @@ void CBouncerLog::InternalWriteLine(const char *Line) {
  * @param Format the format string
  * @param ... parameters used in the format string
  */
-void CBouncerLog::WriteLine(const char* Format, ...) {
+void CLog::WriteLine(const char* Format, ...) {
 	char *Out;
 	va_list marker;
 
@@ -187,7 +187,7 @@ void CBouncerLog::WriteLine(const char* Format, ...) {
  *
  * Erases the contents of the log.
  */
-void CBouncerLog::Clear(void) {
+void CLog::Clear(void) {
 	FILE *LogFile;
 	
 	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
@@ -200,7 +200,7 @@ void CBouncerLog::Clear(void) {
  *
  * Checks whether the log is empty.
  */
-bool CBouncerLog::IsEmpty(void) {
+bool CLog::IsEmpty(void) {
 	char Line[500];
 	FILE *LogFile;
 
@@ -229,6 +229,6 @@ bool CBouncerLog::IsEmpty(void) {
  * Returns the filename of the log, or NULL
  * if the log is not persistant.
  */
-const char *CBouncerLog::GetFilename(void) {
+const char *CLog::GetFilename(void) {
 	return m_Filename;
 }

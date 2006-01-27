@@ -17,16 +17,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CBouncerConfig;
+class CConfig;
 
 class CKeyring {
 public:
 #ifndef SWIG
-	CKeyring(CBouncerConfig *Config);
+	CKeyring(CConfig *Config);
 #endif
 	virtual const char *GetKey(const char *Channel);
 	virtual bool AddKey(const char *Channel, const char *Key);
 	virtual bool DeleteKey(const char *Channel);
 private:
-	CBouncerConfig *m_Config;
+	CConfig *m_Config;
 };

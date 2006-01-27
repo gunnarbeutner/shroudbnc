@@ -330,7 +330,7 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 	return Socket;
 }
 
-CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CBouncerUser *Owning, const char *BindIp, bool SSL) {
+CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CUser *Owning, const char *BindIp, bool SSL) {
 	g_LastReconnect = time(NULL);
 
 	return new CIRCConnection(Host, Port, Owning, BindIp, SSL);

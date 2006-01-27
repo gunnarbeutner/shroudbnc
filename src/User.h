@@ -19,8 +19,8 @@
 
 class CClientConnection;
 class CIRCConnection;
-class CBouncerConfig;
-class CBouncerLog;
+class CConfig;
+class CLog;
 class CTrafficStats;
 class CKeyring;
 class CTimer;
@@ -39,8 +39,8 @@ bool UserReconnectTimer(time_t Now, void *User);
 typedef void X509;
 #endif
 
-class CBouncerUser {
-	friend class CBouncerCore;
+class CUser {
+	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
 	friend bool UserReconnectTimer(time_t Now, void *User);
@@ -48,8 +48,8 @@ class CBouncerUser {
 
 	CClientConnection *m_Client;
 	CIRCConnection *m_IRC;
-	CBouncerConfig *m_Config;
-	CBouncerLog *m_Log;
+	CConfig *m_Config;
+	CLog *m_Log;
 
 	char *m_Name;
 
@@ -83,9 +83,9 @@ class CBouncerUser {
 	void BadLoginPulse(void);
 public:
 #ifndef SWIG
-	CBouncerUser(const char *Name);
+	CUser(const char *Name);
 #endif
-	virtual ~CBouncerUser(void);
+	virtual ~CUser(void);
 
 	virtual SOCKET GetIRCSocket(void);
 	virtual CClientConnection *GetClientConnection(void);
@@ -102,7 +102,7 @@ public:
 	virtual void SetRealname(const char *Realname);
 
 	virtual const char *GetUsername(void);
-	virtual CBouncerConfig *GetConfig(void);
+	virtual CConfig *GetConfig(void);
 
 	virtual void Simulate(const char *Command, CClientConnection *FakeClient = NULL);
 
@@ -116,7 +116,7 @@ public:
 
 	virtual int IRCUptime(void);
 
-	virtual CBouncerLog *GetLog(void);
+	virtual CLog *GetLog(void);
 	virtual void Log(const char *Format, ...);
 
 	virtual void Lock(void);

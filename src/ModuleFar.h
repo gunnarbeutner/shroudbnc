@@ -17,13 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CBouncerCore;
+class CCore;
 class CIRCConnection;
 class CClientConnection;
 
 struct CModuleFar {
 	virtual void Destroy(void) = 0;
-	virtual void Init(CBouncerCore *Root) = 0;
+	virtual void Init(CCore *Root) = 0;
 
 	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) = 0;
 	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) = 0;

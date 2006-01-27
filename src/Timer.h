@@ -20,7 +20,7 @@
 typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
 class CTimer {
-	friend class CBouncerCore;
+	friend class CCore;
 
 public:
 #ifndef SWIG

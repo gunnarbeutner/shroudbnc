@@ -17,30 +17,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CBouncerUser;
+class CUser;
 
 #define Log_Notice 1
 #define Log_Message 0
 #define Log_Motd 2
 
 /**
- * CBouncerLog
+ * CLog
  *
  * A log file.
  */
-class CBouncerLog {
+class CLog {
 	char *m_Filename; /**< the filename of the log, can be NULL */
 
 	void InternalWriteLine(const char *Line);
 public:
 #ifndef SWIG
-	CBouncerLog(const char *Filename);
+	CLog(const char *Filename);
 #endif
-	virtual ~CBouncerLog(void);
+	virtual ~CLog(void);
 
 	virtual void Clear(void);
 	virtual void WriteLine(const char *Format, ...);
-	virtual void PlayToUser(CBouncerUser *User, int Type);
+	virtual void PlayToUser(CUser *User, int Type);
 	virtual bool IsEmpty(void);
 	virtual const char *GetFilename(void);
 };

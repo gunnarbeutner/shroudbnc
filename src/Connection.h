@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CBouncerUser;
+class CUser;
 class CTrafficStats;
 class CFIFOBuffer;
 struct sockaddr_in;
@@ -41,8 +41,8 @@ bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 
 class CConnection : public CSocketEvents {
 #ifndef SWIG
-	friend class CBouncerCore;
-	friend class CBouncerUser;
+	friend class CCore;
+	friend class CUser;
 	friend class CConnectionDnsEvents;
 	friend class CBindIpDnsEvents;
 	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
@@ -73,7 +73,7 @@ public:
 	virtual ~CConnection(void);
 
 	virtual SOCKET GetSocket(void);
-	virtual CBouncerUser* GetOwningClient(void);
+	virtual CUser* GetOwningClient(void);
 
 	virtual void InternalWriteLine(const char* In);
 	virtual void WriteLine(const char* Format, ...);
@@ -128,7 +128,7 @@ protected:
 	virtual void AsyncBindIpDnsFinished(adns_query *query, adns_answer *response);
 	void AdnsTimeout(void);
 
-	CBouncerUser* m_Owner;
+	CUser* m_Owner;
 
 	SOCKET m_Socket;
 

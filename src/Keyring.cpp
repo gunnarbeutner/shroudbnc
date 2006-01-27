@@ -27,7 +27,7 @@
  * @param Config the configuration object which should be used for storing
  *               the keys
  */
-CKeyring::CKeyring(CBouncerConfig *Config) {
+CKeyring::CKeyring(CConfig *Config) {
 	m_Config = Config;
 }
 

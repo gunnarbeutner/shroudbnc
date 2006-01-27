@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 
 /**
- * CBouncerConfig
+ * CConfig
  *
  * Constructs a new configuration object and loads the given filename
  * if specified. If you specify NULL as the filename, a volatile
@@ -29,7 +29,7 @@
  *
  * @param Filename the filename of the configuration file, can be NULL
  */
-CBouncerConfig::CBouncerConfig(const char *Filename) {
+CConfig::CConfig(const char *Filename) {
 	m_WriteLock = false;
 	m_Settings = NULL;
 
@@ -50,7 +50,7 @@ CBouncerConfig::CBouncerConfig(const char *Filename) {
  *
  * setting=value
  */
-bool CBouncerConfig::ParseConfig(void) {
+bool CConfig::ParseConfig(void) {
 	char Line[4096];
 	char *dupEq;
 
@@ -89,7 +89,7 @@ bool CBouncerConfig::ParseConfig(void) {
 
 					g_Bouncer->Fatal();
 				} else {
-					printf("CBouncerConfig::ParseConfig: strdup() failed."
+					printf("CConfig::ParseConfig: strdup() failed."
 						" Config could not be parsed.");
 
 					exit(0);
@@ -115,11 +115,11 @@ bool CBouncerConfig::ParseConfig(void) {
 }
 
 /**
- * ~CBouncerConfig
+ * ~CConfig
  *
  * Destructs the configuration object.
  */
-CBouncerConfig::~CBouncerConfig() {
+CConfig::~CConfig() {
 	free(m_Filename);
 
 	if (m_Settings != NULL) {
@@ -135,7 +135,7 @@ CBouncerConfig::~CBouncerConfig() {
  *
  * @param Setting the configuration setting
  */
-const char *CBouncerConfig::ReadString(const char *Setting) {
+const char *CConfig::ReadString(const char *Setting) {
 	char *Value = m_Settings->Get(Setting);
 
 	if (Value != NULL && *Value != '\0') {
@@ -153,7 +153,7 @@ const char *CBouncerConfig::ReadString(const char *Setting) {
  *
  * @param Setting the configuration setting
  */
-int CBouncerConfig::ReadInteger(const char *Setting) {
+int CConfig::ReadInteger(const char *Setting) {
 	const char *Value = m_Settings->Get(Setting);
 
 	if (Value != NULL) {
@@ -172,7 +172,7 @@ int CBouncerConfig::ReadInteger(const char *Setting) {
  * @param Value the new value for the setting, can be NULL to indicate that
  *              the configuration setting is to be removed
  */
-bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
+bool CConfig::WriteString(const char *Setting, const char *Value) {
 	bool ReturnValue;
 
 	if (Value != NULL) {
@@ -200,7 +200,7 @@ bool CBouncerConfig::WriteString(const char *Setting, const char *Value) {
  * @param Setting the configuration setting
  * @param Value the new value for the setting
  */
-bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
+bool CConfig::WriteInteger(const char *Setting, const int Value) {
 	char ValueStr[50];
 
 	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
@@ -214,7 +214,7 @@ bool CBouncerConfig::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is volatile.
  */
-bool CBouncerConfig::Persist(void) {
+bool CConfig::Persist(void) {
 	if (m_Filename == NULL) {
 		return false;
 	}
@@ -249,7 +249,7 @@ bool CBouncerConfig::Persist(void) {
  * Returns the filename of the configuration object. The return value will
  * be NULL if the configuration object is volatile.
  */
-const char *CBouncerConfig::GetFilename(void) {
+const char *CConfig::GetFilename(void) {
 	return m_Filename;
 }
 
@@ -260,7 +260,7 @@ const char *CBouncerConfig::GetFilename(void) {
  *
  * @param Index specifies the index of the setting which is to be returned
  */
-hash_t<char *> *CBouncerConfig::Iterate(int Index) {
+hash_t<char *> *CConfig::Iterate(int Index) {
 	return m_Settings->Iterate(Index);
 }
 
@@ -269,7 +269,7 @@ hash_t<char *> *CBouncerConfig::Iterate(int Index) {
  *
  * Reloads all settings from disk.
  */
-void CBouncerConfig::Reload(void) {
+void CConfig::Reload(void) {
 	if (m_Settings != NULL) {
 		delete m_Settings;
 	}
@@ -294,7 +294,7 @@ void CBouncerConfig::Reload(void) {
  *
  * Returns the number of items in the config.
  */
-int CBouncerConfig::Count(void) {
+int CConfig::Count(void) {
 	if (m_Settings == NULL) {
 		return 0;
 	} else {

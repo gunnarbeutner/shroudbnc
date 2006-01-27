@@ -38,7 +38,7 @@ public:
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);
-	virtual void Init(CBouncerCore *Root);
+	virtual void Init(CCore *Root);
 
 	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char  **argv);
 	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv);

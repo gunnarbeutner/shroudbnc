@@ -24,8 +24,8 @@ enum connection_state_e {
 	State_Connected
 };
 
-class CBouncerUser;
-class CBouncerConfig;
+class CUser;
+class CConfig;
 class CChannel;
 class CQueue;
 class CFloodControl;
@@ -58,7 +58,7 @@ class CIRCConnection : public CConnection {
 	char* m_ServerVersion;
 	char* m_ServerFeat;
 
-	CBouncerConfig* m_ISupport;
+	CConfig* m_ISupport;
 
 	time_t m_LastBurst;
 	
@@ -81,12 +81,12 @@ class CIRCConnection : public CConnection {
 
 	bool ModuleEvent(int argc, const char** argv);
 
-	void InitIrcConnection(CBouncerUser* Owning, bool Unfreezing = false);
+	void InitIrcConnection(CUser* Owning, bool Unfreezing = false);
 public:
 #ifndef SWIG
-	CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL = false);
-	CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL = false);
-	CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Owning);
+	CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL = false);
+	CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL = false);
+	CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CIRCConnection();
 
@@ -109,7 +109,7 @@ public:
 	virtual char* NickFromHostmask(const char* Hostmask);
 	virtual void FreeNick(char* Nick);
 
-	virtual CBouncerConfig* GetISupportAll(void);
+	virtual CConfig* GetISupportAll(void);
 	virtual const char* GetISupport(const char* Feature);
 	virtual bool IsChanMode(char Mode);
 	virtual int RequiresParameter(char Mode);

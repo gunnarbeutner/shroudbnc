@@ -44,10 +44,10 @@ void DestroyObject(Type *Object) {
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	typedef void (DestroyValue)(Type Object);
 
-	template <typename Type> struct hashlist_t {
+	template <typename HashListType> struct hashlist_t {
 		unsigned int Count;
 		char **Keys;
-		Type *Values;
+		HashListType *Values;
 	};
 
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */

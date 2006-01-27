@@ -240,7 +240,7 @@ SOCKET CConnection::GetSocket(void) {
 	return m_Socket;
 }
 
-CBouncerUser* CConnection::GetOwningClient(void) {
+CUser* CConnection::GetOwningClient(void) {
 	return m_Owner;
 }
 

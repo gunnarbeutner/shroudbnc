@@ -53,7 +53,7 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 	m_CommandList = NULL;
 }
 
-CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Client, false, Role_Client) {
+CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning) : CConnection(Client, false, Role_Client) {
 	m_Owner = Owning;
 
 	m_Nick = strdup(Box->ReadString("client.nick"));
@@ -97,7 +97,7 @@ connection_role_e CClientConnection::GetRole(void) {
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 	char* Out;
-	CBouncerUser* targUser = m_Owner;
+	CUser* targUser = m_Owner;
 
 #define SENDUSER(Text) { \
 	if (NoticeUser) { \
@@ -373,7 +373,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "set") == 0) {
-		CBouncerConfig* Config = m_Owner->GetConfig();
+		CConfig* Config = m_Owner->GetConfig();
 		if (argc < 3) {
 			SENDUSER("Configurable settings:");
 			SENDUSER("--");
@@ -714,7 +714,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
 			ArgRejoinArray(argv, 2);
@@ -794,7 +794,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser *User = g_Bouncer->GetUser(argv[1]);
+		CUser *User = g_Bouncer->GetUser(argv[1]);
 
 		if (User && User->GetClientConnection()) {
 			User->GetClientConnection()->Kill("Requested.");
@@ -907,9 +907,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
 		int i = 0;
 
-		while (hash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			const char* Server, *ClientAddr;
-			CBouncerUser* User = UserHash->Value;
+			CUser* User = UserHash->Value;
 
 			if (!User)
 				continue;
@@ -1049,7 +1049,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
 			User->SetAdmin(true);
@@ -1067,7 +1067,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {
 			User->SetAdmin(false);
@@ -1085,7 +1085,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 
 		if (User) {
 			User->Lock();
@@ -1126,7 +1126,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {
 			User->Unlock();
@@ -1154,7 +1154,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+		CUser* User = g_Bouncer->GetUser(argv[1]);
 		
 		if (User) {
 			User->SetPassword(argv[2]);
@@ -1323,7 +1323,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			CBouncerUser* User = g_Bouncer->GetUser(argv[1]);
+			CUser* User = g_Bouncer->GetUser(argv[1]);
 
 			if (User)
 				User->Simulate(argv[2]);
@@ -1610,7 +1610,7 @@ void CClientConnection::ParseLine(const char* Line) {
 
 bool CClientConnection::ValidateUser() {
 	bool Force = false;
-	CBouncerUser* User;
+	CUser* User;
 
 	bool Blocked = true, Valid = false, ValidHost = false;
 
@@ -1618,12 +1618,12 @@ bool CClientConnection::ValidateUser() {
 	int Count = 0;
 	bool MatchUsername = false;
 	X509* PeerCert = NULL;
-	CBouncerUser* AuthUser = NULL;
+	CUser* AuthUser = NULL;
 
 	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
-		while (hash_t<CBouncerUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			if (UserHash->Value->FindClientCertificate(PeerCert)) {
 				AuthUser = UserHash->Value;
 				Count++;
@@ -1689,7 +1689,7 @@ void CClientConnection::Destroy(void) {
 	delete this;
 }
 
-void CClientConnection::SetOwner(CBouncerUser* Owner) {
+void CClientConnection::SetOwner(CUser* Owner) {
 	m_Owner = Owner;
 }
 

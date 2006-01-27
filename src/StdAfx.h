@@ -128,7 +128,7 @@ int profilestrcasecmp(const char*, const char*);
 #include "Connection.h"
 #include "ClientConnection.h"
 #include "IRCConnection.h"
-#include "BouncerUser.h"
+#include "User.h"
 #include "BouncerCore.h"
 #include "BouncerLog.h"
 #include "BouncerConfig.h"

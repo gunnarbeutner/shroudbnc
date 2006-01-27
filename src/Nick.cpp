@@ -455,7 +455,7 @@ const char *CNick::GetTag(const char *Name) {
  */
 bool CNick::SetTag(const char *Name, const char *Value) {
 	if (m_Tags == NULL) {
-		m_Tags = new CBouncerConfig(NULL);
+		m_Tags = new CConfig(NULL);
 
 		if (m_Tags == NULL) {
 			LOGERROR("new operator failed. Tag was lost. (%s, %s)", Name, Value);

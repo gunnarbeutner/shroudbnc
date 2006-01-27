@@ -18,11 +18,11 @@
  *******************************************************************************/
 
 /**
- * CBouncerConfig
+ * CConfig
  *
  * Represents a shroudBNC configuration file
  */
-class CBouncerConfig {
+class CConfig {
 	CHashtable<char *, false, 8> *m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
@@ -33,9 +33,9 @@ class CBouncerConfig {
 	bool Persist(void);
 public:
 #ifndef SWIG
-	CBouncerConfig(const char *Filename);
+	CConfig(const char *Filename);
 #endif
-	virtual ~CBouncerConfig(void);
+	virtual ~CConfig(void);
 
 	virtual int ReadInteger(const char *Setting);
 	virtual const char *ReadString(const char *Setting);

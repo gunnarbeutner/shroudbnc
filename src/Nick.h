@@ -18,7 +18,7 @@
  *******************************************************************************/
 
 class CChannel;
-class CBouncerConfig;
+class CConfig;
 
 /**
  * CNick
@@ -34,7 +34,7 @@ class CNick {
 	char *m_Server; /**< the server this user is using */
 	time_t m_Creation; /**< a timestamp, when this user object was created */
 	time_t m_IdleSince; /**< a timestamp, when the user last said something */
-	CBouncerConfig *m_Tags; /**< any tags which belong to this nick object */
+	CConfig *m_Tags; /**< any tags which belong to this nick object */
 
 	const char *InternalGetSite(void);
 	const char *InternalGetRealname(void);

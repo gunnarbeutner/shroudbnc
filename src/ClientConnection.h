@@ -50,7 +50,7 @@ class CClientConnection : public CConnection {
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, sockaddr_in Peer, bool SSL = false);
-	CClientConnection(SOCKET Client, CAssocArray *Box, CBouncerUser *Owning);
+	CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CClientConnection(void);
 
@@ -62,7 +62,7 @@ public:
 
 	virtual const char* GetNick(void);
 
-	virtual void SetOwner(CBouncerUser* Owner);
+	virtual void SetOwner(CUser* Owner);
 
 	virtual void AsyncDnsFinishedClient(adns_query* query, adns_answer* response);
 	virtual void SetPeerName(const char* PeerName, bool LookupFailure);

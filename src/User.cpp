@@ -25,7 +25,7 @@
 
 extern time_t g_LastReconnect;
 
-CBouncerUser::CBouncerUser(const char* Name) {
+CUser::CUser(const char* Name) {
 	m_Client = NULL;
 	m_IRC = NULL;
 	m_Name = strdup(Name);
@@ -47,7 +47,7 @@ CBouncerUser::CBouncerUser(const char* Name) {
 		g_Bouncer->Fatal();
 	}
 
-	m_Config = new CBouncerConfig(Out);
+	m_Config = new CConfig(Out);
 
 	free(Out);
 
@@ -70,7 +70,7 @@ CBouncerUser::CBouncerUser(const char* Name) {
 		g_Bouncer->Fatal();
 	}
 
-	m_Log = new CBouncerLog(Out);
+	m_Log = new CLog(Out);
 
 	free(Out);
 
@@ -143,7 +143,7 @@ CBouncerUser::CBouncerUser(const char* Name) {
 		ScheduleReconnect(0);
 }
 
-void CBouncerUser::LoadEvent(void) {
+void CUser::LoadEvent(void) {
 	for (int i = 0; i < g_Bouncer->GetModuleCount(); i++) {
 		CModule* M = g_Bouncer->GetModules()[i];
 
@@ -153,7 +153,7 @@ void CBouncerUser::LoadEvent(void) {
 	}
 }
 
-CBouncerUser::~CBouncerUser() {
+CUser::~CUser() {
 	if (m_Client)
 		m_Client->Kill("Removing user.");
 
@@ -185,26 +185,26 @@ CBouncerUser::~CBouncerUser() {
 		delete m_ReconnectTimer;
 }
 
-SOCKET CBouncerUser::GetIRCSocket(void) {
+SOCKET CUser::GetIRCSocket(void) {
 	if (m_IRC)
 		return m_IRC->GetSocket();
 	else
 		return INVALID_SOCKET;
 }
 
-CClientConnection* CBouncerUser::GetClientConnection(void) {
+CClientConnection* CUser::GetClientConnection(void) {
 	return m_Client;
 }
 
-CIRCConnection* CBouncerUser::GetIRCConnection(void) {
+CIRCConnection* CUser::GetIRCConnection(void) {
 	return m_IRC;
 }
 
-bool CBouncerUser::IsConnectedToIRC(void) {
+bool CUser::IsConnectedToIRC(void) {
 	return m_IRC != NULL;
 }
 
-void CBouncerUser::Attach(CClientConnection* Client) {
+void CUser::Attach(CClientConnection* Client) {
 	char* Out;
 
 	if (IsLocked()) {
@@ -235,7 +235,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 
 	SetClientConnection(Client, true);
 
-	CBouncerLog *Motd = new CBouncerLog("sbnc.motd");
+	CLog *Motd = new CLog("sbnc.motd");
 
 	if (m_IRC) {
 		m_IRC->InternalWriteLine("AWAY");
@@ -333,7 +333,7 @@ void CBouncerUser::Attach(CClientConnection* Client) {
 		Notice("You have new messages. Use '/msg -sBNC read' to view them.");
 }
 
-bool CBouncerUser::Validate(const char* Password) {
+bool CUser::Validate(const char* Password) {
 	const char* RealPass = m_Config->ReadString("user.password");
 
 	if (!RealPass || strlen(RealPass) == 0)
@@ -345,7 +345,7 @@ bool CBouncerUser::Validate(const char* Password) {
 	return (strcmp(RealPass, Password) == 0);
 }
 
-const char* CBouncerUser::GetNick(void) {
+const char* CUser::GetNick(void) {
 	if (m_Client)
 		return m_Client->GetNick();
 	else if (m_IRC && m_IRC->GetCurrentNick())
@@ -365,11 +365,11 @@ const char* CBouncerUser::GetNick(void) {
 	}
 }
 
-const char* CBouncerUser::GetUsername(void) {
+const char* CUser::GetUsername(void) {
 	return m_Name;
 }
 
-const char* CBouncerUser::GetRealname(void) {
+const char* CUser::GetRealname(void) {
 	const char* Out = m_Config->ReadString("user.realname");
 
 	if (!Out)
@@ -378,11 +378,11 @@ const char* CBouncerUser::GetRealname(void) {
 		return Out;
 }
 
-CBouncerConfig* CBouncerUser::GetConfig(void) {
+CConfig* CUser::GetConfig(void) {
 	return m_Config;
 }
 
-void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) {
+void CUser::Simulate(const char* Command, CClientConnection* FakeClient) {
 	if (!Command)
 		return;
 
@@ -413,7 +413,7 @@ void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) 
 				delete FakeClient;
 			}
 		} else {
-			CBouncerUser* Owner = FakeClient->m_Owner;
+			CUser* Owner = FakeClient->m_Owner;
 			CClientConnection* Client = m_Client;
 
 			m_Client = FakeClient;
@@ -427,7 +427,7 @@ void CBouncerUser::Simulate(const char* Command, CClientConnection* FakeClient) 
 	free(C);
 }
 
-void CBouncerUser::Reconnect(void) {
+void CUser::Reconnect(void) {
 	if (m_IRC) {
 		m_IRC->Kill("Reconnecting");
 
@@ -500,7 +500,7 @@ void CBouncerUser::Reconnect(void) {
 	}
 }
 
-bool CBouncerUser::ShouldReconnect(void) {
+bool CUser::ShouldReconnect(void) {
 	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
 	if (Interval == 0)
@@ -512,7 +512,7 @@ bool CBouncerUser::ShouldReconnect(void) {
 		return false;
 }
 
-void CBouncerUser::ScheduleReconnect(int Delay) {
+void CUser::ScheduleReconnect(int Delay) {
 	if (m_IRC)
 		return;
 
@@ -554,29 +554,29 @@ void CBouncerUser::ScheduleReconnect(int Delay) {
 	}
 }
 
-void CBouncerUser::Notice(const char* Text) {
+void CUser::Notice(const char* Text) {
 	const char* Nick = GetNick();
 
 	if (m_Client && Nick)
 		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org PRIVMSG %s :%s", Nick, Text);
 }
 
-void CBouncerUser::RealNotice(const char* Text) {
+void CUser::RealNotice(const char* Text) {
 	const char* Nick = GetNick();
 
 	if (m_Client && Nick)
 		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org NOTICE %s :%s", Nick, Text);
 }
 
-int CBouncerUser::IRCUptime(void) {
+int CUser::IRCUptime(void) {
 	return m_IRC ? (time(NULL) - m_LastReconnect) : 0;
 }
 
-CBouncerLog* CBouncerUser::GetLog(void) {
+CLog* CUser::GetLog(void) {
 	return m_Log;
 }
 
-void CBouncerUser::Log(const char* Format, ...) {
+void CUser::Log(const char* Format, ...) {
 	char* Out;
 	va_list marker;
 
@@ -593,15 +593,15 @@ void CBouncerUser::Log(const char* Format, ...) {
 }
 
 
-void CBouncerUser::Lock(void) {
+void CUser::Lock(void) {
 	m_Config->WriteInteger("user.lock", 1);
 }
 
-void CBouncerUser::Unlock(void) {
+void CUser::Unlock(void) {
 	m_Config->WriteInteger("user.lock", 0);
 }
 
-void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
+void CUser::SetIRCConnection(CIRCConnection* IRC) {
 	bool WasNull = (m_IRC == NULL) ? true : false;
 
 	m_IRC = IRC;
@@ -652,7 +652,7 @@ void CBouncerUser::SetIRCConnection(CIRCConnection* IRC) {
 	}
 }
 
-void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
+void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	if (!m_Client && !Client)
 		return;
 
@@ -758,38 +758,38 @@ void CBouncerUser::SetClientConnection(CClientConnection* Client, bool DontSetAw
 		Client->AttachStats(m_ClientStats);
 }
 
-void CBouncerUser::SetAdmin(bool Admin) {
+void CUser::SetAdmin(bool Admin) {
 	m_Config->WriteString("user.admin", Admin ? "1" : "0");
 	m_IsAdminCache = (int)Admin;
 }
 
-bool CBouncerUser::IsAdmin(void) {
+bool CUser::IsAdmin(void) {
 	if (m_IsAdminCache == -1)
 		m_IsAdminCache = m_Config->ReadInteger("user.admin");
 
 	return m_IsAdminCache != 0;
 }
 
-void CBouncerUser::SetPassword(const char* Password) {
+void CUser::SetPassword(const char* Password) {
 	if (g_Bouncer->GetConfig()->ReadInteger("system.md5"))
 		Password = g_Bouncer->MD5(Password);
 
 	m_Config->WriteString("user.password", Password);
 }
 
-void CBouncerUser::SetServer(const char* Server) {
+void CUser::SetServer(const char* Server) {
 	m_Config->WriteString("user.server", Server);
 }
 
-const char* CBouncerUser::GetServer(void) {
+const char* CUser::GetServer(void) {
 	return m_Config->ReadString("user.server");
 }
 
-void CBouncerUser::SetPort(int Port) {
+void CUser::SetPort(int Port) {
 	m_Config->WriteInteger("user.port", Port);
 }
 
-int CBouncerUser::GetPort(void) {
+int CUser::GetPort(void) {
 	int Port = m_Config->ReadInteger("user.port");
 
 	if (Port == 0)
@@ -798,24 +798,24 @@ int CBouncerUser::GetPort(void) {
 		return Port;
 }
 
-bool CBouncerUser::IsLocked(void) {
+bool CUser::IsLocked(void) {
 	return m_Config->ReadInteger("user.lock") != 0;
 }
 
-void CBouncerUser::SetNick(const char* Nick) {
+void CUser::SetNick(const char* Nick) {
 	m_Config->WriteString("user.nick", Nick);
 }
 
-void CBouncerUser::SetRealname(const char* Realname) {
+void CUser::SetRealname(const char* Realname) {
 	if (Realname)
 		m_Config->WriteString("user.realname", Realname);
 }
 
-void CBouncerUser::MarkQuitted(void) {
+void CUser::MarkQuitted(void) {
 	m_Config->WriteInteger("user.quitted", 1);
 }
 
-void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
+void CUser::LogBadLogin(sockaddr_in Peer) {
 	badlogin_t *BadLogins;
 
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
@@ -854,7 +854,7 @@ void CBouncerUser::LogBadLogin(sockaddr_in Peer) {
 	m_BadLogins[m_BadLoginCount - 1].Count = 1;
 }
 
-bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
+bool CUser::IsIpBlocked(sockaddr_in Peer) {
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
@@ -871,7 +871,7 @@ bool CBouncerUser::IsIpBlocked(sockaddr_in Peer) {
 	return false;
 }
 
-void CBouncerUser::BadLoginPulse(void) {
+void CUser::BadLoginPulse(void) {
 	for (unsigned int i = 0; i < m_BadLoginCount; i++) {
 		if (m_BadLogins[i].Count > 0) {
 			m_BadLogins[i].Count--;
@@ -879,7 +879,7 @@ void CBouncerUser::BadLoginPulse(void) {
 	}
 }
 
-void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
+void CUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 	char** HostAllows;
 
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
@@ -908,7 +908,7 @@ void CBouncerUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 		UpdateHosts();
 }
 
-void CBouncerUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
+void CUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
 		if (m_HostAllows[i] && strcasecmp(m_HostAllows[i], Mask) == 0) {
 			free(m_HostAllows[i]);
@@ -922,15 +922,15 @@ void CBouncerUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
 	}
 }
 
-char** CBouncerUser::GetHostAllows(void) {
+char** CUser::GetHostAllows(void) {
 	return m_HostAllows;
 }
 
-unsigned int CBouncerUser::GetHostAllowCount(void) {
+unsigned int CUser::GetHostAllowCount(void) {
 	return m_HostAllowCount;
 }
 
-bool CBouncerUser::CanHostConnect(const char* Host) {
+bool CUser::CanHostConnect(const char* Host) {
 	unsigned int c = 0;
 
 	for (unsigned int i = 0; i < m_HostAllowCount; i++) {
@@ -947,7 +947,7 @@ bool CBouncerUser::CanHostConnect(const char* Host) {
 		return true;	
 }
 
-void CBouncerUser::UpdateHosts(void) {
+void CUser::UpdateHosts(void) {
 	char* Out;
 	int a = 0;
 
@@ -978,29 +978,29 @@ void CBouncerUser::UpdateHosts(void) {
 	free(Out);
 }
 
-CTrafficStats* CBouncerUser::GetClientStats(void) {
+CTrafficStats* CUser::GetClientStats(void) {
 	return m_ClientStats;
 }
 
-CTrafficStats* CBouncerUser::GetIRCStats(void) {
+CTrafficStats* CUser::GetIRCStats(void) {
 	return m_IRCStats;
 }
 
-CKeyring* CBouncerUser::GetKeyring(void) {
+CKeyring* CUser::GetKeyring(void) {
 	return m_Keys;
 }
 
 bool BadLoginTimer(time_t Now, void* User) {
-	((CBouncerUser*)User)->BadLoginPulse();
+	((CUser*)User)->BadLoginPulse();
 
 	return true;
 }
 
 bool UserReconnectTimer(time_t Now, void* User) {
-	if (((CBouncerUser*)User)->GetIRCConnection())
+	if (((CUser*)User)->GetIRCConnection())
 		return false;
 
-	((CBouncerUser*)User)->m_ReconnectTimer = NULL;
+	((CUser*)User)->m_ReconnectTimer = NULL;
 
 	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
@@ -1008,96 +1008,96 @@ bool UserReconnectTimer(time_t Now, void* User) {
 		Interval = 15;
 
 	if (time(NULL) - g_LastReconnect > Interval)
-		((CBouncerUser*)User)->Reconnect();
+		((CUser*)User)->Reconnect();
 	else
-		((CBouncerUser*)User)->ScheduleReconnect(Interval);
+		((CUser*)User)->ScheduleReconnect(Interval);
 
 	return false;
 }
 
-time_t CBouncerUser::GetLastSeen(void) {
+time_t CUser::GetLastSeen(void) {
 	return m_Config->ReadInteger("user.seen");
 }
 
-const char* CBouncerUser::GetAwayNick(void) {
+const char* CUser::GetAwayNick(void) {
 	return m_Config->ReadString("user.awaynick");
 }
 
-void CBouncerUser::SetAwayNick(const char* Nick) {
+void CUser::SetAwayNick(const char* Nick) {
 	m_Config->WriteString("user.awaynick", Nick);
 
 	if (m_Client == NULL && m_IRC != NULL)
 		m_IRC->WriteLine("Nick :%s", Nick);
 }
 
-const char* CBouncerUser::GetAwayText(void) {
+const char* CUser::GetAwayText(void) {
 	return m_Config->ReadString("user.away");
 }
 
-void CBouncerUser::SetAwayText(const char* Reason) {
+void CUser::SetAwayText(const char* Reason) {
 	m_Config->WriteString("user.away", Reason);
 
 	if (m_Client == NULL && m_IRC != NULL)
 		m_IRC->WriteLine("AWAY :%s", Reason);
 }
 
-const char* CBouncerUser::GetVHost(void) {
+const char* CUser::GetVHost(void) {
 	return m_Config->ReadString("user.ip");
 }
 
-void CBouncerUser::SetVHost(const char* VHost) {
+void CUser::SetVHost(const char* VHost) {
 	m_Config->WriteString("user.ip", VHost);
 }
 
-int CBouncerUser::GetDelayJoin(void) {
+int CUser::GetDelayJoin(void) {
 	return m_Config->ReadInteger("user.delayjoin");
 }
 
-void CBouncerUser::SetDelayJoin(int DelayJoin) {
+void CUser::SetDelayJoin(int DelayJoin) {
 	m_Config->WriteInteger("user.delayjoin", DelayJoin);
 }
 
-const char* CBouncerUser::GetConfigChannels(void) {
+const char* CUser::GetConfigChannels(void) {
 	return m_Config->ReadString("user.channels");
 }
 
-void CBouncerUser::SetConfigChannels(const char* Channels) {
+void CUser::SetConfigChannels(const char* Channels) {
 	m_Config->WriteString("user.channels", Channels);
 }
 
-const char* CBouncerUser::GetSuspendReason(void) {
+const char* CUser::GetSuspendReason(void) {
 	return m_Config->ReadString("user.suspend");
 }
 
-void CBouncerUser::SetSuspendReason(const char* Reason) {
+void CUser::SetSuspendReason(const char* Reason) {
 	m_Config->WriteString("user.suspend", Reason);
 }
 
-const char* CBouncerUser::GetServerPassword(void) {
+const char* CUser::GetServerPassword(void) {
 	return m_Config->ReadString("user.spass");
 }
 
-void CBouncerUser::SetServerPassword(const char* Password) {
+void CUser::SetServerPassword(const char* Password) {
 	m_Config->WriteString("user.spass", Password);
 }
 
-const char* CBouncerUser::GetAutoModes(void) {
+const char* CUser::GetAutoModes(void) {
 	return m_Config->ReadString("user.automodes");
 }
 
-void CBouncerUser::SetAutoModes(const char* AutoModes) {
+void CUser::SetAutoModes(const char* AutoModes) {
 	m_Config->WriteString("user.automodes", AutoModes);
 }
 
-const char* CBouncerUser::GetDropModes(void) {
+const char* CUser::GetDropModes(void) {
 	return m_Config->ReadString("user.dropmodes");
 }
 
-void CBouncerUser::SetDropModes(const char* DropModes) {
+void CUser::SetDropModes(const char* DropModes) {
 	m_Config->WriteString("user.dropmodes", DropModes);
 }
 
-X509* CBouncerUser::GetClientCertificate(int Index) {
+X509* CUser::GetClientCertificate(int Index) {
 #ifdef USESSL
 	if (Index >= m_ClientCertificateCount || Index < 0)
 		return NULL;
@@ -1108,7 +1108,7 @@ X509* CBouncerUser::GetClientCertificate(int Index) {
 #endif
 }
 
-bool CBouncerUser::AddClientCertificate(X509* Certificate) {
+bool CUser::AddClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
@@ -1124,7 +1124,7 @@ bool CBouncerUser::AddClientCertificate(X509* Certificate) {
 #endif
 }
 
-bool CBouncerUser::RemoveClientCertificate(X509* Certificate) {
+bool CUser::RemoveClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
@@ -1141,7 +1141,7 @@ bool CBouncerUser::RemoveClientCertificate(X509* Certificate) {
 }
 
 #ifdef USESSL
-bool CBouncerUser::PersistCertificates(void) {
+bool CUser::PersistCertificates(void) {
 	char *Out;
 	FILE *CertFile;
 
@@ -1179,7 +1179,7 @@ bool CBouncerUser::PersistCertificates(void) {
 }
 #endif
 
-bool CBouncerUser::FindClientCertificate(X509* Certificate) {
+bool CUser::FindClientCertificate(X509* Certificate) {
 #ifdef USESSL
 	for (int i = 0; i < m_ClientCertificateCount; i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
@@ -1190,18 +1190,18 @@ bool CBouncerUser::FindClientCertificate(X509* Certificate) {
 	return false;
 }
 
-void CBouncerUser::SetSSL(bool SSL) {
+void CUser::SetSSL(bool SSL) {
 	m_Config->WriteInteger("user.ssl", SSL ? 1 : 0);
 }
 
-bool CBouncerUser::GetSSL(void) {
+bool CUser::GetSSL(void) {
 	return (m_Config->ReadInteger("user.ssl") != 0);
 }
 
-void CBouncerUser::SetIdent(const char *Ident) {
+void CUser::SetIdent(const char *Ident) {
 	m_Config->WriteString("user.ident", Ident);
 }
 
-const char *CBouncerUser::GetIdent(void) {
+const char *CUser::GetIdent(void) {
 	return m_Config->ReadString("user.ident");
 }

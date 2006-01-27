@@ -23,15 +23,15 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIRCConnection::CIRCConnection(SOCKET Socket, CBouncerUser* Owning, bool SSL) : CConnection(Socket, SSL) {
+CIRCConnection::CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL) : CConnection(Socket, SSL) {
 	InitIrcConnection(Owning);
 }
 
-CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CBouncerUser* Owning, const char* BindIp, bool SSL) : CConnection(Host, Port, BindIp, SSL) {
+CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL) : CConnection(Host, Port, BindIp, SSL) {
 	InitIrcConnection(Owning);
 }
 
-CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Owning) : CConnection(Socket, false) {
+CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning) : CConnection(Socket, false) {
 	InitIrcConnection(Owning, true);
 
 	m_CurrentNick = strdup(Box->ReadString("irc.nick"));
@@ -69,7 +69,7 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CBouncerUser *Ow
 	}
 }
 
-void CIRCConnection::InitIrcConnection(CBouncerUser* Owning, bool Unfreezing) {
+void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
@@ -135,7 +135,7 @@ void CIRCConnection::InitIrcConnection(CBouncerUser* Owning, bool Unfreezing) {
 
 	m_LastBurst = time(NULL);
 
-	m_ISupport = new CBouncerConfig(NULL);
+	m_ISupport = new CConfig(NULL);
 
 	if (m_ISupport == NULL) {
 		LOGERROR("new operator failed. Could not create ISupport object.");
@@ -731,7 +731,7 @@ void CIRCConnection::ParseLine(const char* Line) {
 			if (m_State != State_Connected)
 				m_State = State_Pong;
 		} else {
-			CBouncerUser* User = GetOwningClient();
+			CUser* User = GetOwningClient();
 
 			if (User) {
 				CClientConnection* Client = User->GetClientConnection();
@@ -983,7 +983,7 @@ const char* CIRCConnection::GetServerFeat(void) {
 	return m_ServerFeat;
 }
 
-CBouncerConfig* CIRCConnection::GetISupportAll(void) {
+CConfig* CIRCConnection::GetISupportAll(void) {
 	return m_ISupport;
 }
 
