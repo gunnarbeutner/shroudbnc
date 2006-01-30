@@ -39,18 +39,6 @@ Tcl_Encoding g_Encoding;
 extern tcltimer_t** g_Timers;
 extern int g_TimerCount;
 
-
-#ifdef _WIN32
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 ) {
-    return TRUE;
-}
-#else
-int main(int argc, char* argv[]) { return 0; }
-#endif
-
 int Tcl_AppInit(Tcl_Interp *interp) {
 	if (Tcl_Init(interp) == TCL_ERROR)
 		return TCL_ERROR;
@@ -61,7 +49,7 @@ int Tcl_AppInit(Tcl_Interp *interp) {
 	return TCL_OK;
 }
 
-class CTclSupport : public CModuleFar {
+class CTclSupport : public CModuleImplementation {
 	void Destroy(void) {
 		CallBinds(Type_Unload, NULL, 0, NULL);
 
@@ -127,7 +115,7 @@ class CTclSupport : public CModuleFar {
 		g_Ret = true;
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
-		CallBinds(Type_Server, IRC->GetOwningClient()->GetUsername(), argc, argv);
+		CallBinds(Type_Server, IRC->GetOwner()->GetUsername(), argc, argv);
 		CallBinds(Type_PostScript, NULL, 0, NULL);
 
 		return g_Ret;
@@ -136,7 +124,7 @@ class CTclSupport : public CModuleFar {
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		g_Ret = true;
 
-		CUser* User = Client->GetOwningClient();
+		CUser* User = Client->GetOwner();
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
 		CallBinds(Type_Client, User ? User->GetUsername() : NULL, argc, argv);
@@ -186,7 +174,7 @@ class CTclSupport : public CModuleFar {
 
 		const char* argv[4] = { Source, Channel, ModeC, Parameter };
 
-		CallBinds(Type_SingleMode, IRC->GetOwningClient()->GetUsername(), Parameter ? 4 : 3, argv);
+		CallBinds(Type_SingleMode, IRC->GetOwner()->GetUsername(), Parameter ? 4 : 3, argv);
 	}
 
 	const char* Command(const char* Cmd, const char* Parameters) {
@@ -204,7 +192,7 @@ class CTclSupport : public CModuleFar {
 	}
 
 	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
-		CUser* User = Client->GetOwningClient();
+		CUser* User = Client->GetOwner();
 		const utility_t *Utils;
 
 		g_NoticeUser = NoticeUser;
@@ -283,15 +271,22 @@ class CTclSupport : public CModuleFar {
 
 		g_Ret = true;
 
-		CallBinds(Type_Command, Client->GetOwningClient()->GetUsername(), argc, argv);
+		CallBinds(Type_Command, Client->GetOwner()->GetUsername(), argc, argv);
 
 		return !g_Ret;
+	}
+
+	void TagModified(const char *Tag, const char *Value) {
+		const char *argv[2];
+
+		argv[0] = Tag;
+		argv[1] = Value;
+		CallBinds(Type_SetTag, NULL, 2, argv);
 	}
 public:
 	void RehashInterpreter(void) {
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
 	}
-
 };
 
 extern "C" EXPORT CModuleFar* bncGetObject(void) {

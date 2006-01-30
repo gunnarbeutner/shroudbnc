@@ -20,12 +20,16 @@
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 #ifdef _MSC_VER
+#pragma warning ( disable : 4996 )
+
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
 
-// some newer visual c++ versions define time_t as a 64 bit integer
-// while adns still expects a 32 bit integer
-// -> sbnc crashes while accessing the adns_answer structure
+/*
+ * some newer visual c++ versions define time_t as a 64 bit integer
+ * while adns still expects a 32 bit integer
+ * -> sbnc crashes while accessing the adns_answer structure
+ */
 #define _USE_32BIT_TIME_T
 #endif
 
@@ -48,9 +52,12 @@
 
 #ifdef USESSL
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 #else
-typedef void X509;
+typedef void SSL;
 typedef void SSL_CTX;
+typedef void X509;
+typedef void X509_STORE_CTX;
 #endif
 
 #include "snprintf.h"
@@ -95,35 +102,28 @@ typedef void SSL_CTX;
 // Do NOT use sprintf.
 #define sprintf __evil_function
 
-#ifdef _WIN32
-#ifdef _DEBUG
-#ifdef SBNC
-
-void* DebugMalloc(size_t Size);
-void DebugFree(void* p);
-char* DebugStrDup(const char* p);
-void* DebugReAlloc(void* p, size_t newsize);
-bool ReportMemory(time_t Now, void* Cookie);
-int profilestrcasecmp(const char*, const char*);
+#if defined(_WIN32) && defined(_DEBUG) && defined(SBNC)
+void *DebugMalloc(size_t Size);
+void DebugFree(void *p);
+char *DebugStrDup(const char *p);
+void *DebugReAlloc(void *p, size_t newsize);
+bool ReportMemory(time_t Now, void *Cookie);
 
 #define real_malloc malloc
 #define real_free free
 #define real_strdup strdup
 #define real_realloc realloc
-#define real_strcasecmp strcasecmp
 
 #define malloc DebugMalloc
 #define free DebugFree
 #undef strdup
 #define strdup DebugStrDup
 #define realloc DebugReAlloc
-
-#endif
-#endif
 #endif
 
 #include "Vector.h"
 #include "Hashtable.h"
+#include "OwnedObject.h"
 #include "utility.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
@@ -148,5 +148,6 @@ int profilestrcasecmp(const char*, const char*);
 #include "Queue.h"
 #include "FloodControl.h"
 #include "Listener.h"
+#include "Persistable.h"
 
 #include "sbncloader/AssocArray.h"

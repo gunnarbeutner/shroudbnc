@@ -26,7 +26,7 @@
 
 class CTclClientSocket : public CSocketEvents {
 public:
-	CTclClientSocket(SOCKET Socket, bool IsClient, bool SSL);
+	CTclClientSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
 	virtual ~CTclClientSocket();
 
 	virtual void Destroy(void);
@@ -38,7 +38,7 @@ public:
 	virtual bool DoTimeout(void);
 	virtual bool ShouldDestroy(void);
 
-	virtual const char* ClassName(void);
+	virtual const char* GetClassName(void);
 
 	virtual void SetControlProc(const char* Proc);
 	virtual const char* GetControlProc(void);

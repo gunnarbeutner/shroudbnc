@@ -32,7 +32,6 @@ class CAssocArray;
 struct CSocketEvents;
 struct sockaddr_in;
 struct loaderparams_s;
-//template <typename value_type, bool casesensitive, int Size, bool VolatileKeys> class CHashtable;
 
 typedef struct socket_s {
 	SOCKET Socket;
@@ -127,7 +126,7 @@ public:
 	virtual int GetArgC(void);
 	virtual char **GetArgV(void);
 
-	virtual CConnection *WrapSocket(SOCKET Socket, bool IsClient = true, bool SSL = false);
+	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
 	virtual void DeleteWrapper(CConnection *Wrapper);
 
 	virtual void Free(void *Pointer);
@@ -166,6 +165,12 @@ public:
 	virtual const loaderparams_s *GetLoaderParameters(void);
 
 	virtual const utility_t *GetUtilities(void);
+
+	virtual const char *GetTagString(const char *Tag);
+	virtual int GetTagInteger(const char *Tag);
+	virtual bool SetTagString(const char *Tag, const char *Value);
+	virtual bool SetTagInteger(const char *Tag, int Value);
+	virtual const char *GetTagName(int Index);
 };
 
 extern CCore *g_Bouncer;
@@ -173,3 +178,17 @@ extern CCore *g_Bouncer;
 #ifndef SWIG
 extern adns_state g_adns_State;
 #endif
+
+#define CHECK_ALLOC_RESULT(Variable, Function) \
+	do { \
+		if (Variable == NULL) { \
+			if (g_Bouncer != NULL) { \
+				LOGERROR(#Function " failed."); \
+			} else { \
+				printf(#Function " failed."); \
+			} \
+			\
+		} \
+		if (Variable == NULL)
+
+#define CHECK_ALLOC_RESULT_END } while (0)

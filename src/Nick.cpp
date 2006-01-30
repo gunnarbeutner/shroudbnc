@@ -19,10 +19,6 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 /**
  * CNick
  *
@@ -36,9 +32,7 @@ CNick::CNick(CChannel *Owner, const char *Nick) {
 
 	m_Nick = strdup(Nick);
 
-	if (m_Nick == NULL) {
-		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
-	}
+	CHECK_ALLOC_RESULT(m_Nick, strdup) { } CHECK_ALLOC_RESULT_END;
 
 	m_Prefixes = NULL;
 	m_Site = NULL;
@@ -86,17 +80,18 @@ const char *CNick::GetNick(void) {
  * @param Nick the new nickname
  */
 bool CNick::SetNick(const char *Nick) {
+	char *NewNick;
+
 	assert(Nick != NULL);
 
-	free(m_Nick);
+	NewNick = strdup(Nick);
 
-	m_Nick = strdup(Nick);
-
-	if (m_Nick == NULL && Nick) {
-		LOGERROR("strdup() failed. Nick was lost (%s).", Nick);
-
+	CHECK_ALLOC_RESULT(m_Nick, strdup) {
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
+
+	free(m_Nick);
+	m_Nick = NewNick;
 
 	return true;
 }
@@ -136,10 +131,11 @@ bool CNick::IsHalfop(void) {
  * @param Prefix the prefix (e.g. @, +)
  */
 bool CNick::HasPrefix(char Prefix) {
-	if (m_Prefixes && strchr(m_Prefixes, Prefix) != NULL)
+	if (m_Prefixes != NULL && strchr(m_Prefixes, Prefix) != NULL) {
 		return true;
-	else
+	} else {
 		return false;
+	}
 }
 
 /**
@@ -155,11 +151,9 @@ bool CNick::AddPrefix(char Prefix) {
 
 	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
 
-	if (Prefixes == NULL) {
-		LOGERROR("realloc() failed. Prefixes might be inconsistent (%s, %c).", m_Nick, Prefix);
-
+	CHECK_ALLOC_RESULT(Prefixes, realloc) {
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Prefixes = Prefixes;
 	m_Prefixes[LengthPrefixes] = Prefix;
@@ -186,6 +180,10 @@ bool CNick::RemovePrefix(char Prefix) {
 	LengthPrefixes = strlen(m_Prefixes);
 
 	char *Copy = (char *)malloc(LengthPrefixes + 1);
+
+	CHECK_ALLOC_RESULT(Copy, malloc) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
 
 	for (unsigned int i = 0; i < LengthPrefixes; i++) {
 		if (m_Prefixes[i] != Prefix) {
@@ -214,22 +212,17 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 	if (Prefixes) {
 		dupPrefixes = strdup(Prefixes);
 
-		if (dupPrefixes == NULL) {
-			LOGERROR("strdup() failed. New prefixes were lost (%s, %s).", m_Nick, Prefixes);
-
+		CHECK_ALLOC_RESULT(dupPrefixes, strdup) {
 			return false;
-		} else {
-			free(m_Prefixes);
-			m_Prefixes = dupPrefixes;
-
-			return true;
-		}
+		} CHECK_ALLOC_RESULT_END;
 	} else {
-		free(m_Prefixes);
-		m_Prefixes = NULL;
-
-		return true;
+		dupPrefixes = NULL;
 	}
+
+	free(m_Prefixes);
+	m_Prefixes = dupPrefixes;
+
+	return true;
 }
 
 /**
@@ -254,7 +247,7 @@ const char *CNick::GetPrefixes(void) {
 #define IMPL_NICKSET(Name, NewValue, Static) \
 	char *DuplicateValue; \
 \
-	if (Static && Name != NULL) { \
+	if ((Static && Name != NULL) || NewValue == NULL) { \
 		return false; \
 	} \
 \
@@ -311,8 +304,9 @@ bool CNick::SetServer(const char *Server) {
  * objects if the information is not available.
  */
 const char *CNick::InternalGetSite(void) {
-	if (!m_Site)
+	if (m_Site == NULL) {
 		return NULL;
+	}
 
 	char *Host = strstr(m_Site, "!");
 
@@ -457,21 +451,73 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 	if (m_Tags == NULL) {
 		m_Tags = new CConfig(NULL);
 
-		if (m_Tags == NULL) {
-			LOGERROR("new operator failed. Tag was lost. (%s, %s)", Name, Value);
-
+		CHECK_ALLOC_RESULT(m_Tags, new) {
 			return false;
-		}
+		} CHECK_ALLOC_RESULT_END;
 	}
 
 	return m_Tags->WriteString(Name, Value);
 }
 
 /**
- * GetChannel
+ * Freeze
  *
- * Returns the channel which this user is on.
+ * Persists a nick object.
+ *
+ * @param Box the box which is used for storing the object's data
  */
-CChannel *CNick::GetChannel(void) {
-	return m_Owner;
+bool CNick::Freeze(CAssocArray *Box) {
+	Box->AddString("~nick.nick", m_Nick);
+	Box->AddString("~nick.prefixes", m_Prefixes);
+	Box->AddString("~nick.site", m_Site);
+	Box->AddString("~nick.realname", m_Realname);
+	Box->AddString("~nick.server", m_Server);
+	Box->AddInteger("~nick.creation", m_Creation);
+	Box->AddInteger("~nick.idlets", m_IdleSince);
+
+	if (m_Tags != NULL) {
+		FreezeObject<CConfig>(Box, "~nick.tags", m_Tags);
+		m_Tags = NULL;
+	}
+
+	delete this;
+
+	return true;
+}
+
+/**
+ * Unfreeze
+ *
+ * Creates a new nick object by reading its data from a box.
+ *
+ * @param Box the box
+ * @param Owner the new owner of the object
+ */
+CNick *CNick::Unfreeze(CAssocArray *Box) {
+	const char *Name;
+	CNick *Nick;
+	CConfig *Tags;
+
+	Name = Box->ReadString("~nick.nick");
+
+	Nick = new CNick(NULL, Name);
+
+	CHECK_ALLOC_RESULT(Nick, new) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
+
+	Nick->SetPrefixes(Box->ReadString("~nick.prefixes"));
+	Nick->SetSite(Box->ReadString("~nick.site"));
+	Nick->SetRealname(Box->ReadString("~nick.realname"));
+	Nick->SetServer(Box->ReadString("~nick.server"));
+	Nick->m_Creation = Box->ReadInteger("~nick.creation");
+	Nick->m_IdleSince = Box->ReadInteger("~nick.idlets");
+
+	Tags = UnfreezeObject<CConfig>(Box, "~nick.tags");
+
+	if (Tags != NULL) {
+		Nick->m_Tags = Tags;
+	}
+
+	return Nick;
 }

@@ -23,6 +23,8 @@
 typedef int socklen_t;
 #endif
 
+#undef GetClassName
+
 #define strcasecmp strcmpi
 
 #define EXPORT __declspec(dllexport)

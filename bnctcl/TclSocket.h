@@ -57,7 +57,7 @@ public:
 		g_TclListeners->Remove(Buf);
 	}
 
-	virtual const char *ClassName(void) {
+	virtual const char *GetClassName(void) {
 		return "CTclSocket";
 	}
 
@@ -70,7 +70,7 @@ public:
 		Tcl_Obj* objv[2];
 		CTclClientSocket *TclClient;
 
-		TclClient = new CTclClientSocket(Client, false, m_SSL);
+		TclClient = new CTclClientSocket(Client, m_SSL, Role_Server);
 
 		sprintf(ptr, "%d", TclClient->GetIdx());
 

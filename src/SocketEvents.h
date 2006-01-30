@@ -28,5 +28,5 @@ public:
 	virtual bool DoTimeout(void) = 0;
 	virtual bool ShouldDestroy(void) = 0;
 
-	virtual const char *ClassName(void) = 0;
+	virtual const char *GetClassName(void) = 0;
 };

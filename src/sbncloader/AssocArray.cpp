@@ -10,9 +10,9 @@ CAssocArray::~CAssocArray(void) {
 	for (int i = 0; i < m_Count; i++) {
 		free(m_Values[i].Name);
 
-		if (m_Values[i].Type == ASSOC_STRING)
+		if (m_Values[i].Type == Assoc_String)
 			free(m_Values[i].ValueString);
-		else if (m_Values[i].Type == ASSOC_POINTER)
+		else if (m_Values[i].Type == Assoc_Box)
 			delete m_Values[i].ValueBox;
 	}
 
@@ -23,7 +23,7 @@ void CAssocArray::AddString(const char *Name, const char *Value) {
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
 	m_Values[m_Count - 1].Name = strdup(Name);
-	m_Values[m_Count - 1].Type = ASSOC_STRING;
+	m_Values[m_Count - 1].Type = Assoc_String;
 	m_Values[m_Count - 1].ValueString = strdup(Value);
 }
 
@@ -31,7 +31,7 @@ void CAssocArray::AddInteger(const char *Name, int Value) {
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
 	m_Values[m_Count - 1].Name = strdup(Name);
-	m_Values[m_Count - 1].Type = ASSOC_INT;
+	m_Values[m_Count - 1].Type = Assoc_Integer;
 	m_Values[m_Count - 1].ValueInt = Value;
 }
 
@@ -39,14 +39,14 @@ void CAssocArray::AddBox(const char *Name, CAssocArray *Value) {
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
 	m_Values[m_Count - 1].Name = strdup(Name);
-	m_Values[m_Count - 1].Type = ASSOC_POINTER;
+	m_Values[m_Count - 1].Type = Assoc_Box;
 	m_Values[m_Count - 1].ValueBox = Value;
 }
 
 const char *CAssocArray::ReadString(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == ASSOC_STRING)
+			if (m_Values[i].Type == Assoc_String)
 				return m_Values[i].ValueString;
 			else
 				return "";
@@ -59,7 +59,7 @@ const char *CAssocArray::ReadString(const char *Name) {
 int CAssocArray::ReadInteger(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == ASSOC_INT)
+			if (m_Values[i].Type == Assoc_Integer)
 				return m_Values[i].ValueInt;
 			else
 				return 0;
@@ -72,7 +72,7 @@ int CAssocArray::ReadInteger(const char *Name) {
 CAssocArray *CAssocArray::ReadBox(const char *Name) {
 	for (int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == ASSOC_POINTER)
+			if (m_Values[i].Type == Assoc_Box)
 				return m_Values[i].ValueBox;
 			else
 				return NULL;

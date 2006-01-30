@@ -38,11 +38,7 @@ void DestroyBan(ban_t *Ban) {
  * Constructs an empty banlist
  */
 CBanlist::CBanlist() {
-	m_Bans = new CHashtable<ban_t *, false, 5>();
-
-	if (m_Bans != NULL) {
-		m_Bans->RegisterValueDestructor(DestroyBan);
-	}
+	m_Bans = NULL;
 }
 
 /**
@@ -69,23 +65,26 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
 	if (m_Bans == NULL) {
-		LOGERROR("could not set ban (%s, %s, %d). internal banlist is not "
-			"available.", Mask, Nick, Timestamp);
+		m_Bans = new CHashtable<ban_t *, false, 5>();
 
-		return false;
+		CHECK_ALLOC_RESULT(m_Bans, new) {
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+
+		m_Bans->RegisterValueDestructor(DestroyBan);
 	}
 
 	Ban = (ban_t *)malloc(sizeof(ban_t));
 
-	if (Ban != NULL) {
-		Ban->Mask = strdup(Mask);
-		Ban->Nick = strdup(Nick);
-		Ban->Timestamp = Timestamp;
-
-		return m_Bans->Add(Mask, Ban);
-	} else {
+	CHECK_ALLOC_RESULT(Ban, malloc) {
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
+
+	Ban->Mask = strdup(Mask);
+	Ban->Nick = strdup(Nick);
+	Ban->Timestamp = Timestamp;
+
+	return m_Bans->Add(Mask, Ban);
 }
 
 /**
@@ -112,15 +111,17 @@ bool CBanlist::UnsetBan(const char *Mask) {
 const ban_t *CBanlist::Iterate(int Skip) {
 	hash_t<ban_t *> *BanHash;
 
-	if (m_Bans == NULL)
+	if (m_Bans == NULL) {
 		return NULL;
+	}
 
 	BanHash = m_Bans->Iterate(Skip);
 
-	if (BanHash != NULL)
+	if (BanHash != NULL) {
 		return BanHash->Value;
-	else
+	} else {
 		return NULL;
+	}
 }
 
 /**
@@ -131,8 +132,126 @@ const ban_t *CBanlist::Iterate(int Skip) {
  * @param Mask the banmask
  */
 const ban_t *CBanlist::GetBan(const char *Mask) {
-	if (m_Bans == NULL)
-		return NULL;
-	else
+	if (m_Bans != NULL) {
 		return m_Bans->Get(Mask);
+	} else {
+		return NULL;
+	}
+}
+
+/**
+ * Freeze
+ *
+ * Persists a banlist.
+ *
+ * @param Box the box which should be used for persisting the banlist
+ */
+bool CBanlist::Freeze(CAssocArray *Box) {
+	char *Index;
+	ban_t *Ban;
+	unsigned int Count;
+
+	if (Box == NULL) {
+		return false;
+	}
+
+	if (m_Bans != NULL) {
+		Count = m_Bans->GetLength();
+	} else {
+		Count = 0;
+	}
+
+	for (unsigned i = 0; i < Count; i++) {
+		Ban = m_Bans->Iterate(i)->Value;
+
+		asprintf(&Index, "%d.mask", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+		Box->AddString(Index, Ban->Mask);
+		free(Index);
+
+		asprintf(&Index, "%d.nick", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+		Box->AddString(Index, Ban->Nick);
+		free(Index);
+
+		asprintf(&Index, "%d.ts", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+		Box->AddInteger(Index, Ban->Timestamp);
+		free(Index);
+	}
+
+	delete this;
+
+	return true;
+}
+
+/**
+ * Unfreeze
+ *
+ * Depersists a banlist.
+ *
+ * @param Box the box
+ */
+CBanlist *CBanlist::Unfreeze(CAssocArray *Box) {
+	CBanlist *Banlist;
+	char *Index;
+	const char *Mask, *Nick;
+	time_t Timestamp;
+	unsigned int i = 0;
+
+	if (Box == NULL) {
+		return NULL;
+	}
+
+	Banlist = new CBanlist();
+
+	CHECK_ALLOC_RESULT(Banlist, new) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
+
+	while (true) {
+		asprintf(&Index, "%d.mask", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			delete Banlist;
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+		Mask = Box->ReadString(Index);
+		free(Index);
+
+		if (Mask == NULL) {
+			break;
+		}
+
+		asprintf(&Index, "%d.nick", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			delete Banlist;
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+		Nick = Box->ReadString(Index);
+		free(Index);
+
+		if (Nick == NULL) {
+			break;
+		}
+
+		asprintf(&Index, "%d.ts", i);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			delete Banlist;
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+		Timestamp = Box->ReadInteger(Index);
+		free(Index);
+
+		Banlist->SetBan(Mask, Nick, Timestamp);
+
+		i++;
+	}
+
+	return Banlist;
 }

@@ -32,9 +32,9 @@ extern int g_SocketIdx;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CTclClientSocket::CTclClientSocket(SOCKET Socket, bool IsClient, bool SSL) {
+CTclClientSocket::CTclClientSocket(SOCKET Socket, bool SSL, connection_role_e Role) {
 	m_Socket = Socket;
-	m_Wrap = g_Bouncer->WrapSocket(Socket, IsClient, SSL);
+	m_Wrap = g_Bouncer->WrapSocket(Socket, SSL, Role);
 	g_Bouncer->RegisterSocket(Socket, this);
 
 	char Buf[20];
@@ -159,10 +159,10 @@ const char* CTclClientSocket::GetControlProc(void) {
 }
 
 void CTclClientSocket::WriteLine(const char* Line) {
-	m_Wrap->InternalWriteLine(Line);
+	m_Wrap->WriteUnformattedLine(Line);
 }
 
-const char* CTclClientSocket::ClassName(void) {
+const char* CTclClientSocket::GetClassName(void) {
 	return "CTclClientSocket";
 }
 

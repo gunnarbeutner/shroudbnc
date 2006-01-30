@@ -17,17 +17,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-char* LastArg(char* Args);
-
 class CIRCConnection;
 class CUser;
 
+/**
+ * command_t
+ *
+ * A command.
+ */
 typedef struct command_s {
-	char *Category;
-	char *Description;
-	char *HelpText;
+	char *Category; /**< the command's category */
+	char *Description; /**< a short description of the command */
+	char *HelpText; /**< the command's help text */
 } command_t;
 
+/** A list of commands. */
 typedef class CHashtable<command_t *, false, 16> *commandlist_t;
 
 typedef struct utility_s {
@@ -45,6 +49,7 @@ typedef struct utility_s {
 	void (*AddCommand)(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
 	void (*DeleteCommand)(commandlist_t *Commands, const char *Name);
 	int (*CmpCommandT)(const void *pA, const void *pB);
+	int (*asprintf)(char **ptr, const char *fmt, ...);
 } utility_t;
 
 const char *ArgParseServerLine(const char *Data);
@@ -60,22 +65,22 @@ int ArgCount(const char *Args);
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr *BindIp);
 
-CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CUser *Owning, const char *BindIp = NULL, bool SSL = false);
 SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 
 char* NickFromHostmask(const char *Hostmask);
-void string_free(char *string);
 
 const char *UtilMd5(const char *String);
+
+int CmpString(const void *pA, const void *pB);
+void DestroyString(char *String);
 
 void FlushCommands(commandlist_t *Commands);
 void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
-void DestroyCommandT(command_t *Command);
 
 #define BNCVERSION "1.1 $Revision: 371 $"
-#define INTERFACEVERSION 20
+#define INTERFACEVERSION 22
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
@@ -84,4 +89,8 @@ extern unsigned int g_ErrorLine;
 
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a, b) ((a)<(b) ? (b) : (a))
 #endif

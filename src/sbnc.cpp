@@ -27,7 +27,7 @@
 
 CCore *g_Bouncer = NULL;
 bool g_Freeze;
-loaderparams_s *g_LoaderParameters;
+loaderparams_t *g_LoaderParameters;
 adns_state g_adns_State;
 
 #ifndef _WIN32
@@ -51,7 +51,7 @@ void sigint_handler(int code) {
  *
  * Used by "sbncloader" to start shroudBNC
  */
-extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
+extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	if (Parameters->Version < 200) {
 		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
 
@@ -74,7 +74,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 
 	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
 
-	CConfig* Config = new CConfig("sbnc.conf");
+	CConfig *Config = new CConfig("sbnc.conf");
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");
@@ -91,11 +91,12 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	// constructor sets g_Bouncer
 	new CCore(Config, Parameters->argc, Parameters->argv);
 
-	if (Parameters->Box)
+	if (Parameters->Box) {
 		g_Bouncer->Unfreeze(Parameters->Box);
+	}
 
 #if defined(_WIN32) && defined(_DEBUG)
-	CTimer* DebugTimer = g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
+	CTimer *DebugTimer = g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
 #endif
 
 #if !defined(_WIN32)
@@ -117,7 +118,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_s *Parameters) {
 	ReportMemory(time(NULL), NULL);
 #endif
 
-	if (g_Bouncer) {
+	if (g_Bouncer != NULL) {
 		if (g_Freeze) {
 			CAssocArray *Box;
 

@@ -22,22 +22,18 @@ class CTrafficStats;
 class CFIFOBuffer;
 struct sockaddr_in;
 
-#ifndef USESSL
-typedef void SSL;
-typedef void X509;
-typedef void X509_STORE_CTX;
-#endif
-
 enum connection_role_e {
 	Role_Unknown,
-	Role_Client,
-	Role_IRC
+	Role_Server = Role_Unknown,
+	Role_Client
 };
 
 class CConnectionDnsEvents;
 class CBindIpDnsEvents;
 
+#ifndef SWIG
 bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
+#endif
 
 class CConnection : public CSocketEvents {
 #ifndef SWIG
@@ -48,100 +44,101 @@ class CConnection : public CSocketEvents {
 	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
-	CTimer* m_AdnsTimeout;
-	adns_query* m_AdnsQuery;
-	adns_query* m_BindAdnsQuery;
+	CTimer *m_AdnsTimeout;
+	adns_query *m_AdnsQuery;
+	adns_query *m_BindAdnsQuery;
 	unsigned short m_PortCache;
-	char* m_BindIpCache;
-	CConnectionDnsEvents* m_DnsEvents;
-	CBindIpDnsEvents* m_BindDnsEvents;
+	char *m_BindIpCache;
+	CConnectionDnsEvents *m_DnsEvents;
+	CBindIpDnsEvents *m_BindDnsEvents;
 
 	bool m_LatchedDestruction;
-	CTrafficStats* m_Traffic;
+	CTrafficStats *m_Traffic;
 
-	in_addr* m_BindAddr;
-	in_addr* m_HostAddr;
+	in_addr *m_BindAddr;
+	in_addr *m_HostAddr;
 
 	connection_role_e m_Role;
 
 	void InitConnection(SOCKET Client, bool SSL);
 public:
 #ifndef SWIG
-	CConnection(SOCKET Client, bool SSL = false, connection_role_e Role = Role_IRC);
-	CConnection(const char* Host, unsigned short Port, const char* BindIp, bool SSL = false);
+	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
+	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false);
 #endif
 	virtual ~CConnection(void);
 
 	virtual SOCKET GetSocket(void);
-	virtual CUser* GetOwningClient(void);
 
-	virtual void InternalWriteLine(const char* In);
-	virtual void WriteLine(const char* Format, ...);
+	virtual void WriteUnformattedLine(const char *Line);
+	virtual void WriteLine(const char *Format, ...);
+	virtual bool ReadLine(char **Out);
 
 	virtual connection_role_e GetRole(void);
 
-	virtual void Kill(const char* Error);
+	virtual void Kill(const char *Error);
 
-	virtual bool HasQueuedData(void);
-
-	virtual int SendqSize(void);
-	virtual int RecvqSize(void);
-
-	virtual void Destroy(void);
-	virtual void Error(void);
-	virtual const char* ClassName(void);
-
-	virtual bool Read(bool DontProcess = false);
-	virtual void Write(void);
+	virtual int GetSendqSize(void);
+	virtual int GetRecvqSize(void);
 
 	virtual void Lock(void);
 	virtual bool IsLocked(void);
 
 	virtual void Shutdown(void);
-	virtual void Timeout(int TimeLeft);
-	virtual bool DoTimeout(void);
 
-	virtual void AttachStats(CTrafficStats* Stats);
-	virtual CTrafficStats* GetTrafficStats(void);
-
-	virtual bool ReadLine(char** Out);
+	virtual void SetTrafficStats(CTrafficStats *Stats);
+	virtual CTrafficStats *GetTrafficStats(void);
 
 	virtual void FlushSendQ(void);
 
-	virtual void InitSocket(void);
-
 	virtual bool IsSSL(void);
-	virtual void SetSSL(bool SSL); // don't use unless you know what you're doing
-	virtual X509* GetPeerCertificate(void);
-	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
+	virtual X509 *GetPeerCertificate(void);
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context);
 
 	virtual bool ShouldDestroy(void);
 
+	virtual sockaddr_in GetRemoteAddress(void);
+	virtual sockaddr_in GetLocalAddress(void);
+
+	virtual const char *GetClassName(void);
+
+	void Destroy(void);
+
+	// should really be "protected"
+	virtual bool Read(bool DontProcess = false);
+	virtual void Write(void);
+	virtual bool DoTimeout(void);
+	virtual void Error(void);
+	virtual bool HasQueuedData(void);
+
 protected:
-	virtual void ParseLine(const char* Line);
-#ifndef SWIG
-	void ReadLines(void);
-#endif
+	virtual void ParseLine(const char *Line);
+
+	void Timeout(int TimeLeft);
+
+	void SetRole(connection_role_e Role);
+
+	void InitSocket(void);
+
+	void ProcessBuffer(void);
 
 	void AsyncConnect(void);
-	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
-	virtual void AsyncBindIpDnsFinished(adns_query *query, adns_answer *response);
+	virtual void AsyncDnsFinished(adns_query *Query, adns_answer *Response);
+	virtual void AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response);
 	void AdnsTimeout(void);
 
-	CUser* m_Owner;
+	SOCKET m_Socket; /**< the socket */
 
-	SOCKET m_Socket;
+	bool m_Locked; /**< determines whether data can be written for this connection */
+	bool m_Shutdown; /**< are we about to close this socket? */
+	time_t m_Timeout; /**< timeout for this socket */
 
-	bool m_Locked;
-	bool m_Shutdown;
-	time_t m_Timeout;
+	bool m_Wrapper; /**< was this object created as a wrapper for another socket? */
 
-	bool m_Wrapper;
-
-	SSL* m_SSL;
+	SSL *m_SSL; /**< SSL context for this connection */
 private:
-	bool m_HasSSL;
+	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 
-	CFIFOBuffer* m_SendQ;
-	CFIFOBuffer* m_RecvQ;
+	CFIFOBuffer *m_SendQ; /**< send queue */
+	CFIFOBuffer *m_RecvQ; /**< receive queue */
 };

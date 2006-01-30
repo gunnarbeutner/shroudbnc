@@ -29,8 +29,6 @@ template <typename Type> struct hash_t {
 
 typedef unsigned char hashvalue_t;
 
-int keyStrCmp(const void *a, const void *b);
-
 /**
  * DestroyObject<Type>
  *
@@ -63,7 +61,7 @@ public:
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
 
-			for (int a = 0; a < List->Count; a++) {
+			for (unsigned int a = 0; a < List->Count; a++) {
 				free(List->Keys[a]);
 
 				if (m_DestructorFunc) {
@@ -168,10 +166,10 @@ public:
 		}
 	}
 
-	int Count(void) {
-		int Count = 0;
+	unsigned int GetLength(void) {
+		unsigned int Count = 0;
 
-		for (int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			Count += m_Items[i].Count;
 		}
 
@@ -255,14 +253,14 @@ public:
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char*));
 
-			for (int a = 0; a < m_Items[i].Count; a++) {
+			for (unsigned int a = 0; a < m_Items[i].Count; a++) {
 				Keys[Count + a] = m_Items[i].Keys[a];
 			}
 
 			Count += m_Items[i].Count;
 		}
 
-		qsort(Keys, Count, sizeof(char *), keyStrCmp);
+		qsort(Keys, Count, sizeof(char *), CmpString);
 
 		Keys = (char **)realloc(Keys, ++Count * sizeof(char*));
 

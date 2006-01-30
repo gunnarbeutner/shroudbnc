@@ -23,10 +23,6 @@ private:
 	SOCKET m_Listener;
 	EventClassName *m_EventObject;
 
-	virtual void Destroy(void) {
-		delete this;
-	}
-
 	virtual bool Read(bool DontProcess) {
 		sockaddr_in PeerAddress;
 		socklen_t PeerSize = sizeof(PeerAddress);
@@ -46,14 +42,16 @@ private:
 	virtual bool DoTimeout(void) { return false; }
 	virtual bool ShouldDestroy(void) { return false; }
 
-	virtual const char *ClassName(void) { return "CListenerBase"; }
+	virtual const char *GetClassName(void) { return "CListenerBase"; }
 
 protected:
 	EventClassName *GetEventObject(void) {
 		return m_EventObject;
 	}
 
-	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) { }
+	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+		closesocket(Client);
+	}
 public:
 	CListenerBase(SOCKET Listener, EventClassName *EventObject = NULL) {
 		Init(Listener, EventObject);
@@ -80,6 +78,10 @@ public:
 		}
 
 		closesocket(m_Listener);
+	}
+
+	virtual void Destroy(void) {
+		delete this;
 	}
 
 	virtual bool IsValid(void) { 

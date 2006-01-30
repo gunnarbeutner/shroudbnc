@@ -19,10 +19,6 @@
 
 #include "StdAfx.h"
 
-#ifdef USESSL
-#include <openssl/err.h>
-#endif
-
 #if defined(_WIN32) && defined(USESSL)
 extern "C" {
 #include <openssl/applink.c>
@@ -39,14 +35,16 @@ IMPL_DNSEVENTCLASS(CBindIpDnsEvents, CConnection, AsyncBindIpDnsFinished);
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConnection::CConnection(SOCKET Client, bool SSL, connection_role_e Role) {
-	m_Role = Role;
+CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
+	SetRole(Role);
 
-	InitConnection(Client, SSL);
+	InitConnection(Socket, SSL);
 }
 
-CConnection::CConnection(const char* Host, unsigned short Port, const char* BindIp, bool SSL) {
+CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL) {
 	in_addr ip;
+
+	SetRole(Role_Client);
 
 	InitConnection(INVALID_SOCKET, SSL);
 
@@ -110,7 +108,6 @@ CConnection::CConnection(const char* Host, unsigned short Port, const char* Bind
 
 void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_Socket = Client;
-	m_Owner = NULL;
 
 	m_Locked = false;
 	m_Shutdown = false;
@@ -148,15 +145,16 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_HasSSL = SSL;
 	m_SSL = NULL;
 
-	if (m_Role == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL == true) {
+	if (GetRole() == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL == true) {
 		m_HasSSL = false;
 
 		LOGERROR("No SSL server certificate available. Falling back to non-SSL mode.");
 	}
 #endif
 
-	if (Client != INVALID_SOCKET)
+	if (Client != INVALID_SOCKET) {
 		InitSocket();
+	}
 }
 
 CConnection::~CConnection() {
@@ -165,23 +163,27 @@ CConnection::~CConnection() {
 
 	g_Bouncer->UnregisterSocket(m_Socket);
 
-	if (m_AdnsQuery)
+	if (m_AdnsQuery) {
 		adns_cancel(*m_AdnsQuery);
+	}
 
-	if (m_BindAdnsQuery)
+	if (m_BindAdnsQuery) {
 		adns_cancel(*m_BindAdnsQuery);
+	}
 
-	if (m_AdnsTimeout)
+	if (m_AdnsTimeout) {
 		m_AdnsTimeout->Destroy();
+	}
 
-	if (m_BindIpCache)
-		free(m_BindIpCache);
+	free(m_BindIpCache);
 
-	if (m_DnsEvents)
+	if (m_DnsEvents) {
 		m_DnsEvents->Destroy();
+	}
 
-	if (m_BindDnsEvents)
+	if (m_BindDnsEvents) {
 		m_BindDnsEvents->Destroy();
+	}
 
 	if (m_Socket != INVALID_SOCKET) {
 		shutdown(m_Socket, SD_BOTH);
@@ -192,14 +194,16 @@ CConnection::~CConnection() {
 	free(m_BindAddr);
 
 #ifdef USESSL
-	if (IsSSL() && m_SSL)
+	if (IsSSL() && m_SSL != NULL) {
 		SSL_free(m_SSL);
+	}
 #endif
 }
 
 void CConnection::InitSocket(void) {
-	if (m_Socket == INVALID_SOCKET)
+	if (m_Socket == INVALID_SOCKET) {
 		return;
+	}
 
 #ifndef _WIN32
 	const int optBuffer = 4 * SENDSIZE;
@@ -213,50 +217,51 @@ void CConnection::InitSocket(void) {
 
 #ifdef USESSL
 	if (IsSSL()) {
-		if (m_SSL)
+		if (m_SSL) {
 			SSL_free(m_SSL);
+		}
 
-		if (GetRole() == Role_IRC)
+		if (GetRole() == Role_Client) {
 			m_SSL = SSL_new(g_Bouncer->GetSSLClientContext());
-		else
+		} else {
 			m_SSL = SSL_new(g_Bouncer->GetSSLContext());
+		}
 
 		SSL_set_fd(m_SSL, m_Socket);
 
-		if (GetRole() == Role_IRC)
+		if (GetRole() == Role_Client) {
 			SSL_set_connect_state(m_SSL);
-		else
+		} else {
 			SSL_set_accept_state(m_SSL);
+		}
 
 		SSL_set_ex_data(m_SSL, g_Bouncer->GetSSLCustomIndex(), this);
-	} else
+	} else {
 		m_SSL = NULL;
+	}
 #endif
 
-	g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents*)this);
+	g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents *)this);
 }
 
 SOCKET CConnection::GetSocket(void) {
 	return m_Socket;
 }
 
-CUser* CConnection::GetOwningClient(void) {
-	return m_Owner;
-}
-
 bool CConnection::Read(bool DontProcess) {
-	int n;
+	int ReadResult;
 	char Buffer[8192];
 
-	if (m_Shutdown)
+	if (m_Shutdown) {
 		return true;
+	}
 
 #ifdef USESSL
 	if (IsSSL()) {
-		n = SSL_read(m_SSL, Buffer, sizeof(Buffer));
+		ReadResult = SSL_read(m_SSL, Buffer, sizeof(Buffer));
 
-		if (n < 0) {
-			switch (SSL_get_error(m_SSL, n)) {
+		if (ReadResult < 0) {
+			switch (SSL_get_error(m_SSL, ReadResult)) {
 				case SSL_ERROR_WANT_WRITE:
 				case SSL_ERROR_WANT_READ:
 				case SSL_ERROR_NONE:
@@ -271,27 +276,31 @@ bool CConnection::Read(bool DontProcess) {
 		ERR_print_errors_fp(stdout);
 	} else
 #endif
-		n = recv(m_Socket, Buffer, sizeof(Buffer), 0);
+		ReadResult = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
-	if (n > 0) {
-		m_RecvQ->Write(Buffer, n);
+	if (ReadResult > 0) {
+		m_RecvQ->Write(Buffer, ReadResult);
 
-		if (m_Traffic)
-			m_Traffic->AddInbound(n);
+		if (m_Traffic) {
+			m_Traffic->AddInbound(ReadResult);
+		}
 	} else {
 #ifdef USESSL
-		if (IsSSL())
+		if (IsSSL()) {
 			SSL_shutdown(m_SSL);
+		}
 #endif
 
 		return false;
 	}
 
-	if (m_Wrapper)
+	if (m_Wrapper) {
 		return true;
+	}
 
-	if (DontProcess == false)
-		ReadLines();
+	if (DontProcess == false) {
+		ProcessBuffer();
+	}
 
 	return true;
 }
@@ -299,20 +308,21 @@ bool CConnection::Read(bool DontProcess) {
 void CConnection::Write(void) {
 	unsigned int Size;
 
-	if (m_SendQ)
+	if (m_SendQ) {
 		Size = m_SendQ->GetSize();
-	else
+	} else {
 		Size = 0;
+	}
 
 	if (Size > 0) {
-		int n;
+		int WriteResult;
 
 #ifdef USESSL
 		if (IsSSL()) {
-			n = SSL_write(m_SSL, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size);
+			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size);
 
-			if (n == -1) {
-				switch (SSL_get_error(m_SSL, n)) {
+			if (WriteResult == -1) {
+				switch (SSL_get_error(m_SSL, WriteResult)) {
 					case SSL_ERROR_WANT_WRITE:
 					case SSL_ERROR_WANT_READ:
 						return;
@@ -320,23 +330,29 @@ void CConnection::Write(void) {
 						break;
 				}
 			}
-		} else
+		} else {
 #endif
-			n = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
+			WriteResult = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
+#ifdef USESSL
+		}
+#endif
 
-		if (n > 0) {
-			if (m_Traffic)
-				m_Traffic->AddOutbound(n);
+		if (WriteResult > 0) {
+			if (m_Traffic) {
+				m_Traffic->AddOutbound(WriteResult);
+			}
 
-			m_SendQ->Read(n);
-		} else if (n < 0)
+			m_SendQ->Read(WriteResult);
+		} else if (WriteResult < 0) {
 			Shutdown();
+		}
 	}
 
 	if (m_Shutdown) {
 #ifdef USESSL
-		if (IsSSL())
+		if (IsSSL()) {
 			SSL_shutdown(m_SSL);
+		}
 #endif
 
 		if (m_Socket != INVALID_SOCKET) {
@@ -346,28 +362,32 @@ void CConnection::Write(void) {
 	}
 }
 
-void CConnection::ReadLines(void) {
-	char* recvq = m_RecvQ->Peek();
-	char* line = recvq;
+void CConnection::ProcessBuffer(void) {
+	char *RecvQ;
+	char *Line;
 	unsigned int Size;
 	
-	if (m_RecvQ == NULL)
+	if (m_RecvQ == NULL) {
 		return;
+	}
+
+	Line = RecvQ = m_RecvQ->Peek();
 
 	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
-		if (recvq[i] == '\n' || recvq[i] == '\r') {
-			recvq[i] = '\0';
+		if (RecvQ[i] == '\n' || RecvQ[i] == '\r') {
+			RecvQ[i] = '\0';
 
-			if (strlen(line) > 0)
-				ParseLine(line);
+			if (strlen(Line) > 0) {
+				ParseLine(Line);
+			}
 
-			line = &recvq[i+1];
+			Line = &RecvQ[i + 1];
 		}
 	}
 
-	m_RecvQ->Read(line - recvq);
+	m_RecvQ->Read(Line - RecvQ);
 }
 
 // inefficient -- avoid this function at all costs, use ReadLines() instead
@@ -414,48 +434,53 @@ bool CConnection::ReadLine(char** Out) {
 	}
 }
 
-void CConnection::InternalWriteLine(const char* In) {
-	if (m_Locked)
-		return;
-
-	if (m_SendQ && In)
-		m_SendQ->WriteLine(In);
+void CConnection::WriteUnformattedLine(const char *Line) {
+	if (m_Locked == false && m_SendQ != NULL && Line != NULL) {
+		m_SendQ->WriteUnformattedLine(Line);
+	}
 }
 
-void CConnection::WriteLine(const char* Format, ...) {
-	char* Out;
-	va_list marker;
+void CConnection::WriteLine(const char *Format, ...) {
+	char* Line;
+	va_list Marker;
 
-	if (m_Shutdown)
+	if (m_Shutdown) {
 		return;
+	}
 
-	va_start(marker, Format);
-	vasprintf(&Out, Format, marker);
-	va_end(marker);
+	va_start(Marker, Format);
+	vasprintf(&Line, Format, Marker);
+	va_end(Marker);
 
-	if (Out == NULL) {
+	if (Line == NULL) {
 		LOGERROR("vasprintf() failed. Could not write line (%s).", Format);
 
 		return;
 	}
 
-	InternalWriteLine(Out);
+	WriteUnformattedLine(Line);
 
-	free(Out);
+	free(Line);
 }
 
-void CConnection::ParseLine(const char* Line) {
+void CConnection::ParseLine(const char *Line) {
+	// default implementation ignores any data
 }
 
 connection_role_e CConnection::GetRole(void) {
 	return m_Role;
 }
 
-void CConnection::Kill(const char* Error) {
-	if (m_Shutdown)
-		return;
+void CConnection::SetRole(connection_role_e Role) {
+	m_Role = Role;
+}
 
-	AttachStats(NULL);
+void CConnection::Kill(const char *Error) {
+	if (m_Shutdown) {
+		return;
+	}
+
+	SetTrafficStats(NULL);
 
 	Shutdown();
 	Timeout(10);
@@ -463,29 +488,33 @@ void CConnection::Kill(const char* Error) {
 
 bool CConnection::HasQueuedData(void) {
 #ifdef USESSL
-	if (IsSSL() && SSL_want_write(m_SSL))
+	if (IsSSL() && SSL_want_write(m_SSL)) {
 		return true;
+	}
 #endif
 
-	if (m_SendQ)
+	if (m_SendQ) {
 		return m_SendQ->GetSize() > 0;
-	else
+	} else {
 		return 0;
+	}
 }
 
 
-int CConnection::SendqSize(void) {
-	if (m_SendQ)
+int CConnection::GetSendqSize(void) {
+	if (m_SendQ) {
 		return m_SendQ->GetSize();
-	else
+	} else {
 		return 0;
+	}
 }
 
-int CConnection::RecvqSize(void) {
-	if (m_RecvQ)
+int CConnection::GetRecvqSize(void) {
+	if (m_RecvQ) {
 		return m_RecvQ->GetSize();
-	else
+	} else {
 		return 0;
+	}
 }
 
 void CConnection::Error(void) {
@@ -516,11 +545,12 @@ bool CConnection::DoTimeout(void) {
 		Destroy();
 
 		return true;
-	} else
+	} else {
 		return false;
+	}
 }
 
-void CConnection::AttachStats(CTrafficStats* Stats) {
+void CConnection::SetTrafficStats(CTrafficStats *Stats) {
 	m_Traffic = Stats;
 }
 
@@ -528,13 +558,14 @@ CTrafficStats* CConnection::GetTrafficStats(void) {
 	return m_Traffic;
 }
 
-const char* CConnection::ClassName(void) {
+const char* CConnection::GetClassName(void) {
 	return "CConnection";
 }
 
 void CConnection::FlushSendQ(void) {
-	if (m_SendQ)
+	if (m_SendQ) {
 		m_SendQ->Flush();
+	}
 }
 
 bool CConnection::IsSSL(void) {
@@ -545,7 +576,7 @@ bool CConnection::IsSSL(void) {
 #endif
 }
 
-X509* CConnection::GetPeerCertificate(void) {
+X509 *CConnection::GetPeerCertificate(void) {
 #ifdef USESSL
 	if (m_HasSSL/* && SSL_get_verify_result(m_SSL) == X509_V_OK*/) {
 		return SSL_get_peer_certificate(m_SSL);
@@ -555,39 +586,39 @@ X509* CConnection::GetPeerCertificate(void) {
 	return NULL;
 }
 
-int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
+int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) {
 	return 1;
 }
 
-bool IRCAdnsTimeoutTimer(time_t Now, void* IRC) {
-	((CConnection*)IRC)->m_AdnsTimeout = NULL;
+bool IRCAdnsTimeoutTimer(time_t Now, void *IRC) {
+	((CConnection *)IRC)->m_AdnsTimeout = NULL;
 
-	((CConnection*)IRC)->AdnsTimeout();
+	((CConnection *)IRC)->AdnsTimeout();
 
 	return false;
 }
 
 void CConnection::AsyncConnect(void) {
-	if (m_HostAddr && (m_BindAddr || m_BindIpCache == NULL)) {
+	if (m_HostAddr != NULL && (m_BindAddr != NULL || m_BindIpCache == NULL)) {
 		m_Socket = SocketAndConnectResolved(*m_HostAddr, m_PortCache, m_BindAddr);
 
 		InitSocket();
 	}
 }
 
-void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
+void CConnection::AsyncDnsFinished(adns_query *Query, adns_answer *Response) {
 	free(m_AdnsQuery);
 	m_AdnsQuery = NULL;
 	m_DnsEvents = NULL;
 
-	if (!response || response->status != adns_s_ok) {
+	if (Response == NULL || Response->status != adns_s_ok) {
 		// we cannot destroy the object here as there might still be the other
 		// adns query (bind ip) in the queue which would get destroyed in the
 		// destructor; this causes a crash in the StartMainLoop() function
 		m_LatchedDestruction = true;
 	} else {
 		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
-		*m_HostAddr = response->rrs.addr->addr.inet.sin_addr;
+		*m_HostAddr = Response->rrs.addr->addr.inet.sin_addr;
 
 		m_AdnsTimeout->Destroy();
 		m_AdnsTimeout = NULL;
@@ -596,14 +627,14 @@ void CConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
 	}
 }
 
-void CConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *response) {
+void CConnection::AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response) {
 	free(m_BindAdnsQuery);
 	m_BindAdnsQuery = NULL;
 	m_BindDnsEvents = NULL;
 
-	if (!response || response->status == adns_s_ok) {
+	if (Response != NULL && Response->status == adns_s_ok) {
 		m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
-		*m_BindAddr = response->rrs.addr->addr.inet.sin_addr;
+		*m_BindAddr = Response->rrs.addr->addr.inet.sin_addr;
 	}
 
 	free(m_BindIpCache);
@@ -615,14 +646,14 @@ void CConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *respons
 void CConnection::AdnsTimeout(void) {
 	m_LatchedDestruction = true;
 
-	if (m_AdnsQuery) {
+	if (m_AdnsQuery != NULL) {
 		adns_cancel(*m_AdnsQuery);
 
 		free(m_AdnsQuery);
 		m_AdnsQuery = NULL;
 	}
 
-	if (m_BindAdnsQuery) {
+	if (m_BindAdnsQuery != NULL) {
 		adns_cancel(*m_BindAdnsQuery);
 
 		free(m_BindAdnsQuery);
@@ -634,6 +665,20 @@ bool CConnection::ShouldDestroy(void) {
 	return m_LatchedDestruction;
 }
 
-void CConnection::SetSSL(bool SSL) {
-	m_HasSSL = SSL;
+sockaddr_in CConnection::GetRemoteAddress(void) {
+	sockaddr_in Result;
+	int ResultLength = sizeof(Result);
+
+	getpeername(m_Socket, (sockaddr *)&Result, &ResultLength);
+
+	return Result;
+}
+
+sockaddr_in CConnection::GetLocalAddress(void) {
+	sockaddr_in Result;
+	int ResultLength = sizeof(Result);
+
+	getsockname(m_Socket, (sockaddr *)&Result, &ResultLength);
+
+	return Result;
 }

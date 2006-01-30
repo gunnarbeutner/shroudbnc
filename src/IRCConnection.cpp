@@ -19,6 +19,8 @@
 
 #include "StdAfx.h"
 
+extern time_t g_LastReconnect;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -36,40 +38,15 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning) :
 
 	m_CurrentNick = strdup(Box->ReadString("irc.nick"));
 	m_Server = strdup(Box->ReadString("irc.server"));
-	
-	if (Box->ReadInteger("irc.ssl"))
-		SetSSL(true);
 
-	char *Out;
-	int Count = Box->ReadInteger("irc.channels");
-
-	WriteLine("VERSION");
-
-	for (int i = 0; i < Count; i++) {
-		const char *Name;
-		CChannel *Channel;
-		asprintf(&Out, "irc.channel%d", i);
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed during unfreezing an irc connection.");
-
-			g_Bouncer->Fatal();
-		}
-
-		Name = Box->ReadString(Out);
-
-		free(Out);
-
-		if (Name)
-			Channel = AddChannel(Name);
-
-		Channel->AddUser(m_CurrentNick, '\0');
-
-		WriteLine("NAMES %s", Name);
-	}
 }
 
 void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
+	SetRole(Role_Client);
+
+	m_LastResponse = time(NULL);
+	g_LastReconnect = time(NULL);
+
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
@@ -160,30 +137,46 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 CIRCConnection::~CIRCConnection() {
 	free(m_CurrentNick);
 
-	delete m_Channels;
+	if (m_Channels != NULL) {
+		delete m_Channels;
+	}
 
 	free(m_Server);
 	free(m_ServerVersion);
 	free(m_ServerFeat);
 
-	delete m_ISupport;
+	if (m_ISupport != NULL) {
+		delete m_ISupport;
+	}
 
-	delete m_QueueLow;
-	delete m_QueueMiddle;
-	delete m_QueueHigh;
-	delete m_FloodControl;
+	if (m_QueueLow != NULL) {
+		delete m_QueueLow;
+	}
 
-	if (m_DelayJoinTimer)
+	if (m_QueueMiddle != NULL) {
+		delete m_QueueMiddle;
+	}
+
+	if (m_QueueHigh != NULL) {
+		delete m_QueueHigh;
+	}
+
+	if (m_FloodControl != NULL) {
+		delete m_FloodControl;
+	}
+
+	if (m_DelayJoinTimer != NULL) {
 		m_DelayJoinTimer->Destroy();
+	}
 
-	m_PingTimer->Destroy();
-}
-
-connection_role_e CIRCConnection::GetRole(void) {
-	return Role_IRC;
+	if (m_PingTimer != NULL) {
+		m_PingTimer->Destroy();
+	}
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
+	m_LastResponse = time(NULL);
+
 	if (argc < 2)
 		return true;
 
@@ -215,14 +208,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	if (argc > 3 && iRaw == 433) {
 		bool Ret = ModuleEvent(argc, argv);
 
-		if (GetCurrentNick() != NULL && GetOwningClient()->GetClientConnection() != NULL)
+		if (GetCurrentNick() != NULL && GetOwner()->GetClientConnection() != NULL)
 			return true;
 
 		if (Ret)
 			WriteLine("NICK :%s_", argv[3]);
 
 		return Ret;
-	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwningClient()->GetClientConnection()) {
+	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwner()->GetClientConnection()) {
 		const char* Host;
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
@@ -249,7 +242,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				Host = Delim + 1;
 			}
 
-			GetOwningClient()->Log("%s (%s): %s", Dup, Delim ? Host : "<unknown host>", argv[3]);
+			GetOwner()->Log("%s (%s): %s", Dup, Delim ? Host : "<unknown host>", argv[3]);
 
 			free(Dup);
 		}
@@ -266,12 +259,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		free(Nick);
 
 		UpdateHostHelper(Reply);
-	} else if (argc > 3 && hashRaw == hashNotice && !GetOwningClient()->GetClientConnection()) {
+	} else if (argc > 3 && hashRaw == hashNotice && !GetOwner()->GetClientConnection()) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
-			GetOwningClient()->Log("%s (notice): %s", Reply, argv[3]);
+			GetOwner()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 
 		free(Nick);
@@ -332,7 +325,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (m_CurrentNick && strcasecmp(argv[3], m_CurrentNick) == 0) {
 			RemoveChannel(argv[2]);
 
-			if (GetOwningClient()->GetClientConnection() == NULL) {
+			if (GetOwner()->GetClientConnection() == NULL) {
 				char* Out;
 
 				asprintf(&Out, "JOIN %s", argv[2]);
@@ -364,7 +357,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 					Host = Delim + 1;
 				}
 
-				GetOwningClient()->Log("%s (%s) kicked you from %s (%s)", Dup, Delim ? Host : "<unknown host>", argv[2], argc > 4 ? argv[4] : "");
+				GetOwner()->Log("%s (%s) kicked you from %s (%s)", Dup, Delim ? Host : "<unknown host>", argv[2], argc > 4 ? argv[4] : "");
 
 				free(Dup);
 			}
@@ -379,7 +372,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		return bRet;
 	} else if (argc > 2 && iRaw == 1) {
-		CClientConnection* Client = GetOwningClient()->GetClientConnection();
+		CClientConnection* Client = GetOwner()->GetClientConnection();
 
 		if (Client) {
 			if (strcmp(Client->GetNick(), argv[2]) != 0) {
@@ -442,42 +435,42 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (m_State != State_Connected) {
 			CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-			for (int i = 0; i < Modules->Count(); i++) {
+			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 				Modules->Get(i)->ServerLogon(m_Owner->GetUsername());
 			}
 
-			GetOwningClient()->Notice("Connected to an IRC server.");
+			GetOwner()->Notice("Connected to an IRC server.");
 
 			g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());
 		}
 
-		if (GetOwningClient()->GetClientConnection() == NULL) {
-			bool AppendTS = (GetOwningClient()->GetConfig()->ReadInteger("user.ts") != 0);
-			const char* AwayReason = GetOwningClient()->GetAwayText();
+		if (GetOwner()->GetClientConnection() == NULL) {
+			bool AppendTS = (GetOwner()->GetConfig()->ReadInteger("user.ts") != 0);
+			const char* AwayReason = GetOwner()->GetAwayText();
 
 			if (AwayReason)
 				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
 		}
 
-		const char* AutoModes = GetOwningClient()->GetAutoModes();
-		const char* DropModes = GetOwningClient()->GetDropModes();
+		const char* AutoModes = GetOwner()->GetAutoModes();
+		const char* DropModes = GetOwner()->GetDropModes();
 
 		if (AutoModes && *AutoModes)
 			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
 
-		if (!GetOwningClient()->GetClientConnection() && DropModes && *DropModes)
+		if (!GetOwner()->GetClientConnection() && DropModes && *DropModes)
 			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
 
 		m_State = State_Connected;
 	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL)
-			GetOwningClient()->ScheduleReconnect(50);
+			GetOwner()->ScheduleReconnect(50);
 		else
-			GetOwningClient()->ScheduleReconnect(5);
+			GetOwner()->ScheduleReconnect(5);
 
 		char* Out;
 
-		asprintf(&Out, "Error received for %s: %s", GetOwningClient()->GetUsername(), argv[1]);
+		asprintf(&Out, "Error received for %s: %s", GetOwner()->GetUsername(), argv[1]);
 
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
@@ -488,14 +481,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->Log("%s", Out);
 
-		if (!GetOwningClient()->GetClientConnection())
-			GetOwningClient()->GetLog()->WriteLine("%s", Out);
+		if (!GetOwner()->GetClientConnection())
+			GetOwner()->GetLog()->WriteLine("%s", Out);
 
 		free(Out);
 	} else if (argc > 3 && iRaw == 465) {
 		char* Out;
 
-		asprintf(&Out, "G/K-line reason for %s: %s", GetOwningClient()->GetUsername(), argv[3]);
+		asprintf(&Out, "G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
 
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
@@ -506,8 +499,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->Log("%s", Out);
 
-		if (!GetOwningClient()->GetClientConnection())
-			GetOwningClient()->GetLog()->WriteLine("%s", Out);
+		if (!GetOwner()->GetClientConnection())
+			GetOwner()->GetLog()->WriteLine("%s", Out);
 
 		free(Out);
 	} else if (argc > 5 && iRaw == 351) {
@@ -686,7 +679,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		if (!Modules->Get(i)->InterceptIRCMessage(this, argc, argv)) {
 			return false;
 		}
@@ -696,7 +689,7 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 }
 
 void CIRCConnection::ParseLine(const char* Line) {
-	if (!GetOwningClient())
+	if (!GetOwner())
 		return;
 
 	const char* Args = ArgParseServerLine(Line);
@@ -725,13 +718,13 @@ void CIRCConnection::ParseLine(const char* Line) {
 			if (m_State != State_Connected)
 				m_State = State_Pong;
 		} else {
-			CUser* User = GetOwningClient();
+			CUser* User = GetOwner();
 
 			if (User) {
 				CClientConnection* Client = User->GetClientConnection();
 
 				if (Client)
-					Client->InternalWriteLine(Line);
+					Client->WriteUnformattedLine(Line);
 			}
 		}
 	}
@@ -838,7 +831,7 @@ void CIRCConnection::Write(void) {
 	char* Line = m_FloodControl->DequeueItem();
 
 	if (Line != NULL)
-		CConnection::InternalWriteLine(Line);
+		CConnection::WriteUnformattedLine(Line);
 
 	CConnection::Write();
 
@@ -936,7 +929,7 @@ bool CIRCConnection::IsNickPrefix(char Char) {
 }
 
 bool CIRCConnection::IsNickMode(char Char) {
-	const char* Prefixes = GetISupport("PREFIX");
+	const char *Prefixes = GetISupport("PREFIX");
 
 	while (*Prefixes != '\0' && *Prefixes != ')')
 		if (*Prefixes == Char && *Prefixes != '(')
@@ -1052,7 +1045,7 @@ CFloodControl* CIRCConnection::GetFloodControl(void) {
 	return m_FloodControl;
 }
 
-void CIRCConnection::InternalWriteLine(const char* In) {
+void CIRCConnection::WriteUnformattedLine(const char* In) {
 	if (!m_Locked)
 		m_QueueMiddle->QueueItem(In);
 }
@@ -1075,7 +1068,7 @@ void CIRCConnection::JoinChannels(void) {
 		m_DelayJoinTimer = NULL;
 	}
 
-	const char* Chans = GetOwningClient()->GetConfigChannels();
+	const char* Chans = GetOwner()->GetConfigChannels();
 
 	if (Chans && *Chans) {
 		char* dup, *newChanList, *tok, *ChanList = NULL;
@@ -1135,14 +1128,14 @@ void CIRCConnection::JoinChannels(void) {
 	}
 }
 
-const char* CIRCConnection::ClassName(void) {
+const char* CIRCConnection::GetClassName(void) {
 	return "CIRCConnection";
 }
 
 bool CIRCConnection::Read(void) {
 	bool Ret = CConnection::Read();
 
-	if (Ret && RecvqSize() > 5120) {
+	if (Ret && GetRecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 
@@ -1157,8 +1150,15 @@ bool DelayJoinTimer(time_t Now, void* IRCConnection) {
 }
 
 bool IRCPingTimer(time_t Now, void* IRCConnection) {
-	if (((CIRCConnection*)IRCConnection)->m_Socket != INVALID_SOCKET)
-		((CIRCConnection*)IRCConnection)->WriteLine("PING :sbnc");
+	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
+
+	if (IRC->m_Socket != INVALID_SOCKET) {
+		IRC->WriteLine("PING :sbnc");
+	}
+
+	if (time(NULL) - IRC->m_LastResponse > 300) {
+		IRC->Kill("Server does not respond.");
+	}
 
 	return true;
 }
@@ -1179,22 +1179,22 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
 	return 1;
 }
 
-void CIRCConnection::AsyncDnsFinished(adns_query* query, adns_answer* response) {
-	if (response && response->status != adns_s_ok) {
+void CIRCConnection::AsyncDnsFinished(adns_query *Query, adns_answer *Response) {
+	if (Response == NULL || Response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 
-	CConnection::AsyncDnsFinished(query, response);
+	CConnection::AsyncDnsFinished(Query, Response);
 }
 
-void CIRCConnection::AsyncBindIpDnsFinished(adns_query *query, adns_answer *response) {
-	if (!response || response->status != adns_s_ok) {
+void CIRCConnection::AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response) {
+	if (Response == NULL || Response->status != adns_s_ok) {
 		m_Owner->Notice("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 
-	CConnection::AsyncBindIpDnsFinished(query, response);
+	CConnection::AsyncBindIpDnsFinished(Query, Response);
 }
 
 void CIRCConnection::AdnsTimeout(void) {
@@ -1211,26 +1211,55 @@ void CIRCConnection::Destroy(void) {
 	delete this;
 }
 
+// TODO: persist version and other stuff
 bool CIRCConnection::Freeze(CAssocArray *Box) {
-	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET)
+	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox;
+	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
 		return false;
 
-	Box->AddString("irc.nick", m_CurrentNick);
-	Box->AddString("irc.server", m_Server);
-	Box->AddInteger("irc.fd", GetSocket());
-	Box->AddInteger("irc.ssl", IsSSL());
+	Box->AddString("~irc.nick", m_CurrentNick);
+	Box->AddString("~irc.server", m_Server);
+	Box->AddInteger("~irc.fd", GetSocket());
 
-	Box->AddInteger("irc.channels", m_Channels->Count());
+	Box->AddString("~irc.serverversion", m_ServerVersion);
+	Box->AddString("~irc.serverfeat", m_ServerFeat);
+
+	FreezeObject<CConfig>(Box, "~irc.isupport", m_ISupport);
+	m_ISupport = NULL;
+
+	Box->AddInteger("~irc.channels", m_Channels->GetLength());
 
 	char *Out;
 	int i = 0;
 	hash_t<CChannel *> *Hash;
+	CAssocArray *ChannelBox;
 
 	while ((Hash =  m_Channels->Iterate(i++)) != NULL) {
-		asprintf(&Out, "irc.channel%d", i - 1);
-		Box->AddString(Out, Hash->Name);
+		asprintf(&Out, "~irc.channel%d", i - 1);
+		ChannelBox = Box->Create();
+		Hash->Value->Freeze(ChannelBox);
+		Box->AddBox(Out, ChannelBox);
 		free(Out);
 	}
+
+	m_Channels->RegisterValueDestructor(NULL);
+	delete m_Channels;
+	m_Channels = NULL;
+
+	QueueHighBox = Box->Create();
+	m_QueueHigh->Freeze(QueueHighBox);
+	m_QueueHigh = NULL;
+	Box->AddBox("~irc.queuehigh", QueueHighBox);
+
+	QueueMiddleBox = Box->Create();
+	m_QueueMiddle->Freeze(QueueMiddleBox);
+	m_QueueMiddle = NULL;
+	Box->AddBox("~irc.queuemiddle", QueueMiddleBox);
+
+	QueueLowBox = Box->Create();
+	m_QueueLow->Freeze(QueueLowBox);
+	m_QueueLow = NULL;
+	Box->AddBox("~irc.queuelow", QueueLowBox);
 
 	// protect the socket from being closed
 	g_Bouncer->UnregisterSocket(m_Socket);
@@ -1239,6 +1268,116 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 	Destroy();
 
 	return true;
+}
+
+CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
+	SOCKET Socket;
+	CIRCConnection *Connection;
+	CAssocArray *TempBox;
+	char *Out;
+	const char *Temp;
+	unsigned int Count;
+
+	if (Box == NULL || Owner == NULL) {
+		return NULL;
+	}
+
+	Socket = Box->ReadInteger("~irc.fd");
+
+	Connection = new CIRCConnection(Socket, Owner, false);
+
+	Connection->m_CurrentNick = strdup(Box->ReadString("~irc.nick"));
+	Connection->m_Server = strdup(Box->ReadString("~irc.server"));
+
+	Temp = Box->ReadString("~irc.serverversion");
+
+	if (Temp != NULL){
+		Connection->m_ServerVersion = strdup(Temp);
+	}
+
+	Temp = Box->ReadString("~irc.serverfeat");
+
+	if (Temp != NULL) {
+		Connection->m_ServerFeat = strdup(Temp);
+	}
+
+	TempBox = Box->ReadBox("~irc.isupport");
+
+	if (Connection->m_ISupport != NULL) {
+		delete Connection->m_ISupport;
+	}
+
+	Connection->m_ISupport = UnfreezeObject<CConfig>(Box, "~irc.isupport");
+
+	Count = Box->ReadInteger("~irc.channels");
+
+	Connection->WriteLine("VERSION");
+
+	for (unsigned int i = 0; i < Count; i++) {
+		CChannel *Channel;
+
+		asprintf(&Out, "~irc.channel%d", i);
+
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed while unfreezing an irc connection.");
+
+			g_Bouncer->Fatal();
+		}
+
+		TempBox = Box->ReadBox(Out);
+
+		free(Out);
+
+		if (TempBox != NULL) {
+			Channel = CChannel::Unfreeze(TempBox, Connection);
+
+			Connection->m_Channels->Add(Channel->GetName(), Channel);
+		}
+	}
+
+	if (Connection->m_FloodControl != NULL) {
+		delete Connection->m_FloodControl;
+	}
+
+	Connection->m_FloodControl = new CFloodControl(Connection);
+
+	TempBox = Box->ReadBox("~irc.queuehigh");
+
+	if (TempBox != NULL) {
+		if (Connection->m_QueueHigh != NULL) {
+			delete Connection->m_QueueHigh;
+		}
+
+		Connection->m_QueueHigh = CQueue::Unfreeze(TempBox);
+	}
+
+	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueHigh, 0);
+
+	TempBox = Box->ReadBox("~irc.queuemiddle");
+
+	if (TempBox != NULL) {
+		if (Connection->m_QueueMiddle != NULL) {
+			delete Connection->m_QueueMiddle;
+		}
+
+		Connection->m_QueueMiddle = CQueue::Unfreeze(TempBox);
+	}
+
+	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueMiddle, 0);
+
+	TempBox = Box->ReadBox("~irc.queuelow");
+
+	if (TempBox != NULL) {
+		if (Connection->m_QueueLow != NULL) {
+			delete Connection->m_QueueLow;
+		}
+
+		Connection->m_QueueLow = CQueue::Unfreeze(TempBox);
+	}
+
+	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);
+
+	return Connection;
 }
 
 void CIRCConnection::Kill(const char *Error) {
@@ -1253,4 +1392,29 @@ void CIRCConnection::Kill(const char *Error) {
 	WriteLine("QUIT :%s", Error);
 
 	CConnection::Kill(Error);
+}
+
+char CIRCConnection::GetHighestUserFlag(const char *Modes) {
+	bool Flip = false;
+	const char *Prefixes = GetISupport("PREFIX");
+
+	if (Modes == NULL || Prefixes == NULL) {
+		return '\0';
+	}
+
+	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
+		if (Flip == false) {
+			if (Prefixes[i] == ')') {
+				Flip = true;
+			}
+
+			continue;
+		}
+
+		if (strchr(Modes, Prefixes[i])) {
+			return Prefixes[i];
+		}
+	}
+
+	return '\0';
 }

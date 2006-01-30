@@ -20,9 +20,6 @@
 #define BLOCKSIZE 4096
 #define OPTIMIZEBLOCKS 16
 
-#ifdef SWIG
-class CFIFOBuffer;
-#else
 class CFIFOBuffer {
 	char* m_Buffer; /**< the fifo buffer's data */
 	unsigned int m_BufferSize; /**< the size of the buffer */
@@ -32,16 +29,17 @@ class CFIFOBuffer {
 	void *ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize);
 	inline void Optimize(void);
 public:
+#ifndef SWIG
 	CFIFOBuffer();
-	~CFIFOBuffer();
-
-	unsigned int GetSize(void);
-
-	char *Peek(void);
-	char *Read(unsigned int Bytes);
-	void Flush(void);
-
-	void Write(const char *Data, unsigned int Size);
-	void WriteLine(const char *Line);
-};
 #endif
+	virtual ~CFIFOBuffer();
+
+	virtual unsigned int GetSize(void);
+
+	virtual char *Peek(void);
+	virtual char *Read(unsigned int Bytes);
+	virtual void Flush(void);
+
+	virtual void Write(const char *Data, unsigned int Size);
+	virtual void WriteUnformattedLine(const char *Line);
+};

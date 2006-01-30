@@ -200,3 +200,49 @@ void CQueue::FlushQueue(void) {
 	m_Items = NULL;
 	m_ItemCount = 0;
 }
+
+bool CQueue::Freeze(CAssocArray *Box) {
+	unsigned int i = 0;
+	char *Line, *Index;
+
+	while ((Line = DequeueItem()) != NULL) {
+		asprintf(&Index, "%d", i);
+		Box->AddString(Index, Line);
+		free(Line);
+		free(Index);
+	}
+
+	delete this;
+
+	return true;
+}
+
+CQueue *CQueue::Unfreeze(CAssocArray *Box) {
+	unsigned int i = 0;
+	char *Index;
+	const char *Line;
+	CQueue *Queue;
+
+	if (Box == NULL) {
+		return NULL;
+	}
+
+	Queue = new CQueue();
+
+	while (true) {
+		asprintf(&Index, "%d", i);
+		Line = Box->ReadString(Index);
+
+		if (Line == NULL) {
+			break;
+		}
+
+		Queue->QueueItem(Line);
+
+		free(Index);
+
+		i++;
+	}
+
+	return Queue;
+}

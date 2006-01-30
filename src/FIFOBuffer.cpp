@@ -156,13 +156,13 @@ void CFIFOBuffer::Write(const char *Data, unsigned int Size) {
 }
 
 /**
- * WriteLine
+ * WriteUnformattedLine
  *
  * Writes a line into the buffer.
  *
  * @param Line the line
  */
-void CFIFOBuffer::WriteLine(const char *Line) {
+void CFIFOBuffer::WriteUnformattedLine(const char *Line) {
 	unsigned int Len = strlen(Line);
 
 	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,

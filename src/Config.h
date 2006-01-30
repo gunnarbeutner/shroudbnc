@@ -37,6 +37,11 @@ public:
 #endif
 	virtual ~CConfig(void);
 
+#ifndef SWIG
+	bool Freeze(CAssocArray *Box);
+	static CConfig *Unfreeze(CAssocArray *Box);
+#endif
+
 	virtual int ReadInteger(const char *Setting);
 	virtual const char *ReadString(const char *Setting);
 
@@ -48,5 +53,5 @@ public:
 	virtual const char *GetFilename(void);
 
 	virtual void Reload(void);
-	virtual int Count(void);
+	virtual unsigned int GetLength(void);
 };

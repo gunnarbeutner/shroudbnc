@@ -48,4 +48,58 @@ struct CModuleFar {
 	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter) = 0;
 
 	virtual const char *Command(const char *Cmd, const char *Parameters) = 0;
+
+	virtual void TagModified(const char *Tag, const char *Value) = 0;
+};
+
+class CModuleImplementation : public CModuleFar {
+private:
+	CCore *m_Core;
+
+protected:
+	virtual ~CModuleImplementation(void) { }
+
+	virtual void Destroy(void) {
+		delete this;
+	}
+
+	virtual void Init(CCore *Root) {
+		m_Core = Root;
+	}
+
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) {
+		return true;
+	}
+
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) {
+		return true;
+	}
+
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
+		return true;
+	}
+
+	virtual void AttachClient(const char *Client) {	}
+
+	virtual void DetachClient(const char *Client) { }
+
+	virtual void ServerDisconnect(const char *Client) { }
+	virtual void ServerConnect(const char *Client) { }
+	virtual void ServerLogon(const char *Client) { }
+
+	virtual void UserLoad(const char *User) { }
+	virtual void UserCreate(const char *User) { }
+	virtual void UserDelete(const char *User) { }
+
+	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter) { }
+
+	virtual const char *Command(const char *Cmd, const char *Parameters) {
+		return NULL;
+	}
+
+	virtual void TagModified(const char *Tag, const char *Value) { }
+public:
+	CCore *GetCore(void) {
+		return m_Core;
+	}
 };

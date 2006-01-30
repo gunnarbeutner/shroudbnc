@@ -63,4 +63,6 @@ public:
 	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter);
 
 	virtual const char *Command(const char *Cmd, const char *Parameters);
+
+	virtual void TagModified(const char *Tag, const char *Value);
 };

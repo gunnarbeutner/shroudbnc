@@ -35,6 +35,10 @@ CConfig::CConfig(const char *Filename) {
 
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
+
+		CHECK_ALLOC_RESULT(m_Filename, strdup) {
+			g_Bouncer->Fatal();
+		} CHECK_ALLOC_RESULT_END;
 	} else {
 		m_Filename = NULL;
 	}
@@ -66,7 +70,7 @@ bool CConfig::ParseConfig(void) {
 
 	m_WriteLock = true;
 
-	while (!feof(ConfigFile)) {
+	while (feof(ConfigFile) == 0) {
 		fgets(Line, sizeof(Line), ConfigFile);
 
 		if (Line[strlen(Line) - 1] == '\n')
@@ -82,21 +86,13 @@ bool CConfig::ParseConfig(void) {
 
 			dupEq = strdup(++Eq);
 
-			if (dupEq == NULL) {
+			CHECK_ALLOC_RESULT(dupEq, strdup) {
 				if (g_Bouncer != NULL) {
-					LOGERROR("strdup() failed. Config option lost (%s=%s).",
-						Line, Eq);
-
 					g_Bouncer->Fatal();
 				} else {
-					printf("CConfig::ParseConfig: strdup() failed."
-						" Config could not be parsed.");
-
 					exit(0);
 				}
-
-				continue;
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			if (m_Settings->Add(Line, dupEq) == false) {
 				LOGERROR("CHashtable::Add failed. Config could not be parsed"
@@ -138,7 +134,7 @@ CConfig::~CConfig() {
 const char *CConfig::ReadString(const char *Setting) {
 	char *Value = m_Settings->Get(Setting);
 
-	if (Value != NULL && *Value != '\0') {
+	if (Value != NULL && Value[0] != '\0') {
 		return Value;
 	} else {
 		return NULL;
@@ -201,11 +197,20 @@ bool CConfig::WriteString(const char *Setting, const char *Value) {
  * @param Value the new value for the setting
  */
 bool CConfig::WriteInteger(const char *Setting, const int Value) {
-	char ValueStr[50];
+	char *ValueString;
+	bool ReturnValue;
 
-	snprintf(ValueStr, sizeof(ValueStr), "%d", Value);
+	asprintf(&ValueString, "%d", Value);
 
-	return WriteString(Setting, ValueStr);
+	CHECK_ALLOC_RESULT(ValueString, asprintf) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
+	ReturnValue = WriteString(Setting, ValueString);
+
+	free(ValueString);
+
+	return ReturnValue;
 }
 
 /**
@@ -276,13 +281,11 @@ void CConfig::Reload(void) {
 
 	m_Settings = new CHashtable<char *, false, 8>();
 
-	if (m_Settings == NULL && g_Bouncer != NULL) {
-		LOGERROR("new operator failed.");
-
+	CHECK_ALLOC_RESULT(m_Settings, new) {
 		g_Bouncer->Fatal();
-	}
+	} CHECK_ALLOC_RESULT_END;
 
-	m_Settings->RegisterValueDestructor(string_free);
+	m_Settings->RegisterValueDestructor(DestroyString);
 
 	if (m_Filename != NULL) {
 		ParseConfig();
@@ -290,14 +293,150 @@ void CConfig::Reload(void) {
 }
 
 /**
- * Count
+ * GetLength
  *
  * Returns the number of items in the config.
  */
-int CConfig::Count(void) {
+unsigned int CConfig::GetLength(void) {
 	if (m_Settings == NULL) {
 		return 0;
 	} else {
-		return m_Settings->Count();
+		return m_Settings->GetLength();
 	}
+}
+
+/**
+ * Freeze
+ *
+ * Persists a config object.
+ *
+ * @param Box the box
+ */
+bool CConfig::Freeze(CAssocArray *Box) {
+	unsigned int i = 0;
+	hash_t<char *> *Setting;
+	CAssocArray *Settings;
+
+	if (m_Filename != NULL) {
+		Box->AddString("~config.file", m_Filename);
+	} else {
+		Settings = Box->Create();
+
+		CHECK_ALLOC_RESULT(Settings, Box->Create) {
+			delete this;
+
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+
+		while ((Setting = m_Settings->Iterate(i)) != NULL) {
+			char *Index, *Value;
+
+			asprintf(&Index, "%d", i);
+			CHECK_ALLOC_RESULT(Index, asprintf) {
+				Settings->Destroy();
+				delete this;
+
+				return false;
+			} CHECK_ALLOC_RESULT_END;
+
+			asprintf(&Value, "%s=%s", Setting->Name, Setting->Value);
+
+			Settings->AddString(Index, Value);
+
+			free(Index);
+			free(Value);
+
+			i++;
+		}
+
+		Box->AddBox("~config.settings", Settings);
+	}
+
+	delete this;
+
+	return true;
+}
+
+/**
+ * Unfreeze
+ *
+ * Depersists a config object.
+ *
+ * @param Box the box
+ */
+CConfig *CConfig::Unfreeze(CAssocArray *Box) {
+	CConfig *Config;
+	const char *Temp;
+	CAssocArray *Settings;
+	unsigned int i = 0;
+	char *Index, *dupSetting, *Value;
+	const char *Setting;
+
+	Config = new CConfig(NULL);
+
+	CHECK_ALLOC_RESULT(Config, new) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
+
+	Temp = Box->ReadString("~config.file");
+
+	if (Temp != NULL) {
+		Config->m_Filename = strdup(Temp);
+
+		CHECK_ALLOC_RESULT(Config->m_Filename, strdup) {
+			delete Config;
+
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+
+		Config->ParseConfig();
+	} else {
+		Settings = Box->ReadBox("~config.settings");
+
+		if (Settings == NULL) {
+			return Config;
+		}
+
+		while (true) {
+			asprintf(&Index, "%d", i);
+
+			CHECK_ALLOC_RESULT(Index, asprintf) {
+				delete Config;
+
+				return NULL;
+			} CHECK_ALLOC_RESULT_END;
+
+			Setting = Settings->ReadString(Index);
+
+			if (Setting == NULL) {
+				break;
+			}
+
+			if (strstr(Setting, "=") == NULL) {
+				continue;
+			}
+
+			dupSetting = strdup(Setting);
+
+			CHECK_ALLOC_RESULT(dupSetting, strdup) {
+				free(Index);
+				delete Config;
+
+				return NULL;
+			} CHECK_ALLOC_RESULT_END;
+
+			Value = strstr(dupSetting, "=");
+			Value[0] = '\0';
+			Value++;
+
+			Config->WriteString(dupSetting, Value);
+
+			free(dupSetting);
+			free(Index);
+
+			i++;
+		}
+	}
+
+	return Config;
 }

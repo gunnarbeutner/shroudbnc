@@ -47,7 +47,6 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
 int g_SSLCustomIndex;
 #endif
 
-SOCKET g_last_sock = 0;
 time_t g_LastReconnect = 0;
 #ifdef _DEBUG
 extern int g_TimerStats;
@@ -55,9 +54,6 @@ extern int g_TimerStats;
 
 void AcceptHelper(SOCKET Client, sockaddr_in PeerAddress, bool SSL) {
 	unsigned long lTrue = 1;
-
-	if (Client > g_last_sock)
-		g_last_sock = Client;
 
 	ioctlsocket(Client, FIONBIO, &lTrue);
 
@@ -182,14 +178,14 @@ CCore::~CCore() {
 	if (m_SSLListener != NULL)
 		delete m_SSLListener;*/
 
-	for (a = m_Modules.Count() - 1; a >= 0; a--) {
+	for (a = m_Modules.GetLength() - 1; a >= 0; a--) {
 		if (m_Modules[a])
 			delete m_Modules[a];
 
 		m_Modules.Remove(a);
 	}
 
-	for (c = m_OtherSockets.Count() - 1; c >= 0; c--) {
+	for (c = m_OtherSockets.GetLength() - 1; c >= 0; c--) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
 			m_OtherSockets[c].Events->Destroy();
 		}
@@ -200,7 +196,7 @@ CCore::~CCore() {
 		delete User->Value;
 	}
 
-	for (d = m_Timers.Count() - 1; d >= 0 ; d--) {
+	for (d = m_Timers.GetLength() - 1; d >= 0 ; d--) {
 		if (m_Timers[d])
 			delete m_Timers[d];
 	}
@@ -212,11 +208,12 @@ CCore::~CCore() {
 }
 
 void CCore::StartMainLoop(void) {
+	unsigned int i;
 	bool b_DontDetach = false;
 
 	puts("shroudBNC" BNCVERSION " - an object-oriented IRC bouncer");
 
-	int argc = m_Args.Count();
+	int argc = m_Args.GetLength();
 	char** argv = m_Args.GetList();
 
 	for (int a = 1; a < argc; a++) {
@@ -332,8 +329,9 @@ void CCore::StartMainLoop(void) {
 	/* Note: We need to load the modules after using fork() as otherwise tcl cannot be cleanly unloaded */
 	m_LoadingModules = true;
 
-	int i = 0;
 	char *Out;
+
+	i = 0;
 
 	while (true) {
 		asprintf(&Out, "system.modules.mod%d", i++);
@@ -370,7 +368,7 @@ void CCore::StartMainLoop(void) {
 		time_t Best = 0;
 		time_t SleepInterval = 0;
 
-		for (int c = m_Timers.Count() - 1; c >= 0; c--) {
+		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			time_t NextCall = m_Timers[c]->GetNextCall();
 
 			if (Now >= NextCall && Now > Last) {
@@ -390,18 +388,15 @@ void CCore::StartMainLoop(void) {
 		FD_ZERO(&FDRead);
 		FD_ZERO(&FDWrite);
 
-		int i;
-
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection* IRC;
 
 			if (UserHash->Value) {
-				if (IRC = UserHash->Value->GetIRCConnection()) {
-					if (!m_Running && !IRC->IsLocked()) {
+				if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
+					if (m_Running == false && IRC->IsLocked() == false) {
 						Log("Closing connection for %s", UserHash->Name);
-						IRC->InternalWriteLine("QUIT :Shutting down.");
-						IRC->Lock();
+						IRC->Kill("Shutting down.");
 
 						UserHash->Value->SetIRCConnection(NULL);
 					}
@@ -418,16 +413,16 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
-			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
-				if (m_OtherSockets[i].Events->DoTimeout())
+		for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
+			if (m_OtherSockets[a].Socket != INVALID_SOCKET) {
+				if (m_OtherSockets[a].Events->DoTimeout())
 					continue;
-				else if (m_OtherSockets[i].Events->ShouldDestroy())
-					m_OtherSockets[i].Events->Destroy();
+				else if (m_OtherSockets[a].Events->ShouldDestroy())
+					m_OtherSockets[a].Events->Destroy();
 			}
 		}
 
-		for (i = 0; i < m_OtherSockets.Count(); i++) {
+		for (i = 0; i < m_OtherSockets.GetLength(); i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
 //				if (m_OtherSockets[i].Socket > nfds)
 //					nfds = m_OtherSockets[i].Socket;
@@ -468,9 +463,9 @@ void CCore::StartMainLoop(void) {
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
-			for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
-				SOCKET Socket = m_OtherSockets[i].Socket;
-				CSocketEvents* Events = m_OtherSockets[i].Events;
+			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
+				SOCKET Socket = m_OtherSockets[a].Socket;
+				CSocketEvents* Events = m_OtherSockets[a].Events;
 
 				if (Socket != INVALID_SOCKET) {
 					if (FD_ISSET(Socket, &FDRead)) {
@@ -491,8 +486,8 @@ void CCore::StartMainLoop(void) {
 
 			fd_set set;
 
-			for (i = m_OtherSockets.Count() - 1; i >= 0; i--) {
-				SOCKET Socket = m_OtherSockets[i].Socket;
+			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
+				SOCKET Socket = m_OtherSockets[a].Socket;
 
 				if (Socket != INVALID_SOCKET) {
 					FD_ZERO(&set);
@@ -502,8 +497,8 @@ void CCore::StartMainLoop(void) {
 					int code = select(FD_SETSIZE - 1, &set, NULL, NULL, &zero);
 
 					if (code == -1) {
-						m_OtherSockets[i].Events->Error();
-						m_OtherSockets[i].Events->Destroy();
+						m_OtherSockets[a].Events->Error();
+						m_OtherSockets[a].Events->Destroy();
 					}
 				}
 			}
@@ -543,9 +538,6 @@ void CCore::StartMainLoop(void) {
 }
 
 void CCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL) {
-	if (Client > g_last_sock)
-		g_last_sock = Client;
-
 	unsigned long lTrue = 1;
 	ioctlsocket(Client, FIONBIO, &lTrue);
 
@@ -575,7 +567,7 @@ CHashtable<CUser *, false, 64> *CCore::GetUsers(void) {
 }
 
 int CCore::GetUserCount(void) {
-	return m_Users.Count();
+	return m_Users.GetLength();
 }
 
 void CCore::SetIdent(const char* Ident) {
@@ -606,8 +598,8 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 		return NULL;
 	}
 
-	for (int i = 0; i < m_Modules.Count(); i++) {
-		if (m_Modules[i] && m_Modules[i]->GetHandle() == Module->GetHandle()) {
+	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+		if (m_Modules[i]->GetHandle() == Module->GetHandle()) {
 			delete Module;
 
 			if (Error)
@@ -672,20 +664,18 @@ void CCore::UpdateModuleConfig(void) {
 	char* Out;
 	int a = 0;
 
-	for (int i = 0; i < m_Modules.Count(); i++) {
-		if (m_Modules[i]) {
-			asprintf(&Out, "system.modules.mod%d", a++);
+	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+		asprintf(&Out, "system.modules.mod%d", a++);
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
+		if (Out == NULL) {
+			LOGERROR("asprintf() failed.");
 
-				Fatal();
-			}
-
-			m_Config->WriteString(Out, m_Modules[i]->GetFilename());
-
-			free(Out);
+			Fatal();
 		}
+
+		m_Config->WriteString(Out, m_Modules[i]->GetFilename());
+
+		free(Out);
 	}
 
 	asprintf(&Out, "system.modules.mod%d", a);
@@ -716,7 +706,7 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
 
 
 void CCore::UnregisterSocket(SOCKET Socket) {
-	for (int i = 0; i < m_OtherSockets.Count(); i++) {
+	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		if (m_OtherSockets[i].Socket == Socket) {
 			m_OtherSockets.Remove(i);
 
@@ -844,7 +834,7 @@ CUser* CCore::CreateUser(const char* Username, const char* Password) {
 
 	UpdateUserConfig();
 
-	for (int i = 0; i < m_Modules.Count(); i++) {
+	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		CModule* Module = m_Modules[i];
 
 		if (Module) {
@@ -865,8 +855,8 @@ bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	if (User == NULL)
 		return false;
 
-	for (int a = 0; a < m_Modules.Count(); a++) {
-		CModule *Module = m_Modules[a];
+	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+		CModule *Module = m_Modules[i];
 
 		Module->UserDelete(Username);
 	}
@@ -1009,15 +999,15 @@ const char* CCore::MD5(const char* String) {
 
 
 int CCore::GetArgC(void) {
-	return m_Args.Count();
+	return m_Args.GetLength();
 }
 
 char** CCore::GetArgV(void) {
 	return m_Args.GetList();
 }
 
-CConnection* CCore::WrapSocket(SOCKET Socket, bool IsClient, bool SSL) {
-	CConnection* Wrapper = new CConnection(Socket, SSL, IsClient ? Role_IRC : Role_Client);
+CConnection* CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) {
+	CConnection* Wrapper = new CConnection(Socket, SSL, Role);
 
 	Wrapper->m_Wrapper = true;
 
@@ -1037,7 +1027,7 @@ void* CCore::Alloc(size_t Size) {
 }
 
 bool CCore::IsRegisteredSocket(CSocketEvents* Events) {
-	for (int i = 0; i < m_OtherSockets.Count(); i++) {
+	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		if (m_OtherSockets[i].Events == Events)
 			return true;
 	}
@@ -1052,13 +1042,13 @@ SOCKET CCore::SocketAndConnect(const char* Host, unsigned short Port, const char
 socket_t* CCore::GetSocketByClass(const char* Class, int Index) {
 	int a = 0;
 
-	for (int i = 0; i < m_OtherSockets.Count(); i++) {
+	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		socket_t Socket = m_OtherSockets[i];
 
 		if (Socket.Socket == INVALID_SOCKET)
 			continue;
 
-		if (strcmp(Socket.Events->ClassName(), Class) == 0)
+		if (strcmp(Socket.Events->GetClassName(), Class) == 0)
 			a++;
 
 		if (a - 1 == Index)
@@ -1277,7 +1267,7 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 		CAssocArray *IrcBox = Box->ReadBox(User->Name);
 
 		if (IrcBox) {
-			IRC = new CIRCConnection((SOCKET)IrcBox->ReadInteger("irc.fd"), IrcBox, User->Value);
+			IRC = CIRCConnection::Unfreeze(IrcBox, User->Value);
 
 			User->Value->SetIRCConnection(IRC);
 		}
@@ -1332,6 +1322,8 @@ const utility_t *CCore::GetUtilities(void) {
 		Utils->AddCommand = AddCommand;
 		Utils->DeleteCommand = DeleteCommand;
 		Utils->CmpCommandT = CmpCommandT;
+
+		Utils->asprintf = asprintf;
 	}
 
 	return Utils;
@@ -1416,4 +1408,95 @@ bool CCore::MakeConfig(void) {
 	free(File);
 
 	return true;
+}
+
+const char *CCore::GetTagString(const char *Tag) {
+	char *Setting;
+
+	if (Tag == NULL) {
+		return NULL;
+	}
+
+	asprintf(&Setting, "tag.%s", Tag);
+
+	if (Setting == NULL) {
+		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
+
+		return NULL;
+	}
+
+	return m_Config->ReadString(Setting);
+}
+
+int CCore::GetTagInteger(const char *Tag) {
+	const char *Value = GetTagString(Tag);
+
+	if (Value != NULL) {
+		return atoi(Value);
+	} else {
+		return 0;
+	}
+}
+
+bool CCore::SetTagString(const char *Tag, const char *Value) {
+	bool ReturnValue;
+	char *Setting;
+
+	if (Tag == NULL) {
+		return false;
+	}
+
+	asprintf(&Setting, "tag.%s", Tag);
+
+	if (Setting == NULL) {
+		LOGERROR("asprintf() failed. Could not store global tag.");
+
+		return false;
+	}
+
+	ReturnValue = m_Config->WriteString(Setting, Value);
+
+	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+		m_Modules[i]->TagModified(Tag, Value);
+	}
+
+	return ReturnValue;
+}
+
+bool CCore::SetTagInteger(const char *Tag, int Value) {
+	bool ReturnValue;
+	char *StringValue;
+
+	asprintf(&StringValue, "%d", Value);
+
+	if (StringValue == NULL) {
+		LOGERROR("asprintf() failed. Could not store global tag.");
+
+		return false;
+	}
+
+	ReturnValue = SetTagString(Tag, StringValue);
+
+	free(StringValue);
+
+	return ReturnValue;
+}
+
+const char *CCore::GetTagName(int Index) {
+	int Skip = 0;
+	int Count = m_Config->GetLength();
+
+	for (int i = 0; i < Count; i++) {
+		hash_t<char *> *Item = m_Config->Iterate(i);
+
+		if (strstr(Item->Name, "tag.") == Item->Name) {
+			if (Skip == Index) {
+				return Item->Name + 4;
+			}
+
+			Skip++;
+		}
+	}
+
+	return NULL;
 }

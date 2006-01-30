@@ -143,7 +143,7 @@ public:
 		return false;
 	}
 
-	const char *ClassName(void) {
+	const char *GetClassName(void) {
 		return "CUdpSocket";
 	}
 
@@ -152,7 +152,7 @@ public:
 	}
 };
 
-class CUptimeModule : public CModuleFar {
+class CUptimeModule : public CModuleImplementation {
 	friend bool UptimeTimerProc(time_t Now, void *Cookie);
 
 	void Destroy(void) {
@@ -190,7 +190,7 @@ class CUptimeModule : public CModuleFar {
 		struct stat st;
 #endif
 		PackUp *mem;
-		int len;
+		size_t len;
 		sockaddr_in sloc;
 		CUser *FirstUser;
 		hostent *hent;
@@ -262,47 +262,6 @@ class CUptimeModule : public CModuleFar {
 
 		free(mem);
 	}
-
-	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
-		return true;
-	}
-
-	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
-		return true;
-	}
-
-	void AttachClient(const char* Client) {
-	}
-
-	void DetachClient(const char* Client) {
-	}
-
-	void ServerDisconnect(const char* Client) {
-	}
-
-	void ServerConnect(const char* Client) {
-	}
-
-	void ServerLogon(const char* Client) {
-	}
-
-	void UserLoad(const char* User) {
-	}
-
-	void UserCreate(const char* User) {
-	}
-
-	void UserDelete(const char* User) {
-	}
-
-	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
-	}
-
-	const char* Command(const char* Cmd, const char* Parameters) {
-		return NULL;
-	}
-
-	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return false; }
 };
 
 bool UptimeTimerProc(time_t Now, void *Cookie) {

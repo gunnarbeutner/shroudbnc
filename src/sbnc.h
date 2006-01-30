@@ -5,7 +5,7 @@ typedef void (*SigEnableProc)(void);
 typedef void (*SetModuleProc)(const char *Module);
 typedef void (*SetAutoReloadProc)(bool Reload);
 
-struct loaderparams_s {
+typedef struct loaderparams_s {
 	int Version;
 
 	int argc;
@@ -17,7 +17,7 @@ struct loaderparams_s {
 	SigEnableProc SigEnable;
 	SetModuleProc SetModule;
 	SetAutoReloadProc unused;
-};
+} loaderparams_t;
 
 #ifndef SBNC
 typedef int (*sbncLoad)(loaderparams_s *Parameters);

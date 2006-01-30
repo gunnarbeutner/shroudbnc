@@ -47,6 +47,8 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ModuleFar.h \
 	Module.h \
 	Nick.h \
+	OwnedObject.h \
+	Persistable.h \
 	Queue.h \
 	sbnc.h \
 	snprintf.h \

@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * shroudBNC - an object-oriented framework for IRC                            *
+ * Copyright (C) 2005 Gunnar Beutner                                           *
+ *                                                                             *
+ * This program is free software; you can redistribute it and/or               *
+ * modify it under the terms of the GNU General Public License                 *
+ * as published by the Free Software Foundation; either version 2              *
+ * of the License, or (at your option) any later version.                      *
+ *                                                                             *
+ * This program is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of              *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               *
+ * GNU General Public License for more details.                                *
+ *                                                                             *
+ * You should have received a copy of the GNU General Public License           *
+ * along with this program; if not, write to the Free Software                 *
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
+ *******************************************************************************/
+
 /**
  * CVector
  *
@@ -8,13 +27,13 @@ class CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	Type *m_List; /**< the actual list */
-	unsigned m_Count; /**< the number of items in the list */
+	unsigned int m_Count; /**< the number of items in the list */
 
 public:
 	/**
 	 * CVector
 	 *
-	 * Constructs an empty list
+	 * Constructs an empty list.
 	 */
 	CVector(void) {
 		m_List = NULL;
@@ -25,7 +44,7 @@ public:
 	/**
 	 * CVector
 	 *
-	 * Constructs a list by copying an existing array
+	 * Constructs a list by copying an existing array.
 	 */
 //	CVector(Type *List, int Count, bool ReadOnly = true) {
 //		SetList(List, Count);
@@ -44,7 +63,7 @@ public:
 	/**
 	 * Insert
 	 *
-	 * Inserts a new item into the list
+	 * Inserts a new item into the list.
 	 *
 	 * @param Item the item which is to be inserted
 	 */
@@ -71,7 +90,7 @@ public:
 	/**
 	 * Remove
 	 *
-	 * Removes an item from the list
+	 * Removes an item from the list.
 	 *
 	 * @param Index the index of the item which is to be removed
 	 */
@@ -89,7 +108,7 @@ public:
 	/**
 	 * Remove
 	 *
-	 * Removes an item from the list
+	 * Removes an item from the list.
 	 *
 	 * @param Item the item which is to be removed
 	 */
@@ -109,7 +128,7 @@ public:
 	/**
 	 * operator []
 	 *
-	 * Returns an item
+	 * Returns an item.
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
@@ -122,7 +141,7 @@ public:
 	/**
 	 * Get
 	 *
-	 * Returns an item
+	 * Returns an item.
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
@@ -131,18 +150,18 @@ public:
 	}
 
 	/**
-	 * Count
+	 * GetLength
 	 *
-	 * Returns the number of items
+	 * Returns the number of items.
 	 */
-	virtual int Count(void) {
+	virtual unsigned int GetLength(void) {
 		return m_Count;
 	}
 
 	/**
 	 * GetList
 	 *
-	 * Returns the actual list which is used for storing the items
+	 * Returns the actual list which is used for storing the items.
 	 */
 	virtual Type *GetList(void) {
 		return m_List;
@@ -151,7 +170,7 @@ public:
 	/**
 	 * SetList
 	 *
-	 * Sets a new internal list by copying the items from another list
+	 * Sets a new internal list by copying the items from another list.
 	 */
 	virtual void SetList(Type *List, int Count) {
 		free(m_List);
@@ -165,7 +184,7 @@ public:
 	/**
 	 * GetAddressOf
 	 *
-	 * Returns the address of an item
+	 * Returns the address of an item.
 	 *
 	 * @param Index the index of the item
 	 */

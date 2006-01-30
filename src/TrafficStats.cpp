@@ -23,27 +23,76 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+/**
+ * CTrafficStats
+ *
+ * Constructs a new traffic stats object.
+ */
 CTrafficStats::CTrafficStats() {
 	m_Inbound = 0;
 	m_Outbound = 0;
 }
 
-CTrafficStats::~CTrafficStats() {
-
-}
-
+/**
+ * AddInbound
+ *
+ * Adds inbound traffic.
+ *
+ * @param Bytes the amount of traffic
+ */
 void CTrafficStats::AddInbound(unsigned int Bytes) {
 	m_Inbound += Bytes;
 }
 
+/**
+ * GetInbound
+ *
+ * Returns the amount of used inbound traffic (in bytes).
+ */
 unsigned int CTrafficStats::GetInbound(void) {
 	return m_Inbound;
 }
 
+/**
+ * AddOutbound
+ *
+ * Adds outbound traffic.
+ *
+ * @param Bytes the amount of traffic
+ */
 void CTrafficStats::AddOutbound(unsigned int Bytes) {
 	m_Outbound += Bytes;
 }
 
+/**
+ * GetOutbound
+ *
+ * Returns the amount of used outbound traffic (in bytes).
+ */
 unsigned int CTrafficStats::GetOutbound(void) {
 	return m_Outbound;
+}
+
+bool CTrafficStats::Freeze(CAssocArray *Box) {
+	Box->AddInteger("~traffic.in", m_Inbound);
+	Box->AddInteger("~traffic.out", m_Outbound);
+
+	delete this;
+
+	return true;
+}
+
+CTrafficStats *CTrafficStats::Unfreeze(CAssocArray *Box) {
+	CTrafficStats *TrafficStats;
+
+	TrafficStats = new CTrafficStats();
+
+	CHECK_ALLOC_RESULT(TrafficStats, new) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
+
+	TrafficStats->m_Inbound = Box->ReadInteger("~traffic.in");
+	TrafficStats->m_Outbound = Box->ReadInteger("~traffic.out");
+
+	return TrafficStats;
 }

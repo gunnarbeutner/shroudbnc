@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-// utility functions
-
 #undef USESSL
 #include "StdAfx.h"
 
@@ -27,41 +25,25 @@ extern "C" {
 	#include "md5/md5.h"
 }
 
-char* g_Args = NULL;
-char** g_ArgArray = NULL;
+/**
+ * ArgTokenize
+ *
+ * Tokenizes a string (i.e. splits it into arguments). ArgFree must
+ * eventually be called on the returned string.
+ *
+ * @param Data the string
+ */
+const char *ArgTokenize(const char *Data) {
+	char* Copy;
+	unsigned int LengthData;
 
-extern SOCKET g_last_sock;
-extern time_t g_LastReconnect;
-
-char* LastArg(char* Args) {
-	char* p;
-
-	if (*Args == ':') {
-		p = Args + 1;
-	} else {
-		p = strstr(Args, " :");
-
-		if (p)
-			p += 2;
-		else {
-			p = strstr(Args, " ");
-
-			if (p)
-				p++;
-			else
-				p = Args;
-		}
+	if (Data == NULL) {
+		return NULL;
 	}
 
-	return p;
-}
+	LengthData = strlen(Data);
 
-// proc: ArgTokenize
-// purp: tokenizes the given Data (i.e. splits parameters into arguments)
-const char* ArgTokenize(const char* Data) {
-	char* Copy;
-
-	Copy = (char*)malloc(strlen(Data) + 2);
+	Copy = (char *)malloc(LengthData + 2);
 
 	if (Copy == NULL) {
 		LOGERROR("malloc() failed. Could not tokenize string (%s).", Data);
@@ -70,70 +52,100 @@ const char* ArgTokenize(const char* Data) {
 	}
 
 	strcpy(Copy, Data);
-	Copy[strlen(Data) + 1] = '\0';
+	Copy[LengthData + 1] = '\0';
 
-	for (unsigned int i = 0; i < strlen(Data); i++) {
+	for (unsigned int i = 0; i < LengthData; i++) {
 		if (Copy[i] == ' ' && Copy[i + 1] != ' ') {
-//			if (++Count == MaxArgs && MaxArgs != -1)
-//				break;
-
 			Copy[i] = '\0';
 
-			if (i > 0 && Copy[i + 1] == ':')
+			if (i > 0 && Copy[i + 1] == ':') {
 				break;
+			}
 		}
 	}
 
 	return Copy;
 }
 
-const char* ArgParseServerLine(const char* Data) {
-	if (*Data == ':')
+/**
+ * ArgParseServerLine
+ *
+ * Tokenizes a line which was read from an irc server.
+ *
+ * @param Data the line
+ */
+const char *ArgParseServerLine(const char *Data) {
+	if (Data != NULL && Data[0] == ':') {
 		Data++;
+	}
 
 	return ArgTokenize(Data);
 }
 
-// proc: ArgGet
-// purp: gets an argument from the previously tokenized data
-const char* ArgGet(const char* Args, int Arg) {
+/**
+ * ArgGet
+ *
+ * Retrieves an argument from a tokenized string.
+ *
+ * @param Args the tokenized string
+ * @param Arg the index of the argument which is to be returned
+ */
+const char *ArgGet(const char *Args, int Arg) {
 	for (int i = 0; i < Arg - 1; i++) {
 		Args += strlen(Args) + 1;
 
-		if (Args[0] == '\0')
+		if (Args[0] == '\0') {
 			return NULL;
+		}
 	}
 
-	if (*Args == ':')
+	if (Args[0] == ':') {
 		Args++;
+	}
 
 	return Args;
 }
 
-// proc: ArgCount
-// purp: gets the argument count
-int ArgCount(const char* Args) {
+/**
+ * ArgCount
+ *
+ * Returns the number of arguments in a tokenized string.
+ *
+ * @param Args the tokenized string
+ */
+int ArgCount(const char *Args) {
 	int Count = 0;
 
-	if (Args == NULL)
+	if (Args == NULL) {
 		return 0;
+	}
 
 	while (true) {
 		Args += strlen(Args) + 1;
 		Count++;
 
-		if (strlen(Args) == 0)
+		if (strlen(Args) == 0) {
 			return Count;
+		}
 	}
 }
 
-const char** ArgToArray(const char* Args) {
+/**
+ * ArgToArray
+ *
+ * Converts a tokenized string into an array. ArgFreeArray must
+ * eventually be called on the returned string.
+ *
+ * @param Args the tokenized string.
+ */
+const char **ArgToArray(const char *Args) {
 	int Count = ArgCount(Args);
 
-	const char** ArgArray = (const char**)malloc(Count * sizeof(const char*));
+	const char **ArgArray = (const char **)malloc(Count * sizeof(const char *));
 
-	if (ArgArray == NULL)
+	if (ArgArray == NULL) {
 		return NULL;
+	}
 
 	for (int i = 0; i < Count; i++) {
 		ArgArray[i] = ArgGet(Args, i + 1);
@@ -142,11 +154,20 @@ const char** ArgToArray(const char* Args) {
 	return ArgArray;
 }
 
+/**
+ * ArgRejoinArray
+ *
+ * "Rejoins" arguments in an array.
+ *
+ * @param ArgV the array
+ * @param Index the index of the first argument which is to be rejoined
+ */
 void ArgRejoinArray(const char **ArgV, int Index) {
 	int Count = ArgCount(ArgV[0]);
 
-	if (Count - 1 <= Index)
+	if (Count - 1 <= Index) {
 		return;
+	}
 
 	for (int i = Index + 1; i < Count; i++) {
 		char *Arg = const_cast<char *>(ArgV[i]);
@@ -155,6 +176,13 @@ void ArgRejoinArray(const char **ArgV, int Index) {
 	}
 }
 
+/**
+ * ArgDupArray
+ *
+ * Duplicates an array of arguments.
+ *
+ * @param ArgV the array
+ */
 const char **ArgDupArray(const char **ArgV) {
 	char **Dup;
 	int Len = 0;
@@ -177,14 +205,39 @@ const char **ArgDupArray(const char **ArgV) {
 	return (const char **)Dup;
 }
 
-void ArgFree(const char* Args) {
-	free(const_cast<char*>(Args));
+/**
+ * ArgFree
+ *
+ * Frees a tokenized string.
+ *
+ * @params Args the tokenized string
+ */
+void ArgFree(const char *Args) {
+	free(const_cast<char *>(Args));
 }
 
-void ArgFreeArray(const char** Array) {
-	free(const_cast<char**>(Array));
+/**
+ * ArgFreeArray
+ *
+ * Frees an array of arguments.
+ *
+ * @param Array the array
+ */
+void ArgFreeArray(const char **Array) {
+	free(const_cast<char **>(Array));
 }
 
+/**
+ * SocketAndConnect
+ *
+ * Creates a socket and connects to the specified host/port. You should use
+ * SocketAndConnectResolved instead wherever possible as this function uses
+ * blocking DNS requests.
+ *
+ * @param Host the host
+ * @param Port the port
+ * @param BindIp the ip address/hostname which should be used for binding the socket
+ */
 SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
 	unsigned long lTrue = 1;
 	sockaddr_in sin, sloc;
@@ -202,9 +255,6 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		return INVALID_SOCKET;
 
 	ioctlsocket(Socket, FIONBIO, &lTrue);
-
-	if (g_last_sock < Socket)
-		g_last_sock = Socket;
 
 	if (BindIp && *BindIp) {
 		sloc.sin_family = AF_INET;
@@ -268,11 +318,18 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		return INVALID_SOCKET;
 	}
 
-	g_LastReconnect = time(NULL);
-
 	return Socket;
 }
 
+/**
+ * SocketAndConnectResolved
+ *
+ * Creates a socket and connects to the specified host/port. 
+ *
+ * @param Host the host's ip address
+ * @param Port the port
+ * @param BindIp the ip address which should be used for binding the socket
+ */
 SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* BindIp) {
 	unsigned long lTrue = 1;
 	sockaddr_in sin, sloc;
@@ -287,9 +344,6 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 		return INVALID_SOCKET;
 
 	ioctlsocket(Socket, FIONBIO, &lTrue);
-
-	if (g_last_sock < Socket)
-		g_last_sock = Socket;
 
 	if (BindIp) {
 		sloc.sin_family = AF_INET;
@@ -325,65 +379,78 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 		return INVALID_SOCKET;
 	}
 
-	g_LastReconnect = time(NULL);
-
 	return Socket;
 }
 
-CIRCConnection *CreateIRCConnection(const char *Host, unsigned short Port, CUser *Owning, const char *BindIp, bool SSL) {
-	g_LastReconnect = time(NULL);
-
-	return new CIRCConnection(Host, Port, Owning, BindIp, SSL);
-}
-
+/**
+ * NickFromHostname
+ *
+ * Given a complete hostmask (nick!ident\@host) this function returns a copy
+ * of the nickname. The result must be passed to free() when it is no longer used.
+ *
+ * @param Hostmask the hostmask
+ */
 char *NickFromHostmask(const char *Hostmask) {
-	const char *Ex = strstr(Hostmask, "!");
+	char *Copy;
+	const char *ExclamationMark;
 
-	if (!Ex)
+	ExclamationMark = strstr(Hostmask, "!");
+
+	if (ExclamationMark == NULL) {
 		return NULL;
-	else {
-		char *Copy = strdup(Hostmask);
-
-		if (Copy == NULL) {
-			LOGERROR("strdup() failed. Could not parse hostmask (%s).", Hostmask);
-
-			return NULL;
-		}
-
-		Copy[Ex - Hostmask] = '\0';
-
-		return Copy;
 	}
+
+	Copy = strdup(Hostmask);
+
+	if (Copy == NULL) {
+		LOGERROR("strdup() failed. Could not parse hostmask (%s).", Hostmask);
+
+		return NULL;
+	}
+
+	Copy[ExclamationMark - Hostmask] = '\0';
+
+	return Copy;
 }
 
-SOCKET CreateListener(unsigned short Port, const char* BindIp) {
+/**
+ * CreateListener
+ *
+ * Creates a new listening socket.
+ *
+ * @param Port the port this socket should listen on
+ * @param BindIp the IP address this socket should be bound to
+ */
+SOCKET CreateListener(unsigned short Port, const char *BindIp) {
+	sockaddr_in sin;
 	const int optTrue = 1;
 	bool Bound = false;
-	SOCKET Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET Listener;
+	hostent* hent;
+	in_addr *BindAddress;
 
-	if (Listener == INVALID_SOCKET)
+	Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if (Listener == INVALID_SOCKET) {
 		return INVALID_SOCKET;
-
-	g_last_sock = Listener;
+	}
 
 	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
-
-	sockaddr_in sin;
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
 
 	if (BindIp) {
-		hostent* hent = gethostbyname(BindIp);
+		hent = gethostbyname(BindIp);
 
 		if (hent) {
-			in_addr* peer = (in_addr*)hent->h_addr_list[0];
+			BindAddress = (in_addr*)hent->h_addr_list[0];
 
-	#ifdef _WIN32
-			sin.sin_addr.S_un.S_addr = peer->S_un.S_addr;
-	#else
-			sin.sin_addr.s_addr = peer->s_addr;
-	#endif
+#ifdef _WIN32
+			sin.sin_addr.S_un.S_addr = BindAddress->S_un.S_addr;
+#else
+			sin.sin_addr.s_addr = BindAddress->s_addr;
+#endif
 
 			Bound = true;
 		}
@@ -397,7 +464,7 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 #endif
 	}
 
-	if (bind(Listener, (sockaddr*)&sin, sizeof(sin)) != 0) {
+	if (bind(Listener, (sockaddr *)&sin, sizeof(sin)) != 0) {
 		closesocket(Listener);
 
 		return INVALID_SOCKET;
@@ -410,61 +477,129 @@ SOCKET CreateListener(unsigned short Port, const char* BindIp) {
 	}
 
 	return Listener;
-
 }
 
-void string_free(char* string) {
-	free(string);
-}
-
-const char* UtilMd5(const char* String) {
+/**
+ * UtilMd5
+ *
+ * Computes the MD5 hash of a given string and returns
+ * a string representation of the hash.
+ *
+ * @param String the string which should be hashed
+ */
+const char *UtilMd5(const char *String) {
 	MD5_CTX context;
 	static char Result[33];
 	unsigned char digest[16];
 	unsigned int len = strlen(String);
 
 	MD5Init (&context);
-	MD5Update (&context, (unsigned char*)String, len);
+	MD5Update (&context, (unsigned char *)String, len);
 	MD5Final (digest, &context);
 
-#undef sprintf
-
 	for (int i = 0; i < 16; i++) {
-		sprintf(Result + i * 2, "%02x", digest[i]);
+		snprintf(Result + i * 2, 2, "%02x", digest[i]);
 	}
 
 	return Result;
 }
 
+/**
+ * FlushCommands
+ *
+ * Destroy a list of commands.
+ *
+ * @param Commands the list
+ */
 void FlushCommands(commandlist_t *Commands) {
-	if (*Commands != NULL) {
+	if (Commands != NULL && *Commands != NULL) {
 		delete *Commands;
 		*Commands = NULL;
 	}
 }
 
+/**
+ * DestroyCommandT
+ *
+ * Destroy a command and frees any resources which it used. This function
+ * is used internally by the hashtable which is used for storing commands.
+ *
+ * @param Command the command which is to be destroyed
+ */
+static void DestroyCommandT(command_t *Command) {
+	free(Command->Category);
+	free(Command->Description);
+	free(Command->HelpText);
+	free(Command);
+}
+
+/**
+ * AddCommand
+ *
+ * Adds a command to a list of commands.
+ *
+ * @param Commands the list of commands
+ * @param Name the name of the command
+ * @param Category the category of the command (e.g. "Admin" or "User")
+ * @param Description a short description of the command
+ * @param HelpText the associated help text (can contain embedded \\n characters
+ */
 void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText) {
-	command_t *Command = (command_t *)malloc(sizeof(command_t));
+	command_t *Command;
+
+	if (Commands == NULL) {
+		return;
+	}
+
+	if (*Commands == NULL) {
+		*Commands = new CHashtable<command_t *, false, 16>();
+
+		if (*Commands == NULL) {
+			LOGERROR("new operator failed. Could not add command.");
+
+			return;
+		}
+
+		(*Commands)->RegisterValueDestructor(DestroyCommandT);
+	}
+
+	Command = (command_t *)malloc(sizeof(command_t));
+
+	if (Command == NULL) {
+		LOGERROR("malloc() failed. Could not add command.");
+
+		return;
+	}
 
 	Command->Category = strdup(Category);
 	Command->Description = strdup(Description);
 	Command->HelpText = HelpText ? strdup(HelpText) : NULL;
 
-	if (*Commands == NULL) {
-		*Commands = new CHashtable<command_t *, false, 16>();
-		(*Commands)->RegisterValueDestructor(DestroyCommandT);
-	}
-
 	(*Commands)->Add(Name, Command);
 }
 
+/**
+ * DeleteCommand
+ *
+ * Removes a command from a list of commands.
+ *
+ * @param Commands the list of commands
+ * @param Name the name of the command which is to be removed
+ */
 void DeleteCommand(commandlist_t *Commands, const char *Name) {
-	if (*Commands == NULL)
-		return;
-	else
+	if (Commands != NULL && *Commands != NULL) {
 		(*Commands)->Remove(Name);
+	}
 }
 
+/**
+ * CmpCommandT
+ *
+ * Compares two commands. This function is intended to be used with qsort().
+ *
+ * @param pA the first command
+ * @param pB the second command
+ */
 int CmpCommandT(const void *pA, const void *pB) {
 	const hash_t<command_t *> *a = (const hash_t<command_t *> *)pA;
 	const hash_t<command_t *> *b = (const hash_t<command_t *> *)pB;
@@ -477,13 +612,25 @@ int CmpCommandT(const void *pA, const void *pB) {
 		return CmpCat;
 }
 
-void DestroyCommandT(command_t *Command) {
-	free(Command->Category);
-	free(Command->Description);
-	free(Command->HelpText);
-	free(Command);
+/**
+ * CmpString
+ *
+ * Compares two strings. This function is intended to be used with qsort().
+ *
+ * @param pA the first string
+ * @param pB the second string
+ */
+int CmpString(const void *pA, const void *pB) {
+	return strcmp(*(const char **)pA, *(const char **)pB);
 }
 
-int keyStrCmp(const void *a, const void *b) {
-	return strcmp(*(const char **)a, *(const char **)b);
+/**
+ * DestroyString
+ *
+ * Frees a string. Used by CHashtable
+ *
+ * @param String the string
+ */
+void DestroyString(char *String) {
+	free(String);
 }

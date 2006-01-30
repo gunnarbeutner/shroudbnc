@@ -134,7 +134,7 @@ CUser::CUser(const char* Name) {
 void CUser::LoadEvent(void) {
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		Modules->Get(i)->UserLoad(m_Name);
 	}
 }
@@ -159,14 +159,14 @@ CUser::~CUser() {
 	m_BadLoginPulse->Destroy();
 
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificates.Count(); i++)
+	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++)
 		X509_free(m_ClientCertificates[i]);
 #endif
 
 	if (m_ReconnectTimer)
 		delete m_ReconnectTimer;
 
-	for (int i = 0; i < m_HostAllows.Count(); i++) {
+	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
 		free(m_HostAllows.Get(i));
 	}
 }
@@ -217,14 +217,14 @@ void CUser::Attach(CClientConnection* Client) {
 		return;
 	}
 
-	Client->m_Owner = this;
+	Client->SetOwner(this);
 
 	SetClientConnection(Client, true);
 
 	CLog *Motd = new CLog("sbnc.motd");
 
 	if (m_IRC) {
-		m_IRC->InternalWriteLine("AWAY");
+		m_IRC->WriteUnformattedLine("AWAY");
 
 		const char* AutoModes = m_Config->ReadString("user.automodes");
 
@@ -306,7 +306,7 @@ void CUser::Attach(CClientConnection* Client) {
 
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		Modules->Get(i)->AttachClient(GetUsername());
 	}
 
@@ -389,21 +389,21 @@ void CUser::Simulate(const char* Command, CClientConnection* FakeClient) {
 			if (FakeClient == NULL) {
 				LOGERROR("new operator failed. Could not simulate command (%s, %s).", m_Name, Command);
 			} else {
-				FakeClient->m_Owner = this;
+				FakeClient->SetOwner(this);
 
 				FakeClient->ParseLine(C);
 
-				FakeClient->m_Owner = NULL;
+				FakeClient->SetOwner(NULL);
 				delete FakeClient;
 			}
 		} else {
-			CUser* Owner = FakeClient->m_Owner;
+			CUser* Owner = FakeClient->GetOwner();
 			CClientConnection* Client = m_Client;
 
 			m_Client = FakeClient;
-			FakeClient->m_Owner = this;
+			FakeClient->SetOwner(this);
 			FakeClient->ParseLine(C);
-			FakeClient->m_Owner = Owner;
+			FakeClient->SetOwner(Owner);
 			m_Client = Client;
 		}
 	}
@@ -470,7 +470,7 @@ void CUser::Reconnect(void) {
 			BindIp = NULL;
 	}
 
-	CIRCConnection* Connection = CreateIRCConnection(Server, Port, this, BindIp, GetSSL());
+	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL());
 
 	if (!Connection) {
 		Notice("Can't connect..");
@@ -612,11 +612,11 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 		if (m_Client == NULL)
 			Log("Disconnected from the server.");
 
-		for (int i = 0; i < Modules->Count(); i++) {
+		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			Modules->Get(i)->ServerDisconnect(GetUsername());
 		}
 	} else if (IRC) {
-		for (int i = 0; i < Modules->Count(); i++) {
+		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			Modules->Get(i)->ServerConnect(GetUsername());
 		}
 
@@ -627,7 +627,7 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 
 		m_LastReconnect = time(NULL);
 
-		IRC->AttachStats(m_IRCStats);
+		IRC->SetTrafficStats(m_IRCStats);
 	}
 }
 
@@ -651,7 +651,6 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 
 		m_Config->WriteInteger("user.seen", time(NULL));
 	}
-
 
 	if (m_Client && Client) {
 		asprintf(&Out, "Seamless transition for %s", GetUsername());
@@ -691,7 +690,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 
 		CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-		for (int i = 0; i < Modules->Count(); i++) {
+		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			Modules->Get(i)->DetachClient(GetUsername());
 		}
 
@@ -732,7 +731,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 			}
 		}
 	} else
-		Client->AttachStats(m_ClientStats);
+		Client->SetTrafficStats(m_ClientStats);
 }
 
 void CUser::SetAdmin(bool Admin) {
@@ -795,7 +794,7 @@ void CUser::MarkQuitted(void) {
 void CUser::LogBadLogin(sockaddr_in Peer) {
 	badlogin_t BadLogin;
 
-	for (int i = 0; i < m_BadLogins.Count(); i++) {
+	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].Count < 3) {
 #else
@@ -814,7 +813,7 @@ void CUser::LogBadLogin(sockaddr_in Peer) {
 }
 
 bool CUser::IsIpBlocked(sockaddr_in Peer) {
-	for (unsigned int i = 0; i < m_BadLogins.Count(); i++) {
+	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
 #ifdef _WIN32
 		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
 #else
@@ -831,7 +830,7 @@ bool CUser::IsIpBlocked(sockaddr_in Peer) {
 }
 
 void CUser::BadLoginPulse(void) {
-	for (unsigned int i = m_BadLogins.Count() - 1; i >= 0; i--) {
+	for (int i = m_BadLogins.GetLength() - 1; i >= 0; i--) {
 		if (m_BadLogins[i].Count > 0) {
 			m_BadLogins[i].Count--;
 
@@ -866,7 +865,7 @@ void CUser::AddHostAllow(const char* Mask, bool UpdateConfig) {
 }
 
 void CUser::RemoveHostAllow(const char* Mask, bool UpdateConfig) {
-	for (unsigned int i = m_HostAllows.Count() - 1; i >= 0; i--) {
+	for (int i = m_HostAllows.GetLength() - 1; i >= 0; i--) {
 		if (strcasecmp(m_HostAllows[i], Mask) == 0) {
 			free(m_HostAllows[i]);
 			m_HostAllows.Remove(i);
@@ -886,7 +885,7 @@ CVector<char *> *CUser::GetHostAllows(void) {
 bool CUser::CanHostConnect(const char* Host) {
 	unsigned int Count = 0;
 
-	for (unsigned int i = 0; i < m_HostAllows.Count(); i++) {
+	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
 		if (mmatch(m_HostAllows[i], Host) == 0) {
 			return true;
 		} else {
@@ -904,7 +903,7 @@ void CUser::UpdateHosts(void) {
 	char* Out;
 	int a = 0;
 
-	for (unsigned int i = 0; i < m_HostAllows.Count(); i++) {
+	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
 		asprintf(&Out, "user.hosts.host%d", a++);
 
 		if (Out == NULL) {
@@ -1058,7 +1057,7 @@ CVector<X509 *> *CUser::GetClientCertificates(void) {
 
 bool CUser::AddClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
+	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}
@@ -1073,7 +1072,7 @@ bool CUser::AddClientCertificate(X509* Certificate) {
 
 bool CUser::RemoveClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
+	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			m_ClientCertificates.Remove(i);
 
@@ -1098,7 +1097,7 @@ bool CUser::PersistCertificates(void) {
 		return false;
 	}
 
-	if (m_ClientCertificates.Count() == 0) {
+	if (m_ClientCertificates.GetLength() == 0) {
 		unlink(Out);
 	} else {
 		CertFile = fopen(Out, "w");
@@ -1109,7 +1108,7 @@ bool CUser::PersistCertificates(void) {
 			return false;
 		}
 
-		for (int i = 0; i < m_ClientCertificates.Count(); i++) {
+		for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 			X509* a = m_ClientCertificates[i];
 			PEM_write_X509(CertFile, m_ClientCertificates[i]);
 			fprintf(CertFile, "\n");
@@ -1126,7 +1125,7 @@ bool CUser::PersistCertificates(void) {
 
 bool CUser::FindClientCertificate(X509* Certificate) {
 #ifdef USESSL
-	for (int i = 0; i < m_ClientCertificates.Count(); i++) {
+	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0)
 			return true;
 	}

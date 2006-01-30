@@ -34,6 +34,11 @@ public:
 #endif
 	virtual ~CQueue(void);
 
+#ifndef SWIG
+	bool CQueue::Freeze(CAssocArray *Box);
+	static CQueue *CQueue::Unfreeze(CAssocArray *Box);
+#endif
+
 	virtual char *DequeueItem(void);
 	virtual const char *PeekItem(void);
 	virtual bool QueueItem(const char *Item);

@@ -113,13 +113,13 @@ void CLog::PlayToUser(CUser *User, int Type) {
 }
 
 /**
- * InternalWriteLine
+ * WriteUnformattedLine
  *
  * Writes a new log entry.
  *
  * @param Line the log entry
  */
-void CLog::InternalWriteLine(const char *Line) {
+void CLog::WriteUnformattedLine(const char *Line) {
 	char *Out;
 	tm Now;
 	time_t tNow;
@@ -177,7 +177,7 @@ void CLog::WriteLine(const char* Format, ...) {
 		return;
 	}
 
-	InternalWriteLine(Out);
+	WriteUnformattedLine(Out);
 
 	free(Out);
 }

@@ -19,35 +19,21 @@
 
 #include "../src/StdAfx.h"
 
-#ifdef _WIN32
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 ) {
-    return TRUE;
-}
-#else
-int main(int argc, char* argv[]) { return 0; }
-#endif
-
-class CHelloClass : public CModuleFar {
-	CCore* m_Core;
-	CUser* m_Bot;
+class CHelloClass : public CModuleImplementation {
+	CUser *m_Bot;
 
 	void Destroy(void) {
-		m_Core->RemoveUser(m_Bot->GetUsername());
+		GetCore()->RemoveUser(m_Bot->GetUsername());
 
 		delete this;
 	}
 
-	void Init(CCore* Root) {
-		m_Core = Root;
-
-		m_Bot = m_Core->CreateUser("bot", NULL);
+	void Init(CCore *Core) {
+		m_Bot = GetCore()->CreateUser("bot", NULL);
 
 		m_Bot->Lock();
 
-		if (!m_Bot->GetServer()) {
+		if (m_Bot->GetServer() == NULL) {
 			m_Bot->SetNick("shroudbot");
 			m_Bot->SetRealname("Hello World BNC module");
 			m_Bot->SetServer("dk.quakenet.org");
@@ -58,59 +44,35 @@ class CHelloClass : public CModuleFar {
 		m_Bot->ScheduleReconnect();
 	}
 
-	int GetInterfaceVersion(void) {
-		return INTERFACEVERSION;
-	}
+	bool InterceptIRCMessage(CIRCConnection *IRC, int argc, const char **argv) {
+		CChannel *Channel;
 
-	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
-		if (IRC == m_Bot->GetIRCConnection()) {
-			if (argc >= 3 && strcasecmp(argv[1], "privmsg") == 0 && strcasecmp(argv[3], "!hello") == 0) {
-				char Out[1024];
+		if (m_Bot->GetIRCConnection() == IRC) {
+			if (argc >= 3 && strcasecmp(argv[1], "PRIVMSG") == 0 && strcasecmp(argv[3], "!hello") == 0) {
+				const char *Other;
 
-				const char* Other;
-
-				if (strcasecmp(argv[2], IRC->GetCurrentNick()) == 0)
+				if (strcasecmp(argv[2], IRC->GetCurrentNick()) == 0) {
 					Other = IRC->NickFromHostmask(argv[0]);
-				else
+				} else {
 					Other = argv[2];
+				}
 
-#undef sprintf
-				sprintf(Out, "PRIVMSG %s :%s", Other, IRC->GetChannel("#shroudtest2")->GetChanModes());
+				Channel = IRC->GetChannel("#shroudtest2");
 
-				if (Other != argv[2])
+				IRC->WriteLine("PRIVMSG %s :%s", Other, Channel ? Channel->GetChannelModes() : "unknown modes");
+
+				if (Other != argv[2]) {
 					IRC->FreeNick(const_cast<char*>(Other));
-
-				IRC->WriteLine(Out);
+				}
 			}
 		}
 
 		return true;
 	}
-
-	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
-		return true;
-	}
-
-	void AttachClient(const char* Client) { }
-	void DetachClient(const char* Client) { }
-
-	void ServerDisconnect(const char* Client) { }
-	void ServerConnect(const char* Client) { }
-	void ServerLogon(const char* Client) { }
-
-	void UserLoad(const char* User) { }
-	void UserCreate(const char* User) { }
-	void UserDelete(const char* User) { }
-
-	void SingleModeChange(CIRCConnection* Connection, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
-
-	const char* Command(const char* Cmd, const char* Parameters) { return NULL; }
-
-	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return true; }
 };
 
 extern "C" EXPORT CModuleFar* bncGetObject(void) {
-	return (CModuleFar*)new CHelloClass();
+	return (CModuleFar *)new CHelloClass();
 }
 
 extern "C" EXPORT int bncGetInterfaceVersion(void) {

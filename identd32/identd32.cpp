@@ -23,17 +23,12 @@
 #error This module cannot be used on *nix systems.
 #endif
 
-CCore* g_Bouncer;
+class CIdentModule;
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 ) {
-    return TRUE;
-}
+CCore *g_Bouncer;
 
 class CIdentClient : public CSocketEvents {
-	CConnection* m_Wrap;
+	CConnection *m_Wrap;
 public:
 	CIdentClient(SOCKET Client) {
 		m_Wrap = g_Bouncer->WrapSocket(Client);
@@ -45,17 +40,16 @@ public:
 	}
 
 	bool Read(bool DontProcess) {
-		bool RetVal = m_Wrap->Read();
+		char *Line;
+		bool ReturnValue = m_Wrap->Read();
 
-		if (!RetVal)
+		if (ReturnValue == false) {
 			return false;
-
-		char* Line;
-
-		if (DontProcess)
+		} else if (DontProcess) {
 			return true;
+		}
 
-		while (m_Wrap->ReadLine(&Line)) {
+		while (m_Wrap->ReadLine(&Line) != NULL) {
 			ParseLine(Line);
 
 			g_Bouncer->Free(Line);
@@ -65,8 +59,9 @@ public:
 	}
 
 	void ParseLine(const char* Line) {
-		if (*Line == '\0')
+		if (Line[0] == '\0') {
 			return;
+		}
 
 		if (g_Bouncer->GetIdent() == NULL) {
 			LOGERROR("GetIdent() failed. identd not functional.");
@@ -76,10 +71,51 @@ public:
 			return;
 		}
 
-		// 113 , 3559 : USERID : UNIX : shroud
-		m_Wrap->WriteLine("%s : USERID : UNIX : %s", Line, g_Bouncer->GetIdent());
+		int LocalPort = 0, RemotePort = 0;
+		char *dupLine = strdup(Line);
+		char *StringRemotePort;
 
-		g_Bouncer->Log("Answered ident-request for %s", g_Bouncer->GetIdent());
+		if ((StringRemotePort = strstr(dupLine, ",")) != NULL) {
+			StringRemotePort[0] = '\0';
+			StringRemotePort++;
+
+			RemotePort = atoi(StringRemotePort);
+		}
+
+		LocalPort = atoi(dupLine);
+		free(dupLine);
+
+		if (LocalPort == 0 || RemotePort == 0) {
+			g_Bouncer->Log("Received invalid ident-request.");
+
+			return;
+		}
+
+		int i = 0;
+		hash_t<CUser *> *UserHash;
+
+		while ((UserHash = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
+			CUser *User = UserHash->Value;
+			CIRCConnection *IRC = User->GetIRCConnection();
+
+			if (IRC == NULL) {
+				continue;
+			}
+
+			if (htons(IRC->GetLocalAddress().sin_port) == LocalPort && htons(IRC->GetRemoteAddress().sin_port) == RemotePort) {
+				// 113 , 3559 : USERID : UNIX : shroud
+				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
+
+				g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
+
+				return;
+			}
+		}
+
+		// 113 , 3559 : USERID : UNIX : shroud
+		m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, "unknown");
+
+		g_Bouncer->Log("Ident-request for unknown user.");
 	}
 
 	void Write(void) {
@@ -104,100 +140,51 @@ public:
 
 	bool ShouldDestroy(void) { return false; }
 
-	const char* ClassName(void) {
+	const char *GetClassName(void) {
 		return "CIdentClient";
 	}
 };
 
-class CIdentModule : public CModuleFar, public CSocketEvents {
-	SOCKET m_Listener;
-	void Destroy(void) {
-		g_Bouncer->Log("Destroying identd-listener.");
+IMPL_SOCKETLISTENER(CIdentListener, CIdentModule) {
+public:
+	CIdentListener() : CListenerBase<CIdentModule>(113, NULL, NULL) { }
 
-		g_Bouncer->UnregisterSocket(m_Listener);
-		closesocket(m_Listener);
+	void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+		CIdentClient *Handler = new CIdentClient(Client);
 
-		delete this;
+		g_Bouncer->RegisterSocket(Client, Handler);
 	}
+};
+
+class CIdentModule : public CModuleImplementation {
+	CIdentListener *m_Listener;
 
 	void Init(CCore* Root) {
 		g_Bouncer = Root;
 
-		m_Listener = g_Bouncer->CreateListener(113);
+		m_Listener = new CIdentListener();
 
-		if (m_Listener == INVALID_SOCKET) {
+		if (m_Listener->IsValid() == false) {
 			g_Bouncer->Log("Could not create listener for identd.");
-			return;
+
+			delete m_Listener;
+			m_Listener = NULL;
 		}
 
 		g_Bouncer->Log("Created identd listener.");
-
-		g_Bouncer->RegisterSocket(m_Listener, this);
 	}
 
-	int GetInterfaceVersion(void) {
-		return INTERFACEVERSION;
+	~CIdentModule(void) {
+		if (m_Listener != NULL) {
+			g_Bouncer->Log("Destroying identd-listener.");
+
+			m_Listener->Destroy();
+		}
 	}
-
-	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
-		return true;
-	}
-
-	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
-		return true;
-	}
-
-	bool Read(bool DontProcess) {
-		sockaddr_in sin;
-		int len = sizeof(sin);
-
-		SOCKET Client = accept(m_Listener, (sockaddr*)&sin, &len);
-
-		CIdentClient* Handler = new CIdentClient(Client);
-
-		g_Bouncer->RegisterSocket(Client, Handler);
-
-		return true;
-	}
-
-	void Write(void) {
-	}
-
-	void Error(void) {
-	}
-
-	bool HasQueuedData(void) {
-		return false;
-	}
-
-	bool ShouldDestroy(void) { return false; }
-
-	bool DoTimeout(void) { return false; }
-
-	const char* ClassName(void) {
-		return "CIdentModule";
-	}
-
-	void AttachClient(const char* Client) { }
-	void DetachClient(const char* Client) { }
-
-	void ServerDisconnect(const char* Client) { }
-	void ServerConnect(const char* Client) { }
-	void ServerLogon(const char* Client) { }
-
-	void UserLoad(const char* User) { }
-	void UserCreate(const char* User) { }
-	void UserDelete(const char* User) { }
-
-	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) { }
-
-	const char* Command(const char* Cmd, const char* Parameters) { return NULL; }
-
-	bool InterceptClientCommand(CClientConnection* Connection, const char* Subcommand, int argc, const char** argv, bool NoticeUser) { return false; }
 };
 
-extern "C" EXPORT CModuleFar* bncGetObject(void) {
-	return (CModuleFar*)new CIdentModule();
+extern "C" EXPORT CModuleFar *bncGetObject(void) {
+	return (CModuleFar *)new CIdentModule();
 }
 
 extern "C" EXPORT int bncGetInterfaceVersion(void) {

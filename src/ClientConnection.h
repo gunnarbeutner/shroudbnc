@@ -18,26 +18,26 @@
  *******************************************************************************/
 
 #ifndef SWIG
-bool AdnsTimeoutTimer(time_t Now, void* Client);
+bool AdnsTimeoutTimer(time_t Now, void *Client);
 #endif
 
 class CTimer;
 class CClientDnsEvents;
 class CAssocArray;
 
-class CClientConnection : public CConnection {
+class CClientConnection : public CConnection, public COwnedObject<CUser> {
 #ifndef SWIG
 	friend bool AdnsTimeoutTimer(time_t Now, void* Client);
 #endif
 
-	char* m_Nick;
-	char* m_Password;
-	char* m_Username;
+	char *m_Nick;
+	char *m_Password;
+	char *m_Username;
 	sockaddr_in m_Peer;
-	char* m_PeerName;
-	CTimer* m_AdnsTimeout;
+	char *m_PeerName;
+	CTimer *m_AdnsTimeout;
 
-	CClientDnsEvents* m_DnsEvents;
+	CClientDnsEvents *m_DnsEvents;
 
 	commandlist_t m_CommandList;
 
@@ -53,8 +53,6 @@ public:
 	CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CClientConnection(void);
-
-	virtual connection_role_e GetRole(void);
 
 	virtual bool ParseLineArgV(int argc, const char** argv);
 	virtual void ParseLine(const char* Line);
@@ -73,8 +71,8 @@ public:
 
 	virtual bool Read(bool DontProcess = false);
 	virtual void Destroy(void);
-	virtual const char* ClassName(void);
-	virtual void InternalWriteLine(const char* In);
+	virtual const char* GetClassName(void);
+	virtual void WriteUnformattedLine(const char* In);
 
 	virtual bool Freeze(CAssocArray *Box);
 

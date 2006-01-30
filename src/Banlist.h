@@ -40,6 +40,11 @@ public:
 #endif
 	virtual ~CBanlist();
 
+#ifndef SWIG
+	bool Freeze(CAssocArray *Box);
+	static CBanlist *Unfreeze(CAssocArray *Box);
+#endif
+
 	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);
 	virtual bool UnsetBan(const char *Mask);
 

@@ -178,3 +178,7 @@ const char *CModule::Command(const char *Cmd, const char *Parameters) {
 bool CModule::InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
 	return m_Far->InterceptClientCommand(Connection, Subcommand, argc, argv, NoticeUser);
 }
+
+void CModule::TagModified(const char *Tag, const char *Value) {
+	return m_Far->TagModified(Tag, Value);
+}

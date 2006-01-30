@@ -42,7 +42,7 @@ bool IrcAdnsTimeoutTimer(time_t Now, void* IRC);
 typedef void X509_STORE_CTX;
 #endif
 
-class CIRCConnection : public CConnection {
+class CIRCConnection : public CConnection, public COwnedObject<CUser> {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
@@ -72,6 +72,8 @@ class CIRCConnection : public CConnection {
 
 	char* m_Site;
 
+	time_t m_LastResponse;
+
 	CChannel *AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
@@ -90,11 +92,14 @@ public:
 #endif
 	virtual ~CIRCConnection();
 
+#ifndef SWIG
+	bool Freeze(CAssocArray *Box);
+	static CIRCConnection *Unfreeze(CAssocArray *Box, CUser *Owner);
+#endif
+
 	virtual void Write(void);
 	virtual bool HasQueuedData(void);
-	virtual void InternalWriteLine(const char* In);
-
-	virtual connection_role_e GetRole(void);
+	virtual void WriteUnformattedLine(const char* In);
 
 	virtual CChannel* GetChannel(const char* Name);
 	virtual CHashtable<CChannel*, false, 16>* GetChannels(void);
@@ -102,7 +107,7 @@ public:
 	virtual const char* GetCurrentNick(void);
 	virtual const char* GetServer(void);
 
-	virtual const char* ClassName(void);
+	virtual const char* GetClassName(void);
 
 	virtual bool IsOnChannel(const char* Channel);
 
@@ -143,7 +148,7 @@ public:
 
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
 
-	virtual bool Freeze(CAssocArray *Box);
-
 	virtual void Kill(const char *Error);
+
+	virtual char GetHighestUserFlag(const char *Modes);
 };

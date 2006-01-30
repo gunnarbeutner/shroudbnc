@@ -102,7 +102,7 @@ const char* internalchannels(void) {
 	if (H == NULL)
 		return NULL;
 
-	int Count = Count = H->Count();
+	int Count = Count = H->GetLength();
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
@@ -141,7 +141,7 @@ const char* getchanmode(const char* Channel) {
 	if (!Chan)
 		return NULL;
 	else
-		return Chan->GetChanModes();
+		return Chan->GetChannelModes();
 }
 
 void rehash(void) {
@@ -361,7 +361,7 @@ int putserv(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->InternalWriteLine(text);
+	IRC->WriteUnformattedLine(text);
 
 	return 1;
 }
@@ -377,7 +377,7 @@ int putclient(const char* text) {
 	if (!Client)
 		return 0;
 
-	Client->InternalWriteLine(text);
+	Client->WriteUnformattedLine(text);
 
 	return 1;
 }
@@ -510,7 +510,7 @@ const char* internalchanlist(const char* Channel) {
 
 	CHashtable<CNick*, false, 64>* Names = Chan->GetNames();
 
-	int Count = Names->Count();
+	int Count = Names->GetLength();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
 	int a = 0;
@@ -662,7 +662,7 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 
 	static char outPref[2];
 
-	outPref[0] = Chan->GetHighestUserFlag(cNick->GetPrefixes());
+	outPref[0] = IRC->GetHighestUserFlag(cNick->GetPrefixes());
 	outPref[1] = '\0';
 	
 	return outPref;
@@ -1200,9 +1200,9 @@ const char* bncmodules(void) {
 		*Buffer = '\0';
 
 	int a = 0;
-	char** List = (char**)malloc(Modules->Count() * sizeof(const char*));
+	char** List = (char**)malloc(Modules->GetLength() * sizeof(const char*));
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		char BufId[200], Buf1[200], Buf2[200];
 
 		sprintf(BufId, "%d", i);
@@ -1286,7 +1286,7 @@ void haltoutput(void) {
 const char* bnccommand(const char* Cmd, const char* Parameters) {
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		const char* Result = Modules->Get(i)->Command(Cmd, Parameters);
 
 		if (Result)
@@ -1425,7 +1425,7 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
 
-	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, true, SSL);
+	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, SSL, Role_Client);
 
 	return Wrapper->GetIdx();
 }
@@ -1697,9 +1697,9 @@ const char* getbnchosts(void) {
 	CVector<char *> *Hosts = Context->GetHostAllows();
 
 	int argc = 0;
-	const char** argv = (const char**)malloc(Hosts->Count() * sizeof(const char*));
+	const char** argv = (const char**)malloc(Hosts->GetLength() * sizeof(const char*));
 
-	for (int i = 0; i < Hosts->Count(); i++) {
+	for (unsigned int i = 0; i < Hosts->GetLength(); i++) {
 		argv[argc++] = Hosts->Get(i);
 	}
 
@@ -1732,7 +1732,7 @@ int addbnchost(const char* Host) {
 
 	CVector<char *> *Hosts = Context->GetHostAllows();
 
-	if (Context->CanHostConnect(Host) && Hosts->Count() > 0)
+	if (Context->CanHostConnect(Host) && Hosts->GetLength() > 0)
 		return 0;
 
 	Context->AddHostAllow(Host);
@@ -1842,49 +1842,24 @@ void bncdeletecommand(const char *Name) {
 }
 
 void bncsetglobaltag(const char *Tag, const char *Value) {
-	const char *argv[2];
-	char *tagName = (char *)malloc(4 + strlen(Tag) + 1);
-
-	sprintf(tagName, "tag.%s", Tag);
-
-	if (Value && *Value == '\0')
-		Value = NULL;
-
-	g_Bouncer->GetConfig()->WriteString(tagName, Value);
-
-	argv[0] = Tag;
-	argv[1] = Value;
-	CallBinds(Type_SetTag, NULL, 2, argv);
-
-	free(tagName);
+	g_Bouncer->SetTagString(Tag, Value);
 }
 
 const char *bncgetglobaltag(const char *Tag) {
-	char *tagName = (char *)malloc(4 + strlen(Tag) + 1);
-
-	sprintf(tagName, "tag.%s", Tag);
-
-	const char *ReturnValue = g_Bouncer->GetConfig()->ReadString(tagName);
-
-	free(tagName);
-
-	return ReturnValue;
+	return g_Bouncer->GetTagString(Tag);
 }
 
 const char *bncgetglobaltags(void) {
 	CConfig *Config = g_Bouncer->GetConfig();
-	int Count = Config->Count();
+	int Count = Config->GetLength();
+	const char *Item;
 
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-	for (int i = 0; i < Count; i++) {
-		hash_t<char *> *Item = Config->Iterate(i);
-
-		if (strstr(Item->Name, "tag.") == Item->Name) {
-			argv[argc] = Item->Name + 4;
-			argc++;
-		}
+	while ((Item = g_Bouncer->GetTagName(argc)) != NULL) {
+		argv[argc] = Item;
+		argc++;
 	}
 
 	static char* List = NULL;

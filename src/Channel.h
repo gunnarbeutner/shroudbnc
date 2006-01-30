@@ -29,54 +29,63 @@ typedef struct chanmode_s {
 	char* Parameter; /**< the associated parameter, or NULL if there is none */
 } chanmode_t;
 
+/* Forward declaration of various classes */
 class CNick;
 class CBanlist;
 
-class CChannel {
-	CIRCConnection* m_Owner; /**< the owner of this channel object */
-
-	char* m_Name; /**< the name of the channel */
+/**
+ * CChannel
+ *
+ * Represents an IRC channel.
+ */
+class CChannel : public COwnedObject<CIRCConnection> {
+	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
 
-	chanmode_t* m_Modes; /**< the channel modes */
+	chanmode_t *m_Modes; /**< the channel modes */
 	int m_ModeCount; /**< the number of channel modes */
 	bool m_ModesValid; /**< indicates whether the channelmodes are known */
-	char* m_TempModes; /**< string-representation of the channel modes, used
-							by GetChanModes() */
+	char *m_TempModes; /**< string-representation of the channel modes, used
+							by GetChannelModes() */
 
-	char* m_Topic; /**< the channel's topic */
-	char* m_TopicNick; /**< the nick of the user who set the topic */
+	char *m_Topic; /**< the channel's topic */
+	char *m_TopicNick; /**< the nick of the user who set the topic */
 	time_t m_TopicStamp; /**< the time when the topic was set */
 	int m_HasTopic; /**< indicates whether there is actually a topic */
 
-	CHashtable<CNick*, false, 64>* m_Nicks; /**< a list of nicks who are
+	CHashtable<CNick *, false, 64> *m_Nicks; /**< a list of nicks who are
 												 on this channel */
 	bool m_HasNames; /**< indicates whether m_Nicks is valid */
 
-	CBanlist* m_Banlist; /**< a list of bans for this channel */
+	CBanlist *m_Banlist; /**< a list of bans for this channel */
 	bool m_HasBans; /**< indicates whether the banlist is known */
 
-	chanmode_t* AllocSlot(void);
-	chanmode_t* FindSlot(char Mode);
+	chanmode_t *AllocSlot(void);
+	chanmode_t *FindSlot(char Mode);
 public:
 #ifndef SWIG
-	CChannel(const char* Name, CIRCConnection* Owner);
+	CChannel(const char *Name, CIRCConnection *Owner);
 #endif
 	virtual ~CChannel(void);
 
-	virtual const char* GetName(void);
+#ifndef SWIG
+	bool Freeze(CAssocArray *Box);
+	static CChannel *Unfreeze(CAssocArray *Box, CIRCConnection *Owner);
+#endif
 
-	virtual const char* GetChanModes(void);
-	virtual void ParseModeChange(const char* source, const char* modes, int pargc, const char** pargv);
+	virtual const char *GetName(void);
+
+	virtual const char *GetChannelModes(void);
+	virtual void ParseModeChange(const char *source, const char *modes, int pargc, const char **pargv);
 
 	virtual time_t GetCreationTime(void);
 	virtual void SetCreationTime(time_t T);
 
-	virtual const char* GetTopic(void);
-	virtual void SetTopic(const char* Topic);
+	virtual const char *GetTopic(void);
+	virtual void SetTopic(const char *Topic);
 
-	virtual const char* GetTopicNick(void);
-	virtual void SetTopicNick(const char* Nick);
+	virtual const char *GetTopicNick(void);
+	virtual void SetTopicNick(const char *Nick);
 
 	virtual time_t GetTopicStamp(void);
 	virtual void SetTopicStamp(time_t TS);
@@ -84,23 +93,20 @@ public:
 	virtual int HasTopic(void);
 	virtual void SetNoTopic(void);
 
-	virtual void AddUser(const char* Nick, const char* ModeChar);
-	virtual void RemoveUser(const char* Nick);
-	virtual char GetHighestUserFlag(const char* ModeChars);
+	virtual void AddUser(const char *Nick, const char *ModeChar);
+	virtual void RemoveUser(const char *Nick);
 
 	virtual bool HasNames(void);
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick*, false, 64>* GetNames(void);
+	virtual CHashtable<CNick *, false, 64> *GetNames(void);
 
 	virtual void ClearModes(void);
 	virtual bool AreModesValid(void);
 	virtual void SetModesValid(bool Valid);
 
-	virtual CBanlist* GetBanlist(void);
+	virtual CBanlist *GetBanlist(void);
 	virtual void SetHasBans(void);
 	virtual bool HasBans(void);
-
-	virtual CIRCConnection *GetOwner(void);
 
 	virtual bool SendWhoReply(bool Simulate);
 };

@@ -17,12 +17,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * CTrafficStats
+ *
+ * Records traffic statistics for a user.
+ */
 class CTrafficStats {
 public:
 #ifndef SWIG
 	CTrafficStats(void);
+
+	bool Freeze(CAssocArray *Box);
+	static CTrafficStats *Unfreeze(CAssocArray *Box);
 #endif
-	virtual ~CTrafficStats(void);
 
 	virtual void AddInbound(unsigned int Bytes);
 	virtual unsigned int GetInbound(void);
@@ -30,6 +37,6 @@ public:
 	virtual void AddOutbound(unsigned int Bytes);
 	virtual unsigned int GetOutbound(void);
 private:
-	unsigned int m_Inbound;
-	unsigned int m_Outbound;
+	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
+	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 };

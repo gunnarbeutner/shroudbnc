@@ -31,7 +31,7 @@ class CUser;
 class CLog {
 	char *m_Filename; /**< the filename of the log, can be NULL */
 
-	void InternalWriteLine(const char *Line);
+	void WriteUnformattedLine(const char *Line);
 public:
 #ifndef SWIG
 	CLog(const char *Filename);

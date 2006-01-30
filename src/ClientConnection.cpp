@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 #include "sbnc.h"
 
-extern loaderparams_s *g_LoaderParameters;
+extern loaderparams_t *g_LoaderParameters;
 
 IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
 
@@ -29,6 +29,8 @@ IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
 //////////////////////////////////////////////////////////////////////
 
 CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL, Role_Client) {
+	SetRole(Role_Server);
+
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
@@ -37,8 +39,8 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 	m_PeerName = NULL;
 
 	if (Client != INVALID_SOCKET) {
-		InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC" BNCVERSION);
-		InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Looking up your hostname");
+		WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC" BNCVERSION);
+		WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** Looking up your hostname");
 
 		m_DnsEvents = new CClientDnsEvents(this);
 
@@ -54,6 +56,8 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 }
 
 CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning) : CConnection(Client, false, Role_Client) {
+	SetRole(Role_Server);
+
 	m_Owner = Owning;
 
 	m_Nick = strdup(Box->ReadString("client.nick"));
@@ -89,10 +93,6 @@ CClientConnection::~CClientConnection() {
 
 	if (m_DnsEvents)
 		m_DnsEvents->Destroy();
-}
-
-connection_role_e CClientConnection::GetRole(void) {
-	return Role_Client;
 }
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
@@ -205,7 +205,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 	bool latchedRetVal = true;
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		if (Modules->Get(i)->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
 			latchedRetVal = false;
 	}
@@ -217,7 +217,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			hash_t<command_t *> *CommandList;
 			int i = 0, Align = 0, Len;
 
-			CommandList = (hash_t<command_t *> *)malloc(sizeof(hash_t<command_t *>) * m_CommandList->Count());
+			CommandList = (hash_t<command_t *> *)malloc(sizeof(hash_t<command_t *>) * m_CommandList->GetLength());
 
 			while ((Hash = m_CommandList->Iterate(i++)) != NULL) {
 				CommandList[i - 1] = *Hash;
@@ -228,14 +228,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					Align = Len;
 			}
 
-			qsort(CommandList, m_CommandList->Count(), sizeof(hash_t<command_t *>), CmpCommandT);
+			qsort(CommandList, m_CommandList->GetLength(), sizeof(hash_t<command_t *>), CmpCommandT);
 
 			char *Category = NULL;
 			char *Format;
 
 			asprintf(&Format, "%%-%ds - %%s", Align);
 
-			for (i = 0; i < m_CommandList->Count(); i++) {
+			for (unsigned int i = 0; i < m_CommandList->GetLength(); i++) {
 				if (Category == NULL || strcasecmp(CommandList[i].Value->Category, Category) != 0) {
 					if (Category)
 						SENDUSER("--");
@@ -296,7 +296,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
-		for (int i = 0; i < Modules->Count(); i++) {
+		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			asprintf(&Out, "%d: %x %s", i + 1, Modules->Get(i)->GetHandle(), Modules->Get(i)->GetFilename());
 
 			if (Out == NULL) {
@@ -345,9 +345,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		int idx = atoi(argv[1]);
+		unsigned int idx = atoi(argv[1]);
 
-		if (idx < 1 || idx > Modules->Count()) {
+		if (idx == 0 || idx > Modules->GetLength()) {
 			SENDUSER("There is no such module.");
 		} else {
 			CModule* Mod = Modules->Get(idx - 1);
@@ -572,7 +572,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		Certificates = m_Owner->GetClientCertificates();
 
-		for (int i = 0; i < Certificates->Count(); i++) {
+		for (unsigned int i = 0; i < Certificates->GetLength(); i++) {
 			X509 *Certificate = Certificates->Get(i);
 
 			if (First == false) {
@@ -624,7 +624,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "delcert") == 0) {
-		int id;
+		unsigned int id;
 
 		if (argc < 2) {
 			SENDUSER("Syntax: delcert ID");
@@ -637,7 +637,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		X509 *Certificate;
 		CVector<X509 *> *Certificates = m_Owner->GetClientCertificates();
 
-		if (id < 1 || Certificates->Count() > id) {
+		if (id == 0 || Certificates->GetLength() > id) {
 			Certificate = NULL;
 		} else {
 			Certificate = Certificates->Get(id - 1);
@@ -738,7 +738,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		ArgRejoinArray(argv, 1);
-		IRC->InternalWriteLine(argv[1]);
+		IRC->WriteUnformattedLine(argv[1]);
 
 		return false;
 	} else if (strcasecmp(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
@@ -846,7 +846,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			free(Out);
 		}
 
-		asprintf(&Out, "Client: sendq: %d, recvq: %d", SendqSize(), RecvqSize());
+		asprintf(&Out, "Client: sendq: %d, recvq: %d", GetSendqSize(), GetRecvqSize());
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
@@ -857,7 +857,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		if (IRC) {
-			asprintf(&Out, "IRC: sendq: %d, recvq: %d", IRC->SendqSize(), IRC->RecvqSize());
+			asprintf(&Out, "IRC: sendq: %d, recvq: %d", IRC->GetSendqSize(), IRC->GetRecvqSize());
 			if (Out == NULL) {
 				LOGERROR("asprintf() failed.");
 			} else {
@@ -987,11 +987,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Hostmasks");
 		SENDUSER("---------");
 
-		for (unsigned int i = 0; i < Hosts->Count(); i++) {
+		for (unsigned int i = 0; i < Hosts->GetLength(); i++) {
 			SENDUSER(Hosts->Get(i));
 		}
 
-		if (Hosts->Count() == 0)
+		if (Hosts->GetLength() == 0)
 			SENDUSER("*");
 
 		SENDUSER("End of HOSTS.");
@@ -1006,9 +1006,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		CVector<char *> *Hosts = m_Owner->GetHostAllows();
 
-		if (m_Owner->CanHostConnect(argv[1]) && Hosts->Count() > 0) {
+		if (m_Owner->CanHostConnect(argv[1]) && Hosts->GetLength() > 0) {
 			SENDUSER("This hostmask is already added or another hostmask supercedes it.");
-		} else if (Hosts->Count() >= 50) {
+		} else if (Hosts->GetLength() >= 50) {
 			SENDUSER("You may not add more than 50 hostmasks.");
 		} else {
 			m_Owner->AddHostAllow(argv[1]);
@@ -1183,7 +1183,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (int i = 0; i < Modules->Count(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		if (!Modules->Get(i)->InterceptClientMessage(this, argc, argv))
 			return false;
 	}
@@ -1209,7 +1209,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			if (m_Username && m_Password)
 				ValidateUser();
 			else if (m_Username)
-				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
@@ -1240,7 +1240,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				ValidSSLCert = ValidateUser();
 
 			if (m_Nick && m_Username && !m_Password && !ValidSSLCert)
-				InternalWriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 
 			return false;
 		} else if (strcasecmp(Command, "quit") == 0) {
@@ -1349,7 +1349,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 					if (argc == 3) {
 						if (Chan && Chan->AreModesValid()) {
-							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChanModes());
+							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChannelModes());
 							WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
 						} else
 							IRC->WriteLine("MODE %s", argv[2]);
@@ -1403,7 +1403,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							const char* Prefix = NickObj->GetPrefixes();
 							const char* Nick = NickObj->GetNick();
 
-							char outPref[2] = { Chan->GetHighestUserFlag(Prefix), '\0' };
+							char outPref[2] = { IRC->GetHighestUserFlag(Prefix), '\0' };
 
 							if (Nick == NULL)
 								continue;
@@ -1588,7 +1588,7 @@ void CClientConnection::ParseLine(const char* Line) {
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		if (IRC)
-			IRC->InternalWriteLine(Line);
+			IRC->WriteUnformattedLine(Line);
 	}
 }
 
@@ -1685,7 +1685,7 @@ void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
 
 	m_PeerName = strdup(PeerName);
 
-	ReadLines();
+	ProcessBuffer();
 }
 
 adns_query CClientConnection::GetPeerDNSQuery(void) {
@@ -1714,7 +1714,7 @@ void CClientConnection::AsyncDnsFinishedClient(adns_query* query, adns_answer* r
 		SetPeerName(*response->rrs.str, false);
 }
 
-const char* CClientConnection::ClassName(void) {
+const char* CClientConnection::GetClassName(void) {
 	return "CClientConnection";
 }
 
@@ -1726,7 +1726,7 @@ bool CClientConnection::Read(bool DontProcess) {
 	else
 		return CConnection::Read(true);
 
-	if (Ret && RecvqSize() > 5120) {
+	if (Ret && GetRecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 
@@ -1748,12 +1748,12 @@ bool AdnsTimeoutTimer(time_t Now, void* Client) {
 	return false;
 }
 
-void CClientConnection::InternalWriteLine(const char* In) {
-	CConnection::InternalWriteLine(In);
+void CClientConnection::WriteUnformattedLine(const char* In) {
+	CConnection::WriteUnformattedLine(In);
 
-	if (m_Owner && !m_Owner->IsAdmin() && SendqSize() > g_Bouncer->GetSendQSize() * 1024) {
+	if (m_Owner && !m_Owner->IsAdmin() && GetSendqSize() > g_Bouncer->GetSendQSize() * 1024) {
 		FlushSendQ();
-		CConnection::InternalWriteLine("");
+		CConnection::WriteUnformattedLine("");
 		Kill("SendQ exceeded.");
 	}
 }
