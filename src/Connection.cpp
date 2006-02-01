@@ -667,7 +667,7 @@ bool CConnection::ShouldDestroy(void) {
 
 sockaddr_in CConnection::GetRemoteAddress(void) {
 	sockaddr_in Result;
-	int ResultLength = sizeof(Result);
+	socklen_t ResultLength = sizeof(Result);
 
 	getpeername(m_Socket, (sockaddr *)&Result, &ResultLength);
 
@@ -676,7 +676,7 @@ sockaddr_in CConnection::GetRemoteAddress(void) {
 
 sockaddr_in CConnection::GetLocalAddress(void) {
 	sockaddr_in Result;
-	int ResultLength = sizeof(Result);
+	socklen_t ResultLength = sizeof(Result);
 
 	getsockname(m_Socket, (sockaddr *)&Result, &ResultLength);
 
