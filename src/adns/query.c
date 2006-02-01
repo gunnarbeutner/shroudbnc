@@ -27,7 +27,7 @@
  *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef ADNS_JGAA_WIN32
+#if defined(ADNS_JGAA_WIN32) || defined(_WIN32)
 # include "adns_win32.h"
 #else
 # include <stdlib.h>

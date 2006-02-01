@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 
-#ifdef ADNS_JGAA_WIN32
+#if defined(ADNS_JGAA_WIN32) || defined(_WIN32)
 # include "adns_win32.h"
 #else
 # include <unistd.h>
