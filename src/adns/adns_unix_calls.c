@@ -65,7 +65,7 @@ int adns_getpid()
 	return GetCurrentProcessId();
 }
 
-int gettimeofday(struct timeval *tv, struct timezone *tz)
+int adns_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
 	static __int64 Adjustment;
 	__int64 now = 0;
