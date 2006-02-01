@@ -57,6 +57,10 @@
 #ifndef ADNS_H_INCLUDED
 #define ADNS_H_INCLUDED
 
+#ifdef _WIN32
+#define ADNS_JGAA_WIN32
+#endif
+
 #ifdef ADNS_JGAA_WIN32
 # include "adns_win32.h"
 #else
