@@ -85,11 +85,12 @@ typedef void X509_STORE_CTX;
 	#include <limits.h>
 #endif
 
-#if !defined(SWIG) && defined(_WIN32) && !defined(NOADNSLIB)
+#if !defined(SWIG)
+#if defined(_WIN32) && !defined(NOADNSLIB)
 #pragma comment(lib, "adns_win\\adns_win32\\lib\\adns_dll.lib")
 #endif
-
 #include "adns/adns.h"
+#endif
 
 // Do NOT use sprintf.
 #define sprintf __evil_function
