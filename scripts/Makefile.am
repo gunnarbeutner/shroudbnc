@@ -24,5 +24,3 @@ variables.tcl \
 version.tcl \
 vhost.tcl \
 virtual.tcl
-
-EXTRA_DIST=${scripts_DATA}
