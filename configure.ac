@@ -51,7 +51,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul])
 AC_LIB_LTDL
 
-AC_CHECK_LIB(ws2_32, WSAStartup)
+AC_CHECK_LIB(ws2_32, main)
 
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)
