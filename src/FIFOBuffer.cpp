@@ -52,8 +52,9 @@ CFIFOBuffer::~CFIFOBuffer() {
  */
 void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize,
 								unsigned int NewSize) {
-	if (OldSize != 0)
+	if (OldSize != 0) {
 		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
+	}
 
 	unsigned int CeilNewSize = NewSize + BLOCKSIZE - (NewSize % BLOCKSIZE);
 
@@ -73,11 +74,13 @@ void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize,
  * Optimizes the memory usage of a buffer.
  */
 void CFIFOBuffer::Optimize(void) {
+	char *NewBuffer;
+
 	if (m_Offset <= OPTIMIZEBLOCKS * BLOCKSIZE) {
 		return;
 	}
 
-	char *NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
+	NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
 
 	if (NewBuffer == NULL) {
 		return;

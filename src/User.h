@@ -112,7 +112,7 @@ public:
 	virtual void Notice(const char *Text);
 	virtual void RealNotice(const char *Text);
 
-	virtual int IRCUptime(void);
+	virtual unsigned int GetIRCUptime(void);
 
 	virtual CLog *GetLog(void);
 	virtual void Log(const char *Format, ...);

@@ -876,7 +876,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("End of CHANNELS.");
 		}
 
-		asprintf(&Out, "Uptime: %d seconds", m_Owner->IRCUptime());
+		asprintf(&Out, "Uptime: %d seconds", m_Owner->GetIRCUptime());
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {

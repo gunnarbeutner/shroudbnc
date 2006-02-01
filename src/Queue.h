@@ -18,7 +18,6 @@
  *******************************************************************************/
 
 typedef struct queue_item_s {
-	bool Valid;
 	int Priority;
 	char *Line;
 } queue_item_t;
@@ -26,8 +25,7 @@ typedef struct queue_item_s {
 class CFloodControl;
 
 class CQueue {
-	queue_item_t *m_Items; /**< the items which are in the queue */
-	int m_ItemCount; /**< the number of items */
+	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG
 	CQueue(void);
@@ -41,8 +39,8 @@ public:
 
 	virtual char *DequeueItem(void);
 	virtual const char *PeekItem(void);
-	virtual bool QueueItem(const char *Item);
-	virtual bool QueueItemNext(const char *Item);
-	virtual int GetQueueSize(void);
-	virtual void FlushQueue(void);
+	virtual bool QueueItem(const char *Line);
+	virtual bool QueueItemNext(const char *Line);
+	virtual unsigned int GetLength(void);
+	virtual void Clear(void);
 };

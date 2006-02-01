@@ -22,35 +22,34 @@
 /**
  * CQueue
  *
- * Constructs an empty queue
+ * Constructs an empty queue.
  */
 CQueue::CQueue() {
-	m_Items = NULL;
-	m_ItemCount = 0;
+	// nothing to do here, really
 }
 
 /**
  * ~CQueue
  *
- * Destroy a queue
+ * Destroy a queue.
  */
 CQueue::~CQueue() {
-	FlushQueue();
+	// same here
 }
 
 /**
  * PeekItems
  *
- * Retrieves the next item from the queue without removing it
+ * Retrieves the next item from the queue without removing it.
  */
 const char *CQueue::PeekItem(void) {
 	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid && m_Items[i].Priority < LowestPriority) {
+	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+		if (m_Items[i].Priority < LowestPriority) {
 			LowestPriority = m_Items[i].Priority;
-			ThatItem = &m_Items[i];
+			ThatItem = m_Items.GetAddressOf(i);
 		}
 	}
 
@@ -64,24 +63,26 @@ const char *CQueue::PeekItem(void) {
 /**
  * DequeueItem
  *
- * Retrieves the next item from the queue and removes it
+ * Retrieves the next item from the queue and removes it.
  */
 char *CQueue::DequeueItem(void) {
-	int LowestPriority = 99999;
-	queue_item_t *ThatItem = NULL;
+	int Index;
+	queue_item_t *Item = NULL;
+	char *Line;
 
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid && m_Items[i].Priority < LowestPriority) {
-			LowestPriority = m_Items[i].Priority;
-			ThatItem = &m_Items[i];
+	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+		if (Item == NULL || m_Items[i].Priority < Item->Priority) {
+			Item = m_Items.GetAddressOf(i);
+			Index = i;
 		}
 	}
 
-	if (ThatItem != NULL) {
-		// Caller is now the owner of the object
-		ThatItem->Valid = false;
+	if (Item != NULL) {
+		Line = Item->Line;
 
-		return ThatItem->Line;
+		m_Items.Remove(Index);
+
+		return Line;
 	} else {
 		return NULL;
 	}
@@ -90,115 +91,66 @@ char *CQueue::DequeueItem(void) {
 /**
  * QueueItem
  *
- * Inserts a new item at the end of the queue
+ * Inserts a new item at the end of the queue.
  *
- * @param Item the item which is to be inserted
+ * @param Line the item which is to be inserted
  */
-bool CQueue::QueueItem(const char *Item) {
-	queue_item_t *Items;
-	char *dupItem;
+bool CQueue::QueueItem(const char *Line) {
+	queue_item_t Item;
 
-	if (Item == NULL) {
+	if (Line == NULL) {
 		return false;
 	}
 
-	dupItem = strdup(Item);
+	Item.Line = strdup(Line);
 
-	if (dupItem == NULL) {
-		LOGERROR("strdup() failed.");
-
+	CHECK_ALLOC_RESULT(Item.Line, strdup) {
 		return false;
+	} CHECK_ALLOC_RESULT_END;
+
+	Item.Priority = 0;
+
+	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+		m_Items[i].Priority--;
 	}
 
-	bool doneInsert = false;
-
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (!m_Items[i].Valid && !doneInsert) {
-			m_Items[i].Priority = 0;
-			m_Items[i].Line = dupItem;
-			m_Items[i].Valid = true;
-
-			doneInsert = true;
-		} else {
-			m_Items[i].Priority--;
-		}
-	}
-
-	if (doneInsert) {
-		return true;
-	}
-
-	Items = (queue_item_t *)realloc(m_Items,
-		++m_ItemCount * sizeof(queue_item_t));
-
-	if (Items == NULL) {
-		LOGERROR("realloc() failed. An item was lost (%s).", Item);
-
-		free(dupItem);
-
-		m_ItemCount--;
-
-		return false;
-	}
-
-	m_Items = Items;
-	m_Items[m_ItemCount - 1].Priority = 0;
-	m_Items[m_ItemCount - 1].Line = dupItem;
-	m_Items[m_ItemCount - 1].Valid = true;
-
-	return true;
+	return m_Items.Insert(Item);
 }
 
 /**
  * QueueItemNext
  *
- * Inserts a new item at the front of the queue
+ * Inserts a new item at the front of the queue.
  *
- * @param Item the item which is to be inserted
+ * @param Line the item which is to be inserted
  */
-bool CQueue::QueueItemNext(const char *Item) {
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid) {
-			m_Items[i].Priority++;
-		}
+bool CQueue::QueueItemNext(const char *Line) {
+	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+		m_Items[i].Priority++;
 	}
 
-	return QueueItem(Item);
+	return QueueItem(Line);
 }
 
 /**
- * GetQueueSize
+ * GetLength
  *
- * Returns the number of items which are in the queue
+ * Returns the number of items which are in the queue.
  */
-int CQueue::GetQueueSize(void) {
-	int Count = 0;
-	
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid) {
-			Count++;
-		}
-	}
-
-	return Count;
+unsigned int CQueue::GetLength(void) {
+	return m_Items.GetLength();
 }
 
 /**
- * FlushQueue
+ * Clear
  *
- * Removes all items from the queue
+ * Removes all items from the queue.
  */
-void CQueue::FlushQueue(void) {
-	for (int i = 0; i < m_ItemCount; i++) {
-		if (m_Items[i].Valid) {
-			free(m_Items[i].Line);
-		}
+void CQueue::Clear(void) {
+	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+		free(m_Items[i].Line);
 	}
 
-	free(m_Items);
-
-	m_Items = NULL;
-	m_ItemCount = 0;
 }
 
 bool CQueue::Freeze(CAssocArray *Box) {

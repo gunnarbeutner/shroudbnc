@@ -63,3 +63,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 libsbnc_la_LIBADD=adns/libadns.la md5/libmd5.la libltdl/libltdlc.la @SSLLDFLAGS@
 AM_CFLAGS=@SSLCFLAGS@
 AM_CPPFLAGS=@SSLCFLAGS@
+
+install:
+	@if [ -d $(exec_prefix)/sbnc.ipc ]; then rm $(exec_prefix)/sbnc.ipc; fi

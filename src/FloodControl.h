@@ -21,7 +21,7 @@
 
 typedef struct queue_s {
 	int Priority;
-	CQueue* Queue;
+	CQueue *Queue;
 } irc_queue_t;
 
 class CIRCConnection;
@@ -36,10 +36,9 @@ class CFloodControl : public CQueue {
 	friend bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
-	irc_queue_t *m_Queues;
-	int m_QueueCount;
+	CVector<irc_queue_t> m_Queues;
+
 	int m_Bytes;
-	CIRCConnection *m_Owner;
 	bool m_Control;
 	CTimer *m_FloodTimer;
 	time_t m_LastCommand;
@@ -49,7 +48,7 @@ class CFloodControl : public CQueue {
 	int CalculatePenaltyAmplifier(const char *Line);
 public:
 #ifndef SWIG
-	CFloodControl(CIRCConnection *Owner);
+	CFloodControl(void);
 #endif
 	virtual ~CFloodControl(void);
 
@@ -60,8 +59,8 @@ public:
 
 	virtual void AttachInputQueue(CQueue *Queue, int Priority);
 	virtual int GetBytes(void);
-	virtual int GetRealQueueSize(void);
-	virtual void FlushQueue(void);
+	virtual int GetRealLength(void);
+	virtual void Clear(void);
 
 	virtual void Enable(void);
 	virtual void Disable(void);

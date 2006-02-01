@@ -62,7 +62,7 @@ void CTimer::Destroy(void) {
 bool CTimer::Call(time_t Now) {
 	bool ReturnValue;
 
-#ifndef _DEBUG
+#ifdef _DEBUG
 	g_TimerStats++;
 #endif
 

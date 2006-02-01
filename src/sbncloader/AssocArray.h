@@ -1,3 +1,8 @@
+/**
+ * assoctype_t
+ *
+ * The type of a list item.
+ */
 typedef enum assoctype_e : int {
 	Assoc_String = 1,
 	Assoc_Integer = 2,
@@ -6,6 +11,11 @@ typedef enum assoctype_e : int {
 
 class CAssocArray;
 
+/**
+ * assoc_t
+ *
+ * An item in an associative array.
+ */
 typedef struct assoc_s {
 	char *Name; /**< the name of the item */
 	assoctype_t Type; /**< the type of the item, see ASSOC_* constants for details */
@@ -24,7 +34,7 @@ typedef struct assoc_s {
  */
 class CAssocArray {
 	assoc_t *m_Values; /**< the values for this associative array */
-	int m_Count; /**< the count of items */
+	unsigned int m_Count; /**< the count of items */
 public:
 	CAssocArray(void);
 	virtual ~CAssocArray(void);

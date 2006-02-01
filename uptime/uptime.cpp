@@ -215,7 +215,7 @@ class CUptimeModule : public CModuleImplementation {
 		if (g_Bouncer->GetUserCount() != 0) {
 			FirstUser = g_Bouncer->GetUsers()->Iterate(0)->Value;
 
-			upPack.ontime = htonl(Now - FirstUser->IRCUptime());
+			upPack.ontime = htonl(Now - FirstUser->GetIRCUptime());
 		} else
 			return;
 

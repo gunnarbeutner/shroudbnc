@@ -7,13 +7,14 @@ CAssocArray::CAssocArray(void) {
 }
 
 CAssocArray::~CAssocArray(void) {
-	for (int i = 0; i < m_Count; i++) {
+	for (unsigned int i = 0; i < m_Count; i++) {
 		free(m_Values[i].Name);
 
-		if (m_Values[i].Type == Assoc_String)
+		if (m_Values[i].Type == Assoc_String) {
 			free(m_Values[i].ValueString);
-		else if (m_Values[i].Type == Assoc_Box)
+		} else if (m_Values[i].Type == Assoc_Box) {
 			delete m_Values[i].ValueBox;
+		}
 	}
 
 	free(m_Values);
@@ -44,12 +45,13 @@ void CAssocArray::AddBox(const char *Name, CAssocArray *Value) {
 }
 
 const char *CAssocArray::ReadString(const char *Name) {
-	for (int i = 0; i < m_Count; i++) {
+	for (unsigned int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == Assoc_String)
+			if (m_Values[i].Type == Assoc_String) {
 				return m_Values[i].ValueString;
-			else
+			} else {
 				return "";
+			}
 		}
 	}
 
@@ -57,12 +59,13 @@ const char *CAssocArray::ReadString(const char *Name) {
 }
 
 int CAssocArray::ReadInteger(const char *Name) {
-	for (int i = 0; i < m_Count; i++) {
+	for (unsigned int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == Assoc_Integer)
+			if (m_Values[i].Type == Assoc_Integer) {
 				return m_Values[i].ValueInt;
-			else
+			} else {
 				return 0;
+			}
 		}
 	}
 
@@ -70,12 +73,13 @@ int CAssocArray::ReadInteger(const char *Name) {
 }
 
 CAssocArray *CAssocArray::ReadBox(const char *Name) {
-	for (int i = 0; i < m_Count; i++) {
+	for (unsigned int i = 0; i < m_Count; i++) {
 		if (strcasecmp(m_Values[i].Name, Name) == 0) {
-			if (m_Values[i].Type == Assoc_Box)
+			if (m_Values[i].Type == Assoc_Box) {
 				return m_Values[i].ValueBox;
-			else
+			} else {
 				return NULL;
+			}
 		}
 	}
 

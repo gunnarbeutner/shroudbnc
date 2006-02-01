@@ -42,22 +42,12 @@ public:
 	}
 
 	/**
-	 * CVector
-	 *
-	 * Constructs a list by copying an existing array.
-	 */
-//	CVector(Type *List, int Count, bool ReadOnly = true) {
-//		SetList(List, Count);
-//		m_ReadOnly = ReadOnly;
-//	}
-
-	/**
 	 * ~CVector
 	 *
 	 * Destroys a list
 	 */
 	virtual ~CVector(void) {
-		free(m_List);
+		Clear();
 	}
 
 	/**
@@ -190,5 +180,16 @@ public:
 	 */
 	virtual Type *GetAddressOf(int Index) {
 		return &(m_List[Index]);
+	}
+
+	/**
+	 * Clear
+	 *
+	 * Removes all items from the list.
+	 */
+	virtual void Clear(void) {
+		free(m_List);
+		m_List = NULL;
+		m_Count = 0;
 	}
 };

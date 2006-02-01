@@ -706,7 +706,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "channels") == 0)
 		return Context->GetConfigChannels();
 	else if (strcasecmp(Type, "uptime") == 0) {
-		sprintf(Buffer, "%d", Context->IRCUptime());
+		sprintf(Buffer, "%d", Context->GetIRCUptime());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "lock") == 0)
@@ -1034,7 +1034,7 @@ int floodcontrol(const char* Function) {
 	if (strcasecmp(Function, "bytes") == 0)
 		Result = FloodControl->GetBytes();
 	else if (strcasecmp(Function, "items") == 0)
-		Result = FloodControl->GetRealQueueSize();
+		Result = FloodControl->GetQueueSize();
 	else if (strcasecmp(Function, "on") == 0) {
 		FloodControl->Enable();
 		Result = 1;
@@ -1074,11 +1074,11 @@ int clearqueue(const char* Queue) {
 	int Size;
 
 	if (TheQueue == IRC->GetFloodControl())
-		Size = IRC->GetFloodControl()->GetRealQueueSize();
+		Size = IRC->GetFloodControl()->GetRealLength();
 	else
-		Size = TheQueue->GetQueueSize();
+		Size = TheQueue->GetLength();
 
-	TheQueue->FlushQueue();
+	TheQueue->Clear();
 
 	return Size;
 }
@@ -1110,9 +1110,9 @@ int queuesize(const char* Queue) {
 	int Size;
 
 	if (TheQueue == IRC->GetFloodControl())
-		Size = IRC->GetFloodControl()->GetRealQueueSize();
+		Size = IRC->GetFloodControl()->GetRealLength();
 	else
-		Size = TheQueue->GetQueueSize();
+		Size = TheQueue->GetLength();
 
 	return Size;
 }

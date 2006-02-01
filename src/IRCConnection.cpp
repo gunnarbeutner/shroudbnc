@@ -75,7 +75,7 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 		g_Bouncer->Fatal();
 	}
 
-	m_FloodControl = new CFloodControl(this);
+	m_FloodControl = new CFloodControl();
 
 	if (m_FloodControl == NULL) {
 		LOGERROR("new operator failed. Could not create flood control object.");
@@ -1339,7 +1339,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 		delete Connection->m_FloodControl;
 	}
 
-	Connection->m_FloodControl = new CFloodControl(Connection);
+	Connection->m_FloodControl = new CFloodControl();
 
 	TempBox = Box->ReadBox("~irc.queuehigh");
 
@@ -1386,7 +1386,7 @@ void CIRCConnection::Kill(const char *Error) {
 		m_Owner = NULL;
 	}
 
-	m_FloodControl->FlushQueue();
+	m_FloodControl->Clear();
 	m_FloodControl->Disable();
 	
 	WriteLine("QUIT :%s", Error);

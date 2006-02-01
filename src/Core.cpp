@@ -371,19 +371,28 @@ void CCore::StartMainLoop(void) {
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			time_t NextCall = m_Timers[c]->GetNextCall();
 
-			if (Now >= NextCall && Now > Last) {
-				if (Now - 5 > NextCall)
+			if (Now >= NextCall) {
+				if (Now - 5 > NextCall) {
 					Log("Timer drift for timer %p: %d seconds", m_Timers[c], Now - NextCall);
+				}
 
 				m_Timers[c]->Call(Now);
-				Best = Now + 1;
-			} else if (Best == 0 || NextCall < Best) {
+			}
+		}
+
+		Best = time(NULL) + 60;
+
+		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
+			time_t NextCall = m_Timers[c]->GetNextCall();
+
+			if (NextCall < Best) {
 				Best = NextCall;
 			}
 		}
 
-		if (Best)
+		if (Best != 0) {
 			SleepInterval = Best - Now;
+		}
 
 		FD_ZERO(&FDRead);
 		FD_ZERO(&FDWrite);
@@ -459,6 +468,10 @@ void CCore::StartMainLoop(void) {
 		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
 		adns_afterselect(g_adns_State, nfds, &FDRead, &FDWrite, &FDError, NULL);
+
+#ifdef _DEBUG
+		//printf("slept %d seconds\n", SleepInterval - interval.tv_sec);
+#endif
 
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);

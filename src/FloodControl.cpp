@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 
 typedef struct penalty_s {
-	char* Command;
+	char *Command;
 	int Amplifier;
 } penalty_t;
 
@@ -37,51 +37,42 @@ static penalty_t penalties [] = {
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CFloodControl::CFloodControl(CIRCConnection *Owner) {
-	m_Queues = NULL;
-	m_QueueCount = 0;
+CFloodControl::CFloodControl(void) {
 	m_Bytes = 0;
-	m_Owner = Owner;
 	m_Control = true;
 	m_FloodTimer = NULL;
 	m_LastCommand = 0;
 }
 
 CFloodControl::~CFloodControl() {
-	free(m_Queues);
-
-	if (m_FloodTimer)
+	if (m_FloodTimer) {
 		m_FloodTimer->Destroy();
+	}
 }
 
 void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
-	irc_queue_t *Queues;
+	irc_queue_t IrcQueue;
 
-	Queues = (irc_queue_t *)realloc(m_Queues, ++m_QueueCount * sizeof(irc_queue_t));
+	IrcQueue.Queue = Queue;
+	IrcQueue.Priority = Priority;
 
-	if (Queues == NULL) {
-		LOGERROR("realloc() failed. Could not attach queue.");
-
-		g_Bouncer->Fatal();
-	}
-
-	m_Queues = Queues;
-	m_Queues[m_QueueCount - 1].Priority = Priority;
-	m_Queues[m_QueueCount - 1].Queue = Queue;
+	m_Queues.Insert(IrcQueue);
 }
 
 char *CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
 
-	if (m_Control && (m_Bytes > FLOODBYTES - 100))
+	if (m_Control && (m_Bytes > FLOODBYTES - 100)) {
 		return NULL;
+	}
 
-	if (m_Control && (time(NULL) - m_LastCommand < FLOOD_WAIT))
+	if (m_Control && (time(NULL) - m_LastCommand < FLOOD_WAIT)) {
 		return NULL;
+	}
 
-	for (int i = 0; i < m_QueueCount; i++) {
-		if (m_Queues[i].Priority < LowestPriority && m_Queues[i].Queue->GetQueueSize() > 0) {
+	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+		if (m_Queues[i].Priority < LowestPriority && m_Queues[i].Queue->GetLength() > 0) {
 			LowestPriority = m_Queues[i].Priority;
 			ThatQueue = &m_Queues[i];
 		}
@@ -126,39 +117,43 @@ bool CFloodControl::QueueItemNext(const char *Item) {
 }
 
 int CFloodControl::GetQueueSize(void) {
-	if (DequeueItem(true))
+	if (DequeueItem(true) != NULL) {
 		return 1;
-	else
+	} else {
 		return 0;
+	}
 }
 
 bool CFloodControl::Pulse(time_t Now) {
 	m_Bytes -= 75 > m_Bytes ? m_Bytes : 75;
 
-	if (GetRealQueueSize() == 0 && m_Bytes == 0) {
+	if (GetRealLength() == 0 && m_Bytes == 0) {
 		m_FloodTimer = NULL;
 
 		return false;
-	} else
+	} else {
 		return true;
+	}
 }
 
 int CFloodControl::GetBytes(void) {
 	return m_Bytes;
 }
 
-int CFloodControl::GetRealQueueSize(void) {
-	int a = 0;
+int CFloodControl::GetRealLength(void) {
+	int Count = 0;
 
-	for (int i = 0; i < m_QueueCount; i++)
-		a += m_Queues[i].Queue->GetQueueSize();
+	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+		Count += m_Queues[i].Queue->GetLength();
+	}
 
-	return a;
+	return Count;
 }
 
-void CFloodControl::FlushQueue(void) {
-	for (int i = 0; i < m_QueueCount; i++)
-		m_Queues[i].Queue->FlushQueue();
+void CFloodControl::Clear(void) {
+	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+		m_Queues[i].Queue->Clear();
+	}
 }
 
 void CFloodControl::Enable(void) {
@@ -188,28 +183,32 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 
 		strncpy(Command, Line, Space - Line);
 		Command[Space - Line] = '\0';
-	} else
+	} else {
 		Command = const_cast<char*>(Line);
+	}
 
 	int i = 0;
 
 	while (true) {
 		penalty_t penalty = penalties[i++];
 
-		if (penalty.Command == NULL)
+		if (penalty.Command == NULL) {
 			break;
+		}
 
 		if (strcasecmp(penalty.Command, Command) == 0) {
-			if (Space)
+			if (Space != NULL) {
 				free(Command);
+			}
 
 			return penalty.Amplifier;
 		}
 
 	}
 
-	if (Space)
+	if (Space != NULL) {
 		free(Command);
+	}
 
 	return 1;
 }
