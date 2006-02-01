@@ -3,7 +3,7 @@
  *
  * The type of a list item.
  */
-typedef enum assoctype_e : int {
+typedef enum assoctype_e {
 	Assoc_String = 1,
 	Assoc_Integer = 2,
 	Assoc_Box = 3

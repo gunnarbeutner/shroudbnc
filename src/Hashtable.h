@@ -39,6 +39,8 @@ void DestroyObject(Type *Object) {
 	delete Object;
 }
 
+int CmpString(const void *pA, const void *pB);
+
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	typedef void (DestroyValue)(Type Object);
 

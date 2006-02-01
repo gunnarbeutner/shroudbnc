@@ -121,10 +121,12 @@ bool ReportMemory(time_t Now, void *Cookie);
 #define realloc DebugReAlloc
 #endif
 
+#include "sbncloader/AssocArray.h"
+
 #include "Vector.h"
 #include "Hashtable.h"
-#include "OwnedObject.h"
 #include "utility.h"
+#include "OwnedObject.h"
 #include "SocketEvents.h"
 #include "DnsEvents.h"
 #include "Timer.h"
@@ -149,5 +151,3 @@ bool ReportMemory(time_t Now, void *Cookie);
 #include "FloodControl.h"
 #include "Listener.h"
 #include "Persistable.h"
-
-#include "sbncloader/AssocArray.h"
