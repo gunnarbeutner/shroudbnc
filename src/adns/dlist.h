@@ -31,21 +31,20 @@
 #define LIST_INIT(list) ((list).head= (list).tail= 0)
 #define LINK_INIT(link) ((link).next= (link).back= 0)
 
-#define LIST_UNLINK_PART(list,node,part)				    \
-  do {									    \
+#define LIST_UNLINK_PART(list,node,part) \
+  do { \
     if ((node)->part back) (node)->part back->part next= (node)->part next; \
       else                                  (list).head= (node)->part next; \
     if ((node)->part next) (node)->part next->part back= (node)->part back; \
       else                                  (list).tail= (node)->part back; \
   } while(0)
 
-#define LIST_LINK_TAIL_PART(list,node,part)		\
-  do {							\
-    (node)->part next= 0;				\
-    (node)->part back= (list).tail;			\
-    if ((list).tail) (list).tail->part next= (node);	\
-    else (list).head= (node);				\
-    (list).tail= (node);				\
+#define LIST_LINK_TAIL_PART(list,node,part) \
+  do { \
+    (node)->part next= 0; \
+    (node)->part back= (list).tail; \
+    if ((list).tail) (list).tail->part next= (node); else (list).head= (node); \
+    (list).tail= (node); \
   } while(0)
 
 #define LIST_UNLINK(list,node) LIST_UNLINK_PART(list,node,)

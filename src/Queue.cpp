@@ -151,6 +151,7 @@ void CQueue::Clear(void) {
 		free(m_Items[i].Line);
 	}
 
+	m_Items.Clear();
 }
 
 bool CQueue::Freeze(CAssocArray *Box) {

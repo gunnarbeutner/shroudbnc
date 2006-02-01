@@ -26,17 +26,20 @@
  *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#include <stdlib.h>
-#include <errno.h>
-#include <limits.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#include <sys/types.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef ADNS_JGAA_WIN32
+# include "adns_win32.h"
+# include <iphlpapi.h>
+#else
+# include <stdlib.h>
+# include <errno.h>
+# include <limits.h>
+# include <unistd.h>
+# include <fcntl.h>
+# include <netdb.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+#endif
 
 #include "internal.h"
 
@@ -104,8 +107,7 @@ static int nextword(const char **bufp_io, const char **word_r, int *l_r) {
   return 1;
 }
 
-static void ccf_nameserver(adns_state ads, const char *fn,
-			   int lno, const char *buf) {
+static void ccf_nameserver(adns_state ads, const char *fn, int lno, const char *buf) {
   struct in_addr ia;
   
   if (!inet_aton(buf,&ia)) {
@@ -116,8 +118,7 @@ static void ccf_nameserver(adns_state ads, const char *fn,
   addserver(ads,ia);
 }
 
-static void ccf_search(adns_state ads, const char *fn,
-		       int lno, const char *buf) {
+static void ccf_search(adns_state ads, const char *fn, int lno, const char *buf) {
   const char *bufp, *word;
   char *newchars, **newptrs, **pp;
   int count, tl, l;
@@ -129,11 +130,8 @@ static void ccf_search(adns_state ads, const char *fn,
   tl= 0;
   while (nextword(&bufp,&word,&l)) { count++; tl += l+1; }
 
-  newptrs= malloc(sizeof(char*)*count);
-  if (!newptrs) { saveerr(ads,errno); return; }
-
-  newchars= malloc(tl);
-  if (!newchars) { saveerr(ads,errno); free(newptrs); return; }
+  newptrs= malloc(sizeof(char*)*count);  if (!newptrs) { saveerr(ads,errno); return; }
+  newchars= malloc(tl);  if (!newchars) { saveerr(ads,errno); free(newptrs); return; }
 
   bufp= buf;
   pp= newptrs;
@@ -149,8 +147,7 @@ static void ccf_search(adns_state ads, const char *fn,
   ads->searchlist= newptrs;
 }
 
-static void ccf_sortlist(adns_state ads, const char *fn,
-			 int lno, const char *buf) {
+static void ccf_sortlist(adns_state ads, const char *fn, int lno, const char *buf) {
   const char *word;
   char tbuf[200], *slash, *ep;
   struct in_addr base, mask;
@@ -162,8 +159,7 @@ static void ccf_sortlist(adns_state ads, const char *fn,
   ads->nsortlist= 0;
   while (nextword(&buf,&word,&l)) {
     if (ads->nsortlist >= MAXSORTLIST) {
-      adns__diag(ads,-1,0,"too many sortlist entries,"
-		 " ignoring %.*s onwards",l,word);
+      adns__diag(ads,-1,0,"too many sortlist entries, ignoring %.*s onwards",l,word);
       return;
     }
 
@@ -188,8 +184,8 @@ static void ccf_sortlist(adns_state ads, const char *fn,
 	  continue;
 	}
 	if (base.s_addr & ~mask.s_addr) {
-	  configparseerr(ads,fn,lno, "mask `%s' in sortlist"
-			 " overlaps address `%s'",slash,tbuf);
+	  configparseerr(ads,fn,lno,
+			 "mask `%s' in sortlist overlaps address `%s'",slash,tbuf);
 	  continue;
 	}
       } else {
@@ -209,8 +205,8 @@ static void ccf_sortlist(adns_state ads, const char *fn,
       else if ((baselocal & 0x0f0000000UL) == 0x0e0000000UL)
 	mask.s_addr= htonl(0x0ff000000UL); /* class C */
       else {
-	configparseerr(ads,fn,lno, "network address `%s'"
-		       " in sortlist is not in classed ranges,"
+	configparseerr(ads,fn,lno,
+		       "network address `%s' in sortlist is not in classed ranges,"
 		       " must specify mask explicitly", tbuf);
 	continue;
       }
@@ -222,8 +218,7 @@ static void ccf_sortlist(adns_state ads, const char *fn,
   }
 }
 
-static void ccf_options(adns_state ads, const char *fn,
-			int lno, const char *buf) {
+static void ccf_options(adns_state ads, const char *fn, int lno, const char *buf) {
   const char *word;
   char *ep;
   unsigned long v;
@@ -239,8 +234,7 @@ static void ccf_options(adns_state ads, const char *fn,
     if (l>=6 && !memcmp(word,"ndots:",6)) {
       v= strtoul(word+6,&ep,10);
       if (l==6 || ep != word+l || v > INT_MAX) {
-	configparseerr(ads,fn,lno,"option `%.*s' malformed"
-		       " or has bad value",l,word);
+	configparseerr(ads,fn,lno,"option `%.*s' malformed or has bad value",l,word);
 	continue;
       }
       ads->searchndots= v;
@@ -265,47 +259,16 @@ static void ccf_options(adns_state ads, const char *fn,
   }
 }
 
-static void ccf_clearnss(adns_state ads, const char *fn,
-			 int lno, const char *buf) {
+static void ccf_clearnss(adns_state ads, const char *fn, int lno, const char *buf) {
   ads->nservers= 0;
 }
 
-static void ccf_include(adns_state ads, const char *fn,
-			int lno, const char *buf) {
+static void ccf_include(adns_state ads, const char *fn, int lno, const char *buf) {
   if (!*buf) {
     configparseerr(ads,fn,lno,"`include' directive with no filename");
     return;
   }
   readconfig(ads,buf,1);
-}
-
-static void ccf_lookup(adns_state ads, const char *fn, int lno,
-		       const char *buf) {
-  int found_bind=0;
-  const char *word;
-  int l;
-
-  if (!*buf) {
-    configparseerr(ads,fn,lno,"`lookup' directive with no databases");
-    return;
-  }
-
-  while (nextword(&buf,&word,&l)) {
-    if (l==4 && !memcmp(word,"bind",4)) {
-      found_bind=1;
-    } else if (l==4 && !memcmp(word,"file",4)) {
-      /* ignore this and hope /etc/hosts is not essential */
-    } else if (l==2 && !memcmp(word,"yp",2)) {
-      adns__diag(ads,-1,0,"%s:%d: yp lookups not supported by adns", fn,lno);
-      found_bind=-1;
-    } else {
-      adns__diag(ads,-1,0,"%s:%d: unknown `lookup' database `%.*s'",
-		 fn,lno, l,word);
-      found_bind=-1;
-    }
-  }
-  if (!found_bind)
-    adns__diag(ads,-1,0,"%s:%d: `lookup' specified, but not `bind'", fn,lno);
 }
 
 static const struct configcommandinfo {
@@ -319,7 +282,6 @@ static const struct configcommandinfo {
   { "options",           ccf_options     },
   { "clearnameservers",  ccf_clearnss    },
   { "include",           ccf_include     },
-  { "lookup",            ccf_lookup      }, /* OpenBSD */
   {  0                                   }
 };
 
@@ -352,8 +314,7 @@ static int gl_file(adns_state ads, getline_ctx *src_io, const char *filename,
     } else if (c == EOF) {
       if (ferror(file)) {
 	saveerr(ads,errno);
-	adns__diag(ads,-1,0,"%s:%d: read error: %s",
-		   filename,lno,strerror(errno));
+	adns__diag(ads,-1,0,"%s:%d: read error: %s",filename,lno,strerror(errno));
 	return -1;
       }
       if (!i) return -1;
@@ -421,8 +382,7 @@ static void readconfiggeneric(adns_state ads, const char *filename,
     while (*q && !ctype_whitespace(*q)) q++;
     dirl= q-p;
     for (ccip=configcommandinfos;
-	 ccip->name &&
-	   !(strlen(ccip->name)==dirl && !memcmp(ccip->name,p,q-p));
+	 ccip->name && !((int)strlen(ccip->name)==dirl && !memcmp(ccip->name,p,q-p));
 	 ccip++);
     if (!ccip->name) {
       adns__diag(ads,-1,0,"%s:%d: unknown configuration directive `%.*s'",
@@ -439,8 +399,7 @@ static const char *instrum_getenv(adns_state ads, const char *envvar) {
 
   value= getenv(envvar);
   if (!value) adns__debug(ads,-1,0,"environment variable %s not set",envvar);
-  else adns__debug(ads,-1,0,"environment variable %s"
-		   " set to `%s'",envvar,value);
+  else adns__debug(ads,-1,0,"environment variable %s set to `%s'",envvar,value);
   return value;
 }
 
@@ -451,8 +410,7 @@ static void readconfig(adns_state ads, const char *filename, int warnmissing) {
   if (!gl_ctx.file) {
     if (errno == ENOENT) {
       if (warnmissing)
-	adns__debug(ads,-1,0, "configuration file"
-		    " `%s' does not exist",filename);
+	adns__debug(ads,-1,0,"configuration file `%s' does not exist",filename);
       return;
     }
     saveerr(ads,errno);
@@ -466,8 +424,7 @@ static void readconfig(adns_state ads, const char *filename, int warnmissing) {
   fclose(gl_ctx.file);
 }
 
-static void readconfigtext(adns_state ads, const char *text,
-			   const char *showname) {
+static void readconfigtext(adns_state ads, const char *text, const char *showname) {
   getline_ctx gl_ctx;
   
   gl_ctx.text= text;
@@ -497,19 +454,29 @@ static void readconfigenvtext(adns_state ads, const char *envvar) {
 }
 
 
-int adns__setnonblock(adns_state ads, int fd) {
+int adns__setnonblock(adns_state ads, ADNS_SOCKET fd) {
+#ifdef ADNS_JGAA_WIN32
+   unsigned long Val = 1;
+   return (ioctlsocket (fd, FIONBIO, &Val) == 0) ? 0 : -1;
+#else
   int r;
   
   r= fcntl(fd,F_GETFL,0); if (r<0) return errno;
   r |= O_NONBLOCK;
   r= fcntl(fd,F_SETFL,r); if (r<0) return errno;
   return 0;
+#endif
 }
 
-static int init_begin(adns_state *ads_r, adns_initflags flags,
-		      FILE *diagfile) {
+static int init_begin(adns_state *ads_r, adns_initflags flags, FILE *diagfile) {
   adns_state ads;
-  
+
+#ifdef ADNS_JGAA_WIN32  
+  WORD wVersionRequested = MAKEWORD( 2, 0 );
+  WSADATA wsaData;
+  int err;
+#endif
+    
   ads= malloc(sizeof(*ads)); if (!ads) return errno;
 
   ads->iflags= flags;
@@ -531,7 +498,25 @@ static int init_begin(adns_state *ads_r, adns_initflags flags,
   timerclear(&ads->tcptimeout);
   ads->searchlist= 0;
 
+ #ifdef ADNS_JGAA_WIN32 
+  err= WSAStartup( wVersionRequested, &wsaData );
+  if ( err != 0 ) {
+    if (ads->diagfile && ads->iflags & adns_if_debug)
+      fprintf(ads->diagfile,"adns: WSAStartup() failed. \n");
+    return -1;}
+  if (LOBYTE( wsaData.wVersion ) != 2 ||
+    HIBYTE( wsaData.wVersion ) != 0 ) {
+    if (ads->diagfile && ads->iflags & adns_if_debug)
+      fprintf(ads->diagfile,"adns: Need Winsock 2.0 or better!\n");
+    
+    WSACleanup();
+    return -1;}
+  
+  /* The WinSock DLL is acceptable. Proceed. */
+#endif
+
   *ads_r= ads;
+
   return 0;
 }
 
@@ -548,18 +533,22 @@ static int init_finish(adns_state ads) {
   }
 
   proto= getprotobyname("udp"); if (!proto) { r= ENOPROTOOPT; goto x_free; }
+  ADNS_CLEAR_ERRNO;
   ads->udpsocket= socket(AF_INET,SOCK_DGRAM,proto->p_proto);
+  ADNS_CAPTURE_ERRNO;
   if (ads->udpsocket<0) { r= errno; goto x_free; }
 
   r= adns__setnonblock(ads,ads->udpsocket);
   if (r) { r= errno; goto x_closeudp; }
-  
   return 0;
 
  x_closeudp:
-  close(ads->udpsocket);
+  adns_socket_close(ads->udpsocket);
  x_free:
   free(ads);
+#ifdef ADNS_JGAA_WIN32
+  WSACleanup();
+#endif /* WIN32 */
   return r;
 }
 
@@ -569,12 +558,27 @@ static void init_abort(adns_state ads) {
     free(ads->searchlist);
   }
   free(ads);
+#ifdef ADNS_JGAA_WIN32
+  WSACleanup();
+#endif /* WIN32 */
+
 }
 
 int adns_init(adns_state *ads_r, adns_initflags flags, FILE *diagfile) {
   adns_state ads;
   const char *res_options, *adns_res_options;
   int r;
+#ifdef ADNS_JGAA_WIN32
+  #define SECURE_PATH_LEN (MAX_PATH - 64)
+  char PathBuf[MAX_PATH];
+  struct in_addr addr;
+  #define ADNS_PFIXED_INFO_BLEN (2048)
+  PFIXED_INFO network_info = (PFIXED_INFO)alloca(ADNS_PFIXED_INFO_BLEN);
+  ULONG network_info_blen = ADNS_PFIXED_INFO_BLEN;
+  DWORD network_info_result;
+  PIP_ADDR_STRING pip;
+  const char *network_err_str = "";
+#endif
   
   r= init_begin(&ads, flags, diagfile ? diagfile : stderr);
   if (r) return r;
@@ -584,8 +588,41 @@ int adns_init(adns_state *ads_r, adns_initflags flags, FILE *diagfile) {
   ccf_options(ads,"RES_OPTIONS",-1,res_options);
   ccf_options(ads,"ADNS_RES_OPTIONS",-1,adns_res_options);
 
+#ifdef ADNS_JGAA_WIN32
+  GetWindowsDirectory(PathBuf, SECURE_PATH_LEN);
+  strcat(PathBuf,"\\resolv.conf");
+  readconfig(ads,PathBuf,1);
+  GetWindowsDirectory(PathBuf, SECURE_PATH_LEN);
+  strcat(PathBuf,"\\resolv-adns.conf");
+  readconfig(ads,PathBuf,0);
+  GetWindowsDirectory(PathBuf, SECURE_PATH_LEN);
+  strcat(PathBuf,"\\System32\\Drivers\\etc\\resolv.conf");
+  readconfig(ads,PathBuf,1);
+  GetWindowsDirectory(PathBuf, SECURE_PATH_LEN);
+  strcat(PathBuf,"\\System32\\Drivers\\etc\\resolv-adns.conf");
+  readconfig(ads,PathBuf,0);
+  network_info_result = GetNetworkParams(network_info, &network_info_blen);
+  if (network_info_result != ERROR_SUCCESS){
+    switch(network_info_result) {
+    case ERROR_BUFFER_OVERFLOW: network_err_str = "ERROR_BUFFER_OVERFLOW"; break;
+    case ERROR_INVALID_PARAMETER: network_err_str = "ERROR_INVALID_PARAMETER"; break;
+    case ERROR_NO_DATA: network_err_str = "ERROR_NO_DATA"; break;
+    case ERROR_NOT_SUPPORTED: network_err_str = "ERROR_NOT_SUPPORTED"; break;}
+    adns__diag(ads,-1,0,"GetNetworkParams() failed with error [%d] %s",
+      network_info_result,network_err_str);
+    }
+  else {
+    for(pip = &(network_info->DnsServerList); pip; pip = pip->Next) {
+      addr.s_addr = inet_addr(pip->IpAddress.String);
+      if ((addr.s_addr != INADDR_ANY) && (addr.s_addr != INADDR_NONE))
+        addserver(ads, addr); 
+    }
+  }
+#else
   readconfig(ads,"/etc/resolv.conf",1);
   readconfig(ads,"/etc/resolv-adns.conf",0);
+#endif
+
   readconfigenv(ads,"RES_CONF");
   readconfigenv(ads,"ADNS_RES_CONF");
 
@@ -642,12 +679,16 @@ void adns_finish(adns_state ads) {
     else if (ads->output.head) adns_cancel(ads->output.head);
     else break;
   }
-  close(ads->udpsocket);
-  if (ads->tcpsocket >= 0) close(ads->tcpsocket);
+  adns_socket_close(ads->udpsocket);
+  if (ads->tcpsocket >= 0) adns_socket_close(ads->tcpsocket);
   adns__vbuf_free(&ads->tcpsend);
   adns__vbuf_free(&ads->tcprecv);
   freesearchlist(ads);
   free(ads);
+#ifdef ADNS_JGAA_WIN32
+  WSACleanup();
+#endif /* WIN32 */
+
 }
 
 void adns_forallqueries_begin(adns_state ads) {

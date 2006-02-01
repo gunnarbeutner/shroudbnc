@@ -136,6 +136,7 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 
 CIRCConnection::~CIRCConnection() {
 	free(m_CurrentNick);
+	free(m_Site);
 
 	if (m_Channels != NULL) {
 		delete m_Channels;

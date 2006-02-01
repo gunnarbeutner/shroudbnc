@@ -35,13 +35,17 @@ typedef unsigned char byte;
 
 #include <stdarg.h>
 #include <assert.h>
-#include <unistd.h>
+
+#ifndef ADNS_JGAA_WIN32
+# include <unistd.h>
+#endif
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
-#include <stdlib.h>
 
-#include <sys/time.h>
+#ifndef ADNS_JGAA_WIN32
+#  include <sys/time.h>
+#endif
 
 #include "adns.h"
 #include "dlist.h"
@@ -130,8 +134,7 @@ typedef struct {
    * and will not be null-terminated by convstring.
    */
 
-  adns_status (*parse)(const parseinfo *pai, int cbyte,
-		       int max, void *store_r);
+  adns_status (*parse)(const parseinfo *pai, int cbyte, int max, void *store_r);
   /* Parse one RR, in dgram of length dglen, starting at cbyte and
    * extending until at most max.
    *
@@ -143,7 +146,7 @@ typedef struct {
    * nsstart is the offset of the authority section.
    */
 
-  int (*diff_needswap)(adns_state ads,const void *datap_a,const void *datap_b);
+  int (*diff_needswap)(adns_state ads, const void *datap_a, const void *datap_b);
   /* Returns !0 if RR a should be strictly after RR b in the sort order,
    * 0 otherwise.  Must not fail.
    */
@@ -287,7 +290,8 @@ struct adns__state {
   int configerrno;
   struct query_queue udpw, tcpw, childw, output;
   adns_query forallnext;
-  int nextid, udpsocket, tcpsocket;
+  int nextid;
+  ADNS_SOCKET udpsocket, tcpsocket;
   vbuf tcpsend, tcprecv;
   int nservers, nsortlist, nsearchlist, searchndots, tcpserver, tcprecv_skip;
   enum adns__tcpstate {
@@ -300,8 +304,10 @@ struct adns__state {
    * we are idle (ie, tcpw queue is empty), in which case it is the
    * absolute time when we will close the connection.
    */
+#ifndef ADNS_JGAA_WIN32
   struct sigaction stdsigpipe;
   sigset_t stdsigmask;
+#endif
   struct pollfd pollfds_buf[MAX_POLLFDS];
   struct server {
     struct in_addr addr;
@@ -314,7 +320,7 @@ struct adns__state {
 
 /* From setup.c: */
 
-int adns__setnonblock(adns_state ads, int fd); /* => errno value */
+int adns__setnonblock(adns_state ads, ADNS_SOCKET fd); /* => errno value */
 
 /* From general.c: */
 
@@ -329,7 +335,7 @@ void adns__diag(adns_state ads, int serv, adns_query qu,
 		const char *fmt, ...) PRINTFFORMAT(4,5);
 
 int adns__vbuf_ensure(vbuf *vb, int want);
-int adns__vbuf_appendstr(vbuf *vb, const char *data); /* doesn't include nul */
+int adns__vbuf_appendstr(vbuf *vb, const char *data); /* does not include nul */
 int adns__vbuf_append(vbuf *vb, const byte *data, int len);
 /* 1=>success, 0=>realloc failed */
 void adns__vbuf_appendq(vbuf *vb, const byte *data, int len);
@@ -337,8 +343,7 @@ void adns__vbuf_init(vbuf *vb);
 void adns__vbuf_free(vbuf *vb);
 
 const char *adns__diag_domain(adns_state ads, int serv, adns_query qu,
-			      vbuf *vb,
-			      const byte *dgram, int dglen, int cbyte);
+			      vbuf *vb, const byte *dgram, int dglen, int cbyte);
 /* Unpicks a domain in a datagram and returns a string suitable for
  * printing it as.  Never fails - if an error occurs, it will
  * return some kind of string describing the error.
@@ -377,8 +382,7 @@ adns_status adns__mkquery(adns_state ads, vbuf *vb, int *id_r,
  */
 
 adns_status adns__mkquery_frdgram(adns_state ads, vbuf *vb, int *id_r,
-				  const byte *qd_dgram, int qd_dglen,
-				  int qd_begin,
+				  const byte *qd_dgram, int qd_dglen, int qd_begin,
 				  adns_rrtype type, adns_queryflags flags);
 /* Same as adns__mkquery, but takes the owner domain from an existing datagram.
  * That domain must be correct and untruncated.
@@ -393,8 +397,8 @@ void adns__querysend_tcp(adns_query qu, struct timeval now);
 void adns__query_send(adns_query qu, struct timeval now);
 /* Query must be in state tosend/NONE; it will be moved to a new state,
  * and no further processing can be done on it for now.
- * (Resulting state is one of udp/timew, tcpwait/timew (if server not
- * connected), tcpsent/timew, child/childw or done/output.)
+ * (Resulting state is one of udp/timew, tcpwait/timew (if server not connected),
+ *  tcpsent/timew, child/childw or done/output.)
  * __query_send may decide to use either UDP or TCP depending whether
  * _qf_usevc is set (or has become set) and whether the query is too
  * large.
@@ -403,8 +407,7 @@ void adns__query_send(adns_query qu, struct timeval now);
 /* From query.c: */
 
 adns_status adns__internal_submit(adns_state ads, adns_query *query_r,
-				  const typeinfo *typei, vbuf *qumsg_vb,
-				  int id,
+				  const typeinfo *typei, vbuf *qumsg_vb, int id,
 				  adns_queryflags flags, struct timeval now,
 				  const qcontext *ctx);
 /* Submits a query (for internal use, called during external submits).
@@ -465,8 +468,7 @@ void *adns__alloc_preserved(adns_query qu, size_t sz);
  *  answer->cname and answer->owner are _preserved.
  */
 
-void adns__transfer_interim(adns_query from, adns_query to,
-			    void *block, size_t sz);
+void adns__transfer_interim(adns_query from, adns_query to, void *block, size_t sz);
 /* Transfers an interim allocation from one query to another, so that
  * the `to' query will have room for the data when we get to makefinal
  * and so that the free will happen when the `to' query is freed
@@ -543,8 +545,7 @@ void adns__findlabel_start(findlabel_state *fls, adns_state ads,
  * serv may be -1, qu may be null - they are for error reporting.
  */
 
-adns_status adns__findlabel_next(findlabel_state *fls,
-				 int *lablen_r, int *labstart_r);
+adns_status adns__findlabel_next(findlabel_state *fls, int *lablen_r, int *labstart_r);
 /* Then, call this one repeatedly.
  *
  * It will return adns_s_ok if all is well, and tell you the length
@@ -575,8 +576,7 @@ typedef enum {
 
 adns_status adns__parse_domain(adns_state ads, int serv, adns_query qu,
 			       vbuf *vb, parsedomain_flags flags,
-			       const byte *dgram, int dglen, int *cbyte_io,
-			       int max);
+			       const byte *dgram, int dglen, int *cbyte_io, int max);
 /* vb must already have been initialised; it will be reset if necessary.
  * If there is truncation, vb->used will be set to 0; otherwise
  * (if there is no error) vb will be null-terminated.
@@ -586,8 +586,7 @@ adns_status adns__parse_domain(adns_state ads, int serv, adns_query qu,
  */
 
 adns_status adns__parse_domain_more(findlabel_state *fls, adns_state ads,
-				    adns_query qu, vbuf *vb,
-				    parsedomain_flags flags,
+				    adns_query qu, vbuf *vb, parsedomain_flags flags,
 				    const byte *dgram);
 /* Like adns__parse_domain, but you pass it a pre-initialised findlabel_state,
  * for continuing an existing domain or some such of some kind.  Also, unlike
@@ -626,11 +625,10 @@ adns_status adns__findrr(adns_query qu, int serv,
 
 adns_status adns__findrr_anychk(adns_query qu, int serv,
 				const byte *dgram, int dglen, int *cbyte_io,
-				int *type_r, int *class_r,
-				unsigned long *ttl_r,
+				int *type_r, int *class_r, unsigned long *ttl_r,
 				int *rdlen_r, int *rdstart_r,
-				const byte *eo_dgram, int eo_dglen,
-				int eo_cbyte, int *eo_matched_r);
+				const byte *eo_dgram, int eo_dglen, int eo_cbyte,
+				int *eo_matched_r);
 /* Like adns__findrr_checked, except that the datagram and
  * owner to compare with can be specified explicitly.
  *
@@ -645,8 +643,7 @@ adns_status adns__findrr_anychk(adns_query qu, int serv,
  * untruncated.
  */
 
-void adns__update_expires(adns_query qu, unsigned long ttl,
-			  struct timeval now);
+void adns__update_expires(adns_query qu, unsigned long ttl, struct timeval now);
 /* Updates the `expires' field in the query, so that it doesn't exceed
  * now + ttl.
  */
@@ -693,16 +690,12 @@ void adns__consistency(adns_state ads, adns_query qu, consistency_checks cc);
 
 /* Useful static inline functions: */
 
-static inline int ctype_whitespace(int c) {
-  return c==' ' || c=='\n' || c=='\t';
-}
+static inline int ctype_whitespace(int c) { return c==' ' || c=='\n' || c=='\t'; }
 static inline int ctype_digit(int c) { return c>='0' && c<='9'; }
 static inline int ctype_alpha(int c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
-static inline int ctype_822special(int c) {
-  return strchr("()<>@,;:\\\".[]",c) != 0;
-}
+static inline int ctype_822special(int c) { return strchr("()<>@,;:\\\".[]",c) != 0; }
 static inline int ctype_domainunquoted(int c) {
   return ctype_alpha(c) || ctype_digit(c) || (strchr("-_/+",c) != 0);
 }
@@ -711,18 +704,18 @@ static inline int errno_resources(int e) { return e==ENOMEM || e==ENOBUFS; }
 
 /* Useful macros */
 
-#define MEM_ROUND(sz)						\
-  (( ((sz)+sizeof(union maxalign)-1) / sizeof(union maxalign) )	\
+#define MEM_ROUND(sz) \
+  (( ((sz)+sizeof(union maxalign)-1) / sizeof(union maxalign) ) \
    * sizeof(union maxalign) )
 
 #define GETIL_B(cb) (((dgram)[(cb)++]) & 0x0ff)
 #define GET_B(cb,tv) ((tv)= GETIL_B((cb)))
-#define GET_W(cb,tv) ((tv)=0,(tv)|=(GETIL_B((cb))<<8), (tv)|=GETIL_B(cb), (tv))
-#define GET_L(cb,tv) ( (tv)=0,				\
-		       (tv)|=(GETIL_B((cb))<<24),	\
-		       (tv)|=(GETIL_B((cb))<<16),	\
-		       (tv)|=(GETIL_B((cb))<<8),	\
-		       (tv)|=GETIL_B(cb),		\
+#define GET_W(cb,tv) ((tv)=0, (tv)|=(GETIL_B((cb))<<8), (tv)|=GETIL_B(cb), (tv))
+#define GET_L(cb,tv) ( (tv)=0, \
+		       (tv)|=(GETIL_B((cb))<<24), \
+		       (tv)|=(GETIL_B((cb))<<16), \
+		       (tv)|=(GETIL_B((cb))<<8), \
+		       (tv)|=GETIL_B(cb), \
 		       (tv) )
 
 #endif

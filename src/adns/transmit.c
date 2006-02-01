@@ -28,8 +28,12 @@
 
 #include <errno.h>
 
-#include <sys/types.h>
-#include <sys/uio.h>
+#ifdef ADNS_JGAA_WIN32
+# include "adns_win32.h"
+#else
+# include <sys/types.h>
+# include <sys/uio.h>
+#endif
 
 #include "internal.h"
 #include "tvarith.h"
@@ -39,8 +43,7 @@
 #define MKQUERY_ADDW(w) (MKQUERY_ADDB(((w)>>8)&0x0ff), MKQUERY_ADDB((w)&0x0ff))
 #define MKQUERY_STOP(vb) ((vb)->used= rqp-(vb)->buf)
 
-static adns_status mkquery_header(adns_state ads, vbuf *vb,
-				  int *id_r, int qdlen) {
+static adns_status mkquery_header(adns_state ads, vbuf *vb, int *id_r, int qdlen) {
   int id;
   byte *rqp;
   
@@ -96,9 +99,7 @@ adns_status adns__mkquery(adns_state ads, vbuf *vb, int *id_r,
 	if (!(flags & adns_qf_quoteok_query)) return adns_s_querydomaininvalid;
 	if (ctype_digit(p[0])) {
 	  if (ctype_digit(p[1]) && ctype_digit(p[2])) {
-	    c= (*p++ - '0')*100;
-	    c += (*p++ - '0')*10;
-	    c += (*p++ - '0');
+	    c= (*p++ - '0')*100 + (*p++ - '0')*10 + (*p++ - '0');
 	    if (c >= 256) return adns_s_querydomaininvalid;
 	  } else {
 	    return adns_s_querydomaininvalid;
@@ -134,8 +135,7 @@ adns_status adns__mkquery(adns_state ads, vbuf *vb, int *id_r,
 }
 
 adns_status adns__mkquery_frdgram(adns_state ads, vbuf *vb, int *id_r,
-				  const byte *qd_dgram, int qd_dglen,
-				  int qd_begin,
+				  const byte *qd_dgram, int qd_dglen, int qd_begin,
 				  adns_rrtype type, adns_queryflags flags) {
   byte *rqp;
   findlabel_state fls;
@@ -178,8 +178,7 @@ void adns__querysend_tcp(adns_query qu, struct timeval now) {
   length[1]= (qu->query_dglen&0x0ff);
 
   ads= qu->ads;
-  if (!adns__vbuf_ensure(&ads->tcpsend,ads->tcpsend.used+qu->query_dglen+2))
-    return;
+  if (!adns__vbuf_ensure(&ads->tcpsend,ads->tcpsend.used+qu->query_dglen+2)) return;
 
   qu->retries++;
 
@@ -194,10 +193,13 @@ void adns__querysend_tcp(adns_query qu, struct timeval now) {
     iov[1].iov_base= qu->query_dgram;
     iov[1].iov_len= qu->query_dglen;
     adns__sigpipe_protect(qu->ads);
+
+    ADNS_CLEAR_ERRNO;
     wr= writev(qu->ads->tcpsocket,iov,2);
+    ADNS_CAPTURE_ERRNO;
     adns__sigpipe_unprotect(qu->ads);
     if (wr < 0) {
-      if (!(errno == EAGAIN || errno == EINTR || errno == ENOSPC ||
+      if (!(errno == EAGAIN || EWOULDBLOCK || errno == EINTR || errno == ENOSPC ||
 	    errno == ENOBUFS || errno == ENOMEM)) {
 	adns__tcp_broken(ads,"write",strerror(errno));
 	return;
@@ -213,8 +215,7 @@ void adns__querysend_tcp(adns_query qu, struct timeval now) {
     wr-= 2;
   }
   if (wr<qu->query_dglen) {
-    r= adns__vbuf_append(&ads->tcpsend,qu->query_dgram+wr,qu->query_dglen-wr);
-    assert(r);
+    r= adns__vbuf_append(&ads->tcpsend,qu->query_dgram+wr,qu->query_dglen-wr); assert(r);
   }
 }
 
@@ -251,15 +252,12 @@ void adns__query_send(adns_query qu, struct timeval now) {
   servaddr.sin_addr= ads->servers[serv].addr;
   servaddr.sin_port= htons(DNS_PORT);
   
+  ADNS_CLEAR_ERRNO;
   r= sendto(ads->udpsocket,qu->query_dgram,qu->query_dglen,0,
 	    (const struct sockaddr*)&servaddr,sizeof(servaddr));
-  if (r<0 && errno == EMSGSIZE) {
-    qu->retries= 0;
-    query_usetcp(qu,now);
-    return;
-  }
-  if (r<0 && errno != EAGAIN)
-    adns__warn(ads,serv,0,"sendto failed: %s",strerror(errno));
+  ADNS_CAPTURE_ERRNO;
+  if (r<0 && errno == EMSGSIZE) { qu->retries= 0; query_usetcp(qu,now); return; }
+  if (r<0 && ((errno != EAGAIN) && (errno != EWOULDBLOCK))) adns__warn(ads,serv,0,"sendto failed: %s (%d)",strerror(errno), errno);
   
   qu->timeout= now;
   timevaladd(&qu->timeout,UDPRETRYMS);

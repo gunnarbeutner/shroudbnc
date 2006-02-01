@@ -25,19 +25,20 @@
  *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#include <stdlib.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef ADNS_JGAA_WIN32
+# include "adns_win32.h"
+#else
+# include <stdlib.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+#endif
 
 #include "internal.h"
 
-#define R_NOMEM       return adns_s_nomemory
-#define CSP_ADDSTR(s) do {			\
-    if (!adns__vbuf_appendstr(vb,(s))) R_NOMEM;	\
-  } while (0)
+#define R_NOMEM           return adns_s_nomemory
+#define CSP_ADDSTR(s)     do { if (!adns__vbuf_appendstr(vb,(s))) R_NOMEM; } while (0)
 
 /*
  * order of sections:
@@ -174,8 +175,7 @@ static void mf_manyistr(adns_query qu, void *datap) {
  * _txt   (pa,cs)
  */
 
-static adns_status pa_txt(const parseinfo *pai, int cbyte,
-			  int max, void *datap) {
+static adns_status pa_txt(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_intstr **rrp= datap, *table, *te;
   const byte *dgram= pai->dgram;
   int ti, tc, l, startbyte;
@@ -238,8 +238,7 @@ static adns_status cs_hinfo(vbuf *vb, const void *datap) {
  * _inaddr   (pa,dip,di)
  */
 
-static adns_status pa_inaddr(const parseinfo *pai, int cbyte,
-			     int max, void *datap) {
+static adns_status pa_inaddr(const parseinfo *pai, int cbyte, int max, void *datap) {
   struct in_addr *storeto= datap;
   
   if (max-cbyte != 4) return adns_s_invaliddata;
@@ -252,8 +251,7 @@ static int search_sortlist(adns_state ads, struct in_addr ad) {
   int i;
   
   for (i=0, slp=ads->sortlist;
-       i<ads->nsortlist &&
-	 !((ad.s_addr & slp->mask.s_addr) == slp->base.s_addr);
+       i<ads->nsortlist && !((ad.s_addr & slp->mask.s_addr) == slp->base.s_addr);
        i++, slp++);
   return i;
 }
@@ -268,8 +266,7 @@ static int dip_inaddr(adns_state ads, struct in_addr a, struct in_addr b) {
   return bi<ai;
 }
 
-static int di_inaddr(adns_state ads,
-		     const void *datap_a, const void *datap_b) {
+static int di_inaddr(adns_state ads, const void *datap_a, const void *datap_b) {
   const struct in_addr *ap= datap_a, *bp= datap_b;
 
   return dip_inaddr(ads,*ap,*bp);
@@ -288,8 +285,7 @@ static adns_status cs_inaddr(vbuf *vb, const void *datap) {
  * _addr   (pa,di,csp,cs)
  */
 
-static adns_status pa_addr(const parseinfo *pai, int cbyte,
-			   int max, void *datap) {
+static adns_status pa_addr(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_addr *storeto= datap;
   const byte *dgram= pai->dgram;
 
@@ -374,8 +370,7 @@ static adns_status cs_domain(vbuf *vb, const void *datap) {
   return csp_domain(vb,*domainp);
 }
 
-static adns_status pa_dom_raw(const parseinfo *pai, int cbyte,
-			      int max, void *datap) {
+static adns_status pa_dom_raw(const parseinfo *pai, int cbyte, int max, void *datap) {
   char **rrp= datap;
   adns_status st;
 
@@ -390,8 +385,7 @@ static adns_status pa_dom_raw(const parseinfo *pai, int cbyte,
  * _host_raw   (pa)
  */
 
-static adns_status pa_host_raw(const parseinfo *pai, int cbyte,
-			       int max, void *datap) {
+static adns_status pa_host_raw(const parseinfo *pai, int cbyte, int max, void *datap) {
   char **rrp= datap;
   adns_status st;
 
@@ -415,8 +409,7 @@ static adns_status pap_findaddrs(const parseinfo *pai, adns_rr_hostaddr *ha,
   adns_status st;
   
   for (rri=0, naddrs=-1; rri<count; rri++) {
-    st= adns__findrr_anychk(pai->qu, pai->serv, pai->dgram,
-			    pai->dglen, cbyte_io,
+    st= adns__findrr_anychk(pai->qu, pai->serv, pai->dgram, pai->dglen, cbyte_io,
 			    &type, &class, &ttl, &rdlen, &rdstart,
 			    pai->dgram, pai->dglen, dmstart, &ownermatched);
     if (st) return st;
@@ -426,8 +419,7 @@ static adns_status pap_findaddrs(const parseinfo *pai, adns_rr_hostaddr *ha,
     if (naddrs == -1) {
       naddrs= 0;
     }
-    if (!adns__vbuf_ensure(&pai->qu->vb, (naddrs+1)*sizeof(adns_rr_addr)))
-      R_NOMEM;
+    if (!adns__vbuf_ensure(&pai->qu->vb, (naddrs+1)*sizeof(adns_rr_addr))) R_NOMEM;
     adns__update_expires(pai->qu,ttl,pai->now);
     st= pa_addr(pai, rdstart,rdstart+rdlen,
 		pai->qu->vb.buf + naddrs*sizeof(adns_rr_addr));
@@ -457,8 +449,7 @@ static void icb_hostaddr(adns_query parent, adns_query child) {
   rrp->astatus= st;
   rrp->naddrs= (st>0 && st<=adns_s_max_tempfail) ? -1 : cans->nrrs;
   rrp->addrs= cans->rrs.addr;
-  adns__transfer_interim(child, parent, rrp->addrs,
-			 rrp->naddrs*sizeof(adns_rr_addr));
+  adns__transfer_interim(child, parent, rrp->addrs, rrp->naddrs*sizeof(adns_rr_addr));
 
   if (parent->children.head) {
     LIST_LINK_TAIL(ads->childw,parent);
@@ -518,8 +509,7 @@ static adns_status pap_hostaddr(const parseinfo *pai, int *cbyte_io,
   return adns_s_ok;
 }
 
-static adns_status pa_hostaddr(const parseinfo *pai, int cbyte,
-			       int max, void *datap) {
+static adns_status pa_hostaddr(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_hostaddr *rrp= datap;
   adns_status st;
 
@@ -530,8 +520,7 @@ static adns_status pa_hostaddr(const parseinfo *pai, int cbyte,
   return adns_s_ok;
 }
 
-static int dip_hostaddr(adns_state ads,
-			const adns_rr_hostaddr *ap, const adns_rr_hostaddr *bp) {
+static int dip_hostaddr(adns_state ads, const adns_rr_hostaddr *ap, const adns_rr_hostaddr *bp) {
   if (ap->astatus != bp->astatus) return ap->astatus;
   if (ap->astatus) return 0;
 
@@ -542,8 +531,7 @@ static int dip_hostaddr(adns_state ads,
 		    bp->addrs[0].addr.inet.sin_addr);
 }
 
-static int di_hostaddr(adns_state ads,
-		       const void *datap_a, const void *datap_b) {
+static int di_hostaddr(adns_state ads, const void *datap_a, const void *datap_b) {
   const adns_rr_hostaddr *ap= datap_a, *bp= datap_b;
 
   return dip_hostaddr(ads, ap,bp);
@@ -607,8 +595,7 @@ static adns_status cs_hostaddr(vbuf *vb, const void *datap) {
  * _mx_raw   (pa,di)
  */
 
-static adns_status pa_mx_raw(const parseinfo *pai, int cbyte,
-			     int max, void *datap) {
+static adns_status pa_mx_raw(const parseinfo *pai, int cbyte, int max, void *datap) {
   const byte *dgram= pai->dgram;
   adns_rr_intstr *rrp= datap;
   adns_status st;
@@ -637,8 +624,7 @@ static int di_mx_raw(adns_state ads, const void *datap_a, const void *datap_b) {
  * _mx   (pa,di)
  */
 
-static adns_status pa_mx(const parseinfo *pai, int cbyte,
-			 int max, void *datap) {
+static adns_status pa_mx(const parseinfo *pai, int cbyte, int max, void *datap) {
   const byte *dgram= pai->dgram;
   adns_rr_inthostaddr *rrp= datap;
   adns_status st;
@@ -730,8 +716,7 @@ static void icb_ptr(adns_query parent, adns_query child) {
   adns__query_fail(parent,adns_s_inconsistent);
 }
 
-static adns_status pa_ptr(const parseinfo *pai, int dmstart,
-			  int max, void *datap) {
+static adns_status pa_ptr(const parseinfo *pai, int dmstart, int max, void *datap) {
   static const char *(expectdomain[])= { DNS_INADDR_ARPA };
   
   char **rrp= datap;
@@ -759,18 +744,15 @@ static adns_status pa_ptr(const parseinfo *pai, int dmstart,
     for (i=0; i<4; i++) {
       st= adns__findlabel_next(&fls,&lablen,&labstart); assert(!st);
       if (lablen<=0 || lablen>3) return adns_s_querydomainwrong;
-      memcpy(labbuf, pai->qu->query_dgram + labstart, lablen);
-      labbuf[lablen]= 0;
-      ipv[3-i]= strtoul(labbuf,&ep,10);
-      if (*ep) return adns_s_querydomainwrong;
+      memcpy(labbuf, pai->qu->query_dgram + labstart, lablen);  labbuf[lablen]= 0;
+      ipv[3-i]= (unsigned char)strtoul(labbuf,&ep,10);  if (*ep) return adns_s_querydomainwrong;
       if (lablen>1 && pai->qu->query_dgram[labstart]=='0')
 	return adns_s_querydomainwrong;
     }
     for (i=0; i<sizeof(expectdomain)/sizeof(*expectdomain); i++) {
       st= adns__findlabel_next(&fls,&lablen,&labstart); assert(!st);
       l= strlen(expectdomain[i]);
-      if (lablen != l ||
-	  memcmp(pai->qu->query_dgram + labstart, expectdomain[i], l))
+      if (lablen != l || memcmp(pai->qu->query_dgram + labstart, expectdomain[i], l))
 	return adns_s_querydomainwrong;
     }
     st= adns__findlabel_next(&fls,&lablen,0); assert(!st);
@@ -827,8 +809,7 @@ static void mf_intstrpair(adns_query qu, void *datap) {
  * _hinfo   (pa)
  */
 
-static adns_status pa_hinfo(const parseinfo *pai, int cbyte,
-			    int max, void *datap) {
+static adns_status pa_hinfo(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_intstrpair *rrp= datap;
   adns_status st;
   int i;
@@ -847,8 +828,8 @@ static adns_status pa_hinfo(const parseinfo *pai, int cbyte,
  * _mailbox   (pap,cs)
  */
 
-static adns_status pap_mailbox822(const parseinfo *pai,
-				  int *cbyte_io, int max, char **mb_r) {
+static adns_status pap_mailbox822(const parseinfo *pai, int *cbyte_io, int max,
+				  char **mb_r) {
   int lablen, labstart, i, needquote, c, r, neednorm;
   const unsigned char *p;
   char *str;
@@ -920,8 +901,7 @@ static adns_status csp_mailbox(vbuf *vb, const char *mailbox) {
  * _rp   (pa,cs)
  */
 
-static adns_status pa_rp(const parseinfo *pai, int cbyte,
-			 int max, void *datap) {
+static adns_status pa_rp(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_strpair *rrp= datap;
   adns_status st;
 
@@ -950,8 +930,7 @@ static adns_status cs_rp(vbuf *vb, const void *datap) {
  * _soa   (pa,mf,cs)
  */
 
-static adns_status pa_soa(const parseinfo *pai, int cbyte,
-			  int max, void *datap) {
+static adns_status pa_soa(const parseinfo *pai, int cbyte, int max, void *datap) {
   adns_rr_soa *rrp= datap;
   const byte *dgram= pai->dgram;
   adns_status st;
@@ -1016,31 +995,31 @@ static void mf_flat(adns_query qu, void *data) { }
 #define FLAT_MEMB(memb) TYPESZ_M(memb), mf_flat, cs_##memb
 
 #define DEEP_TYPE(code,rrt,fmt,memb,parser,comparer,printer) \
- { adns_r_##code, rrt,fmt,TYPESZ_M(memb), mf_##memb, printer,parser,comparer }
+ { adns_r_##code, rrt, fmt, TYPESZ_M(memb), mf_##memb, printer, parser, comparer }
 #define FLAT_TYPE(code,rrt,fmt,memb,parser,comparer,printer) \
- { adns_r_##code, rrt,fmt,TYPESZ_M(memb), mf_flat,   printer,parser,comparer }
+ { adns_r_##code, rrt, fmt, TYPESZ_M(memb), mf_flat, printer, parser, comparer }
 
 static const typeinfo typeinfos[] = {
 /* Must be in ascending order of rrtype ! */
-/* mem-mgmt code  rrt     fmt   member   parser      comparer  printer */
-
-FLAT_TYPE(a,      "A",     0,   inaddr,  pa_inaddr,  di_inaddr,cs_inaddr     ),
-DEEP_TYPE(ns_raw, "NS",   "raw",str,     pa_host_raw,0,        cs_domain     ),
-DEEP_TYPE(cname,  "CNAME", 0,   str,     pa_dom_raw, 0,        cs_domain     ),
-DEEP_TYPE(soa_raw,"SOA",  "raw",soa,     pa_soa,     0,        cs_soa        ),
-DEEP_TYPE(ptr_raw,"PTR",  "raw",str,     pa_host_raw,0,        cs_domain     ),
-DEEP_TYPE(hinfo,  "HINFO", 0, intstrpair,pa_hinfo,   0,        cs_hinfo      ),
-DEEP_TYPE(mx_raw, "MX",   "raw",intstr,  pa_mx_raw,  di_mx_raw,cs_inthost    ),
-DEEP_TYPE(txt,    "TXT",   0,   manyistr,pa_txt,     0,        cs_txt        ),
-DEEP_TYPE(rp_raw, "RP",   "raw",strpair, pa_rp,      0,        cs_rp         ),
-
-FLAT_TYPE(addr,   "A",  "addr", addr,    pa_addr,    di_addr,  cs_addr       ),
-DEEP_TYPE(ns,     "NS", "+addr",hostaddr,pa_hostaddr,di_hostaddr,cs_hostaddr ),
-DEEP_TYPE(ptr,    "PTR","checked",str,   pa_ptr,     0,        cs_domain     ),
-DEEP_TYPE(mx,     "MX", "+addr",inthostaddr,pa_mx,   di_mx,    cs_inthostaddr),
- 		     	                                   		      
-DEEP_TYPE(soa,    "SOA","822",  soa,     pa_soa,     0,        cs_soa        ),
-DEEP_TYPE(rp,     "RP", "822",  strpair, pa_rp,      0,        cs_rp         ),
+/* mem-mgmt code  rrt     fmt     member      parser      comparer    printer       */
+  		    		     		 	     		 	       
+FLAT_TYPE(a,      "A",     0,     inaddr,     pa_inaddr,  di_inaddr,  cs_inaddr     ),
+DEEP_TYPE(ns_raw, "NS",   "raw",  str,        pa_host_raw,0,          cs_domain     ),
+DEEP_TYPE(cname,  "CNAME", 0,     str,        pa_dom_raw, 0,          cs_domain     ),
+DEEP_TYPE(soa_raw,"SOA",  "raw",  soa,        pa_soa,     0,          cs_soa        ),
+DEEP_TYPE(ptr_raw,"PTR",  "raw",  str,        pa_host_raw,0,          cs_domain     ),
+DEEP_TYPE(hinfo,  "HINFO", 0,     intstrpair, pa_hinfo,   0,          cs_hinfo      ),
+DEEP_TYPE(mx_raw, "MX",   "raw",  intstr,     pa_mx_raw,  di_mx_raw,  cs_inthost    ),
+DEEP_TYPE(txt,    "TXT",   0,     manyistr,   pa_txt,     0,          cs_txt        ),
+DEEP_TYPE(rp_raw, "RP",   "raw",  strpair,    pa_rp,      0,          cs_rp         ),
+ 		     	                                     		   	       
+FLAT_TYPE(addr,   "A",  "addr",   addr,       pa_addr,    di_addr,    cs_addr       ),
+DEEP_TYPE(ns,     "NS", "+addr",  hostaddr,   pa_hostaddr,di_hostaddr,cs_hostaddr   ),
+DEEP_TYPE(ptr,    "PTR","checked",str,        pa_ptr,     0,          cs_domain     ),
+DEEP_TYPE(mx,     "MX", "+addr",  inthostaddr,pa_mx,      di_mx,      cs_inthostaddr),
+ 		     	                                     		      
+DEEP_TYPE(soa,    "SOA","822",    soa,        pa_soa,     0,          cs_soa        ),
+DEEP_TYPE(rp,     "RP", "822",    strpair,    pa_rp,      0,          cs_rp         ),
 };
 
 const typeinfo *adns__findtype(adns_rrtype type) {

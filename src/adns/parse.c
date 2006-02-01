@@ -25,6 +25,10 @@
  *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
+#ifdef ADNS_JGAA_WIN32
+# include "adns_win32.h"
+#endif
+
 #include "internal.h"
 
 int vbuf__append_quoted1035(vbuf *vb, const byte *buf, int len) {
@@ -43,8 +47,7 @@ int vbuf__append_quoted1035(vbuf *vb, const byte *buf, int len) {
 	break;
       }
     }
-    if (!adns__vbuf_append(vb,buf,i) ||
-	!adns__vbuf_append(vb,qbuf,strlen(qbuf)))
+    if (!adns__vbuf_append(vb,buf,i) || !adns__vbuf_append(vb,qbuf,strlen(qbuf)))
       return 0;
     if (i<len) i++;
     buf+= i;
@@ -107,26 +110,22 @@ adns_status adns__findlabel_next(findlabel_state *fls,
   return adns_s_ok;
 
  x_badresponse: 
-  adns__diag(fls->ads,fls->serv,fls->qu,
-	     "label in domain runs beyond end of domain");
+  adns__diag(fls->ads,fls->serv,fls->qu,"label in domain runs beyond end of domain");
   return adns_s_invalidresponse;
 }
 
 adns_status adns__parse_domain(adns_state ads, int serv, adns_query qu,
-			       vbuf *vb, parsedomain_flags flags,
-			       const byte *dgram, int dglen, int *cbyte_io,
-			       int max) {
+			       vbuf *vb, adns_queryflags flags,
+			       const byte *dgram, int dglen, int *cbyte_io, int max) {
   findlabel_state fls;
   
-  adns__findlabel_start(&fls,ads, serv,qu, dgram,dglen,max,
-			*cbyte_io,cbyte_io);
+  adns__findlabel_start(&fls,ads, serv,qu, dgram,dglen,max, *cbyte_io,cbyte_io);
   vb->used= 0;
   return adns__parse_domain_more(&fls,ads,qu, vb,flags,dgram);
 }
 
 adns_status adns__parse_domain_more(findlabel_state *fls, adns_state ads,
-				    adns_query qu, vbuf *vb,
-				    parsedomain_flags flags,
+				    adns_query qu, vbuf *vb, parsedomain_flags flags,
 				    const byte *dgram) {
   int lablen, labstart, i, ch, first;
   adns_status st;
@@ -147,8 +146,7 @@ adns_status adns__parse_domain_more(findlabel_state *fls, adns_state ads,
 	return adns_s_nomemory;
     } else {
       ch= dgram[labstart];
-      if (!ctype_alpha(ch) && !ctype_digit(ch))
-	return adns_s_answerdomaininvalid;
+      if (!ctype_alpha(ch) && !ctype_digit(ch)) return adns_s_answerdomaininvalid;
       for (i= labstart+1; i<labstart+lablen; i++) {
 	ch= dgram[i];
 	if (ch != '-' && !ctype_alpha(ch) && !ctype_digit(ch))
@@ -164,11 +162,10 @@ adns_status adns__parse_domain_more(findlabel_state *fls, adns_state ads,
 	
 adns_status adns__findrr_anychk(adns_query qu, int serv,
 				const byte *dgram, int dglen, int *cbyte_io,
-				int *type_r, int *class_r,
-				unsigned long *ttl_r,
+				int *type_r, int *class_r, unsigned long *ttl_r,
 				int *rdlen_r, int *rdstart_r,
-				const byte *eo_dgram, int eo_dglen,
-				int eo_cbyte, int *eo_matched_r) {
+				const byte *eo_dgram, int eo_dglen, int eo_cbyte,
+				int *eo_matched_r) {
   findlabel_state fls, eo_fls;
   int cbyte;
   
@@ -182,8 +179,7 @@ adns_status adns__findrr_anychk(adns_query qu, int serv,
 
   adns__findlabel_start(&fls,qu->ads, serv,qu, dgram,dglen,dglen,cbyte,&cbyte);
   if (eo_dgram) {
-    adns__findlabel_start(&eo_fls,qu->ads, -1,0,
-			  eo_dgram,eo_dglen,eo_dglen,eo_cbyte,0);
+    adns__findlabel_start(&eo_fls,qu->ads, -1,0, eo_dgram,eo_dglen,eo_dglen,eo_cbyte,0);
     mismatch= 0;
   } else {
     mismatch= 1;

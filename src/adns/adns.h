@@ -51,19 +51,30 @@
  *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  *
- *  $Id: adns.h 270 2005-11-30 17:55:39Z shroud23 $
+ *  $Id: adns.h,v 1.83 2000/09/17 01:56:18 ian Exp $
  */
 
 #ifndef ADNS_H_INCLUDED
 #define ADNS_H_INCLUDED
 
-#include <stdio.h>
+#ifdef ADNS_JGAA_WIN32
+# include "adns_win32.h"
+#else
+# include <stdio.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <sys/types.h>
+# include <sys/time.h>
+# include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/time.h>
-#include <unistd.h>
+# define ADNS_API
+# define ADNS_SOCKET int
+# define adns_socket_close(sck) close(sck)
+# define adns_socket_read(sck, data, len) read(sck, data, len)
+# define adns_socket_write(sck, data, len) write(sck, data, len)
+# define ADNS_CAPTURE_ERRNO {}
+# define ADNS_CLEAR_ERRNO {}
+#endif
 
 #ifdef __cplusplus
 extern "C" { /* I really dislike this - iwj. */
@@ -75,63 +86,63 @@ typedef struct adns__state *adns_state;
 typedef struct adns__query *adns_query;
 
 typedef enum {
- adns_if_noenv=       0x0001,/* do not look at environment */
- adns_if_noerrprint=  0x0002,/* never print to stderr (_debug overrides) */
- adns_if_noserverwarn=0x0004,/* do not warn to stderr about duff servers etc */
- adns_if_debug=       0x0008,/* enable all output to stderr plus debug msgs */
- adns_if_logpid=      0x0080,/* include pid in diagnostic output */
- adns_if_noautosys=   0x0010,/* do not make syscalls at every opportunity */
- adns_if_eintr=       0x0020,/* allow _wait and _synchronous to return EINTR */
- adns_if_nosigpipe=   0x0040,/* applic has SIGPIPE ignored, do not protect */
- adns_if_checkc_entex=0x0100,/* consistency checks on entry/exit to adns fns */
- adns_if_checkc_freq= 0x0300 /* consistency checks very frequently (slow!) */
+  adns_if_noenv=        0x0001, /* do not look at environment */
+  adns_if_noerrprint=   0x0002, /* never print output to stderr (_debug overrides) */
+  adns_if_noserverwarn= 0x0004, /* do not warn to stderr about duff nameservers etc */
+  adns_if_debug=        0x0008, /* enable all output to stderr plus debug msgs */
+  adns_if_logpid=       0x0080, /* include pid in diagnostic output */
+  adns_if_noautosys=    0x0010, /* do not make syscalls at every opportunity */
+  adns_if_eintr=        0x0020, /* allow _wait and _synchronous to return EINTR */
+  adns_if_nosigpipe=    0x0040, /* applic has SIGPIPE set to SIG_IGN, do not protect */
+  adns_if_checkc_entex= 0x0100, /* do consistency checks on entry/exit to adns funcs */
+  adns_if_checkc_freq=  0x0300  /* do consistency checks very frequently (slow!) */
 } adns_initflags;
 
 typedef enum {
- adns_qf_search=         0x00000001,/* use the searchlist */
- adns_qf_usevc=          0x00000002,/* use a virtual circuit (TCP conn) */
- adns_qf_owner=          0x00000004,/* fill in the owner field in the answer */
- adns_qf_quoteok_query=  0x00000010,/* allow special chars in query domain */
- adns_qf_quoteok_cname=  0x00000000,/*  ... in CNAME we go via (now default) */
- adns_qf_quoteok_anshost=0x00000040,/*  ... in things supposedly hostnames */
- adns_qf_quotefail_cname=0x00000080,/* refuse if quote-req chars in CNAME we go via */
- adns_qf_cname_loose=    0x00000100,/* allow refs to CNAMEs - without, get _s_cname */
- adns_qf_cname_forbid=   0x00000200,/* don't follow CNAMEs, instead give _s_cname */
- adns__qf_internalmask=  0x0ff00000
+  adns_qf_search=          0x00000001, /* use the searchlist */
+  adns_qf_usevc=           0x00000002, /* use a virtual circuit (TCP connection) */
+  adns_qf_owner=           0x00000004, /* fill in the owner field in the answer */
+  adns_qf_quoteok_query=   0x00000010, /* allow special chars in query domain */
+  adns_qf_quoteok_cname=   0x00000000, /* allow ... in CNAME we go via - now default */
+  adns_qf_quoteok_anshost= 0x00000040, /* allow ... in things supposed to be hostnames */
+  adns_qf_quotefail_cname= 0x00000080, /* refuse if quote-req chars in CNAME we go via */
+  adns_qf_cname_loose=     0x00000100, /* allow refs to CNAMEs - without, get _s_cname */
+  adns_qf_cname_forbid=    0x00000200, /* don't follow CNAMEs, instead give _s_cname */
+  adns__qf_internalmask=   0x0ff00000
 } adns_queryflags;
 
 typedef enum {
- adns__rrt_typemask=0x0ffff,
- adns__qtf_deref=   0x10000, /* dereference domains; perhaps get extra data */
- adns__qtf_mail822= 0x20000, /* return mailboxes in RFC822 rcpt field fmt   */
- 		     
- adns_r_none=             0,
- 		     
- adns_r_a=                1,
- 		     
- adns_r_ns_raw=           2,
- adns_r_ns=                  adns_r_ns_raw|adns__qtf_deref,
- 		     
- adns_r_cname=            5,
- 		     
- adns_r_soa_raw=          6,
- adns_r_soa=                 adns_r_soa_raw|adns__qtf_mail822, 
- 		     
- adns_r_ptr_raw=         12,
- adns_r_ptr=                 adns_r_ptr_raw|adns__qtf_deref,
- 		     
- adns_r_hinfo=           13,  
- 		     
- adns_r_mx_raw=          15,
- adns_r_mx=                  adns_r_mx_raw|adns__qtf_deref,
- 		     
- adns_r_txt=             16,
- 		     
- adns_r_rp_raw=          17,
- adns_r_rp=                  adns_r_rp_raw|adns__qtf_mail822,
-		     
- adns_r_addr=                adns_r_a|adns__qtf_deref
- 
+  adns__rrt_typemask=  0x0ffff,
+  adns__qtf_deref=     0x10000, /* dereference domains and perhaps produce extra data */
+  adns__qtf_mail822=   0x20000, /* make mailboxes be in RFC822 rcpt field format */
+  
+  adns_r_none=               0,
+  
+  adns_r_a=                  1,
+  
+  adns_r_ns_raw=             2,
+  adns_r_ns=                    adns_r_ns_raw|adns__qtf_deref,
+  
+  adns_r_cname=              5,
+  
+  adns_r_soa_raw=            6,
+  adns_r_soa=                   adns_r_soa_raw|adns__qtf_mail822, 
+  
+  adns_r_ptr_raw=           12,
+  adns_r_ptr=                   adns_r_ptr_raw|adns__qtf_deref,
+  
+  adns_r_hinfo=             13,  
+  
+  adns_r_mx_raw=            15,
+  adns_r_mx=                    adns_r_mx_raw|adns__qtf_deref,
+  
+  adns_r_txt=               16,
+  
+  adns_r_rp_raw=            17,
+  adns_r_rp=                    adns_r_rp_raw|adns__qtf_mail822,
+
+  adns_r_addr=                  adns_r_a|adns__qtf_deref
+  
 } adns_rrtype;
 
 /*
@@ -203,55 +214,55 @@ typedef enum {
  */
 
 typedef enum {
- adns_s_ok,
+  adns_s_ok,
 
- /* locally induced errors */
- adns_s_nomemory,
- adns_s_unknownrrtype,
- adns_s_systemfail,
+  /* locally induced errors */
+  adns_s_nomemory,
+  adns_s_unknownrrtype,
+  adns_s_systemfail,
 
- adns_s_max_localfail= 29,
- 
- /* remotely induced errors, detected locally */
- adns_s_timeout,
- adns_s_allservfail,
- adns_s_norecurse,
- adns_s_invalidresponse,
- adns_s_unknownformat,
+  adns_s_max_localfail= 29,
+  
+  /* remotely induced errors, detected locally */
+  adns_s_timeout,
+  adns_s_allservfail,
+  adns_s_norecurse,
+  adns_s_invalidresponse,
+  adns_s_unknownformat,
 
- adns_s_max_remotefail= 59,
- 
- /* remotely induced errors, reported by remote server to us */
- adns_s_rcodeservfail,
- adns_s_rcodeformaterror,
- adns_s_rcodenotimplemented,
- adns_s_rcoderefused,
- adns_s_rcodeunknown,
+  adns_s_max_remotefail= 59,
+  
+  /* remotely induced errors, reported by remote server to us */
+  adns_s_rcodeservfail,
+  adns_s_rcodeformaterror,
+  adns_s_rcodenotimplemented,
+  adns_s_rcoderefused,
+  adns_s_rcodeunknown,
 
- adns_s_max_tempfail= 99,
+  adns_s_max_tempfail= 99,
 
- /* remote configuration errors */
- adns_s_inconsistent, /* PTR gives domain whose A does not exist and match */
- adns_s_prohibitedcname, /* CNAME, but eg A expected (not if _qf_loosecname) */
- adns_s_answerdomaininvalid,
- adns_s_answerdomaintoolong,
- adns_s_invaliddata,
- 
- adns_s_max_misconfig= 199,
+  /* remote configuration errors */
+  adns_s_inconsistent, /* PTR gives domain whose A does not exist and match */
+  adns_s_prohibitedcname, /* CNAME found where eg A expected (not if _qf_loosecname) */
+  adns_s_answerdomaininvalid,
+  adns_s_answerdomaintoolong,
+  adns_s_invaliddata,
+  
+  adns_s_max_misconfig= 199,
 
- /* permanent problems with the query */
- adns_s_querydomainwrong,
- adns_s_querydomaininvalid,
- adns_s_querydomaintoolong,
- 
- adns_s_max_misquery= 299,
+  /* permanent problems with the query */
+  adns_s_querydomainwrong,
+  adns_s_querydomaininvalid,
+  adns_s_querydomaintoolong,
+  
+  adns_s_max_misquery= 299,
 
- /* permanent errors */
- adns_s_nxdomain,
- adns_s_nodata,
+  /* permanent errors */
+  adns_s_nxdomain,
+  adns_s_nodata,
 
- adns_s_max_permfail= 499
- 
+  adns_s_max_permfail= 499
+  
 } adns_status;
 
 typedef struct {
@@ -279,11 +290,10 @@ typedef struct {
 } adns_rr_inthostaddr;
 
 typedef struct {
-  /* Used both for mx_raw, in which case i is the preference and str
-   * the domain, and for txt, in which case each entry has i for the
-   * `text' length, and str for the data (which will have had an extra
-   * nul appended so that if it was plain text it is now a
-   * null-terminated string).
+  /* Used both for mx_raw, in which case i is the preference and str the domain,
+   * and for txt, in which case each entry has i for the `text' length,
+   * and str for the data (which will have had an extra nul appended
+   * so that if it was plain text it is now a null-terminated string).
    */
   int i;
   char *str;
@@ -301,23 +311,23 @@ typedef struct {
 typedef struct {
   adns_status status;
   char *cname; /* always NULL if query was for CNAME records */
-  char *owner; /* only set if req'd in query flags; maybe 0 on error anyway */
+  char *owner; /* only set if requested in query flags, and may be 0 on error anyway */
   adns_rrtype type; /* guaranteed to be same as in query */
-  time_t expires;/*abs time.  def only if _s_ok, nxdomain or nodata. NOT TTL!*/
+  time_t expires; /* expiry time, defined only if _s_ok, nxdomain or nodata. NOT TTL! */
   int nrrs, rrsz; /* nrrs is 0 if an error occurs */
   union {
     void *untyped;
     unsigned char *bytes;
-    char *(*str);                    /* ns_raw, cname, ptr, ptr_raw */
-    adns_rr_intstr *(*manyistr);     /* txt (list strs ends with i=-1, str=0)*/
-    adns_rr_addr *addr;              /* addr */
-    struct in_addr *inaddr;          /* a */
-    adns_rr_hostaddr *hostaddr;      /* ns */
-    adns_rr_intstrpair *intstrpair;  /* hinfo */
-    adns_rr_strpair *strpair;        /* rp, rp_raw */
-    adns_rr_inthostaddr *inthostaddr;/* mx */
-    adns_rr_intstr *intstr;          /* mx_raw */
-    adns_rr_soa *soa;                /* soa, soa_raw */
+    char *(*str);                     /* ns_raw, cname, ptr, ptr_raw */
+    adns_rr_intstr *(*manyistr);      /* txt (list of strings ends with i=-1, str=0) */
+    adns_rr_addr *addr;               /* addr */
+    struct in_addr *inaddr;           /* a */
+    adns_rr_hostaddr *hostaddr;       /* ns */
+    adns_rr_intstrpair *intstrpair;   /* hinfo */
+    adns_rr_strpair *strpair;         /* rp, rp_raw */
+    adns_rr_inthostaddr *inthostaddr; /* mx */
+    adns_rr_intstr *intstr;           /* mx_raw */
+    adns_rr_soa *soa;                 /* soa, soa_raw */
   } rrs;
 } adns_answer;
 
@@ -354,10 +364,10 @@ typedef struct {
  *  requested.
  */
 
-int adns_init(adns_state *newstate_r, adns_initflags flags,
+ADNS_API int adns_init(adns_state *newstate_r, adns_initflags flags,
 	      FILE *diagfile /*0=>stderr*/);
 
-int adns_init_strcfg(adns_state *newstate_r, adns_initflags flags,
+ADNS_API int adns_init_strcfg(adns_state *newstate_r, adns_initflags flags,
 		     FILE *diagfile /*0=>discard*/, const char *configtext);
 
 /* Configuration:
@@ -460,7 +470,7 @@ int adns_init_strcfg(adns_state *newstate_r, adns_initflags flags,
  *   line in resolv.conf.
  */
 
-int adns_synchronous(adns_state ads,
+ADNS_API int adns_synchronous(adns_state ads,
 		     const char *owner,
 		     adns_rrtype type,
 		     adns_queryflags flags,
@@ -471,7 +481,7 @@ int adns_synchronous(adns_state ads,
  * processing functions to actually get things to happen.
  */
 
-int adns_submit(adns_state ads,
+ADNS_API int adns_submit(adns_state ads,
 		const char *owner,
 		adns_rrtype type,
 		adns_queryflags flags,
@@ -480,23 +490,23 @@ int adns_submit(adns_state ads,
 
 /* The owner should be quoted in master file format. */
 
-int adns_check(adns_state ads,
+ADNS_API int adns_check(adns_state ads,
 	       adns_query *query_io,
 	       adns_answer **answer_r,
 	       void **context_r);
 
-int adns_wait(adns_state ads,
+ADNS_API int adns_wait(adns_state ads,
 	      adns_query *query_io,
 	      adns_answer **answer_r,
 	      void **context_r);
 
 /* same as adns_wait but uses poll(2) internally */
-int adns_wait_poll(adns_state ads,
+ADNS_API int adns_wait_poll(adns_state ads,
 		   adns_query *query_io,
 		   adns_answer **answer_r,
 		   void **context_r);
 
-void adns_cancel(adns_query query);
+ADNS_API void adns_cancel(adns_query query);
 
 /* The adns_query you get back from _submit is valid (ie, can be
  * legitimately passed into adns functions) until it is returned by
@@ -510,7 +520,7 @@ void adns_cancel(adns_query query);
  * query type.
  */
 
-int adns_submit_reverse(adns_state ads,
+ADNS_API int adns_submit_reverse(adns_state ads,
 			const struct sockaddr *addr,
 			adns_rrtype type,
 			adns_queryflags flags,
@@ -520,7 +530,7 @@ int adns_submit_reverse(adns_state ads,
  * addr->sa_family must be AF_INET or you get ENOSYS.
  */
 
-int adns_submit_reverse_any(adns_state ads,
+ADNS_API int adns_submit_reverse_any(adns_state ads,
 			    const struct sockaddr *addr,
 			    const char *rzone,
 			    adns_rrtype type,
@@ -533,14 +543,14 @@ int adns_submit_reverse_any(adns_state ads,
  * addr->sa_family must be AF_INET or you get ENOSYS.
  */
 
-void adns_finish(adns_state ads);
+ADNS_API void adns_finish(adns_state ads);
 /* You may call this even if you have queries outstanding;
  * they will be cancelled.
  */
 
 
-void adns_forallqueries_begin(adns_state ads);
-adns_query adns_forallqueries_next(adns_state ads, void **context_r);
+ADNS_API void adns_forallqueries_begin(adns_state ads);
+ADNS_API adns_query adns_forallqueries_next(adns_state ads, void **context_r);
 /* Iterator functions, which you can use to loop over the outstanding
  * (submitted but not yet successfuly checked/waited) queries.
  *
@@ -556,7 +566,7 @@ adns_query adns_forallqueries_next(adns_state ads, void **context_r);
  * context_r may be 0.  *context_r may not be set when _next returns 0.
  */
 
-void adns_checkconsistency(adns_state ads, adns_query qu);
+ADNS_API  void adns_checkconsistency(adns_state ads, adns_query qu);
 /* Checks the consistency of adns's internal data structures.
  * If any error is found, the program will abort().
  * You may pass 0 for qu; if you pass non-null then additional checks
@@ -588,16 +598,16 @@ void adns_checkconsistency(adns_state ads, adns_query qu);
  * blocking, or you may not have an up-to-date list of it's fds.
  */
 
-int adns_processany(adns_state ads);
+ADNS_API int adns_processany(adns_state ads);
 /* Gives adns flow-of-control for a bit.  This will never block, and
  * can be used with any threading/asynch-io model.  If some error
  * occurred which might cause an event loop to spin then the errno
  * value is returned.
  */
 
-int adns_processreadable(adns_state ads, int fd, const struct timeval *now);
-int adns_processwriteable(adns_state ads, int fd, const struct timeval *now);
-int adns_processexceptional(adns_state ads, int fd, const struct timeval *now);
+ADNS_API int adns_processreadable(adns_state ads, ADNS_SOCKET fd, const struct timeval *now);
+ADNS_API int adns_processwriteable(adns_state ads, ADNS_SOCKET fd, const struct timeval *now);
+ADNS_API int adns_processexceptional(adns_state ads, ADNS_SOCKET fd, const struct timeval *now);
 /* Gives adns flow-of-control so that it can process incoming data
  * from, or send outgoing data via, fd.  Very like _processany.  If it
  * returns zero then fd will no longer be readable or writeable
@@ -616,7 +626,7 @@ int adns_processexceptional(adns_state ads, int fd, const struct timeval *now);
  * then the errno value is returned.
  */
 
-void adns_processtimeouts(adns_state ads, const struct timeval *now);
+ADNS_API void adns_processtimeouts(adns_state ads, const struct timeval *now);
 /* Gives adns flow-of-control so that it can process any timeouts
  * which might have happened.  Very like _processreadable/writeable.
  *
@@ -624,7 +634,7 @@ void adns_processtimeouts(adns_state ads, const struct timeval *now);
  * obtained from gettimeofday.
  */
 
-void adns_firsttimeout(adns_state ads,
+ADNS_API void adns_firsttimeout(adns_state ads,
 		       struct timeval **tv_mod, struct timeval *tv_buf,
 		       struct timeval now);
 /* Asks adns when it would first like the opportunity to time
@@ -643,7 +653,7 @@ void adns_firsttimeout(adns_state ads,
  * is using.  It always succeeds and never blocks.
  */
 
-void adns_globalsystemfailure(adns_state ads);
+ADNS_API void adns_globalsystemfailure(adns_state ads);
 /* If serious problem(s) happen which globally affect your ability to
  * interact properly with adns, or adns's ability to function
  * properly, you or adns can call this function.
@@ -662,7 +672,7 @@ void adns_globalsystemfailure(adns_state ads);
  * Entrypoints for select-loop based asynch io:
  */
 
-void adns_beforeselect(adns_state ads, int *maxfd, fd_set *readfds,
+ADNS_API void adns_beforeselect(adns_state ads, int *maxfd, fd_set *readfds,
 		       fd_set *writefds, fd_set *exceptfds,
 		       struct timeval **tv_mod, struct timeval *tv_buf,
 		       const struct timeval *now);
@@ -678,7 +688,7 @@ void adns_beforeselect(adns_state ads, int *maxfd, fd_set *readfds,
  * finishes in _beforeselect.
  */
 
-void adns_afterselect(adns_state ads, int maxfd, const fd_set *readfds,
+ADNS_API void adns_afterselect(adns_state ads, int maxfd, const fd_set *readfds,
 		      const fd_set *writefds, const fd_set *exceptfds,
 		      const struct timeval *now);
 /* Gives adns flow-of-control for a bit; intended for use after
@@ -712,8 +722,7 @@ struct pollfd;
  * entrypoints will not be defined in libadns.  Sorry !
  */
 
-int adns_beforepoll(adns_state ads, struct pollfd *fds,
-		    int *nfds_io, int *timeout_io,
+ADNS_API int adns_beforepoll(adns_state ads, struct pollfd *fds, int *nfds_io, int *timeout_io,
 		    const struct timeval *now);
 /* Finds out which fd's adns is interested in, and when it would like
  * to be able to time things out.  This is in a form suitable for use
@@ -765,7 +774,7 @@ int adns_beforepoll(adns_state ads, struct pollfd *fds,
  * require more space than this.
  */
 
-void adns_afterpoll(adns_state ads, const struct pollfd *fds, int nfds,
+ADNS_API void adns_afterpoll(adns_state ads, const struct pollfd *fds, int nfds,
 		    const struct timeval *now);
 /* Gives adns flow-of-control for a bit; intended for use after
  * poll(2).  fds and nfds should be the results from poll().  pollfd
@@ -773,7 +782,7 @@ void adns_afterpoll(adns_state ads, const struct pollfd *fds, int nfds,
  */
 
 
-adns_status adns_rr_info(adns_rrtype type,
+ADNS_API adns_status adns_rr_info(adns_rrtype type,
 			 const char **rrtname_r, const char **fmtname_r,
 			 int *len_r,
 			 const void *datap, char **data_r);
@@ -833,9 +842,9 @@ adns_status adns_rr_info(adns_rrtype type,
  *  dns2.spong.dyn.ml.org timeout "DNS query timed out" ?
  */
 
-const char *adns_strerror(adns_status st);
-const char *adns_errabbrev(adns_status st);
-const char *adns_errtypeabbrev(adns_status st);
+ADNS_API const char *adns_strerror(adns_status st);
+ADNS_API const char *adns_errabbrev(adns_status st);
+ADNS_API const char *adns_errtypeabbrev(adns_status st);
 /* Like strerror but for adns_status values.  adns_errabbrev returns
  * the abbreviation of the error - eg, for adns_s_timeout it returns
  * "timeout".  adns_errtypeabbrev returns the abbreviation of the

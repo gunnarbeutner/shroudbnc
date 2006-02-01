@@ -21,7 +21,7 @@
 #include "../StdAfx.h"
 #include "../sbnc.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #ifndef _DEBUG
 #define SBNC_MODULE "sbnc.dll"
 #else

@@ -5,22 +5,25 @@
 #define HAVE_INLINE 1
 
 /* Define if function attributes a la GCC 2.5 and higher are available.  */
-#define HAVE_GNUC25_ATTRIB 1
+/* #define HAVE_GNUC25_ATTRIB 1 */
 
 /* Define if constant functions a la GCC 2.5 and higher are available.  */
-#define HAVE_GNUC25_CONST 1
+/* #define HAVE_GNUC25_CONST 1 */
 
 /* Define if nonreturning functions a la GCC 2.5 and higher are available.  */
-#define HAVE_GNUC25_NORETURN 1
+/* #define HAVE_GNUC25_NORETURN 1 */
 
 /* Define if printf-format argument lists a la GCC are available.  */
-#define HAVE_GNUC25_PRINTFFORMAT 1
+/* #define HAVE_GNUC25_PRINTFFORMAT 1 */
 
 /* Define if we want to include rpc/types.h.  Crap BSDs put INADDR_LOOPBACK there. */
 /* #undef HAVEUSE_RPCTYPES_H */
 
 /* Define if you have the poll function.  */
-#define HAVE_POLL 1
+/* #define HAVE_POLL 1 */
+
+/* Define if you have the <sys/select.h> header file.  */
+#define HAVE_SYS_SELECT_H 1
 
 /* Define if you have the nsl library (-lnsl).  */
 /* #undef HAVE_LIBNSL */
@@ -96,4 +99,8 @@ struct pollfd { int fd; short events; short revents; };
 
 #ifdef HAVEUSE_RPCTYPES_H
 #include <rpc/types.h>
+#endif
+
+#if !defined(ADNS_JGAA_WIN32) && defined(HAVE_SYS_SELECT_H)
+#include <sys/select.h>
 #endif

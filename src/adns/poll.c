@@ -32,8 +32,8 @@
 
 #ifdef HAVE_POLL
 
-int adns_beforepoll(adns_state ads, struct pollfd *fds, int *nfds_io,
-		    int *timeout_io, const struct timeval *now) {
+int adns_beforepoll(adns_state ads, struct pollfd *fds, int *nfds_io, int *timeout_io,
+		    const struct timeval *now) {
   struct timeval tv_nowbuf, tv_tobuf, *tv_to;
   int space, found, timeout_ms, r;
   struct pollfd fds_tmp[MAX_POLLFDS];

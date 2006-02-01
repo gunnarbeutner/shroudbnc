@@ -31,32 +31,56 @@ void adns_checkconsistency(adns_state ads, adns_query qu) {
   adns__consistency(ads,qu,cc_user);
 }
 
-#define DLIST_CHECK(list, nodevar, part, body)			\
-  if ((list).head) {						\
-    assert(! (list).head->part back);				\
-    for ((nodevar)= (list).head;				\
-	 (nodevar);						\
-	 (nodevar)= (nodevar)->part next) {			\
-      assert((nodevar)->part next				\
-	     ? (nodevar) == (nodevar)->part next->part back	\
-	     : (nodevar) == (list).tail);			\
-      body							\
-    }								\
+/* The original macro. Too gnuish for other compilers */
+#if 0
+#define DLIST_CHECK(list, nodevar, part, body)					\
+  if ((list).head) {								\
+    assert(! (list).head->part back);						\
+    for ((nodevar)= (list).head; (nodevar); (nodevar)= (nodevar)->part next) {	\
+      assert((nodevar)->part next						\
+	     ? (nodevar) == (nodevar)->part next->part back			\
+	     : (nodevar) == (list).tail);					\
+      body									\
+    }										\
+  }
+#endif /* 0 */
+
+#define DLIST_CHECK1(list, nodevar, body)					\
+  if ((list).head) {								\
+    assert(! (list).head->back);						\
+    for ((nodevar)= (list).head; (nodevar); (nodevar)= (nodevar)->next) {	\
+      assert((nodevar)->next						\
+	     ? (nodevar) == (nodevar)->next->back			\
+	     : (nodevar) == (list).tail);					\
+      body									\
+    }										\
   }
 
-#define DLIST_ASSERTON(node, nodevar, list, part)	\
-  do {							\
-    for ((nodevar)= (list).head;			\
-	 (nodevar) != (node);				\
-	 (nodevar)= (nodevar)->part next) {		\
-      assert((nodevar));				\
-    }							\
+#define DLIST_CHECK2(list, nodevar, part, body)					\
+  if ((list).head) {								\
+    assert(! (list).head->part.back);						\
+    for ((nodevar)= (list).head; (nodevar); (nodevar)= (nodevar)->part.next) {	\
+      assert((nodevar)->part.next						\
+	     ? (nodevar) == (nodevar)->part.next->part.back			\
+	     : (nodevar) == (list).tail);					\
+      body									\
+    }										\
+  }
+
+#define DLIST_ASSERTON(node, nodevar, list, part)				\
+  do {										\
+    for ((nodevar)= (list).head;						\
+	 (nodevar) != (node);							\
+	 (nodevar)= (nodevar)->part next) {					\
+      assert((nodevar));							\
+    }										\
   } while(0)
 
 static void checkc_query_alloc(adns_state ads, adns_query qu) {
   allocnode *an;
 
-  DLIST_CHECK(qu->allocations, an, , {
+
+  DLIST_CHECK1(qu->allocations, an, {
   });
 }
 
@@ -109,7 +133,7 @@ static void checkc_global(adns_state ads) {
 static void checkc_queue_udpw(adns_state ads) {
   adns_query qu;
   
-  DLIST_CHECK(ads->udpw, qu, , {
+  DLIST_CHECK1(ads->udpw, qu, {
     assert(qu->state==query_tosend);
     assert(qu->retries <= UDPMAXRETRIES);
     assert(qu->udpsent);
@@ -122,7 +146,7 @@ static void checkc_queue_udpw(adns_state ads) {
 static void checkc_queue_tcpw(adns_state ads) {
   adns_query qu;
   
-  DLIST_CHECK(ads->tcpw, qu, , {
+  DLIST_CHECK1(ads->tcpw, qu, {
     assert(qu->state==query_tcpw);
     assert(!qu->children.head && !qu->children.tail);
     assert(qu->retries <= ads->nservers+1);
@@ -134,10 +158,10 @@ static void checkc_queue_tcpw(adns_state ads) {
 static void checkc_queue_childw(adns_state ads) {
   adns_query parent, child;
 
-  DLIST_CHECK(ads->childw, parent, , {
+  DLIST_CHECK1(ads->childw, parent, {
     assert(parent->state == query_childw);
     assert(parent->children.head);
-    DLIST_CHECK(parent->children, child, siblings., {
+    DLIST_CHECK2(parent->children, child, siblings, {
       assert(child->parent == parent);
       assert(child->state != query_done);
     });
@@ -149,7 +173,7 @@ static void checkc_queue_childw(adns_state ads) {
 static void checkc_queue_output(adns_state ads) {
   adns_query qu;
   
-  DLIST_CHECK(ads->output, qu, , {
+  DLIST_CHECK1(ads->output, qu, {
     assert(qu->state == query_done);
     assert(!qu->children.head && !qu->children.tail);
     assert(!qu->parent);

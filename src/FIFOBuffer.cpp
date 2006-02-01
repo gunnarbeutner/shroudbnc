@@ -171,11 +171,9 @@ void CFIFOBuffer::WriteUnformattedLine(const char *Line) {
 	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
 		m_BufferSize + Len + 2);
 
-	if (tempBuffer == NULL) {
-		LOGERROR("realloc failed(). Lost %d bytes.", Len + 2);
-
+	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Line, Len);
