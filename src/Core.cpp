@@ -595,6 +595,12 @@ const char* CCore::GetIdent(void) {
 		return NULL;
 }
 
+void CCore::UpdateIdent(void) {
+	if (m_Ident != NULL) {
+		m_Ident->Update();
+	}
+}
+
 CVector<CModule *> *CCore::GetModules(void) {
 	return &m_Modules;
 }

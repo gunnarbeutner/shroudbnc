@@ -33,48 +33,6 @@ CIdentSupport::~CIdentSupport(void) {
 
 void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
-	CHashtable<CUser *, false, 64> *Users;
-
-//#ifndef _WIN32
-	char *homedir = getenv("HOME");
-
-	if (homedir) {
-		asprintf(&Out, "%s/.oidentd.conf", homedir);
-
-		FILE *identConfig = fopen(Out, "w");
-
-		if (identConfig) {
-			Users = g_Bouncer->GetUsers();
-
-			int i = 0;
-			while (hash_t<CUser *> *User = Users.Iterate(i++)) {
-				CIRCConnection *IRC = User->Value->GetIRCConnection();
-
-				if (IRC == NULL) {
-					continue;
-				}
-
-				int LocalPort = htons(IRC->GetLocalAddress().sin_port);
-				int RemotePort = htons(IRC->GetRemoteAddress().sin_port);
-
-				fprintf(identConfig, "lport %d from %s fport %d { reply "%d"; }\n", LocalPort, inet_ntoa(IRC->GetLocalAddress().sin_addr), RemotePort);
-			}
-
-			char *Buf = (char *)malloc(strlen(Ident) + 50);
-
-			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
-			fputs(Buf, identConfig);
-
-			free(Buf);
-
-			fclose(identConfig);
-		}
-
-		free(Out);
-	}
-
-	free(Out);
-//#endif
 
 	NewIdent = strdup(Ident);
 
@@ -86,8 +44,44 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 	free(m_Ident);
 	m_Ident = NewIdent;
+
+	Update();
 }
 
 const char *CIdentSupport::GetIdent(void) {
 	return m_Ident;
+}
+
+void CIdentSupport::Update(void) {
+//#ifndef _WIN32
+	char *homedir = getenv("HOME");
+
+	if (homedir) {
+		char *Filename;
+
+		asprintf(&Filename, "%s/.oidentd.conf", homedir);
+
+		FILE *identConfig = fopen(Filename, "w");
+
+		if (identConfig) {
+			int i = 0;
+			while (hash_t<CUser *> *User = g_Bouncer->GetUsers()->Iterate(i++)) {
+				CIRCConnection *IRC = User->Value->GetIRCConnection();
+
+				if (IRC == NULL) {
+					continue;
+				}
+
+				int LocalPort = htons(IRC->GetLocalAddress().sin_port);
+				int RemotePort = IRC->GetOwner()->GetPort();
+
+				fprintf(identConfig, "lport %d from %s fport %d { reply \"%d\"; }\n", LocalPort, inet_ntoa(IRC->GetLocalAddress().sin_addr), RemotePort);
+			}
+
+			fclose(identConfig);
+		}
+
+		free(Filename);
+	}
+//#endif
 }

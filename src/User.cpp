@@ -477,11 +477,6 @@ void CUser::Reconnect(void) {
 
 	m_LastReconnect = time(NULL);
 
-	if (GetIdent() != NULL)
-		g_Bouncer->SetIdent(GetIdent());
-	else
-		g_Bouncer->SetIdent(m_Name);
-
 	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
 
 	if (!BindIp || BindIp[0] == '\0') {
@@ -490,6 +485,11 @@ void CUser::Reconnect(void) {
 		if (BindIp && BindIp[0] == '\0')
 			BindIp = NULL;
 	}
+
+	if (GetIdent() != NULL)
+		g_Bouncer->SetIdent(GetIdent());
+	else
+		g_Bouncer->SetIdent(m_Name);
 
 	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL());
 

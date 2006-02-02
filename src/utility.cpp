@@ -283,6 +283,8 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
+	g_Bouncer->UpdateIdent();
+
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
 
@@ -357,6 +359,8 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 
 		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
+
+	g_Bouncer->UpdateIdent();
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
