@@ -29,7 +29,6 @@
 void DestroyBan(ban_t *Ban) {
 	free(Ban->Mask);
 	free(Ban->Nick);
-	free(Ban);
 }
 
 /**
@@ -38,7 +37,7 @@ void DestroyBan(ban_t *Ban) {
  * Constructs an empty banlist
  */
 CBanlist::CBanlist() {
-	m_Bans = NULL;
+	m_Bans.RegisterValueDestructor(DestroyBan);
 }
 
 /**
@@ -47,9 +46,7 @@ CBanlist::CBanlist() {
  * Destroys a banlist
  */
 CBanlist::~CBanlist() {
-	if (m_Bans != NULL) {
-		delete m_Bans;
-	}
+	// nothing to do here either
 }
 
 /**
@@ -64,16 +61,6 @@ CBanlist::~CBanlist() {
 bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
-	if (m_Bans == NULL) {
-		m_Bans = new CHashtable<ban_t *, false, 5>();
-
-		CHECK_ALLOC_RESULT(m_Bans, new) {
-			return false;
-		} CHECK_ALLOC_RESULT_END;
-
-		m_Bans->RegisterValueDestructor(DestroyBan);
-	}
-
 	Ban = (ban_t *)malloc(sizeof(ban_t));
 
 	CHECK_ALLOC_RESULT(Ban, malloc) {
@@ -84,7 +71,7 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	Ban->Nick = strdup(Nick);
 	Ban->Timestamp = Timestamp;
 
-	return m_Bans->Add(Mask, Ban);
+	return m_Bans.Add(Mask, Ban);
 }
 
 /**
@@ -95,10 +82,11 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
  * @param Mask the mask of the ban which is going to be removed
  */
 bool CBanlist::UnsetBan(const char *Mask) {
-	if (Mask != NULL && m_Bans != NULL)
-		return m_Bans->Remove(Mask);
-	else
+	if (Mask != NULL) {
+		return m_Bans.Remove(Mask);
+	} else {
 		return false;
+	}
 }
 
 /**
@@ -108,20 +96,8 @@ bool CBanlist::UnsetBan(const char *Mask) {
  *
  * @param Skip the index of the ban which is to be returned
  */
-const ban_t *CBanlist::Iterate(int Skip) {
-	hash_t<ban_t *> *BanHash;
-
-	if (m_Bans == NULL) {
-		return NULL;
-	}
-
-	BanHash = m_Bans->Iterate(Skip);
-
-	if (BanHash != NULL) {
-		return BanHash->Value;
-	} else {
-		return NULL;
-	}
+const hash_t<ban_t *> *CBanlist::Iterate(int Skip) {
+	return m_Bans.Iterate(Skip);
 }
 
 /**
@@ -132,11 +108,7 @@ const ban_t *CBanlist::Iterate(int Skip) {
  * @param Mask the banmask
  */
 const ban_t *CBanlist::GetBan(const char *Mask) {
-	if (m_Bans != NULL) {
-		return m_Bans->Get(Mask);
-	} else {
-		return NULL;
-	}
+	return m_Bans.Get(Mask);
 }
 
 /**
@@ -155,14 +127,10 @@ bool CBanlist::Freeze(CAssocArray *Box) {
 		return false;
 	}
 
-	if (m_Bans != NULL) {
-		Count = m_Bans->GetLength();
-	} else {
-		Count = 0;
-	}
+	Count = m_Bans.GetLength();
 
 	for (unsigned i = 0; i < Count; i++) {
-		Ban = m_Bans->Iterate(i)->Value;
+		Ban = m_Bans.Iterate(i)->Value;
 
 		asprintf(&Index, "%d.mask", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {

@@ -33,24 +33,33 @@ CIdentSupport::~CIdentSupport(void) {
 
 void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
+	CHashtable<CUser *, false, 64> *Users;
 
-#ifndef _WIN32
+//#ifndef _WIN32
 	char *homedir = getenv("HOME");
 
-	char *Out = (char *)malloc(strlen(homedir) + 50);
-
-	if (Out == NULL) {
-		LOGERROR("malloc failed. Could not set new ident (%s).", Ident);
-
-		return;
-	}
-
 	if (homedir) {
-		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
+		asprintf(&Out, "%s/.oidentd.conf", homedir);
 
 		FILE *identConfig = fopen(Out, "w");
 
 		if (identConfig) {
+			Users = g_Bouncer->GetUsers();
+
+			int i = 0;
+			while (hash_t<CUser *> *User = Users.Iterate(i++)) {
+				CIRCConnection *IRC = User->Value->GetIRCConnection();
+
+				if (IRC == NULL) {
+					continue;
+				}
+
+				int LocalPort = htons(IRC->GetLocalAddress().sin_port);
+				int RemotePort = htons(IRC->GetRemoteAddress().sin_port);
+
+				fprintf(identConfig, "lport %d from %s fport %d { reply "%d"; }\n", LocalPort, inet_ntoa(IRC->GetLocalAddress().sin_addr), RemotePort);
+			}
+
 			char *Buf = (char *)malloc(strlen(Ident) + 50);
 
 			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
@@ -60,10 +69,12 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 			fclose(identConfig);
 		}
+
+		free(Out);
 	}
 
 	free(Out);
-#endif
+//#endif
 
 	NewIdent = strdup(Ident);
 

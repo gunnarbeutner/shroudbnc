@@ -23,33 +23,32 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CChannel::CChannel(const char* Name, CIRCConnection* Owner) {
+CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
+	SetOwner(Owner);
+
 	m_Name = strdup(Name);
+	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
+
 	m_Modes = NULL;
 	m_ModeCount = 0;
-	m_Owner = Owner;
 	m_Creation = 0;
 	m_Topic = NULL;
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CHashtable<CNick*, false, 64>();
+	m_Nicks = new CHashtable<CNick *, false, 64>();
 
-	if (m_Nicks == NULL) {
-		LOGERROR("new operator failed. Could not create nick list.");
-
+	CHECK_ALLOC_RESULT(m_Nicks, new) {
 		Owner->Kill("Internal error.");
 	} else {
 		m_Nicks->RegisterValueDestructor(DestroyObject<CNick>);
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_HasNames = false;
 	m_ModesValid = false;
 	m_Banlist = new CBanlist();
 
-	if (m_Banlist == NULL) {
-		LOGERROR("new operator failed. Could not create ban list.");
-	}
+	CHECK_ALLOC_RESULT(m_Nicks, new) { } CHECK_ALLOC_RESULT_END;
 
 	m_HasBans = false;
 	m_TempModes = NULL;
@@ -62,11 +61,14 @@ CChannel::~CChannel() {
 	free(m_TopicNick);
 	free(m_TempModes);
 
-	delete m_Nicks;
+	if (m_Nicks != NULL) {
+		delete m_Nicks;
+	}
 
 	for (int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode != '\0')
+		if (m_Modes[i].Mode != '\0') {
 			free(m_Modes[i].Parameter);
+		}
 	}
 
 	free(m_Modes);
@@ -76,19 +78,20 @@ CChannel::~CChannel() {
 	}
 }
 
-const char* CChannel::GetName(void) {
+const char *CChannel::GetName(void) {
 	return m_Name;
 }
 
-const char* CChannel::GetChannelModes(void) {
+const char *CChannel::GetChannelModes(void) {
 	int i;
 	size_t Size;
 
-	if (m_TempModes)
+	if (m_TempModes != NULL) {
 		return m_TempModes;
+	}
 
 	Size = 1024;
-	m_TempModes = (char*)malloc(Size);
+	m_TempModes = (char *)malloc(Size);
 
 	strcpy(m_TempModes, "+");
 
@@ -125,49 +128,54 @@ const char* CChannel::GetChannelModes(void) {
 	return m_TempModes;
 }
 
-void CChannel::ParseModeChange(const char* source, const char* modes, int pargc, const char** pargv) {
-	bool flip = true;
+void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc, const char **pargv) {
+	bool Flip = true;
 	int p = 0;
 
 	/* free any cached chanmodes */
-	if (m_TempModes) {
+	if (m_TempModes != NULL) {
 		free(m_TempModes);
 		m_TempModes = NULL;
 	}
 
 	CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < strlen(modes); i++) {
-		char Cur = modes[i];
+	for (unsigned int i = 0; i < strlen(Modes); i++) {
+		char Current = Modes[i];
 
-		if (Cur == '+') {
-			flip = true;
+		if (Current == '+') {
+			Flip = true;
 			continue;
-		} else if (Cur == '-') {
-			flip = false;
+		} else if (Current == '-') {
+			Flip = false;
 			continue;
-		} else if (m_Owner->IsNickMode(Cur)) {
-			if (p >= pargc)
+		} else if (m_Owner->IsNickMode(Current)) {
+			if (p >= pargc) {
 				return; // should not happen
+			}
 
-			CNick* P = m_Nicks->Get(pargv[p]);
+			CNick *NickObj = m_Nicks->Get(pargv[p]);
 
-			if (P) {
-				if (flip)
-					P->AddPrefix(m_Owner->PrefixForChanMode(Cur));
-				else
-					P->RemovePrefix(m_Owner->PrefixForChanMode(Cur));
+			if (NickObj != NULL) {
+				if (Flip) {
+					NickObj->AddPrefix(m_Owner->PrefixForChanMode(Current));
+				} else {
+					NickObj->RemovePrefix(m_Owner->PrefixForChanMode(Current));
+				}
 			}
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				Modules->Get(i)->SingleModeChange(m_Owner, m_Name, source, flip, Cur, pargv[p]);
+				Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, pargv[p]);
 			}
 
-			if (flip && Cur == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
+			if (Flip && Current == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
+				// invalidate channel modes so we can get channel-modes which require +o (e.g. +k)
 				SetModesValid(false);
 
-				if (!m_Owner->GetOwner()->GetClientConnection())
+				// update modes immediatelly if we don't have a client
+				if (m_Owner->GetOwner()->GetClientConnection() == NULL) {
 					m_Owner->WriteLine("MODE %s", m_Name);
+				}
 			}
 
 			p++;
@@ -175,43 +183,48 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 			continue;
 		}
 
-		chanmode_t* Slot = FindSlot(Cur);
+		chanmode_t *Slot = FindSlot(Current);
 
-		int ModeType = m_Owner->RequiresParameter(Cur);
+		int ModeType = m_Owner->RequiresParameter(Current);
 
-		if (Cur == 'b' && m_Banlist) {
-			if (flip)
-				m_Banlist->SetBan(pargv[p], source, time(NULL));
-			else
+		if (Current == 'b' && m_Banlist != NULL) {
+			if (Flip) {
+				m_Banlist->SetBan(pargv[p], Source, time(NULL));
+			} else {
 				m_Banlist->UnsetBan(pargv[p]);
+			}
 		}
 
-		if (Cur == 'k' && flip && strcmp(pargv[p], "*") != 0)
+		if (Current == 'k' && Flip && strcmp(pargv[p], "*") != 0) {
 			m_Owner->GetOwner()->GetKeyring()->AddKey(m_Name, pargv[p]);
+		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, source, flip, Cur, ((flip && ModeType) || (!flip && ModeType && ModeType != 1)) ? pargv[p] : NULL);
+			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, ((Flip && ModeType != 0) || (!Flip && ModeType != 0 && ModeType != 1)) ? pargv[p] : NULL);
 		}
 
-		if (flip) {
-			if (Slot)
+		if (Flip) {
+			if (Slot != NULL) {
 				free(Slot->Parameter);
-			else
+			} else {
 				Slot = AllocSlot();
+			}
 
 			if (Slot == NULL) {
-				if (ModeType)
+				if (ModeType) {
 					p++;
+				}
 
 				continue;
 			}
 
-			Slot->Mode = Cur;
+			Slot->Mode = Current;
 			
-			if (ModeType)
+			if (ModeType != 0) {
 				Slot->Parameter = strdup(pargv[p++]);
-			else
+			} else {
 				Slot->Parameter = NULL;
+			}
 		} else {
 			if (Slot) {
 				Slot->Mode = '\0';
@@ -220,37 +233,38 @@ void CChannel::ParseModeChange(const char* source, const char* modes, int pargc,
 				Slot->Parameter = NULL;
 			}
 
-			if (ModeType && ModeType != 1)
+			if (ModeType != 0 && ModeType != 1) {
 				p++;
+			}
 		}
 	}
 }
 
-chanmode_t* CChannel::AllocSlot(void) {
-	chanmode_t* Modes;
+chanmode_t *CChannel::AllocSlot(void) {
+	chanmode_t *Modes;
 
 	for (int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode == '\0')
+		if (m_Modes[i].Mode == '\0') {
 			return &m_Modes[i];
+		}
 	}
 
-	Modes = (chanmode_t*)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
+	Modes = (chanmode_t *)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
 
-	if (Modes == NULL) {
-		LOGERROR("realloc() failed. Could not allocate slot for channel mode.");
-
+	CHECK_ALLOC_RESULT(Modes, realloc) {
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Modes = Modes;
 	m_Modes[m_ModeCount - 1].Parameter = NULL;
 	return &m_Modes[m_ModeCount - 1];
 }
 
-chanmode_t* CChannel::FindSlot(char Mode) {
+chanmode_t *CChannel::FindSlot(char Mode) {
 	for (int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode == Mode)
+		if (m_Modes[i].Mode == Mode) {
 			return &m_Modes[i];
+		}
 	}
 
 	return NULL;
@@ -260,27 +274,43 @@ time_t CChannel::GetCreationTime(void) {
 	return m_Creation;
 }
 
-void CChannel::SetCreationTime(time_t T) {
-	m_Creation = T;
+void CChannel::SetCreationTime(time_t Time) {
+	m_Creation = Time;
 }
 
-const char* CChannel::GetTopic(void) {
+const char *CChannel::GetTopic(void) {
 	return m_Topic;
 }
 
-void CChannel::SetTopic(const char* Topic) {
+void CChannel::SetTopic(const char *Topic) {
+	char *NewTopic;
+
+	NewTopic = strdup(Topic);
+
+	CHECK_ALLOC_RESULT(NewTopic, strdup) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
 	free(m_Topic);
-	m_Topic = strdup(Topic);
+	m_Topic = NewTopic;
 	m_HasTopic = 1;
 }
 
-const char* CChannel::GetTopicNick(void) {
+const char *CChannel::GetTopicNick(void) {
 	return m_TopicNick;
 }
 
-void CChannel::SetTopicNick(const char* Nick) {
+void CChannel::SetTopicNick(const char *Nick) {
+	char *NewTopicNick;
+
+	NewTopicNick = strdup(Nick);
+
+	CHECK_ALLOC_RESULT(NewTopicNick, strdup) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
 	free(m_TopicNick);
-	m_TopicNick = strdup(Nick);
+	m_TopicNick = NewTopicNick;
 	m_HasTopic = 1;
 }
 
@@ -288,8 +318,8 @@ time_t CChannel::GetTopicStamp(void) {
 	return m_TopicStamp;
 }
 
-void CChannel::SetTopicStamp(time_t TS) {
-	m_TopicStamp = TS;
+void CChannel::SetTopicStamp(time_t Timestamp) {
+	m_TopicStamp = Timestamp;
 	m_HasTopic = 1;
 }
 
@@ -301,28 +331,28 @@ void CChannel::SetNoTopic(void) {
 	m_HasTopic = -1;
 }
 
-void CChannel::AddUser(const char* Nick, const char* ModeChars) {
-	CNick* NickObj;
+void CChannel::AddUser(const char *Nick, const char *ModeChars) {
+	CNick *NickObj;
 
-	if (m_Nicks == NULL)
+	if (m_Nicks == NULL) {
 		return;
+	}
 
 	NickObj = new CNick(this, Nick);
 
-	if (NickObj == NULL) {
-		LOGERROR("new operator failed. Could not add user (%s).", Nick);
-
+	CHECK_ALLOC_RESULT(NickObj, new) {
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	NickObj->SetPrefixes(ModeChars);
 
 	m_Nicks->Add(Nick, NickObj);
 }
 
-void CChannel::RemoveUser(const char* Nick) {
-	if (m_Nicks)
+void CChannel::RemoveUser(const char *Nick) {
+	if (m_Nicks != NULL) {
 		m_Nicks->Remove(Nick);
+	}
 }
 
 bool CChannel::HasNames(void) {
@@ -333,7 +363,7 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CHashtable<CNick*, false, 64>* CChannel::GetNames(void) {
+CHashtable<CNick *, false, 64> *CChannel::GetNames(void) {
 	return m_Nicks;
 }
 
@@ -360,7 +390,7 @@ void CChannel::SetModesValid(bool Valid) {
 	m_ModesValid = Valid;
 }
 
-CBanlist* CChannel::GetBanlist(void) {
+CBanlist *CChannel::GetBanlist(void) {
 	return m_Banlist;
 }
 
@@ -386,8 +416,8 @@ bool CChannel::SendWhoReply(bool Simulate) {
 
 	int a = 0;
 
-	while (hash_t<CNick*>* NickHash = GetNames()->Iterate(a++)) {
-		CNick* NickObj = NickHash->Value;
+	while (hash_t<CNick *> *NickHash = GetNames()->Iterate(a++)) {
+		CNick *NickObj = NickHash->Value;
 
 		if ((SiteTemp = NickObj->GetSite()) == NULL)
 			return false;

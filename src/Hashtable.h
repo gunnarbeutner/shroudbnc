@@ -60,6 +60,10 @@ public:
 	}
 
 	~CHashtable(void) {
+		Clear();
+	}
+
+	void Clear(void) {
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
 
@@ -74,6 +78,8 @@ public:
 			free(List->Keys);
 			free(List->Values);
 		}
+
+		memset(m_Items, 0, sizeof(m_Items));
 	}
 
 	static hashvalue_t Hash(const char *String) {

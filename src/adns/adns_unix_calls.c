@@ -27,7 +27,7 @@
 *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 */
 
-
+#ifdef _WIN32
 #include "adns.h"
 
 int adns_writev(int FileDescriptor, const struct iovec * iov, int iovCount)
@@ -65,7 +65,7 @@ int adns_getpid()
 	return GetCurrentProcessId();
 }
 
-int adns_gettimeofday(struct timeval *tv, struct timezone *tz)
+int adns_gettimeofday(struct timeval *tv, void *tz)
 {
 	static __int64 Adjustment;
 	__int64 now = 0;
@@ -116,3 +116,4 @@ void adns_free(void *ptr)
 }
 
 #endif /* ADNS_DLL */
+#endif /* _WIN32 */

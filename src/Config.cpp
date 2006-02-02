@@ -31,7 +31,6 @@
  */
 CConfig::CConfig(const char *Filename) {
 	m_WriteLock = false;
-	m_Settings = NULL;
 
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
@@ -94,7 +93,7 @@ bool CConfig::ParseConfig(void) {
 				}
 			} CHECK_ALLOC_RESULT_END;
 
-			if (m_Settings->Add(Line, dupEq) == false) {
+			if (m_Settings.Add(Line, dupEq) == false) {
 				LOGERROR("CHashtable::Add failed. Config could not be parsed"
 					" (%s, %s).", Line, Eq);
 
@@ -117,10 +116,6 @@ bool CConfig::ParseConfig(void) {
  */
 CConfig::~CConfig() {
 	free(m_Filename);
-
-	if (m_Settings != NULL) {
-		delete m_Settings;
-	}
 }
 
 /**
@@ -132,7 +127,7 @@ CConfig::~CConfig() {
  * @param Setting the configuration setting
  */
 const char *CConfig::ReadString(const char *Setting) {
-	char *Value = m_Settings->Get(Setting);
+	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
 		return Value;
@@ -150,7 +145,7 @@ const char *CConfig::ReadString(const char *Setting) {
  * @param Setting the configuration setting
  */
 int CConfig::ReadInteger(const char *Setting) {
-	const char *Value = m_Settings->Get(Setting);
+	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
 		return atoi(Value);
@@ -172,9 +167,9 @@ bool CConfig::WriteString(const char *Setting, const char *Value) {
 	bool ReturnValue;
 
 	if (Value != NULL) {
-		ReturnValue = m_Settings->Add(Setting, strdup(Value));
+		ReturnValue = m_Settings.Add(Setting, strdup(Value));
 	} else {
-		ReturnValue = m_Settings->Remove(Setting);
+		ReturnValue = m_Settings.Remove(Setting);
 	}
 
 	if (ReturnValue == false) {
@@ -228,7 +223,7 @@ bool CConfig::Persist(void) {
 
 	if (ConfigFile != NULL) {
 		int i = 0;
-		while (hash_t<char*>* SettingHash = m_Settings->Iterate(i++)) {
+		while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {
 			if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
 				fprintf(ConfigFile, "%s=%s\n", SettingHash->Name, SettingHash->Value);
 			}
@@ -266,7 +261,7 @@ const char *CConfig::GetFilename(void) {
  * @param Index specifies the index of the setting which is to be returned
  */
 hash_t<char *> *CConfig::Iterate(int Index) {
-	return m_Settings->Iterate(Index);
+	return m_Settings.Iterate(Index);
 }
 
 /**
@@ -275,17 +270,7 @@ hash_t<char *> *CConfig::Iterate(int Index) {
  * Reloads all settings from disk.
  */
 void CConfig::Reload(void) {
-	if (m_Settings != NULL) {
-		delete m_Settings;
-	}
-
-	m_Settings = new CHashtable<char *, false, 8>();
-
-	CHECK_ALLOC_RESULT(m_Settings, new) {
-		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
-
-	m_Settings->RegisterValueDestructor(DestroyString);
+	m_Settings.Clear();
 
 	if (m_Filename != NULL) {
 		ParseConfig();
@@ -298,11 +283,7 @@ void CConfig::Reload(void) {
  * Returns the number of items in the config.
  */
 unsigned int CConfig::GetLength(void) {
-	if (m_Settings == NULL) {
-		return 0;
-	} else {
-		return m_Settings->GetLength();
-	}
+	return m_Settings.GetLength();
 }
 
 /**
@@ -328,7 +309,7 @@ bool CConfig::Freeze(CAssocArray *Box) {
 			return false;
 		} CHECK_ALLOC_RESULT_END;
 
-		while ((Setting = m_Settings->Iterate(i)) != NULL) {
+		while ((Setting = m_Settings.Iterate(i)) != NULL) {
 			char *Index, *Value;
 
 			asprintf(&Index, "%d", i);

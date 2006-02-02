@@ -299,11 +299,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			asprintf(&Out, "%d: %x %s", i + 1, Modules->Get(i)->GetHandle(), Modules->Get(i)->GetFilename());
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-
-				continue;
-			}
+			CHECK_ALLOC_RESULT(Out, asprintf) {
+				return false;
+			} CHECK_ALLOC_RESULT_END;
 
 			SENDUSER(Out);
 			free(Out);
@@ -327,11 +325,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		} else {
 			asprintf(&Out, "Module could not be loaded: %s", Error);
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed");
-
+			CHECK_ALLOC_RESULT(Out, asprintf) {
 				return false;
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			SENDUSER(Out);
 
@@ -373,77 +369,59 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("password - Set");
 
 			asprintf(&Out, "vhost - %s", m_Owner->GetVHost() ? m_Owner->GetVHost() : "Default");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "server - %s:%d", m_Owner->GetServer(), m_Owner->GetPort());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "serverpass - %s", m_Owner->GetServerPassword() ? "Set" : "Not set");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "realname - %s", m_Owner->GetRealname());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "awaynick - %s", m_Owner->GetAwayNick() ? m_Owner->GetAwayNick() : "Not set");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "away - %s", m_Owner->GetAwayText() ? m_Owner->GetAwayText() : "Not set");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "appendtimestamp - %s", Config->ReadInteger("user.ts") ? "On" : "Off");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "usequitasaway - %s", Config->ReadInteger("user.quitaway") ? "On" : "Off");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 #ifdef USESSL
 			asprintf(&Out, "ssl - %s", m_Owner->GetSSL() ? "On" : "Off");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 #endif
 
 			const char* AutoModes = m_Owner->GetAutoModes();
@@ -460,20 +438,16 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				DropModesPrefix = "";
 
 			asprintf(&Out, "automodes - %s%s", AutoModesPrefix, ValidAutoModes ? AutoModes : "Not set");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "dropmodes - %s%s", DropModesPrefix, ValidDropModes ? DropModes : "Not set");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 		} else {
 			if (strcasecmp(argv[1], "server") == 0) {
 				if (argc > 3) {
@@ -582,42 +556,28 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			}
 
 			asprintf(&Out, "Client Certificate #%d", i);
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-
-				return false;
-			}
-
-			SENDUSER(Out);
-
-			free(Out);
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
 
 			name = X509_get_issuer_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+
 			asprintf(&Out, "issuer: %s", Buffer);
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-
-				return false;
-			}
-
-			SENDUSER(Out);
-			free(Out);
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
 
 			name = X509_get_subject_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
+
 			asprintf(&Out, "subject: %s", Buffer);
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-
-				return false;
-			}
-
-			SENDUSER(Out);
-			free(Out);
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
 		}
 
 		SENDUSER("End of CERTIFICATES.");
@@ -720,12 +680,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			SENDUSER("Done.");
 		} else {
 			asprintf(&Out, "No such user: %s", argv[1]);
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 		}
 
 		return false;
@@ -746,12 +704,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			const char* Ip = g_Bouncer->GetConfig()->ReadString("system.vhost");
 
 			asprintf(&Out, "Current global VHost: %s", Ip ? Ip : "(none)");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 		} else {
 			g_Bouncer->GetConfig()->WriteString("system.vhost", argv[1]);
 			SENDUSER("Done.");
@@ -763,12 +719,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			const char* Motd = g_Bouncer->GetMotd();
 
 			asprintf(&Out, "Current MOTD: %s", Motd ? Motd : "(none)");
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 		} else if (m_Owner->IsAdmin()) {
 			ArgRejoinArray(argv, 1);
 			g_Bouncer->SetMotd(argv[1]);
@@ -808,12 +762,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		asprintf(&Out, "SBNC SIMUL %s :PERROR :Requested.", argv[1]);
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
-			ParseLine(Out);
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+			SENDUSER(Out);
 			free(Out);
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		SENDUSER("Done.");
 
@@ -829,41 +781,33 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "status") == 0) {
 		asprintf(&Out, "Username: %s", m_Owner->GetUsername());
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 			SENDUSER(Out);
 			free(Out);
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		SENDUSER("This is shroudBNC " BNCVERSION);
 
 		asprintf(&Out, "You are %san admin.", m_Owner->IsAdmin() ? "" : "not ");
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 			SENDUSER(Out);
 			free(Out);
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		asprintf(&Out, "Client: sendq: %d, recvq: %d", GetSendqSize(), GetRecvqSize());
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 			SENDUSER(Out);
 			free(Out);
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		if (IRC) {
 			asprintf(&Out, "IRC: sendq: %d, recvq: %d", IRC->GetSendqSize(), IRC->GetRecvqSize());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			SENDUSER("Channels:");
 
@@ -877,12 +821,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		asprintf(&Out, "Uptime: %d seconds", m_Owner->GetIRCUptime());
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 			SENDUSER(Out);
 			free(Out);
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		return false;
 	} else if (strcasecmp(Subcommand, "impulse") == 0 && m_Owner->IsAdmin()) {
@@ -941,12 +883,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			}
 
 			asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetIRCConnection() ? (User->GetIRCConnection()->GetCurrentNick() ? User->GetIRCConnection()->GetCurrentNick() : "<none>") : User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", LastSeen, User->GetRealname());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 		}
 
 		SENDUSER("End of USERS.");
@@ -1093,12 +1033,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			}
 
 			asprintf(&Out, "User %s has been suspended.", User->GetUsername());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				g_Bouncer->GlobalNotice(Out, true);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			SENDUSER("Done.");
 		} else {
@@ -1119,12 +1057,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			User->Unlock();
 
 			asprintf(&Out, "User %s has been unsuspended.", User->GetUsername());
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				g_Bouncer->GlobalNotice(Out, true);
 				free(Out);
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			User->SetSuspendReason(NULL);
 
@@ -1359,7 +1295,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 							int i = 0; 
 
-							while (const ban_t* Ban = Bans->Iterate(i++)) {
+							while (const hash_t<ban_t *> *BanHash = Bans->Iterate(i++)) {
+								ban_t *Ban = BanHash->Value;
+
 								WriteLine(":%s 367 %s %s %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Ban->Mask, Ban->Nick, Ban->Timestamp);
 							}
 
@@ -1532,12 +1470,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				else
 					asprintf(&Out, "SYNTH %s %s %s", argv[0], argv[1], argv[2]);
 
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-				} else {
-					ParseLine(Out);
-					free(Out);
-				}
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				ParseLine(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
 
 				return false;
 			}
@@ -1561,21 +1497,17 @@ void CClientConnection::ParseLine(const char* Line) {
 
 	Args = ArgTokenize(Line);
 
-	if (Args == NULL) {
-		LOGERROR("ArgTokenize() failed (%s).", Line);
-
+	CHECK_ALLOC_RESULT(Args, ArgTokenize)  {
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	argv = ArgToArray(Args);
 
-	if (argv == NULL) {
-		LOGERROR("ArgToArray() failed (%s).", Line);
-
+	CHECK_ALLOC_RESULT(argv, ArgToArray)  {
 		ArgFree(Args);
 
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	argc = ArgCount(Args);
 

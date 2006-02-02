@@ -49,7 +49,7 @@ public:
 	virtual bool UnsetBan(const char *Mask);
 
 	virtual const ban_t *GetBan(const char *Mask);
-	virtual const ban_t *Iterate(int Skip);
+	virtual const hash_t<ban_t *> *Iterate(int Skip);
 private:
-	CHashtable<ban_t *, false, 5> *m_Bans; /**< the actual list of bans. */
+	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 };

@@ -21,6 +21,7 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 AC_DISABLE_STATIC
+AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
@@ -51,7 +52,9 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul])
 AC_LIB_LTDL
 
+AC_CHECK_LIB(iphlpapi, main)
 AC_CHECK_LIB(ws2_32, main)
+AC_CHECK_LIB(iberty, asprintf)
 
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)

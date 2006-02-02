@@ -49,7 +49,7 @@ public:
 			return true;
 		}
 
-		while (m_Wrap->ReadLine(&Line) != NULL) {
+		while (m_Wrap->ReadLine(&Line) == true) {
 			ParseLine(Line);
 
 			g_Bouncer->Free(Line);
@@ -113,7 +113,7 @@ public:
 		}
 
 		// 113 , 3559 : USERID : UNIX : shroud
-		m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, "unknown");
+		m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
 
 		g_Bouncer->Log("Ident-request for unknown user.");
 	}

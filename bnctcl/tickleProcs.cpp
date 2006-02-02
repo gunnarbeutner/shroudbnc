@@ -1519,8 +1519,9 @@ char* chanbans(const char* Channel) {
 	int Bcount = 0;
 
 	int i = 0;
-	while (const ban_t* Ban = Banlist->Iterate(i)) {
+	while (const hash_t<ban_t *> *BanHash = Banlist->Iterate(i)) {
 		char Timestamp[20];
+		const ban_t *Ban = BanHash->Value;
 
 		sprintf(Timestamp, "%d", Ban->Timestamp);
 

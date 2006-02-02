@@ -4,8 +4,7 @@ pkglibdir=$(exec_prefix)
 bindir=$(exec_prefix)
 
 pkglib_LTLIBRARIES=libsbnc.la
-libsbnc_la_SOURCES=snprintf.c \
-	Banlist.cpp \
+libsbnc_la_SOURCES=Banlist.cpp \
 	Config.cpp \
 	Core.cpp \
 	Log.cpp \
