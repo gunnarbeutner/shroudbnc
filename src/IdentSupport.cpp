@@ -78,6 +78,8 @@ void CIdentSupport::Update(void) {
 				fprintf(identConfig, "lport %d from %s fport %d { reply \"%d\"; }\n", LocalPort, inet_ntoa(IRC->GetLocalAddress().sin_addr), RemotePort);
 			}
 
+			fprintf(identConfig, "default { reply \"%s\"; }\n", m_Ident);
+
 			fclose(identConfig);
 		}
 
