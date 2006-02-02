@@ -34,6 +34,37 @@ CIdentSupport::~CIdentSupport(void) {
 void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
 
+#ifndef _WIN32
+	char *homedir = getenv("HOME");
+
+	char *Out = (char *)malloc(strlen(homedir) + 50);
+
+	if (Out == NULL) {
+		LOGERROR("malloc failed. Could not set new ident (%s).", Ident);
+
+		return;
+	}
+
+	if (homedir) {
+		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
+
+		FILE *identConfig = fopen(Out, "w");
+
+		if (identConfig) {
+			char *Buf = (char *)malloc(strlen(Ident) + 50);
+
+			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
+			fputs(Buf, identConfig);
+
+			free(Buf);
+
+			fclose(identConfig);
+		}
+	}
+
+	free(Out);
+#endif
+
 	NewIdent = strdup(Ident);
 
 	if (NewIdent == NULL) {
@@ -44,47 +75,8 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 	free(m_Ident);
 	m_Ident = NewIdent;
-
-	Update();
 }
 
 const char *CIdentSupport::GetIdent(void) {
 	return m_Ident;
-}
-
-void CIdentSupport::Update(void) {
-//#ifndef _WIN32
-	char *homedir = getenv("HOME");
-
-	if (homedir) {
-		char *Filename;
-
-		asprintf(&Filename, "%s/.oidentd.conf", homedir);
-
-		FILE *identConfig = fopen(Filename, "w");
-
-		if (identConfig) {
-			int i = 0;
-			while (hash_t<CUser *> *User = g_Bouncer->GetUsers()->Iterate(i++)) {
-				CIRCConnection *IRC = User->Value->GetIRCConnection();
-
-				if (IRC == NULL) {
-					continue;
-				}
-
-				int LocalPort = htons(IRC->GetLocalAddress().sin_port);
-				int RemotePort = IRC->GetOwner()->GetPort();
-				const char *Ident = User->Value->GetIdent();
-
-				fprintf(identConfig, "fport %d lport %d { reply \"%s\" }\n", RemotePort, LocalPort, Ident ? Ident : User->Name);
-			}
-
-			fprintf(identConfig, "global { reply \"%s\" }\n", m_Ident);
-
-			fclose(identConfig);
-		}
-
-		free(Filename);
-	}
-//#endif
 }

@@ -118,7 +118,7 @@ protected:
 
 	void SetRole(connection_role_e Role);
 
-	virtual void InitSocket(void);
+	void InitSocket(void);
 
 	void ProcessBuffer(void);
 

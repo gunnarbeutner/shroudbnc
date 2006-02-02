@@ -27,6 +27,4 @@ public:
 
 	virtual void SetIdent(const char *Ident);
 	virtual const char *GetIdent(void);
-
-	virtual void Update(void);
 };
