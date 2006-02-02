@@ -84,6 +84,7 @@ class CIRCConnection : public CConnection, public COwnedObject<CUser> {
 	bool ModuleEvent(int argc, const char** argv);
 
 	void InitIrcConnection(CUser* Owning, bool Unfreezing = false);
+	virtual void CIRCConnection::InitSocket(void);
 public:
 #ifndef SWIG
 	CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL = false);

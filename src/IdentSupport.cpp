@@ -74,11 +74,12 @@ void CIdentSupport::Update(void) {
 
 				int LocalPort = htons(IRC->GetLocalAddress().sin_port);
 				int RemotePort = IRC->GetOwner()->GetPort();
+				const char *Ident = User->Value->GetIdent();
 
-				fprintf(identConfig, "lport %d from %s fport %d { reply \"%d\"; }\n", LocalPort, inet_ntoa(IRC->GetLocalAddress().sin_addr), RemotePort);
+				fprintf(identConfig, "fport %d lport %d { reply \"%s\" }\n", RemotePort, LocalPort, Ident ? Ident : User->Name);
 			}
 
-			fprintf(identConfig, "default { reply \"%s\"; }\n", m_Ident);
+			fprintf(identConfig, "global { reply \"%s\" }\n", m_Ident);
 
 			fclose(identConfig);
 		}

@@ -1419,3 +1419,7 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) {
 
 	return '\0';
 }
+
+void CIRCConnection::InitSocket(void) {
+	g_Bouncer->UpdateIdent();
+}
