@@ -42,7 +42,7 @@ proc sbnc:channelconfdelete {client} {
 proc sbnc:channelpart {client params} {
 	if {![isbotnick [lindex [split [lindex $params 0] "!"] 0]]} { return }
 
-	if {[string equal -nocase [lindex $params 1] "PART"]} {
+	if {[string equal -nocase [lindex $params 1] "PART"] && [validchan [lindex $params 2]]} {
 		channel set [lindex $params 2] +inactive
 	}
 }
@@ -61,6 +61,8 @@ proc channel {option chan args} {
 		if {![info exists chanoptions]} { array set chanoptions {} }
 	}
 
+	set chan [string tolower $chan]
+
 	upvar [getns]::channels channels
 	upvar [getns]::chanoptions chanoptions
 
@@ -71,12 +73,12 @@ proc channel {option chan args} {
 	if {[info exists channels($chan)]} {
 		array set channel $channels($chan)
 	} else {
-		array set channel {}
+		array set channel [list]
 	}
 
 	switch [string tolower $option] {
 		add {
-			set channels([string tolower $chan]) [join $args]
+			set channels($chan) [join $args]
 
 			simul [getctx] "JOIN $chan"
 
@@ -116,7 +118,7 @@ proc channel {option chan args} {
 				set channel($option) $value
 			}
 
-			set channels([string tolower $chan]) [array get channel]
+			set channels($chan) [array get channel]
 
 			return [lindex $args 1]
 		}
@@ -139,11 +141,15 @@ proc channel {option chan args} {
 			}
 		}
 		remove {
-			if {[info exists channels($chan)]} {
-				unset channels([string tolower $chan])
+			if {[botonchan $chan]} {
+				puthelp "PART $chan"
 			}
 
-			puthelp "PART $chan"
+			if {[info exists channels($chan)]} {
+				unset channels($chan)
+			} else {
+				return -code error "no such channel record"
+			}
 
 			return 1
 		}
@@ -202,9 +208,11 @@ proc validchan {channel} {
 		if {![info exists channels]} { array set channels {} }
 	}
 
+	set channel [string tolower $channel]
+
 	upvar [getns]::channels channels
 
-	if {[info exists channels([string tolower $channel])]} {
+	if {[info exists channels($channel)]} {
 		return 1
 	} else {
 		return 0
@@ -284,4 +292,4 @@ if {![info exists sbnc:channelinit]} {
 	set sbnc:channelinit 1
 }
 
-setudef int inactive
+setudef flag inactive

@@ -50,6 +50,7 @@ struct CModuleFar {
 	virtual const char *Command(const char *Cmd, const char *Parameters) = 0;
 
 	virtual void TagModified(const char *Tag, const char *Value) = 0;
+	virtual void UserTagModified(const char *Tag, const char *Value) = 0;
 };
 
 class CModuleImplementation : public CModuleFar {
@@ -98,6 +99,7 @@ protected:
 	}
 
 	virtual void TagModified(const char *Tag, const char *Value) { }
+	virtual void UserTagModified(const char *Tag, const char *Value) { }
 public:
 	CCore *GetCore(void) {
 		return m_Core;

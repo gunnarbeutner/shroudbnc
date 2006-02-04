@@ -209,6 +209,8 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 		Bind->type = Type_Command;
 	else if (strcasecmp(type, "settag") == 0)
 		Bind->type = Type_SetTag;
+	else if (strcasecmp(type, "setusertag") == 0)
+		Bind->type = Type_SetUserTag;
 	else {
 		Bind->type = Type_Invalid;
 
@@ -266,6 +268,8 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 		bindtype = Type_Command;
 	else if (strcasecmp(type, "settag") == 0)
 		bindtype = Type_SetTag;
+	else if (strcasecmp(type, "setusertag") == 0)
+		bindtype = Type_SetUserTag;
 	else
 		return 0;
 
@@ -738,14 +742,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (!Parameter2)
 			return NULL;
 
-		char* Buf = (char*)malloc(strlen(Parameter2) + 5);
-		sprintf(Buf, "tag.%s", Parameter2);
-
-		const char* Result = Context->GetConfig()->ReadString(Buf);
-
-		free(Buf);
-
-		return Result;
+		return Context->GetTagString(Parameter2);
 	} else if (strcasecmp(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
@@ -820,12 +817,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	} else if (strcasecmp(Type, "admin") == 0)
 		Context->SetAdmin(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "tag") == 0 && Value) {
-		char* Buf = (char*)malloc(strlen(Value) + 5);
-		sprintf(Buf, "tag.%s", Value);
-
-		Context->GetConfig()->WriteString(Buf, (Parameter2 && Parameter2[0]) ? Parameter2 : NULL);
-
-		free(Buf);
+		Context->SetTagString(Value, Parameter2);
 	} else if (strcasecmp(Type, "appendts") == 0)
 		Context->GetConfig()->WriteString("user.ts", Value);
 	else if (strcasecmp(Type, "quitasaway") == 0)
@@ -1583,7 +1575,7 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 
 	Tcl_DecrRefCount(objv[0]);
 
-	if (!Cookie->repeat) {
+	if (!Cookie->timer->GetRepeat()) {
 		for (int i = 0; i < g_TimerCount; i++) {
 			if (g_Timers[i] == Cookie) {
 				g_Timers[i] = NULL;
@@ -1627,8 +1619,6 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 
 	p->proc = strdup(Proc);
 
-	p->repeat = Repeat;
-
 	if (Parameter) {
 		p->param = strdup(Parameter);
 	} else
@@ -1655,6 +1645,41 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 	}
 
 	return 0;
+}
+
+char *internaltimers(void) {
+	char **List = (char **)malloc(g_TimerCount * sizeof(char *));
+	char *Timer[4], Temp1[20], Temp2[20];
+	int Count = 0;
+
+	for (int i = 0; i < g_TimerCount; i++) {
+		if (g_Timers[i] == NULL) {
+			continue;
+		}
+
+		Timer[0] = g_Timers[i]->proc;
+		sprintf(Temp1, "%d", g_Timers[i]->timer->GetInterval());
+		Timer[1] = Temp1;
+		sprintf(Temp2, "%d", g_Timers[i]->timer->GetRepeat());
+		Timer[2] = Temp2;
+		Timer[3] = g_Timers[i]->param ? g_Timers[i]->param : "";
+
+		List[Count++] = Tcl_Merge(4, Timer);
+	}
+
+	static char *Out = NULL;
+
+	if (Out != NULL) {
+		Tcl_Free(Out);
+	}
+
+	Out = Tcl_Merge(Count, List);
+
+	for (int a = 0; a < Count; a++) {
+		Tcl_Free(List[a]);
+	}
+
+	return Out;
 }
 
 int timerstats(void) {

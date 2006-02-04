@@ -182,3 +182,7 @@ bool CModule::InterceptClientCommand(CClientConnection *Connection, const char *
 void CModule::TagModified(const char *Tag, const char *Value) {
 	return m_Far->TagModified(Tag, Value);
 }
+
+void CModule::UserTagModified(const char *Tag, const char *Value) {
+	return m_Far->UserTagModified(Tag, Value);
+}

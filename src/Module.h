@@ -65,4 +65,5 @@ public:
 	virtual const char *Command(const char *Cmd, const char *Parameters);
 
 	virtual void TagModified(const char *Tag, const char *Value);
+	virtual void UserTagModified(const char *Tag, const char *Value);
 };

@@ -322,14 +322,14 @@ void CUser::Attach(CClientConnection* Client) {
 	}
 }
 
-bool CUser::Validate(const char* Password) {
+bool CUser::Validate(const char *Password) {
 	const char *RealPass = m_Config->ReadString("user.password");
 
 	if (RealPass == NULL || Password == NULL || strlen(Password) == 0) {
 		return false;
 	}
 
-	if (g_Bouncer->GetConfig()->ReadInteger("system.md5")) {
+	if (Password != NULL && g_Bouncer->GetConfig()->ReadInteger("system.md5")) {
 		Password = g_Bouncer->MD5(Password);
 	}
 
@@ -831,11 +831,7 @@ void CUser::LogBadLogin(sockaddr_in Peer) {
 	badlogin_t BadLogin;
 
 	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
-#ifdef _WIN32
-		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr && m_BadLogins[i].Count < 3) {
-#else
 		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr && m_BadLogins[i].Count < 3) {
-#endif
 			m_BadLogins[i].Count++;
 
 			return;
@@ -850,11 +846,7 @@ void CUser::LogBadLogin(sockaddr_in Peer) {
 
 bool CUser::IsIpBlocked(sockaddr_in Peer) {
 	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
-#ifdef _WIN32
-		if (m_BadLogins[i].Address.sin_addr.S_un.S_addr == Peer.sin_addr.S_un.S_addr) {
-#else
 		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr) {
-#endif
 			if (m_BadLogins[i].Count > 2) {
 				return true;
 			} else {
@@ -1204,4 +1196,98 @@ void CUser::SetIdent(const char *Ident) {
 
 const char *CUser::GetIdent(void) {
 	return m_Config->ReadString("user.ident");
+}
+
+const char *CUser::GetTagString(const char *Tag) {
+	char *Setting;
+
+	if (Tag == NULL) {
+		return NULL;
+	}
+
+	asprintf(&Setting, "tag.%s", Tag);
+
+	if (Setting == NULL) {
+		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
+
+		return NULL;
+	}
+
+	return m_Config->ReadString(Setting);
+}
+
+int CUser::GetTagInteger(const char *Tag) {
+	const char *Value = GetTagString(Tag);
+
+	if (Value != NULL) {
+		return atoi(Value);
+	} else {
+		return 0;
+	}
+}
+
+bool CUser::SetTagString(const char *Tag, const char *Value) {
+	bool ReturnValue;
+	char *Setting;
+	CVector<CModule *> *Modules;
+
+	if (Tag == NULL) {
+		return false;
+	}
+
+	asprintf(&Setting, "tag.%s", Tag);
+
+	if (Setting == NULL) {
+		LOGERROR("asprintf() failed. Could not store global tag.");
+
+		return false;
+	}
+
+	ReturnValue = m_Config->WriteString(Setting, Value);
+
+	Modules = g_Bouncer->GetModules();
+
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+		Modules->Get(i)->UserTagModified(Tag, Value);
+	}
+
+	return ReturnValue;
+}
+
+bool CUser::SetTagInteger(const char *Tag, int Value) {
+	bool ReturnValue;
+	char *StringValue;
+
+	asprintf(&StringValue, "%d", Value);
+
+	if (StringValue == NULL) {
+		LOGERROR("asprintf() failed. Could not store global tag.");
+
+		return false;
+	}
+
+	ReturnValue = SetTagString(Tag, StringValue);
+
+	free(StringValue);
+
+	return ReturnValue;
+}
+
+const char *CUser::GetTagName(int Index) {
+	int Skip = 0;
+	int Count = m_Config->GetLength();
+
+	for (int i = 0; i < Count; i++) {
+		hash_t<char *> *Item = m_Config->Iterate(i);
+
+		if (strstr(Item->Name, "tag.") == Item->Name) {
+			if (Skip == Index) {
+				return Item->Name + 4;
+			}
+
+			Skip++;
+		}
+	}
+
+	return NULL;
 }

@@ -265,19 +265,11 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		if (hent) {
 			in_addr* peer = (in_addr*)hent->h_addr_list[0];
 
-	#ifdef _WIN32
-			sloc.sin_addr.S_un.S_addr = peer->S_un.S_addr;
-	#else
 			sloc.sin_addr.s_addr = peer->s_addr;
-	#endif
 		} else {
 			addr = inet_addr(BindIp);
 
-	#ifdef _WIN32
-			sloc.sin_addr.S_un.S_addr = addr;
-	#else
 			sloc.sin_addr.s_addr = addr;
-	#endif
 		}
 
 		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
@@ -291,19 +283,11 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	if (hent) {
 		in_addr* peer = (in_addr*)hent->h_addr_list[0];
 
-#ifdef _WIN32
-		sin.sin_addr.S_un.S_addr = peer->S_un.S_addr;
-#else
 		sin.sin_addr.s_addr = peer->s_addr;
-#endif
 	} else {
 		addr = inet_addr(Host);
 
-#ifdef _WIN32
-		sin.sin_addr.S_un.S_addr = addr;
-#else
 		sin.sin_addr.s_addr = addr;
-#endif
 	}
 
 	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
@@ -349,23 +333,14 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = 0;
 
-	#ifdef _WIN32
-		sloc.sin_addr.S_un.S_addr = BindIp->S_un.S_addr;
-	#else
 		sloc.sin_addr.s_addr = BindIp->s_addr;
-	#endif
 
 		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
-
-#ifdef _WIN32
 	sin.sin_addr = Host;
-#else
-	sin.sin_addr = Host;
-#endif
 
 	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
 
@@ -446,22 +421,14 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp) {
 		if (hent) {
 			BindAddress = (in_addr*)hent->h_addr_list[0];
 
-#ifdef _WIN32
-			sin.sin_addr.S_un.S_addr = BindAddress->S_un.S_addr;
-#else
 			sin.sin_addr.s_addr = BindAddress->s_addr;
-#endif
 
 			Bound = true;
 		}
 	}
 
 	if (!Bound) {
-#ifdef _WIN32
-		sin.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-#else
 		sin.sin_addr.s_addr = htonl(INADDR_ANY);
-#endif
 	}
 
 	if (bind(Listener, (sockaddr *)&sin, sizeof(sin)) != 0) {

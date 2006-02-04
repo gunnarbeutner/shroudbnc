@@ -3074,6 +3074,31 @@ _wrap_internalkilltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
 
 static int
+_wrap_internaltimers(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":internaltimers ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (char *)internaltimers();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    {
+        Tcl_DString ds_result;
+        
+        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_DStringFree(&ds_result);
+    }
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_timerstats(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result;
     
@@ -4830,6 +4855,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
     { SWIG_prefix "internaltimer", (swig_wrapper_func) _wrap_internaltimer, NULL},
     { SWIG_prefix "internalkilltimer", (swig_wrapper_func) _wrap_internalkilltimer, NULL},
+    { SWIG_prefix "internaltimers", (swig_wrapper_func) _wrap_internaltimers, NULL},
     { SWIG_prefix "timerstats", (swig_wrapper_func) _wrap_timerstats, NULL},
     { SWIG_prefix "bncdisconnect", (swig_wrapper_func) _wrap_bncdisconnect, NULL},
     { SWIG_prefix "bnckill", (swig_wrapper_func) _wrap_bnckill, NULL},

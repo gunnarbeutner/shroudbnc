@@ -99,3 +99,21 @@ bool CTimer::Call(time_t Now) {
 time_t CTimer::GetNextCall(void) {
 	return m_Next;
 }
+
+/**
+ * GetInterval
+ *
+ * Returns the timer's interval.
+ */
+int CTimer::GetInterval(void) {
+	return m_Interval;
+}
+
+/**
+ * GetRepeat
+ *
+ * Returns whether the timer is being called repeatedly.
+ */
+bool CTimer::GetRepeat(void) {
+	return m_Repeat;
+}

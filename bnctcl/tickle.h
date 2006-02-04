@@ -36,7 +36,8 @@ enum binding_type_e {
 	Type_UsrCreate,
 	Type_UsrDelete,
 	Type_Command,
-	Type_SetTag
+	Type_SetTag,
+	Type_SetUserTag
 };
 
 typedef struct binding_s {
@@ -55,7 +56,6 @@ class CTimer;
 typedef struct tcltimer_s {
 	CTimer* timer;
 	char* proc;
-	bool repeat;
 	char* param;
 } tcltimer_t;
 

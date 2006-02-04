@@ -28,6 +28,9 @@ public:
 #endif
 	virtual ~CTimer(void);
 
+	virtual int GetInterval(void);
+	virtual bool GetRepeat(void);
+
 	virtual void Destroy(void);
 private:
 	TimerProc m_Proc; /**< the function which should be called for the timer */

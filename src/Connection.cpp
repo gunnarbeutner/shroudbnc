@@ -48,30 +48,18 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 
 	InitConnection(INVALID_SOCKET, SSL);
 
-#ifdef _WIN32
-	ip.S_un.S_addr = inet_addr(Host);
-
-	if (ip.S_un.S_addr != INADDR_NONE) {
-#else
 	ip.s_addr = inet_addr(Host);
 
 	if (ip.s_addr != INADDR_NONE) {
-#endif
 		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
 
 		*m_HostAddr = ip;
 	}
 
 	if (BindIp) {
-#ifdef _WIN32
-		ip.S_un.S_addr = inet_addr(BindIp);
-
-		if (ip.S_un.S_addr != INADDR_NONE) {
-#else
 		ip.s_addr = inet_addr(BindIp);
 
 		if (ip.s_addr != INADDR_NONE) {
-#endif
 			m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
 
 			*m_BindAddr = ip;

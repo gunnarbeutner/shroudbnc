@@ -40,14 +40,11 @@ proc auth:join {nick host hand chan} {
 	upvar [getns]::accountwait accountwait
 
 	if {[isbotnick $nick]} {
-		if {$inwho} {
-			auth:enqueuechan $chan
-		} else {
-			utimer 1 [list puthelp "WHO $chan n%nat,23"]
-			set inwho 1
-		}
+		auth:enqueuewho $chan
 	} else {
-		if {[getchanlogin $nick] == ""} {
+		set account [getchanlogin $nick]
+
+		if {$account == ""} {
 			bncsettag $chan $nick accunknown 1
 
 			if {$accounttimer != 0} {
@@ -63,24 +60,55 @@ proc auth:join {nick host hand chan} {
 
 			set accounttimer 1
 		} else {
+			bncsettag $chan $nick account $account
+			bncsettag $chan $nick accunknown 0
+
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
 	}
 }
 
-proc auth:enqueuechan {chan} {
+proc auth:enqueuewho {names} {
 	namespace eval [getns] {
-		if {![info exists authchans]} { set authchans {} }
+		if {![info exists authchans]} { set authchans [list] }
+		if {![info exists inwho]} { set inwho 0 }
 	}
 
 	upvar [getns]::authchans authchans
+	upvar [getns]::inwho inwho
 
-	lappend authchans $chan
+	set current [list]
+	set outnames [list]
+
+	foreach cur $authchans {
+		foreach item [split $cur ","] {
+			lappend current [string tolower $item]
+		}
+	}
+
+	set allowedchans [split [string tolower [getbncuser [getctx] tag whochans]] ","]
+
+	foreach name $names {
+		set name [string tolower $name]
+
+		if {[llength $allowedchans] == 0 || ([string first [string index $name 0] [getisupport CHANTYPES]] == -1 || [lsearch -exact $allowedchans $name] != -1)} {
+			if {[lsearch -exact $current $name] == -1} {
+				lappend outnames $name
+			}
+		}
+	}
+
+	if {$inwho} {
+		lappend authchans [join $outnames ","]
+	} else {
+		set inwho 1
+		puthelp "WHO [join $outnames ","] n%nat,23"
+	}
 }
 
-proc auth:dequeuechan {} {
+proc auth:dequeuewho {} {
 	namespace eval [getns] {
-		if {![info exists authchans]} { set authchans {} }
+		if {![info exists authchans]} { set authchans [list] }
 	}
 
 	upvar [getns]::authchans authchans
@@ -98,7 +126,11 @@ proc auth:raw315 {source raw text} {
 
 	upvar [getns]::inwho inwho
 
-	set chan [auth:dequeuechan]
+	if {$inwho} {
+		haltoutput
+	}
+
+	set chan [auth:dequeuewho]
 
 	if {$chan != ""} {
 		puthelp "WHO $chan n%nat,23"
@@ -117,6 +149,8 @@ proc auth:raw354 {source raw text} {
 	set site [getchanhost $nick]
 	set host [lindex $pieces 2]!$site
 	set hand [finduser $host]
+
+	haltoutput
 
 	foreach chan [internalchannels] {
 		if {[onchan $nick $chan]} {
@@ -137,10 +171,12 @@ proc auth:jointimer {context} {
 	namespace eval [getns] {
 		if {![info exists accounttimer]} { set accounttimer 0 }
 		if {![info exists accountwait]} { set accountwait 0 }
+		if {![info exists inwho]} { set inwho 0 }
 	}
 
 	upvar [getns]::accounttimer accounttimer
 	upvar [getns]::accountwait accountwait
+	upvar [getns]::inwho inwho
 
 	set accounttimer 0
 	set accountwait 0
@@ -155,15 +191,16 @@ proc auth:jointimer {context} {
 
 			set l [join [sbnc:uniq $nicks] ","]
 
-			if {[string length $l] > 300} {
-				puthelp "WHO $l n%nat,23"
-				set nicks ""
+			if {[string length $l] > 450} {
+				auth:enqueuewho $l
+				set nicks [list]
+
 			}
 		}
 	}
 
 	if {$nicks != ""} {
-		puthelp "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
+		auth:enqueuewho [sbnc:uniq $nicks]
 	}
 }
 
@@ -174,29 +211,47 @@ proc auth:pulse {reason} {
 		setctx $user
 
 		set nicks ""
-		foreach chan [internalchannels] {
-			foreach nick [internalchanlist $chan] {
-				set acc [bncgettag $chan $nick account]
-				set unk [bncgettag $chan $nick accunknown]
 
-				if {$unk == 1 || ($reason == 180 && $acc == "") || ($acc == 0 && $reason == 240)} {
+		namespace eval [getns] {
+			if {![info exists inwho]} { set inwho 0 }
+		}
+
+		upvar [getns]::inwho inwho
+
+		foreach chan [internalchannels] {
+			set count 0
+
+			foreach nick [internalchanlist $chan] {
+				set account [bncgettag $chan $nick account]
+
+				if {$account == 0 || $account == ""} {
+					incr count
+				}
+			}
+
+			if {$count > 70 || ($count > 20 && $count > [llength [internalchanlist $chan]] / 2)} {
+				auth:enqueuewho $chan
+				continue
+			}
+
+			foreach nick [internalchanlist $chan] {
+				set account [bncgettag $chan $nick account]
+				set unknown [bncgettag $chan $nick accunknown]
+
+				if {$unknown == 1 || ($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
 					lappend nicks $nick
 					bncsettag $chan $nick accunknown 0
 				}
 
-				if {[string length [join [sbnc:uniq $nicks] ","]] > 300} {
-					putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
-					set nicks ""
+				if {[string length [join [sbnc:uniq $nicks] ","]] > 450} {
+					auth:enqueuewho [join [sbnc:uniq $nicks] ","]
+					set nicks [list]
 				}
 			}
 		}
 
 		if {$nicks != ""} {
-			putserv "WHO [join [sbnc:uniq $nicks] ","] n%nat,23"
-		}
-
-		namespace eval [getns] {
-			set authchans {}
+			auth:enqueuewho [join [sbnc:uniq $nicks] ","]
 		}
 	}
 }

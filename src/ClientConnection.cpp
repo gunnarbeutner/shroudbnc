@@ -321,7 +321,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		CModule* Module = g_Bouncer->LoadModule(argv[1], &Error);
 
 		if (Module != NULL) {
-			SENDUSER("Module was loaded.");
+			SENDUSER("Module was successfully loaded.");
 		} else {
 			asprintf(&Out, "Module could not be loaded: %s", Error);
 

@@ -164,7 +164,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 	m_SendQSizeCache = -1;
 
-#if defined(_DEBUG) && defined(_WIN32)
+#ifdef _DEBUG
 	if (Config->ReadInteger("system.debug"))
 		g_Debug = true;
 #endif
@@ -994,6 +994,10 @@ bool CCore::Daemonize(void) {
 void CCore::WritePidFile(void) {
 #ifndef _WIN32
 	pid_t pid = getpid();
+#else
+	DWORD pid = GetCurrentProcessId();
+#endif
+
 
 	if (pid) {
 		FILE* pidFile = fopen("sbnc.pid", "w");
@@ -1003,7 +1007,6 @@ void CCore::WritePidFile(void) {
 			fclose(pidFile);
 		}
 	}
-#endif
 }
 
 const char* CCore::MD5(const char* String) {

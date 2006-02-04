@@ -283,6 +283,14 @@ class CTclSupport : public CModuleImplementation {
 		argv[1] = Value;
 		CallBinds(Type_SetTag, NULL, 2, argv);
 	}
+
+	void UserTagModified(const char *Tag, const char *Value) {
+		const char *argv[2];
+
+		argv[0] = Tag;
+		argv[1] = Value;
+		CallBinds(Type_SetUserTag, NULL, 2, argv);
+	}
 public:
 	void RehashInterpreter(void) {
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");

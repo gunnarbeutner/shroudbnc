@@ -123,6 +123,7 @@ void internalclosesocket(int Socket);
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter = 0);
 int internalkilltimer(const char* Proc, const char* Parameter = 0);
+char *internaltimers(void);
 
 int timerstats(void);
 

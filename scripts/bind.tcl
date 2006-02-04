@@ -20,7 +20,6 @@ internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect
 internalbind svrlogon sbnc:svrlogon
-internaltimer 60 1 sbnc:bindpulse
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -188,7 +187,24 @@ proc sbnc:callbinds {type flags chan mask args} {
 	upvar [getns]::binds binds
 	upvar [getns]::clastbind clastbind
 
+	set allbinds $binds
+
+	set old [getctx]
+	setctx ":all"
+	namespace eval [getns] {
+		if {![info exists binds]} { set binds "" }
+	}
+
+	upvar [getns]::binds binds
+	setctx $old
+
 	foreach bind $binds {
+		lappend allbinds $bind
+	}
+
+	set count 0
+
+	foreach bind $allbinds {
 		set t [lindex $bind 0]
 		set f [lindex $bind 1]
 		set m [lindex $bind 2]
@@ -212,8 +228,12 @@ proc sbnc:callbinds {type flags chan mask args} {
 
 				setctx $ctx
 			}
+
+			incr count
 		}
 	}
+
+	return $count
 }
 
 proc bind {type flags mask {procname ""}} {
@@ -229,7 +249,20 @@ proc bind {type flags mask {procname ""}} {
 
 	internalbind server sbnc:rawserver * [getctx]
 
+	if {[string equal -nocase $type "need"] || [string equal -nocase "time"]} {
+		internaltimer 60 1 sbnc:bindpulse
+	}
+
 	return $mask
+}
+
+proc bindall {type flags mask {procname ""}} {
+	set old [getctx]
+	setctx ":any"
+	set result [bind $type $flags $mask $procname]
+	setctx $old
+
+	return $result
 }
 
 proc unbind {type flags mask procname} {
@@ -274,6 +307,15 @@ proc unbind {type flags mask procname} {
 	return $mask
 }
 
+proc unbindall {type flags mask procname} {
+	set old [getctx]
+	setctx ":any"
+	set result [unbind $type $flags $mask $procname]
+	setctx $old
+
+	return $result
+}
+
 proc binds {{mask ""}} {
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
@@ -289,13 +331,22 @@ proc binds {{mask ""}} {
 		foreach bind $binds {
 			set m [lindex $bind 2]
 
-			if {[string match -nocase $mask $m]} {
+			if {[string match -nocase $mask $bind]} {
 				lappend out $bind
 			}
 		}
 
 		return $out
 	}
+}
+
+proc bindsall {{mask ""}} {
+	set old [getctx]
+	setctx ":any"
+	set result [binds $mask]
+	setctx $old
+
+	return $result
 }
 
 proc callevent {event} {
