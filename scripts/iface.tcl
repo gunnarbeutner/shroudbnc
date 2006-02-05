@@ -291,15 +291,15 @@ proc sbnc:ifacemsg {socket line} {
 				set text [join [lrange $params 1 end]]
 				setctx $user
 				if {[getbncuser $user hasclient]} {
-				    bncnotc $text
+					bncnotc $text
 				} else {
-				    putlog $text
+					putlog $text
 				}
 			}
 			"clearhost" {
 				setctx [lindex $params 0]
 				foreach hosts [getbnchosts] {
-				    delbnchost $hosts
+					delbnchost $hosts
 				}
 			}
 			"setglobaltag" {
@@ -310,6 +310,17 @@ proc sbnc:ifacemsg {socket line} {
 			}
 			"getglobaltags" {
 				set result [bncgetglobaltags]
+			}
+			"global" {
+				set text [join [lrange $params 0 end]]
+				foreach user [bncuserlist] {
+					setctx $user
+					if {[getbncuser $user hasclient]} {
+						bncnotc $text
+					} else {
+						putlog $text
+					}
+				}
 			}
 		}
 	}

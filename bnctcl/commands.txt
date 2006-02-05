@@ -95,7 +95,7 @@ internalgetchanidle <Nick> <Channel>
   Description: Do not use this. Use getchanidle instead. See tcl-commands.doc for more details.
   Returns: The nick's idletime in seconds.
 
-internallisten <Port> <Type> <Options> <Flag>
+internallisten <Port> <Type> <Options> <Flag> <SSL> <BindIp>
 
   Description: Do not use this. Use listen instead. See tcl-commands.doc for more details.
   Returns: A 'dcc' idx.
