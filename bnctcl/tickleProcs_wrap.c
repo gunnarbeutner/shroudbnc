@@ -2798,6 +2798,7 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     char *arg3 = (char *) 0 ;
     char *arg4 = (char *) 0 ;
     bool arg5 = (bool) false ;
+    char *arg6 = (char *) NULL ;
     int result;
     Tcl_DString ds_2 ;
     bool ds_use_2 = false ;
@@ -2806,8 +2807,10 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     Tcl_DString ds_4 ;
     bool ds_use_4 = false ;
     int tempb5 ;
+    Tcl_DString ds_6 ;
+    bool ds_use_6 = false ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"ho|ooo:internallisten Port Type ?Options? ?Flag? ?SSL? ",&arg1,(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"ho|oooo:internallisten Port Type ?Options? ?Flag? ?SSL? ?BindIp? ",&arg1,(void *)0,(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
     {
         ds_use_2 = true;
         arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
@@ -2828,9 +2831,15 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         if (Tcl_GetIntFromObj(interp,objv[5],&tempb5) == TCL_ERROR) SWIG_fail;
         arg5 = tempb5 ? true : false;
     }
+    if (objc > 6) {
+        {
+            ds_use_6 = true;
+            arg6 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[6]), -1, &ds_6);
+        }
+    }
     {
         try {
-            result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5);
+            result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5,(char const *)arg6);
             
         } catch (const char* p) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
@@ -2849,6 +2858,10 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         if (ds_use_4)
         Tcl_DStringFree(&ds_4);
     }
+    {
+        if (ds_use_6)
+        Tcl_DStringFree(&ds_6);
+    }
     return TCL_OK;
     fail:
     {
@@ -2862,6 +2875,10 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     {
         if (ds_use_4)
         Tcl_DStringFree(&ds_4);
+    }
+    {
+        if (ds_use_6)
+        Tcl_DStringFree(&ds_6);
     }
     return TCL_ERROR;
 }

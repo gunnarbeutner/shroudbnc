@@ -118,7 +118,7 @@ CUser::CUser(const char* Name) {
 	free(Out);
 #endif
 
-	if (m_Config->ReadInteger("user.quitted") == 0) {
+	if (m_Config->ReadInteger("user.quitted") != 2) {
 		ScheduleReconnect(0);
 	}
 }
@@ -287,10 +287,13 @@ void CUser::Attach(CClientConnection* Client) {
 			free(Keys);
 		}
 	} else {
-		if (!Motd->IsEmpty())
+		if (!Motd->IsEmpty()) {
 			Motd->PlayToUser(this, Log_Motd);
+		}
 
-		ScheduleReconnect(0);
+		if (m_Config->ReadInteger("user.quitted") != 2) {
+			ScheduleReconnect(0);
+		}
 	}
 
 	const char* MotdText = g_Bouncer->GetConfig()->ReadString("system.motd");
@@ -313,8 +316,12 @@ void CUser::Attach(CClientConnection* Client) {
 		Modules->Get(i)->AttachClient(GetUsername());
 	}
 
-	if (m_IRC == NULL && GetServer() == NULL) {
-		Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+	if (m_IRC == NULL) {
+		if (GetServer() == NULL) {
+			Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+		} else if (m_Config->ReadInteger("user.quitted") == 2) {
+			Notice("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
+		}
 	}
 
 	if (GetLog()->IsEmpty() == false) {
@@ -329,7 +336,7 @@ bool CUser::Validate(const char *Password) {
 		return false;
 	}
 
-	if (Password != NULL && g_Bouncer->GetConfig()->ReadInteger("system.md5")) {
+	if (g_Bouncer->GetConfig()->ReadInteger("system.md5")) {
 		Password = g_Bouncer->MD5(Password);
 	}
 
@@ -823,8 +830,8 @@ void CUser::SetRealname(const char *Realname) {
 	m_Config->WriteString("user.realname", Realname);
 }
 
-void CUser::MarkQuitted(void) {
-	m_Config->WriteInteger("user.quitted", 1);
+void CUser::MarkQuitted(bool RequireManualJump) {
+	m_Config->WriteInteger("user.quitted", RequireManualJump ? 2 : 1);
 }
 
 void CUser::LogBadLogin(sockaddr_in Peer) {

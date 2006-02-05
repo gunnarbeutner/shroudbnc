@@ -737,12 +737,35 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 			return NULL;
 		else
 			return Client->GetPeerName();
-	}
-	else if (strcasecmp(Type, "tag") == 0) {
+	} else if (strcasecmp(Type, "tag") == 0) {
 		if (!Parameter2)
 			return NULL;
 
 		return Context->GetTagString(Parameter2);
+	} else if (strcasecmp(Type, "tags") == 0) {
+		CConfig *Config = Context->GetConfig();
+		int Count = Config->GetLength();
+		const char *Item;
+
+		int argc = 0;
+		const char** argv = (const char**)malloc(Count * sizeof(const char*));
+
+		while ((Item = Context->GetTagName(argc)) != NULL) {
+			argv[argc] = Item;
+			argc++;
+		}
+
+		static char* List = NULL;
+
+		if (List)
+			Tcl_Free(List);
+
+		List = Tcl_Merge(argc, argv);
+
+		free(argv);
+
+		return List;
+
 	} else if (strcasecmp(Type, "seen") == 0) {
 		sprintf(Buffer, "%d", Context->GetLastSeen());
 
@@ -776,7 +799,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -1350,13 +1373,14 @@ void bncjoinchans(const char* User) {
 		Context->GetIRCConnection()->JoinChannels();
 }
 
-int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag, bool SSL) {
+int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag, bool SSL, const char *BindIp) {
 	if (strcasecmp(Type, "script") == 0) {
 		if (Options == NULL)
 			throw "You need to specifiy a control proc.";
 
-
-		const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+		if (BindIp == NULL || BindIp[0] == '\0') {
+			BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+		}
 
 		CTclSocket* TclSocket = new CTclSocket(Port, BindIp, Options, SSL);
 

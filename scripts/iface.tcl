@@ -18,6 +18,7 @@
 # options
 set ::ifaceport 8090
 set ::ifacessl 0
+set ::ifacebindip ""
 
 # iface commands:
 # +user:
@@ -65,11 +66,7 @@ set ::ifacessl 0
 # getglobaltag tag
 # setglobaltag tag value
 
-if {$::ifacessl} {
-	catch [list listen $::ifaceport script sbnc:iface "" 1]
-} else {
-	catch [list listen $::ifaceport script sbnc:iface]
-}
+catch [list listen $::ifaceport script sbnc:iface "" $::ifacessl $::ifacebindip]
 
 set ::ifacehandlers [list]
 

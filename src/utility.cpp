@@ -465,7 +465,8 @@ const char *UtilMd5(const char *String) {
 	MD5Final (digest, &context);
 
 	for (int i = 0; i < 16; i++) {
-		snprintf(Result + i * 2, 2, "%02x", digest[i]);
+#undef sprintf
+		sprintf(Result + i * 2, "%02x", digest[i]);
 	}
 
 	return Result;

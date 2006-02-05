@@ -135,7 +135,7 @@ public:
 	virtual void SetPort(int Port);
 	virtual int GetPort(void);
 
-	virtual void MarkQuitted(void);
+	virtual void MarkQuitted(bool RequireManualJump = false);
 
 	virtual void LoadEvent(void);
 

@@ -151,7 +151,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			AddCommand(&m_CommandList, "kill", "Admin", "disconnects a user from the bouncer",
 				"Syntax: kill <username>\nDisconnects a user from the bouncer.");
 			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server",
-				"Syntax: disconnect <username>\nDisconnects a user from the IRC server which he is currently connected to.");
+				"Syntax: disconnect [username]\nDisconnects a user from the IRC server which he is currently connected to."
+				" If you don't specify a username, your own IRC connection will be closed.");
 			AddCommand(&m_CommandList, "playmainlog", "Admin", "plays the bouncer's log",
 				"Syntax: playmainlog\nDisplays the bouncer's log.");
 			AddCommand(&m_CommandList, "erasemainlog", "Admin", "erases the bouncer's log",
@@ -183,6 +184,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells shroudBNC not to rejoin them when you reconnect to a server",
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
+		if (!m_Owner->IsAdmin()) {
+			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server",
+				"Syntax: disconnect\nDisconnects you from the irc server.");
+		}
 #ifdef USESSL
 		AddCommand(&m_CommandList, "savecert", "User", "saves your current client certificate for use with public key authentication",
 			"Syntax: savecert\nSaves your current client certificate for use with public key authentication.\n"
@@ -756,16 +761,34 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
-		if (argc < 2) {
-			SENDUSER("Syntax: disconnect username");
+		CUser *User;
+
+		if (m_Owner->IsAdmin() && argc >= 2) {
+			User = g_Bouncer->GetUser(argv[1]);
+		} else {
+			User = m_Owner;
+		}
+
+		if (User == NULL) {
+			SENDUSER("There is no such user.");
 			return false;
 		}
 
-		asprintf(&Out, "SBNC SIMUL %s :PERROR :Requested.", argv[1]);
-		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
-			SENDUSER(Out);
-			free(Out);
-		} CHECK_ALLOC_RESULT_END;
+		CIRCConnection *IRC = User->GetIRCConnection();
+
+		if (IRC == NULL) {
+			if (User == m_Owner) {
+				SENDUSER("You are not connected to a server.");
+			} else {
+				SENDUSER("The user is not connected to a server.");
+			}
+
+			return false;
+		}
+
+		User->MarkQuitted(true);
+
+		IRC->Kill("Requested.");
 
 		SENDUSER("Done.");
 
@@ -1567,6 +1590,14 @@ bool CClientConnection::ValidateUser() {
 		Blocked = User->IsIpBlocked(m_Peer);
 		Valid = (Force || User->Validate(m_Password));
 		ValidHost = User->CanHostConnect(m_PeerName);
+
+		if (ValidHost == false) {
+			const char *Host;
+
+			Host = inet_ntoa(GetRemoteAddress().sin_addr);
+
+			ValidHost = User->CanHostConnect(Host);
+		}
 	}
 
 	if ((m_Password || Force) && User && !Blocked && Valid && ValidHost) {

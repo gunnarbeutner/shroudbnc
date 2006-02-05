@@ -77,7 +77,7 @@ protected:
 	}
 
 	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
-		return true;
+		return false;
 	}
 
 	virtual void AttachClient(const char *Client) {	}
