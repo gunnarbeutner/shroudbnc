@@ -1673,7 +1673,8 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 
 char *internaltimers(void) {
 	char **List = (char **)malloc(g_TimerCount * sizeof(char *));
-	const char *Timer[4], Temp1[20], Temp2[20];
+	const char *Timer[4];
+	char Temp1[20], Temp2[20];
 	int Count = 0;
 
 	for (int i = 0; i < g_TimerCount; i++) {
