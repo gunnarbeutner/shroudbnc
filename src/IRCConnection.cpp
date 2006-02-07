@@ -29,7 +29,7 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL) : CConnec
 	InitIrcConnection(Owning);
 }
 
-CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL) : CConnection(Host, Port, BindIp, SSL) {
+CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
 	InitIrcConnection(Owning);
 }
 
@@ -1180,29 +1180,22 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
 	return 1;
 }
 
-void CIRCConnection::AsyncDnsFinished(adns_query *Query, adns_answer *Response) {
-	if (Response == NULL || Response->status != adns_s_ok) {
+void CIRCConnection::AsyncDnsFinished(hostent *Response) {
+	if (Response == NULL) {
 		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 
-	CConnection::AsyncDnsFinished(Query, Response);
+	CConnection::AsyncDnsFinished(Response);
 }
 
-void CIRCConnection::AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response) {
-	if (Response == NULL || Response->status != adns_s_ok) {
+void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
+	if (Response == NULL) {
 		m_Owner->Notice("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 
-	CConnection::AsyncBindIpDnsFinished(Query, Response);
-}
-
-void CIRCConnection::AdnsTimeout(void) {
-	m_Owner->Notice("DNS request timed out. Could not connect to server.");
-	g_Bouncer->Log("DNS request for %s timed out. Could not connect to server.", m_Owner->GetUsername());
-
-	CConnection::AdnsTimeout();
+	CConnection::AsyncBindIpDnsFinished(Response);
 }
 
 void CIRCConnection::Destroy(void) {

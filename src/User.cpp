@@ -317,7 +317,7 @@ void CUser::Attach(CClientConnection* Client) {
 	}
 
 	if (m_IRC == NULL) {
-		if (GetServer() == NULL) {
+		if (GetServer() == NULL || *(GetServer()) == '\0') {
 			Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
 		} else if (m_Config->ReadInteger("user.quitted") == 2) {
 			Notice("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
@@ -464,7 +464,11 @@ void CUser::Reconnect(void) {
 		return;
 	}
 
-	asprintf(&Out, "Trying to reconnect to %s:%d", Server, Port);
+	if (GetIPv6()) {
+		asprintf(&Out, "Trying to reconnect to [%s]:%d", Server, Port);
+	} else {
+		asprintf(&Out, "Trying to reconnect to %s:%d", Server, Port);
+	}
 
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
@@ -474,7 +478,12 @@ void CUser::Reconnect(void) {
 		free(Out);
 	}
 
-	asprintf(&Out, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+	if (GetIPv6()) {
+		asprintf(&Out, "Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
+	} else {
+		asprintf(&Out, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+	}
+
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
 	} else {
@@ -498,7 +507,7 @@ void CUser::Reconnect(void) {
 	else
 		g_Bouncer->SetIdent(m_Name);
 
-	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL());
+	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
 	if (!Connection) {
 		Notice("Can't connect..");
@@ -1297,4 +1306,16 @@ const char *CUser::GetTagName(int Index) {
 	}
 
 	return NULL;
+}
+
+void CUser::SetIPv6(bool IPv6) {
+	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
+}
+
+bool CUser::GetIPv6(void) {
+	if (m_Config->ReadInteger("user.ipv6") != 0) {
+		return true;
+	} else {
+		return false;
+	}
 }

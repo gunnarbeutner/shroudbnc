@@ -192,6 +192,9 @@ public:
 	virtual void SetIdent(const char *Ident);
 	virtual const char *GetIdent(void);
 
+	virtual void SetIPv6(bool IPv6);
+	virtual bool GetIPv6(void);
+
 	virtual const char *GetTagString(const char *Tag);
 	virtual int GetTagInteger(const char *Tag);
 	virtual bool SetTagString(const char *Tag, const char *Value);

@@ -17,21 +17,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef SWIG
 /**
  * CDnsEvents
  *
- * An interface for adns events.
+ * An interface for dns events.
  */
 struct CDnsEvents {
 	/**
 	 * AsyncDnsFinished
 	 *
-	 * This function is executed when the adns query is finished or the query
+	 * This function is executed when the dns query is finished or the query
 	 * timed out.
-	 * @param Query the adns query
 	 * @param Response the associated response, can be NULL
 	 */
-	virtual void AsyncDnsFinished(adns_query *Query, adns_answer *Response) = 0;
+	virtual void AsyncDnsFinished(hostent *Response) = 0;
 
 	/**
 	 * Destroy
@@ -39,6 +39,19 @@ struct CDnsEvents {
 	 * Destroys the event object.
 	 */
 	virtual void Destroy(void) = 0;
+};
+
+void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
+
+class CDnsQuery {
+	CDnsEvents *m_EventObject;
+	ares_channel m_Channel;
+public:
+	CDnsQuery(CDnsEvents *EventInterface, int Timeout = 5);
+	~CDnsQuery(void);
+	void GetHostByName(const char *Host, int Family = AF_INET);
+	void GetHostByAddr(sockaddr *Address, int AddressLength, int Family = AF_INET);
+	ares_channel GetChannel(void);
 };
 
 /**
@@ -55,8 +68,8 @@ class ClassName : public CDnsEvents { \
 private: \
 	EventClassName *m_EventObject; \
 \
-	virtual void AsyncDnsFinished(adns_query *Query, adns_answer *Response) { \
-		m_EventObject->Function(Query, Response); \
+	virtual void AsyncDnsFinished(hostent *Response) { \
+		m_EventObject->Function(Response); \
 	} \
 public: \
 	ClassName(EventClassName* EventObject) { \
@@ -67,3 +80,7 @@ public: \
 		delete this; \
 	} \
 };
+#else
+class CDnsEvents;
+class CDnsQuery;
+#endif

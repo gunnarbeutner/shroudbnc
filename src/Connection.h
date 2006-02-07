@@ -31,22 +31,16 @@ enum connection_role_e {
 class CConnectionDnsEvents;
 class CBindIpDnsEvents;
 
-#ifndef SWIG
-bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
-#endif
-
 class CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CCore;
 	friend class CUser;
 	friend class CConnectionDnsEvents;
 	friend class CBindIpDnsEvents;
-	friend bool IRCAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
-	CTimer *m_AdnsTimeout;
-	adns_query *m_AdnsQuery;
-	adns_query *m_BindAdnsQuery;
+	CDnsQuery *m_DnsQuery;
+	CDnsQuery *m_BindDnsQuery;
 	unsigned short m_PortCache;
 	char *m_BindIpCache;
 	CConnectionDnsEvents *m_DnsEvents;
@@ -60,11 +54,13 @@ class CConnection : public CSocketEvents {
 
 	connection_role_e m_Role;
 
+	int m_Family;
+
 	void InitConnection(SOCKET Client, bool SSL);
 public:
 #ifndef SWIG
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
-	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false);
+	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
 #endif
 	virtual ~CConnection(void);
 
@@ -123,9 +119,8 @@ protected:
 	void ProcessBuffer(void);
 
 	void AsyncConnect(void);
-	virtual void AsyncDnsFinished(adns_query *Query, adns_answer *Response);
-	virtual void AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response);
-	void AdnsTimeout(void);
+	virtual void AsyncDnsFinished(hostent *Response);
+	virtual void AsyncBindIpDnsFinished(hostent *Response);
 
 	SOCKET m_Socket; /**< the socket */
 

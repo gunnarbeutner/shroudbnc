@@ -66,6 +66,7 @@ typedef void X509_STORE_CTX;
 #ifndef RUBY
 	#include <windows.h>
 	#include <winsock2.h>
+	#include <ws2tcpip.h>
 	#include <assert.h>
 #endif
 #else
@@ -84,6 +85,8 @@ typedef void X509_STORE_CTX;
 	#include <sys/resource.h>
 	#include <limits.h>
 #endif
+
+#include "../c-ares/ares.h"
 
 #if !defined(SWIG)
 #if defined(_WIN32) && !defined(NOADNSLIB)

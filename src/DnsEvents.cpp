@@ -17,56 +17,41 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CTimer;
-class CClientDnsEvents;
-class CAssocArray;
+#include "StdAfx.h"
 
-class CClientConnection : public CConnection, public COwnedObject<CUser> {
-	char *m_Nick;
-	char *m_Password;
-	char *m_Username;
-	sockaddr_in m_Peer;
-	char *m_PeerName;
+void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
+	CDnsEvents *EventInterface = (CDnsEvents *)Cookie;
 
-	CClientDnsEvents *m_DnsEvents;
+	EventInterface->AsyncDnsFinished(HostEntity);
+}
 
-	commandlist_t m_CommandList;
+CDnsQuery::CDnsQuery(CDnsEvents *EventInterface, int Timeout) {
+	ares_options Options;
 
-#ifndef SWIG
-	adns_query m_PeerA;
-#endif
+	m_EventObject = EventInterface;
 
-	bool ValidateUser();
-public:
-#ifndef SWIG
-	CClientConnection(SOCKET Socket, sockaddr_in Peer, bool SSL = false);
-	CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning);
-#endif
-	virtual ~CClientConnection(void);
+	ares_init(&m_Channel);
 
-	virtual bool ParseLineArgV(int argc, const char** argv);
-	virtual void ParseLine(const char* Line);
-	virtual bool ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser);
+	Options.timeout = Timeout;
+	ares_init_options(&m_Channel, &Options, ARES_OPT_TIMEOUT);
 
-	virtual const char* GetNick(void);
+	g_Bouncer->RegisterDnsQuery(this);
+}
 
-	virtual void SetOwner(CUser* Owner);
+CDnsQuery::~CDnsQuery(void) {
+	ares_destroy(m_Channel);
 
-	virtual void AsyncDnsFinishedClient(hostent* response);
-	virtual void SetPeerName(const char* PeerName, bool LookupFailure);
-	virtual adns_query GetPeerDNSQuery(void);
+	g_Bouncer->UnregisterDnsQuery(this);
+}
 
-	virtual const char* GetPeerName(void);
-	virtual sockaddr_in GetPeer(void);
+void CDnsQuery::GetHostByName(const char *Host, int Family) {
+	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, (CDnsEvents *)m_EventObject);
+}
 
-	virtual bool Read(bool DontProcess = false);
-	virtual void Destroy(void);
-	virtual const char* GetClassName(void);
-	virtual void WriteUnformattedLine(const char* In);
+void CDnsQuery::GetHostByAddr(sockaddr *Address, int AddressLength, int Family) {
+	ares_gethostbyaddr(m_Channel, Address, AddressLength, Family, GenericDnsQueryCallback, (CDnsEvents *)m_EventObject);
+}
 
-	virtual bool Freeze(CAssocArray *Box);
-
-	virtual void Kill(const char *Error);
-
-	virtual commandlist_t *GetCommandList(void);
-};
+ares_channel CDnsQuery::GetChannel(void) {
+	return m_Channel;
+}

@@ -38,11 +38,15 @@ IMPL_DNSEVENTCLASS(CBindIpDnsEvents, CConnection, AsyncBindIpDnsFinished);
 CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 	SetRole(Role);
 
+	// TODO: set Family?
+
 	InitConnection(Socket, SSL);
 }
 
-CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL) {
+CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {
 	in_addr ip;
+
+	m_Family = Family;
 
 	SetRole(Role_Client);
 
@@ -71,22 +75,22 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
 
 	if (m_HostAddr == NULL) {
-		m_AdnsQuery = (adns_query*)malloc(sizeof(adns_query));
 		m_DnsEvents = new CConnectionDnsEvents(this);
-		adns_submit(g_adns_State, Host, adns_r_addr, (adns_queryflags)0, m_DnsEvents, m_AdnsQuery);
-		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, IRCAdnsTimeoutTimer, this);
+		m_DnsQuery = new CDnsQuery(m_DnsEvents);
+
+		m_DnsQuery->GetHostByName(Host, Family);
 	} else {
-		m_AdnsQuery = NULL;
+		m_DnsQuery = NULL;
 		m_DnsEvents = NULL;
-		m_AdnsTimeout = NULL;
 	}
 
 	if (m_BindIpCache && m_BindAddr == NULL) {
-		m_BindAdnsQuery = (adns_query*)malloc(sizeof(adns_query));
 		m_BindDnsEvents = new CBindIpDnsEvents(this);
-		adns_submit(g_adns_State, BindIp, adns_r_addr, (adns_queryflags)0, m_BindDnsEvents, m_BindAdnsQuery);
+		m_BindDnsQuery = new CDnsQuery(m_BindDnsEvents);
+
+		m_DnsQuery->GetHostByName(BindIp, Family);
 	} else {
-		m_BindAdnsQuery = NULL;
+		m_BindDnsQuery = NULL;
 		m_BindDnsEvents = NULL;
 	}
 
@@ -111,9 +115,8 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_SendQ = new CFIFOBuffer();
 	m_RecvQ = new CFIFOBuffer();
 
-	m_AdnsQuery = NULL;
-	m_BindAdnsQuery = NULL;
-	m_AdnsTimeout = NULL;
+	m_DnsQuery = NULL;
+	m_BindDnsQuery = NULL;
 
 	m_HostAddr = NULL;
 	m_BindAddr = NULL;
@@ -151,16 +154,12 @@ CConnection::~CConnection() {
 
 	g_Bouncer->UnregisterSocket(m_Socket);
 
-	if (m_AdnsQuery) {
-		adns_cancel(*m_AdnsQuery);
+	if (m_DnsQuery) {
+		delete m_DnsQuery;
 	}
 
-	if (m_BindAdnsQuery) {
-		adns_cancel(*m_BindAdnsQuery);
-	}
-
-	if (m_AdnsTimeout) {
-		m_AdnsTimeout->Destroy();
+	if (m_BindDnsQuery) {
+		delete m_BindDnsQuery;
 	}
 
 	free(m_BindIpCache);
@@ -578,75 +577,104 @@ int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) {
 	return 1;
 }
 
-bool IRCAdnsTimeoutTimer(time_t Now, void *IRC) {
-	((CConnection *)IRC)->m_AdnsTimeout = NULL;
-
-	((CConnection *)IRC)->AdnsTimeout();
-
-	return false;
-}
-
 void CConnection::AsyncConnect(void) {
 	if (m_HostAddr != NULL && (m_BindAddr != NULL || m_BindIpCache == NULL)) {
-		m_Socket = SocketAndConnectResolved(*m_HostAddr, m_PortCache, m_BindAddr);
+		sockaddr *Remote, *Bind = NULL;
+
+		if (m_Family == AF_INET) {
+			sockaddr_in RemoteV4, BindV4;
+
+			memset(&RemoteV4, 0, sizeof(RemoteV4));
+			RemoteV4.sin_family = m_Family;
+			RemoteV4.sin_port = htons(m_PortCache);
+			RemoteV4.sin_addr.s_addr = ((in_addr *)m_HostAddr)->s_addr;
+
+			Remote = (sockaddr *)&RemoteV4;
+
+			if (m_BindAddr != NULL) {
+				memset(&BindV4, 0, sizeof(BindV4));
+				BindV4.sin_family = m_Family;
+				BindV4.sin_port = 0;
+				BindV4.sin_addr.s_addr = ((in_addr *)m_BindAddr)->s_addr;
+
+				Bind = (sockaddr *)&BindV4;
+			}
+		} else {
+			sockaddr_in6 RemoteV6, BindV6;
+
+			memset(&RemoteV6, 0, sizeof(RemoteV6));
+			RemoteV6.sin6_family = m_Family;
+			RemoteV6.sin6_port = htons(m_PortCache);
+			memcpy(&(RemoteV6.sin6_addr), m_HostAddr, sizeof(in6_addr));
+
+			Remote = (sockaddr *)&RemoteV6;
+
+			if (m_BindAddr != NULL) {
+				memset(&BindV6, 0, sizeof(BindV6));
+				BindV6.sin6_family = m_Family;
+				BindV6.sin6_port = 0;
+				memcpy(&(BindV6.sin6_addr), m_BindAddr, sizeof(in6_addr));
+
+				Bind = (sockaddr *)&BindV6;
+			}
+		}
+		m_Socket = SocketAndConnectResolved(Remote, Bind);
+
+		free(m_HostAddr);
+		m_HostAddr = NULL;
 
 		InitSocket();
 	}
 }
 
-void CConnection::AsyncDnsFinished(adns_query *Query, adns_answer *Response) {
-	free(m_AdnsQuery);
-	m_AdnsQuery = NULL;
+void CConnection::AsyncDnsFinished(hostent *Response) {
+	// TODO: figure out how to delete the query/event iface
+	m_DnsQuery = NULL;
 	m_DnsEvents = NULL;
 
-	if (Response == NULL || Response->status != adns_s_ok) {
+	if (Response == NULL) {
 		// we cannot destroy the object here as there might still be the other
-		// adns query (bind ip) in the queue which would get destroyed in the
+		// dns query (bind ip) in the queue which would get destroyed in the
 		// destructor; this causes a crash in the StartMainLoop() function
 		m_LatchedDestruction = true;
 	} else {
-		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
-		*m_HostAddr = Response->rrs.addr->addr.inet.sin_addr;
+		int Size;
 
-		m_AdnsTimeout->Destroy();
-		m_AdnsTimeout = NULL;
+		if (Response->h_addrtype == AF_INET) {
+			Size = sizeof(in_addr);
+		} else {
+			Size = sizeof(in6_addr);
+		}
+
+		m_HostAddr = (in_addr *)malloc(Size);
+		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
 
 		AsyncConnect();
 	}
 }
 
-void CConnection::AsyncBindIpDnsFinished(adns_query *Query, adns_answer *Response) {
-	free(m_BindAdnsQuery);
-	m_BindAdnsQuery = NULL;
+void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
+	// TODO: figure out how to delete the query/event iface
+	m_BindDnsQuery = NULL;
 	m_BindDnsEvents = NULL;
 
-	if (Response != NULL && Response->status == adns_s_ok) {
-		m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
-		*m_BindAddr = Response->rrs.addr->addr.inet.sin_addr;
+	if (Response != NULL) {
+		int Size;
+
+		if (Response->h_addrtype == AF_INET) {
+			Size = sizeof(in_addr);
+		} else {
+			Size = sizeof(in6_addr);
+		}
+
+		m_BindAddr = (in_addr *)malloc(Size);
+		memcpy(m_BindAddr, Response->h_addr_list[0], Size);
 	}
 
 	free(m_BindIpCache);
 	m_BindIpCache = NULL;
 
 	AsyncConnect();
-}
-
-void CConnection::AdnsTimeout(void) {
-	m_LatchedDestruction = true;
-
-	if (m_AdnsQuery != NULL) {
-		adns_cancel(*m_AdnsQuery);
-
-		free(m_AdnsQuery);
-		m_AdnsQuery = NULL;
-	}
-
-	if (m_BindAdnsQuery != NULL) {
-		adns_cancel(*m_BindAdnsQuery);
-
-		free(m_BindAdnsQuery);
-		m_BindAdnsQuery = NULL;
-	}
 }
 
 bool CConnection::ShouldDestroy(void) {

@@ -98,6 +98,8 @@ proc auth:enqueuewho {names} {
 		}
 	}
 
+	if {[llength $outnames] == 0} { return }
+
 	if {$inwho} {
 		lappend authchans [join $outnames ","]
 	} else {
@@ -116,7 +118,19 @@ proc auth:dequeuewho {} {
 	set chan [lindex $authchans 0]
 	set authchans [lrange $authchans 1 end]
 
-	return $chan
+	if {$chan == ""} { return }
+
+	set result [list]
+
+	foreach item [split $chan] {
+		set account [getchanlogin $item]
+
+		if {$account != "" && $account != 0} {
+			lappend result $item
+		}
+	}
+
+	return $result
 }
 
 proc auth:raw315 {source raw text} {
@@ -229,7 +243,7 @@ proc auth:pulse {reason} {
 				}
 			}
 
-			if {$count > 70 || ($count > 20 && $count > [llength [internalchanlist $chan]] / 2)} {
+			if {$count > 100 || ($count > 20 && $count > [llength [internalchanlist $chan]] * 3 / 4)} {
 				auth:enqueuewho $chan
 				continue
 			}

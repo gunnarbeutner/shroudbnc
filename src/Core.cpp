@@ -460,14 +460,22 @@ void CCore::StartMainLoop(void) {
 		if (m_Running == false && SleepInterval > 5)
 			interval.tv_sec = 5;
 
-		// &FDError was 'NULL'
-		adns_beforeselect(g_adns_State, &nfds, &FDRead, &FDWrite, &FDError, &tvp, &interval, NULL);
+		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
+			ares_channel Channel = m_DnsQueries[i]->GetChannel();
+
+			ares_fds(Channel, &FDRead, &FDWrite);
+			tvp = ares_timeout(Channel, NULL, &tv);
+		}
 
 		Last = time(NULL);
 
 		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
-		adns_afterselect(g_adns_State, nfds, &FDRead, &FDWrite, &FDError, NULL);
+		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
+			ares_channel Channel = m_DnsQueries[i]->GetChannel();
+
+			ares_process(Channel, &FDRead, &FDWrite);
+		}
 
 #ifdef _DEBUG
 		//printf("slept %d seconds\n", SleepInterval - interval.tv_sec);
@@ -517,7 +525,7 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		CDnsEvents *Ctx;
+/*		CDnsEvents *Ctx;
 		adns_query query;
 
 		adns_forallqueries_begin(g_adns_State);
@@ -541,7 +549,7 @@ void CCore::StartMainLoop(void) {
 
 					break;
 			}
-		}
+		}*/
 	}
 
 #ifdef USESSL
@@ -1084,6 +1092,14 @@ void CCore::RegisterTimer(CTimer* Timer) {
 
 void CCore::UnregisterTimer(CTimer* Timer) {
 	m_Timers.Remove(Timer);
+}
+
+void CCore::RegisterDnsQuery(CDnsQuery *DnsQuery) {
+	m_DnsQueries.Insert(DnsQuery);
+}
+
+void CCore::UnregisterDnsQuery(CDnsQuery *DnsQuery) {
+	m_DnsQueries.Remove(DnsQuery);
 }
 
 int CCore::GetTimerStats(void) {

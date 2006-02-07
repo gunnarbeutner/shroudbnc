@@ -63,7 +63,7 @@ const char *ArgGet(const char *Args, int Arg);
 int ArgCount(const char *Args);
 
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
-SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr *BindIp);
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp);
 
 SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
 

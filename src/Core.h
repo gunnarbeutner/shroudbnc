@@ -44,6 +44,7 @@ class CSSLClientListener;
 class CCore {
 #ifndef SWIG
 	friend class CTimer;
+	friend class CDnsQuery;
 #endif
 
 	CConfig *m_Config;
@@ -67,6 +68,8 @@ class CCore {
 
 	CVector<char *>m_Args;
 
+	CVector<CDnsQuery *> m_DnsQueries;
+
 	int m_SendQSizeCache;
 
 	SSL_CTX *m_SSLContext;
@@ -81,6 +84,9 @@ class CCore {
 
 	void RegisterTimer(CTimer *Timer);
 	void UnregisterTimer(CTimer *Timer);
+
+	void RegisterDnsQuery(CDnsQuery *DnsQuery);
+	void UnregisterDnsQuery(CDnsQuery *DnsQuery);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);

@@ -311,18 +311,13 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
  * Creates a socket and connects to the specified host/port. 
  *
  * @param Host the host's ip address
- * @param Port the port
  * @param BindIp the ip address which should be used for binding the socket
  */
-SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* BindIp) {
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp) {
 	unsigned long lTrue = 1;
-	sockaddr_in sin, sloc;
-	int code;
+	int Code, Size;
 
-	if (!Port)
-		return INVALID_SOCKET;
-
-	SOCKET Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET Socket = socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Socket == INVALID_SOCKET)
 		return INVALID_SOCKET;
@@ -330,24 +325,27 @@ SOCKET SocketAndConnectResolved(in_addr Host, unsigned short Port, in_addr* Bind
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp) {
-		sloc.sin_family = AF_INET;
-		sloc.sin_port = 0;
+		if (BindIp->sa_family == AF_INET) {
+			Size = sizeof(sockaddr_in);
+		} else {
+			Size = sizeof(sockaddr_in6);
+		}
 
-		sloc.sin_addr.s_addr = BindIp->s_addr;
-
-		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
+		bind(Socket, (sockaddr *)&BindIp, Size);
 	}
 
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(Port);
-	sin.sin_addr = Host;
+	if (Host->sa_family == AF_INET) {
+		Size = sizeof(sockaddr_in);
+	} else {
+		Size = sizeof(sockaddr_in6);
+	}
 
-	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
+	Code = connect(Socket, Host, Size);
 
 #ifdef _WIN32
-	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+	if (Code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else
-	if (code != 0 && errno != EINPROGRESS) {
+	if (Code != 0 && errno != EINPROGRESS) {
 #endif
 		closesocket(Socket);
 

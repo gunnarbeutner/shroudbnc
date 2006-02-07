@@ -13,6 +13,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ClientConnection.cpp \
 	Connection.cpp \
 	Debug.cpp \
+	DnsEvents.cpp \
 	FIFOBuffer.cpp \
 	FloodControl.cpp \
 	IdentSupport.cpp \

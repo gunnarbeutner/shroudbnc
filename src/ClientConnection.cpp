@@ -28,9 +28,7 @@ IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL, Role_Client) {
-	SetRole(Role_Server);
-
+CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
@@ -45,19 +43,14 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 		m_DnsEvents = new CClientDnsEvents(this);
 
 		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
-
-		m_AdnsTimeout = g_Bouncer->CreateTimer(3, true, AdnsTimeoutTimer, this);
 	} else {
-		m_AdnsTimeout = NULL;
 		m_DnsEvents = NULL;
 	}
 
 	m_CommandList = NULL;
 }
 
-CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning) : CConnection(Client, false, Role_Client) {
-	SetRole(Role_Server);
-
+CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning) : CConnection(Client, false, Role_Server) {
 	m_Owner = Owning;
 
 	m_Nick = strdup(Box->ReadString("client.nick"));
@@ -71,7 +64,6 @@ CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Own
 
 	m_Socket = (SOCKET)Box->ReadInteger("client.fd");
 
-	m_AdnsTimeout = NULL;
 	m_DnsEvents = NULL;
 
 	m_CommandList = NULL;
@@ -87,9 +79,6 @@ CClientConnection::~CClientConnection() {
 
 	if (!m_PeerName && m_Socket != INVALID_SOCKET)
 		adns_cancel(m_PeerA);
-
-	if (m_AdnsTimeout)
-		m_AdnsTimeout->Destroy();
 
 	if (m_DnsEvents)
 		m_DnsEvents->Destroy();
@@ -1663,18 +1652,16 @@ const char* CClientConnection::GetPeerName(void) {
 	return m_PeerName;
 }
 
-void CClientConnection::AsyncDnsFinishedClient(adns_query* query, adns_answer* response) {
-	m_DnsEvents = NULL;
-
-	if (m_AdnsTimeout) {
-		m_AdnsTimeout->Destroy();
-		m_AdnsTimeout = NULL;
-	}
-
-	if (!response || response->status != adns_s_ok)
+void CClientConnection::AsyncDnsFinishedClient(hostent* response) {
+	if (!response)
 		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
 	else
-		SetPeerName(*response->rrs.str, false);
+		SetPeerName(response->h_name, false);
+
+	m_DnsEvents->Destroy();
+	m_DnsEvents = NULL;
+
+	// TODO: destroy query
 }
 
 const char* CClientConnection::GetClassName(void) {
@@ -1696,21 +1683,6 @@ bool CClientConnection::Read(bool DontProcess) {
 	return Ret;
 }
 
-void CClientConnection::AdnsTimeout(void) {
-	m_AdnsTimeout = NULL;
-
-	if (!m_PeerName && m_Socket != INVALID_SOCKET)
-		adns_cancel(m_PeerA);
-	
-	SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
-}
-
-bool AdnsTimeoutTimer(time_t Now, void* Client) {
-	((CClientConnection*)Client)->AdnsTimeout();
-
-	return false;
-}
-
 void CClientConnection::WriteUnformattedLine(const char* In) {
 	CConnection::WriteUnformattedLine(In);
 
@@ -1723,7 +1695,7 @@ void CClientConnection::WriteUnformattedLine(const char* In) {
 
 bool CClientConnection::Freeze(CAssocArray *Box) {
 	// too bad we can't preserve ssl encrypted connections
-	if (m_AdnsTimeout || m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
+	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
 		return false;
 
 	Box->AddString("client.peername", m_PeerName);

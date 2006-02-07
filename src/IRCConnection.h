@@ -35,7 +35,6 @@ class CAssocArray;
 #ifndef SWIG
 bool DelayJoinTimer(time_t Now, void* IRCConnection);
 bool IRCPingTimer(time_t Now, void* IRCConnection);
-bool IrcAdnsTimeoutTimer(time_t Now, void* IRC);
 #endif
 
 #ifndef USESSL
@@ -87,7 +86,7 @@ class CIRCConnection : public CConnection, public COwnedObject<CUser> {
 public:
 #ifndef SWIG
 	CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL = false);
-	CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL = false);
+	CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL = false, int Family = AF_INET);
 	CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CIRCConnection();
@@ -140,9 +139,8 @@ public:
 	virtual bool Read(void);
 	virtual void Destroy(void);
 
-	virtual void AsyncDnsFinished(adns_query* query, adns_answer* response);
-	virtual void AsyncBindIpDnsFinished(adns_query *query, adns_answer *response);
-	virtual void AdnsTimeout(void);
+	virtual void AsyncDnsFinished(hostent *response);
+	virtual void AsyncBindIpDnsFinished(hostent *response);
 
 	virtual const char* GetSite(void);
 
