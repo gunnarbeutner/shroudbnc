@@ -1,4 +1,4 @@
-SUBDIRS=md5 adns libltdl sbncloader c-ares
+SUBDIRS=md5 libltdl sbncloader c-ares
 
 pkglibdir=$(exec_prefix)
 bindir=$(exec_prefix)

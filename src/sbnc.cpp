@@ -28,7 +28,6 @@
 CCore *g_Bouncer = NULL;
 bool g_Freeze;
 loaderparams_t *g_LoaderParameters;
-adns_state g_adns_State;
 
 #ifndef _WIN32
 /**
@@ -71,8 +70,6 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	lt_dlinit();
 #endif
-
-	adns_init(&g_adns_State, adns_if_noerrprint, NULL);
 
 	CConfig *Config = new CConfig("sbnc.conf");
 
@@ -131,9 +128,6 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	}
 
 	delete Config;
-
-	adns_finish(g_adns_State);
-
 #ifndef _WIN32
 	lt_dlexit();
 #endif

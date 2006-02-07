@@ -33,7 +33,7 @@ class CClientConnection : public CConnection, public COwnedObject<CUser> {
 	commandlist_t m_CommandList;
 
 #ifndef SWIG
-	adns_query m_PeerA;
+	CDnsQuery *m_ReverseLookup;
 #endif
 
 	bool ValidateUser();
@@ -54,7 +54,7 @@ public:
 
 	virtual void AsyncDnsFinishedClient(hostent* response);
 	virtual void SetPeerName(const char* PeerName, bool LookupFailure);
-	virtual adns_query GetPeerDNSQuery(void);
+	virtual CDnsQuery *GetPeerDNSQuery(void);
 
 	virtual const char* GetPeerName(void);
 	virtual sockaddr_in GetPeer(void);

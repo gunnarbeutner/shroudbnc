@@ -181,10 +181,6 @@ public:
 
 extern CCore *g_Bouncer;
 
-#ifndef SWIG
-extern adns_state g_adns_State;
-#endif
-
 #define CHECK_ALLOC_RESULT(Variable, Function) \
 	do { \
 		if (Variable == NULL) { \

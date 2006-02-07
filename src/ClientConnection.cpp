@@ -42,7 +42,8 @@ CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) 
 
 		m_DnsEvents = new CClientDnsEvents(this);
 
-		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
+// TODO: replace
+//		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
 	} else {
 		m_DnsEvents = NULL;
 	}
@@ -77,8 +78,9 @@ CClientConnection::~CClientConnection() {
 	free(m_Username);
 	free(m_PeerName);
 
-	if (!m_PeerName && m_Socket != INVALID_SOCKET)
-		adns_cancel(m_PeerA);
+// TODO: replace
+//	if (!m_PeerName && m_Socket != INVALID_SOCKET)
+//		adns_cancel(m_PeerA);
 
 	if (m_DnsEvents)
 		m_DnsEvents->Destroy();
@@ -1640,8 +1642,9 @@ void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
 	ProcessBuffer();
 }
 
-adns_query CClientConnection::GetPeerDNSQuery(void) {
-	return m_PeerA;
+CDnsQuery *CClientConnection::GetPeerDNSQuery(void) {
+	// TODO: implement
+	return NULL;
 }
 
 sockaddr_in CClientConnection::GetPeer(void) {
