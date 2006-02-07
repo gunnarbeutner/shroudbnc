@@ -28,7 +28,7 @@
 #undef HAVE_DLFCN_H
 
 /* use FIONBIO for non-blocking sockets */
-#undef HAVE_FIONBIO
+#define HAVE_FIONBIO
 
 /* Define to 1 if you have the `if_indextoname' function. */
 #undef HAVE_IF_INDEXTONAME
@@ -126,7 +126,8 @@
 /* Define to 1 if you have the <winsock.h> header file. */
 #undef HAVE_WINSOCK_H
 
-/* Define to 1 if you have the <\> header file. */
+/* Define to 1 if you have the <\
+> header file. */
 #undef HAVE___
 
 /* Name of package */
