@@ -13,7 +13,6 @@ source "scripts/bind.tcl"
 source "scripts/usys.tcl"
 source "scripts/socket.tcl"
 source "scripts/botnet.tcl"
-source "scripts/stubs.tcl"
 
 # Load some useful procs
 source "scripts/alltools.tcl"
