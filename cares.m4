@@ -1,5 +1,3 @@
-sinclude(./src/c-ares/acinclude.m4)
-
 dnl check for a few basic system headers we need
 AC_CHECK_HEADERS(
        sys/types.h \

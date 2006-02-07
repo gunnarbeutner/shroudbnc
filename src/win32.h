@@ -19,6 +19,15 @@
 
 // win32 specific header
 
+#define FD_SETSIZE 4096
+
+#ifndef RUBY
+	#include <windows.h>
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+	#include <assert.h>
+#endif
+
 #if !defined(socklen_t)
 typedef int socklen_t;
 #endif
@@ -29,4 +38,11 @@ typedef int socklen_t;
 
 #define EXPORT __declspec(dllexport)
 
-#define FD_SETSIZE 4096
+#ifndef _MSC_VER
+#undef LoadLibrary
+#define LoadLibrary(lpLibFileName) (HMODULE)lt_dlopen(lpLibFileName)
+#undef FreeLibrary
+#define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose((lt_dlhandle)hLibModule) : 0
+#undef GetProcAddress
+#define GetProcAddress(hModule, lpProcName) lt_dlsym((lt_dlhandle)hModule, lpProcName)
+#endif

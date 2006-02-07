@@ -33,11 +33,13 @@
 #define _USE_32BIT_TIME_T
 #endif
 
+#ifndef _MSC_VER
+	#include "libltdl/ltdl.h"
+#endif
+
 #ifdef _WIN32
 	#include "win32.h"
 #else
-	#include "libltdl/ltdl.h"
-
 	#include "unix.h"
 #endif
 
@@ -61,30 +63,6 @@ typedef void X509_STORE_CTX;
 #endif
 
 #include "snprintf.h"
-
-#ifdef _WIN32
-#ifndef RUBY
-	#include <windows.h>
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#include <assert.h>
-#endif
-#else
-	#include <dlfcn.h>
-	#include <string.h>
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <sys/time.h>
-	#include <sys/types.h>
-	#include <sys/ioctl.h>
-	#include <netinet/in.h>
-	#include <sys/socket.h>
-	#include <arpa/inet.h>
-	#include <arpa/nameser.h>
-	#include <errno.h>
-	#include <sys/resource.h>
-	#include <limits.h>
-#endif
 
 #ifndef SWIG
 #include "c-ares/ares.h"

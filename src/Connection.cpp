@@ -57,7 +57,7 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 	if (ip.s_addr != INADDR_NONE) {
 		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
 
-		*m_HostAddr = ip;
+		*(in_addr *)m_HostAddr = ip;
 	}
 
 	if (BindIp) {
@@ -66,7 +66,7 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 		if (ip.s_addr != INADDR_NONE) {
 			m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
 
-			*m_BindAddr = ip;
+			*(in_addr *)m_BindAddr = ip;
 		}
 	}
 

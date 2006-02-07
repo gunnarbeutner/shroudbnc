@@ -5,7 +5,7 @@ AC_PREREQ(2.59)
 AC_INIT(shroudbnc, 1.1, gb@prco23.org)
 
 AM_INIT_AUTOMAKE(shroudbnc, 1.1)
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h src/c-ares/config.h)
 
 AC_PROG_MAKE_SET
 
@@ -59,7 +59,7 @@ AC_CHECK_LIB(iberty, asprintf)
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)
 
-sinclude(./src/c-ares/acinclude.m4)
+sinclude(./cares2.m4)
 sinclude(./cares.m4)
 
 SC_PATH_TCLCONFIG

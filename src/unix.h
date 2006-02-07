@@ -19,6 +19,21 @@
 
 // *nix specific things
 
+#include <dlfcn.h>
+#include <string.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <arpa/nameser.h>
+#include <errno.h>
+#include <sys/resource.h>
+#include <limits.h>
+
 typedef int SOCKET;
 
 #define SD_BOTH SHUT_RDWR

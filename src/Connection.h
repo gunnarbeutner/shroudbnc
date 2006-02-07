@@ -49,8 +49,8 @@ class CConnection : public CSocketEvents {
 	bool m_LatchedDestruction;
 	CTrafficStats *m_Traffic;
 
-	in_addr *m_BindAddr;
-	in_addr *m_HostAddr;
+	void *m_BindAddr;
+	void *m_HostAddr;
 
 	connection_role_e m_Role;
 
