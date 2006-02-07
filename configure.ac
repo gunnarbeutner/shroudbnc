@@ -114,6 +114,5 @@ AC_CONFIG_FILES([Makefile \
                  bnctcl/Makefile \
                  src/sbncloader/Makefile \
                  src/Makefile \
-                 src/adns/Makefile \
-		 src/md5/Makefile])
+                 src/md5/Makefile])
 AC_OUTPUT
