@@ -61,7 +61,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	utility.h \
 	Vector.h \
 	win32.h
-libsbnc_la_LIBADD=adns/libadns.la md5/libmd5.la libltdl/libltdlc.la @SSLLDFLAGS@
+libsbnc_la_LIBADD=c-ares/libcares.la md5/libmd5.la libltdl/libltdlc.la @SSLLDFLAGS@
 libsbnc_la_LDFLAGS=-no-undefined
 AM_CFLAGS=@SSLCFLAGS@
 AM_CPPFLAGS=@SSLCFLAGS@
