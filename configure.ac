@@ -59,6 +59,8 @@ AC_CHECK_LIB(iberty, asprintf)
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)
 
+sinclude(./cares.m4)
+
 SC_PATH_TCLCONFIG
 
 BNCTCL_MODULE=

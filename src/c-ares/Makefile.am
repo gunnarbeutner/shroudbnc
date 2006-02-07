@@ -1,17 +1,13 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libcares.la
+noinst_LTLIBRARIES = libcares.la
 
-man_MANS = $(MANPAGES)
-
-MSVCFILES = vc/adig/adig.dep vc/adig/adig.dsp vc/adig/adig.mak	\
- vc/adig/adig.plg vc/vc.dsw vc/ahost/ahost.dep vc/ahost/ahost.dsp	\
- vc/ahost/ahost.mak vc/ahost/ahost.plg vc/areslib/areslib.dep		\
- vc/areslib/areslib.dsp vc/areslib/areslib.mak vc/areslib/areslib.plg
+MSVCFILES = vc/vc.dsw vc/vc.sln vc/areslib/areslib.dep		\
+ vc/areslib/areslib.vcproj vc/areslib/areslib.mak
 
 # adig and ahost are just sample programs and thus not mentioned with the
 # regular sources and headers
-EXTRA_DIST = CHANGES README.cares Makefile.inc adig.c ahost.c $(man_MANS) \
+EXTRA_DIST = CHANGES README.cares Makefile.inc adig.c ahost.c \
  $(MSVCFILES) AUTHORS
 
 
