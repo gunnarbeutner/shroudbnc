@@ -1,0 +1,88 @@
+/* $Id: ares_ipv6.h,v 1.4 2005/06/19 16:58:40 dmeglio Exp $ */
+
+/*
+ * Permission to use, copy, modify, and distribute this
+ * software and its documentation for any purpose and without
+ * fee is hereby granted, provided that the above copyright
+ * notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting
+ * documentation, and that the name of M.I.T. not be used in
+ * advertising or publicity pertaining to distribution of the
+ * software without specific, written prior permission.
+ * M.I.T. makes no representations about the suitability of
+ * this software for any purpose.  It is provided "as is"
+ * without express or implied warranty.
+ */
+
+#ifndef ARES_IPV6_H
+#define ARES_IPV6_H
+
+#ifdef _MSC_VER
+#include <ipexport.h>
+#define HAVE_STRUCT_IN6_ADDR
+#define HAVE_STRUCT_SOCKADDR_IN6
+#define HAVE_STRUCT_ADDRINFO
+#endif
+
+#ifndef HAVE_PF_INET6
+#define PF_INET6 AF_INET6
+#endif
+
+#ifndef HAVE_STRUCT_IN6_ADDR
+struct in6_addr
+{
+  unsigned char s6_addr[16];
+};
+#endif
+
+#ifndef HAVE_STRUCT_SOCKADDR_IN6
+struct sockaddr_in6
+{
+  unsigned short  sin6_family;
+  unsigned short  sin6_port;
+  unsigned long   sin6_flowinfo;
+  struct in6_addr sin6_addr;
+  unsigned int    sin6_scope_id;
+};
+#endif
+
+#ifndef HAVE_STRUCT_ADDRINFO
+struct addrinfo
+{
+  int ai_flags;
+  int ai_family;
+  int ai_socktype;
+  int ai_protocol;
+  size_t ai_addrlen;
+  char *ai_cannonname;
+  struct sockaddr *ai_addr;
+  struct addrinfo *ai_next;
+};
+#endif
+
+#ifndef NS_IN6ADDRSZ
+#if SIZEOF_STRUCT_IN6_ADDR == 0
+/* We cannot have it set to zero, so we pick a fixed value here */
+#define NS_IN6ADDRSZ 16
+#else
+#define NS_IN6ADDRSZ SIZEOF_STRUCT_IN6_ADDR
+#endif
+#endif
+
+#ifndef NS_INADDRSZ
+#define NS_INADDRSZ SIZEOF_STRUCT_IN_ADDR
+#endif
+
+#ifndef NS_INT16SZ
+#define NS_INT16SZ 2
+#endif
+
+#ifndef IF_NAMESIZE
+#ifdef IFNAMSIZ
+#define IF_NAMESIZE IFNAMSIZ
+#else
+#define IF_NAMESIZE 256
+#endif
+#endif
+
+#endif /* ARES_IPV6_H */

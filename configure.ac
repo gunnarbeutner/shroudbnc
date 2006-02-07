@@ -107,6 +107,7 @@ AC_SUBST(SSLLDFLAGS)
 
 AC_CONFIG_FILES([Makefile \
                  scripts/Makefile \
+                 src/c-ares/Makefile \
                  src/libltdl/Makefile \
                  bnctcl/Makefile \
                  src/sbncloader/Makefile \

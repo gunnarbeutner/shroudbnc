@@ -86,7 +86,7 @@ typedef void X509_STORE_CTX;
 	#include <limits.h>
 #endif
 
-#include "../c-ares/ares.h"
+#include "c-ares/ares.h"
 
 #if !defined(SWIG)
 #if defined(_WIN32) && !defined(NOADNSLIB)
