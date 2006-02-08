@@ -2,13 +2,10 @@ AUTOMAKE_OPTIONS = foreign
 
 noinst_LTLIBRARIES = libcares.la
 
-MSVCFILES = vc/vc.dsw vc/vc.sln vc/areslib/areslib.dep		\
- vc/areslib/areslib.vcproj vc/areslib/areslib.mak
-
 # adig and ahost are just sample programs and thus not mentioned with the
 # regular sources and headers
 EXTRA_DIST = CHANGES README.cares Makefile.inc adig.c ahost.c \
- $(MSVCFILES) AUTHORS
+  AUTHORS
 
 
 VER=-version-info 1:0:0
