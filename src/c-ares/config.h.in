@@ -28,7 +28,7 @@
 #undef HAVE_DLFCN_H
 
 /* use FIONBIO for non-blocking sockets */
-#define HAVE_FIONBIO
+#undef HAVE_FIONBIO
 
 /* Define to 1 if you have the `if_indextoname' function. */
 #undef HAVE_IF_INDEXTONAME
