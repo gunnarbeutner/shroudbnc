@@ -62,6 +62,8 @@ sinclude(./src/libltdl/acinclude.m4)
 sinclude(./cares2.m4)
 sinclude(./cares.m4)
 
+CURL_CHECK_NONBLOCKING_SOCKET
+
 SC_PATH_TCLCONFIG
 
 BNCTCL_MODULE=
