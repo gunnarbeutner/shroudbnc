@@ -29,6 +29,10 @@ CCore *g_Bouncer = NULL;
 bool g_Freeze;
 loaderparams_t *g_LoaderParameters;
 
+#if defined(IPV6) && defined(__MINGW32__)
+const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
+#endif
+
 #ifndef _WIN32
 /**
  * sigint_handler

@@ -35,14 +35,21 @@
 #define _USE_32BIT_TIME_T
 #endif
 
-#ifndef _MSC_VER
-	#include "libltdl/ltdl.h"
+#ifdef _WIN32
+#	include "win32.h"
+#else
+#	include "unix.h"
 #endif
 
-#ifdef _WIN32
-	#include "win32.h"
-#else
-	#include "unix.h"
+#ifndef _MSC_VER
+#	ifdef DLL_EXPORT
+#		undef DLL_EXPORT
+#		define WAS_DLL_EXPORT
+#	endif
+#	include "libltdl/ltdl.h"
+#	ifdef WAS_DLL_EXPORT
+#		define DLL_EXPORT
+#	endif
 #endif
 
 #include <stdlib.h>
@@ -55,52 +62,27 @@
 #include <ctype.h>
 
 #ifdef USESSL
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#	include <openssl/ssl.h>
+#	include <openssl/err.h>
 #else
-typedef void SSL;
-typedef void SSL_CTX;
-typedef void X509;
-typedef void X509_STORE_CTX;
-#endif
-
-#ifdef _WIN32
-#define HAVE_AF_INET6
-#define HAVE_STRUCT_IN6_ADDR
-#define HAVE_STRUCT_SOCKADDR_IN6
+	typedef void SSL;
+	typedef void SSL_CTX;
+	typedef void X509;
+	typedef void X509_STORE_CTX;
 #endif
 
 #if defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6)
-#define IPV6
+#	define IPV6
 #endif
 
 #include "snprintf.h"
 
 #ifndef SWIG
-#include "c-ares/ares.h"
+#	include "c-ares/ares.h"
 #endif
 
 // Do NOT use sprintf.
 #define sprintf __evil_function
-
-#if defined(_WIN32) && defined(_DEBUG) && defined(SBNC)
-void *DebugMalloc(size_t Size);
-void DebugFree(void *p);
-char *DebugStrDup(const char *p);
-void *DebugReAlloc(void *p, size_t newsize);
-bool ReportMemory(time_t Now, void *Cookie);
-
-#define real_malloc malloc
-#define real_free free
-#define real_strdup strdup
-#define real_realloc realloc
-
-#define malloc DebugMalloc
-#define free DebugFree
-#undef strdup
-#define strdup DebugStrDup
-#define realloc DebugReAlloc
-#endif
 
 #include "sbncloader/AssocArray.h"
 

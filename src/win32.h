@@ -46,3 +46,29 @@ typedef int socklen_t;
 #undef GetProcAddress
 #define GetProcAddress(hModule, lpProcName) lt_dlsym((lt_dlhandle)hModule, lpProcName)
 #endif
+
+#undef HAVE_AF_INET6
+#define HAVE_AF_INET6
+#undef HAVE_STRUCT_IN6_ADDR
+#define HAVE_STRUCT_IN6_ADDR
+#undef HAVE_STRUCT_SOCKADDR_IN6
+#define HAVE_STRUCT_SOCKADDR_IN6
+
+#if defined(_DEBUG) && defined(SBNC)
+void *DebugMalloc(size_t Size);
+void DebugFree(void *p);
+char *DebugStrDup(const char *p);
+void *DebugReAlloc(void *p, size_t newsize);
+bool ReportMemory(time_t Now, void *Cookie);
+
+#define real_malloc malloc
+#define real_free free
+#define real_strdup strdup
+#define real_realloc realloc
+
+#define malloc DebugMalloc
+#define free DebugFree
+#undef strdup
+#define strdup DebugStrDup
+#define realloc DebugReAlloc
+#endif
