@@ -31,7 +31,7 @@ class CTimer;
  * Describes a failed login attempt.
  */
 typedef struct badlogin_s {
-	sockaddr_in Address;
+	sockaddr *Address;
 	unsigned int Count;
 } badlogin_t;
 
@@ -139,8 +139,8 @@ public:
 
 	virtual void LoadEvent(void);
 
-	virtual void LogBadLogin(sockaddr_in Peer);
-	virtual bool IsIpBlocked(sockaddr_in Peer);
+	virtual void LogBadLogin(sockaddr *Peer);
+	virtual bool IsIpBlocked(sockaddr *Peer);
 
 	virtual void AddHostAllow(const char *Mask, bool UpdateConfig = true);
 	virtual void RemoveHostAllow(const char *Mask, bool UpdateConfig = true);

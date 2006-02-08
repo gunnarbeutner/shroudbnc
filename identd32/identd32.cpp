@@ -91,7 +91,7 @@ public:
 			return;
 		}
 
-		int i = 0;
+		int i = 0, LPort, RPort;
 		hash_t<CUser *> *UserHash;
 
 		while ((UserHash = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
@@ -102,7 +102,26 @@ public:
 				continue;
 			}
 
-			if (htons(IRC->GetLocalAddress().sin_port) == LocalPort && htons(IRC->GetRemoteAddress().sin_port) == RemotePort) {
+			sockaddr *LocalAddress = IRC->GetLocalAddress();
+			sockaddr *RemoteAddress = IRC->GetRemoteAddress();
+
+			if (LocalAddress->sa_family != RemoteAddress->sa_family) {
+				continue;
+			}
+
+			if (LocalAddress->sa_family == AF_INET) {
+				LPort = htons(((sockaddr_in *)LocalAddress)->sin_port);
+			} else {
+				LPort = htons(((sockaddr_in6 *)LocalAddress)->sin6_port);
+			}
+
+			if (RemoteAddress->sa_family == AF_INET) {
+				RPort = htons(((sockaddr_in *)RemoteAddress)->sin_port);
+			} else {
+				RPort = htons(((sockaddr_in6 *)RemoteAddress)->sin6_port);
+			}
+
+			if (LPort == LocalPort && RPort == RemotePort) {
 				// 113 , 3559 : USERID : UNIX : shroud
 				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
 

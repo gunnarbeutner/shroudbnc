@@ -28,8 +28,8 @@ extern "C" {
 #define BLOCKSIZE 4096
 #define SENDSIZE 4096
 
-IMPL_DNSEVENTCLASS(CConnectionDnsEvents, CConnection, AsyncDnsFinished);
-IMPL_DNSEVENTCLASS(CBindIpDnsEvents, CConnection, AsyncBindIpDnsFinished);
+IMPL_DNSEVENTPROXY(CConnection, AsyncDnsFinished);
+IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -44,54 +44,26 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 }
 
 CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {
-	in_addr ip;
-
 	m_Family = Family;
 
 	SetRole(Role_Client);
 
 	InitConnection(INVALID_SOCKET, SSL);
 
-	ip.s_addr = inet_addr(Host);
-
-	if (ip.s_addr != INADDR_NONE) {
-		m_HostAddr = (in_addr *)malloc(sizeof(in_addr));
-
-		*(in_addr *)m_HostAddr = ip;
-	}
-
-	if (BindIp) {
-		ip.s_addr = inet_addr(BindIp);
-
-		if (ip.s_addr != INADDR_NONE) {
-			m_BindAddr = (in_addr *)malloc(sizeof(in_addr));
-
-			*(in_addr *)m_BindAddr = ip;
-		}
-	}
-
 	m_Socket = INVALID_SOCKET;
 	m_PortCache = Port;
 	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
 
-	if (m_HostAddr == NULL) {
-		m_DnsEvents = new CConnectionDnsEvents(this);
-		m_DnsQuery = new CDnsQuery(m_DnsEvents);
+	m_DnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncDnsFinished));
 
-		m_DnsQuery->GetHostByName(Host, Family);
-	} else {
-		m_DnsQuery = NULL;
-		m_DnsEvents = NULL;
-	}
+	m_DnsQuery->GetHostByName(Host, Family);
 
-	if (m_BindIpCache && m_BindAddr == NULL) {
-		m_BindDnsEvents = new CBindIpDnsEvents(this);
-		m_BindDnsQuery = new CDnsQuery(m_BindDnsEvents);
+	if (m_BindIpCache != NULL) {
+		m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
 
 		m_DnsQuery->GetHostByName(BindIp, Family);
 	} else {
 		m_BindDnsQuery = NULL;
-		m_BindDnsEvents = NULL;
 	}
 
 	// try to connect.. maybe we already have both addresses
@@ -108,9 +80,6 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_Traffic = NULL;
 
 	m_Wrapper = false;
-
-	m_DnsEvents = NULL;
-	m_BindDnsEvents = NULL;
 
 	m_SendQ = new CFIFOBuffer();
 	m_RecvQ = new CFIFOBuffer();
@@ -163,14 +132,6 @@ CConnection::~CConnection() {
 	}
 
 	free(m_BindIpCache);
-
-	if (m_DnsEvents) {
-		m_DnsEvents->Destroy();
-	}
-
-	if (m_BindDnsEvents) {
-		m_BindDnsEvents->Destroy();
-	}
 
 	if (m_Socket != INVALID_SOCKET) {
 		shutdown(m_Socket, SD_BOTH);
@@ -428,7 +389,7 @@ void CConnection::WriteUnformattedLine(const char *Line) {
 }
 
 void CConnection::WriteLine(const char *Format, ...) {
-	char* Line;
+	char *Line;
 	va_list Marker;
 
 	if (m_Shutdown) {
@@ -480,7 +441,7 @@ bool CConnection::HasQueuedData(void) {
 	}
 #endif
 
-	if (m_SendQ) {
+	if (m_SendQ != NULL) {
 		return m_SendQ->GetSize() > 0;
 	} else {
 		return 0;
@@ -497,7 +458,7 @@ int CConnection::GetSendqSize(void) {
 }
 
 int CConnection::GetRecvqSize(void) {
-	if (m_RecvQ) {
+	if (m_RecvQ != NULL) {
 		return m_RecvQ->GetSize();
 	} else {
 		return 0;
@@ -541,16 +502,16 @@ void CConnection::SetTrafficStats(CTrafficStats *Stats) {
 	m_Traffic = Stats;
 }
 
-CTrafficStats* CConnection::GetTrafficStats(void) {
+CTrafficStats *CConnection::GetTrafficStats(void) {
 	return m_Traffic;
 }
 
-const char* CConnection::GetClassName(void) {
+const char *CConnection::GetClassName(void) {
 	return "CConnection";
 }
 
 void CConnection::FlushSendQ(void) {
-	if (m_SendQ) {
+	if (m_SendQ != NULL) {
 		m_SendQ->Flush();
 	}
 }
@@ -565,7 +526,7 @@ bool CConnection::IsSSL(void) {
 
 X509 *CConnection::GetPeerCertificate(void) {
 #ifdef USESSL
-	if (m_HasSSL/* && SSL_get_verify_result(m_SSL) == X509_V_OK*/) {
+	if (IsSSL()) {
 		return SSL_get_peer_certificate(m_SSL);
 	}
 #endif
@@ -618,6 +579,7 @@ void CConnection::AsyncConnect(void) {
 				Bind = (sockaddr *)&BindV6;
 			}
 		}
+
 		m_Socket = SocketAndConnectResolved(Remote, Bind);
 
 		free(m_HostAddr);
@@ -630,7 +592,6 @@ void CConnection::AsyncConnect(void) {
 void CConnection::AsyncDnsFinished(hostent *Response) {
 	// TODO: figure out how to delete the query/event iface
 	m_DnsQuery = NULL;
-	m_DnsEvents = NULL;
 
 	if (Response == NULL) {
 		// we cannot destroy the object here as there might still be the other
@@ -656,7 +617,6 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	// TODO: figure out how to delete the query/event iface
 	m_BindDnsQuery = NULL;
-	m_BindDnsEvents = NULL;
 
 	if (Response != NULL) {
 		int Size;
@@ -681,20 +641,32 @@ bool CConnection::ShouldDestroy(void) {
 	return m_LatchedDestruction;
 }
 
-sockaddr_in CConnection::GetRemoteAddress(void) {
-	sockaddr_in Result;
-	socklen_t ResultLength = sizeof(Result);
+sockaddr *CConnection::GetRemoteAddress(void) {
+	static sockaddr *Result = NULL;
+	socklen_t ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
 
-	getpeername(m_Socket, (sockaddr *)&Result, &ResultLength);
+	if (Result == NULL) {
+		Result = (sockaddr *)malloc(ResultLength);
+	}
 
-	return Result;
+	if (getpeername(m_Socket, Result, &ResultLength) == 0) {
+		return Result;
+	} else {
+		return NULL;
+	}
 }
 
-sockaddr_in CConnection::GetLocalAddress(void) {
-	sockaddr_in Result;
-	socklen_t ResultLength = sizeof(Result);
+sockaddr *CConnection::GetLocalAddress(void) {
+	static sockaddr *Result = NULL;
+	socklen_t ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
 
-	getsockname(m_Socket, (sockaddr *)&Result, &ResultLength);
+	if (Result == NULL) {
+		Result = (sockaddr *)malloc(ResultLength);
+	}
 
-	return Result;
+	if (getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+		return Result;
+	} else {
+		return NULL;
+	}
 }

@@ -24,14 +24,17 @@ private:
 	EventClassName *m_EventObject;
 
 	virtual bool Read(bool DontProcess) {
-		sockaddr_in PeerAddress;
-		socklen_t PeerSize = sizeof(PeerAddress);
+		socklen_t PeerSize = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+		sockaddr *PeerAddress = (sockaddr *)malloc(PeerSize);
 		SOCKET Client;
 
-		Client = accept(m_Listener, (sockaddr*)&PeerAddress, &PeerSize);
+		Client = accept(m_Listener, PeerAddress, &PeerSize);
 
-		if (Client != INVALID_SOCKET)
+		if (Client != INVALID_SOCKET) {
 			Accept(Client, PeerAddress);
+		}
+
+		free(PeerAddress);
 
 		return true;
 	}
@@ -49,7 +52,7 @@ protected:
 		return m_EventObject;
 	}
 
-	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		closesocket(Client);
 	}
 public:
@@ -57,8 +60,8 @@ public:
 		Init(Listener, EventObject);
 	}
 
-	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventObject = NULL) {
-		Init(g_Bouncer->CreateListener(Port, BindIp), EventObject);
+	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventObject = NULL, int Family = AF_INET) {
+		Init(g_Bouncer->CreateListener(Port, BindIp, Family), EventObject);
 	}
 
 	void Init(SOCKET Listener, EventClassName *EventObject) {

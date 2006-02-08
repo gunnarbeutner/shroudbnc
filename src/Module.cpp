@@ -34,11 +34,17 @@ CModule::CModule(const char *Filename) {
 
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char*)&ErrorMsg, 0, NULL);
 
-		p = ErrorMsg;
+		p = strchr(ErrorMsg, '\r');
 
-		while (*p++)
-			if (*p == '\r' || *p == '\n')
-				*p = '\0';
+		if (p != NULL) {
+			p[0] = '\0';
+		}
+
+		p = strchr(ErrorMsg, '\n');
+
+		if (p != NULL) {
+			p[0] = '\0';
+		}
 #else
 		const char *ErrorMsg;
 
@@ -77,11 +83,13 @@ CModule::CModule(const char *Filename) {
 }
 
 CModule::~CModule() {
-	if (m_Far)
+	if (m_Far) {
 		m_Far->Destroy();
+	}
 
-	if (m_Image)
+	if (m_Image) {
 		FreeLibrary(m_Image);
+	}
 
 	free(m_File);
 
@@ -93,17 +101,18 @@ CModuleFar *CModule::GetModule(void) {
 		return NULL;
 	}
 
-	if (m_Far)
+	if (m_Far != NULL) {
 		return m_Far;
-	else {
+	} else {
 		FNGETOBJECT pfGetObject = (FNGETOBJECT)GetProcAddress(m_Image, "bncGetObject");
 
 		if (pfGetObject) {
 			m_Far = pfGetObject();
 
 			return m_Far;
-		} else
+		} else {
 			return NULL;
+		}
 	}
 }
 

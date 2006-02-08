@@ -1809,7 +1809,7 @@ bool bncisipblocked(const char* Ip) {
 	Peer.sin_addr.s_addr = addr;
 #endif
 
-	return Context->IsIpBlocked(Peer);
+	return Context->IsIpBlocked((sockaddr *)&Peer);
 }
 
 bool bnccanhostconnect(const char* Host) {

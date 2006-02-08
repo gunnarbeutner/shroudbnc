@@ -19,68 +19,54 @@
 
 #ifndef SWIG
 /**
- * CDnsEvents
+ * DnsEventFunction
  *
- * An interface for dns events.
+ * A function typedef for DNS event callbacks.
  */
-struct CDnsEvents {
-	/**
-	 * AsyncDnsFinished
-	 *
-	 * This function is executed when the dns query is finished or the query
-	 * timed out.
-	 * @param Response the associated response, can be NULL
-	 */
-	virtual void AsyncDnsFinished(hostent *Response) = 0;
+typedef void (*DnsEventFunction)(void *Object, hostent *Response);
 
-	/**
-	 * Destroy
-	 *
-	 * Destroys the event object.
-	 */
-	virtual void Destroy(void) = 0;
-};
-
-void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
-
+/**
+ * CDnsQuery
+ *
+ * A class for dns queries.
+ */
 class CDnsQuery {
-	CDnsEvents *m_EventObject;
-	ares_channel m_Channel;
+	void *m_EventObject; /**< the object used for callbacks */
+	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
+	ares_channel m_Channel; /**< the ares channel object */
 public:
-	CDnsQuery(CDnsEvents *EventInterface, int Timeout = 5);
+	CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout = 5);
 	~CDnsQuery(void);
 	void GetHostByName(const char *Host, int Family = AF_INET);
-	void GetHostByAddr(sockaddr *Address, int AddressLength, int Family = AF_INET);
+	void GetHostByAddr(sockaddr *Address);
 	ares_channel GetChannel(void);
+
+	void AsyncDnsEvent(int Status, hostent *Response);
 };
 
 /**
- * IMPL_DNSEVENTCLASS
+ * IMPL_DNSEVENTPROXY
  *
- * Implements the CDnsEvents interface.
+ * Implements a DNS event proxy.
  *
- * @param ClassName the name of the class which is to be created
- * @param EventClassName the name of the class which events should be passed to
+ * @param ClassName the name of the class
  * @param Function the name of the function in that class
  */
-#define IMPL_DNSEVENTCLASS(ClassName, EventClassName, Function) \
-class ClassName : public CDnsEvents { \
-private: \
-	EventClassName *m_EventObject; \
-\
-	virtual void AsyncDnsFinished(hostent *Response) { \
-		m_EventObject->Function(Response); \
-	} \
-public: \
-	ClassName(EventClassName* EventObject) { \
-		m_EventObject = EventObject; \
-	} \
-\
-	void Destroy(void) { \
-		delete this; \
-	} \
-};
+#define IMPL_DNSEVENTPROXY(ClassName, Function) \
+	void DnsEventProxy##ClassName##Function(void *Object, hostent *Response) { \
+		((ClassName *)Object)->Function(Response); \
+	}
+
+/**
+ * USE_DNSEVENTPROXY
+ *
+ * Returns the name of a DNS event proxy function.
+ *
+ * @param ClassName the name of the class
+ * @param Function the name of the function in that class
+ */
+#define USE_DNSEVENTPROXY(ClassName, Function) DnsEventProxy##ClassName##Function
+
 #else
-class CDnsEvents;
 class CDnsQuery;
 #endif

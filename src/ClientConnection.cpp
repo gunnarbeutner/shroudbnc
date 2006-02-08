@@ -22,30 +22,30 @@
 
 extern loaderparams_t *g_LoaderParameters;
 
-IMPL_DNSEVENTCLASS(CClientDnsEvents, CClientConnection, AsyncDnsFinishedClient);
+IMPL_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient)
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CClientConnection::CClientConnection(SOCKET Client, sockaddr_in Peer, bool SSL) : CConnection(Client, SSL, Role_Server) {
+CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Client, SSL, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
 
-	m_Peer = Peer;
 	m_PeerName = NULL;
+	m_PeerNameTemp = NULL;
 
 	if (Client != INVALID_SOCKET) {
 		WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC" BNCVERSION);
-		WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** Looking up your hostname");
 
-		m_DnsEvents = new CClientDnsEvents(this);
+		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
-// TODO: replace
-//		adns_submit_reverse(g_adns_State, (const sockaddr*)&m_Peer, adns_r_ptr, (adns_queryflags)0, m_DnsEvents, &m_PeerA);
+		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(GetRemoteAddress()));
+
+		m_ClientLookup->GetHostByAddr(GetRemoteAddress());
 	} else {
-		m_DnsEvents = NULL;
+		m_ClientLookup = NULL;
 	}
 
 	m_CommandList = NULL;
@@ -58,16 +58,14 @@ CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Own
 	m_Password = NULL;
 	m_Username = strdup(Owning->GetUsername());
 
-	socklen_t SocketLen = sizeof(m_Peer);
-	getpeername(Client, (sockaddr *)&m_Peer, &SocketLen);
-
 	m_PeerName = strdup(Box->ReadString("client.peername"));
+	m_PeerNameTemp = NULL;
 
 	m_Socket = (SOCKET)Box->ReadInteger("client.fd");
 
-	m_DnsEvents = NULL;
-
 	m_CommandList = NULL;
+
+	m_ClientLookup = NULL;
 
 	InitSocket();
 }
@@ -78,12 +76,9 @@ CClientConnection::~CClientConnection() {
 	free(m_Username);
 	free(m_PeerName);
 
-// TODO: replace
-//	if (!m_PeerName && m_Socket != INVALID_SOCKET)
-//		adns_cancel(m_PeerA);
-
-	if (m_DnsEvents)
-		m_DnsEvents->Destroy();
+	if (m_ClientLookup != NULL) {
+		delete m_ClientLookup;
+	}
 }
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
@@ -420,6 +415,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 #endif
 
+			asprintf(&Out, "ipv6 - %s", m_Owner->GetIPv6() ? "On" : "Off");
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
+
 			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
 			const char* DropModes = m_Owner->GetDropModes();
@@ -506,6 +507,18 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					m_Owner->SetSSL(true);
 				else if (strcasecmp(argv[2], "off") == 0)
 					m_Owner->SetSSL(false);
+				else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
+				}
+			} else if (strcasecmp(argv[1], "ipv6") == 0) {
+				if (strcasecmp(argv[2], "on") == 0) {
+					SENDUSER("Please keep in mind that IPv6 will only work if your server actually has IPv6 connectivity.");
+
+					m_Owner->SetIPv6(true);
+				} else if (strcasecmp(argv[2], "off") == 0)
+					m_Owner->SetIPv6(false);
 				else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 
@@ -1578,16 +1591,12 @@ bool CClientConnection::ValidateUser() {
 	User = g_Bouncer->GetUser(m_Username);
 
 	if (User) {
-		Blocked = User->IsIpBlocked(m_Peer);
+		Blocked = User->IsIpBlocked(GetRemoteAddress());
 		Valid = (Force || User->Validate(m_Password));
 		ValidHost = User->CanHostConnect(m_PeerName);
 
 		if (ValidHost == false) {
-			const char *Host;
-
-			Host = inet_ntoa(GetRemoteAddress().sin_addr);
-
-			ValidHost = User->CanHostConnect(Host);
+			ValidHost = User->CanHostConnect(IpToString(GetRemoteAddress()));
 		}
 	}
 
@@ -1596,13 +1605,13 @@ bool CClientConnection::ValidateUser() {
 		//WriteLine(":Notice!notice@shroudbnc.org NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
 		if (User && !Blocked) {
-			User->LogBadLogin(m_Peer);
+			User->LogBadLogin(GetRemoteAddress());
 		}
 
 		if (User && !ValidHost && !Blocked) {
-			g_Bouncer->Log("Attempted login from %s for %s denied: Host does not match any host allows.", inet_ntoa(m_Peer.sin_addr), m_Username);
+			g_Bouncer->Log("Attempted login from %s for %s denied: Host does not match any host allows.", IpToString(GetRemoteAddress()), m_Username);
 		} else if (User && Blocked) {
-			g_Bouncer->Log("Blocked login attempt from %s for %s", inet_ntoa(m_Peer.sin_addr), m_Username);
+			g_Bouncer->Log("Blocked login attempt from %s for %s", IpToString(GetRemoteAddress()), m_Username);
 		} else if (User) {
 			g_Bouncer->Log("Wrong password for user %s", m_Username);
 		}
@@ -1612,7 +1621,6 @@ bool CClientConnection::ValidateUser() {
 
 	return true;
 }
-
 
 const char* CClientConnection::GetNick(void) {
 	return m_Nick;
@@ -1632,39 +1640,74 @@ void CClientConnection::SetOwner(CUser* Owner) {
 }
 
 void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
-	if (!LookupFailure)
-		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Found your hostname (%s)", PeerName);
-	else
-		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Failed to resolve your host. Using IP address instead (%s)", PeerName);
+	if (m_PeerName != NULL) {
+		free(m_PeerName);
+	}
 
 	m_PeerName = strdup(PeerName);
 
 	ProcessBuffer();
 }
 
-CDnsQuery *CClientConnection::GetPeerDNSQuery(void) {
-	// TODO: implement
-	return NULL;
-}
-
-sockaddr_in CClientConnection::GetPeer(void) {
-	return m_Peer;
-}
-
 const char* CClientConnection::GetPeerName(void) {
 	return m_PeerName;
 }
 
-void CClientConnection::AsyncDnsFinishedClient(hostent* response) {
-	if (!response)
-		SetPeerName(inet_ntoa(GetPeer().sin_addr), true);
-	else
-		SetPeerName(response->h_name, false);
+void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
+	if (Response == NULL) {
 
-	m_DnsEvents->Destroy();
-	m_DnsEvents = NULL;
+		SetPeerName(IpToString(GetRemoteAddress()), true);
 
-	// TODO: destroy query
+		// TODO: destroy query
+	} else {
+		if (m_PeerNameTemp == NULL) {
+			m_PeerNameTemp = strdup(Response->h_name);
+
+			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Reverse DNS reply received (%s).", Response->h_name);
+			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Doing forward DNS lookup...");
+			m_ClientLookup->GetHostByName(Response->h_name, Response->h_addrtype);
+		} else {
+			sockaddr *saddr = NULL;
+
+			for (int i = 0; i < Response->h_length; i++) {
+				sockaddr_in sin;
+				sockaddr_in6 sin6;
+
+				if (Response->h_addrtype == AF_INET) {
+					sin.sin_family = AF_INET;
+					sin.sin_addr.s_addr = (*(in_addr *)Response->h_addr_list[i]).s_addr;
+					sin.sin_port = 0;
+					saddr = (sockaddr *)&sin;
+				} else {
+					sin6.sin6_family = AF_INET6;
+					memcpy(&sin6.sin6_addr.s6_addr, &(Response->h_addr_list[i]), sizeof(in6_addr));
+					sin6.sin6_port = 0;
+					saddr = (sockaddr *)&sin6;
+				}
+
+				if (CompareAddress(saddr, GetRemoteAddress()) == 0) {
+					SetPeerName(m_PeerNameTemp, false);
+					free(m_PeerNameTemp);
+
+					WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
+
+					// TODO: destroy query
+
+					return;
+				}
+			}
+
+			if (saddr != NULL) {
+				WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received. (%s)", IpToString(saddr));
+			} else {
+				WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received.");
+			}
+
+			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward and reverse DNS replies do not match. Using IP address instead.");
+			SetPeerName(IpToString(GetRemoteAddress()), true);
+			// TODO: destroy query
+		}
+	}
 }
 
 const char* CClientConnection::GetClassName(void) {
@@ -1674,10 +1717,11 @@ const char* CClientConnection::GetClassName(void) {
 bool CClientConnection::Read(bool DontProcess) {
 	bool Ret;
 
-	if (m_PeerName)
+	if (m_PeerName != NULL) {
 		Ret = CConnection::Read(false);
-	else
+	} else {
 		return CConnection::Read(true);
+	}
 
 	if (Ret && GetRecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");

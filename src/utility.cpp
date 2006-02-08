@@ -393,16 +393,18 @@ char *NickFromHostmask(const char *Hostmask) {
  *
  * @param Port the port this socket should listen on
  * @param BindIp the IP address this socket should be bound to
+ * @param Family address family (i.e. IPv4 or IPv6)
  */
-SOCKET CreateListener(unsigned short Port, const char *BindIp) {
+SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
+	sockaddr *saddr;
 	sockaddr_in sin;
+	sockaddr_in6 sin6;
 	const int optTrue = 1;
 	bool Bound = false;
 	SOCKET Listener;
 	hostent* hent;
-	in_addr *BindAddress;
 
-	Listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	Listener = socket(Family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Listener == INVALID_SOCKET) {
 		return INVALID_SOCKET;
@@ -410,26 +412,42 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp) {
 
 	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(Port);
+	if (Family == AF_INET) {
+		sin.sin_family = AF_INET;
+		sin.sin_port = htons(Port);
+
+		saddr = (sockaddr *)&sin;
+	} else {
+		memset(&sin6, 0, sizeof(sin6));
+		sin6.sin6_family = AF_INET6;
+		sin6.sin6_port = htons(Port);
+
+		saddr = (sockaddr *)&sin6;
+	}
 
 	if (BindIp) {
 		hent = gethostbyname(BindIp);
 
 		if (hent) {
-			BindAddress = (in_addr*)hent->h_addr_list[0];
-
-			sin.sin_addr.s_addr = BindAddress->s_addr;
+			if (Family = AF_INET) {
+				sin.sin_addr.s_addr = ((in_addr*)hent->h_addr_list[0])->s_addr;
+			} else {
+				memcpy(&(sin6.sin6_addr.s6_addr), &(((in6_addr*)hent->h_addr_list[0])->s6_addr), sizeof(in6_addr));
+			}
 
 			Bound = true;
 		}
 	}
 
 	if (!Bound) {
-		sin.sin_addr.s_addr = htonl(INADDR_ANY);
+		if (Family == AF_INET) {
+			sin.sin_addr.s_addr = htonl(INADDR_ANY);
+		} else {
+			memcpy(&(sin6.sin6_addr.s6_addr), &in6addr_any, sizeof(in6_addr));
+		}
 	}
 
-	if (bind(Listener, (sockaddr *)&sin, sizeof(sin)) != 0) {
+	if (bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
 		closesocket(Listener);
 
 		return INVALID_SOCKET;
@@ -599,4 +617,68 @@ int CmpString(const void *pA, const void *pB) {
  */
 void DestroyString(char *String) {
 	free(String);
+}
+
+/**
+ * IpToString
+ *
+ * Converts a sockaddr struct into a string.
+ *
+ * @param Address the address
+ */
+const char *IpToString(sockaddr *Address) {
+	static char Buffer[256];
+
+#ifdef _WIN32
+	sockaddr *Copy = (sockaddr *)malloc(SOCKADDR_LEN(Address->sa_family));
+	DWORD BufferLength = sizeof(Buffer);
+
+	memcpy(Copy, Address, SOCKADDR_LEN(Address->sa_family));
+
+	if (Address->sa_family == AF_INET) {
+		((sockaddr_in *)Address)->sin_port = 0;
+	} else {
+		((sockaddr_in6 *)Address)->sin6_port = 0;
+	}
+
+	WSAAddressToString(Address, SOCKADDR_LEN(Address->sa_family), NULL, Buffer, &BufferLength);
+
+	free(Copy);
+#else
+	inet_ntop(Address->sa_family, Address, Buffer, sizeof(Buffer));
+#endif
+
+	return Buffer;
+}
+
+/**
+ * CompareAddress
+ *
+ * Compares two sockaddr structs.
+ *
+ * @param pA the first sockaddr
+ * @param pB the second sockaddr
+ */
+int CompareAddress(sockaddr *pA, sockaddr *pB) {
+	if (pA->sa_family != pB->sa_family) {
+		return -1;
+	}
+
+	if (pA->sa_family == AF_INET) {
+		if (((sockaddr_in *)pA)->sin_addr.s_addr == ((sockaddr_in *)pB)->sin_addr.s_addr) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	if (pA->sa_family == AF_INET6) {
+		if (((sockaddr_in6 *)pA)->sin6_addr.s6_addr == ((sockaddr_in6 *)pB)->sin6_addr.s6_addr) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	return 2;
 }

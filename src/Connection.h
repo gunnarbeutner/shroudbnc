@@ -28,23 +28,46 @@ enum connection_role_e {
 	Role_Client
 };
 
-class CConnectionDnsEvents;
-class CBindIpDnsEvents;
-
 class CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CCore;
 	friend class CUser;
-	friend class CConnectionDnsEvents;
-	friend class CBindIpDnsEvents;
 #endif
+protected:
+	virtual void ParseLine(const char *Line);
+
+	void Timeout(int TimeLeft);
+
+	void SetRole(connection_role_e Role);
+
+	void InitSocket(void);
+
+	void ProcessBuffer(void);
+
+	void AsyncConnect(void);
+
+	SOCKET m_Socket; /**< the socket */
+
+	bool m_Locked; /**< determines whether data can be written for this connection */
+	bool m_Shutdown; /**< are we about to close this socket? */
+	time_t m_Timeout; /**< timeout for this socket */
+
+	bool m_Wrapper; /**< was this object created as a wrapper for another socket? */
+
+	SSL *m_SSL; /**< SSL context for this connection */
+public:
+	virtual void AsyncDnsFinished(hostent *Response);
+	virtual void AsyncBindIpDnsFinished(hostent *Response);
+private:
+	bool m_HasSSL; /**< is this an ssl-enabled connection? */
+
+	CFIFOBuffer *m_SendQ; /**< send queue */
+	CFIFOBuffer *m_RecvQ; /**< receive queue */
 
 	CDnsQuery *m_DnsQuery;
 	CDnsQuery *m_BindDnsQuery;
 	unsigned short m_PortCache;
 	char *m_BindIpCache;
-	CConnectionDnsEvents *m_DnsEvents;
-	CBindIpDnsEvents *m_BindDnsEvents;
 
 	bool m_LatchedDestruction;
 	CTrafficStats *m_Traffic;
@@ -90,11 +113,10 @@ public:
 	virtual bool IsSSL(void);
 	virtual X509 *GetPeerCertificate(void);
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context);
-
 	virtual bool ShouldDestroy(void);
 
-	virtual sockaddr_in GetRemoteAddress(void);
-	virtual sockaddr_in GetLocalAddress(void);
+	virtual sockaddr *GetRemoteAddress(void);
+	virtual sockaddr *GetLocalAddress(void);
 
 	virtual const char *GetClassName(void);
 
@@ -106,34 +128,4 @@ public:
 	virtual bool DoTimeout(void);
 	virtual void Error(void);
 	virtual bool HasQueuedData(void);
-
-protected:
-	virtual void ParseLine(const char *Line);
-
-	void Timeout(int TimeLeft);
-
-	void SetRole(connection_role_e Role);
-
-	void InitSocket(void);
-
-	void ProcessBuffer(void);
-
-	void AsyncConnect(void);
-	virtual void AsyncDnsFinished(hostent *Response);
-	virtual void AsyncBindIpDnsFinished(hostent *Response);
-
-	SOCKET m_Socket; /**< the socket */
-
-	bool m_Locked; /**< determines whether data can be written for this connection */
-	bool m_Shutdown; /**< are we about to close this socket? */
-	time_t m_Timeout; /**< timeout for this socket */
-
-	bool m_Wrapper; /**< was this object created as a wrapper for another socket? */
-
-	SSL *m_SSL; /**< SSL context for this connection */
-private:
-	bool m_HasSSL; /**< is this an ssl-enabled connection? */
-
-	CFIFOBuffer *m_SendQ; /**< send queue */
-	CFIFOBuffer *m_RecvQ; /**< receive queue */
 };

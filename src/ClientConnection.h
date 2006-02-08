@@ -18,28 +18,30 @@
  *******************************************************************************/
 
 class CTimer;
-class CClientDnsEvents;
 class CAssocArray;
 
 class CClientConnection : public CConnection, public COwnedObject<CUser> {
+private:
 	char *m_Nick;
 	char *m_Password;
 	char *m_Username;
-	sockaddr_in m_Peer;
 	char *m_PeerName;
-
-	CClientDnsEvents *m_DnsEvents;
+	char *m_PeerNameTemp;
 
 	commandlist_t m_CommandList;
 
 #ifndef SWIG
-	CDnsQuery *m_ReverseLookup;
+public:
+	virtual void AsyncDnsFinishedClient(hostent* response);
+
+	CDnsQuery *m_ClientLookup;
+private:
 #endif
 
 	bool ValidateUser();
 public:
 #ifndef SWIG
-	CClientConnection(SOCKET Socket, sockaddr_in Peer, bool SSL = false);
+	CClientConnection(SOCKET Socket, bool SSL = false);
 	CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CClientConnection(void);
@@ -52,12 +54,8 @@ public:
 
 	virtual void SetOwner(CUser* Owner);
 
-	virtual void AsyncDnsFinishedClient(hostent* response);
 	virtual void SetPeerName(const char* PeerName, bool LookupFailure);
-	virtual CDnsQuery *GetPeerDNSQuery(void);
-
 	virtual const char* GetPeerName(void);
-	virtual sockaddr_in GetPeer(void);
 
 	virtual bool Read(bool DontProcess = false);
 	virtual void Destroy(void);

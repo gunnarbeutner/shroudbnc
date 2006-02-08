@@ -355,13 +355,13 @@ const char *CUser::GetNick(void) {
 	} else {
 		const char *Nick = m_Config->ReadString("user.awaynick");
 
-		if (Nick != NULL) {
+		if (Nick != NULL && Nick[0] != '\0') {
 			return Nick;
 		}
 
 		Nick = m_Config->ReadString("user.nick");
 
-		if (Nick != NULL) {
+		if (Nick != NULL && Nick[0] != '\0') {
 			return Nick;
 		} else {
 			return m_Name;
@@ -412,7 +412,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 		if (FakeClient == NULL) {
 			sockaddr_in null_peer;
 			memset(&null_peer, 0, sizeof(null_peer));
-			FakeClient = new CClientConnection(INVALID_SOCKET, null_peer);
+			FakeClient = new CClientConnection(INVALID_SOCKET);
 
 			if (FakeClient == NULL) {
 				LOGERROR("new operator failed. Could not simulate command (%s, %s).", m_Name, Command);
@@ -843,11 +843,11 @@ void CUser::MarkQuitted(bool RequireManualJump) {
 	m_Config->WriteInteger("user.quitted", RequireManualJump ? 2 : 1);
 }
 
-void CUser::LogBadLogin(sockaddr_in Peer) {
+void CUser::LogBadLogin(sockaddr *Peer) {
 	badlogin_t BadLogin;
 
 	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
-		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr && m_BadLogins[i].Count < 3) {
+		if (CompareAddress(m_BadLogins[i].Address, Peer) == 0 && m_BadLogins[i].Count < 3) {
 			m_BadLogins[i].Count++;
 
 			return;
@@ -855,14 +855,15 @@ void CUser::LogBadLogin(sockaddr_in Peer) {
 	}
 
 	BadLogin.Count = 1;
-	BadLogin.Address = Peer;
+	BadLogin.Address = (sockaddr *)malloc(SOCKADDR_LEN(Peer->sa_family));
+	memcpy(BadLogin.Address, Peer, SOCKADDR_LEN(Peer->sa_family));
 
 	m_BadLogins.Insert(BadLogin);
 }
 
-bool CUser::IsIpBlocked(sockaddr_in Peer) {
+bool CUser::IsIpBlocked(sockaddr *Peer) {
 	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
-		if (m_BadLogins[i].Address.sin_addr.s_addr == Peer.sin_addr.s_addr) {
+		if (CompareAddress(m_BadLogins[i].Address, Peer) == 0) {
 			if (m_BadLogins[i].Count > 2) {
 				return true;
 			} else {
@@ -880,6 +881,7 @@ void CUser::BadLoginPulse(void) {
 			m_BadLogins[i].Count--;
 
 			if (m_BadLogins[i].Count <= 0) {
+				free(m_BadLogins[i].Address);
 				m_BadLogins.Remove(i);
 			}
 		}

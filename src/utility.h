@@ -65,7 +65,7 @@ int ArgCount(const char *Args);
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp);
 
-SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
+SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
 
 char* NickFromHostmask(const char *Hostmask);
 
@@ -79,7 +79,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.1 $Revision: 371 $"
+#define BNCVERSION "1.2 $Revision: 503 $"
 #define INTERFACEVERSION 22
 
 extern const char *g_ErrorFile;
@@ -94,3 +94,9 @@ extern unsigned int g_ErrorLine;
 #ifndef max
 #define max(a, b) ((a)<(b) ? (b) : (a))
 #endif
+
+#define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
+#define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
+
+const char *IpToString(sockaddr *Address);
+int CompareAddress(sockaddr *pA, sockaddr *pB);

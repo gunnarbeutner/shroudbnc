@@ -43,14 +43,14 @@ class CSSLClientListener;
 
 class CCore {
 #ifndef SWIG
-	friend class CTimer;
-	friend class CDnsQuery;
+	friend CTimer;
+	friend CDnsQuery;
 #endif
 
 	CConfig *m_Config;
 
-	CClientListener *m_Listener;
-	CSSLClientListener *m_SSLListener;
+	CClientListener *m_Listener, *m_ListenerV6;
+	CSSLClientListener *m_SSLListener, *m_SSLListenerV6;
 
 	CHashtable<CUser *, false, 64> m_Users;
 	CVector<CModule *> m_Modules;
@@ -75,7 +75,6 @@ class CCore {
 	SSL_CTX *m_SSLContext;
 	SSL_CTX *m_SSLClientContext;
 
-	void HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL = false);
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
@@ -114,7 +113,7 @@ public:
 	virtual void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
 	virtual void UnregisterSocket(SOCKET Socket);
 
-	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL);
+	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
 
 	virtual void Log(const char *Format, ...);
 	virtual CLog *GetLog(void);

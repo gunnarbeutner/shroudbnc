@@ -20,15 +20,16 @@
 #include "StdAfx.h"
 
 void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
-	CDnsEvents *EventInterface = (CDnsEvents *)Cookie;
+	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
-	EventInterface->AsyncDnsFinished(HostEntity);
+	Query->AsyncDnsEvent(Status, HostEntity);
 }
 
-CDnsQuery::CDnsQuery(CDnsEvents *EventInterface, int Timeout) {
+CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout) {
 	ares_options Options;
 
 	m_EventObject = EventInterface;
+	m_EventFunction = EventFunction;
 
 	ares_init(&m_Channel);
 
@@ -45,13 +46,25 @@ CDnsQuery::~CDnsQuery(void) {
 }
 
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
-	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, (CDnsEvents *)m_EventObject);
+	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, this);
 }
 
-void CDnsQuery::GetHostByAddr(sockaddr *Address, int AddressLength, int Family) {
-	ares_gethostbyaddr(m_Channel, Address, AddressLength, Family, GenericDnsQueryCallback, (CDnsEvents *)m_EventObject);
+void CDnsQuery::GetHostByAddr(sockaddr *Address) {
+	void *IpAddr;
+
+	if (Address->sa_family == AF_INET) {
+		IpAddr = &(((sockaddr_in *)Address)->sin_addr);
+	} else {
+		IpAddr = &(((sockaddr_in6 *)Address)->sin6_addr);
+	}
+
+	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
 }
 
 ares_channel CDnsQuery::GetChannel(void) {
 	return m_Channel;
+}
+
+void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
+	(*m_EventFunction)(m_EventObject, Response);
 }

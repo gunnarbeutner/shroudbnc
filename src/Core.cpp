@@ -52,34 +52,34 @@ time_t g_LastReconnect = 0;
 extern int g_TimerStats;
 #endif
 
-void AcceptHelper(SOCKET Client, sockaddr_in PeerAddress, bool SSL) {
+void AcceptHelper(SOCKET Client, bool SSL) {
 	unsigned long lTrue = 1;
 
 	ioctlsocket(Client, FIONBIO, &lTrue);
 
 	// destruction is controlled by the main loop
-	new CClientConnection(Client, PeerAddress, SSL);
+	new CClientConnection(Client, SSL);
 
 	g_Bouncer->Log("Bouncer client connected...");
 }
 
 IMPL_SOCKETLISTENER(CClientListener, CCore) {
 public:
-	CClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase<CCore>(Port, BindIp, NULL) { }
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CCore>(Port, BindIp, NULL, Family) { }
 	CClientListener(SOCKET Listener, CCore *EventClass = NULL) : CListenerBase<CCore>(Listener, EventClass) { }
 
-	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
-		AcceptHelper(Client, PeerAddress, false);
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
+		AcceptHelper(Client, false);
 	}
 };
 
 IMPL_SOCKETLISTENER(CSSLClientListener, CCore) {
 public:
-	CSSLClientListener(unsigned int Port, const char *BindIp = NULL) : CListenerBase<CCore>(Port, BindIp, NULL) { }
+	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CCore>(Port, BindIp, NULL, Family) { }
 	CSSLClientListener(SOCKET Listener, CCore *EventClass = NULL) : CListenerBase<CCore>(Listener, EventClass) { }
 
-	virtual void Accept(SOCKET Client, sockaddr_in PeerAddress) {
-		AcceptHelper(Client, PeerAddress, true);
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
+		AcceptHelper(Client, true);
 	}
 };
 
@@ -158,7 +158,9 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	ArgFree(Args);
 
 	m_Listener = NULL;
+	m_ListenerV6 = NULL;
 	m_SSLListener = NULL;
+	m_SSLListenerV6 = NULL;
 
 	m_Startup = time(NULL);
 
@@ -172,11 +174,11 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 CCore::~CCore() {
 	int a, c, d, i;
-/*	if (m_Listener != NULL)
+	if (m_Listener != NULL)
 		delete m_Listener;
 
 	if (m_SSLListener != NULL)
-		delete m_SSLListener;*/
+		delete m_SSLListener;
 
 	for (a = m_Modules.GetLength() - 1; a >= 0; a--) {
 		if (m_Modules[a])
@@ -249,18 +251,48 @@ void CCore::StartMainLoop(void) {
 	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 	if (m_Listener == NULL) {
-		if (Port != 0)
-			m_Listener = new CClientListener(Port, BindIp);
-		else
+		if (Port != 0) {
+			m_Listener = new CClientListener(Port, BindIp, AF_INET);
+		} else {
 			m_Listener = NULL;
+		}
+	}
+
+	if (m_ListenerV6 == NULL) {
+		if (Port != 0) {
+			m_ListenerV6 = new CClientListener(Port, BindIp, AF_INET6);
+
+			if (m_ListenerV6->IsValid() == false) {
+				delete m_ListenerV6;
+
+				m_ListenerV6 = NULL;
+			}
+		} else {
+			m_ListenerV6 = NULL;
+		}
 	}
 
 #ifdef USESSL
 	if (m_SSLListener == NULL) {
-		if (SSLPort != 0)
-			m_SSLListener = new CSSLClientListener(SSLPort, BindIp);
-		else
+		if (SSLPort != 0) {
+			m_SSLListener = new CSSLClientListener(SSLPort, BindIp, AF_INET);
+		} else {
 			m_SSLListener = NULL;
+		}
+	}
+
+	if (m_SSLListenerV6 == NULL) {
+		if (SSLPort != 0) {
+			m_SSLListenerV6 = new CSSLClientListener(SSLPort, BindIp, AF_INET6);
+
+			if (m_SSLListenerV6->IsValid() == false) {
+				delete m_SSLListenerV6;
+
+				m_SSLListenerV6 = NULL;
+			}
+		} else {
+			m_SSLListenerV6 = NULL;
+		}
 	}
 
 	SSL_library_init();
@@ -558,16 +590,6 @@ void CCore::StartMainLoop(void) {
 #endif
 }
 
-void CCore::HandleConnectingClient(SOCKET Client, sockaddr_in Remote, bool SSL) {
-	unsigned long lTrue = 1;
-	ioctlsocket(Client, FIONBIO, &lTrue);
-
-	// destruction is controlled by the main loop
-	new CClientConnection(Client, Remote, SSL);
-
-	Log("Bouncer client connected...");
-}
-
 CUser* CCore::GetUser(const char* Name) {
 	if (!Name)
 		return NULL;
@@ -736,8 +758,8 @@ void CCore::UnregisterSocket(SOCKET Socket) {
 	}
 }
 
-SOCKET CCore::CreateListener(unsigned short Port, const char* BindIp) {
-	return ::CreateListener(Port, BindIp);
+SOCKET CCore::CreateListener(unsigned short Port, const char* BindIp, int Family) {
+	return ::CreateListener(Port, BindIp, Family);
 }
 
 void CCore::Log(const char* Format, ...) {
