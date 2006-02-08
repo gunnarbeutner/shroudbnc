@@ -556,32 +556,6 @@ void CCore::StartMainLoop(void) {
 				}
 			}
 		}
-
-/*		CDnsEvents *Ctx;
-		adns_query query;
-
-		adns_forallqueries_begin(g_adns_State);
-
-		while ((query = adns_forallqueries_next(g_adns_State, (void **)&Ctx)) != NULL) {
-			adns_answer* reply = NULL;
-
-			int retval = adns_check(g_adns_State, &query, &reply, (void **)&Ctx);
-
-			switch (retval) {
-				case 0:
-					Ctx->AsyncDnsFinished(&query, reply);
-					Ctx->Destroy();
-
-					 break;
-				case EAGAIN:
-					break;
-				default:
-					Ctx->AsyncDnsFinished(&query, NULL);
-					Ctx->Destroy();
-
-					break;
-			}
-		}*/
 	}
 
 #ifdef USESSL
@@ -1436,8 +1410,12 @@ bool CCore::MakeConfig(void) {
 	MainConfig->WriteInteger("system.md5", 1);
 	MainConfig->WriteString("system.users", User);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
+#ifndef _DEBUG
 	MainConfig->WriteString("system.modules.mod0", "bnctcl.dll");
+#else
+	MainConfig->WriteString("system.modules.mod0", "..\\Debug\\bnctcl.dll");
+#endif
 #else
 	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.la");
 #endif

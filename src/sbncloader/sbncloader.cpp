@@ -127,8 +127,8 @@ HMODULE sbncLoadModule(void) {
 	if (hMod == NULL) {
 		printf("Module could not be loaded.");
 
-#ifndef _WIN32
-		printf(" %s", dlerror());
+#if !defined(_WIN32) || defined(__MINGW32__)
+		printf(" %s", lt_dlerror());
 #endif
 
 		printf("\n");
@@ -168,7 +168,8 @@ int main(int argc, char **argv) {
 	ThisMod = strdup(g_Mod);
 
 	Socket_Init();
-#ifndef _WIN32
+
+#if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlinit();
 #endif
 
@@ -251,7 +252,7 @@ int main(int argc, char **argv) {
 					printf("Giving up...\n");
 
 					Socket_Final();
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 					lt_dlexit();
 #endif
 
@@ -266,7 +267,7 @@ int main(int argc, char **argv) {
 
 	Socket_Final();
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlexit();
 #endif
 
