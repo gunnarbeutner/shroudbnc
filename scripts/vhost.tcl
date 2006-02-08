@@ -77,7 +77,7 @@ proc vhost:command {client parameters} {
 
 	if {![getbncuser $client admin] && [string equal -nocase [lindex $parameters 0] "set"] && [string equal -nocase [lindex $parameters 1] "vhost"]} {
 		if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-			if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
+			if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
 		}
 
 		if {![regexp {(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)} [lindex $parameters 2]]} {
