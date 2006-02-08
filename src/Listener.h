@@ -24,9 +24,17 @@ private:
 	EventClassName *m_EventObject;
 
 	virtual bool Read(bool DontProcess) {
-		socklen_t PeerSize = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
-		sockaddr *PeerAddress = (sockaddr *)malloc(PeerSize);
+		socklen_t PeerSize;
+		sockaddr *PeerAddress;
 		SOCKET Client;
+
+#ifdef IPV6
+		PeerSize = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+#else
+		PeerSize = sizeof(sockaddr_in);
+#endif
+
+		PeerAddress = (sockaddr *)malloc(PeerSize);
 
 		Client = accept(m_Listener, PeerAddress, &PeerSize);
 

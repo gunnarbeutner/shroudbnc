@@ -19,6 +19,8 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
+#include "../config.h"
+
 #ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
 
@@ -60,6 +62,16 @@ typedef void SSL;
 typedef void SSL_CTX;
 typedef void X509;
 typedef void X509_STORE_CTX;
+#endif
+
+#ifdef _WIN32
+#define HAVE_AF_INET6
+#define HAVE_STRUCT_IN6_ADDR
+#define HAVE_STRUCT_SOCKADDR_IN6
+#endif
+
+#if defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6)
+#define IPV6
 #endif
 
 #include "snprintf.h"

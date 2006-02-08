@@ -415,11 +415,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 #endif
 
+#ifdef IPV6
 			asprintf(&Out, "ipv6 - %s", m_Owner->GetIPv6() ? "On" : "Off");
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
+#endif
 
 			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
@@ -512,6 +514,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 					return false;
 				}
+#ifdef IPV6
 			} else if (strcasecmp(argv[1], "ipv6") == 0) {
 				if (strcasecmp(argv[2], "on") == 0) {
 					SENDUSER("Please keep in mind that IPv6 will only work if your server actually has IPv6 connectivity.");
@@ -524,6 +527,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 					return false;
 				}
+#endif
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -1671,18 +1675,22 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 
 			for (int i = 0; i < Response->h_length; i++) {
 				sockaddr_in sin;
+#ifdef IPV6
 				sockaddr_in6 sin6;
+#endif
 
 				if (Response->h_addrtype == AF_INET) {
 					sin.sin_family = AF_INET;
 					sin.sin_addr.s_addr = (*(in_addr *)Response->h_addr_list[i]).s_addr;
 					sin.sin_port = 0;
 					saddr = (sockaddr *)&sin;
+#ifdef IPV6
 				} else {
 					sin6.sin6_family = AF_INET6;
 					memcpy(&sin6.sin6_addr.s6_addr, &(Response->h_addr_list[i]), sizeof(in6_addr));
 					sin6.sin6_port = 0;
 					saddr = (sockaddr *)&sin6;
+#endif
 				}
 
 				if (CompareAddress(saddr, GetRemoteAddress()) == 0) {

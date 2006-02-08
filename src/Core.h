@@ -43,8 +43,8 @@ class CSSLClientListener;
 
 class CCore {
 #ifndef SWIG
-	friend CTimer;
-	friend CDnsQuery;
+	friend class CTimer;
+	friend class CDnsQuery;
 #endif
 
 	CConfig *m_Config;

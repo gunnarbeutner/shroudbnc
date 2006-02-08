@@ -95,8 +95,13 @@ extern unsigned int g_ErrorLine;
 #define max(a, b) ((a)<(b) ? (b) : (a))
 #endif
 
+#ifdef IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
+#else
+#define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
+#define INADDR_LEN(Family) (sizeof(sockaddr_in6))
+#endif
 
 const char *IpToString(sockaddr *Address);
 int CompareAddress(sockaddr *pA, sockaddr *pB);

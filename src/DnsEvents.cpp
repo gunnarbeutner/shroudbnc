@@ -52,11 +52,15 @@ void CDnsQuery::GetHostByName(const char *Host, int Family) {
 void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	void *IpAddr;
 
+#ifdef IPV6
 	if (Address->sa_family == AF_INET) {
+#endif
 		IpAddr = &(((sockaddr_in *)Address)->sin_addr);
+#ifdef IPV6
 	} else {
 		IpAddr = &(((sockaddr_in6 *)Address)->sin6_addr);
 	}
+#endif
 
 	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
 }

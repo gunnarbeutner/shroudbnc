@@ -61,7 +61,7 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 	if (m_BindIpCache != NULL) {
 		m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
 
-		m_DnsQuery->GetHostByName(BindIp, Family);
+		m_BindDnsQuery->GetHostByName(BindIp, Family);
 	} else {
 		m_BindDnsQuery = NULL;
 	}
@@ -560,6 +560,7 @@ void CConnection::AsyncConnect(void) {
 
 				Bind = (sockaddr *)&BindV4;
 			}
+#ifdef IPV6
 		} else {
 			sockaddr_in6 RemoteV6, BindV6;
 
@@ -578,6 +579,7 @@ void CConnection::AsyncConnect(void) {
 
 				Bind = (sockaddr *)&BindV6;
 			}
+#endif
 		}
 
 		m_Socket = SocketAndConnectResolved(Remote, Bind);
@@ -643,7 +645,13 @@ bool CConnection::ShouldDestroy(void) {
 
 sockaddr *CConnection::GetRemoteAddress(void) {
 	static sockaddr *Result = NULL;
-	socklen_t ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+	socklen_t ResultLength;
+
+#ifdef IPV6
+	ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+#else
+	ResultLength = sizeof(sockaddr_in);
+#endif
 
 	if (Result == NULL) {
 		Result = (sockaddr *)malloc(ResultLength);
@@ -658,7 +666,13 @@ sockaddr *CConnection::GetRemoteAddress(void) {
 
 sockaddr *CConnection::GetLocalAddress(void) {
 	static sockaddr *Result = NULL;
-	socklen_t ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+	socklen_t ResultLength;
+
+#ifdef IPV6
+	ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
+#else
+	ResultLength = sizeof(sockaddr_in);
+#endif
 
 	if (Result == NULL) {
 		Result = (sockaddr *)malloc(ResultLength);

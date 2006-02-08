@@ -325,20 +325,28 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp) {
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp) {
+#ifdef IPV6
 		if (BindIp->sa_family == AF_INET) {
+#endif
 			Size = sizeof(sockaddr_in);
+#ifdef IPV6
 		} else {
 			Size = sizeof(sockaddr_in6);
 		}
+#endif
 
 		bind(Socket, (sockaddr *)&BindIp, Size);
 	}
 
+#ifdef IPV6
 	if (Host->sa_family == AF_INET) {
+#endif
 		Size = sizeof(sockaddr_in);
+#ifdef IPV6
 	} else {
 		Size = sizeof(sockaddr_in6);
 	}
+#endif
 
 	Code = connect(Socket, Host, Size);
 
@@ -398,7 +406,9 @@ char *NickFromHostmask(const char *Hostmask) {
 SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 	sockaddr *saddr;
 	sockaddr_in sin;
+#ifdef IPV6
 	sockaddr_in6 sin6;
+#endif
 	const int optTrue = 1;
 	bool Bound = false;
 	SOCKET Listener;
@@ -412,39 +422,55 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 
 	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 
+#ifdef IPV6
 	if (Family == AF_INET) {
+#endif
 		sin.sin_family = AF_INET;
 		sin.sin_port = htons(Port);
 
 		saddr = (sockaddr *)&sin;
+#ifdef IPV6
 	} else {
 		memset(&sin6, 0, sizeof(sin6));
 		sin6.sin6_family = AF_INET6;
 		sin6.sin6_port = htons(Port);
 
 		saddr = (sockaddr *)&sin6;
+
+#ifndef _WIN32
+		setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
+#endif
 	}
+#endif
 
 	if (BindIp) {
 		hent = gethostbyname(BindIp);
 
 		if (hent) {
+#ifdef IPV6
 			if (Family = AF_INET) {
+#endif
 				sin.sin_addr.s_addr = ((in_addr*)hent->h_addr_list[0])->s_addr;
+#ifdef IPV6
 			} else {
 				memcpy(&(sin6.sin6_addr.s6_addr), &(((in6_addr*)hent->h_addr_list[0])->s6_addr), sizeof(in6_addr));
 			}
+#endif
 
 			Bound = true;
 		}
 	}
 
 	if (!Bound) {
+#ifdef IPV6
 		if (Family == AF_INET) {
+#endif
 			sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#ifdef IPV6
 		} else {
 			memcpy(&(sin6.sin6_addr.s6_addr), &in6addr_any, sizeof(in6_addr));
 		}
+#endif
 	}
 
 	if (bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
