@@ -1156,6 +1156,10 @@ bool CUser::PersistCertificates(void) {
 	} else {
 		CertFile = fopen(Filename, "w");
 
+#ifndef _WIN32
+		chmod(Filename, S_IRUSR | S_IWUSR | IWXUSR);
+#endif
+
 		free(Filename);
 
 		CHECK_ALLOC_RESULT(CertFile, fopen) {

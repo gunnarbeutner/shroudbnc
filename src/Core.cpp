@@ -1006,6 +1006,10 @@ void CCore::WritePidFile(void) {
 	if (pid) {
 		FILE* pidFile = fopen("sbnc.pid", "w");
 
+#ifndef _WIN32
+		chmod("sbnc.pid", S_IRUSR | S_IWUSR | IWXUSR);
+#endif
+
 		if (pidFile) {
 			fprintf(pidFile, "%d", pid);
 			fclose(pidFile);
@@ -1403,6 +1407,9 @@ bool CCore::MakeConfig(void) {
 
 	rename("sbnc.conf", "sbnc.conf.old");
 	mkdir("users");
+#ifndef _WIN32
+	chmod("users", S_IRUSR | S_IWUSR | IWXUSR);
+#endif
 
 	MainConfig = new CConfig("sbnc.conf");
 

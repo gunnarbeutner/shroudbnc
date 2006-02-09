@@ -221,6 +221,10 @@ bool CConfig::Persist(void) {
 
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
+#ifndef _WIN32
+	chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+#endif
+
 	if (ConfigFile != NULL) {
 		int i = 0;
 		while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {

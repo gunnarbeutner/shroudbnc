@@ -130,6 +130,10 @@ void CLog::WriteUnformattedLine(const char *Line) {
 		return;
 	}
 
+#ifndef _WIN32
+	chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+#endif
+
 	time(&tNow);
 	Now = *localtime(&tNow);
 
@@ -191,6 +195,10 @@ void CLog::Clear(void) {
 	FILE *LogFile;
 	
 	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
+#ifndef _WIN32
+		chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+#endif
+
 		fclose(LogFile);
 	}
 }
