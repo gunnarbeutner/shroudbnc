@@ -174,11 +174,6 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 CCore::~CCore() {
 	int a, c, d, i;
-	if (m_Listener != NULL)
-		delete m_Listener;
-
-	if (m_SSLListener != NULL)
-		delete m_SSLListener;
 
 	for (a = m_Modules.GetLength() - 1; a >= 0; a--) {
 		if (m_Modules[a])

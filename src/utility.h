@@ -87,6 +87,8 @@ extern unsigned int g_ErrorLine;
 
 #define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
 
+void StrTrim(char *String);
+
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))
 #endif

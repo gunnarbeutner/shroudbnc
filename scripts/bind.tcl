@@ -217,16 +217,11 @@ proc sbnc:callbinds {type flags chan mask args} {
 			set errcode [catch [list eval $p $args] error]
 
 			if {$errcode} {
-				set ctx [getctx]
-				setctx [lindex [bncuserlist] 0]
-
-				bncnotc "Error in bind $t $f $m called: $p ($args)"
+				bncnotc "Error in tcl bind $t $f $m called: $p ($args)"
 
 				foreach line [split $error \n] {
 					bncnotc $line
 				}
-
-				setctx $ctx
 			}
 
 			incr count

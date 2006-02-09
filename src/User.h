@@ -40,6 +40,23 @@ bool BadLoginTimer(time_t Now, void *User);
 bool UserReconnectTimer(time_t Now, void *User);
 #endif
 
+#define USER_SETFUNCTION(Setting, Value) { \
+	char *DupValue = NULL; \
+	\
+	if (Value != NULL) { \
+		DupValue = strdup(Value); \
+		\
+		CHECK_ALLOC_RESULT(DupValue, strdup) { \
+			return; \
+		} CHECK_ALLOC_RESULT_END; \
+		\
+	} \
+	\
+	m_Config->WriteString("user." #Setting, Value); \
+	\
+	free(DupValue); \
+}
+
 class CUser {
 	friend class CCore;
 #ifndef SWIG
@@ -56,8 +73,6 @@ class CUser {
 
 	time_t m_ReconnectTime;
 	time_t m_LastReconnect;
-
-	bool m_Locked; /**< determines whether the user is locked/suspended */
 
 	CVector<badlogin_t> m_BadLogins; /**< a list of failed login attempts for this user */
 

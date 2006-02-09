@@ -671,7 +671,15 @@ const char *IpToString(sockaddr *Address) {
 
 	free(Copy);
 #else
-	inet_ntop(Address->sa_family, Address, Buffer, sizeof(Buffer));
+	void *IpAddress;
+
+	if (Address->sa_family == AF_INET) {
+		IpAddress = &(((sockaddr_in *)Address)->sin_addr);
+	} else {
+		IpAddress = &(((sockaddr_in6 *)Address)->sin6_addr);
+	}
+
+	inet_ntop(Address->sa_family, IpAddress, Buffer, sizeof(Buffer));
 #endif
 
 	return Buffer;
@@ -707,4 +715,36 @@ int CompareAddress(sockaddr *pA, sockaddr *pB) {
 	}
 
 	return 2;
+}
+
+/**
+ * StrTrim
+ *
+ * Removes leading and trailing spaces from a string.
+ *
+ * @param String the string
+ */
+void StrTrim(char *String) {
+	size_t Length = strlen(String);
+	size_t Offset = 0;
+
+	// remove leading spaces
+	for (int i = 0; i < Length; i++) {
+		if (String[i] == ' ') {
+			Offset++;
+		} else {
+			break;
+		}
+	}
+
+	if (Offset > 0) {
+		for (int i = 0; i < Length; i++) {
+			String[i] = String[i + Offset];
+		}
+	}
+
+	// remove trailing spaces
+	while (String[strlen(String) - 1] == ' ') {
+		String[strlen(String) - 1] = '\0';
+	}
 }

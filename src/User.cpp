@@ -806,7 +806,7 @@ void CUser::SetPassword(const char *Password) {
 }
 
 void CUser::SetServer(const char *Server) {
-	m_Config->WriteString("user.server", Server);
+	USER_SETFUNCTION(server, Server);
 }
 
 const char *CUser::GetServer(void) {
@@ -832,11 +832,11 @@ bool CUser::IsLocked(void) {
 }
 
 void CUser::SetNick(const char *Nick) {
-	m_Config->WriteString("user.nick", Nick);
+	USER_SETFUNCTION(nick, Nick);
 }
 
 void CUser::SetRealname(const char *Realname) {
-	m_Config->WriteString("user.realname", Realname);
+	USER_SETFUNCTION(realname, Realname);
 }
 
 void CUser::MarkQuitted(bool RequireManualJump) {
@@ -1027,10 +1027,10 @@ const char *CUser::GetAwayNick(void) {
 }
 
 void CUser::SetAwayNick(const char *Nick) {
-	m_Config->WriteString("user.awaynick", Nick);
+	USER_SETFUNCTION(awaynick, Nick);
 
 	if (m_Client == NULL && m_IRC != NULL) {
-		m_IRC->WriteLine("Nick :%s", Nick);
+		m_IRC->WriteLine("NICK :%s", Nick);
 	}
 }
 
@@ -1039,7 +1039,7 @@ const char *CUser::GetAwayText(void) {
 }
 
 void CUser::SetAwayText(const char *Reason) {
-	m_Config->WriteString("user.away", Reason);
+	USER_SETFUNCTION(away, Reason);
 
 	if (m_Client == NULL && m_IRC != NULL) {
 		m_IRC->WriteLine("AWAY :%s", Reason);
@@ -1051,7 +1051,7 @@ const char *CUser::GetVHost(void) {
 }
 
 void CUser::SetVHost(const char *VHost) {
-	m_Config->WriteString("user.ip", VHost);
+	USER_SETFUNCTION(vhost, VHost);
 }
 
 int CUser::GetDelayJoin(void) {
@@ -1067,7 +1067,7 @@ const char *CUser::GetConfigChannels(void) {
 }
 
 void CUser::SetConfigChannels(const char *Channels) {
-	m_Config->WriteString("user.channels", Channels);
+	USER_SETFUNCTION(channels, Channels);
 }
 
 const char *CUser::GetSuspendReason(void) {
@@ -1075,7 +1075,7 @@ const char *CUser::GetSuspendReason(void) {
 }
 
 void CUser::SetSuspendReason(const char *Reason) {
-	m_Config->WriteString("user.suspend", Reason);
+	USER_SETFUNCTION(suspend, Reason);
 }
 
 const char *CUser::GetServerPassword(void) {
@@ -1083,7 +1083,7 @@ const char *CUser::GetServerPassword(void) {
 }
 
 void CUser::SetServerPassword(const char *Password) {
-	m_Config->WriteString("user.spass", Password);
+	USER_SETFUNCTION(spass, Password);
 }
 
 const char* CUser::GetAutoModes(void) {
@@ -1091,7 +1091,7 @@ const char* CUser::GetAutoModes(void) {
 }
 
 void CUser::SetAutoModes(const char *AutoModes) {
-	m_Config->WriteString("user.automodes", AutoModes);
+	USER_SETFUNCTION(automodes, AutoModes);
 }
 
 const char *CUser::GetDropModes(void) {
@@ -1099,7 +1099,7 @@ const char *CUser::GetDropModes(void) {
 }
 
 void CUser::SetDropModes(const char *DropModes) {
-	m_Config->WriteString("user.dropmodes", DropModes);
+	USER_SETFUNCTION(dropmodes, DropModes);
 }
 
 CVector<X509 *> *CUser::GetClientCertificates(void) {
@@ -1190,16 +1190,6 @@ bool CUser::FindClientCertificate(X509 *Certificate) {
 	return false;
 }
 
-void CUser::SetSSL(bool SSL) {
-#ifdef USESSL
-	if (SSL) {
-		m_Config->WriteInteger("user.ssl", 1);
-	} else {
-		m_Config->WriteInteger("user.ssl", 0);
-	}
-#endif
-}
-
 bool CUser::GetSSL(void) {
 #ifdef USESSL
 	if (m_Config->ReadInteger("user.ssl") != 0) {
@@ -1212,12 +1202,22 @@ bool CUser::GetSSL(void) {
 #endif
 }
 
-void CUser::SetIdent(const char *Ident) {
-	m_Config->WriteString("user.ident", Ident);
+void CUser::SetSSL(bool SSL) {
+#ifdef USESSL
+	if (SSL) {
+		m_Config->WriteInteger("user.ssl", 1);
+	} else {
+		m_Config->WriteInteger("user.ssl", 0);
+	}
+#endif
 }
 
 const char *CUser::GetIdent(void) {
 	return m_Config->ReadString("user.ident");
+}
+
+void CUser::SetIdent(const char *Ident) {
+	USER_SETFUNCTION(ident, Ident);
 }
 
 const char *CUser::GetTagString(const char *Tag) {
@@ -1314,14 +1314,14 @@ const char *CUser::GetTagName(int Index) {
 	return NULL;
 }
 
-void CUser::SetIPv6(bool IPv6) {
-	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
-}
-
 bool CUser::GetIPv6(void) {
 	if (m_Config->ReadInteger("user.ipv6") != 0) {
 		return true;
 	} else {
 		return false;
 	}
+}
+
+void CUser::SetIPv6(bool IPv6) {
+	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
 }
