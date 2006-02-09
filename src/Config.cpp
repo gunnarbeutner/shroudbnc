@@ -222,7 +222,7 @@ bool CConfig::Persist(void) {
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
 #ifndef _WIN32
-	chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+	chmod(m_Filename, S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 	if (ConfigFile != NULL) {

@@ -43,7 +43,6 @@ typedef int SOCKET;
 #define FD_SETSIZE 4096
 #define ioctlsocket ioctl
 
-typedef lt_dlhandle HMODULE;
 typedef int BOOL;
 
 #define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName)

@@ -1157,7 +1157,7 @@ bool CUser::PersistCertificates(void) {
 		CertFile = fopen(Filename, "w");
 
 #ifndef _WIN32
-		chmod(Filename, S_IRUSR | S_IWUSR | IWXUSR);
+		chmod(Filename, S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 		free(Filename);

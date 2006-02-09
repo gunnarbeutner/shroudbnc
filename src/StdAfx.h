@@ -46,6 +46,10 @@
 #	endif
 #endif
 
+#ifndef _WIN32
+typedef lt_dlhandle HMODULE;
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
