@@ -131,7 +131,7 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	}
 
 #ifndef _WIN32
-	chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+	chmod(m_Filename, S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 	time(&tNow);
@@ -196,7 +196,7 @@ void CLog::Clear(void) {
 	
 	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
 #ifndef _WIN32
-		chmod(m_Filename, S_IRUSR | S_IWUSR | IWXUSR);
+		chmod(m_Filename, S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 		fclose(LogFile);
