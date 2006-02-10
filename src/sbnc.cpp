@@ -66,7 +66,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	srand((unsigned int)time(NULL));
 
 #ifndef _WIN32
-	if (geteuid() == 0) {
+	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {
 		printf("You cannot run shroudBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
 		return 1;
 	}

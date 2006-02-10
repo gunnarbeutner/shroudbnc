@@ -103,7 +103,7 @@ const char *sbncGetModulePath(void) {
 
 #ifndef _WIN32
 void PathCanonicalize(char *NewPath, const char *Path) {
-	int i = 0, a = 0;
+	int i = 0, o = 0;
 
 	while (true) {
 		if (o >= MAX_PATH - 1) {

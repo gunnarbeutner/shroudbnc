@@ -22,8 +22,8 @@ internalbind usrdelete sbnc:partysync
 
 set ::partyline [list &partyline &test]
 
-if {![info exists ::partytopic]} {
-	foreach chan $::partyline {
+foreach chan $::partyline {
+	if {![info exists ::partytopic($chan)] || ![info exists ::partyts($chan)] || ![info exists ::partywho($chan)]} {
 		set ::partytopic($chan) "shroudBNC Partyline"
 		set ::partyts($chan) [unixtime]
 		set ::partywho($chan) "-sBNC"

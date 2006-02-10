@@ -1153,12 +1153,16 @@ bool DelayJoinTimer(time_t Now, void* IRCConnection) {
 bool IRCPingTimer(time_t Now, void* IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
 
-	if (IRC->m_Socket != INVALID_SOCKET) {
-		IRC->WriteLine("PING :sbnc");
+	if (IRC->m_Socket == INVALID_SOCKET) {
+		return true;
 	}
 
 	if (time(NULL) - IRC->m_LastResponse > 300) {
-		IRC->Kill("Server does not respond.");
+		IRC->WriteLine("PING :sbnc");
+
+		if (time(NULL) - IRC->m_LastResponse > 600) {
+			IRC->Kill("Server does not respond.");
+		}
 	}
 
 	return true;
