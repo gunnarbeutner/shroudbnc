@@ -67,4 +67,4 @@ AM_CFLAGS=@SSLCFLAGS@
 AM_CPPFLAGS=@SSLCFLAGS@
 
 install:
-	@if [ -d $(exec_prefix)/sbnc.ipc ]; then rm $(exec_prefix)/sbnc.ipc; fi
+	@if [ -e $(exec_prefix)/sbnc.ipc ]; then rm $(exec_prefix)/sbnc.ipc; fi

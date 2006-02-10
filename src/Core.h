@@ -178,7 +178,7 @@ public:
 	virtual const char *GetTagName(int Index);
 
 	virtual const char *GetBasePath(void);
-	virtual const char *BuildPath(const char *Filename);
+	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL);
 };
 
 extern CCore *g_Bouncer;

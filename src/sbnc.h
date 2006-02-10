@@ -4,7 +4,8 @@ typedef bool (*GetBoxProc)(CAssocArray **BoxPtr);
 typedef void (*SigEnableProc)(void);
 typedef void (*SetModuleProc)(const char *Module);
 typedef void (*SetAutoReloadProc)(bool Reload);
-typedef const char *(*BuildPath)(const char *Filename);
+typedef const char *(*BuildPathProc)(const char *Filename, const char *BasePath);
+typedef const char *(*GetModuleProc)(void);
 
 typedef struct loaderparams_s {
 	int Version;
@@ -21,7 +22,8 @@ typedef struct loaderparams_s {
 
 	const char *basepath;
 
-	BuildPath BuildPath;
+	BuildPathProc BuildPath;
+	GetModuleProc GetModule;
 } loaderparams_t;
 
 #ifndef SBNC

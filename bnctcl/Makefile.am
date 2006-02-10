@@ -11,5 +11,5 @@ AM_CFLAGS=@TCL_INCLUDE_SPEC@
 CC=@CXX@
 
 install:
-	@if [ -d $(exec_prefix)/tickle.so ]; then rm $(exec_prefix)/tickle.so; fi
+	@if [ -e $(exec_prefix)/tickle.so ]; then rm $(exec_prefix)/tickle.so; fi
 	@ln -s $(exec_prefix)/libbnctcl.la $(exec_prefix)/tickle.so

@@ -93,6 +93,10 @@ void sbncSetModule(const char *Module) {
 	g_Mod = strdup(Module);
 }
 
+const char *sbncGetModule(void) {
+	return g_Mod;
+}
+
 void sbncSetAutoReload(bool Reload) {
 }
 
@@ -139,8 +143,7 @@ bool sbncIsAbsolutePath(const char *Path) {
 #endif
 }
 
-const char *sbncBuildPath(const char *Filename) {
-	const char *Base;
+const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
 	static char *Path = NULL;
 
 	if (sbncIsAbsolutePath(Filename)) {
@@ -149,10 +152,17 @@ const char *sbncBuildPath(const char *Filename) {
 
 	free(Path);
 
-	Base = sbncGetBaseName(g_Arg0);
+	if (BasePath == NULL) {
+		BasePath = sbncGetBaseName(g_Arg0);
 
-	Path = (char *)malloc(strlen(Base) + 1 + strlen(Filename) + 1);
-	strcpy(Path, Base);
+		// couldn't find the basepath, fall back to relative paths (i.e. Filename)
+		if (BasePath == NULL) {
+			return Filename;
+		}
+	}
+
+	Path = (char *)malloc(strlen(BasePath) + 1 + strlen(Filename) + 1);
+	strcpy(Path, BasePath);
 #ifdef _WIN32
 	strcat(Path, "\\");
 #else
@@ -188,7 +198,7 @@ void sbncReadIpcFile(void) {
 				FileBuf[strlen(FileBuf) - 1] = '\0';
 
 			free(g_Mod);
-			g_Mod = strdup(FileBuf);
+			g_Mod = strdup(sbncBuildPath(FileBuf));
 		}
 
 		fclose(IpcFile);
@@ -197,13 +207,10 @@ void sbncReadIpcFile(void) {
 
 HMODULE sbncLoadModule(void) {
 	HMODULE hMod;
-	const char *LibraryPath;
 
-	LibraryPath = sbncBuildPath(g_Mod);
+	hMod = LoadLibrary(g_Mod);
 
-	hMod = LoadLibrary(LibraryPath);
-
-	printf("Loading shroudBNC from %s\n", LibraryPath);
+	printf("Loading shroudBNC from %s\n", g_Mod);
 
 	if (hMod == NULL) {
 		printf("Module could not be loaded.");
@@ -253,7 +260,7 @@ int main(int argc, char **argv) {
 
 	printf("shroudBNC loader\n");
 
-	g_Mod = strdup(SBNC_MODULE);
+	g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 	ThisMod = strdup(g_Mod);
 
 	Socket_Init();
@@ -268,7 +275,7 @@ int main(int argc, char **argv) {
 
 	if (hMod == NULL && strcasecmp(g_Mod, SBNC_MODULE) != 0) {
 		free(g_Mod);
-		g_Mod = strdup(SBNC_MODULE);
+		g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 
 		printf("Trying failsafe module...\n");
 
@@ -283,8 +290,9 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	if (hMod == NULL)
+	if (hMod == NULL) {
 		return 1;
+	}
 
 	loaderparams_s Parameters;
 
@@ -297,6 +305,7 @@ int main(int argc, char **argv) {
 	Parameters.unused = sbncSetAutoReload;
 	Parameters.basepath = sbncGetBaseName(argv[0]);
 	Parameters.BuildPath = sbncBuildPath;
+	Parameters.GetModule = sbncGetModule;
 
 	g_Signal = false;
 
@@ -323,7 +332,7 @@ int main(int argc, char **argv) {
 
 		if (hMod == NULL) {
 			free(g_Mod);
-			g_Mod = strdup(ThisMod);
+			g_Mod = strdup(sbncBuildPath(ThisMod));
 
 			printf("Trying previous module...\n");
 
@@ -331,7 +340,7 @@ int main(int argc, char **argv) {
 
 			if (hMod == NULL) {
 				free(g_Mod);
-				g_Mod = strdup(SBNC_MODULE);
+				g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 
 				printf("Trying failsafe module...\n");
 

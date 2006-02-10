@@ -599,7 +599,25 @@ CVector<CModule *> *CCore::GetModules(void) {
 }
 
 CModule* CCore::LoadModule(const char* Filename, const char **Error) {
-	CModule* Module = new CModule(BuildPath(Filename));
+	char *CorePath;
+
+	CorePath = strdup(g_LoaderParameters->GetModule());
+
+	CHECK_ALLOC_RESULT(CorePath, GetModule) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
+
+	for (int i = strlen(CorePath) - 1; i >= 0; i--) {
+		if (CorePath[i] == '/' || CorePath[i] == '\\') {
+			CorePath[i] = '\0';
+
+			break;
+		}
+	}
+
+	CModule* Module = new CModule(BuildPath(Filename, CorePath));
+
+	free(CorePath);
 
 	if (Module == NULL) {
 		LOGERROR("new operator failed. Could not load module %s", Filename);
@@ -1542,6 +1560,6 @@ const char *CCore::GetBasePath(void) {
 	return g_LoaderParameters->basepath;
 }
 
-const char *CCore::BuildPath(const char *Filename) {
-	return g_LoaderParameters->BuildPath(Filename);
+const char *CCore::BuildPath(const char *Filename, const char *BasePath) {
+	return g_LoaderParameters->BuildPath(Filename, BasePath);
 }
