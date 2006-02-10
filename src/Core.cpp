@@ -302,7 +302,7 @@ void CCore::StartMainLoop(void) {
 
 	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
-	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, "sbnc.key", SSL_FILETYPE_PEM)) {
+	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, BuildPath("sbnc.key"), SSL_FILETYPE_PEM)) {
 		if (SSLPort != 0) {
 			Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
 			return;
@@ -314,7 +314,7 @@ void CCore::StartMainLoop(void) {
 		SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 	}
 
-	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, "sbnc.crt")) {
+	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPath("sbnc.crt"))) {
 		if (SSLPort != 0) {
 			Log("Could not load public key (sbnc.crt)."); ERR_print_errors_fp(stdout);
 			return;
@@ -599,7 +599,7 @@ CVector<CModule *> *CCore::GetModules(void) {
 }
 
 CModule* CCore::LoadModule(const char* Filename, const char **Error) {
-	CModule* Module = new CModule(Filename);
+	CModule* Module = new CModule(BuildPath(Filename));
 
 	if (Module == NULL) {
 		LOGERROR("new operator failed. Could not load module %s", Filename);
@@ -999,10 +999,12 @@ void CCore::WritePidFile(void) {
 
 
 	if (pid) {
-		FILE* pidFile = fopen("sbnc.pid", "w");
+		FILE* pidFile;
+
+		pidFile = fopen(BuildPath("sbnc.pid"), "w");
 
 #ifndef _WIN32
-		chmod("sbnc.pid", S_IRUSR | S_IWUSR | S_IXUSR);
+		chmod("sbnc.pid", S_IRUSR | S_IWUSR);
 #endif
 
 		if (pidFile) {
@@ -1400,13 +1402,14 @@ bool CCore::MakeConfig(void) {
 
 	asprintf(&File, "users/%s.conf", User);
 
+	// TODO: BuildPath
 	rename("sbnc.conf", "sbnc.conf.old");
 	mkdir("users");
 #ifndef _WIN32
-	chmod("users", S_IRUSR | S_IWUSR | S_IXUSR);
+	chmod("users", S_IRUSR | S_IWUSR);
 #endif
 
-	MainConfig = new CConfig("sbnc.conf");
+	MainConfig = new CConfig(BuildPath("sbnc.conf"));
 
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
@@ -1428,7 +1431,7 @@ bool CCore::MakeConfig(void) {
 
 	printf(" DONE\n");
 
-	UserConfig = new CConfig(File);
+	UserConfig = new CConfig(BuildPath(File));
 
 	UserConfig->WriteString("user.password", UtilMd5(Password));
 	UserConfig->WriteInteger("user.admin", 1);
@@ -1533,4 +1536,12 @@ const char *CCore::GetTagName(int Index) {
 	}
 
 	return NULL;
+}
+
+const char *CCore::GetBasePath(void) {
+	return g_LoaderParameters->basepath;
+}
+
+const char *CCore::BuildPath(const char *Filename) {
+	return g_LoaderParameters->BuildPath(Filename);
 }

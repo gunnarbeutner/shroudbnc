@@ -22,10 +22,10 @@
 #define FD_SETSIZE 4096
 
 #ifndef RUBY
-	#include <windows.h>
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#include <assert.h>
+#	include <windows.h>
+#	include <winsock2.h>
+#	include <ws2tcpip.h>
+#	include <shlwapi.h>
 #endif
 
 #if !defined(socklen_t)

@@ -216,8 +216,9 @@ class CUptimeModule : public CModuleImplementation {
 			FirstUser = g_Bouncer->GetUsers()->Iterate(0)->Value;
 
 			upPack.ontime = htonl(Now - FirstUser->GetIRCUptime());
-		} else
+		} else {
 			return;
+		}
 
 		uptimecount++;
 
@@ -225,6 +226,10 @@ class CUptimeModule : public CModuleImplementation {
 			Server = FirstUser->GetIRCConnection()->GetServer();
 		} else {
 			Server = FirstUser->GetServer();
+		}
+
+		if (Server == NULL) {
+			return;
 		}
 
 		len = sizeof(upPack) + strlen(FirstUser->GetUsername()) + strlen(Server) + strlen(BNCVERSION);

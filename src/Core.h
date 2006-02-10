@@ -176,6 +176,9 @@ public:
 	virtual bool SetTagString(const char *Tag, const char *Value);
 	virtual bool SetTagInteger(const char *Tag, int Value);
 	virtual const char *GetTagName(int Index);
+
+	virtual const char *GetBasePath(void);
+	virtual const char *BuildPath(const char *Filename);
 };
 
 extern CCore *g_Bouncer;

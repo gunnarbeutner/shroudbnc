@@ -51,7 +51,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 		FILE *identConfig = fopen(Out, "w");
 
 #ifndef _WIN32
-		chmod(Out, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
+		chmod(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 #endif
 
 		if (identConfig) {

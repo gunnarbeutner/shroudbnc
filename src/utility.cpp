@@ -726,10 +726,10 @@ int CompareAddress(sockaddr *pA, sockaddr *pB) {
  */
 void StrTrim(char *String) {
 	size_t Length = strlen(String);
-	size_t Offset = 0;
+	size_t Offset = 0, i;
 
 	// remove leading spaces
-	for (int i = 0; i < Length; i++) {
+	for (i = 0; i < Length; i++) {
 		if (String[i] == ' ') {
 			Offset++;
 		} else {
@@ -738,7 +738,7 @@ void StrTrim(char *String) {
 	}
 
 	if (Offset > 0) {
-		for (int i = 0; i < Length; i++) {
+		for (i = 0; i < Length; i++) {
 			String[i] = String[i + Offset];
 		}
 	}

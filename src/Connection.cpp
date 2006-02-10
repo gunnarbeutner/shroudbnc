@@ -36,11 +36,15 @@ IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
 //////////////////////////////////////////////////////////////////////
 
 CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
+	char Address[MAX_SOCKADDR_LEN];
+	socklen_t AddressLength = sizeof(Address);
+
 	SetRole(Role);
 
-	// TODO: set Family?
+	getsockname(Socket, (sockaddr *)Address, &AddressLength);
+	m_Family = ((sockaddr *)Address)->sa_family;
 
-	InitConnection(Socket, SSL);
+	InitConnection(Socket, SSL );
 }
 
 CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {
@@ -592,9 +596,6 @@ void CConnection::AsyncConnect(void) {
 }
 
 void CConnection::AsyncDnsFinished(hostent *Response) {
-	// TODO: figure out how to delete the query/event iface
-	m_DnsQuery = NULL;
-
 	if (Response == NULL) {
 		// we cannot destroy the object here as there might still be the other
 		// dns query (bind ip) in the queue which would get destroyed in the
@@ -617,9 +618,6 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 }
 
 void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
-	// TODO: figure out how to delete the query/event iface
-	m_BindDnsQuery = NULL;
-
 	if (Response != NULL) {
 		int Size;
 
@@ -644,42 +642,22 @@ bool CConnection::ShouldDestroy(void) {
 }
 
 sockaddr *CConnection::GetRemoteAddress(void) {
-	static sockaddr *Result = NULL;
-	socklen_t ResultLength;
+	static char Result[MAX_SOCKADDR_LEN];
+	socklen_t ResultLength = sizeof(Result);
 
-#ifdef IPV6
-	ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
-#else
-	ResultLength = sizeof(sockaddr_in);
-#endif
-
-	if (Result == NULL) {
-		Result = (sockaddr *)malloc(ResultLength);
-	}
-
-	if (getpeername(m_Socket, Result, &ResultLength) == 0) {
-		return Result;
+	if (getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+		return (sockaddr *)Result;
 	} else {
 		return NULL;
 	}
 }
 
 sockaddr *CConnection::GetLocalAddress(void) {
-	static sockaddr *Result = NULL;
-	socklen_t ResultLength;
-
-#ifdef IPV6
-	ResultLength = max(sizeof(sockaddr_in), sizeof(sockaddr_in6));
-#else
-	ResultLength = sizeof(sockaddr_in);
-#endif
-
-	if (Result == NULL) {
-		Result = (sockaddr *)malloc(ResultLength);
-	}
+	static char Result[MAX_SOCKADDR_LEN];
+	socklen_t ResultLength = sizeof(Result);
 
 	if (getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
-		return Result;
+		return (sockaddr *)Result;
 	} else {
 		return NULL;
 	}

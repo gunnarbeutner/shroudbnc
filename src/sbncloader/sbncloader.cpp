@@ -25,7 +25,7 @@
 #ifndef _DEBUG
 #define SBNC_MODULE "sbnc.dll"
 #else
-#define SBNC_MODULE "..\\Debug\\sbnc.dll"
+#define SBNC_MODULE "..\\..\\..\\Debug\\sbnc.dll"
 #endif
 #else
 #define SBNC_MODULE "./libsbnc.la"
@@ -34,6 +34,7 @@
 CAssocArray *g_Box;
 char *g_Mod;
 bool g_Freeze, g_Signal;
+const char *g_Arg0;
 
 sbncLoad g_LoadFunc;
 sbncPrepareFreeze g_PrepareFreezeFunc;
@@ -95,14 +96,91 @@ void sbncSetModule(const char *Module) {
 void sbncSetAutoReload(bool Reload) {
 }
 
-void sbncReadIpcFile(void) {
-	FILE *ipcFile = fopen("sbnc.ipc", "r");
+const char *sbncGetBaseName(const char *Arg0) {
+	static char *BasePath = NULL;
 
-	if (ipcFile != NULL) {
+	if (BasePath != NULL) {
+		return BasePath;
+	}
+
+#ifndef _WIN32
+	if (Arg0[0] == '.' || Arg0[0] == '/') {
+		BasePath = (char *)malloc(strlen(Arg0) + 1);
+		strcpy(BasePath, Arg0);
+	}
+
+	// TODO: look through PATH env
+
+	for (int i = strlen(BasePath) - 1; i >= 0; i--) {
+		if (BasePath[i] == '/') {
+			BasePath[i] = '\0';
+
+			break;
+		}
+	}
+#else
+	BasePath = (char *)malloc(MAX_PATH);
+
+	GetModuleFileName(NULL, BasePath, MAX_PATH);
+
+	PathRemoveFileSpec(BasePath);
+#endif
+
+	return BasePath;
+}
+
+bool sbncIsAbsolutePath(const char *Path) {
+#ifdef _WIN32
+	return !PathIsRelative(Path);
+#else
+	if (Path[0] == '/') {
+		return true;
+	}
+#endif
+}
+
+const char *sbncBuildPath(const char *Filename) {
+	const char *Base;
+	static char *Path = NULL;
+
+	if (sbncIsAbsolutePath(Filename)) {
+		return Filename;
+	}
+
+	free(Path);
+
+	Base = sbncGetBaseName(g_Arg0);
+
+	Path = (char *)malloc(strlen(Base) + 1 + strlen(Filename) + 1);
+	strcpy(Path, Base);
+#ifdef _WIN32
+	strcat(Path, "\\");
+#else
+	strcat(Path, "/");
+#endif
+	strcat(Path, Filename);
+
+#ifdef _WIN32
+	char NewPath[MAX_PATH];
+
+	PathCanonicalize(NewPath, Path);
+	
+	strcpy(Path, NewPath);
+#endif
+
+	return Path;
+}
+
+void sbncReadIpcFile(void) {
+	FILE *IpcFile;
+
+	IpcFile = fopen(sbncBuildPath("sbnc.ipc"), "r");
+
+	if (IpcFile != NULL) {
 		char *n;
 		char FileBuf[512];
 
-		if ((n = fgets(FileBuf, sizeof(FileBuf) - 1, ipcFile)) != 0) {
+		if ((n = fgets(FileBuf, sizeof(FileBuf) - 1, IpcFile)) != 0) {
 			if (FileBuf[strlen(FileBuf) - 1] == '\n')
 				FileBuf[strlen(FileBuf) - 1] = '\0';
 
@@ -113,16 +191,19 @@ void sbncReadIpcFile(void) {
 			g_Mod = strdup(FileBuf);
 		}
 
-		fclose(ipcFile);
+		fclose(IpcFile);
 	}
 }
 
 HMODULE sbncLoadModule(void) {
 	HMODULE hMod;
+	const char *LibraryPath;
 
-	hMod = LoadLibrary(g_Mod);
+	LibraryPath = sbncBuildPath(g_Mod);
 
-	printf("Loading shroudBNC from %s\n", g_Mod);
+	hMod = LoadLibrary(LibraryPath);
+
+	printf("Loading shroudBNC from %s\n", LibraryPath);
 
 	if (hMod == NULL) {
 		printf("Module could not be loaded.");
@@ -162,6 +243,14 @@ int main(int argc, char **argv) {
 	HMODULE hMod;
 	char *ThisMod;
 
+	g_Arg0 = argv[0];
+
+#ifdef _WIN32
+	SetCurrentDirectory(sbncBuildPath("."));
+#else
+	chdir(sbncBuildPath("."));
+#endif
+
 	printf("shroudBNC loader\n");
 
 	g_Mod = strdup(SBNC_MODULE);
@@ -199,13 +288,15 @@ int main(int argc, char **argv) {
 
 	loaderparams_s Parameters;
 
-	Parameters.Version = 200;
+	Parameters.Version = 201;
 	Parameters.argc = argc;
 	Parameters.argv = argv;
 	Parameters.GetBox = sbncGetBox;
 	Parameters.SigEnable = sbncSigEnable;
 	Parameters.SetModule = sbncSetModule;
 	Parameters.unused = sbncSetAutoReload;
+	Parameters.basepath = sbncGetBaseName(argv[0]);
+	Parameters.BuildPath = sbncBuildPath;
 
 	g_Signal = false;
 

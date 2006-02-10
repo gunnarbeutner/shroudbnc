@@ -166,7 +166,7 @@ public:
 
 IMPL_SOCKETLISTENER(CIdentListener, CIdentModule) {
 public:
-	CIdentListener() : CListenerBase<CIdentModule>(113, NULL, NULL) { }
+	CIdentListener(int Family) : CListenerBase<CIdentModule>(113, NULL, NULL, Family) { }
 
 	void Accept(SOCKET Client, sockaddr_in PeerAddress) {
 		CIdentClient *Handler = new CIdentClient(Client);
@@ -176,21 +176,33 @@ public:
 };
 
 class CIdentModule : public CModuleImplementation {
-	CIdentListener *m_Listener;
+	CIdentListener *m_Listener, *m_ListenerV6;
 
 	void Init(CCore* Root) {
 		g_Bouncer = Root;
 
-		m_Listener = new CIdentListener();
+		m_Listener = new CIdentListener(AF_INET);
 
-		if (m_Listener->IsValid() == false) {
+		if (!m_Listener->IsValid()) {
 			g_Bouncer->Log("Could not create listener for identd.");
 
 			delete m_Listener;
 			m_Listener = NULL;
 		}
 
-		g_Bouncer->Log("Created identd listener.");
+		g_Bouncer->Log("Created IPv4 identd listener.");
+
+#ifdef IPV6
+		m_ListenerV6 = new CIdentListener(AF_INET6);
+
+		if (!m_ListenerV6->IsValid()) {
+			delete m_ListenerV6;
+
+			m_ListenerV6 = NULL;
+		} else {
+			g_Bouncer->Log("Created IPv6 identd listener.");
+		}
+#endif
 	}
 
 	~CIdentModule(void) {

@@ -55,8 +55,10 @@ void sigint_handler(int code) {
  * Used by "sbncloader" to start shroudBNC
  */
 extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
-	if (Parameters->Version < 200) {
-		printf("Incompatible loader version. Expected version 200, got %d.\n", Parameters->Version);
+	CConfig *Config;
+
+	if (Parameters->Version < 201) {
+		printf("Incompatible loader version. Expected version 201, got %d.\n", Parameters->Version);
 
 		return 1;
 	}
@@ -75,7 +77,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	lt_dlinit();
 #endif
 
-	CConfig *Config = new CConfig("sbnc.conf");
+	Config = new CConfig(Parameters->BuildPath("sbnc.conf"));
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");

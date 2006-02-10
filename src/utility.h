@@ -100,9 +100,11 @@ void StrTrim(char *String);
 #ifdef IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
+#define MAX_SOCKADDR_LEN (max(sizeof(sockaddr_in), sizeof(sockaddr_in6)))
 #else
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
 #define INADDR_LEN(Family) (sizeof(sockaddr_in6))
+#define MAX_SOCKADDR_LEN (sizeof(sockaddr_in))
 #endif
 
 const char *IpToString(sockaddr *Address);

@@ -22,7 +22,7 @@ typedef struct queue_item_s {
 	char *Line;
 } queue_item_t;
 
-class CFloodControl;
+#define MAX_QUEUE_SIZE 500
 
 class CQueue {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */

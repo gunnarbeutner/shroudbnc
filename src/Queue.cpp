@@ -102,6 +102,11 @@ bool CQueue::QueueItem(const char *Line) {
 		return false;
 	}
 
+	// ignore new items if the queue is full
+	if (m_Items.GetLength() >= MAX_QUEUE_SIZE) {
+		return false;
+	}
+
 	Item.Line = strdup(Line);
 
 	CHECK_ALLOC_RESULT(Item.Line, strdup) {
@@ -126,7 +131,7 @@ bool CQueue::QueueItem(const char *Line) {
  */
 bool CQueue::QueueItemNext(const char *Line) {
 	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
-		m_Items[i].Priority++;
+		m_Items[i].Priority += 2;
 	}
 
 	return QueueItem(Line);

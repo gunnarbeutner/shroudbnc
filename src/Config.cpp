@@ -56,12 +56,13 @@ CConfig::CConfig(const char *Filename) {
 bool CConfig::ParseConfig(void) {
 	char Line[4096];
 	char *dupEq;
+	FILE *ConfigFile;
 
 	if (m_Filename == NULL) {
 		return false;
 	}
 
-	FILE *ConfigFile = fopen(m_Filename, "r");
+	ConfigFile = fopen(m_Filename, "r");
 
 	if (ConfigFile == NULL) {
 		return false;
@@ -222,7 +223,7 @@ bool CConfig::Persist(void) {
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
 #ifndef _WIN32
-	chmod(m_Filename, S_IRUSR | S_IWUSR | S_IXUSR);
+	chmod(m_Filename, S_IRUSR | S_IWUSR);
 #endif
 
 	if (ConfigFile != NULL) {

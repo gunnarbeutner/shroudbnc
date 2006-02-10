@@ -41,7 +41,7 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Config = new CConfig(Out);
+	m_Config = new CConfig(g_Bouncer->BuildPath(Out));
 
 	free(Out);
 
@@ -60,7 +60,7 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Log = new CLog(Out);
+	m_Log = new CLog(g_Bouncer->BuildPath(Out));
 
 	free(Out);
 
@@ -105,7 +105,9 @@ CUser::CUser(const char* Name) {
 	} CHECK_ALLOC_RESULT_END;
 
 	X509* Cert;
-	FILE* ClientCert = fopen(Out, "r");
+	FILE* ClientCert = fopen(g_Bouncer->BuildPath(Out), "r");
+
+	free(Out);
 
 	if (ClientCert != NULL) {
 		while ((Cert = PEM_read_X509(ClientCert, NULL, NULL, NULL)) != NULL) {
@@ -115,7 +117,6 @@ CUser::CUser(const char* Name) {
 		fclose(ClientCert);
 	}
 
-	free(Out);
 #endif
 
 	if (m_Config->ReadInteger("user.quitted") != 2) {
@@ -1142,10 +1143,13 @@ bool CUser::RemoveClientCertificate(X509 *Certificate) {
 
 #ifdef USESSL
 bool CUser::PersistCertificates(void) {
-	char *Filename;
+	char *TempFilename;
+	const char *Filename;
 	FILE *CertFile;
 
-	asprintf(&Filename, "users/%s.pem", m_Name);
+	asprintf(&TempFilename, "users/%s.pem", m_Name);
+	Filename = g_Bouncer->BuildPath(TempFilename);
+	free(TempFilename);
 
 	CHECK_ALLOC_RESULT(Filename, asprintf) {
 		return false;
@@ -1157,10 +1161,8 @@ bool CUser::PersistCertificates(void) {
 		CertFile = fopen(Filename, "w");
 
 #ifndef _WIN32
-		chmod(Filename, S_IRUSR | S_IWUSR | S_IXUSR);
+		chmod(Filename, S_IRUSR | S_IWUSR);
 #endif
-
-		free(Filename);
 
 		CHECK_ALLOC_RESULT(CertFile, fopen) {
 			return false;
