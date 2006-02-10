@@ -1,6 +1,6 @@
 SUBDIRS=md5 libltdl sbncloader c-ares
 
-pkglibdir=$(exec_prefix)
+pkglibdir=$(exec_prefix)/${MOD_DIR}
 bindir=$(exec_prefix)
 
 pkglib_LTLIBRARIES=libsbnc.la
@@ -66,5 +66,3 @@ libsbnc_la_LDFLAGS=-no-undefined
 AM_CFLAGS=@SSLCFLAGS@
 AM_CPPFLAGS=@SSLCFLAGS@
 
-install:
-	@if [ -e $(exec_prefix)/sbnc.ipc ]; then rm $(exec_prefix)/sbnc.ipc; fi

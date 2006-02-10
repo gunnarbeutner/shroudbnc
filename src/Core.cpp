@@ -356,6 +356,16 @@ void CCore::StartMainLoop(void) {
 	/* Note: We need to load the modules after using fork() as otherwise tcl cannot be cleanly unloaded */
 	m_LoadingModules = true;
 
+#ifdef _MSC_VER
+#ifndef _DEBUG
+	LoadModule("bnctcl.dll");
+#else
+	LoadModule("..\\Debug\\bnctcl.dll");
+#endif
+#else
+	LoadModule("./libbnctcl.la");
+#endif
+
 	char *Out;
 
 	i = 0;
@@ -1424,7 +1434,7 @@ bool CCore::MakeConfig(void) {
 	rename("sbnc.conf", "sbnc.conf.old");
 	mkdir("users");
 #ifndef _WIN32
-	chmod("users", S_IRUSR | S_IWUSR);
+	chmod("users", S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 	MainConfig = new CConfig(BuildPath("sbnc.conf"));
@@ -1432,16 +1442,6 @@ bool CCore::MakeConfig(void) {
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
 	MainConfig->WriteString("system.users", User);
-
-#ifdef _MSC_VER
-#ifndef _DEBUG
-	MainConfig->WriteString("system.modules.mod0", "bnctcl.dll");
-#else
-	MainConfig->WriteString("system.modules.mod0", "..\\Debug\\bnctcl.dll");
-#endif
-#else
-	MainConfig->WriteString("system.modules.mod0", "./libbnctcl.la");
-#endif
 
 	printf("Writing main configuration file...");
 
