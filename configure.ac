@@ -54,6 +54,7 @@ AC_LIB_LTDL
 
 AC_CHECK_LIB(iphlpapi, main)
 AC_CHECK_LIB(ws2_32, main)
+AC_CHECK_LIB(advapi32, main)
 AC_CHECK_LIB(iberty, asprintf)
 
 sinclude(./tcl.m4)
