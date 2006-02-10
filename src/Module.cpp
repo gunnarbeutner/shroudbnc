@@ -24,6 +24,8 @@
 //////////////////////////////////////////////////////////////////////
 
 CModule::CModule(const char *Filename) {
+	CVector<CModule *> *Modules;
+
 	m_Far = NULL;
 	m_File = strdup(Filename);
 	m_Image = LoadLibrary(Filename);
@@ -61,6 +63,15 @@ CModule::CModule(const char *Filename) {
 			LocalFree(ErrorMsg);
 #endif
 	} else {
+		Modules = g_Bouncer->GetModules();
+
+		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+			if (Modules->Get(i)->GetHandle() == m_Image) {
+				m_Error = strdup("This module is already loaded.");
+
+				return;
+			}
+		}
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =
 			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,
 			"bncGetInterfaceVersion");

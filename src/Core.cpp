@@ -360,7 +360,7 @@ void CCore::StartMainLoop(void) {
 #ifndef _DEBUG
 	LoadModule("bnctcl.dll", NULL);
 #else
-	LoadModule("..\\Debug\\bnctcl.dll", NULL);
+	LoadModule("..\\bnctcl\\Debug\\bnctcl.dll", NULL);
 #endif
 #else
 	LoadModule("./libbnctcl.la", NULL);
@@ -630,23 +630,12 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 	free(CorePath);
 
 	if (Module == NULL) {
-		LOGERROR("new operator failed. Could not load module %s", Filename);
+		LOGERROR("new operator failed. Could not load module %s", BuildPath(Filename, CorePath));
 
 		if (Error)
 			*Error = "new operator failed.";
 
 		return NULL;
-	}
-
-	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
-		if (m_Modules[i]->GetHandle() == Module->GetHandle()) {
-			delete Module;
-
-			if (Error)
-				*Error = "This module is already loaded.";
-
-			return NULL;
-		}
 	}
 
 	if (Module->GetError() == NULL) {

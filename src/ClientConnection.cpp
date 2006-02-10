@@ -147,8 +147,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				"Syntax: gvhost <host>\nSets the bouncer's default vhost.");
 			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd",
 				"Syntax: motd [text]\nShows or modifies the motd.");
-			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC from a shared object file",
-				"Syntax: reload <filename>\nReloads shroudBNC from a new .so file.");
+			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC",
+				"Syntax: reload [filename]\nReloads shroudBNC (a new .so module file can be specified).");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
 		}
@@ -634,12 +634,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "reload") == 0 && m_Owner->IsAdmin()) {
-		if (argc < 2) {
-			SENDUSER("Syntax: RELOAD sbnc-module.so");
-			return false;
+		if (argc >=) {
+			g_Bouncer->GetLoaderParameters()->SetModule(argv[1]);
 		}
 
-		g_Bouncer->GetLoaderParameters()->SetModule(argv[1]);
 		g_Bouncer->Log("Reload requested by %s", m_Owner->GetUsername());
 		g_Bouncer->InitializeFreeze();
 

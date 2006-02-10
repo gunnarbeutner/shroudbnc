@@ -207,9 +207,15 @@ class CIdentModule : public CModuleImplementation {
 
 	~CIdentModule(void) {
 		if (m_Listener != NULL) {
-			g_Bouncer->Log("Destroying identd-listener.");
+			g_Bouncer->Log("Destroying IPv4 identd-listener.");
 
 			m_Listener->Destroy();
+		}
+
+		if (m_ListenerV6 != NULL) {
+			m_ListenerV6->Destroy();
+
+			g_Bouncer->Log("Destroying IPv4 identd-listener.");
 		}
 	}
 };

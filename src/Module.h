@@ -36,6 +36,8 @@ public:
 #endif
 	virtual ~CModule(void);
 
+	void DestroyModule(bool IgnoreDestructor = true);
+
 	virtual CModuleFar *GetModule(void);
 	virtual const char *GetFilename(void);
 	virtual HMODULE GetHandle(void);
