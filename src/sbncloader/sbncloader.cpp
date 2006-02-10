@@ -88,16 +88,13 @@ bool sbncGetBox(CAssocArray **Box) {
 	return true;
 }
 
-void sbncSetModule(const char *Module) {
+void sbncSetModulePath(const char *Module) {
 	free(g_Mod);
 	g_Mod = strdup(Module);
 }
 
-const char *sbncGetModule(void) {
+const char *sbncGetModulePath(void) {
 	return g_Mod;
-}
-
-void sbncSetAutoReload(bool Reload) {
 }
 
 const char *sbncGetBaseName(const char *Arg0) {
@@ -297,15 +294,18 @@ int main(int argc, char **argv) {
 	loaderparams_s Parameters;
 
 	Parameters.Version = 201;
+
 	Parameters.argc = argc;
 	Parameters.argv = argv;
+	Parameters.basepath = sbncGetBaseName(argv[0]);
+
 	Parameters.GetBox = sbncGetBox;
 	Parameters.SigEnable = sbncSigEnable;
-	Parameters.SetModule = sbncSetModule;
-	Parameters.unused = sbncSetAutoReload;
-	Parameters.basepath = sbncGetBaseName(argv[0]);
+
+	Parameters.SetModulePath = sbncSetModulePath;
+	Parameters.GetModulePath = sbncGetModulePath;
+
 	Parameters.BuildPath = sbncBuildPath;
-	Parameters.GetModule = sbncGetModule;
 
 	g_Signal = false;
 

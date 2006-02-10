@@ -611,7 +611,7 @@ CVector<CModule *> *CCore::GetModules(void) {
 CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 	char *CorePath;
 
-	CorePath = strdup(g_LoaderParameters->GetModule());
+	CorePath = strdup(g_LoaderParameters->GetModulePath());
 
 	CHECK_ALLOC_RESULT(CorePath, GetModule) {
 		return NULL;

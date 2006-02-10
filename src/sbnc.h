@@ -3,7 +3,6 @@ class CAssocArray;
 typedef bool (*GetBoxProc)(CAssocArray **BoxPtr);
 typedef void (*SigEnableProc)(void);
 typedef void (*SetModuleProc)(const char *Module);
-typedef void (*SetAutoReloadProc)(bool Reload);
 typedef const char *(*BuildPathProc)(const char *Filename, const char *BasePath);
 typedef const char *(*GetModuleProc)(void);
 
@@ -12,18 +11,17 @@ typedef struct loaderparams_s {
 
 	int argc;
 	char **argv;
+	const char *basepath;
 
 	CAssocArray *Box;
 
 	GetBoxProc GetBox;
 	SigEnableProc SigEnable;
-	SetModuleProc SetModule;
-	SetAutoReloadProc unused;
 
-	const char *basepath;
+	SetModuleProc SetModulePath;
+	GetModuleProc GetModulePath;
 
 	BuildPathProc BuildPath;
-	GetModuleProc GetModule;
 } loaderparams_t;
 
 #ifndef SBNC

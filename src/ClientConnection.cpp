@@ -634,8 +634,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "reload") == 0 && m_Owner->IsAdmin()) {
-		if (argc >=) {
-			g_Bouncer->GetLoaderParameters()->SetModule(argv[1]);
+		if (argc >= 2) {
+			g_Bouncer->GetLoaderParameters()->SetModulePath(argv[1]);
 		}
 
 		g_Bouncer->Log("Reload requested by %s", m_Owner->GetUsername());
