@@ -625,6 +625,10 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 		}
 	}
 
+#if !defined(_WIN32) || defined(__MINGW32__)
+	lt_dlsetsearchpath(CorePath);
+#endif
+
 	CModule* Module = new CModule(BuildPath(Filename, CorePath));
 
 	free(CorePath);

@@ -1656,6 +1656,8 @@ const char* CClientConnection::GetPeerName(void) {
 }
 
 void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
+	int i = 0;
+
 	if (Response == NULL) {
 
 		SetPeerName(IpToString(GetRemoteAddress()), true);
@@ -1671,7 +1673,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 		} else {
 			sockaddr *saddr = NULL;
 
-			for (int i = 0; i < Response->h_length; i++) {
+			while (Response->h_addr_list[i] != NULL) {
 				sockaddr_in sin;
 #ifdef IPV6
 				sockaddr_in6 sin6;
@@ -1701,6 +1703,8 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 
 					return;
 				}
+
+				i++;
 			}
 
 			if (saddr != NULL) {

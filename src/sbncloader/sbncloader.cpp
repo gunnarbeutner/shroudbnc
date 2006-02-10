@@ -31,6 +31,10 @@
 #define SBNC_MODULE "./libsbnc.la"
 #endif
 
+#ifndef _WIN32
+#define MAX_PATH 260
+#endif
+
 CAssocArray *g_Box;
 char *g_Mod;
 bool g_Freeze, g_Signal;
@@ -97,6 +101,33 @@ const char *sbncGetModulePath(void) {
 	return g_Mod;
 }
 
+#ifndef _WIN32
+void PathCanonicalize(char *NewPath, const char *Path) {
+	int i = 0, a = 0;
+
+	while (true) {
+		if (o >= MAX_PATH - 1) {
+			NewPath[o] = '\0';
+
+			return;
+		} else {
+			NewPath[o] = Path[i];
+		}
+
+		if (Path[i] == '\0') {
+			return;
+		}
+
+		if (Path[i] == '/' && Path[i + ] == '.') {
+			i += 2;
+		}
+
+		i++;
+		o++;
+	}
+}
+#endif
+
 const char *sbncGetBaseName(const char *Arg0) {
 	static char *BasePath = NULL;
 
@@ -137,10 +168,13 @@ bool sbncIsAbsolutePath(const char *Path) {
 	if (Path[0] == '/') {
 		return true;
 	}
+
+	return false;
 #endif
 }
 
 const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
+	char NewPath[MAX_PATH];
 	static char *Path = NULL;
 
 	if (sbncIsAbsolutePath(Filename)) {
@@ -167,13 +201,9 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
 #endif
 	strcat(Path, Filename);
 
-#ifdef _WIN32
-	char NewPath[MAX_PATH];
-
 	PathCanonicalize(NewPath, Path);
 	
 	strcpy(Path, NewPath);
-#endif
 
 	return Path;
 }
