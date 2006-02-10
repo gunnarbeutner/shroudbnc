@@ -118,7 +118,7 @@ void PathCanonicalize(char *NewPath, const char *Path) {
 			return;
 		}
 
-		if (Path[i] == '/' && Path[i + ] == '.') {
+		if (Path[i] == '/' && Path[i + 1] == '.') {
 			i += 2;
 		}
 
