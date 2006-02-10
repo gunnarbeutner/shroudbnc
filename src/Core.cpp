@@ -358,12 +358,12 @@ void CCore::StartMainLoop(void) {
 
 #ifdef _MSC_VER
 #ifndef _DEBUG
-	LoadModule("bnctcl.dll");
+	LoadModule("bnctcl.dll", NULL);
 #else
-	LoadModule("..\\Debug\\bnctcl.dll");
+	LoadModule("..\\Debug\\bnctcl.dll", NULL);
 #endif
 #else
-	LoadModule("./libbnctcl.la");
+	LoadModule("./libbnctcl.la", NULL);
 #endif
 
 	char *Out;
