@@ -168,7 +168,7 @@ IMPL_SOCKETLISTENER(CIdentListener, CIdentModule) {
 public:
 	CIdentListener(int Family) : CListenerBase<CIdentModule>(113, NULL, NULL, Family) { }
 
-	void Accept(SOCKET Client, sockaddr_in PeerAddress) {
+	void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CIdentClient *Handler = new CIdentClient(Client);
 
 		g_Bouncer->RegisterSocket(Client, Handler);
