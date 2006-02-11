@@ -90,7 +90,7 @@ void CLog::PlayToUser(CUser *User, int Type) {
 			} else if (Type == Log_Message) {
 				User->Notice(Line);
 			} else if (Type == Log_Motd) {
-				if (IRC) {
+				if (IRC != NULL) {
 					Nick = IRC->GetCurrentNick();
 					Server = IRC->GetServer();
 				} else {
@@ -98,7 +98,7 @@ void CLog::PlayToUser(CUser *User, int Type) {
 					Server = "bouncer.shroudbnc.org";
 				}
 
-				if (Client) {
+				if (Client != NULL) {
 					Client->WriteLine(":%s 372 %s :%s", Server,	Nick, Line);
 				}
 			}

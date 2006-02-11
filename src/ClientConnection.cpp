@@ -752,21 +752,36 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "kill") == 0 && m_Owner->IsAdmin()) {
 		if (argc < 2) {
-			SENDUSER("Syntax: KILL username");
+			SENDUSER("Syntax: KILL username [reason]");
 			return false;
 		}
 
 		CUser *User = g_Bouncer->GetUser(argv[1]);
 
+		const char *Reason = "No reason specified.";
+
+		if (argc >= 3) {
+			ArgRejoinArray(argv, 2);
+			Reason = argv[2];
+		}
+
+		asprintf(&Out, "You were disconnected from the bouncer. (Requested by %s: %s)", m_Owner->GetUsername(), Reason);
+
+		CHECK_ALLOC_RESULT(Out, asprintf) {
+			return false;
+		} CHECK_ALLOC_RESULT_END;
+
 		if (User && User->GetClientConnection()) {
-			User->GetClientConnection()->Kill("Requested.");
+			User->GetClientConnection()->Kill(Out);
 			SENDUSER("Done.");
 		} else {
 			SENDUSER("There is no such user or that user is not currently logged in.");
 		}
 
+		free(Out);
+
 		return false;
-	} else if (strcasecmp(Subcommand, "disconnect") == 0 && m_Owner->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "disconnect") == 0) {
 		CUser *User;
 
 		if (m_Owner->IsAdmin() && argc >= 2) {
@@ -1266,26 +1281,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			m_Owner->MarkQuitted();
 
 			return false;
-/*		} else if (strcasecmp(Command, "simul") == 0 && m_Owner->IsAdmin()) {
-			if (argc < 3) {
-				m_Owner->Notice("Syntax: SIMUL username :command");
-				return false;
-			}
-
-			CUser* User = g_Bouncer->GetUser(argv[1]);
-
-			if (User)
-				User->Simulate(argv[2]);
-			else {
-				asprintf(&Out, "No such user: %s", argv[1]);
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-				} else {
-					m_Owner->Notice(Out);
-				}
-			}
-
-			return false;*/
 		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0 && strcasecmp(argv[1], "-sbnc") == 0) {
 			const char* Toks = ArgTokenize(argv[2]);
 			const char** Arr = ArgToArray(Toks);

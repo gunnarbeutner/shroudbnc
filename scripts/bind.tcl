@@ -232,11 +232,31 @@ proc sbnc:callbinds {type flags chan mask args} {
 }
 
 proc bind {type flags mask {procname ""}} {
+	set nonstackable [list msg dcc fil pub bot note]
+	set result [list]
+
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds
+
+	foreach bind $binds {
+		if {$procname != ""} {
+			if {[lsearch -exact $nonstackable [string tolower $type]] != -1 && [string equal -nocase $mask [lindex $bind 2]]} {
+				unbind [lindex $bind 0] [lindex $bind 1] [lindex $bind 2] [lindex $bind 4]
+			}
+			if {[string equal -nocase $type [lindex $bind 0]] && [string equal -nocase $mask [lindex $bind 2]] && [string equal -nocase $procname [lindex $bind 4]]} {
+				unbind [lindex $bind 0] [lindex $bind 1] [lindex $bind 2] [lindex $bind 4]
+			}
+		} elseif {$procname == "" && [string equal -nocase $type [lindex $bind 0]] && [string equal -nocase $mask [lindex $bind 2]] && [string equal -nocase $procname [lindex $bind 4]]} {
+			lappend result $bind
+		}
+	}
+
+	if {$procname == ""} {
+		return $result
+	}
 
 	unbind $type $flags $mask $procname
 

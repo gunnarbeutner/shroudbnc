@@ -328,11 +328,15 @@ void CConnection::ProcessBuffer(void) {
 	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
-		if (RecvQ[i] == '\n' || RecvQ[i] == '\r') {
+		if (RecvQ[i] == '\n' || (Size > i + 1 && RecvQ[i] == '\r' && RecvQ[i + 1] == '\n')) {
 			RecvQ[i] = '\0';
 
 			if (strlen(Line) > 0) {
 				ParseLine(Line);
+			}
+
+			if (RecvQ[i] == '\r') {
+				i++;
 			}
 
 			Line = &RecvQ[i + 1];
@@ -347,6 +351,7 @@ bool CConnection::ReadLine(char** Out) {
 	char* old_recvq;
 	unsigned int Size;
 	char* Pos = NULL;
+	bool advance = false;
 
 	if (m_RecvQ == NULL) {
 		*Out = NULL;
@@ -361,7 +366,11 @@ bool CConnection::ReadLine(char** Out) {
 	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
-		if (old_recvq[i] == '\r' || old_recvq[i] == '\n') {
+		if (old_recvq[i] == '\n' || (Size > i + 1 && old_recvq[i] == '\r' && old_recvq[i + 1] == '\n')) {
+			if (old_recvq[i] == '\r') {
+				advance = true;
+			}
+
 			Pos = old_recvq + i;
 			break;
 		}
@@ -369,15 +378,13 @@ bool CConnection::ReadLine(char** Out) {
 
 	if (Pos) {
 		*Pos = '\0';
-		char* NewPtr = Pos + 1;
+		char* NewPtr = Pos + 1 + (advance ? 1 : 0);
 
 		*Out = strdup(m_RecvQ->Read(NewPtr - old_recvq));
 
-		if (*Out == NULL) {
-			LOGERROR("strdup() failed.");
-			
+		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		return true;
 	} else {
@@ -404,11 +411,9 @@ void CConnection::WriteLine(const char *Format, ...) {
 	vasprintf(&Line, Format, Marker);
 	va_end(Marker);
 
-	if (Line == NULL) {
-		LOGERROR("vasprintf() failed. Could not write line (%s).", Format);
-
+	CHECK_ALLOC_RESULT(Line, vasprintf) {
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	WriteUnformattedLine(Line);
 

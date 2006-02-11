@@ -115,7 +115,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	CUser *User;
 
 	while ((Users = Config->ReadString("system.users")) == NULL) {
-		if (MakeConfig() == false) {
+		if (!MakeConfig()) {
 			LOGERROR("Configuration file could not be created.");
 
 			Fatal();
@@ -129,11 +129,9 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 	Args = ArgTokenize(Users);
 
-	if (Args == NULL) {
-		LOGERROR("ArgTokenize() failed.");
-
+	CHECK_ALLOC_RESULT(Args, ArgTokenize) {
 		Fatal();
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	Count = ArgCount(Args);
 
@@ -141,11 +139,9 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 		const char *Name = ArgGet(Args, i + 1);
 		User = new CUser(Name);
 
-		if (User == NULL) {
-			LOGERROR("Could not create user object");
-
+		CHECK_ALLOC_RESULT(User, new) {
 			Fatal();
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		m_Users.Add(Name, User);
 	}
@@ -373,11 +369,9 @@ void CCore::StartMainLoop(void) {
 	while (true) {
 		asprintf(&Out, "system.modules.mod%d", i++);
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed. Module could not be loaded.");
-
-			continue;
-		}
+		CHECK_ALLOC_RESULT(Out, asprintf) {
+			Fatal();
+		} CHECK_ALLOC_RESULT_END;
 
 		const char* File = m_Config->ReadString(Out);
 
@@ -633,23 +627,23 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 
 	free(CorePath);
 
-	if (Module == NULL) {
-		LOGERROR("new operator failed. Could not load module %s", BuildPath(Filename, CorePath));
-
-		if (Error)
-			*Error = "new operator failed.";
+	CHECK_ALLOC_RESULT(Module, new) {
+		if (Error != NULL) {
+			*Error = "new operator failed";
+		}
 
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	if (Module->GetError() == NULL) {
 		if (!m_Modules.Insert(Module)) {
 			delete Module;
 
-			LOGERROR("realloc() failed. Could not load module");
+			LOGERROR("Insert() failed. Could not load module");
 
-			if (Error)
+			if (Error != NULL) {
 				*Error = "realloc() failed.";
+			}
 
 			return NULL;
 		}
@@ -658,8 +652,9 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 
 		Module->Init(this);
 
-		if (!m_LoadingModules)
+		if (!m_LoadingModules) {
 			UpdateModuleConfig();
+		}
 
 		return Module;
 	} else {
@@ -700,11 +695,9 @@ void CCore::UpdateModuleConfig(void) {
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		asprintf(&Out, "system.modules.mod%d", a++);
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-
+		CHECK_ALLOC_RESULT(Out, asprintf) {
 			Fatal();
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		m_Config->WriteString(Out, m_Modules[i]->GetFilename());
 
@@ -713,11 +706,9 @@ void CCore::UpdateModuleConfig(void) {
 
 	asprintf(&Out, "system.modules.mod%d", a);
 
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-
+	CHECK_ALLOC_RESULT(Out, asprintf) {
 		Fatal();
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Config->WriteString(Out, NULL);
 
@@ -761,20 +752,18 @@ void CCore::Log(const char* Format, ...) {
 	Ret = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	if (Ret == -1) {
-		LOGERROR("vasprintf() failed.");
-
+	CHECK_ALLOC_RESULT(Out, vasprintf) {
 		return;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Log->WriteLine("%s", Out);
 
 	free(Out);
 }
 
-/* TODO: should we rely on asprintf/vasprintf here? */
 void CCore::InternalLogError(const char* Format, ...) {
-	char *Format2, *Out;
+	char Format2[512];
+	char Out[512];
 	const char* P = g_ErrorFile;
 	va_list marker;
 
@@ -782,31 +771,13 @@ void CCore::InternalLogError(const char* Format, ...) {
 		if (*P == '\\')
 			g_ErrorFile = P + 1;
 
-	asprintf(&Format2, "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
-
-	if (Format2 == NULL) {
-		printf("CCore::InternalLogError: asprintf() failed.");
-
-		return;
-	}
+	snprintf(Format2, sizeof(Format2), "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
 
 	va_start(marker, Format);
-	vasprintf(&Out, Format2, marker);
+	vsnprintf(Out, sizeof(Out), Format2, marker);
 	va_end(marker);
 
-	free(Format2);
-
-	if (Out == NULL) {
-		printf("CCore::InternalLogError: vasprintf() failed.");
-
-		free(Format2);
-
-		return;
-	}
-
 	m_Log->WriteLine("%s", Out);
-
-	free(Out);
 }
 
 void CCore::InternalSetFileAndLine(const char* Filename, unsigned int Line) {

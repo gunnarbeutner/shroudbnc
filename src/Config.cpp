@@ -222,30 +222,24 @@ bool CConfig::Persist(void) {
 
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
+	CHECK_ALLOC_RESULT(ConfigFile, fopen) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
 #ifndef _WIN32
 	chmod(m_Filename, S_IRUSR | S_IWUSR);
 #endif
 
-	if (ConfigFile != NULL) {
-		int i = 0;
-		while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {
-			if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
-				fprintf(ConfigFile, "%s=%s\n", SettingHash->Name, SettingHash->Value);
-			}
+	int i = 0;
+	while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {
+		if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
+			fprintf(ConfigFile, "%s=%s\n", SettingHash->Name, SettingHash->Value);
 		}
-
-		fclose(ConfigFile);
-
-		return true;
-	} else {
-		if (g_Bouncer != NULL) {
-			LOGERROR("Config file %s could not be opened.", m_Filename);
-		} else {
-			printf("Config file %s could not be opened.", m_Filename);
-		}
-
-		return false;
 	}
+
+	fclose(ConfigFile);
+
+	return true;
 }
 
 /**

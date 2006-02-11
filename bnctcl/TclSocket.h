@@ -65,7 +65,7 @@ public:
 		return m_Idx;
 	}
 
-	virtual void Accept(SOCKET Client, sockaddr_in PeerName) {
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		char ptr[20];
 		Tcl_Obj* objv[2];
 		CTclClientSocket *TclClient;
