@@ -66,7 +66,7 @@ void AcceptHelper(SOCKET Client, bool SSL) {
 
 IMPL_SOCKETLISTENER(CClientListener) {
 public:
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase(Port, BindIp, Family) { }
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CClientListener>(Port, BindIp, Family) { }
 	CClientListener(void) { }
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
@@ -76,7 +76,7 @@ public:
 
 IMPL_SOCKETLISTENER(CSSLClientListener) {
 public:
-	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase(Port, BindIp, Family) { }
+	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CSSLClientListener>(Port, BindIp, Family) { }
 	CSSLClientListener(void) { }
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
