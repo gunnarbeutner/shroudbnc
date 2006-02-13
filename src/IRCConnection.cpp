@@ -221,6 +221,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* Dest = argv[2];
 		char* Nick = ::NickFromHostmask(Reply);
 
+		CChannel* Chan = GetChannel(Dest);
+
+		if (Chan) {
+			CNick* User = Chan->GetNames()->Get(Nick);
+
+			if (User)
+				User->SetIdleSince(time(NULL));
+		}
+
+		if (!ModuleEvent(argc, argv)) {
+			free(Nick);
+			return false;
+		}
+
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			char* Dup;
 			char* Delim;
@@ -248,27 +262,28 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			free(Dup);
 		}
 
-		CChannel* Chan = GetChannel(Dest);
-
-		if (Chan) {
-			CNick* User = Chan->GetNames()->Get(Nick);
-
-			if (User)
-				User->SetIdleSince(time(NULL));
-		}
-
 		free(Nick);
 
 		UpdateHostHelper(Reply);
+
+		return true;
 	} else if (argc > 3 && hashRaw == hashNotice && !GetOwner()->GetClientConnection()) {
 		const char* Dest = argv[2];
-		char* Nick = ::NickFromHostmask(Reply);
+		char* Nick;
+		
+		if (!ModuleEvent(argc, argv)) {
+			return false;
+		}
+
+		Nick = ::NickFromHostmask(Reply);
 
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			GetOwner()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 
 		free(Nick);
+
+		return true;
 	} else if (argc > 2 && hashRaw == hashJoin) {
 		if (b_Me) {
 			AddChannel(argv[2]);

@@ -1654,10 +1654,8 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 	int i = 0;
 
 	if (Response == NULL) {
-
+		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Reverse DNS query failed. Using IP address as your hostname.");
 		SetPeerName(IpToString(GetRemoteAddress()), true);
-
-		// TODO: destroy query
 	} else {
 		if (m_PeerNameTemp == NULL) {
 			m_PeerNameTemp = strdup(Response->h_name);
@@ -1668,7 +1666,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 		} else {
 			sockaddr *saddr = NULL;
 
-			while (Response->h_addr_list[i] != NULL) {
+			while (Response && Response->h_addr_list[i] != NULL) {
 				sockaddr_in sin;
 #ifdef IPV6
 				sockaddr_in6 sin6;

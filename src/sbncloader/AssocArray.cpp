@@ -21,6 +21,10 @@ CAssocArray::~CAssocArray(void) {
 }
 
 void CAssocArray::AddString(const char *Name, const char *Value) {
+	if (Value == NULL) {
+		return;
+	}
+
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
 	m_Values[m_Count - 1].Name = strdup(Name);

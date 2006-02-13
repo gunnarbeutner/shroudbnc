@@ -19,12 +19,16 @@
 
 // *nix specific things
 
+#undef FD_SETSIZE
+#define FD_SETSIZE 4096
+
 #include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -39,8 +43,6 @@ typedef int SOCKET;
 #define SD_BOTH SHUT_RDWR
 #define closesocket close
 #define INVALID_SOCKET (-1)
-#undef FD_SETSIZE
-#define FD_SETSIZE 4096
 #define ioctlsocket ioctl
 
 typedef int BOOL;

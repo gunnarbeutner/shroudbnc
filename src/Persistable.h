@@ -40,7 +40,7 @@ bool FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
 		return false;
 	}
 
-	if (Object->Freeze(ObjectBox) == true) {
+	if (Object->Freeze(ObjectBox)) {
 		Container->AddBox(Name, ObjectBox);
 	} else {
 		ObjectBox->Destroy();

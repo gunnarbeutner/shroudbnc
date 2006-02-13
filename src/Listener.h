@@ -17,11 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-template <typename EventClassName>
+template<typename InheritedClass>
 class CListenerBase : public CSocketEvents {
 private:
 	SOCKET m_Listener;
-	EventClassName *m_EventObject;
 
 	virtual bool Read(bool DontProcess) {
 		char PeerAddress[MAX_SOCKADDR_LEN];
@@ -46,24 +45,38 @@ private:
 	virtual const char *GetClassName(void) { return "CListenerBase"; }
 
 protected:
-	EventClassName *GetEventObject(void) {
-		return m_EventObject;
-	}
-
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		closesocket(Client);
 	}
+
 public:
-	CListenerBase(SOCKET Listener, EventClassName *EventObject = NULL) {
-		Init(Listener, EventObject);
+	CListenerBase(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) {
+		Init(g_Bouncer->CreateListener(Port, BindIp, Family));
 	}
 
-	CListenerBase(unsigned int Port, const char *BindIp = NULL, EventClassName *EventObject = NULL, int Family = AF_INET) {
-		Init(g_Bouncer->CreateListener(Port, BindIp, Family), EventObject);
+	CListenerBase(void) {
+		// used for unfreezing listeners
 	}
 
-	void Init(SOCKET Listener, EventClassName *EventObject) {
-		m_EventObject = EventObject;
+	bool Freeze(CAssocArray *Box) {
+		Box->AddInteger("~listener.fd", m_Listener);
+		g_Bouncer->UnregisterSocket(m_Listener);
+		m_Listener = NULL;
+
+		delete this;
+
+		return true;
+	}
+
+	static InheritedClass *Unfreeze(CAssocArray *Box) {
+		InheritedClass *Listener = new InheritedClass();
+		
+		Listener->Init(Box->ReadInteger("~listener.fd"));
+
+		return Listener;
+	}
+
+	void Init(SOCKET Listener) {
 		m_Listener = Listener;
 
 		if (m_Listener == INVALID_SOCKET) {
@@ -102,4 +115,4 @@ public:
 	}
 };
 
-#define IMPL_SOCKETLISTENER(ClassName, EventClassName) class ClassName : public CListenerBase<EventClassName>
+#define IMPL_SOCKETLISTENER(ClassName) class ClassName : public CListenerBase<ClassName>

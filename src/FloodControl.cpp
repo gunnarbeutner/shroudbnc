@@ -24,8 +24,6 @@ typedef struct penalty_s {
 	int Amplifier;
 } penalty_t;
 
-#define FLOOD_WAIT 0
-
 static penalty_t penalties [] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
@@ -67,7 +65,7 @@ char *CFloodControl::DequeueItem(bool Peek) {
 		return NULL;
 	}
 
-	if (m_Control && (time(NULL) - m_LastCommand < FLOOD_WAIT)) {
+	if (m_Control && (time(NULL) - m_LastCommand < g_Bouncer->GetConfig()->ReadInteger("system.floodwait"))) {
 		return NULL;
 	}
 

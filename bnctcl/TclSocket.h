@@ -27,13 +27,13 @@ extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
 extern int g_SocketIdx;
 extern Tcl_Interp* g_Interp;
 
-IMPL_SOCKETLISTENER(CTclSocket, int) {
+IMPL_SOCKETLISTENER(CTclSocket) {
 private:
 	int m_Idx;
 	bool m_SSL;
 	char *m_TclProc;
 public:
-	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<int>(Port, BindIp, NULL) {
+	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase(Port, BindIp) {
 		char Buf[20];
 
 		m_TclProc = strdup(TclProc);

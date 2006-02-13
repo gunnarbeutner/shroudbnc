@@ -44,7 +44,7 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 	getsockname(Socket, (sockaddr *)Address, &AddressLength);
 	m_Family = ((sockaddr *)Address)->sa_family;
 
-	InitConnection(Socket, SSL );
+	InitConnection(Socket, SSL);
 }
 
 CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {

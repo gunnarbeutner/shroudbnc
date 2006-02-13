@@ -53,30 +53,31 @@ extern int g_TimerStats;
 #endif
 
 void AcceptHelper(SOCKET Client, bool SSL) {
+	CClientConnection *ClientObject;
 	unsigned long lTrue = 1;
 
 	ioctlsocket(Client, FIONBIO, &lTrue);
 
 	// destruction is controlled by the main loop
-	new CClientConnection(Client, SSL);
+	ClientObject = new CClientConnection(Client, SSL);
 
-	g_Bouncer->Log("Bouncer client connected...");
+	g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
 }
 
-IMPL_SOCKETLISTENER(CClientListener, CCore) {
+IMPL_SOCKETLISTENER(CClientListener) {
 public:
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CCore>(Port, BindIp, NULL, Family) { }
-	CClientListener(SOCKET Listener, CCore *EventClass = NULL) : CListenerBase<CCore>(Listener, EventClass) { }
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase(Port, BindIp, Family) { }
+	CClientListener(void) { }
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		AcceptHelper(Client, false);
 	}
 };
 
-IMPL_SOCKETLISTENER(CSSLClientListener, CCore) {
+IMPL_SOCKETLISTENER(CSSLClientListener) {
 public:
-	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CCore>(Port, BindIp, NULL, Family) { }
-	CSSLClientListener(SOCKET Listener, CCore *EventClass = NULL) : CListenerBase<CCore>(Listener, EventClass) { }
+	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase(Port, BindIp, Family) { }
+	CSSLClientListener(void) { }
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		AcceptHelper(Client, true);
@@ -1211,19 +1212,10 @@ const char *CCore::DebugImpulse(int impulse) {
 }
 
 bool CCore::Freeze(CAssocArray *Box) {
-	if (m_Listener) {
-		Box->AddInteger("~listener", m_Listener->GetSocket());
-		m_Listener->SetSocket(INVALID_SOCKET);
-	} else {
-		Box->AddInteger("~listener", INVALID_SOCKET);
-	}
-
-	if (m_SSLListener) {
-		Box->AddInteger("~ssllistener", m_SSLListener->GetSocket());
-		m_SSLListener->SetSocket(INVALID_SOCKET);
-	} else {
-		Box->AddInteger("~ssllistener", INVALID_SOCKET);
-	}
+	FreezeObject<CClientListener>(Box, "~listener", m_Listener);
+	FreezeObject<CSSLClientListener>(Box, "~ssllistener", m_SSLListener);
+	FreezeObject<CClientListener>(Box, "~listenerv6", m_ListenerV6);
+	FreezeObject<CSSLClientListener>(Box, "~ssllistenerv6", m_SSLListenerV6);
 
 	int i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
@@ -1266,18 +1258,12 @@ bool CCore::Freeze(CAssocArray *Box) {
 }
 
 bool CCore::Unfreeze(CAssocArray *Box) {
-	SOCKET Listener, SSLListener;
 	CAssocArray *ClientsBox;
 
-	Listener = Box->ReadInteger("~listener");
-
-	if (Listener != INVALID_SOCKET)
-		m_Listener = new CClientListener(Listener, (CCore*)NULL);
-
-	SSLListener = Box->ReadInteger("~ssllistener");
-
-	if (SSLListener != INVALID_SOCKET)
-		m_SSLListener = new CSSLClientListener(SSLListener, (CCore*)NULL);
+	m_Listener = UnfreezeObject<CClientListener>(Box, "~listener");
+	m_SSLListener = UnfreezeObject<CSSLClientListener>(Box, "~ssllistener");
+	m_ListenerV6 = UnfreezeObject<CClientListener>(Box, "~listenerv6");
+	m_SSLListenerV6 = UnfreezeObject<CSSLClientListener>(Box, "~ssllistenerv6");
 
 	ClientsBox = Box->ReadBox("~clients");
 
@@ -1473,11 +1459,11 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 		return false;
 	}
 
-	ReturnValue = m_Config->WriteString(Setting, Value);
-
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->TagModified(Tag, Value);
 	}
+
+	ReturnValue = m_Config->WriteString(Setting, Value);
 
 	return ReturnValue;
 }
