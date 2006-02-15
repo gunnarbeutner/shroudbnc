@@ -39,7 +39,6 @@ typedef struct socket_s {
 } socket_t;
 
 class CClientListener;
-class CSSLClientListener;
 
 class CCore {
 #ifndef SWIG
@@ -50,7 +49,7 @@ class CCore {
 	CConfig *m_Config;
 
 	CClientListener *m_Listener, *m_ListenerV6;
-	CSSLClientListener *m_SSLListener, *m_SSLListenerV6;
+	CClientListener *m_SSLListener, *m_SSLListenerV6;
 
 	CHashtable<CUser *, false, 64> m_Users;
 	CVector<CModule *> m_Modules;
@@ -179,6 +178,8 @@ public:
 
 	virtual const char *GetBasePath(void);
 	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL);
+
+	virtual const char *GetBouncerVersion(void);
 };
 
 extern CCore *g_Bouncer;

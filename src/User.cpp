@@ -475,7 +475,6 @@ void CUser::Reconnect(void) {
 		LOGERROR("asprintf() failed.");
 	} else {
 		g_Bouncer->Log("%s", Out);
-		Notice(Out);
 		free(Out);
 	}
 
@@ -510,15 +509,12 @@ void CUser::Reconnect(void) {
 
 	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
-	if (!Connection) {
-		Notice("Can't connect..");
-		g_Bouncer->Log("Can't connect..");
-		g_Bouncer->GlobalNotice("Failed to connect.", true);
+	if (Connection == NULL) {
+		g_Bouncer->Log("Internal error: Could not create IRC connection object for %s", GetUsername());
 	} else {
 		SetIRCConnection(Connection);
 
-		g_Bouncer->Log("Connection initialized. Waiting for response...");
-		g_Bouncer->GlobalNotice("Connection initialized. Waiting for response...", true);
+		g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
 	}
 }
 
@@ -572,7 +568,7 @@ void CUser::ScheduleReconnect(int Delay) {
 			return;
 		} CHECK_ALLOC_RESULT_END;
 
-		Notice(Out);
+		Log(Out);
 		free(Out);
 	}
 }
@@ -617,7 +613,12 @@ void CUser::Log(const char *Format, ...) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Log->WriteLine("%s", Out);
+	if (GetClientConnection() == NULL) {
+		m_Log->WriteLine("%s", Out);
+	}
+
+	Notice(Out);
+
 	free(Out);
 }
 
@@ -639,24 +640,9 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 	Modules = g_Bouncer->GetModules();
 
 	if (!IRC && !WasNull) {
-		Notice("Disconnected from the server.");
+		Log("You were disconnected from the IRC server.");
 
-		char* Out;
-
-		asprintf(&Out, "%s disconnected from the server.", GetUsername());
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
-			g_Bouncer->Log("%s", Out);
-			g_Bouncer->GlobalNotice(Out, true);
-
-			free(Out);
-		}
-
-		if (m_Client == NULL) {
-			Log("Disconnected from the server.");
-		}
+		g_Bouncer->Log("%s was disconnected from the server.", GetUsername());
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			Modules->Get(i)->ServerDisconnect(GetUsername());

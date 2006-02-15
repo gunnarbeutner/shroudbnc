@@ -274,6 +274,7 @@ HMODULE sbncLoadModule(void) {
 }
 
 int main(int argc, char **argv) {
+	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 	char *ThisMod;
 
@@ -302,18 +303,21 @@ int main(int argc, char **argv) {
 
 	if (hMod == NULL && strcasecmp(g_Mod, SBNC_MODULE) != 0) {
 		free(g_Mod);
+		free(ThisMod);
 		g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
+		ThisMod = strdup(g_Mod);
 
 		printf("Trying failsafe module...\n");
 
 		hMod = sbncLoadModule();
 
 		if (hMod == NULL) {
-			free(g_Mod);
-
 			printf("Giving up...\n");
 
-			return 1;
+			free(g_Mod);
+			free(ThisMod);
+
+			return EXIT_FAILURE;
 		}
 	}
 
@@ -346,8 +350,9 @@ int main(int argc, char **argv) {
 
 		g_LoadFunc(&Parameters);
 
-		if (!g_Freeze)
+		if (!g_Freeze) {
 			break;
+		}
 
 		printf("Unloading shroudBNC...\n");
 
@@ -362,7 +367,9 @@ int main(int argc, char **argv) {
 
 		if (hMod == NULL) {
 			free(g_Mod);
+			free(ThisMod);
 			g_Mod = strdup(sbncBuildPath(ThisMod));
+			ThisMod = strdup(g_Mod);
 
 			printf("Trying previous module...\n");
 
@@ -377,16 +384,11 @@ int main(int argc, char **argv) {
 				hMod = sbncLoadModule();
 
 				if (hMod == NULL) {
-					free(g_Mod);
-
 					printf("Giving up...\n");
 
-					Socket_Final();
-#if !defined(_WIN32) || defined(__MINGW32__)
-					lt_dlexit();
-#endif
+					ExitCode = EXIT_FAILURE;
 
-					return 1;
+					break;
 				}
 			}
 		} else {
@@ -401,7 +403,8 @@ int main(int argc, char **argv) {
 	lt_dlexit();
 #endif
 
+	free(ThisMod);
 	free(g_Mod);
 
-	return 0;
+	exit(ExitCode);
 }

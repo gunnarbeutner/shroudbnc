@@ -455,9 +455,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				Modules->Get(i)->ServerLogon(m_Owner->GetUsername());
 			}
 
-			GetOwner()->Notice("Connected to an IRC server.");
+			GetOwner()->Log("You were successfully connected to an IRC server.");
 
-			g_Bouncer->Log("Connected to an IRC server. (%s)", m_Owner->GetUsername());
+			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
 		}
 
 		if (GetOwner()->GetClientConnection() == NULL) {
@@ -1218,8 +1218,9 @@ void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 }
 
 void CIRCConnection::Destroy(void) {
-	if (m_Owner)
+	if (m_Owner != NULL) {
 		m_Owner->SetIRCConnection(NULL);
+	}
 
 	delete this;
 }
@@ -1245,13 +1246,10 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 	char *Out;
 	int i = 0;
 	hash_t<CChannel *> *Hash;
-	CAssocArray *ChannelBox;
 
 	while ((Hash =  m_Channels->Iterate(i++)) != NULL) {
 		asprintf(&Out, "~irc.channel%d", i - 1);
-		ChannelBox = Box->Create();
-		Hash->Value->Freeze(ChannelBox);
-		Box->AddBox(Out, ChannelBox);
+		FreezeObject<CChannel>(Box, Out, Hash->Value);
 		free(Out);
 	}
 
@@ -1331,21 +1329,16 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 
 		asprintf(&Out, "~irc.channel%d", i);
 
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed while unfreezing an irc connection.");
-
+		CHECK_ALLOC_RESULT(Out, asprintf) {
 			g_Bouncer->Fatal();
-		}
+		} CHECK_ALLOC_RESULT_END;
 
-		TempBox = Box->ReadBox(Out);
+		Channel = UnfreezeObject<CChannel>(Box, Out);
+		Channel->SetOwner(Connection);
+
+		Connection->m_Channels->Add(Channel->GetName(), Channel);
 
 		free(Out);
-
-		if (TempBox != NULL) {
-			Channel = CChannel::Unfreeze(TempBox, Connection);
-
-			Connection->m_Channels->Add(Channel->GetName(), Channel);
-		}
 	}
 
 	if (Connection->m_FloodControl != NULL) {
@@ -1430,4 +1423,12 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) {
 	}
 
 	return '\0';
+}
+
+void CIRCConnection::Error(void) {
+	if (m_State == State_Connecting) {
+		g_Bouncer->Log("An error occured while re-connecting for user %s", GetOwner()->GetUsername());
+
+		GetOwner()->Notice("An error occured while re-connecting to a server.");
+	}
 }

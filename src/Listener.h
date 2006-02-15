@@ -61,7 +61,7 @@ public:
 	bool Freeze(CAssocArray *Box) {
 		Box->AddInteger("~listener.fd", m_Listener);
 		g_Bouncer->UnregisterSocket(m_Listener);
-		m_Listener = NULL;
+		m_Listener = INVALID_SOCKET;
 
 		delete this;
 

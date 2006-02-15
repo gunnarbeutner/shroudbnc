@@ -41,7 +41,6 @@ const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
  */
 void sigint_handler(int code) {
 	g_Bouncer->Log("SIGINT received.");
-	g_Bouncer->GlobalNotice("SIGINT received.", true);
 
 	g_Bouncer->Shutdown();
 
@@ -98,10 +97,6 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 		g_Bouncer->Unfreeze(Parameters->Box);
 	}
 
-#if defined(_WIN32) && defined(_DEBUG)
-	CTimer *DebugTimer = g_Bouncer->CreateTimer(15, 1, ReportMemory, NULL);
-#endif
-
 #if !defined(_WIN32)
 	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
@@ -113,12 +108,6 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 #if !defined(_WIN32)
 	signal(SIGINT, SIG_IGN);
-#endif
-
-#if defined(_WIN32) && defined(_DEBUG)
-	DebugTimer->Destroy();
-
-	ReportMemory(time(NULL), NULL);
 #endif
 
 	if (g_Bouncer != NULL) {

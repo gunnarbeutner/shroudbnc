@@ -58,20 +58,19 @@ typedef int socklen_t;
 #define HAVE_STRUCT_SOCKADDR_IN6
 
 #if defined(_DEBUG) && defined(SBNC)
-void *DebugMalloc(size_t Size);
-void DebugFree(void *p);
-char *DebugStrDup(const char *p);
-void *DebugReAlloc(void *p, size_t newsize);
-bool ReportMemory(time_t Now, void *Cookie);
+void *DebugMalloc(size_t Size, const char *file, int line);
+void DebugFree(void *p, const char *file, int line);
+char *DebugStrDup(const char *p, const char *file, int line);
+void *DebugReAlloc(void *p, size_t newsize, const char *file, int line);
 
 #define real_malloc malloc
 #define real_free free
 #define real_strdup strdup
 #define real_realloc realloc
 
-#define malloc DebugMalloc
-#define free DebugFree
+#define malloc(x) DebugMalloc(x, __FILE__, __LINE__)
+#define free(x) DebugFree(x, __FILE__, __LINE__)
 #undef strdup
-#define strdup DebugStrDup
-#define realloc DebugReAlloc
+#define strdup(x) DebugStrDup(x, __FILE__, __LINE__)
+#define realloc(x, y) DebugReAlloc(x, y, __FILE__, __LINE__)
 #endif

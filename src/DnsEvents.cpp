@@ -19,11 +19,34 @@
 
 #include "StdAfx.h"
 
+/**
+ * GenericDnsQueryCallback
+ *
+ * Used as a thunk between c-ares' C-style callbacks and shroudBNC's
+ * object-oriented dns class.
+ *
+ * @param Cookie a pointer to a CDnsQuery object
+ * @param Status the status of the dns query
+ * @param HostEntity the response for the dns query (can be NULL)
+ */
 void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
 	Query->AsyncDnsEvent(Status, HostEntity);
 }
+
+/**
+ * CDnsQuery
+ *
+ * Constructs a new DNS query object.
+ *
+ * @param EventInterface an object to which DNS callbacks are routed
+ * @param EventFunction a function which is called when DNS queries are completed
+ * @param Timeout specifies the timeout value for dns queries
+ *
+ * \see IMPL_DNSEVENTPROXY
+ * \see USE_DNSEVENTPROXY
+ */
 
 CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout) {
 	ares_options Options;
@@ -39,16 +62,38 @@ CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int T
 	g_Bouncer->RegisterDnsQuery(this);
 }
 
+/**
+ * ~CDnsQuery
+ *
+ * Destructs a DNS query object.
+ */
 CDnsQuery::~CDnsQuery(void) {
 	ares_destroy(m_Channel);
 
 	g_Bouncer->UnregisterDnsQuery(this);
 }
 
+/**
+ * GetHostByName
+ *
+ * Asynchronously performs the task of the "gethostbyname" function
+ * and calls the callback function once the operation has completed.
+ *
+ * @param Host the hostname
+ * @param Family the address family (AF_INET or AF_INET6)
+ */
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
 	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, this);
 }
 
+/**
+ * GetHostByAddr
+ *
+ * Asynchronously performs the task of the "gethostbyaddr" function
+ * and calls the callback function once the operation has completed.
+ *
+ * @param Address the address for which the hostname should be looked up
+ */
 void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	void *IpAddr;
 
@@ -65,10 +110,24 @@ void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
 }
 
+/**
+ * GetChannel
+ *
+ * Returns the underlying c-ares channel object.
+ */
 ares_channel CDnsQuery::GetChannel(void) {
 	return m_Channel;
 }
 
+/**
+ * AsyncDnsEvent
+ *
+ * Used by GenericDnsQueryCallback to notify the object of the status
+ * of a dns query.
+ *
+ * @param Status the status
+ * @param Response the response for the dns query
+ */
 void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
 	(*m_EventFunction)(m_EventObject, Response);
 }

@@ -37,7 +37,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_PeerNameTemp = NULL;
 
 	if (Client != INVALID_SOCKET) {
-		WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC" BNCVERSION);
+		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
@@ -51,23 +51,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_CommandList = NULL;
 }
 
-CClientConnection::CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning) : CConnection(Client, false, Role_Server) {
-	m_Owner = Owning;
-
-	m_Nick = strdup(Box->ReadString("client.nick"));
-	m_Password = NULL;
-	m_Username = strdup(Owning->GetUsername());
-
-	m_PeerName = strdup(Box->ReadString("client.peername"));
-	m_PeerNameTemp = NULL;
-
-	m_Socket = (SOCKET)Box->ReadInteger("client.fd");
-
-	m_CommandList = NULL;
-
-	m_ClientLookup = NULL;
-
-	InitSocket();
+CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {
+	// nothing to do here
 }
 
 CClientConnection::~CClientConnection() {
@@ -830,7 +815,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			free(Out);
 		} CHECK_ALLOC_RESULT_END;
 
-		SENDUSER("This is shroudBNC " BNCVERSION);
+		asprintf(&Out, "This is shroudBNC %s", g_Bouncer->GetBouncerVersion());
+		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+			SENDUSER(Out);
+			free(Out);
+		} CHECK_ALLOC_RESULT_END;
 
 		asprintf(&Out, "You are %san admin.", m_Owner->IsAdmin() ? "" : "not ");
 		CHECK_ALLOC_RESULT(Out, asprintf) { } else {
@@ -939,10 +928,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "read") == 0) {
 		m_Owner->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
-		if (NoticeUser)
-			m_Owner->RealNotice("End of LOG. Use '/sbnc erase' to remove this log.");
-		else
-			m_Owner->Notice("End of LOG. Use '/msg -sBNC erase' to remove this log.");
+		if (!m_Owner->GetLog()->IsEmpty()) {
+			if (NoticeUser)
+				m_Owner->RealNotice("End of LOG. Use '/sbnc erase' to remove this log.");
+			else
+				m_Owner->Notice("End of LOG. Use '/msg -sBNC erase' to remove this log.");
+		} else {
+			SENDUSER("Your personal log is empty.");
+		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "erase") == 0) {
@@ -953,10 +946,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
 		g_Bouncer->GetLog()->PlayToUser(m_Owner, NoticeUser);
 
-		if (NoticeUser)
-			m_Owner->RealNotice("End of LOG. Use /sbnc erasemainlog to remove this log.");
-		else
-			m_Owner->Notice("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
+		if (!g_Bouncer->GetLog()->IsEmpty()) {
+			if (NoticeUser)
+				m_Owner->RealNotice("End of LOG. Use /sbnc erasemainlog to remove this log.");
+			else
+				m_Owner->Notice("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
+		} else {
+			SENDUSER("The main log is empty.");
+		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "erasemainlog") == 0 && m_Owner->IsAdmin()) {
@@ -1147,10 +1144,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		return false;
 	}
 
-	if (NoticeUser)
+	if (NoticeUser) {
 		m_Owner->RealNotice("Unknown command. Try /sbnc help");
-	else
+	} else {
 		SENDUSER("Unknown command. Try /msg -sBNC help");
+	}
 
 	return false;
 }
@@ -1625,7 +1623,7 @@ const char* CClientConnection::GetNick(void) {
 
 void CClientConnection::Destroy(void) {
 	if (m_Owner) {
-		g_Bouncer->Log("%s disconnected.", m_Username);
+		g_Bouncer->Log("%s disconnected.", m_Owner->GetUsername());
 		m_Owner->SetClientConnection(NULL);
 	}
 
@@ -1745,12 +1743,13 @@ void CClientConnection::WriteUnformattedLine(const char* In) {
 
 bool CClientConnection::Freeze(CAssocArray *Box) {
 	// too bad we can't preserve ssl encrypted connections
-	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
+	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
 		return false;
+	}
 
-	Box->AddString("client.peername", m_PeerName);
-	Box->AddString("client.nick", m_Nick);
-	Box->AddInteger("client.fd", GetSocket());
+	Box->AddString("~client.peername", m_PeerName);
+	Box->AddString("~client.nick", m_Nick);
+	Box->AddInteger("~client.fd", GetSocket());
 
 	// protect the socket from being closed
 	g_Bouncer->UnregisterSocket(m_Socket);
@@ -1759,6 +1758,47 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 	Destroy();
 
 	return true;
+}
+
+CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box) {
+	SOCKET Socket;
+	CClientConnection *Client;
+	const char *Temp;
+
+	if (Box == NULL) {
+		return NULL;
+	}
+
+	Socket = Box->ReadInteger("~client.fd");
+
+	if (Socket == INVALID_SOCKET) {
+		return NULL;
+	}
+
+	Client = new CClientConnection();
+
+	Client->m_Socket = Socket;
+	Client->InitSocket();
+
+	Temp = Box->ReadString("~client.peername");
+
+	if (Temp != NULL) {
+		Client->m_PeerName = strdup(Temp);
+	} else {
+		Client->m_PeerName = strdup(IpToString(Client->GetRemoteAddress()));
+	}
+
+	Temp = Box->ReadString("~client.nick");
+
+	if (Temp != NULL) {
+		Client->m_Nick = strdup(Temp);
+	} else {
+		delete Client;
+
+		return NULL;
+	}
+
+	return Client;
 }
 
 void CClientConnection::Kill(const char *Error) {

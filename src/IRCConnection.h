@@ -137,6 +137,7 @@ public:
 	virtual void JoinChannels(void);
 
 	virtual bool Read(void);
+	virtual void Error(void);
 	virtual void Destroy(void);
 
 	virtual void AsyncDnsFinished(hostent *response);

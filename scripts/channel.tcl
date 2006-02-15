@@ -27,9 +27,16 @@ proc sbnc:channelflush {} {
 		savechannels
 
 		foreach channel [channels] {
-			if {![botonchan $channel] && ![channel get $channel inactive]} {
-				# simul so we can take advantage of keyrings
-				simul [getctx] "JOIN $channel"
+			if {![botonchan $channel]} {
+				if {[channel get $channel autochan]} {
+					channel remove $channel
+					continue
+				}
+
+				if {![channel get $channel inactive]} {
+					# simul so we can take advantage of keyrings
+					simul [getctx] "JOIN $channel"
+				}
 			}
 		}
 	}
@@ -51,6 +58,10 @@ proc sbnc:channeljoin {client params} {
 	if {![isbotnick [lindex [split [lindex $params 0] "!"] 0]]} { return }
 
 	if {[string equal -nocase [lindex $params 1] "JOIN"]} {
+		if {[catch [channel get [lindex $params 2] inactive] error]} {
+			channel set [lindex $params 2] +autochan
+		}
+
 		channel set [lindex $params 2] -inactive
 	}
 }
@@ -67,7 +78,7 @@ proc channel {option chan args} {
 	upvar [getns]::chanoptions chanoptions
 
 	if {[botonchan $chan] && ![info exists channels($chan)]} {
-		set channels($chan) ""
+		set channels($chan) [list]
 	}
 
 	if {[info exists channels($chan)]} {
@@ -112,7 +123,7 @@ proc channel {option chan args} {
 				} else {
 					set channel($option) 0
 				}
-			} elseif {![validchan [lindex $args 0]]} {
+			} elseif {![validchan $chan]} {
 				return -code error "no such channel record"
 			} else {
 				set channel($option) $value
@@ -130,6 +141,8 @@ proc channel {option chan args} {
 
 			if {![info exists chanoptions([lindex $args 0])]} {
 				return -code error "No such option."
+			} elseif {![validchan $chan]} {
+				return -code error "no such channel record"
 			} elseif {[info exists channel([lindex $args 0])]} {
 				return $channel([lindex $args 0])
 			} else {
@@ -293,3 +306,4 @@ if {![info exists sbnc:channelinit]} {
 }
 
 setudef flag inactive
+setudef flag autochan

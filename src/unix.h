@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <sys/resource.h>
 #include <limits.h>
+#include <termios.h>
 
 typedef int SOCKET;
 

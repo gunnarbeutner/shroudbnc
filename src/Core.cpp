@@ -52,35 +52,33 @@ time_t g_LastReconnect = 0;
 extern int g_TimerStats;
 #endif
 
-void AcceptHelper(SOCKET Client, bool SSL) {
-	CClientConnection *ClientObject;
-	unsigned long lTrue = 1;
-
-	ioctlsocket(Client, FIONBIO, &lTrue);
-
-	// destruction is controlled by the main loop
-	ClientObject = new CClientConnection(Client, SSL);
-
-	g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
-}
-
 IMPL_SOCKETLISTENER(CClientListener) {
+	bool m_SSL;
 public:
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CClientListener>(Port, BindIp, Family) { }
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
+		m_SSL = SSL;
+	}
+
 	CClientListener(void) { }
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		AcceptHelper(Client, false);
+		CClientConnection *ClientObject;
+		unsigned long lTrue = 1;
+
+		ioctlsocket(Client, FIONBIO, &lTrue);
+
+		// destruction is controlled by the main loop
+		ClientObject = new CClientConnection(Client, m_SSL);
+
+		g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
 	}
-};
 
-IMPL_SOCKETLISTENER(CSSLClientListener) {
-public:
-	CSSLClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) : CListenerBase<CSSLClientListener>(Port, BindIp, Family) { }
-	CSSLClientListener(void) { }
+	void SetSSL(bool SSL) {
+		m_SSL = SSL;
+	}
 
-	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		AcceptHelper(Client, true);
+	bool GetSSL(void) {
+		return m_SSL;
 	}
 };
 
@@ -205,7 +203,7 @@ void CCore::StartMainLoop(void) {
 	unsigned int i;
 	bool b_DontDetach = false;
 
-	puts("shroudBNC" BNCVERSION " - an object-oriented IRC bouncer");
+	printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
 	int argc = m_Args.GetLength();
 	char** argv = m_Args.GetList();
@@ -267,7 +265,7 @@ void CCore::StartMainLoop(void) {
 #ifdef USESSL
 	if (m_SSLListener == NULL) {
 		if (SSLPort != 0) {
-			m_SSLListener = new CSSLClientListener(SSLPort, BindIp, AF_INET);
+			m_SSLListener = new CClientListener(SSLPort, BindIp, AF_INET, true);
 		} else {
 			m_SSLListener = NULL;
 		}
@@ -275,7 +273,7 @@ void CCore::StartMainLoop(void) {
 
 	if (m_SSLListenerV6 == NULL) {
 		if (SSLPort != 0) {
-			m_SSLListenerV6 = new CSSLClientListener(SSLPort, BindIp, AF_INET6);
+			m_SSLListenerV6 = new CClientListener(SSLPort, BindIp, AF_INET6, true);
 
 			if (m_SSLListenerV6->IsValid() == false) {
 				delete m_SSLListenerV6;
@@ -341,7 +339,7 @@ void CCore::StartMainLoop(void) {
 	}
 #endif
 
-	fd_set FDRead, FDWrite;
+	fd_set FDRead, FDWrite, FDError;
 
 	Log("Starting main loop.");
 
@@ -428,6 +426,7 @@ void CCore::StartMainLoop(void) {
 
 		FD_ZERO(&FDRead);
 		FD_ZERO(&FDWrite);
+		FD_ZERO(&FDError);
 
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
@@ -446,7 +445,7 @@ void CCore::StartMainLoop(void) {
 						IRC->Destroy();
 				}
 
-				if (LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
+				if (m_Running && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
 					UserHash->Value->ScheduleReconnect();
 
 					LastCheck = Now;
@@ -469,25 +468,25 @@ void CCore::StartMainLoop(void) {
 //					nfds = m_OtherSockets[i].Socket;
 
 				FD_SET(m_OtherSockets[i].Socket, &FDRead);
+				FD_SET(m_OtherSockets[i].Socket, &FDError);
 
-				if (m_OtherSockets[i].Events->HasQueuedData())
+				if (m_OtherSockets[i].Events->HasQueuedData()) {
 					FD_SET(m_OtherSockets[i].Socket, &FDWrite);
+				}
 			}
 		}
 
-		if (SleepInterval <= 0 || !m_Running)
+		if (SleepInterval <= 0 || !m_Running) {
 			SleepInterval = 1;
+		}
 
 		timeval interval = { SleepInterval, 0 };
 
 		int nfds = 0;
 		timeval tv;
 		timeval* tvp = &tv;
-		fd_set FDError;
 
 		memset(tvp, 0, sizeof(timeval));
-
-		FD_ZERO(&FDError);
 
 		if (m_Running == false && SleepInterval > 5)
 			interval.tv_sec = 5;
@@ -509,10 +508,6 @@ void CCore::StartMainLoop(void) {
 			ares_process(Channel, &FDRead, &FDWrite);
 		}
 
-#ifdef _DEBUG
-		//printf("slept %d seconds\n", SleepInterval - interval.tv_sec);
-#endif
-
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
@@ -521,6 +516,13 @@ void CCore::StartMainLoop(void) {
 				CSocketEvents* Events = m_OtherSockets[a].Events;
 
 				if (Socket != INVALID_SOCKET) {
+					if (FD_ISSET(Socket, &FDError)) {
+						Events->Error();
+						Events->Destroy();
+
+						continue;
+					}
+
 					if (FD_ISSET(Socket, &FDRead)) {
 						if (!Events->Read()) {
 							Events->Destroy();
@@ -532,6 +534,7 @@ void CCore::StartMainLoop(void) {
 					if (Events && FD_ISSET(Socket, &FDWrite)) {
 						Events->Write();
 					}
+
 				}
 			}
 		} else if (ready == -1) {
@@ -759,6 +762,13 @@ void CCore::Log(const char* Format, ...) {
 
 	m_Log->WriteLine("%s", Out);
 
+	for (unsigned int i = 0; i < m_Users.GetLength(); i++) {
+		CUser *User = m_Users.Iterate(i)->Value;
+		if (User->IsAdmin()) {
+			User->Notice(Out);
+		}
+	}
+
 	free(Out);
 }
 
@@ -781,16 +791,16 @@ void CCore::InternalLogError(const char* Format, ...) {
 	m_Log->WriteLine("%s", Out);
 }
 
-void CCore::InternalSetFileAndLine(const char* Filename, unsigned int Line) {
+void CCore::InternalSetFileAndLine(const char *Filename, unsigned int Line) {
 	g_ErrorFile = Filename;
 	g_ErrorLine = Line;
 }
 
-CConfig* CCore::GetConfig(void) {
+CConfig *CCore::GetConfig(void) {
 	return m_Config;
 }
 
-CLog* CCore::GetLog(void) {
+CLog *CCore::GetLog(void) {
 	return m_Log;
 }
 
@@ -1164,10 +1174,6 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 #endif
 
 const char *CCore::DebugImpulse(int impulse) {
-	char *Out;
-	int i;
-	CUser *User;
-
 	if (impulse == 5) {
 		InitializeFreeze();
 
@@ -1184,38 +1190,14 @@ const char *CCore::DebugImpulse(int impulse) {
 		_exit(0);
 	}
 
-	if (impulse == 8) {
-		for (i = 0; i < 200; i++) {
-			asprintf(&Out, "test%d", i);
-			User = CreateUser(Out, "eris");
-
-			User->SetServer("85.25.15.190");
-			User->SetPort(6667);
-
-			User->SetConfigChannels("#test,#test3,#test4");
-
-			User->Reconnect();
-
-			free(Out);
-		}
-	}
-
-	if (impulse == 9) {
-		for (i = 0; i < 200; i++) {
-			asprintf(&Out, "test%d", i);
-			RemoveUser(Out);
-			free(Out);
-		}
-	}
-
 	return NULL;
 }
 
 bool CCore::Freeze(CAssocArray *Box) {
 	FreezeObject<CClientListener>(Box, "~listener", m_Listener);
-	FreezeObject<CSSLClientListener>(Box, "~ssllistener", m_SSLListener);
+	FreezeObject<CClientListener>(Box, "~ssllistener", m_SSLListener);
 	FreezeObject<CClientListener>(Box, "~listenerv6", m_ListenerV6);
-	FreezeObject<CSSLClientListener>(Box, "~ssllistenerv6", m_SSLListenerV6);
+	FreezeObject<CClientListener>(Box, "~ssllistenerv6", m_SSLListenerV6);
 
 	int i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
@@ -1261,9 +1243,12 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 	CAssocArray *ClientsBox;
 
 	m_Listener = UnfreezeObject<CClientListener>(Box, "~listener");
-	m_SSLListener = UnfreezeObject<CSSLClientListener>(Box, "~ssllistener");
 	m_ListenerV6 = UnfreezeObject<CClientListener>(Box, "~listenerv6");
-	m_SSLListenerV6 = UnfreezeObject<CSSLClientListener>(Box, "~ssllistenerv6");
+
+	m_SSLListener = UnfreezeObject<CClientListener>(Box, "~ssllistener");
+	m_SSLListener->SetSSL(true);
+	m_SSLListenerV6 = UnfreezeObject<CClientListener>(Box, "~ssllistenerv6");
+	m_SSLListenerV6->SetSSL(true);
 
 	ClientsBox = Box->ReadBox("~clients");
 
@@ -1279,16 +1264,15 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 			User->Value->SetIRCConnection(IRC);
 		}
 
-		if (ClientsBox) {
-			CAssocArray *ClientBox = ClientsBox->ReadBox(User->Name);
+		if (ClientsBox != NULL) {
+			CClientConnection *Client;
 
-			if (ClientBox) {
-				CClientConnection *Client = new CClientConnection((SOCKET)ClientBox->ReadInteger("client.fd"), ClientBox, User->Value);
+			Client = UnfreezeObject<CClientConnection>(ClientsBox, User->Name);
+			Client->SetOwner(User->Value);
+			User->Value->SetClientConnection(Client);
 
-				User->Value->SetClientConnection(Client);
-
-				if (User->Value->IsAdmin())
-					User->Value->Notice("shroudBNC was reloaded.");
+			if (User->Value->IsAdmin()) {
+				User->Value->Notice("shroudBNC was reloaded.");
 			}
 		}
 	}
@@ -1297,8 +1281,9 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 }
 
 bool CCore::InitializeFreeze(void) {
-	if (!m_Running)
+	if (!m_Running) {
 		return false;
+	}
 
 	g_Freeze = true;
 
@@ -1338,9 +1323,16 @@ const utility_t *CCore::GetUtilities(void) {
 
 bool CCore::MakeConfig(void) {
 	int Port;
-	char User[81], Password[81];
+	char User[81], Password[81], PasswordConfirm[81];
 	char *File;
 	CConfig *MainConfig, *UserConfig;
+#ifndef _WIN32
+	termios term_old, term_new;
+	bool term_succeeded;
+#else
+	HANDLE StdInHandle;
+	DWORD ConsoleModes, NewConsoleModes;
+#endif
 
 	printf("No valid configuration file has been found. A basic\n"
 		"configuration file can be created for you automatically. Please\n"
@@ -1372,19 +1364,75 @@ bool CCore::MakeConfig(void) {
 			break;
 	}
 
-	printf("3. Please enter a password for the first user: ");
-	scanf("%s", Password);
+	while (true) {
+		printf("Please note that passwords will not be echoed while you type them.\n");
+		printf("3. Please enter a password for the first user: ");
 
-	if (strlen(Password) == 0)
-		return false;
+		// disable terminal echo
+#ifndef _WIN32
+		if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
+			memcpy(&term_new, &term_old, sizeof(term_old));
+			term_old.c_lflag &= ~ECHO;
+
+			tcsetattr(STDIN_FILENO, TCSANOW, &term_new);
+
+			term_succeeded = true;
+		} else {
+			term_succeeded = false;
+		}
+#else
+	StdInHandle = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (StdInHandle != INVALID_HANDLE_VALUE) {
+		NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
+
+		SetConsoleMode(StdInHandle,NewConsoleModes);
+	}
+#endif
+
+		scanf("%s", Password);
+
+		if (strlen(Password) == 0) {
+#ifndef _WIN32
+			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
+#else
+			SetConsoleMode(StdInHandle, ConsoleModes);
+#endif
+
+			return false;
+		}
+
+		printf("\n4. Please confirm your password by typing it again: ");
+
+		scanf("%s", PasswordConfirm);
+
+#ifndef _WIN32
+		// reset terminal echo
+		if (term_succeeded) {
+			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
+		}
+#else
+		SetConsoleMode(StdInHandle, ConsoleModes);
+#endif
+
+		printf("\n");
+
+		if (strcmp(Password, PasswordConfirm) == 0) {
+			break;
+		} else {
+			printf("The passwords you entered do not match. Please try again.\n");
+		}
+	}
 
 	asprintf(&File, "users/%s.conf", User);
 
-	// TODO: BuildPath
-	rename("sbnc.conf", "sbnc.conf.old");
-	mkdir("users");
+	// BuildPath is using a static buffer
+	char *SourcePath = strdup(BuildPath("sbnc.conf"));
+	rename(SourcePath, BuildPath("sbnc.conf.old"));
+	free(SourcePath);
+	mkdir(BuildPath("users"));
 #ifndef _WIN32
-	chmod("users", S_IRUSR | S_IWUSR | S_IXUSR);
+	chmod(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
 	MainConfig = new CConfig(BuildPath("sbnc.conf"));
@@ -1512,4 +1560,8 @@ const char *CCore::GetBasePath(void) {
 
 const char *CCore::BuildPath(const char *Filename, const char *BasePath) {
 	return g_LoaderParameters->BuildPath(Filename, BasePath);
+}
+
+const char *CCore::GetBouncerVersion(void) {
+	return BNCVERSION;
 }

@@ -22,10 +22,32 @@ foreach user [split $::account354] {
 	bind join - * auth:join
 	bind raw - 315 auth:raw315
 	bind raw - 354 auth:raw354
+	bind evnt - init-server auth:connect
 }
 
 internaltimer 180 1 auth:pulse 180
 internaltimer 240 1 auth:pulse 240
+
+proc auth:connect {type} {
+	namespace eval [getns] {
+		if {![info exists inwho]} { set inwho 0 }
+		if {![info exists accounttimer]} { set accounttimer 0 }
+		if {![info exists accountwait]} { set accountwait 0 }
+		if {![info exists authchans]} { set authchans {} }
+	}
+
+	upvar [getns]::inwho inwho
+	upvar [getns]::accounttimer accounttimer
+	upvar [getns]::accountwait accountwait
+	upvar [getns]::authchans authchans
+
+	set inwho 0
+	set authchans [list]
+	set accounttimer 0
+	set accountwait 0
+
+	internalkilltimer auth:jointimer [getctx]
+}
 
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {

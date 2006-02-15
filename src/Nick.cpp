@@ -491,7 +491,6 @@ bool CNick::Freeze(CAssocArray *Box) {
  * Creates a new nick object by reading its data from a box.
  *
  * @param Box the box
- * @param Owner the new owner of the object
  */
 CNick *CNick::Unfreeze(CAssocArray *Box) {
 	const char *Name;

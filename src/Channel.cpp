@@ -498,7 +498,7 @@ bool CChannel::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CChannel *CChannel::Unfreeze(CAssocArray *Box, CIRCConnection *Owner) {
+CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 	CAssocArray *NicksBox;
 	CBanlist *Banlist;
 	CChannel *Channel;
@@ -506,7 +506,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box, CIRCConnection *Owner) {
 	unsigned int i = 0;
 	char *Index;
 
-	if (Box == NULL || Owner == NULL) {
+	if (Box == NULL) {
 		return NULL;
 	}
 
@@ -516,7 +516,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box, CIRCConnection *Owner) {
 		return NULL;
 	}
 
-	Channel = new CChannel(Name, Owner);
+	Channel = new CChannel(Name, NULL);
 
 	Channel->m_Creation = Box->ReadInteger("~channel.ts");
 

@@ -210,7 +210,7 @@ const char **ArgDupArray(const char **ArgV) {
  *
  * Frees a tokenized string.
  *
- * @params Args the tokenized string
+ * @param Args the tokenized string
  */
 void ArgFree(const char *Args) {
 	free(const_cast<char *>(Args));

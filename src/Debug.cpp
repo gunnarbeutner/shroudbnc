@@ -33,10 +33,13 @@ struct alloc_t {
 	size_t size;
 	void* ptr;
 	char* func;
+	char *file;
+	int line;
 } g_Allocations[500000];
 
 int g_AllocationCount = 0;
 int g_IgnoreCount = 0;
+FILE *g_DebugLog = NULL;
 
 #define ALLOCIGNORE 100000000
 #define ALLOCDIV 150
@@ -44,6 +47,7 @@ int g_IgnoreCount = 0;
 #undef ALLOC_DEBUG
 
 void Debug_Final(void) {
+	fclose(g_DebugLog);
 	SymCleanup(GetCurrentProcess());
 }
 
@@ -64,6 +68,7 @@ void* operator new(size_t Size) {
 	if (!g_DebugInit) {
 		SymInitialize(GetCurrentProcess(), ".;.\\Debug", TRUE);
 		g_DebugInit = true;
+		g_DebugLog = fopen("sbnc-debug.log", "w");
 	}
 
 	IMAGEHLP_SYMBOL* sym;
@@ -83,6 +88,15 @@ void* operator new(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].ptr = ptr;
 		g_Allocations[g_AllocationCount - 1].size = Size;
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
+		g_Allocations[g_AllocationCount - 1].file = strdup("unknown");
+		g_Allocations[g_AllocationCount - 1].line = 0;
+	}
+
+	if (g_Bouncer != NULL) {
+		g_Bouncer->Log("new: %s -> %p", sym->Name, ptr);
+	} else {
+		fprintf(g_DebugLog, "new: %s -> %p\n", sym->Name, ptr);
+		fflush(g_DebugLog);
 	}
 
 #ifdef ALLOC_DEBUG
@@ -94,7 +108,7 @@ void* operator new(size_t Size) {
 	return ptr;
 }
 
-void* DebugMalloc(size_t Size) {
+void* DebugMalloc(size_t Size, const char *file, int line) {
 	unsigned long programcounter;
 
 	if (++g_IgnoreCount > ALLOCIGNORE && rand() < RAND_MAX / ALLOCDIV)
@@ -108,6 +122,14 @@ void* DebugMalloc(size_t Size) {
 	if (!g_DebugInit) {
 		SymInitialize(GetCurrentProcess(), ".;.\\Debug", TRUE);
 		g_DebugInit = true;
+		g_DebugLog = fopen("sbnc-debug.log", "w");
+	}
+
+	for (int i = strlen(file) - 1; i >= 0; i--) {
+		if (file[i] == '\\') {
+			file = &file[i + 1];
+			break;
+		}
 	}
 
 	IMAGEHLP_SYMBOL* sym;
@@ -127,6 +149,15 @@ void* DebugMalloc(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].ptr = ptr;
 		g_Allocations[g_AllocationCount - 1].size = Size;
 		g_Allocations[g_AllocationCount - 1].func = strdup(sym->Name);
+		g_Allocations[g_AllocationCount - 1].file = strdup(file);
+		g_Allocations[g_AllocationCount - 1].line = line;
+	}
+
+	if (g_Bouncer != NULL) {
+		g_Bouncer->Log("malloc: %s (%s:%d) -> %p", sym->Name, file, line, ptr);
+	} else {
+		fprintf(g_DebugLog, "malloc: %s (%s:%d) -> %p\n", sym->Name, file, line, ptr);
+		fflush(g_DebugLog);
 	}
 
 #ifdef ALLOC_DEBUG
@@ -151,7 +182,7 @@ void operator delete(void* p) {
 	HeapFree(GetProcessHeap(), 0, p);
 }
 
-void DebugFree(void* p) {
+void DebugFree(void* p, const char *file, int line) {
 	PROCESS_HEAP_ENTRY he;
 	bool Found = false;
 
@@ -184,10 +215,24 @@ void DebugFree(void* p) {
 		}
 	}
 
+	for (int i = strlen(file) - 1; i >= 0; i--) {
+		if (file[i] == '\\') {
+			file = &file[i + 1];
+			break;
+		}
+	}
+
+	if (g_Bouncer != NULL) {
+		g_Bouncer->Log("free: %p (%s:%d)", p, file, line);
+	} else {
+		fprintf(g_DebugLog, "free: %p (%s:%d)\n", p, file, line);
+		fflush(g_DebugLog);
+	}
+
 	HeapFree(GetProcessHeap(), 0, p);
 }
 
-void* DebugReAlloc(void* p, size_t newsize) {
+void* DebugReAlloc(void* p, size_t newsize, const char *file, int line) {
 	if (p) {
 		if (++g_IgnoreCount > ALLOCIGNORE && rand() < RAND_MAX / ALLOCDIV)
 			return NULL;
@@ -226,15 +271,28 @@ void* DebugReAlloc(void* p, size_t newsize) {
 			}
 		}
 
+		for (int i = strlen(file) - 1; i >= 0; i--) {
+			if (file[i] == '\\') {
+				file = &file[i + 1];
+				break;
+			}
+		}
+		if (g_Bouncer != NULL) {
+			g_Bouncer->Log("realloc: %s (%s:%d) -> %p", sym->Name, file, line, ptr);
+		} else {
+			fprintf(g_DebugLog, "realloc: %s (%s:%d) -> %p\n", sym->Name, file, line, ptr);
+			fflush(g_DebugLog);
+		}
+
 		HeapFree(GetProcessHeap(), 0, sym);
 
 		return ptr;
 	} else
-		return DebugMalloc(newsize);
+		return DebugMalloc(newsize, file, line);
 }
 
-char* DebugStrDup(const char* p) {
-	char* s = (char*)DebugMalloc(strlen(p) + 1);
+char* DebugStrDup(const char* p, const char *file, int line) {
+	char* s = (char*)DebugMalloc(strlen(p) + 1, file, line);
 
 	if (s == NULL)
 		return NULL;
@@ -242,25 +300,6 @@ char* DebugStrDup(const char* p) {
 	strcpy(s, p);
 
 	return s;
-}
-
-bool ReportMemory(time_t Now, void* Cookie) {
-	for (int i = 0; i < g_AllocationCount; i++) {
-		if (g_Allocations[i].valid && g_Allocations[i].size > 50 && !g_Allocations[i].reported) {
-			if (strcmp(g_Allocations[i].func, "DebugStrDup") == 0)
-				printf("%s -> %p (%s)\n", g_Allocations[i].func, g_Allocations[i].ptr, g_Allocations[i].ptr);
-			else
-				printf("%s -> %p (%d)\n", g_Allocations[i].func, g_Allocations[i].ptr, g_Allocations[i].size);
-
-			g_Allocations[i].reported = true;
-		}
-	}
-
-#ifdef ALLOC_DEBUG
-	printf("%d bytes\n", g_Mem);
-#endif
-
-	return true;
 }
 
 #endif

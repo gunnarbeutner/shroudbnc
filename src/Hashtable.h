@@ -108,43 +108,37 @@ public:
 
 		List = &m_Items[Hash(Key)];
 
-		List->Count++;
-
 		dupKey = strdup(Key);
 
 		if (dupKey == NULL) {
 /*			LOGERROR("strdup() failed.");*/
 
-			List->Count--;
-
 			return false;
 		}
 
-		newKeys = (char **)realloc(List->Keys, List->Count * sizeof(char*));
+		newKeys = (char **)realloc(List->Keys, (List->Count + 1) * sizeof(char*));
 
 		if (newKeys == NULL) {
 /*			LOGERROR("realloc() failed.");*/
 
 			free(dupKey);
 
-			List->Count--;
-
 			return false;
 		}
 
 		List->Keys = newKeys;
 
-		newValues = (Type *)realloc(List->Values, List->Count * sizeof(Type));
+		newValues = (Type *)realloc(List->Values, (List->Count + 1) * sizeof(Type));
 
 		if (newValues == NULL) {
 /*			LOGERROR("realloc() failed.");*/
 
 			free(dupKey);
 
-			List->Count--;
-
 			return false;
 		}
+
+		List->Count++;
 
 		List->Values = newValues;
 

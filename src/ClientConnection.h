@@ -39,12 +39,18 @@ private:
 #endif
 
 	bool ValidateUser();
+
+	CClientConnection(void);
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, bool SSL = false);
-	CClientConnection(SOCKET Client, CAssocArray *Box, CUser *Owning);
 #endif
 	virtual ~CClientConnection(void);
+
+#ifndef SWIG
+	bool Freeze(CAssocArray *Box);
+	static CClientConnection *Unfreeze(CAssocArray *Box);
+#endif
 
 	virtual bool ParseLineArgV(int argc, const char** argv);
 	virtual void ParseLine(const char* Line);
@@ -61,8 +67,6 @@ public:
 	virtual void Destroy(void);
 	virtual const char* GetClassName(void);
 	virtual void WriteUnformattedLine(const char* In);
-
-	virtual bool Freeze(CAssocArray *Box);
 
 	virtual void Kill(const char *Error);
 
