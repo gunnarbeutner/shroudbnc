@@ -577,7 +577,7 @@ void CUser::Notice(const char *Text) {
 	const char *Nick = GetNick();
 
 	if (m_Client != NULL && Nick != NULL) {
-		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org PRIVMSG %s :%s", Nick, Text);
+		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :%s", Nick, Text);
 	}
 }
 
@@ -585,7 +585,7 @@ void CUser::RealNotice(const char *Text) {
 	const char *Nick = GetNick();
 
 	if (m_Client != NULL && Nick != NULL) {
-		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.org NOTICE %s :%s", Nick, Text);
+		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);
 	}
 }
 

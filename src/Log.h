@@ -28,15 +28,14 @@ class CUser;
  *
  * A log file.
  */
-class CLog {
-	char *m_Filename; /**< the filename of the log, can be NULL */
+class CLog : public CZoneObject<CLog, 64> {
+	char m_Filename[MAXPATHLEN]; /**< the filename of the log, can be an empty string */
 
 	void WriteUnformattedLine(const char *Line);
 public:
 #ifndef SWIG
 	CLog(const char *Filename);
 #endif
-	virtual ~CLog(void);
 
 	virtual void Clear(void);
 	virtual void WriteLine(const char *Format, ...);

@@ -165,8 +165,9 @@ bool CBanlist::Freeze(CAssocArray *Box) {
  * Depersists a banlist.
  *
  * @param Box the box
+ * @param Cookie an unused cookie
  */
-CBanlist *CBanlist::Unfreeze(CAssocArray *Box) {
+CBanlist *CBanlist::Unfreeze(CAssocArray *Box, void *Cookie) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;

@@ -61,3 +61,5 @@ typedef int BOOL;
 #ifdef __FreeBSD__
 #define sighandler_t sig_t
 #endif
+
+#define MAXPATHLEN PATH_MAX

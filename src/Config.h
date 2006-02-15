@@ -22,7 +22,7 @@
  *
  * Represents a shroudBNC configuration file
  */
-class CConfig {
+class CConfig : public CZoneObject<CConfig, 64> {
 	CHashtable<char *, false, 8> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
@@ -39,7 +39,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CConfig *Unfreeze(CAssocArray *Box);
+	static CConfig *Unfreeze(CAssocArray *Box, void *Cookie);
 #endif
 
 	virtual int ReadInteger(const char *Setting);

@@ -38,7 +38,7 @@ class CBanlist;
  *
  * Represents an IRC channel.
  */
-class CChannel : public COwnedObject<CIRCConnection> {
+class CChannel : public COwnedObject<CIRCConnection>, public CZoneObject<CChannel, 128> {
 	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
 
@@ -53,7 +53,7 @@ class CChannel : public COwnedObject<CIRCConnection> {
 	time_t m_TopicStamp; /**< the time when the topic was set */
 	int m_HasTopic; /**< indicates whether there is actually a topic */
 
-	CHashtable<CNick *, false, 64> *m_Nicks; /**< a list of nicks who are
+	CHashtable<CNick *, false, 64> m_Nicks; /**< a list of nicks who are
 												 on this channel */
 	bool m_HasNames; /**< indicates whether m_Nicks is valid */
 
@@ -70,7 +70,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CChannel *Unfreeze(CAssocArray *Box);
+	static CChannel *Unfreeze(CAssocArray *Box, void *Owner);
 #endif
 
 	virtual const char *GetName(void);

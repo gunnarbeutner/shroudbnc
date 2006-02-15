@@ -37,6 +37,7 @@ typedef int socklen_t;
 
 #undef GetClassName
 
+#undef strcasecmp
 #define strcasecmp strcmpi
 
 #define EXPORT __declspec(dllexport)
@@ -63,14 +64,11 @@ void DebugFree(void *p, const char *file, int line);
 char *DebugStrDup(const char *p, const char *file, int line);
 void *DebugReAlloc(void *p, size_t newsize, const char *file, int line);
 
-#define real_malloc malloc
-#define real_free free
-#define real_strdup strdup
-#define real_realloc realloc
-
 #define malloc(x) DebugMalloc(x, __FILE__, __LINE__)
 #define free(x) DebugFree(x, __FILE__, __LINE__)
 #undef strdup
 #define strdup(x) DebugStrDup(x, __FILE__, __LINE__)
 #define realloc(x, y) DebugReAlloc(x, y, __FILE__, __LINE__)
 #endif
+
+#define MAXPATHLEN MAX_PATH

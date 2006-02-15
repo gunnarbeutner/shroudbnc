@@ -25,7 +25,7 @@ class CConfig;
  *
  * Represents a user on a single channel.
  */
-class CNick : public COwnedObject<CChannel> {
+class CNick : public COwnedObject<CChannel>, public CZoneObject<CNick> {
 	char *m_Nick; /**< the nickname of the user */
 	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
 	char *m_Site; /**< the ident\@host of the user */
@@ -46,7 +46,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CNick *Unfreeze(CAssocArray *Box);
+	static CNick *Unfreeze(CAssocArray *Box, void *Owner);
 #endif
 
 	virtual const char *GetNick(void);

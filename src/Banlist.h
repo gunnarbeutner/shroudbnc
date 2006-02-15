@@ -33,7 +33,7 @@ typedef struct ban_s {
  *
  * a list of bans
  */
-class CBanlist {
+class CBanlist : public CZoneObject<CBanlist, 128> {
 public:
 #ifndef SWIG
 	CBanlist();
@@ -42,7 +42,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CBanlist *Unfreeze(CAssocArray *Box);
+	static CBanlist *Unfreeze(CAssocArray *Box, void *Cookie);
 #endif
 
 	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);

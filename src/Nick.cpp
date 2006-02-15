@@ -491,15 +491,16 @@ bool CNick::Freeze(CAssocArray *Box) {
  * Creates a new nick object by reading its data from a box.
  *
  * @param Box the box
+ * @param Owner the channel
  */
-CNick *CNick::Unfreeze(CAssocArray *Box) {
+CNick *CNick::Unfreeze(CAssocArray *Box, void *Owner) {
 	const char *Name;
 	CNick *Nick;
 	CConfig *Tags;
 
 	Name = Box->ReadString("~nick.nick");
 
-	Nick = new CNick(NULL, Name);
+	Nick = new CNick((CChannel *)Owner, Name);
 
 	CHECK_ALLOC_RESULT(Nick, new) {
 		return NULL;

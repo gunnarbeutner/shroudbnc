@@ -60,7 +60,8 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	unix.h \
 	utility.h \
 	Vector.h \
-	win32.h
+	win32.h \
+	Zone.h
 libsbnc_la_LIBADD=c-ares/libcares.la md5/libmd5.la libltdl/libltdlc.la @SSLLDFLAGS@
 libsbnc_la_LDFLAGS=-no-undefined
 AM_CFLAGS=@SSLCFLAGS@

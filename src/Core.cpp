@@ -18,7 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "sbnc.h"
 
 #ifdef USESSL
 #include <openssl/err.h>
@@ -197,6 +196,10 @@ CCore::~CCore() {
 	delete m_Ident;
 
 	g_Bouncer = NULL;
+
+	for (unsigned int i = 0; i < m_ExitHandlers.GetLength(); i++) {
+		m_ExitHandlers[i].Handler(m_ExitHandlers[i].Cookie);
+	}
 }
 
 void CCore::StartMainLoop(void) {
@@ -1326,9 +1329,9 @@ bool CCore::MakeConfig(void) {
 	char User[81], Password[81], PasswordConfirm[81];
 	char *File;
 	CConfig *MainConfig, *UserConfig;
+	bool term_succeeded;
 #ifndef _WIN32
 	termios term_old, term_new;
-	bool term_succeeded;
 #else
 	HANDLE StdInHandle;
 	DWORD ConsoleModes, NewConsoleModes;
@@ -1372,7 +1375,7 @@ bool CCore::MakeConfig(void) {
 #ifndef _WIN32
 		if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
 			memcpy(&term_new, &term_old, sizeof(term_old));
-			term_old.c_lflag &= ~ECHO;
+			term_new.c_lflag &= ~ECHO;
 
 			tcsetattr(STDIN_FILENO, TCSANOW, &term_new);
 
@@ -1384,20 +1387,28 @@ bool CCore::MakeConfig(void) {
 	StdInHandle = GetStdHandle(STD_INPUT_HANDLE);
 
 	if (StdInHandle != INVALID_HANDLE_VALUE) {
-		NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
+		if (GetConsoleMode(StdInHandle, &ConsoleModes)) {
+			NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
 
-		SetConsoleMode(StdInHandle,NewConsoleModes);
+			SetConsoleMode(StdInHandle,NewConsoleModes);
+
+			term_succeeded = true;
+		} else {
+			term_succeeded = false;
+		}
 	}
 #endif
 
 		scanf("%s", Password);
 
 		if (strlen(Password) == 0) {
+			if (term_succeeded) {
 #ifndef _WIN32
-			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
+				tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
 #else
-			SetConsoleMode(StdInHandle, ConsoleModes);
+				SetConsoleMode(StdInHandle, ConsoleModes);
 #endif
+			}
 
 			return false;
 		}
@@ -1406,14 +1417,14 @@ bool CCore::MakeConfig(void) {
 
 		scanf("%s", PasswordConfirm);
 
-#ifndef _WIN32
 		// reset terminal echo
 		if (term_succeeded) {
+#ifndef _WIN32
 			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
-		}
 #else
 		SetConsoleMode(StdInHandle, ConsoleModes);
 #endif
+		}
 
 		printf("\n");
 
@@ -1564,4 +1575,26 @@ const char *CCore::BuildPath(const char *Filename, const char *BasePath) {
 
 const char *CCore::GetBouncerVersion(void) {
 	return BNCVERSION;
+}
+
+
+bool CCore::RegisterExitHandler(ExitHandler Handler, void *Cookie) {
+	exithandler_t HandlerStruct;
+
+	HandlerStruct.Handler = Handler;
+	HandlerStruct.Cookie = Cookie;
+
+	return m_ExitHandlers.Insert(HandlerStruct);
+}
+
+bool CCore::UnregisterExitHandler(ExitHandler Handler, void *Cookie) {
+	for (unsigned int i = 0; i < m_ExitHandlers.GetLength(); i++) {
+		if (m_ExitHandlers[i].Handler == Handler && m_ExitHandlers[i].Cookie == Cookie) {
+			m_ExitHandlers.Remove(i);
+
+			return true;
+		}
+	}
+
+	return false;
 }

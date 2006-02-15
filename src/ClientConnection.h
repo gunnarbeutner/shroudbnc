@@ -20,7 +20,7 @@
 class CTimer;
 class CAssocArray;
 
-class CClientConnection : public CConnection, public COwnedObject<CUser> {
+class CClientConnection : public CConnection, public COwnedObject<CUser>, public CZoneObject<CClientConnection, 64> {
 private:
 	char *m_Nick;
 	char *m_Password;
@@ -49,7 +49,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CClientConnection *Unfreeze(CAssocArray *Box);
+	static CClientConnection *Unfreeze(CAssocArray *Box, void *Owner);
 #endif
 
 	virtual bool ParseLineArgV(int argc, const char** argv);

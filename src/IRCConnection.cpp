@@ -502,23 +502,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		free(Out);
 	} else if (argc > 3 && iRaw == 465) {
-		char* Out;
-
-		asprintf(&Out, "G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-
-			return false;
-		}
-
-		g_Bouncer->GlobalNotice(Out, true);
-		g_Bouncer->Log("%s", Out);
-
-		if (!GetOwner()->GetClientConnection())
-			GetOwner()->GetLog()->WriteLine("%s", Out);
-
-		free(Out);
+		g_Bouncer->Log("G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
+		GetOwner()->GetLog()->WriteLine("G/K-line reason: %s", argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
@@ -1201,7 +1186,7 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
 
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		m_Owner->Notice("DNS request failed: No such hostname (NXDOMAIN).");
+		m_Owner->Log("DNS request failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 
@@ -1210,7 +1195,7 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		m_Owner->Notice("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
+		m_Owner->Log("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
 		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
 	}
 

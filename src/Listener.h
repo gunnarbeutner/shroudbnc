@@ -68,7 +68,7 @@ public:
 		return true;
 	}
 
-	static InheritedClass *Unfreeze(CAssocArray *Box) {
+	static InheritedClass *Unfreeze(CAssocArray *Box, void *Cookie) {
 		InheritedClass *Listener = new InheritedClass();
 		
 		Listener->Init(Box->ReadInteger("~listener.fd"));

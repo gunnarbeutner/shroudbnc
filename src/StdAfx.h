@@ -84,6 +84,8 @@ typedef lt_dlhandle HMODULE;
 
 #include "sbncloader/AssocArray.h"
 
+#include "sbnc.h"
+#include "Zone.h"
 #include "Vector.h"
 #include "Hashtable.h"
 #include "utility.h"

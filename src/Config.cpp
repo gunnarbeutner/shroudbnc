@@ -343,8 +343,9 @@ bool CConfig::Freeze(CAssocArray *Box) {
  * Depersists a config object.
  *
  * @param Box the box
+ * @param Cookie an unused cookie
  */
-CConfig *CConfig::Unfreeze(CAssocArray *Box) {
+CConfig *CConfig::Unfreeze(CAssocArray *Box, void *Cookie) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;

@@ -31,7 +31,7 @@ class CTimer;
 bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
-class CFloodControl : public CQueue {
+class CFloodControl : public CQueue, public CZoneObject<CFloodControl, 64> {
 #ifndef SWIG
 	friend bool FloodTimer(time_t Now, void *FloodControl);
 #endif

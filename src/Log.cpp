@@ -29,32 +29,10 @@
  */
 CLog::CLog(const char *Filename) {
 	if (Filename != NULL) {
-		m_Filename = strdup(Filename);
-
-		if (m_Filename == NULL) {
-			if (g_Bouncer) {
-				LOGERROR("strdup() failed.");
-
-				g_Bouncer->Fatal();
-			} else {
-				printf("CLog::CLog: strdup() failed (%s).",
-					Filename);
-
-				exit(1);
-			}
-		}
+		snprintf(m_Filename, sizeof(m_Filename), Filename);
 	} else {
-		m_Filename = NULL;
+		m_Filename[0] = '\0';
 	}
-}
-
-/**
- * ~CLog
- *
- * Destructs a log object.
- */
-CLog::~CLog() {
-	free(m_Filename);
 }
 
 /**
@@ -76,7 +54,7 @@ void CLog::PlayToUser(CUser *User, int Type) {
 	const char *Nick;
 	const char *Server;
 
-	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
+	if (m_Filename[0] != '\0' && (LogFile = fopen(m_Filename, "r")) != NULL) {
 		char Line[500];
 		while (!feof(LogFile)) {
 			char* LinePtr = fgets(Line, sizeof(Line), LogFile);
@@ -95,7 +73,7 @@ void CLog::PlayToUser(CUser *User, int Type) {
 					Server = IRC->GetServer();
 				} else {
 					Nick = Client->GetNick();
-					Server = "bouncer.shroudbnc.org";
+					Server = "bouncer.shroudbnc.info";
 				}
 
 				if (Client != NULL) {
@@ -126,7 +104,7 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	char strNow[100];
 	FILE *LogFile;
 
-	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "a")) == NULL) {
+	if (m_Filename[0] == '\0' || (LogFile = fopen(m_Filename, "a")) == NULL) {
 		return;
 	}
 
@@ -194,7 +172,7 @@ void CLog::WriteLine(const char* Format, ...) {
 void CLog::Clear(void) {
 	FILE *LogFile;
 	
-	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
+	if (m_Filename[0] != '\0' && (LogFile = fopen(m_Filename, "w")) != NULL) {
 #ifndef _WIN32
 		chmod(m_Filename, S_IRUSR | S_IWUSR);
 #endif
@@ -212,7 +190,7 @@ bool CLog::IsEmpty(void) {
 	char Line[500];
 	FILE *LogFile;
 
-	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "r")) == NULL) {
+	if (m_Filename[0] == '\0' || (LogFile = fopen(m_Filename, "r")) == NULL) {
 		return true;
 	}
 

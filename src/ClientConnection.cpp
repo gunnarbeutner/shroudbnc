@@ -18,7 +18,6 @@
  *******************************************************************************/
 
 #include "StdAfx.h"
-#include "sbnc.h"
 
 extern loaderparams_t *g_LoaderParameters;
 
@@ -37,11 +36,11 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_PeerNameTemp = NULL;
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
+		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
-		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(GetRemoteAddress()));
+		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(GetRemoteAddress()));
 
 		m_ClientLookup->GetHostByAddr(GetRemoteAddress());
 	} else {
@@ -1187,7 +1186,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			if (m_Username && m_Password)
 				ValidateUser();
 			else if (m_Username)
-				WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":Notice!notice@shroudbnc.info NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
@@ -1218,7 +1217,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				ValidSSLCert = ValidateUser();
 
 			if (m_Nick && m_Username && !m_Password && !ValidSSLCert)
-				WriteUnformattedLine(":Notice!notice@shroudbnc.org NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":Notice!notice@shroudbnc.info NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 
 			return false;
 		} else if (strcasecmp(Command, "quit") == 0) {
@@ -1258,8 +1257,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				const char* Nick = argv[1];
 
 				if (strcasecmp("-sbnc", Nick) == 0) {
-					WriteLine(":bouncer 311 %s -sBNC core shroudbnc.org * :shroudBNC", m_Nick);
-					WriteLine(":bouncer 312 %s -sBNC shroudbnc.org :shroudBNC IRC Proxy", m_Nick);
+					WriteLine(":bouncer 311 %s -sBNC core shroudbnc.info * :shroudBNC", m_Nick);
+					WriteLine(":bouncer 312 %s -sBNC shroudbnc.info :shroudBNC IRC Proxy", m_Nick);
 					WriteLine(":bouncer 318 %s -sBNC :End of /WHOIS list.", m_Nick);
 
 					return false;
@@ -1597,7 +1596,7 @@ bool CClientConnection::ValidateUser() {
 
 	if ((m_Password || Force) && User && !Blocked && Valid && ValidHost) {
 		User->Attach(this);
-		//WriteLine(":Notice!notice@shroudbnc.org NOTICE * :Welcome to the wonderful world of IRC");
+		//WriteLine(":Notice!notice@shroudbnc.info NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
 		if (User && !Blocked) {
 			User->LogBadLogin(GetRemoteAddress());
@@ -1652,14 +1651,14 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 	int i = 0;
 
 	if (Response == NULL) {
-		WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Reverse DNS query failed. Using IP address as your hostname.");
+		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS query failed. Using IP address as your hostname.");
 		SetPeerName(IpToString(GetRemoteAddress()), true);
 	} else {
 		if (m_PeerNameTemp == NULL) {
 			m_PeerNameTemp = strdup(Response->h_name);
 
-			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Reverse DNS reply received (%s).", Response->h_name);
-			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Doing forward DNS lookup...");
+			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS reply received (%s).", Response->h_name);
+			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing forward DNS lookup...");
 			m_ClientLookup->GetHostByName(Response->h_name, Response->h_addrtype);
 		} else {
 			sockaddr *saddr = NULL;
@@ -1688,7 +1687,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 					SetPeerName(m_PeerNameTemp, false);
 					free(m_PeerNameTemp);
 
-					WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
+					WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
 
 					// TODO: destroy query
 
@@ -1699,12 +1698,12 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 			}
 
 			if (saddr != NULL) {
-				WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received. (%s)", IpToString(saddr));
+				WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", IpToString(saddr));
 			} else {
-				WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward DNS reply received.");
+				WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received.");
 			}
 
-			WriteLine(":Notice!notice@shroudbnc.org NOTICE * :*** Forward and reverse DNS replies do not match. Using IP address instead.");
+			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward and reverse DNS replies do not match. Using IP address instead.");
 			SetPeerName(IpToString(GetRemoteAddress()), true);
 			// TODO: destroy query
 		}
@@ -1760,7 +1759,7 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box) {
+CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box, void *Owner) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
@@ -1776,6 +1775,8 @@ CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box) {
 	}
 
 	Client = new CClientConnection();
+
+	Client->SetOwner((CUser *)Owner);
 
 	Client->m_Socket = Socket;
 	Client->InitSocket();
@@ -1807,7 +1808,7 @@ void CClientConnection::Kill(const char *Error) {
 		m_Owner = NULL;
 	}
 
-	WriteLine(":Notice!notice!shroudbnc.org NOTICE * :%s", Error);
+	WriteLine(":Notice!notice!shroudbnc.info NOTICE * :%s", Error);
 
 	CConnection::Kill(Error);
 }

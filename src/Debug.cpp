@@ -46,13 +46,13 @@ FILE *g_DebugLog = NULL;
 
 #undef ALLOC_DEBUG
 
+#undef free
+#undef strdup
+
 void Debug_Final(void) {
 	fclose(g_DebugLog);
 	SymCleanup(GetCurrentProcess());
 }
-
-#undef free
-#undef strdup
 
 void* operator new(size_t Size) {
 	unsigned long programcounter;
@@ -92,12 +92,8 @@ void* operator new(size_t Size) {
 		g_Allocations[g_AllocationCount - 1].line = 0;
 	}
 
-	if (g_Bouncer != NULL) {
-		g_Bouncer->Log("new: %s -> %p", sym->Name, ptr);
-	} else {
-		fprintf(g_DebugLog, "new: %s -> %p\n", sym->Name, ptr);
-		fflush(g_DebugLog);
-	}
+	fprintf(g_DebugLog, "new: %s -> %p\n", sym->Name, ptr);
+	fflush(g_DebugLog);
 
 #ifdef ALLOC_DEBUG
 	printf("operator new(%d) from %s\n", Size, sym->Name);
@@ -153,12 +149,8 @@ void* DebugMalloc(size_t Size, const char *file, int line) {
 		g_Allocations[g_AllocationCount - 1].line = line;
 	}
 
-	if (g_Bouncer != NULL) {
-		g_Bouncer->Log("malloc: %s (%s:%d) -> %p", sym->Name, file, line, ptr);
-	} else {
-		fprintf(g_DebugLog, "malloc: %s (%s:%d) -> %p\n", sym->Name, file, line, ptr);
-		fflush(g_DebugLog);
-	}
+	fprintf(g_DebugLog, "malloc: %s (%s:%d) -> %p\n", sym->Name, file, line, ptr);
+	fflush(g_DebugLog);
 
 #ifdef ALLOC_DEBUG
 	printf("malloc(%d) from %s\n", Size, sym->Name);
@@ -211,6 +203,7 @@ void DebugFree(void* p, const char *file, int line) {
 		if (g_Allocations[i].ptr == p && g_Allocations[i].valid) {
 			g_Allocations[i].valid = false;
 			free(g_Allocations[i].func);
+			free(g_Allocations[i].file);
 			break;
 		}
 	}
@@ -222,12 +215,8 @@ void DebugFree(void* p, const char *file, int line) {
 		}
 	}
 
-	if (g_Bouncer != NULL) {
-		g_Bouncer->Log("free: %p (%s:%d)", p, file, line);
-	} else {
-		fprintf(g_DebugLog, "free: %p (%s:%d)\n", p, file, line);
-		fflush(g_DebugLog);
-	}
+	fprintf(g_DebugLog, "free: %p (%s:%d)\n", p, file, line);
+	fflush(g_DebugLog);
 
 	HeapFree(GetProcessHeap(), 0, p);
 }
@@ -238,8 +227,8 @@ void* DebugReAlloc(void* p, size_t newsize, const char *file, int line) {
 			return NULL;
 
 		unsigned long programcounter;
-		g_Mem -= HeapSize(GetProcessHeap(), 0, p);
-		g_Mem += newsize;
+//		g_Mem -= HeapSize(GetProcessHeap(), 0, p);
+//		g_Mem += newsize;
 
 		__asm mov eax, [ebp + 4]
 		__asm mov [programcounter], eax
@@ -277,12 +266,9 @@ void* DebugReAlloc(void* p, size_t newsize, const char *file, int line) {
 				break;
 			}
 		}
-		if (g_Bouncer != NULL) {
-			g_Bouncer->Log("realloc: %s (%s:%d) -> %p", sym->Name, file, line, ptr);
-		} else {
-			fprintf(g_DebugLog, "realloc: %s (%s:%d) -> %p\n", sym->Name, file, line, ptr);
-			fflush(g_DebugLog);
-		}
+
+		fprintf(g_DebugLog, "realloc: %s (%s:%d) -> %p (was %p)\n", sym->Name, file, line, ptr, p);
+		fflush(g_DebugLog);
 
 		HeapFree(GetProcessHeap(), 0, sym);
 

@@ -19,7 +19,6 @@
 
 #define NOADNSLIB
 #include "../StdAfx.h"
-#include "../sbnc.h"
 
 #ifdef _MSC_VER
 #ifndef _DEBUG

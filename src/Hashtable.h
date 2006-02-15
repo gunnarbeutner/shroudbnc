@@ -27,7 +27,7 @@ template <typename Type> struct hash_t {
 	Type Value;
 };
 
-typedef unsigned char hashvalue_t;
+typedef unsigned long hashvalue_t;
 
 /**
  * DestroyObject<Type>
@@ -83,14 +83,14 @@ public:
 	}
 
 	static hashvalue_t Hash(const char *String) {
-		unsigned char ReturnValue = 0;
-		size_t Length = strlen(String);
+		unsigned long HashValue = 5381;
+		int c;
 
-		for (size_t i = 0; i < Length; i++) {
-			ReturnValue ^= CaseSensitive ? String[i] : toupper(String[i]);
+		while (c = *String++) {
+			HashValue = ((HashValue << 5) + HashValue) + c; /* hash * 33 + c */
 		}
 
-		return ReturnValue & (Size - 1);
+		return HashValue;
 	}
 
 	bool Add(const char *Key, Type Value) {
@@ -106,7 +106,7 @@ public:
 		// Remove any existing item which has the same key
 		Remove(Key);
 
-		List = &m_Items[Hash(Key)];
+		List = &m_Items[Hash(Key) % Size];
 
 		dupKey = strdup(Key);
 
@@ -153,7 +153,7 @@ public:
 			return NULL;
 		}
 
-		hashlist_t<Type> *List = &m_Items[Hash(Key)];
+		hashlist_t<Type> *List = &m_Items[Hash(Key) % Size];
 
 		if (List->Count == 0) {
 			return NULL;
@@ -185,7 +185,7 @@ public:
 			return false;
 		}
 
-		List = &m_Items[Hash(Key)];
+		List = &m_Items[Hash(Key) % Size];
 
 		if (List->Count == 0) {
 			return true;
@@ -281,7 +281,7 @@ public:
 		m_String = String;
 
 		if (String) {
-			m_Hash = CHashtable<void *, false, 256>::Hash(String);
+			m_Hash = CHashtable<void *, false, 2^16>::Hash(String);
 		} else {
 			m_Hash = 0;
 		}

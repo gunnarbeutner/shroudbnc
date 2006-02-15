@@ -17,13 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "StdAfx.h"
-
 #ifndef SBNC
 #define SBNC
 #endif
 
-#include "sbnc.h"
+#include "StdAfx.h"
 
 CCore *g_Bouncer = NULL;
 bool g_Freeze;

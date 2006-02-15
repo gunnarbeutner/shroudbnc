@@ -36,19 +36,12 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	m_Nicks = new CHashtable<CNick *, false, 64>();
 
-	CHECK_ALLOC_RESULT(m_Nicks, new) {
-		Owner->Kill("Internal error.");
-	} else {
-		m_Nicks->RegisterValueDestructor(DestroyObject<CNick>);
-	} CHECK_ALLOC_RESULT_END;
+	m_Nicks.RegisterValueDestructor(DestroyObject<CNick>);
 
 	m_HasNames = false;
 	m_ModesValid = false;
 	m_Banlist = new CBanlist();
-
-	CHECK_ALLOC_RESULT(m_Nicks, new) { } CHECK_ALLOC_RESULT_END;
 
 	m_HasBans = false;
 	m_TempModes = NULL;
@@ -60,10 +53,6 @@ CChannel::~CChannel() {
 	free(m_Topic);
 	free(m_TopicNick);
 	free(m_TempModes);
-
-	if (m_Nicks != NULL) {
-		delete m_Nicks;
-	}
 
 	for (int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
@@ -154,7 +143,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				return; // should not happen
 			}
 
-			CNick *NickObj = m_Nicks->Get(pargv[p]);
+			CNick *NickObj = m_Nicks.Get(pargv[p]);
 
 			if (NickObj != NULL) {
 				if (Flip) {
@@ -334,25 +323,20 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
-	if (m_Nicks == NULL) {
-		return;
-	}
-
 	NickObj = new CNick(this, Nick);
 
-	CHECK_ALLOC_RESULT(NickObj, new) {
+	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
 	NickObj->SetPrefixes(ModeChars);
 
-	m_Nicks->Add(Nick, NickObj);
+	m_Nicks.Add(Nick, NickObj);
 }
 
 void CChannel::RemoveUser(const char *Nick) {
-	if (m_Nicks != NULL) {
-		m_Nicks->Remove(Nick);
-	}
+	CNick *NickObject = m_Nicks.Get(Nick);
+	m_Nicks.Remove(Nick);
 }
 
 bool CChannel::HasNames(void) {
@@ -364,7 +348,7 @@ void CChannel::SetHasNames(void) {
 }
 
 CHashtable<CNick *, false, 64> *CChannel::GetNames(void) {
-	return m_Nicks;
+	return &m_Nicks;
 }
 
 void CChannel::ClearModes(void) {
@@ -477,19 +461,17 @@ bool CChannel::Freeze(CAssocArray *Box) {
 
 	Nicks = Box->Create();
 
-	Count = m_Nicks->GetLength();
+	Count = m_Nicks.GetLength();
 
 	for (i = 0; i < Count; i++) {
-		Nick = m_Nicks->Iterate(i)->Value;
+		Nick = m_Nicks.Iterate(i)->Value;
 
 		asprintf(&Index, "%d", i);
 		FreezeObject<CNick>(Nicks, Index, Nick);
 		free(Index);
 	}
 
-	m_Nicks->RegisterValueDestructor(NULL);
-	delete m_Nicks;
-	m_Nicks = NULL;
+	m_Nicks.RegisterValueDestructor(NULL);
 
 	Box->AddBox("~channel.nicks", Nicks);
 
@@ -498,7 +480,7 @@ bool CChannel::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CChannel *CChannel::Unfreeze(CAssocArray *Box) {
+CChannel *CChannel::Unfreeze(CAssocArray *Box, void *Owner) {
 	CAssocArray *NicksBox;
 	CBanlist *Banlist;
 	CChannel *Channel;
@@ -516,7 +498,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 		return NULL;
 	}
 
-	Channel = new CChannel(Name, NULL);
+	Channel = new CChannel(Name, (CIRCConnection *)Owner);
 
 	Channel->m_Creation = Box->ReadInteger("~channel.ts");
 
@@ -559,7 +541,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 
 		Nick->SetOwner(Channel);
 
-		Channel->m_Nicks->Add(Nick->GetNick(), Nick);
+		Channel->m_Nicks.Add(Nick->GetNick(), Nick);
 
 		free(Index);
 

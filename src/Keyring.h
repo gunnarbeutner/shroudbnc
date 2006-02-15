@@ -19,7 +19,7 @@
 
 class CConfig;
 
-class CKeyring {
+class CKeyring : public CZoneObject<CKeyring, 64> {
 public:
 #ifndef SWIG
 	CKeyring(CConfig *Config);

@@ -38,6 +38,13 @@ typedef struct socket_s {
 	CSocketEvents *Events;
 } socket_t;
 
+typedef void (*ExitHandler)(void *Cookie);
+
+typedef struct exithandler_s {
+	ExitHandler Handler;
+	void *Cookie;
+} exithandler_t;
+
 class CClientListener;
 
 class CCore {
@@ -79,6 +86,8 @@ class CCore {
 	bool Daemonize(void);
 	void WritePidFile(void);
 	bool MakeConfig(void);
+
+	CVector<exithandler_t> m_ExitHandlers;
 
 	void RegisterTimer(CTimer *Timer);
 	void UnregisterTimer(CTimer *Timer);
@@ -180,6 +189,9 @@ public:
 	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL);
 
 	virtual const char *GetBouncerVersion(void);
+
+	virtual bool RegisterExitHandler(ExitHandler Handler, void *Cookie);
+	virtual bool UnregisterExitHandler(ExitHandler Handler, void *Cookie);
 };
 
 extern CCore *g_Bouncer;
