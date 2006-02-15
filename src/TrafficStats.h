@@ -22,7 +22,7 @@
  *
  * Records traffic statistics for a user.
  */
-class CTrafficStats {
+class CTrafficStats : public CZoneObject<CTrafficStats, 32> {
 public:
 #ifndef SWIG
 	CTrafficStats(void);

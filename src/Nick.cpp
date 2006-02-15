@@ -58,9 +58,7 @@ CNick::~CNick() {
 	free(m_Realname);
 	free(m_Server);
 
-	if (m_Tags) {
-		delete m_Tags;
-	}
+	delete m_Tags;
 }
 
 /**
@@ -493,14 +491,14 @@ bool CNick::Freeze(CAssocArray *Box) {
  * @param Box the box
  * @param Owner the channel
  */
-CNick *CNick::Unfreeze(CAssocArray *Box, void *Owner) {
+CNick *CNick::Unfreeze(CAssocArray *Box) {
 	const char *Name;
 	CNick *Nick;
 	CConfig *Tags;
 
 	Name = Box->ReadString("~nick.nick");
 
-	Nick = new CNick((CChannel *)Owner, Name);
+	Nick = new CNick(NULL, Name);
 
 	CHECK_ALLOC_RESULT(Nick, new) {
 		return NULL;

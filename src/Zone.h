@@ -27,15 +27,15 @@ void ZoneLeakCheck(void *Zone);
  */
 template<typename Type, int HunkSize>
 class CZone {
-	template<typename Type>
+	template<typename HunkType>
 	struct hunkobject_s {
 		bool Valid;
-		char Data[sizeof(Type)];
+		char Data[sizeof(HunkType)];
 	};
 
-	template<typename Type, int HunkSize>
+	template<typename HunkType, int HunkObjectSize>
 	struct hunk_s {
-		hunkobject_s<Type> HunkObjects[HunkSize];
+		hunkobject_s<HunkType> HunkObjects[HunkObjectSize];
 	};
 
 	hunk_s<Type, HunkSize> **m_Hunks;
@@ -87,11 +87,14 @@ public:
 	}
 
 	bool Register(void) {
+		// TODO: FIX FIX FIX
+#ifdef _DEBUG
 		if (g_Bouncer) {
 			return g_Bouncer->RegisterExitHandler(&ZoneLeakCheck<Type, HunkSize>, this);
 		} else {
 			return false;
 		}
+#endif
 	}
 
 	Type *Allocate(void) {

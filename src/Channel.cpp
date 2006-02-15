@@ -62,9 +62,7 @@ CChannel::~CChannel() {
 
 	free(m_Modes);
 
-	if (m_Banlist != NULL) {
-		delete m_Banlist;
-	}
+	delete m_Banlist;
 }
 
 const char *CChannel::GetName(void) {
@@ -480,7 +478,7 @@ bool CChannel::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CChannel *CChannel::Unfreeze(CAssocArray *Box, void *Owner) {
+CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 	CAssocArray *NicksBox;
 	CBanlist *Banlist;
 	CChannel *Channel;
@@ -498,7 +496,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box, void *Owner) {
 		return NULL;
 	}
 
-	Channel = new CChannel(Name, (CIRCConnection *)Owner);
+	Channel = new CChannel(Name, NULL);
 
 	Channel->m_Creation = Box->ReadInteger("~channel.ts");
 
@@ -521,9 +519,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box, void *Owner) {
 	Banlist = UnfreezeObject<CBanlist>(Box, "~channel.banlist");
 
 	if (Banlist != NULL) {
-		if (Channel->m_Banlist != NULL) {
-			delete Channel->m_Banlist;
-		}
+		delete Channel->m_Banlist;
 
 		Channel->m_Banlist = Banlist;
 	}

@@ -57,7 +57,7 @@ bool UserReconnectTimer(time_t Now, void *User);
 	free(DupValue); \
 }
 
-class CUser {
+class CUser : public CZoneObject<CUser, 32> {
 	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);

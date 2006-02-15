@@ -31,7 +31,7 @@ class CTimer;
 bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
-class CFloodControl : public CQueue, public CZoneObject<CFloodControl, 64> {
+class CFloodControl : public CZoneObject<CFloodControl, 16> {
 #ifndef SWIG
 	friend bool FloodTimer(time_t Now, void *FloodControl);
 #endif
@@ -53,8 +53,6 @@ public:
 	virtual ~CFloodControl(void);
 
 	virtual char *DequeueItem(bool Peek = false);
-	virtual bool QueueItem(const char *Item);
-	virtual bool QueueItemNext(const char *Item);
 	virtual int GetQueueSize(void);
 
 	virtual void AttachInputQueue(CQueue *Queue, int Priority);

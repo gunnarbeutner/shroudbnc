@@ -796,10 +796,14 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 			return Buffer;
 		}
+	} else if (strcasecmp(Type, "ipv6") == 0) {
+		sprintf(Buffer, "%d", Context->GetIPv6() ? 1 : 0);
+
+		return Buffer;
 	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -851,10 +855,12 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->GetConfig()->WriteString("user.dropmodes", Value);
 	else if (strcasecmp(Type, "suspendreason") == 0)
 		Context->GetConfig()->WriteString("user.suspend", Value);
+	else if (strcasecmp(Type, "ipv6") == 0)
+		Context->SetIPv6(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "ident") == 0)
 		Context->SetIdent(Value);
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident";
+		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6";
 
 	return 1;
 }
@@ -1063,71 +1069,69 @@ int floodcontrol(const char* Function) {
 }
 
 int clearqueue(const char* Queue) {
-	CUser* User = g_Bouncer->GetUser(g_Context);
-
-	if (!User)
-		return 0;
-
-	CIRCConnection* IRC = User->GetIRCConnection();
-
-	if (!IRC)
-		return 0;
-
-	CQueue* TheQueue = NULL;
-
-	if (strcasecmp(Queue, "mode") == 0)
-		TheQueue = IRC->GetQueueHigh();
-	else if (strcasecmp(Queue, "server") == 0)
-		TheQueue = IRC->GetQueueMiddle();
-	else if (strcasecmp(Queue, "help") == 0)
-		TheQueue = IRC->GetQueueLow();
-	else if (strcasecmp(Queue, "all") == 0)
-		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else
-		throw "Queue should be one of: mode server help all";
-
 	int Size;
+	CUser* User;
+	CIRCConnection* IRC;
+	
+	User = g_Bouncer->GetUser(g_Context);
 
-	if (TheQueue == IRC->GetFloodControl())
+	if (User == NULL) {
+		return 0;
+	}
+
+	IRC = User->GetIRCConnection();
+
+	if (IRC == NULL) {
+		return 0;
+	}
+
+	if (strcasecmp(Queue, "mode") == 0) {
+		Size = IRC->GetQueueHigh()->GetLength();
+		IRC->GetQueueHigh()->Clear();
+	} else if (strcasecmp(Queue, "server") == 0) {
+		Size = IRC->GetQueueMiddle()->GetLength();
+		IRC->GetQueueMiddle()->Clear();
+	} else if (strcasecmp(Queue, "help") == 0) {
+		Size = IRC->GetQueueLow()->GetLength();
+		IRC->GetQueueLow()->Clear();
+	} else if (strcasecmp(Queue, "all") == 0) {
 		Size = IRC->GetFloodControl()->GetRealLength();
-	else
-		Size = TheQueue->GetLength();
-
-	TheQueue->Clear();
+		IRC->GetFloodControl()->Clear();
+	} else {
+		throw "Queue should be one of: mode server help all";
+	}
 
 	return Size;
 }
 
 int queuesize(const char* Queue) {
-	CUser* User = g_Bouncer->GetUser(g_Context);
+	int Size;
+	CUser* User;
+	
+	User = g_Bouncer->GetUser(g_Context);
 
-	if (!User)
+	if (User == NULL) {
 		return 0;
+	}
 
-	CIRCConnection* IRC = User->GetIRCConnection();
+	CIRCConnection* IRC;
+	
+	IRC = User->GetIRCConnection();
 
-	if (!IRC)
+	if (IRC == NULL) {
 		return 0;
-
-	CQueue* TheQueue = NULL;
+	}
 
 	if (strcasecmp(Queue, "mode") == 0)
-		TheQueue = IRC->GetQueueHigh();
+		Size = IRC->GetQueueHigh()->GetLength();
 	else if (strcasecmp(Queue, "server") == 0)
-		TheQueue = IRC->GetQueueMiddle();
+		Size = IRC->GetQueueMiddle()->GetLength();
 	else if (strcasecmp(Queue, "help") == 0)
-		TheQueue = IRC->GetQueueLow();
+		Size = IRC->GetQueueLow()->GetLength();
 	else if (strcasecmp(Queue, "all") == 0)
-		TheQueue = (CQueue*)IRC->GetFloodControl();
-	else
-		throw "Queue should be one of: mode server help all";
-
-	int Size;
-
-	if (TheQueue == IRC->GetFloodControl())
 		Size = IRC->GetFloodControl()->GetRealLength();
 	else
-		Size = TheQueue->GetLength();
+		throw "Queue should be one of: mode server help all";
 
 	return Size;
 }

@@ -19,7 +19,7 @@
 
 typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
-class CTimer {
+class CTimer : public CZoneObject<CTimer, 64> {
 	friend class CCore;
 
 public:

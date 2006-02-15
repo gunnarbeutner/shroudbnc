@@ -127,13 +127,8 @@ CConnection::~CConnection() {
 
 	g_Bouncer->UnregisterSocket(m_Socket);
 
-	if (m_DnsQuery) {
-		delete m_DnsQuery;
-	}
-
-	if (m_BindDnsQuery) {
-		delete m_BindDnsQuery;
-	}
+	delete m_DnsQuery;
+	delete m_BindDnsQuery;
 
 	free(m_BindIpCache);
 

@@ -24,7 +24,7 @@ typedef struct queue_item_s {
 
 #define MAX_QUEUE_SIZE 500
 
-class CQueue {
+class CQueue : public CZoneObject<CQueue, 64> {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG

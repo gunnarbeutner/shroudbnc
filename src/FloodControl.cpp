@@ -106,14 +106,6 @@ char *CFloodControl::DequeueItem(bool Peek) {
 		return NULL;
 }
 
-bool CFloodControl::QueueItem(const char *Item) {
-	throw "Not supported.";
-}
-
-bool CFloodControl::QueueItemNext(const char *Item) {
-	throw "Not supported.";
-}
-
 int CFloodControl::GetQueueSize(void) {
 	if (DequeueItem(true) != NULL) {
 		return 1;

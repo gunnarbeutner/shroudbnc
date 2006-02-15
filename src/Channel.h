@@ -70,7 +70,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CChannel *Unfreeze(CAssocArray *Box, void *Owner);
+	static CChannel *Unfreeze(CAssocArray *Box);
 #endif
 
 	virtual const char *GetName(void);

@@ -35,6 +35,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_PeerName = NULL;
 	m_PeerNameTemp = NULL;
 
+	m_PreviousNick = NULL;
+
 	if (Client != INVALID_SOCKET) {
 		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
 
@@ -59,6 +61,7 @@ CClientConnection::~CClientConnection() {
 	free(m_Password);
 	free(m_Username);
 	free(m_PeerName);
+	free(m_PreviousNick);
 
 	if (m_ClientLookup != NULL) {
 		delete m_ClientLookup;
@@ -805,7 +808,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			m_Owner->SetIRCConnection(NULL);
 		}
 
-		m_Owner->ScheduleReconnect(2);
+		m_Owner->ScheduleReconnect(5);
 		return false;
 	} else if (strcasecmp(Subcommand, "status") == 0) {
 		asprintf(&Out, "Username: %s", m_Owner->GetUsername());
@@ -1759,7 +1762,7 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box, void *Owner) {
+CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
@@ -1775,8 +1778,6 @@ CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box, void *Owner) {
 	}
 
 	Client = new CClientConnection();
-
-	Client->SetOwner((CUser *)Owner);
 
 	Client->m_Socket = Socket;
 	Client->InitSocket();
@@ -1815,4 +1816,14 @@ void CClientConnection::Kill(const char *Error) {
 
 commandlist_t *CClientConnection::GetCommandList(void) {
 	return &m_CommandList;
+}
+
+
+void CClientConnection::SetPreviousNick(const char *Nick) {
+	free(m_PreviousNick);
+	m_PreviousNick = strdup(Nick);
+}
+
+const char *CClientConnection::GetPreviousNick(void) {
+	return m_PreviousNick;
 }

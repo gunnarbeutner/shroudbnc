@@ -514,6 +514,10 @@ void CUser::Reconnect(void) {
 	} else {
 		SetIRCConnection(Connection);
 
+		if (GetClientConnection() != NULL) {
+			GetClientConnection()->SetPreviousNick(GetNick());
+		}
+
 		g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
 	}
 }
@@ -535,8 +539,7 @@ void CUser::ScheduleReconnect(int Delay) {
 	if (m_IRC)
 		return;
 
-	if (m_Config->ReadInteger("user.quitted") && Delay == 0)
-		m_Config->WriteInteger("user.quitted", 0);
+	m_Config->WriteInteger("user.quitted", 0);
 
 	int MaxDelay = Delay;
 

@@ -20,7 +20,7 @@
 #define BLOCKSIZE 4096
 #define OPTIMIZEBLOCKS 16
 
-class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 64> {
+class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
 	char* m_Buffer; /**< the fifo buffer's data */
 	unsigned int m_BufferSize; /**< the size of the buffer */
 	unsigned int m_Offset; /**< the number of unused bytes at the

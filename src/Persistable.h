@@ -58,7 +58,7 @@ bool FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
  * @param Name the object's name in that container
  */
 template <typename Type>
-Type *UnfreezeObject(CAssocArray *Container, const char *Name, void *Cookie = NULL) {
+Type *UnfreezeObject(CAssocArray *Container, const char *Name) {
 	CAssocArray *ObjectBox;
 
 	if (Container == NULL || Name == NULL) {
@@ -71,5 +71,5 @@ Type *UnfreezeObject(CAssocArray *Container, const char *Name, void *Cookie = NU
 		return NULL;
 	}
 
-	return Type::Unfreeze(ObjectBox, Cookie);
+	return Type::Unfreeze(ObjectBox);
 }

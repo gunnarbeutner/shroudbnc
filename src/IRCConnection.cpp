@@ -138,33 +138,18 @@ CIRCConnection::~CIRCConnection() {
 	free(m_CurrentNick);
 	free(m_Site);
 
-	if (m_Channels != NULL) {
-		delete m_Channels;
-	}
+	delete m_Channels;
 
 	free(m_Server);
 	free(m_ServerVersion);
 	free(m_ServerFeat);
 
-	if (m_ISupport != NULL) {
-		delete m_ISupport;
-	}
+	delete m_ISupport;
 
-	if (m_QueueLow != NULL) {
-		delete m_QueueLow;
-	}
-
-	if (m_QueueMiddle != NULL) {
-		delete m_QueueMiddle;
-	}
-
-	if (m_QueueHigh != NULL) {
-		delete m_QueueHigh;
-	}
-
-	if (m_FloodControl != NULL) {
-		delete m_FloodControl;
-	}
+	delete m_QueueLow;
+	delete m_QueueMiddle;
+	delete m_QueueHigh;
+	delete m_FloodControl;
 
 	if (m_DelayJoinTimer != NULL) {
 		m_DelayJoinTimer->Destroy();
@@ -442,6 +427,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		return bRet;
 	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
 		int DelayJoin = m_Owner->GetDelayJoin();
+		CClientConnection *Client = GetOwner()->GetClientConnection();
+
+		if (Client != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
+			const char *Site = GetSite();
+
+			if (Site == NULL) {
+				Site = "unknown@host";
+			}
+
+			GetOwner()->GetClientConnection()->WriteLine(":%s!%s NICK %s", Client->GetPreviousNick(), Site, m_CurrentNick);
+		}
 
 		if (DelayJoin == 1)
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
@@ -1299,9 +1295,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 
 	TempBox = Box->ReadBox("~irc.isupport");
 
-	if (Connection->m_ISupport != NULL) {
-		delete Connection->m_ISupport;
-	}
+	delete Connection->m_ISupport;
 
 	Connection->m_ISupport = UnfreezeObject<CConfig>(Box, "~irc.isupport");
 
@@ -1326,18 +1320,14 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 		free(Out);
 	}
 
-	if (Connection->m_FloodControl != NULL) {
-		delete Connection->m_FloodControl;
-	}
+	delete Connection->m_FloodControl;
 
 	Connection->m_FloodControl = new CFloodControl();
 
 	TempBox = Box->ReadBox("~irc.queuehigh");
 
 	if (TempBox != NULL) {
-		if (Connection->m_QueueHigh != NULL) {
-			delete Connection->m_QueueHigh;
-		}
+		delete Connection->m_QueueHigh;
 
 		Connection->m_QueueHigh = CQueue::Unfreeze(TempBox);
 	}
@@ -1347,9 +1337,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 	TempBox = Box->ReadBox("~irc.queuemiddle");
 
 	if (TempBox != NULL) {
-		if (Connection->m_QueueMiddle != NULL) {
-			delete Connection->m_QueueMiddle;
-		}
+		delete Connection->m_QueueMiddle;
 
 		Connection->m_QueueMiddle = CQueue::Unfreeze(TempBox);
 	}
@@ -1359,9 +1347,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 	TempBox = Box->ReadBox("~irc.queuelow");
 
 	if (TempBox != NULL) {
-		if (Connection->m_QueueLow != NULL) {
-			delete Connection->m_QueueLow;
-		}
+		delete Connection->m_QueueLow;
 
 		Connection->m_QueueLow = CQueue::Unfreeze(TempBox);
 	}
