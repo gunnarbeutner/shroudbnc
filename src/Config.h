@@ -22,7 +22,7 @@
  *
  * Represents a shroudBNC configuration file
  */
-class CConfig : public CZoneObject<CConfig, 32> {
+class CConfig : public CZoneObject<CConfig, 128> {
 	CHashtable<char *, false, 8> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */

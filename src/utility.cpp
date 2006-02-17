@@ -783,3 +783,14 @@ bool RegisterExitHandler(ExitHandler Handler, void *Cookie) {
 		return false;
 	}
 }
+
+/**
+ * FreeString
+ *
+ * Calls free() on a string.
+ *
+ * @param String the string
+ */
+void FreeString(char *String) {
+	free(String);
+}

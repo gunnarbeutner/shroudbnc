@@ -32,6 +32,8 @@
 CConfig::CConfig(const char *Filename) {
 	m_WriteLock = false;
 
+	m_Settings.RegisterValueDestructor(FreeString);
+
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
 

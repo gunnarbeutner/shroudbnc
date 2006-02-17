@@ -114,3 +114,5 @@ int CompareAddress(sockaddr *pA, sockaddr *pB);
 
 int SetPermissions(const char *Filename, int Modes);
 bool RegisterExitHandler(ExitHandler Handler, void *Cookie);
+
+void FreeString(char *String);
