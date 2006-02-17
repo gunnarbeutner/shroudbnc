@@ -218,5 +218,9 @@ bool CLog::IsEmpty(void) {
  * if the log is not persistant.
  */
 const char *CLog::GetFilename(void) {
-	return m_Filename;
+	if (m_Filename[0] != '\0') {
+		return m_Filename;
+	} else {
+		return NULL;
+	}
 }

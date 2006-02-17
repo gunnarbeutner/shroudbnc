@@ -452,7 +452,7 @@ void CUser::Reconnect(void) {
 	if (!Server || !Port) {
 		ScheduleReconnect(120);
 
-		g_Bouncer->GetLog()->WriteLine("%s has no default server. Can't (re)connect.", m_Name);
+		g_Bouncer->Log("%s has no default server. Can't (re)connect.", m_Name);
 
 		return;
 	}

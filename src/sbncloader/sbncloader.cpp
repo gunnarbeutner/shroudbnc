@@ -105,6 +105,10 @@ void PathCanonicalize(char *NewPath, const char *Path) {
 	int i = 0, o = 0;
 
 	while (true) {
+		if ((Path[i] == '\\' || Path[i] == '/') && Path[i + 1] == '.') {
+			i += 2;
+		}
+
 		if (o >= MAX_PATH - 1) {
 			NewPath[o] = '\0';
 
@@ -115,10 +119,6 @@ void PathCanonicalize(char *NewPath, const char *Path) {
 
 		if (Path[i] == '\0') {
 			return;
-		}
-
-		if (Path[i] == '/' && Path[i + 1] == '.') {
-			i += 2;
 		}
 
 		i++;
@@ -199,6 +199,12 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
 	strcat(Path, "/");
 #endif
 	strcat(Path, Filename);
+
+	for (unsigned int i = 0; i < strlen(Path); i++) {
+		if (Path[i] == '/') {
+			Path[i] = '\\';
+		}
+	}
 
 	PathCanonicalize(NewPath, Path);
 	

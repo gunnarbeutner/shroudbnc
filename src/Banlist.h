@@ -48,8 +48,8 @@ public:
 	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);
 	virtual bool UnsetBan(const char *Mask);
 
-	virtual const ban_t *GetBan(const char *Mask);
-	virtual const hash_t<ban_t *> *Iterate(int Skip);
+	virtual const ban_t *GetBan(const char *Mask) const;
+	virtual const hash_t<ban_t *> *Iterate(int Skip) const;
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 };

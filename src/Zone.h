@@ -167,8 +167,12 @@ public:
 		int Count = GetCount();
 
 		if (Count > 0) {
-			printf("Leaked %d zone objects of size %d.\n", Count, sizeof(Type));
+			printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), sizeof(Type));
 		}
+	}
+
+	const char *GetTypeName(void) const {
+		return typeid(Type).name();
 	}
 };
 
@@ -205,13 +209,3 @@ public:
 
 template<typename InheritedClass, int HunkSize>
 CZone<InheritedClass, HunkSize> CZoneObject<InheritedClass, HunkSize>::m_Zone;
-
-/**
- * DestroyZoneObject<Type>
- *
- * A generic value destructor which can be used in a hashtable.
- */
-template<typename Type>
-void DestroyZoneObject(Type *Object) {
-//	Object->~Type;
-}

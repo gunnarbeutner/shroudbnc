@@ -96,7 +96,7 @@ bool CBanlist::UnsetBan(const char *Mask) {
  *
  * @param Skip the index of the ban which is to be returned
  */
-const hash_t<ban_t *> *CBanlist::Iterate(int Skip) {
+const hash_t<ban_t *> *CBanlist::Iterate(int Skip) const {
 	return m_Bans.Iterate(Skip);
 }
 
@@ -107,7 +107,7 @@ const hash_t<ban_t *> *CBanlist::Iterate(int Skip) {
  *
  * @param Mask the banmask
  */
-const ban_t *CBanlist::GetBan(const char *Mask) {
+const ban_t *CBanlist::GetBan(const char *Mask) const {
 	return m_Bans.Get(Mask);
 }
 

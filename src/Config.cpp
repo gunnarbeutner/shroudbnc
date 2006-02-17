@@ -127,7 +127,7 @@ CConfig::~CConfig() {
  *
  * @param Setting the configuration setting
  */
-const char *CConfig::ReadString(const char *Setting) {
+const char *CConfig::ReadString(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
@@ -145,7 +145,7 @@ const char *CConfig::ReadString(const char *Setting) {
  *
  * @param Setting the configuration setting
  */
-int CConfig::ReadInteger(const char *Setting) {
+int CConfig::ReadInteger(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
@@ -215,7 +215,7 @@ bool CConfig::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is volatile.
  */
-bool CConfig::Persist(void) {
+bool CConfig::Persist(void) const {
 	if (m_Filename == NULL) {
 		return false;
 	}
@@ -246,7 +246,7 @@ bool CConfig::Persist(void) {
  * Returns the filename of the configuration object. The return value will
  * be NULL if the configuration object is volatile.
  */
-const char *CConfig::GetFilename(void) {
+const char *CConfig::GetFilename(void) const {
 	return m_Filename;
 }
 
@@ -257,7 +257,7 @@ const char *CConfig::GetFilename(void) {
  *
  * @param Index specifies the index of the setting which is to be returned
  */
-hash_t<char *> *CConfig::Iterate(int Index) {
+hash_t<char *> *CConfig::Iterate(int Index) const {
 	return m_Settings.Iterate(Index);
 }
 
@@ -279,7 +279,7 @@ void CConfig::Reload(void) {
  *
  * Returns the number of items in the config.
  */
-unsigned int CConfig::GetLength(void) {
+unsigned int CConfig::GetLength(void) const {
 	return m_Settings.GetLength();
 }
 

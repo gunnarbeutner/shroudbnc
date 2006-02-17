@@ -148,12 +148,12 @@ public:
 		return true;
 	}
 
-	Type Get(const char *Key) {
+	Type Get(const char *Key) const {
 		if (Key == NULL) {
 			return NULL;
 		}
 
-		hashlist_t<Type> *List = &m_Items[Hash(Key) % Size];
+		const hashlist_t<Type> *List = &m_Items[Hash(Key) % Size];
 
 		if (List->Count == 0) {
 			return NULL;
@@ -168,7 +168,7 @@ public:
 		}
 	}
 
-	unsigned int GetLength(void) {
+	unsigned int GetLength(void) const {
 		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -227,7 +227,7 @@ public:
 		m_DestructorFunc = Func;
 	}
 
-	hash_t<Type> *Iterate(int Index) {
+	hash_t<Type> *Iterate(int Index) const {
 		int Skip = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -248,7 +248,7 @@ public:
 		return NULL;
 	}
 
-	char **GetSortedKeys(void) {
+	char **GetSortedKeys(void) const {
 		char **Keys = NULL;
 		unsigned int Count = 0;
 
@@ -287,7 +287,7 @@ public:
 		}
 	}
 
-	inline bool operator==(CHashCompare Other) {
+	inline bool operator==(CHashCompare Other) const {
 		if (m_Hash != Other.m_Hash) {
 			return false;
 		} else {

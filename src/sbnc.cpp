@@ -71,6 +71,9 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	rlimit core_limit = { INT_MAX, INT_MAX };
 	setrlimit(RLIMIT_CORE, &core_limit);
 
+#endif
+
+#if !defined(_WIN32 ) || defined(__MINGW32__)
 	lt_dlinit();
 #endif
 
@@ -79,7 +82,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");
 
-#ifndef _WIN32
+#if !defined(_WIN32 ) || defined(__MINGW32__)
 		lt_dlexit();
 #endif
 
@@ -121,7 +124,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	}
 
 	delete Config;
-#ifndef _WIN32
+
+#if !defined(_WIN32 ) || defined(__MINGW32__)
 	lt_dlexit();
 #endif
 
