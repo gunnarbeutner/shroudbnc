@@ -200,11 +200,13 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
 #endif
 	strcat(Path, Filename);
 
+#ifdef _WIN32
 	for (unsigned int i = 0; i < strlen(Path); i++) {
 		if (Path[i] == '/') {
 			Path[i] = '\\';
 		}
 	}
+#endif
 
 	PathCanonicalize(NewPath, Path);
 	
