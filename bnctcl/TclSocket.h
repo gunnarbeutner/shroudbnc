@@ -21,11 +21,10 @@ class CCore;
 class CConnection;
 class CTclSocket;
 
-#undef sprintf
-
 extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
 extern int g_SocketIdx;
 extern Tcl_Interp* g_Interp;
+
 
 IMPL_SOCKETLISTENER(CTclSocket) {
 private:
@@ -34,27 +33,31 @@ private:
 	char *m_TclProc;
 public:
 	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<CTclSocket>(Port, BindIp) {
-		char Buf[20];
+		char *Buf;
 
 		m_TclProc = strdup(TclProc);
 
-		sprintf(Buf, "%d", g_SocketIdx);
+		g_asprintf(&Buf, "%d", g_SocketIdx);
 		m_Idx = g_SocketIdx;
 		g_SocketIdx++;
 
 		m_SSL = SSL;
 
 		g_TclListeners->Add(Buf, this);
+
+		g_free(Buf);
 	}
 
 	~CTclSocket(void) {
-		char Buf[20];
+		char *Buf;
 
 		free(m_TclProc);
 
-		sprintf(Buf, "%d", m_Idx);
+		g_asprintf(&Buf, "%d", m_Idx);
 
 		g_TclListeners->Remove(Buf);
+
+		g_free(Buf);
 	}
 
 	virtual const char *GetClassName(void) {
@@ -66,19 +69,21 @@ public:
 	}
 
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		char ptr[20];
+		char *ptr;
 		Tcl_Obj* objv[2];
 		CTclClientSocket *TclClient;
 
 		TclClient = new CTclClientSocket(Client, m_SSL, Role_Server);
 
-		sprintf(ptr, "%d", TclClient->GetIdx());
+		g_asprintf(&ptr, "%d", TclClient->GetIdx());
 
 		objv[0] = Tcl_NewStringObj(m_TclProc, strlen(m_TclProc));
 		Tcl_IncrRefCount(objv[0]);
 
 		objv[1] = Tcl_NewStringObj(ptr, strlen(ptr));
 		Tcl_IncrRefCount(objv[1]);
+
+		free(ptr);
 
 		Tcl_EvalObjv(g_Interp, 2, objv, TCL_EVAL_GLOBAL);
 

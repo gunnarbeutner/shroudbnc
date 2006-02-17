@@ -63,3 +63,5 @@ typedef int BOOL;
 #endif
 
 #define MAXPATHLEN PATH_MAX
+
+#define mkdir(X) mkdir(X, 0700)

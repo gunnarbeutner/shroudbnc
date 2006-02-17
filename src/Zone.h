@@ -20,6 +20,9 @@
 template<typename Type, int HunkSize>
 void ZoneLeakCheck(void *Zone);
 
+typedef void (*ExitHandler)(void *Cookie);
+bool RegisterExitHandler(ExitHandler *Handler, void *Cookie);
+
 /**
  * CZone<Type>
  *
@@ -87,14 +90,7 @@ public:
 	}
 
 	bool Register(void) {
-		// TODO: FIX FIX FIX
-#ifdef _DEBUG
-		if (g_Bouncer) {
-			return g_Bouncer->RegisterExitHandler(&ZoneLeakCheck<Type, HunkSize>, this);
-		} else {
-			return false;
-		}
-#endif
+		return RegisterExitHandler(ZoneLeakCheck<Type, HunkSize>, this);
 	}
 
 	Type *Allocate(void) {
@@ -133,11 +129,11 @@ public:
 				hunkobject_s<Type> *HunkObject = &(m_Hunks[i]->HunkObjects[h]);
 
 				if ((Type *)HunkObject->Data == Object) {
-	#ifdef _DEBUG
+#ifdef _DEBUG
 					if (!HunkObject->Valid) {
 						printf("Double free for zone object %p", Object);
 					}
-	#endif
+#endif
 
 					HunkObject->Valid = false;
 

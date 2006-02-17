@@ -375,7 +375,8 @@ bool CConnection::ReadLine(char** Out) {
 		*Pos = '\0';
 		char* NewPtr = Pos + 1 + (advance ? 1 : 0);
 
-		*Out = strdup(m_RecvQ->Read(NewPtr - old_recvq));
+		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(NewPtr - old_recvq + 1);
+		strcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq));
 
 		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;
@@ -489,7 +490,8 @@ void CConnection::Shutdown(void) {
 }
 
 void CConnection::Timeout(int TimeLeft) {
-	m_Timeout = time(NULL) + TimeLeft;
+	time(&m_Timeout);
+	m_Timeout += TimeLeft;
 }
 
 bool CConnection::DoTimeout(void) {

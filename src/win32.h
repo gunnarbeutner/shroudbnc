@@ -26,9 +26,28 @@
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
 #	include <shlwapi.h>
+#	include <direct.h>
 #else
 // TODO: FIX!
 typedef struct { char __addr[16]; } sockaddr_in6;
+#endif
+
+#define mkdir _mkdir
+
+#ifndef S_IRUSR
+#define S_IRUSR 0
+#endif
+#ifndef S_IWUSR
+#define S_IWUSR 0
+#endif
+#ifndef S_IXUSR
+#define S_IXUSR 0
+#endif
+#ifndef S_IRGRP
+#define S_IRGRP 0
+#endif
+#ifndef S_IROTH
+#define S_IROTH 0
 #endif
 
 #if !defined(socklen_t)

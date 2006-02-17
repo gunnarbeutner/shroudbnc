@@ -50,9 +50,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 		FILE *identConfig = fopen(Out, "w");
 
-#ifndef _WIN32
-		chmod(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-#endif
+		SetPermissions(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
 		if (identConfig) {
 			char *Buf = (char *)malloc(strlen(Ident) + 50);

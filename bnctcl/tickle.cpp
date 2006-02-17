@@ -35,6 +35,8 @@ CTclSupport* g_Tcl;
 bool g_Ret;
 bool g_NoticeUser;
 Tcl_Encoding g_Encoding;
+asprintf_func g_asprintf;
+free_func g_free;
 
 extern tcltimer_t** g_Timers;
 extern int g_TimerCount;
@@ -89,7 +91,12 @@ class CTclSupport : public CModuleImplementation {
 	}
 
 	void Init(CCore* Root) {
+		CModuleImplementation::Init(Root);
+
 		g_Bouncer = Root;
+
+		g_asprintf = GetCore()->GetUtilities()->asprintf;
+		g_free = GetCore()->GetUtilities()->Free;
 
 		g_TclListeners = new CHashtable<CTclSocket*, false, 5>;
 		g_TclClientSockets = new CHashtable<CTclClientSocket*, false, 5>;

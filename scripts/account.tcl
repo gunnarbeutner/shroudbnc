@@ -247,6 +247,7 @@ proc auth:pulse {reason} {
 		setctx $user
 
 		set nicks ""
+		set allowedchans [split [string tolower [getbncuser [getctx] tag whochans]] ","]
 
 		namespace eval [getns] {
 			if {![info exists inwho]} { set inwho 0 }
@@ -255,6 +256,10 @@ proc auth:pulse {reason} {
 		upvar [getns]::inwho inwho
 
 		foreach chan [internalchannels] {
+			if {$allowedchans != "" && [lsearch -exact $allowedchans [string tolower $chan]] == -1} {
+				continue
+			}
+
 			set count 0
 
 			foreach nick [internalchanlist $chan] {

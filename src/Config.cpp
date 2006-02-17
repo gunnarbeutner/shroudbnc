@@ -226,9 +226,7 @@ bool CConfig::Persist(void) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-#ifndef _WIN32
-	chmod(m_Filename, S_IRUSR | S_IWUSR);
-#endif
+	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
 	int i = 0;
 	while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {

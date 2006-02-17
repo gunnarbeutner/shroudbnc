@@ -31,7 +31,9 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Coo
 	m_Repeat = Repeat;
 	m_Proc = Function;
 	m_Cookie = Cookie;
-	m_Next = time(NULL) + Interval;
+
+	time(&m_Next);
+	m_Next += Interval;
 
 	g_Bouncer->RegisterTimer(this);
 }

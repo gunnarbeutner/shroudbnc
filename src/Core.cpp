@@ -23,15 +23,6 @@
 #include <openssl/err.h>
 #endif
 
-#ifndef _WIN32
-	#include <sys/stat.h>
-
-	#define mkdir(X) mkdir(X, 0700)
-#else
-	#include <direct.h>
-	#define mkdir _mkdir
-#endif
-
 extern bool g_Debug;
 extern bool g_Freeze;
 extern loaderparams_s *g_LoaderParameters;
@@ -99,7 +90,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	}
 
 	m_Log->Clear();
-	m_Log->WriteLine("Log system initialized.");
+	Log("Log system initialized.");
 
 	g_Bouncer = this;
 
@@ -156,7 +147,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	m_SSLListener = NULL;
 	m_SSLListenerV6 = NULL;
 
-	m_Startup = time(NULL);
+	time(&m_Startup);
 
 	m_SendQSizeCache = -1;
 
@@ -397,9 +388,9 @@ void CCore::StartMainLoop(void) {
 	time_t LastCheck = 0;
 
 	while ((m_Running || --m_ShutdownLoop) && !g_Freeze) {
-		time_t Now = time(NULL);
-		time_t Best = 0;
-		time_t SleepInterval = 0;
+		time_t Now, Best = 0, SleepInterval = 0;
+
+		time(&Now);
 
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			time_t NextCall = m_Timers[c]->GetNextCall();
@@ -413,7 +404,7 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		Best = time(NULL) + 60;
+		Best = Now + 60;
 
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			time_t NextCall = m_Timers[c]->GetNextCall();
@@ -501,7 +492,7 @@ void CCore::StartMainLoop(void) {
 			tvp = ares_timeout(Channel, NULL, &tv);
 		}
 
-		Last = time(NULL);
+		time(&Last);
 
 		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
@@ -763,7 +754,7 @@ void CCore::Log(const char* Format, ...) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Log->WriteLine("%s", Out);
+	m_Log->WriteLine(NULL, "%s", Out);
 
 	for (unsigned int i = 0; i < m_Users.GetLength(); i++) {
 		CUser *User = m_Users.Iterate(i)->Value;
@@ -808,7 +799,6 @@ CLog *CCore::GetLog(void) {
 }
 
 void CCore::Shutdown(void) {
-	g_Bouncer->GlobalNotice("Shutdown requested.");
 	g_Bouncer->Log("Shutdown requested.");
 
 	m_Running = false;
@@ -866,8 +856,6 @@ CUser* CCore::CreateUser(const char* Username, const char* Password) {
 }
 
 bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
-	char *Out;
-
 	CUser *User = GetUser(Username);
 
 	if (User == NULL)
@@ -887,17 +875,7 @@ bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	delete User;
 	m_Users.Remove(Username);
 
-	asprintf(&Out, "User removed: %s", Username);
-
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-	} else {
-		m_Log->WriteLine(Out);
-
-		GlobalNotice(Out, true);
-
-		free(Out);
-	}
+	Log("User removed: %s", Username);
 
 	UpdateUserConfig();
 
@@ -1009,9 +987,7 @@ void CCore::WritePidFile(void) {
 
 		pidFile = fopen(BuildPath("sbnc.pid"), "w");
 
-#ifndef _WIN32
-		chmod("sbnc.pid", S_IRUSR | S_IWUSR);
-#endif
+		SetPermissions(BuildPath("sbnc.pid"), S_IRUSR | S_IWUSR);
 
 		if (pidFile) {
 			fprintf(pidFile, "%d", pid);
@@ -1043,14 +1019,6 @@ CConnection* CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) 
 
 void CCore::DeleteWrapper(CConnection* Wrapper) {
 	delete Wrapper;
-}
-
-void CCore::Free(void* Pointer) {
-	free(Pointer);
-}
-
-void* CCore::Alloc(size_t Size) {
-	return malloc(Size);
 }
 
 bool CCore::IsRegisteredSocket(CSocketEvents* Events) {
@@ -1319,6 +1287,9 @@ const utility_t *CCore::GetUtilities(void) {
 		Utils->CmpCommandT = CmpCommandT;
 
 		Utils->asprintf = asprintf;
+
+		Utils->Alloc = malloc;
+		Utils->Free = free;
 	}
 
 	return Utils;
@@ -1442,9 +1413,7 @@ bool CCore::MakeConfig(void) {
 	rename(SourcePath, BuildPath("sbnc.conf.old"));
 	free(SourcePath);
 	mkdir(BuildPath("users"));
-#ifndef _WIN32
-	chmod(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
-#endif
+	SetPermissions(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 
 	MainConfig = new CConfig(BuildPath("sbnc.conf"));
 

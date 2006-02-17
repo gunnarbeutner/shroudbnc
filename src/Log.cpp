@@ -95,10 +95,11 @@ void CLog::PlayToUser(CUser *User, int Type) {
  *
  * Writes a new log entry.
  *
+ * @param Timestamp a timestamp, if you specify NULL, a suitable default timestamp will be used
  * @param Line the log entry
  */
-void CLog::WriteUnformattedLine(const char *Line) {
-	char *Out;
+void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
+	char *Out = NULL;
 	tm Now;
 	time_t tNow;
 	char strNow[100];
@@ -108,20 +109,22 @@ void CLog::WriteUnformattedLine(const char *Line) {
 		return;
 	}
 
-#ifndef _WIN32
-	chmod(m_Filename, S_IRUSR | S_IWUSR);
-#endif
+	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
-	time(&tNow);
-	Now = *localtime(&tNow);
+	if (Timestamp == NULL) {
+		time(&tNow);
+		Now = *localtime(&tNow);
 
 #ifdef _WIN32
-	strftime(strNow, sizeof(strNow), "%#c" , &Now);
+		strftime(strNow, sizeof(strNow), "%#c" , &Now);
 #else
-	strftime(strNow, sizeof(strNow), "%c" , &Now);
+		strftime(strNow, sizeof(strNow), "%c" , &Now);
 #endif
 
-	asprintf(&Out, "%s %s\n", strNow, Line);
+		Timestamp = strNow;
+	}
+
+	asprintf(&Out, "%s %s\n", Timestamp, Line);
 
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
@@ -142,10 +145,11 @@ void CLog::WriteUnformattedLine(const char *Line) {
  *
  * Formats a string and writes it into the log.
  *
+ * @param Timestamp a timestamp, if you specify NULL, a suitable default timestamp will be used
  * @param Format the format string
  * @param ... parameters used in the format string
  */
-void CLog::WriteLine(const char* Format, ...) {
+void CLog::WriteLine(const char *Timestamp, const char* Format, ...) {
 	char *Out;
 	va_list marker;
 
@@ -159,7 +163,7 @@ void CLog::WriteLine(const char* Format, ...) {
 		return;
 	}
 
-	WriteUnformattedLine(Out);
+	WriteUnformattedLine(Timestamp, Out);
 
 	free(Out);
 }
@@ -173,9 +177,7 @@ void CLog::Clear(void) {
 	FILE *LogFile;
 	
 	if (m_Filename[0] != '\0' && (LogFile = fopen(m_Filename, "w")) != NULL) {
-#ifndef _WIN32
-		chmod(m_Filename, S_IRUSR | S_IWUSR);
-#endif
+		SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
 		fclose(LogFile);
 	}

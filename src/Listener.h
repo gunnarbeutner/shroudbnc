@@ -87,7 +87,7 @@ public:
 	}
 
 	virtual ~CListenerBase(void) {
-		if (g_Bouncer && m_Listener != INVALID_SOCKET) {
+		if (g_Bouncer != NULL && m_Listener != INVALID_SOCKET) {
 			g_Bouncer->UnregisterSocket(m_Listener);
 		}
 

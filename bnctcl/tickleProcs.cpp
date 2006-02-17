@@ -672,10 +672,12 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	return outPref;
 }
 
-#undef sprintf
-
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
-	static char Buffer[1024];
+	static char *Buffer = NULL;
+
+	if (Buffer != NULL) {
+		g_free(Buffer);
+	}
 
 	CUser* Context = g_Bouncer->GetUser(User);
 
@@ -694,7 +696,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return NULL;
 	} else if (strcasecmp(Type, "port") == 0) {
-		sprintf(Buffer, "%d", Context->GetPort());
+		g_asprintf(&Buffer, "%d", Context->GetPort());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "realname") == 0)
@@ -710,7 +712,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "channels") == 0)
 		return Context->GetConfigChannels();
 	else if (strcasecmp(Type, "uptime") == 0) {
-		sprintf(Buffer, "%d", Context->GetIRCUptime());
+		g_asprintf(&Buffer, "%d", Context->GetIRCUptime());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "lock") == 0)
@@ -767,15 +769,15 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return List;
 
 	} else if (strcasecmp(Type, "seen") == 0) {
-		sprintf(Buffer, "%d", Context->GetLastSeen());
+		g_asprintf(&Buffer, "%d", Context->GetLastSeen());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "appendts") == 0) {
-		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.ts") != 0 ? 1 : 0);
+		g_asprintf(&Buffer, "%d", Context->GetConfig()->ReadInteger("user.ts") != 0 ? 1 : 0);
 
 		return Buffer;
 	} else if (strcasecmp(Type, "quitasaway") == 0) {
-		sprintf(Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
+		g_asprintf(&Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
 		return Buffer;
 	} else if (strcasecmp(Type, "automodes") == 0) {
@@ -792,18 +794,22 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (!Client)
 			return NULL;
 		else {
-			sprintf(Buffer, "%d", Client->IsSSL() ? 1 : 0);
+			g_asprintf(&Buffer, "%d", Client->IsSSL() ? 1 : 0);
 
 			return Buffer;
 		}
 	} else if (strcasecmp(Type, "ipv6") == 0) {
-		sprintf(Buffer, "%d", Context->GetIPv6() ? 1 : 0);
+		g_asprintf(&Buffer, "%d", Context->GetIPv6() ? 1 : 0);
 
 		return Buffer;
 	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
+	} else if (strcasecmp(Type, "timezone") == 0) {
+		g_asprintf(&Buffer, "%d", Context->GetGmtOffset());
+
+		return Buffer;
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -859,8 +865,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetIPv6(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "ident") == 0)
 		Context->SetIdent(Value);
+	else if (strcasecmp(Type, "timezone") == 0)
+		Context->SetGmtOffset(atoi(Value));
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6";
+		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone";
 
 	return 1;
 }
@@ -1222,15 +1230,19 @@ const char* bncmodules(void) {
 	char** List = (char**)malloc(Modules->GetLength() * sizeof(const char*));
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		char BufId[200], Buf1[200], Buf2[200];
+		char *BufId, *Buf1, *Buf2;
 
-		sprintf(BufId, "%d", i);
-		sprintf(Buf1, "%p", Modules->Get(i)->GetHandle());
-		sprintf(Buf2, "%p", Modules->Get(i)->GetModule());
+		g_asprintf(&BufId, "%d", i);
+		g_asprintf(&Buf1, "%p", Modules->Get(i)->GetHandle());
+		g_asprintf(&Buf2, "%p", Modules->Get(i)->GetModule());
 
 		const char* Mod[4] = { BufId, Modules->Get(i)->GetFilename(), Buf1, Buf2 };
 
 		List[a++] = Tcl_Merge(4, Mod);
+
+		g_free(BufId);
+		g_free(Buf1);
+		g_free(Buf2);
 	}
 
 	static char* Mods = NULL;
@@ -1332,8 +1344,9 @@ void debugout(const char* String) {
 void putlog(const char* Text) {
 	CUser* User = g_Bouncer->GetUser(g_Context);
 
-	if (User && Text)
-		User->GetLog()->WriteLine("%s", Text);
+	if (User && Text) {
+		User->Log("%s", Text);
+	}
 }
 
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
@@ -1418,9 +1431,10 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 }
 
 void control(int Socket, const char* Proc) {
-	char Buf[20];
-	sprintf(Buf, "%d", Socket);
+	char *Buf;
+	g_asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+	g_free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket.";
@@ -1429,9 +1443,10 @@ void control(int Socket, const char* Proc) {
 }
 
 void internalsocketwriteln(int Socket, const char* Line) {
-	char Buf[20];
-	sprintf(Buf, "%d", Socket);
+	char *Buf;
+	g_asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+	g_free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1451,9 +1466,10 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 }
 
 void internalclosesocket(int Socket) {
-	char Buf[20];
-	sprintf(Buf, "%d", Socket);
+	char *Buf;
+	g_asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+	g_free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1540,14 +1556,16 @@ char* chanbans(const char* Channel) {
 
 	int i = 0;
 	while (const hash_t<ban_t *> *BanHash = Banlist->Iterate(i)) {
-		char Timestamp[20];
+		char *Timestamp;
 		const ban_t *Ban = BanHash->Value;
 
-		sprintf(Timestamp, "%d", Ban->Timestamp);
+		g_asprintf(&Timestamp, "%d", Ban->Timestamp);
 
 		char* ThisBan[3] = { Ban->Mask, Ban->Nick, Timestamp };
 
 		char* List = Tcl_Merge(3, ThisBan);
+
+		g_free(Timestamp);
 
 		Blist = (char**)realloc(Blist, ++Bcount * sizeof(char*));
 
@@ -1678,7 +1696,7 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 char *internaltimers(void) {
 	char **List = (char **)malloc(g_TimerCount * sizeof(char *));
 	const char *Timer[4];
-	char Temp1[20], Temp2[20];
+	char *Temp1, *Temp2;
 	int Count = 0;
 
 	for (int i = 0; i < g_TimerCount; i++) {
@@ -1687,13 +1705,16 @@ char *internaltimers(void) {
 		}
 
 		Timer[0] = g_Timers[i]->proc;
-		sprintf(Temp1, "%d", g_Timers[i]->timer->GetInterval());
+		g_asprintf(&Temp1, "%d", g_Timers[i]->timer->GetInterval());
 		Timer[1] = Temp1;
-		sprintf(Temp2, "%d", g_Timers[i]->timer->GetRepeat());
+		g_asprintf(&Temp2, "%d", g_Timers[i]->timer->GetRepeat());
 		Timer[2] = Temp2;
 		Timer[3] = g_Timers[i]->param ? g_Timers[i]->param : "";
 
 		List[Count++] = Tcl_Merge(4, Timer);
+
+		g_free(Temp1);
+		g_free(Temp2);
 	}
 
 	static char *Out = NULL;

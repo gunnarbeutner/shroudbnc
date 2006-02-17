@@ -100,7 +100,6 @@ public:
 #endif
 	virtual ~CUser(void);
 
-	virtual SOCKET GetIRCSocket(void);
 	virtual CClientConnection *GetClientConnection(void);
 	virtual CIRCConnection *GetIRCConnection(void);
 	virtual bool IsConnectedToIRC(void);
@@ -215,4 +214,9 @@ public:
 	virtual bool SetTagString(const char *Tag, const char *Value);
 	virtual bool SetTagInteger(const char *Tag, int Value);
 	virtual const char *GetTagName(int Index);
+
+	virtual const char *FormatTime(time_t Timestamp);
+
+	virtual void SetGmtOffset(unsigned int Offset);
+	virtual unsigned int GetGmtOffset(void);
 };

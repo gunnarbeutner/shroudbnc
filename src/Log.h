@@ -31,14 +31,14 @@ class CUser;
 class CLog : public CZoneObject<CLog, 16> {
 	char m_Filename[MAXPATHLEN]; /**< the filename of the log, can be an empty string */
 
-	void WriteUnformattedLine(const char *Line);
+	void WriteUnformattedLine(const char *Timestamp, const char *Line);
 public:
 #ifndef SWIG
 	CLog(const char *Filename);
 #endif
 
 	virtual void Clear(void);
-	virtual void WriteLine(const char *Format, ...);
+	virtual void WriteLine(const char *Timestamp, const char *Format,...);
 	virtual void PlayToUser(CUser *User, int Type);
 	virtual bool IsEmpty(void);
 	virtual const char *GetFilename(void);

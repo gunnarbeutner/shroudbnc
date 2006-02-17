@@ -52,7 +52,7 @@ public:
 		while (m_Wrap->ReadLine(&Line) == true) {
 			ParseLine(Line);
 
-			g_Bouncer->Free(Line);
+			g_Bouncer->GetUtilities()->Free(Line);
 		}
 
 		return true;
@@ -123,7 +123,7 @@ public:
 
 			if (LPort == LocalPort && RPort == RemotePort) {
 				// 113 , 3559 : USERID : UNIX : shroud
-				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
+				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, UserHash->Name);
 
 				g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
 
@@ -179,6 +179,8 @@ class CIdentModule : public CModuleImplementation {
 	CIdentListener *m_Listener, *m_ListenerV6;
 
 	void Init(CCore* Root) {
+		CModuleImplementation::Init(Root);
+
 		g_Bouncer = Root;
 
 		m_Listener = new CIdentListener(AF_INET);

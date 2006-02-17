@@ -748,3 +748,38 @@ void StrTrim(char *String) {
 		String[strlen(String) - 1] = '\0';
 	}
 }
+
+/**
+ * SetPermissions
+ *
+ * A wrapper for chmod.
+ *
+ * @param Filename the file
+ * @param Modes the new permissions
+ */
+int SetPermissions(const char *Filename, int Modes) {
+#ifndef _WIN32
+	return chmod(Filename, Modes);
+#else
+	return 1;
+#endif
+}
+
+/**
+ * RegisterExitHandler
+ *
+ * Registers a function which is executed when shroudBNC is shutting
+ * itself down.
+ *
+ * @param Handler the function
+ * @param Cookie a value which is passed to the function
+ */
+bool RegisterExitHandler(ExitHandler Handler, void *Cookie) {
+	if (g_Bouncer != NULL) {
+		return g_Bouncer->RegisterExitHandler(Handler, Cookie);
+	} else {
+		printf("Error in RegisterExitHandler!\n");
+
+		return false;
+	}
+}

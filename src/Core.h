@@ -142,9 +142,6 @@ public:
 	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
 	virtual void DeleteWrapper(CConnection *Wrapper);
 
-	virtual void Free(void *Pointer);
-	virtual void *Alloc(size_t Size);
-
 	virtual bool IsRegisteredSocket(CSocketEvents *Events);
 	virtual SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
 

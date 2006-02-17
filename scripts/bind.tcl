@@ -264,7 +264,7 @@ proc bind {type flags mask {procname ""}} {
 
 	internalbind server sbnc:rawserver * [getctx]
 
-	if {[string equal -nocase $type "need"] || [string equal -nocase "time"]} {
+	if {[string equal -nocase $type "need"] || [string equal -nocase $type "time"]} {
 		internaltimer 60 1 sbnc:bindpulse
 	}
 

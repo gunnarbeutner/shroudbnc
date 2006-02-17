@@ -170,14 +170,6 @@ CUser::~CUser() {
 	}
 }
 
-SOCKET CUser::GetIRCSocket(void) {
-	if (m_IRC) {
-		return m_IRC->GetSocket();
-	} else {
-		return INVALID_SOCKET;
-	}
-}
-
 CClientConnection *CUser::GetClientConnection(void) {
 	return m_Client;
 }
@@ -479,19 +471,12 @@ void CUser::Reconnect(void) {
 	}
 
 	if (GetIPv6()) {
-		asprintf(&Out, "Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
+		Log("Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
 	} else {
-		asprintf(&Out, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+		Log("Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
 	}
 
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-	} else {
-		g_Bouncer->GlobalNotice(Out, true);
-		free(Out);
-	}
-
-	m_LastReconnect = time(NULL);
+	time(&m_LastReconnect);
 
 	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
 
@@ -560,7 +545,8 @@ void CUser::ScheduleReconnect(int Delay) {
 
 		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
 
-		m_ReconnectTime = time(NULL) + MaxDelay;
+		time(&m_ReconnectTime);
+		m_ReconnectTime += MaxDelay;
 	}
 
 	if (GetServer()) {
@@ -617,7 +603,7 @@ void CUser::Log(const char *Format, ...) {
 	} CHECK_ALLOC_RESULT_END;
 
 	if (GetClientConnection() == NULL) {
-		m_Log->WriteLine("%s", Out);
+		m_Log->WriteLine(FormatTime(time(NULL)), "%s", Out);
 	}
 
 	Notice(Out);
@@ -660,7 +646,7 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 			m_ReconnectTimer = NULL;
 		}
 
-		m_LastReconnect = time(NULL);
+		time(&m_LastReconnect);
 
 		IRC->SetTrafficStats(m_IRCStats);
 	}
@@ -670,34 +656,14 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	if (!m_Client && !Client)
 		return;
 
-	char* Out;
-
 	if (!m_Client) {
-		asprintf(&Out, "User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {	
-			g_Bouncer->Log("%s", Out);
-			g_Bouncer->GlobalNotice(Out, true);
-
-			free(Out);
-		}
+		g_Bouncer->Log("User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
 
 		m_Config->WriteInteger("user.seen", time(NULL));
 	}
 
 	if (m_Client && Client) {
-		asprintf(&Out, "Seamless transition for %s", GetUsername());
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
-			g_Bouncer->GlobalNotice(Out, true);
-			g_Bouncer->Log("%s", Out);
-
-			free(Out);
-		}
+		g_Bouncer->Log("User %s re-attached to an already active session. Old session was closed.", GetUsername());
 
 		m_Client->SetOwner(NULL);
 		m_Client->Kill("Another client has connected.");
@@ -709,16 +675,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 
 	if (!Client) {
 		if (!DontSetAway) {
-			asprintf(&Out, "User %s logged off.", GetUsername());
-
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-			} else {
-				g_Bouncer->GlobalNotice(Out, true);
-				g_Bouncer->Log("%s", Out);
-
-				free(Out);
-			}
+			g_Bouncer->Log("User %s logged off.", GetUsername());
 
 			m_Config->WriteInteger("user.seen", time(NULL));
 		}
@@ -1149,9 +1106,7 @@ bool CUser::PersistCertificates(void) {
 	} else {
 		CertFile = fopen(Filename, "w");
 
-#ifndef _WIN32
-		chmod(Filename, S_IRUSR | S_IWUSR);
-#endif
+		SetPermissions(Filename, S_IRUSR | S_IWUSR);
 
 		CHECK_ALLOC_RESULT(CertFile, fopen) {
 			return false;
@@ -1315,4 +1270,46 @@ bool CUser::GetIPv6(void) {
 
 void CUser::SetIPv6(bool IPv6) {
 	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
+}
+
+const char *CUser::FormatTime(time_t Timestamp) {
+	tm *Time;
+	static char *Buffer = NULL;
+	char *NewLine;
+
+	free(Buffer);
+
+	Timestamp += GetGmtOffset() * 60;
+	Time = gmtime(&Timestamp);
+	Buffer = strdup(asctime(Time));
+
+	while ((NewLine = strchr(Buffer, '\n')) != NULL) {
+		*NewLine = '\0';
+	}
+
+	return Buffer;
+}
+
+void CUser::SetGmtOffset(unsigned int Offset) {
+	m_Config->WriteInteger("user.tz", Offset);
+}
+
+unsigned int CUser::GetGmtOffset(void) {
+	const char *Offset;
+	time_t Now;
+	tm GMTime;
+	tm *CurrentTime;
+
+	Offset = m_Config->ReadString("user.tz");
+
+	if (Offset == NULL) {
+		CurrentTime = gmtime(&Now);
+		memcpy(&GMTime, CurrentTime, sizeof(GMTime));
+
+		CurrentTime = localtime(&Now);
+
+		return (CurrentTime->tm_hour - GMTime.tm_hour) * 60 + (CurrentTime->tm_min - GMTime.tm_min);
+	} else {
+		return atoi(Offset);
+	}
 }

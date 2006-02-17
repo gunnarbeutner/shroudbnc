@@ -410,6 +410,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 #endif
 
+			asprintf(&Out, "timezone - %d", m_Owner->GetGmtOffset());
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
+
 			const char* AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
 			const char* DropModes = m_Owner->GetDropModes();
@@ -515,6 +521,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				}
 #endif
+			} else if (strcasecmp(argv[1], "timezone") == 0) {
+				m_Owner->SetGmtOffset(atoi(argv[2]));
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -898,26 +906,26 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			else
 				ClientAddr = NULL;
 
-			char LastSeen[1024];
+			const char *LastSeen;
 
-			if (User->GetLastSeen() == 0)
-				strcpy(LastSeen, "Never");
-			else if (User->GetClientConnection() != NULL)
-				strcpy(LastSeen, "Now");
-			else {
-				tm Then;
-				time_t tThen = User->GetLastSeen();
-
-				Then = *localtime(&tThen);
-
-#ifdef _WIN32
-				strftime(LastSeen, sizeof(LastSeen), "%#c" , &Then);
-#else
-				strftime(LastSeen, sizeof(LastSeen), "%c" , &Then);
-#endif
+			if (User->GetLastSeen() == 0) {
+				LastSeen = "Never";
+			} else if (User->GetClientConnection() != NULL) {
+				LastSeen = "Now";
+			} else {
+				LastSeen = m_Owner->FormatTime(User->GetLastSeen());
 			}
 
-			asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s", User->IsLocked() ? "!" : "", User->IsAdmin() ? "@" : "", ClientAddr ? "*" : "", User->GetUsername(), User->GetIRCConnection() ? (User->GetIRCConnection()->GetCurrentNick() ? User->GetIRCConnection()->GetCurrentNick() : "<none>") : User->GetNick(), ClientAddr ? ClientAddr : "", Server ? Server : "", LastSeen, User->GetRealname());
+			asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s",
+				User->IsLocked() ? "!" : "",
+				User->IsAdmin() ? "@" : "",
+				ClientAddr ? "*" : "",
+				User->GetUsername(),
+				User->GetIRCConnection() ? (User->GetIRCConnection()->GetCurrentNick() ? User->GetIRCConnection()->GetCurrentNick() : "<none>") : User->GetNick(),
+				ClientAddr ? ClientAddr : "",
+				Server ? Server : "",
+				LastSeen,
+				User->GetRealname());
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -1075,11 +1083,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				User->SetSuspendReason("Suspended.");
 			}
 
-			asprintf(&Out, "User %s has been suspended.", User->GetUsername());
-			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
-				g_Bouncer->GlobalNotice(Out, true);
-				free(Out);
-			} CHECK_ALLOC_RESULT_END;
+			g_Bouncer->Log("User %s has been suspended.", User->GetUsername());
 
 			SENDUSER("Done.");
 		} else {
@@ -1099,11 +1103,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		if (User) {
 			User->Unlock();
 
-			asprintf(&Out, "User %s has been unsuspended.", User->GetUsername());
-			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
-				g_Bouncer->GlobalNotice(Out, true);
-				free(Out);
-			} CHECK_ALLOC_RESULT_END;
+			g_Bouncer->Log("User %s has been unsuspended.", User->GetUsername());
 
 			User->SetSuspendReason(NULL);
 

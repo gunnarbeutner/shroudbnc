@@ -99,7 +99,7 @@ char *CFloodControl::DequeueItem(bool Peek) {
 				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
 		}
 
-		m_LastCommand = time(NULL);
+		time(&m_LastCommand);
 
 		return Item;
 	} else

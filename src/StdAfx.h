@@ -29,6 +29,15 @@
 #define _USE_32BIT_TIME_T
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <time.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <ctype.h>
+
 #ifdef _WIN32
 #	include "win32.h"
 #else
@@ -49,15 +58,6 @@
 #ifndef _WIN32
 typedef lt_dlhandle HMODULE;
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <time.h>
-#include <assert.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <ctype.h>
 
 #ifdef USESSL
 #	include <openssl/ssl.h>

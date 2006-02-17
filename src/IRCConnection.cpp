@@ -44,8 +44,9 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning) :
 void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 	SetRole(Role_Client);
 
-	m_LastResponse = time(NULL);
-	g_LastReconnect = time(NULL);
+	time(&g_LastReconnect);
+	m_LastResponse = g_LastReconnect;
+	m_LastBurst = g_LastReconnect;
 
 	m_State = State_Connecting;
 
@@ -110,8 +111,6 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 	m_ServerVersion = NULL;
 	m_ServerFeat = NULL;
 
-	m_LastBurst = time(NULL);
-
 	m_ISupport = new CConfig(NULL);
 
 	if (m_ISupport == NULL) {
@@ -161,7 +160,7 @@ CIRCConnection::~CIRCConnection() {
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
-	m_LastResponse = time(NULL);
+	time(&m_LastResponse);
 
 	if (argc < 2)
 		return true;
@@ -429,7 +428,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int DelayJoin = m_Owner->GetDelayJoin();
 		CClientConnection *Client = GetOwner()->GetClientConnection();
 
-		if (Client != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
+		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
 			const char *Site = GetSite();
 
 			if (Site == NULL) {
@@ -460,8 +459,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			bool AppendTS = (GetOwner()->GetConfig()->ReadInteger("user.ts") != 0);
 			const char* AwayReason = GetOwner()->GetAwayText();
 
-			if (AwayReason)
+			if (AwayReason != NULL) {
 				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
+			}
 		}
 
 		const char* AutoModes = GetOwner()->GetAutoModes();
@@ -1397,7 +1397,7 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) {
 }
 
 void CIRCConnection::Error(void) {
-	if (m_State == State_Connecting) {
+	if (m_State == State_Connecting && GetOwner() != NULL) {
 		g_Bouncer->Log("An error occured while re-connecting for user %s", GetOwner()->GetUsername());
 
 		GetOwner()->Notice("An error occured while re-connecting to a server.");

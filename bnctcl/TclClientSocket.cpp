@@ -21,8 +21,6 @@
 #include "StdAfx.h"
 #include "TclClientSocket.h"
 
-#undef sprintf
-
 extern Tcl_Interp* g_Interp;
 
 CHashtable<CTclClientSocket*, false, 5>* g_TclClientSockets;
@@ -37,13 +35,15 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, bool SSL, connection_role_e Ro
 	m_Wrap = g_Bouncer->WrapSocket(Socket, SSL, Role);
 	g_Bouncer->RegisterSocket(Socket, this);
 
-	char Buf[20];
+	char *Buf;
 
-	sprintf(Buf, "%d", g_SocketIdx);
+	g_asprintf(&Buf, "%d", g_SocketIdx);
 	m_Idx = g_SocketIdx;
 	g_SocketIdx++;
 
 	g_TclClientSockets->Add(Buf, this);
+
+	g_free(Buf);
 
 	m_Control = NULL;
 	m_InTcl = false;
@@ -55,24 +55,27 @@ CTclClientSocket::~CTclClientSocket() {
 	g_Bouncer->DeleteWrapper(m_Wrap);
 	closesocket(m_Socket);
 
-	char Buf[20];
-	sprintf(Buf, "%d", m_Idx);
+	char *Buf;
+	g_asprintf(&Buf, "%d", m_Idx);
 
 	g_TclClientSockets->Remove(Buf);
+	g_free(Buf);
 }
 
 void CTclClientSocket::Destroy(void) {
 	if (m_Control) {
 		Tcl_Obj* objv[3];
 
-		char ptr[20];
-		sprintf(ptr, "%d", m_Idx);
+		char *ptr;
+		g_asprintf(&ptr, "%d", m_Idx);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
 
 		objv[1] = Tcl_NewStringObj(ptr, strlen(ptr));
 		Tcl_IncrRefCount(objv[1]);
+
+		g_free(ptr);
 
 		objv[2] = Tcl_NewStringObj("", 0);
 		Tcl_IncrRefCount(objv[2]);
@@ -100,14 +103,16 @@ bool CTclClientSocket::Read(bool DontProcess) {
 	while (m_Wrap->ReadLine(&Line) && m_Control) {
 		Tcl_Obj* objv[3];
 		
-		char ptr[20];
-		sprintf(ptr, "%d", m_Idx);
+		char *ptr;
+		g_asprintf(&ptr, "%d", m_Idx);
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
 
 		objv[1] = Tcl_NewStringObj(ptr, strlen(ptr));
 		Tcl_IncrRefCount(objv[1]);
+
+		g_free(ptr);
 
 		Tcl_DString dsText;
 
@@ -125,7 +130,7 @@ bool CTclClientSocket::Read(bool DontProcess) {
 		Tcl_DecrRefCount(objv[0]);
 		Tcl_DStringFree(&dsText);
 
-		g_Bouncer->Free(Line);
+		g_free(Line);
 	}
 
 	if (m_Destroy)

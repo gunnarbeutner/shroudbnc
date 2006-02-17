@@ -50,6 +50,8 @@ typedef struct utility_s {
 	void (*DeleteCommand)(commandlist_t *Commands, const char *Name);
 	int (*CmpCommandT)(const void *pA, const void *pB);
 	int (*asprintf)(char **ptr, const char *fmt, ...);
+	void (*Free)(void *Pointer);
+	void *(*Alloc)(size_t Size);
 } utility_t;
 
 const char *ArgParseServerLine(const char *Data);
@@ -109,3 +111,6 @@ void StrTrim(char *String);
 
 const char *IpToString(sockaddr *Address);
 int CompareAddress(sockaddr *pA, sockaddr *pB);
+
+int SetPermissions(const char *Filename, int Modes);
+bool RegisterExitHandler(ExitHandler Handler, void *Cookie);
