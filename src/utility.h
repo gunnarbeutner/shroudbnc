@@ -113,6 +113,6 @@ const char *IpToString(sockaddr *Address);
 int CompareAddress(sockaddr *pA, sockaddr *pB);
 
 int SetPermissions(const char *Filename, int Modes);
-bool RegisterExitHandler(ExitHandler Handler, void *Cookie);
+bool RegisterZone(CZoneInformation *ZoneInformation);
 
 void FreeString(char *String);

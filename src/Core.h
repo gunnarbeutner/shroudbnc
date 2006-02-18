@@ -51,6 +51,7 @@ class CCore {
 #ifndef SWIG
 	friend class CTimer;
 	friend class CDnsQuery;
+	friend bool RegisterZone(CZoneInformation *ZoneInformation);
 #endif
 
 	CConfig *m_Config;
@@ -70,7 +71,6 @@ class CCore {
 	CIdentSupport *m_Ident;
 
 	bool m_LoadingModules;
-	bool m_Running;
 
 	CVector<char *>m_Args;
 
@@ -81,19 +81,23 @@ class CCore {
 	SSL_CTX *m_SSLContext;
 	SSL_CTX *m_SSLClientContext;
 
+	int m_Status;
+
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	bool Daemonize(void);
 	void WritePidFile(void);
 	bool MakeConfig(void);
 
-	CVector<exithandler_t> m_ExitHandlers;
+	CVector<CZoneInformation *> m_Zones;
 
 	void RegisterTimer(CTimer *Timer);
 	void UnregisterTimer(CTimer *Timer);
 
 	void RegisterDnsQuery(CDnsQuery *DnsQuery);
 	void UnregisterDnsQuery(CDnsQuery *DnsQuery);
+
+	void RegisterZone(CZoneInformation *ZoneInformation);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
@@ -187,8 +191,10 @@ public:
 
 	virtual const char *GetBouncerVersion(void);
 
-	virtual bool RegisterExitHandler(ExitHandler Handler, void *Cookie);
-	virtual bool UnregisterExitHandler(ExitHandler Handler, void *Cookie);
+	virtual void SetStatus(int NewStatus);
+	virtual int GetStatus(void);
+
+	virtual CVector<CZoneInformation *> *GetZones(void);
 };
 
 extern CCore *g_Bouncer;

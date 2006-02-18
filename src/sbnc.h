@@ -1,5 +1,10 @@
 class CAssocArray;
 
+#define STATUS_RUN 0
+#define STATUS_FREEZE 1
+#define STATUS_SHUTDOWN 2
+#define STATUS_PAUSE 3
+
 typedef bool (*GetBoxProc)(CAssocArray **BoxPtr);
 typedef void (*SigEnableProc)(void);
 typedef void (*SetModuleProc)(const char *Module);
@@ -26,5 +31,7 @@ typedef struct loaderparams_s {
 
 #ifndef SBNC
 typedef int (*sbncLoad)(loaderparams_s *Parameters);
-typedef bool (*sbncPrepareFreeze)(void);
+typedef bool (*sbncSetStatus)(int Status);
+
+extern sbncSetStatus g_SetStatusFunc;
 #endif

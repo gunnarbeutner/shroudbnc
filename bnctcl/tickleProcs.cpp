@@ -1949,3 +1949,56 @@ const char *bncgetglobaltags(void) {
 
 	return List;
 }
+
+const char *getzoneinfo(const char *Zone) {
+	static char *List = NULL;
+	CVector<CZoneInformation *> *Zones;
+	char **argv;
+
+	if (List != NULL) {
+		Tcl_Free(List);
+	}
+
+	Zones = g_Bouncer->GetZones();
+
+	if (Zone == NULL) {
+		argv = (char **)malloc(Zones->GetLength() * sizeof(char *));
+
+		for (unsigned int i = 0; i < Zones->GetLength(); i++) {
+			argv[i] = const_cast<char *>(Zones->Get(i)->GetTypeName());
+		}
+
+		List = Tcl_Merge(Zones->GetLength(), argv);
+
+		free(argv);
+	} else {
+		bool Found = false;
+
+		for (unsigned int i = 0; i < Zones->GetLength(); i++) {
+			CZoneInformation *ThisZone = Zones->Get(i);
+
+			if (strcmp(ThisZone->GetTypeName(), Zone) == 0) {
+				argv = (char **)malloc(3 * sizeof(char *));
+				g_asprintf(&(argv[0]), "%d", ThisZone->GetTypeSize());
+				g_asprintf(&(argv[1]), "%d", ThisZone->GetCount());
+				g_asprintf(&(argv[2]), "%d", ThisZone->GetCapacity());
+
+				List = Tcl_Merge(3, argv);
+
+				g_free(argv[2]);
+				g_free(argv[1]);
+				g_free(argv[0]);
+				free(argv);
+
+				Found = true;
+				break;
+			}
+		}
+
+		if (!Found) {
+			throw "There is no such zone.";
+		}
+	}
+
+	return List;
+}

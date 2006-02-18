@@ -19,6 +19,7 @@
 
 #define NOADNSLIB
 #include "../StdAfx.h"
+#include "Service.h"
 
 #ifdef _MSC_VER
 #ifndef _DEBUG
@@ -40,7 +41,7 @@ bool g_Freeze, g_Signal;
 const char *g_Arg0;
 
 sbncLoad g_LoadFunc;
-sbncPrepareFreeze g_PrepareFreezeFunc;
+sbncSetStatus g_SetStatusFunc;
 
 #ifndef _WIN32
 
@@ -52,7 +53,7 @@ void Socket_Final(void) {}
 void sig_usr1(int code) {
 	signal(SIGUSR1, SIG_IGN);
 
-	if (g_PrepareFreezeFunc())
+	if (g_SetStatusFunc(STATUS_FREEZE))
 		g_Freeze = true;
 	else
 		signal(SIGUSR1, sig_usr1);
@@ -259,7 +260,7 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	g_LoadFunc = (sbncLoad)GetProcAddress(hMod, "sbncLoad");
-	g_PrepareFreezeFunc = (sbncPrepareFreeze)GetProcAddress(hMod, "sbncPrepareFreeze");
+	g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
 
 	if (g_LoadFunc == NULL) {
 		printf("Function \"sbncLoad\" does not exist in the module.\n");
@@ -269,7 +270,7 @@ HMODULE sbncLoadModule(void) {
 		return NULL;
 	}
 
-	if (g_PrepareFreezeFunc == NULL) {
+	if (g_SetStatusFunc == NULL) {
 		printf("Function \"sbncPrepareFreeze\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
@@ -284,6 +285,7 @@ int main(int argc, char **argv) {
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 	char *ThisMod;
+	char ExeName[MAX_PATH];
 
 	g_Arg0 = argv[0];
 
@@ -294,6 +296,34 @@ int main(int argc, char **argv) {
 #endif
 
 	printf("shroudBNC loader\n");
+
+#ifdef _WIN32
+	if (argc > 1) {
+		if (strcasecmp(argv[1], "--install") == 0) {
+			GetModuleFileName(NULL, ExeName, sizeof(ExeName));
+
+			if (InstallService(ExeName)) {
+				printf("Service was successfully installed.\n");
+			} else {
+				printf("Service could not be installed.\n");
+			}
+
+			return 0;
+		} else if (strcasecmp(argv[1], "--uninstall") == 0) {
+			if (UninstallService()) {
+				printf("Service was successfully removed.\n");
+			} else {
+				printf("Service could not be removed.\n");
+			}
+
+			return 0;
+		} else if (strcasecmp(argv[1], "--service") == 0) {
+			ServiceMain();
+
+			return 0;
+		}
+	}
+#endif
 
 	g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 	ThisMod = strdup(g_Mod);
@@ -413,5 +443,5 @@ int main(int argc, char **argv) {
 	free(ThisMod);
 	free(g_Mod);
 
-	exit(ExitCode);
+	return ExitCode;
 }

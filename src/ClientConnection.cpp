@@ -31,11 +31,20 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
+	m_PreviousNick = NULL;
 
 	m_PeerName = NULL;
 	m_PeerNameTemp = NULL;
 
-	m_PreviousNick = NULL;
+	m_ClientLookup = NULL;
+
+	m_CommandList = NULL;
+
+	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
+		Kill("Sorry, no new connections can be accepted at this moment. please try again later.");
+
+		return;
+	}
 
 	if (Client != INVALID_SOCKET) {
 		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
@@ -45,11 +54,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(GetRemoteAddress()));
 
 		m_ClientLookup->GetHostByAddr(GetRemoteAddress());
-	} else {
-		m_ClientLookup = NULL;
 	}
-
-	m_CommandList = NULL;
 }
 
 CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {

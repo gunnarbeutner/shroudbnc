@@ -766,19 +766,19 @@ int SetPermissions(const char *Filename, int Modes) {
 }
 
 /**
- * RegisterExitHandler
+ * RegisterZone
  *
- * Registers a function which is executed when shroudBNC is shutting
- * itself down.
+ * Registers a zone information object.
  *
- * @param Handler the function
- * @param Cookie a value which is passed to the function
+ * @param ZoneInformation the zone information object
  */
-bool RegisterExitHandler(ExitHandler Handler, void *Cookie) {
+bool RegisterZone(CZoneInformation *ZoneInformation) {
 	if (g_Bouncer != NULL) {
-		return g_Bouncer->RegisterExitHandler(Handler, Cookie);
+		g_Bouncer->RegisterZone(ZoneInformation);
+
+		return true;
 	} else {
-		printf("Error in RegisterExitHandler!\n");
+		printf("Error in RegisterZone!\n");
 
 		return false;
 	}

@@ -24,7 +24,6 @@
 #endif
 
 extern bool g_Debug;
-extern bool g_Freeze;
 extern loaderparams_s *g_LoaderParameters;
 
 const char* g_ErrorFile;
@@ -78,8 +77,6 @@ public:
 
 CCore::CCore(CConfig* Config, int argc, char** argv) {
 	int i;
-
-	m_Running = false;
 
 	m_Log = new CLog("sbnc.log");
 
@@ -155,6 +152,8 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	if (Config->ReadInteger("system.debug"))
 		g_Debug = true;
 #endif
+
+	m_Status = STATUS_RUN;
 }
 
 CCore::~CCore() {
@@ -188,8 +187,8 @@ CCore::~CCore() {
 
 	g_Bouncer = NULL;
 
-	for (unsigned int i = 0; i < m_ExitHandlers.GetLength(); i++) {
-		m_ExitHandlers[i].Handler(m_ExitHandlers[i].Cookie);
+	for (unsigned int i = 0; i < m_Zones.GetLength(); i++) {
+		m_Zones.Get(i)->PerformLeakCheck();
 	}
 }
 
@@ -378,7 +377,6 @@ void CCore::StartMainLoop(void) {
 
 	m_LoadingModules = false;
 
-	m_Running = true;
 	int m_ShutdownLoop = 5;
 
 	if (g_LoaderParameters->SigEnable)
@@ -387,7 +385,7 @@ void CCore::StartMainLoop(void) {
 	time_t Last = 0;
 	time_t LastCheck = 0;
 
-	while ((m_Running || --m_ShutdownLoop) && !g_Freeze) {
+	while ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) && GetStatus() != STATUS_FREEZE) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
 		time(&Now);
@@ -428,7 +426,7 @@ void CCore::StartMainLoop(void) {
 
 			if (UserHash->Value) {
 				if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
-					if (m_Running == false && IRC->IsLocked() == false) {
+					if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
 						Log("Closing connection for %s", UserHash->Name);
 						IRC->Kill("Shutting down.");
 
@@ -439,7 +437,7 @@ void CCore::StartMainLoop(void) {
 						IRC->Destroy();
 				}
 
-				if (m_Running && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
+				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
 					UserHash->Value->ScheduleReconnect();
 
 					LastCheck = Now;
@@ -470,7 +468,7 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		if (SleepInterval <= 0 || !m_Running) {
+		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE)) {
 			SleepInterval = 1;
 		}
 
@@ -482,8 +480,8 @@ void CCore::StartMainLoop(void) {
 
 		memset(tvp, 0, sizeof(timeval));
 
-		if (m_Running == false && SleepInterval > 5)
-			interval.tv_sec = 5;
+		if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && SleepInterval > 3)
+			interval.tv_sec = 3;
 
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
@@ -801,7 +799,7 @@ CLog *CCore::GetLog(void) {
 void CCore::Shutdown(void) {
 	g_Bouncer->Log("Shutdown requested.");
 
-	m_Running = false;
+	SetStatus(STATUS_SHUTDOWN);
 }
 
 CUser* CCore::CreateUser(const char* Username, const char* Password) {
@@ -1252,11 +1250,11 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 }
 
 bool CCore::InitializeFreeze(void) {
-	if (!m_Running) {
+	if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE) {
 		return false;
 	}
 
-	g_Freeze = true;
+	SetStatus(STATUS_FREEZE);
 
 	return true;
 }
@@ -1316,26 +1314,34 @@ bool CCore::MakeConfig(void) {
 		printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
 		scanf("%d", &Port);
 
-		if (Port == 0)
+		if (Port == 0) {
 			return false;
+		}
 
-		if (Port <= 1024 || Port >= 65536)
+#ifdef _WIN32
+		if (Port <= 1024 || Port >= 65536) {
+#else
+		if (Port <= 0 || Port >= 65536) {
+#endif
 			printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
-		else
+		} else {
 			break;
+		}
 	}
 
 	while (true) {
 		printf("2. What should the first user's name be? ");
 		scanf("%s", User);
 	
-		if (strlen(User) == 0)
+		if (strlen(User) == 0) {
 			return false;
+		}
 
-		if (IsValidUsername(User) == false)
+		if (IsValidUsername(User) == false) {
 			printf("Sorry, this is not a valid username. Try again.\n");
-		else
+		} else {
 			break;
+		}
 	}
 
 	while (true) {
@@ -1393,7 +1399,7 @@ bool CCore::MakeConfig(void) {
 #ifndef _WIN32
 			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
 #else
-		SetConsoleMode(StdInHandle, ConsoleModes);
+			SetConsoleMode(StdInHandle, ConsoleModes);
 #endif
 		}
 
@@ -1547,23 +1553,18 @@ const char *CCore::GetBouncerVersion(void) {
 }
 
 
-bool CCore::RegisterExitHandler(ExitHandler Handler, void *Cookie) {
-	exithandler_t HandlerStruct;
-
-	HandlerStruct.Handler = Handler;
-	HandlerStruct.Cookie = Cookie;
-
-	return m_ExitHandlers.Insert(HandlerStruct);
+void CCore::SetStatus(int NewStatus) {
+	m_Status = NewStatus;
 }
 
-bool CCore::UnregisterExitHandler(ExitHandler Handler, void *Cookie) {
-	for (unsigned int i = 0; i < m_ExitHandlers.GetLength(); i++) {
-		if (m_ExitHandlers[i].Handler == Handler && m_ExitHandlers[i].Cookie == Cookie) {
-			m_ExitHandlers.Remove(i);
+int CCore::GetStatus(void) {
+	return m_Status;
+}
 
-			return true;
-		}
-	}
+void CCore::RegisterZone(CZoneInformation *ZoneInformation) {
+	m_Zones.Insert(ZoneInformation);
+}
 
-	return false;
+CVector<CZoneInformation *> *CCore::GetZones(void) {
+	return &m_Zones;
 }

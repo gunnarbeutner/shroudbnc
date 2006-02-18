@@ -24,25 +24,32 @@
 #include "StdAfx.h"
 
 CCore *g_Bouncer = NULL;
-bool g_Freeze;
 loaderparams_t *g_LoaderParameters;
 
 #if defined(IPV6) && defined(__MINGW32__)
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif
 
-#ifndef _WIN32
 /**
  * sigint_handler
  *
  * The "signal" handler for SIGINT (i.e. Ctrl+C).
  */
+#ifndef _WIN32
 void sigint_handler(int code) {
 	g_Bouncer->Log("SIGINT received.");
 
 	g_Bouncer->Shutdown();
 
 	signal(SIGINT, SIG_IGN);
+}
+#else
+BOOL WINAPI sigint_handler(DWORD Code) {
+	g_Bouncer->Log("Control code received.");
+
+	g_Bouncer->Shutdown();
+
+	return FALSE;
 }
 #endif
 
@@ -101,9 +108,9 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 #if !defined(_WIN32)
 	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
+#else
+	SetConsoleCtrlHandler(sigint_handler, TRUE);
 #endif
-
-	g_Freeze = false;
 
 	g_Bouncer->StartMainLoop();
 
@@ -112,7 +119,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 #endif
 
 	if (g_Bouncer != NULL) {
-		if (g_Freeze) {
+		if (g_Bouncer->GetStatus() == STATUS_FREEZE) {
 			CAssocArray *Box;
 
 			Parameters->GetBox(&Box);
@@ -133,13 +140,14 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 }
 
 /**
- * sbncPrepareFreeze
+ * sbncSetStatus
  *
- * Used by "sbncloader" to notify shroudBNC that it is going
- * to be "frozen" (i.e. reloaded/restarted).
+ * Used by "sbncloader" to notify shroudBNC of status changes.
  */
-extern "C" EXPORT bool sbncPrepareFreeze(void) {
-	g_Freeze = true;
+extern "C" EXPORT bool sbncSetStatus(int Status) {
+	if (g_Bouncer != NULL) {
+		g_Bouncer->SetStatus(Status);
+	}
 
 	return true;
 }

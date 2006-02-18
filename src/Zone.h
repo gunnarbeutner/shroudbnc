@@ -24,12 +24,26 @@ typedef void (*ExitHandler)(void *Cookie);
 bool RegisterExitHandler(ExitHandler *Handler, void *Cookie);
 
 /**
+ * CZoneInformation
+ *
+ * Provides information about a zone.
+ */
+struct CZoneInformation {
+public:
+	virtual unsigned int GetCount(void) const = 0;
+	virtual unsigned int GetCapacity(void) const = 0;
+	virtual const char *GetTypeName(void) const = 0;
+	virtual size_t GetTypeSize(void) const = 0;
+	virtual void PerformLeakCheck(void) const = 0;
+};
+
+/**
  * CZone<Type>
  *
  * A memory zone used for efficiently storing similar objects.
  */
 template<typename Type, int HunkSize>
-class CZone {
+class CZone : public CZoneInformation {
 	template<typename HunkType>
 	struct hunkobject_s {
 		bool Valid;
@@ -90,7 +104,7 @@ public:
 	}
 
 	bool Register(void) {
-		return RegisterExitHandler(ZoneLeakCheck<Type, HunkSize>, this);
+		return RegisterZone(this);
 	}
 
 	Type *Allocate(void) {
@@ -143,8 +157,17 @@ public:
 		}
 	}
 
-	int GetCount(void) const {
-		int Count = 0;
+
+	virtual void PerformLeakCheck(void) const {
+		int Count = GetCount();
+
+		if (Count > 0) {
+			printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), GetTypeSize());
+		}
+	}
+
+	virtual unsigned int GetCount(void) const {
+		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < m_Count; i++) {
 			for (unsigned int h = 0; h < HunkSize; h++) {
@@ -159,20 +182,16 @@ public:
 		return Count;
 	}
 
-	float GetUsage(void) const {
-		return GetCount() / (HunkSize * m_Count);
+	virtual unsigned int GetCapacity(void) const {
+		return HunkSize * m_Count;
 	}
 
-	void LeakCheck(void) const {
-		int Count = GetCount();
-
-		if (Count > 0) {
-			printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), sizeof(Type));
-		}
-	}
-
-	const char *GetTypeName(void) const {
+	virtual const char *GetTypeName(void) const {
 		return typeid(Type).name();
+	}
+
+	virtual size_t GetTypeSize(void) const {
+		return sizeof(Type);
 	}
 };
 
