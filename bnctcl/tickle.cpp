@@ -186,7 +186,7 @@ class CTclSupport : public CModuleImplementation {
 
 	const char* Command(const char* Cmd, const char* Parameters) {
 		if (strcasecmp(Cmd, "tcl:eval") == 0) {
-			Tcl_Eval(g_Interp, Parameters);
+			Tcl_Eval(g_Interp, const_cast<char *>(Parameters));
 
 			Tcl_Obj* Result = Tcl_GetObjResult(g_Interp);
 

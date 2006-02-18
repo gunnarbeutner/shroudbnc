@@ -79,7 +79,7 @@ const char* bncuserlist(void) {
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(argc, argv);
+	List = Tcl_Merge(argc, const_cast<char **>(argv));
 
 	free(argv);
 
@@ -118,7 +118,7 @@ const char* internalchannels(void) {
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(Count, argv);
+	List = Tcl_Merge(Count, const_cast<char **>(argv));
 
 	free(argv);
 
@@ -335,7 +335,7 @@ const char* internalbinds(void) {
 			Bind[2] = g_Binds[i].pattern ? g_Binds[i].pattern : "*";
 			Bind[3] = g_Binds[i].user ? g_Binds[i].user : "*";
 
-			char* Item = Tcl_Merge(4, Bind);
+			char* Item = Tcl_Merge(4, const_cast<char **>(Bind));
 
 			List[n++] = Item;
 		}
@@ -346,7 +346,7 @@ const char* internalbinds(void) {
 	if (Out)
 		Tcl_Free(Out);
 
-	Out = Tcl_Merge(n, List);
+	Out = Tcl_Merge(n, const_cast<char **>(List));
 
 	for (int a = 0; a < n; a++)
 		Tcl_Free(List[a]);
@@ -528,7 +528,7 @@ const char* internalchanlist(const char* Channel) {
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(Count, argv);
+	List = Tcl_Merge(Count, const_cast<char **>(argv));
 
 	free(argv);
 
@@ -762,7 +762,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (List)
 			Tcl_Free(List);
 
-		List = Tcl_Merge(argc, argv);
+		List = Tcl_Merge(argc, const_cast<char **>(argv));
 
 		free(argv);
 
@@ -1238,7 +1238,7 @@ const char* bncmodules(void) {
 
 		const char* Mod[4] = { BufId, Modules->Get(i)->GetFilename(), Buf1, Buf2 };
 
-		List[a++] = Tcl_Merge(4, Mod);
+		List[a++] = Tcl_Merge(4, const_cast<char **>(Mod));
 
 		g_free(BufId);
 		g_free(Buf1);
@@ -1250,7 +1250,7 @@ const char* bncmodules(void) {
 	if (Mods)
 		Tcl_Free(Mods);
 
-	Mods = Tcl_Merge(a - 1, List);
+	Mods = Tcl_Merge(a - 1, const_cast<char **>(List));
 
 	for (int c = 0; c < a; c++)
 		Tcl_Free(List[c]);
@@ -1563,7 +1563,7 @@ char* chanbans(const char* Channel) {
 
 		char* ThisBan[3] = { Ban->Mask, Ban->Nick, Timestamp };
 
-		char* List = Tcl_Merge(3, ThisBan);
+		char* List = Tcl_Merge(3, const_cast<char **>(ThisBan));
 
 		g_free(Timestamp);
 
@@ -1579,7 +1579,7 @@ char* chanbans(const char* Channel) {
 	if (AllBans)
 		Tcl_Free(AllBans);
 
-	AllBans = Tcl_Merge(Bcount, Blist);
+	AllBans = Tcl_Merge(Bcount, const_cast<char **>(Blist));
 
 	for (int a = 0; a < Bcount; a++)
 		Tcl_Free(Blist[a]);
@@ -1711,7 +1711,7 @@ char *internaltimers(void) {
 		Timer[2] = Temp2;
 		Timer[3] = g_Timers[i]->param ? g_Timers[i]->param : "";
 
-		List[Count++] = Tcl_Merge(4, Timer);
+		List[Count++] = Tcl_Merge(4, const_cast<char **>(Timer));
 
 		g_free(Temp1);
 		g_free(Temp2);
@@ -1723,7 +1723,7 @@ char *internaltimers(void) {
 		Tcl_Free(Out);
 	}
 
-	Out = Tcl_Merge(Count, List);
+	Out = Tcl_Merge(Count, const_cast<char **>(List));
 
 	for (int a = 0; a < Count; a++) {
 		Tcl_Free(List[a]);
@@ -1784,7 +1784,7 @@ const char* getbnchosts(void) {
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(argc, argv);
+	List = Tcl_Merge(argc, const_cast<char **>(argv));
 
 	free(argv);
 
@@ -1943,7 +1943,7 @@ const char *bncgetglobaltags(void) {
 	if (List)
 		Tcl_Free(List);
 
-	List = Tcl_Merge(argc, argv);
+	List = Tcl_Merge(argc, const_cast<char **>(argv));
 
 	free(argv);
 
@@ -1968,7 +1968,7 @@ const char *getzoneinfo(const char *Zone) {
 			argv[i] = const_cast<char *>(Zones->Get(i)->GetTypeName());
 		}
 
-		List = Tcl_Merge(Zones->GetLength(), argv);
+		List = Tcl_Merge(Zones->GetLength(), const_cast<char **>(argv));
 
 		free(argv);
 	} else {
@@ -1983,7 +1983,7 @@ const char *getzoneinfo(const char *Zone) {
 				g_asprintf(&(argv[1]), "%d", ThisZone->GetCount());
 				g_asprintf(&(argv[2]), "%d", ThisZone->GetCapacity());
 
-				List = Tcl_Merge(3, argv);
+				List = Tcl_Merge(3, const_cast<char **>(argv));
 
 				g_free(argv[2]);
 				g_free(argv[1]);
