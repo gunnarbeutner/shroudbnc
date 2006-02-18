@@ -75,8 +75,8 @@ BNCTCL_MODULE=
 if test x"${no_tcl}" = x ; then
 	SC_LOAD_TCLCONFIG
 
-	if test \( "$TCL_MAJOR_VERSION" -lt 8 \) -o \( \( "$TCL_MAJOR_VERSION" -eq 8 \) -a \( "$TCL_MINOR_VERSION" -lt 4 \) \); then
-		AC_MSG_WARN([You need at least TCL 8.4 for the tcl module.])
+	if test \( "$TCL_MAJOR_VERSION" -lt 8 \) -o \( \( "$TCL_MAJOR_VERSION" -eq 8 \) -a \( "$TCL_MINOR_VERSION" -lt 3 \) \); then
+		AC_MSG_WARN([You need at least TCL 8.3 for the tcl module.])
 	else
 		CFLAGS_TMP=$CFLAGS
 		CFLAGS=$TCL_INCLUDE_SPEC
