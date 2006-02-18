@@ -4,7 +4,7 @@ shroudBNC as a Win32 service
 shroudBNC can be installed and used as a service on Windows NT systems. In order to install it
 you will have to run the sbnc.exe with the parameter "--install":
 
-D:\>sbncloader.exe --install
+D:\>sbnc.exe --install
 shroudBNC loader
 Service was successfully installed.
 
@@ -13,7 +13,7 @@ the management console (Start -> Run -> "services.msc").
 
 If you want to uninstall the service use the "--uninstall" parameter:
 
-D:\>sbncloader.exe --uninstall
+D:\>sbnc.exe --uninstall
 shroudBNC loader
 Service was successfully removed.
 
