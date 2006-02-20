@@ -31,29 +31,6 @@ const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif
 
 /**
- * sigint_handler
- *
- * The "signal" handler for SIGINT (i.e. Ctrl+C).
- */
-#ifndef _WIN32
-void sigint_handler(int code) {
-	g_Bouncer->Log("SIGINT received.");
-
-	g_Bouncer->Shutdown();
-
-	signal(SIGINT, SIG_IGN);
-}
-#else
-BOOL WINAPI sigint_handler(DWORD Code) {
-	g_Bouncer->Log("Control code received.");
-
-	g_Bouncer->Shutdown();
-
-	return FALSE;
-}
-#endif
-
-/**
  * sbncLoad
  *
  * Used by "sbncloader" to start shroudBNC
@@ -106,17 +83,10 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	}
 
 #if !defined(_WIN32)
-	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, SIG_IGN);
-#else
-	SetConsoleCtrlHandler(sigint_handler, TRUE);
 #endif
 
 	g_Bouncer->StartMainLoop();
-
-#if !defined(_WIN32)
-	signal(SIGINT, SIG_IGN);
-#endif
 
 	if (g_Bouncer != NULL) {
 		if (g_Bouncer->GetStatus() == STATUS_FREEZE) {

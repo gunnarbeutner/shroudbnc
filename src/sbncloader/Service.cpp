@@ -25,9 +25,11 @@
 
 SERVICE_STATUS g_ServiceStatus;
 SERVICE_STATUS_HANDLE g_ServiceStatusHandle;
+extern bool g_Service;
 
 bool InstallService(const char *ExeName) {
 	SC_HANDLE hSCM, hService;
+	SERVICE_DESCRIPTION ServiceDescription;
 	char ExeNameArgs[500];
 
 	hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
@@ -38,7 +40,7 @@ bool InstallService(const char *ExeName) {
 
 	sprintf(ExeNameArgs, "\"%s\" --service", ExeName);
 
-	hService = CreateService(hSCM, "sbnc", "shroudBNC", 0,
+	hService = CreateService(hSCM, "sbnc", "shroudBNC", SERVICE_CHANGE_CONFIG,
 		SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_IGNORE,
 		ExeNameArgs, NULL, NULL, NULL,
 		NULL, NULL);
@@ -48,6 +50,10 @@ bool InstallService(const char *ExeName) {
 
 		return false;
 	}
+
+	ServiceDescription.lpDescription = "Provides bouncer services for IRC users.";
+
+	ChangeServiceConfig2(hService, SERVICE_CONFIG_DESCRIPTION, &ServiceDescription);
 
 	CloseServiceHandle(hService);
 	CloseServiceHandle(hSCM);
@@ -109,6 +115,8 @@ void ServiceMain(void) {
 		{ "sbnc", ServiceStart },
 		{ NULL, NULL }
 	};
+
+	g_Service = true;
 
 	StartServiceCtrlDispatcher(DispatchTable);
 }

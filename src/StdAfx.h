@@ -88,6 +88,7 @@ typedef lt_dlhandle HMODULE;
 #include "sbnc.h"
 #include "Zone.h"
 #include "Vector.h"
+#include "Debug.h"
 #include "Hashtable.h"
 #include "utility.h"
 #include "OwnedObject.h"

@@ -437,7 +437,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 
 		saddr = (sockaddr *)&sin6;
 
-#ifndef _WIN32
+#if !defined(_WIN32) && defined(IPV6_V6ONLY)
 		setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
 #endif
 	}

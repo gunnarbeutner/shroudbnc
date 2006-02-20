@@ -2002,3 +2002,41 @@ const char *getzoneinfo(const char *Zone) {
 
 	return List;
 }
+
+const char *getallocinfo(void) {
+	static char *List = NULL;
+	CVector<file_t> *Allocations;
+	char **argv;
+	char *sublist[3];
+
+	Allocations = g_Bouncer->GetAllocationInformation();
+
+	if (Allocations == NULL) {
+		throw "Memory debugging capabilities are only available in the debug build.";
+	}
+
+	if (List != NULL) {
+		Tcl_Free(List);
+	}
+
+	argv = (char **)malloc(Allocations->GetLength() * sizeof(char *));
+
+	for (unsigned int i = 0; i < Allocations->GetLength(); i++) {
+		sublist[0] = const_cast<char *>(Allocations->Get(i).File);
+		g_asprintf(&(sublist[1]), "%d", Allocations->Get(i).AllocationCount);
+		g_asprintf(&(sublist[2]), "%d", Allocations->Get(i).Bytes);
+
+		argv[i] = Tcl_Merge(3, sublist);
+
+		g_free(sublist[2]);
+		g_free(sublist[1]);
+	}
+
+	List = Tcl_Merge(Allocations->GetLength(), argv);
+
+	for (unsigned int i = 0; i < Allocations->GetLength(); i++) {
+		Tcl_Free(argv[i]);
+	}
+
+	return List;
+}

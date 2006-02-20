@@ -39,9 +39,64 @@ CAssocArray *g_Box;
 char *g_Mod;
 bool g_Freeze, g_Signal;
 const char *g_Arg0;
+bool g_Service = false;
 
-sbncLoad g_LoadFunc;
-sbncSetStatus g_SetStatusFunc;
+sbncLoad g_LoadFunc = NULL;
+sbncSetStatus g_SetStatusFunc = NULL;
+
+/**
+ * sigint_handler
+ *
+ * The "signal" handler for SIGINT (i.e. Ctrl+C).
+ */
+#ifndef _WIN32
+void sigint_handler(int code) {
+	if (g_SetStatusFunc != NULL) {
+		g_SetStatusFunc(STATUS_SHUTDOWN);
+
+		signal(SIGINT, SIG_IGN);
+	}
+}
+#else
+BOOL WINAPI sigint_handler(DWORD Code) {
+	const char *HRCode;
+
+	switch (Code) {
+		case CTRL_C_EVENT:
+			HRCode = "Control-C";
+			break;
+		case CTRL_BREAK_EVENT:
+			HRCode = "Control-Break";
+			break;
+		case CTRL_CLOSE_EVENT:
+			HRCode = "Close/End Task";
+			break;
+		case CTRL_LOGOFF_EVENT:
+			HRCode = "User logging off";
+
+			if (g_Service) {
+				return TRUE;
+			}
+
+			break;
+		case CTRL_SHUTDOWN_EVENT:
+			HRCode = "System shutting down";
+			break;
+		default:
+			HRCode = "Unknown code";
+	}
+
+	if (g_SetStatusFunc != NULL) {
+		printf("Control code received (%s).\n", HRCode);
+
+		g_SetStatusFunc(STATUS_SHUTDOWN);
+	}
+
+	Sleep(10000);
+
+	return TRUE;
+}
+#endif
 
 #ifndef _WIN32
 
@@ -271,7 +326,7 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	if (g_SetStatusFunc == NULL) {
-		printf("Function \"sbncPrepareFreeze\" does not exist in the module.\n");
+		printf("Function \"sbncSetStatus\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
@@ -291,8 +346,10 @@ int main(int argc, char **argv) {
 
 #ifdef _WIN32
 	SetCurrentDirectory(sbncBuildPath("."));
+	SetConsoleCtrlHandler(sigint_handler, TRUE);
 #else
 	chdir(sbncBuildPath("."));
+	signal(SIGINT, sigint_handler);
 #endif
 
 	printf("shroudBNC loader\n");

@@ -78,16 +78,15 @@ typedef int socklen_t;
 #define HAVE_STRUCT_SOCKADDR_IN6
 
 #if defined(_DEBUG) && defined(SBNC)
-void *DebugMalloc(size_t Size, const char *file, int line);
-void DebugFree(void *p, const char *file, int line);
-char *DebugStrDup(const char *p, const char *file, int line);
-void *DebugReAlloc(void *p, size_t newsize, const char *file, int line);
+void *DebugMalloc(size_t Size, const char *File);
+void DebugFree(void *Pointer, const char *File);
+void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File);
+char *DebugStrDup(const char *String, const char *File);
 
-#define malloc(x) DebugMalloc(x, __FILE__, __LINE__)
-#define free(x) DebugFree(x, __FILE__, __LINE__)
-#undef strdup
-#define strdup(x) DebugStrDup(x, __FILE__, __LINE__)
-#define realloc(x, y) DebugReAlloc(x, y, __FILE__, __LINE__)
+#define malloc(Size) DebugMalloc(Size, __FILE__)
+#define free(Pointer) DebugFree(Pointer, __FILE__)
+#define realloc(Pointer, NewSize) DebugReAlloc(Pointer, NewSize, __FILE__)
+#define strdup(String) DebugStrDup(String, __FILE__)
 #endif
 
 #define MAXPATHLEN MAX_PATH

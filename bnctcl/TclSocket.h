@@ -83,7 +83,7 @@ public:
 		objv[1] = Tcl_NewStringObj(ptr, strlen(ptr));
 		Tcl_IncrRefCount(objv[1]);
 
-		free(ptr);
+		g_free(ptr);
 
 		Tcl_EvalObjv(g_Interp, 2, objv, TCL_EVAL_GLOBAL);
 

@@ -195,6 +195,7 @@ public:
 	virtual int GetStatus(void);
 
 	virtual CVector<CZoneInformation *> *GetZones(void);
+	virtual CVector<file_t> *GetAllocationInformation(void);
 };
 
 extern CCore *g_Bouncer;

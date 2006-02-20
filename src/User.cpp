@@ -1300,6 +1300,8 @@ unsigned int CUser::GetGmtOffset(void) {
 	tm GMTime;
 	tm *CurrentTime;
 
+	time(&Now);
+
 	Offset = m_Config->ReadString("user.tz");
 
 	if (Offset == NULL) {

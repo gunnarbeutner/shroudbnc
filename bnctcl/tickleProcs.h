@@ -163,6 +163,7 @@ const char *bncgetglobaltag(const char *Tag);
 const char *bncgetglobaltags(void);
 
 const char *getzoneinfo(const char *Zone = 0);
+const char *getallocinfo(void);
 
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);

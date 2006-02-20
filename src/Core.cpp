@@ -23,7 +23,6 @@
 #include <openssl/err.h>
 #endif
 
-extern bool g_Debug;
 extern loaderparams_s *g_LoaderParameters;
 
 const char* g_ErrorFile;
@@ -147,11 +146,6 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	time(&m_Startup);
 
 	m_SendQSizeCache = -1;
-
-#ifdef _DEBUG
-	if (Config->ReadInteger("system.debug"))
-		g_Debug = true;
-#endif
 
 	m_Status = STATUS_RUN;
 }
@@ -420,6 +414,8 @@ void CCore::StartMainLoop(void) {
 		FD_ZERO(&FDWrite);
 		FD_ZERO(&FDError);
 
+		CUser *ReconnectUser = NULL;
+
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection* IRC;
@@ -438,11 +434,17 @@ void CCore::StartMainLoop(void) {
 				}
 
 				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
-					UserHash->Value->ScheduleReconnect();
+					if (ReconnectUser == NULL || (!ReconnectUser->IsAdmin() && UserHash->Value->IsAdmin())) {
+						ReconnectUser = UserHash->Value;
+					}
 
 					LastCheck = Now;
 				}
 			}
+		}
+
+		if (ReconnectUser != NULL) {
+			ReconnectUser->ScheduleReconnect();
 		}
 
 		for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
@@ -1567,4 +1569,46 @@ void CCore::RegisterZone(CZoneInformation *ZoneInformation) {
 
 CVector<CZoneInformation *> *CCore::GetZones(void) {
 	return &m_Zones;
+}
+
+CVector<file_t> *CCore::GetAllocationInformation(void) {
+#ifndef _DEBUG
+	return NULL;
+#else
+	unsigned int Count;
+	static CVector<file_t> Summary;
+	bool Found;
+
+	Summary.Clear();
+
+	Count = g_Allocations.GetLength();
+
+	for (unsigned int i = 0; i < Count; i++) {
+		file_t FileInfo;
+
+		Found = false;
+
+		for (unsigned int a = 0; a < Summary.GetLength(); a++) {
+			if (strcasecmp(g_Allocations[i].File, Summary[a].File) == 0) {
+				Summary[a].AllocationCount++;
+				Summary[a].Bytes += g_Allocations[i].Size;
+				Found = true;
+
+				break;
+			}
+		}
+
+		if (Found) {
+			continue;
+		}
+
+		FileInfo.File = g_Allocations[i].File;
+		FileInfo.AllocationCount = 1;
+		FileInfo.Bytes = g_Allocations[i].Size;
+
+		Summary.Insert(FileInfo);
+	}
+
+	return &Summary;
+#endif
 }
