@@ -490,11 +490,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		}
 
-		g_Bouncer->GlobalNotice(Out, true);
 		g_Bouncer->Log("%s", Out);
-
-		if (!GetOwner()->GetClientConnection())
-			GetOwner()->GetLog()->WriteLine("%s", Out);
+		GetOwner()->Log("%s", Out);
 
 		free(Out);
 	} else if (argc > 3 && iRaw == 465) {

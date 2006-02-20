@@ -19,6 +19,8 @@
 
 // win32 specific header
 
+#define WIN32_LEAN_AND_MEAN 1
+
 #define FD_SETSIZE 4096
 
 #ifndef RUBY

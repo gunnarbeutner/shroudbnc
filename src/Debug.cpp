@@ -64,10 +64,27 @@ void DebugFree(void *Pointer, const char *File) {
 }
 
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
+	void *NewPointer;
+
 	if (Pointer == NULL) {
 		return DebugMalloc(NewSize, File);
 	} else {
-		return realloc(Pointer, NewSize);
+		NewPointer = realloc(Pointer, NewSize);
+
+		for (unsigned int i = 0; i < g_Allocations.GetLength(); i++) {
+			if (g_Allocations[i].Pointer == Pointer) {
+				if (NewPointer != NULL) {
+					g_Allocations[i].Size = NewSize;
+					g_Allocations[i].Pointer = NewPointer;
+				} else {
+					g_Allocations.Remove(i);
+				}
+
+				break;
+			}
+		}
+
+		return NewPointer;
 	}
 }
 
