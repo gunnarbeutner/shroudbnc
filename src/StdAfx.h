@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
-
 #include "../config.h"
 
 #ifdef _MSC_VER
@@ -78,6 +76,18 @@ typedef lt_dlhandle HMODULE;
 
 #ifndef SWIG
 #	include "c-ares/ares.h"
+#endif
+
+#if defined(_DEBUG) && defined(SBNC)
+void *DebugMalloc(size_t Size, const char *File);
+void DebugFree(void *Pointer, const char *File);
+void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File);
+char *DebugStrDup(const char *String, const char *File);
+
+#define malloc(Size) DebugMalloc(Size, __FILE__)
+#define free(Pointer) DebugFree(Pointer, __FILE__)
+#define realloc(Pointer, NewSize) DebugReAlloc(Pointer, NewSize, __FILE__)
+#define strdup(String) DebugStrDup(String, __FILE__)
 #endif
 
 // Do NOT use sprintf.
