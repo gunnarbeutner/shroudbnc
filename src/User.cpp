@@ -1168,6 +1168,7 @@ void CUser::SetIdent(const char *Ident) {
 
 const char *CUser::GetTagString(const char *Tag) {
 	char *Setting;
+	const char *Value;
 
 	if (Tag == NULL) {
 		return NULL;
@@ -1181,7 +1182,11 @@ const char *CUser::GetTagString(const char *Tag) {
 		return NULL;
 	}
 
-	return m_Config->ReadString(Setting);
+	Value = m_Config->ReadString(Setting);
+
+	free(Setting);
+
+	return Value;
 }
 
 int CUser::GetTagInteger(const char *Tag) {
