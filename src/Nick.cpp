@@ -458,6 +458,9 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
+			free(m_Tags[i].Name);
+			free(m_Tags[i].Value);
+
 			m_Tags.Remove(i);
 
 			break;

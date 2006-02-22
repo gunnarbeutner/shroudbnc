@@ -27,6 +27,15 @@ CVector<allocation_t> g_Allocations;
 #undef realloc
 #undef strdup
 
+/**
+ * DebugMalloc
+ *
+ * A debugging version of malloc. Allocates memory and keeps track
+ * of allocated objects (in g_Allocations).
+ *
+ * @param Size the size of the new object
+ * @param File the file where the DebugMalloc() call comes from
+ */
 void* DebugMalloc(size_t Size, const char *File) {
 	allocation_t Allocation;
 
@@ -51,6 +60,15 @@ void* DebugMalloc(size_t Size, const char *File) {
 	return Allocation.Pointer;
 }
 
+/**
+ * DebugFree
+ *
+ * Deallocates memory and removes the reference to the memory block
+ * from the g_Allocations vector.
+ *
+ * @param Pointer pointer to the memory block
+ * @param File the file where the call to this function comes from
+ */
 void DebugFree(void *Pointer, const char *File) {
 	for (unsigned int i = 0; i < g_Allocations.GetLength(); i++) {
 		if (g_Allocations[i].Pointer == Pointer) {
@@ -63,6 +81,16 @@ void DebugFree(void *Pointer, const char *File) {
 	free(Pointer);
 }
 
+/**
+ * DebugReAlloc
+ *
+ * Resizes a block of memory while preserving the previous contents and
+ * updates the g_Allocations vector.
+ *
+ * @param Pointer the pointer to the old memory block
+ * @param NewSize the desired new size
+ * @param File the name of the file where the call to this function comes from
+ */
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
 	void *NewPointer;
 
@@ -100,6 +128,15 @@ void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
 	}
 }
 
+/**
+ * DebugStrDup
+ *
+ * A debugging version of strdup(). Uses DebugMalloc
+ * and strcpy internally.
+ *
+ * @param String the string which is to be copied
+ * @param File the file where the call to this function comes from
+ */
 char *DebugStrDup(const char *String, const char *File) {
 	char *Copy;
 

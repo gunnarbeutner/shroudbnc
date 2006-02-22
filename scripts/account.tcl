@@ -67,8 +67,6 @@ proc auth:join {nick host hand chan} {
 		set account [getchanlogin $nick]
 
 		if {$account == ""} {
-			bncsettag $chan $nick accunknown 1
-
 			if {$accounttimer != 0} {
 				incr accountwait
 
@@ -83,7 +81,6 @@ proc auth:join {nick host hand chan} {
 			set accounttimer 1
 		} else {
 			bncsettag $chan $nick account $account
-			bncsettag $chan $nick accunknown 0
 
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
@@ -220,9 +217,8 @@ proc auth:jointimer {context} {
 	set nicks ""
 	foreach chan [internalchannels] {
 		foreach nick [internalchanlist $chan] {
-			if {[bncgettag $chan $nick account] == "" && [bncgettag $chan $nick accunknown] == 1} {
+			if {[getchanlogin $nick] == ""} {
 				lappend nicks $nick
-				bncsettag $chan $nick accunknown 0
 			}
 
 			set l [join [sbnc:uniq $nicks] ","]
@@ -263,7 +259,7 @@ proc auth:pulse {reason} {
 			set count 0
 
 			foreach nick [internalchanlist $chan] {
-				set account [bncgettag $chan $nick account]
+				set account [getchanlogin $nick]
 
 				if {$account == 0 || $account == ""} {
 					incr count
@@ -276,12 +272,10 @@ proc auth:pulse {reason} {
 			}
 
 			foreach nick [internalchanlist $chan] {
-				set account [bncgettag $chan $nick account]
-				set unknown [bncgettag $chan $nick accunknown]
+				set account [getchanlogin $nick]
 
-				if {$unknown == 1 || ($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
+				if {($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
 					lappend nicks $nick
-					bncsettag $chan $nick accunknown 0
 				}
 
 				if {[string length [join [sbnc:uniq $nicks] ","]] > 450} {
