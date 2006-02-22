@@ -1452,6 +1452,7 @@ bool CCore::MakeConfig(void) {
 }
 
 const char *CCore::GetTagString(const char *Tag) {
+	const char *Value;
 	char *Setting;
 
 	if (Tag == NULL) {
@@ -1460,13 +1461,17 @@ const char *CCore::GetTagString(const char *Tag) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	if (Setting == NULL) {
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
 		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
 
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
-	return m_Config->ReadString(Setting);
+	Value = m_Config->ReadString(Setting);
+
+	free(Setting);
+
+	return Value;
 }
 
 int CCore::GetTagInteger(const char *Tag) {
@@ -1489,17 +1494,19 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	if (Setting == NULL) {
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
 		LOGERROR("asprintf() failed. Could not store global tag.");
 
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->TagModified(Tag, Value);
 	}
 
 	ReturnValue = m_Config->WriteString(Setting, Value);
+
+	free(Setting);
 
 	return ReturnValue;
 }

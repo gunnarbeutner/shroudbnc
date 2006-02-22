@@ -60,8 +60,9 @@ public:
 	virtual bool Insert(Type Item) {
 		Type *NewList;
 
-		if (m_ReadOnly)
+		if (m_ReadOnly) {
 			return false;
+		}
 
 		NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
 
@@ -85,12 +86,19 @@ public:
 	 * @param Index the index of the item which is to be removed
 	 */
 	virtual bool Remove(int Index) {
-		if (m_ReadOnly)
+		Type *NewList;
+
+		if (m_ReadOnly) {
 			return false;
+		}
 
 		m_List[Index] = m_List[m_Count - 1];
 
-		m_List = (Type *)realloc(m_List, sizeof(Type) * --m_Count);
+		NewList = (Type *)realloc(m_List, sizeof(Type) * --m_Count);
+
+		if (NewList != NULL || m_Count == 0) {
+			m_List = NewList;
+		}
 
 		return true;
 	}
@@ -107,8 +115,9 @@ public:
 
 		for (int i = m_Count - 1; i >= 0; i--) {
 			if (memcmp(&m_List[i], &Item, sizeof(Item)) == 0) {
-				if (Remove(i))
+				if (Remove(i)) {
 					ReturnValue = true;
+				}
 			}
 		}
 

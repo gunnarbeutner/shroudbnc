@@ -1940,8 +1940,9 @@ const char *bncgetglobaltags(void) {
 
 	static char* List = NULL;
 
-	if (List)
+	if (List != NULL) {
 		Tcl_Free(List);
+	}
 
 	List = Tcl_Merge(argc, const_cast<char **>(argv));
 

@@ -379,6 +379,12 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 						objv[idx++] = Tcl_NewListObj(argc, listv);
 						Tcl_IncrRefCount(objv[idx - 1]);
+
+						for (int a = 0; a < argc; a++) {
+							Tcl_DecrRefCount(listv[a]);
+						}
+
+						free(listv);
 					}
 
 					lazyConversionDone = true;
@@ -401,15 +407,6 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		for (int i = 1; i < idx; i++) {
 			if (objv[i])
 				Tcl_DecrRefCount(objv[i]);
-		}
-
-
-		if (argc) {
-			for (int a = 0; a < argc; a++) {
-				Tcl_DecrRefCount(listv[a]);
-			}
-
-			free(listv);
 		}
 	}
 }

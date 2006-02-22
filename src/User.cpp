@@ -944,7 +944,7 @@ bool BadLoginTimer(time_t Now, void *User) {
 bool UserReconnectTimer(time_t Now, void *User) {
 	int Interval;
 
-	if (((CUser *)User)->GetIRCConnection()) {
+	if (((CUser *)User)->GetIRCConnection() || !(g_Bouncer->GetStatus() == STATUS_RUN || g_Bouncer->GetStatus() == STATUS_PAUSE)) {
 		return false;
 	}
 
