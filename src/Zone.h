@@ -89,6 +89,33 @@ class CZone : public CZoneInformation {
 		return NewHunk;
 	}
 
+	void Optimize(void) {
+		bool UnusedHunk;
+
+		for (unsigned int i = 0; i < m_Count; i++) {
+			hunk_s<Type, HunkSize> *Hunk = m_Hunks[i];
+
+			UnusedHunk = true;
+
+			for (unsigned int h = 0; h < HunkSize; h++) {
+				hunkobject_s<Type> *HunkObject = &(Hunk->HunkObjects[h]);
+
+				if (HunkObject->Valid) {
+					UnusedHunk = false;
+
+					break;
+				}
+			}
+
+			if (UnusedHunk) {
+				m_Hunks[i] = m_Hunks[m_Count - 1];
+				m_Count--;
+
+				free(Hunk);
+			}
+		}
+	}
+
 public:
 	CZone(void) {
 		m_Hunks = NULL;
@@ -155,6 +182,8 @@ public:
 				}
 			}
 		}
+
+		Optimize();
 	}
 
 

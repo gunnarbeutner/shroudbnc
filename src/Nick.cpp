@@ -42,8 +42,6 @@ CNick::CNick(CChannel *Owner, const char *Nick) {
 	time(&m_Creation);
 	m_IdleSince = m_Creation;
 
-	m_Tags = NULL;
-
 	m_Owner = Owner;
 }
 
@@ -59,7 +57,10 @@ CNick::~CNick() {
 	free(m_Realname);
 	free(m_Server);
 
-	delete m_Tags;
+	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+		free(m_Tags[i].Name);
+		free(m_Tags[i].Value);
+	}
 }
 
 /**
@@ -431,11 +432,13 @@ bool CNick::SetIdleSince(time_t Time) {
  * @param Name the name of the tag
  */
 const char *CNick::GetTag(const char *Name) {
-	if (m_Tags == NULL) {
-		return NULL;
-	} else {
-		return m_Tags->ReadString(Name);
+	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
+			return m_Tags[i].Value;
+		}
 	}
+
+	return NULL;
 }
 
 /**
@@ -447,15 +450,39 @@ const char *CNick::GetTag(const char *Name) {
  * @param Value the value of the tag
  */
 bool CNick::SetTag(const char *Name, const char *Value) {
-	if (m_Tags == NULL) {
-		m_Tags = new CConfig(NULL);
+	nicktag_t NewTag;
 
-		CHECK_ALLOC_RESULT(m_Tags, new) {
-			return false;
-		} CHECK_ALLOC_RESULT_END;
+	if (Name == NULL) {
+		return false;
 	}
 
-	return m_Tags->WriteString(Name, Value);
+	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
+			m_Tags.Remove(i);
+
+			break;
+		}
+	}
+
+	if (Value == NULL) {
+		return true;
+	}
+
+	NewTag.Name = strdup(Name);
+
+	CHECK_ALLOC_RESULT(NewTag.Name, strdup) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
+	NewTag.Value = strdup(Value);
+
+	CHECK_ALLOC_RESULT(NewTag.Value, strdup) {
+		free(NewTag.Name);
+
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
+	return m_Tags.Insert(NewTag);
 }
 
 /**
@@ -474,10 +501,12 @@ bool CNick::Freeze(CAssocArray *Box) {
 	Box->AddInteger("~nick.creation", m_Creation);
 	Box->AddInteger("~nick.idlets", m_IdleSince);
 
-	if (m_Tags != NULL) {
-		FreezeObject<CConfig>(Box, "~nick.tags", m_Tags);
-		m_Tags = NULL;
-	}
+	// TODO: freeze nick tags
+
+//	if (m_Tags != NULL) {
+//		FreezeObject<CConfig>(Box, "~nick.tags", m_Tags);
+//		m_Tags = NULL;
+//	}
 
 	delete this;
 
@@ -495,7 +524,7 @@ bool CNick::Freeze(CAssocArray *Box) {
 CNick *CNick::Unfreeze(CAssocArray *Box) {
 	const char *Name;
 	CNick *Nick;
-	CConfig *Tags;
+//	CConfig *Tags;
 
 	Name = Box->ReadString("~nick.nick");
 
@@ -512,11 +541,11 @@ CNick *CNick::Unfreeze(CAssocArray *Box) {
 	Nick->m_Creation = Box->ReadInteger("~nick.creation");
 	Nick->m_IdleSince = Box->ReadInteger("~nick.idlets");
 
-	Tags = UnfreezeObject<CConfig>(Box, "~nick.tags");
-
-	if (Tags != NULL) {
-		Nick->m_Tags = Tags;
-	}
+	// TODO: unfreeze nicktags
+//	Tags = UnfreezeObject<CConfig>(Box, "~nick.tags");
+//	if (Tags != NULL) {
+//		Nick->m_Tags = Tags;
+//	}
 
 	return Nick;
 }

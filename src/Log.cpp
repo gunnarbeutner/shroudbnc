@@ -29,9 +29,11 @@
  */
 CLog::CLog(const char *Filename) {
 	if (Filename != NULL) {
-		snprintf(m_Filename, sizeof(m_Filename), Filename);
+		m_Filename = strdup(Filename);
+
+		CHECK_ALLOC_RESULT(m_Filename, strdup) {} CHECK_ALLOC_RESULT_END;
 	} else {
-		m_Filename[0] = '\0';
+		m_Filename = NULL;
 	}
 }
 
@@ -54,7 +56,7 @@ void CLog::PlayToUser(CUser *User, int Type) {
 	const char *Nick;
 	const char *Server;
 
-	if (m_Filename[0] != '\0' && (LogFile = fopen(m_Filename, "r")) != NULL) {
+	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
 		char Line[500];
 		while (!feof(LogFile)) {
 			char* LinePtr = fgets(Line, sizeof(Line), LogFile);
@@ -105,7 +107,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 	char strNow[100];
 	FILE *LogFile;
 
-	if (m_Filename[0] == '\0' || (LogFile = fopen(m_Filename, "a")) == NULL) {
+	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "a")) == NULL) {
 		return;
 	}
 
@@ -176,7 +178,7 @@ void CLog::WriteLine(const char *Timestamp, const char* Format, ...) {
 void CLog::Clear(void) {
 	FILE *LogFile;
 	
-	if (m_Filename[0] != '\0' && (LogFile = fopen(m_Filename, "w")) != NULL) {
+	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
 		SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
 		fclose(LogFile);
@@ -192,7 +194,7 @@ bool CLog::IsEmpty(void) {
 	char Line[500];
 	FILE *LogFile;
 
-	if (m_Filename[0] == '\0' || (LogFile = fopen(m_Filename, "r")) == NULL) {
+	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "r")) == NULL) {
 		return true;
 	}
 

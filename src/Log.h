@@ -29,7 +29,7 @@ class CUser;
  * A log file.
  */
 class CLog : public CZoneObject<CLog, 16> {
-	char m_Filename[MAXPATHLEN]; /**< the filename of the log, can be an empty string */
+	char *m_Filename; /**< the filename of the log, can be an empty string */
 
 	void WriteUnformattedLine(const char *Timestamp, const char *Line);
 public:

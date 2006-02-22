@@ -66,6 +66,18 @@ void DebugFree(void *Pointer, const char *File) {
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
 	void *NewPointer;
 
+	for (int i = strlen(File) - 1; i >= 0; i--) {
+		if (File[i] == '\\' || File[i] == '/') {
+			File = &File[i + 1];
+
+			break;
+		}
+	}
+
+	if (strcasecmp(File, "vector.h") == 0) {
+		return realloc(Pointer, NewSize);
+	}
+
 	if (Pointer == NULL) {
 		return DebugMalloc(NewSize, File);
 	} else {

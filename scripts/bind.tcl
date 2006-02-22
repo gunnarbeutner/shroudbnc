@@ -249,7 +249,7 @@ proc bind {type flags mask {procname ""}} {
 			if {[string equal -nocase $type [lindex $bind 0]] && [string equal -nocase $mask [lindex $bind 2]] && [string equal -nocase $procname [lindex $bind 4]]} {
 				unbind [lindex $bind 0] [lindex $bind 1] [lindex $bind 2] [lindex $bind 4]
 			}
-		} elseif {$procname == "" && [string equal -nocase $type [lindex $bind 0]] && [string equal -nocase $mask [lindex $bind 2]] && [string equal -nocase $procname [lindex $bind 4]]} {
+		} elseif {$procname == "" && [string equal -nocase $type [lindex $bind 0]] && [string equal -nocase $mask [lindex $bind 2]]} {
 			lappend result $bind
 		}
 	}
@@ -331,22 +331,23 @@ proc unbindall {type flags mask procname} {
 	return $result
 }
 
-proc binds {{mask ""}} {
+proc binds {{pattern ""}} {
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
 	}
 
 	upvar [getns]::binds binds
 
-	if {$mask == ""} {
+	if {$pattern == ""} {
 		return $binds
 	} else {
 		set out ""
 
 		foreach bind $binds {
-			set m [lindex $bind 2]
+			set type [lindex $bind 0]
+			set mask [lindex $bind 2]
 
-			if {[string match -nocase $mask $bind]} {
+			if {[string match -nocase $pattern $mask] || [string match -nocase $pattern $type]} {
 				lappend out $bind
 			}
 		}
@@ -355,10 +356,10 @@ proc binds {{mask ""}} {
 	}
 }
 
-proc bindsall {{mask ""}} {
+proc bindsall {{pattern ""}} {
 	set old [getctx]
 	setctx ":any"
-	set result [binds $mask]
+	set result [binds $pattern]
 	setctx $old
 
 	return $result

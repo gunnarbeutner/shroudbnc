@@ -20,6 +20,11 @@
 class CChannel;
 class CConfig;
 
+typedef struct nicktag_s {
+	char *Name;
+	char *Value;
+} nicktag_t;
+
 /**
  * CNick
  *
@@ -33,7 +38,7 @@ class CNick : public COwnedObject<CChannel>, public CZoneObject<CNick, 1024> {
 	char *m_Server; /**< the server this user is using */
 	time_t m_Creation; /**< a timestamp, when this user object was created */
 	time_t m_IdleSince; /**< a timestamp, when the user last said something */
-	CConfig *m_Tags; /**< any tags which belong to this nick object */
+	CVector<nicktag_t> m_Tags; /**< any tags which belong to this nick object */
 
 	const char *InternalGetSite(void);
 	const char *InternalGetRealname(void);
