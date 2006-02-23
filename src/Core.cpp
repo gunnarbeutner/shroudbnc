@@ -433,7 +433,7 @@ void CCore::StartMainLoop(void) {
 						IRC->Destroy();
 				}
 
-				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
+				if ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE) && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
 					if (ReconnectUser == NULL || (!ReconnectUser->IsAdmin() && UserHash->Value->IsAdmin())) {
 						ReconnectUser = UserHash->Value;
 					}

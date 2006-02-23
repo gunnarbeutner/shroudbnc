@@ -77,8 +77,9 @@ const char* bncuserlist(void) {
 
 	static char* List = NULL;
 
-	if (List)
+	if (List != NULL) {
 		Tcl_Free(List);
+	}
 
 	List = Tcl_Merge(argc, const_cast<char **>(argv));
 
@@ -116,8 +117,9 @@ const char* internalchannels(void) {
 
 	static char* List = NULL;
 
-	if (List)
+	if (List != NULL) {
 		Tcl_Free(List);
+	}
 
 	List = Tcl_Merge(Count, const_cast<char **>(argv));
 
@@ -344,8 +346,9 @@ const char* internalbinds(void) {
 
 	static char* Out = NULL;
 
-	if (Out)
+	if (Out != NULL) {
 		Tcl_Free(Out);
+	}
 
 	Out = Tcl_Merge(n, const_cast<char **>(List));
 
@@ -526,8 +529,9 @@ const char* internalchanlist(const char* Channel) {
 
 	static char* List = NULL;
 
-	if (List)
+	if (List != NULL) {
 		Tcl_Free(List);
+	}
 
 	List = Tcl_Merge(Count, const_cast<char **>(argv));
 
@@ -678,6 +682,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 	if (Buffer != NULL) {
 		g_free(Buffer);
+		Buffer = NULL;
 	}
 
 	CUser* Context = g_Bouncer->GetUser(User);
@@ -760,8 +765,9 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		static char* List = NULL;
 
-		if (List)
+		if (List != NULL) {
 			Tcl_Free(List);
+		}
 
 		List = Tcl_Merge(argc, const_cast<char **>(argv));
 
@@ -1248,8 +1254,9 @@ const char* bncmodules(void) {
 
 	static char* Mods = NULL;
 
-	if (Mods)
+	if (Mods != NULL) {
 		Tcl_Free(Mods);
+	}
 
 	Mods = Tcl_Merge(a - 1, const_cast<char **>(List));
 
