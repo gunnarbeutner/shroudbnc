@@ -782,7 +782,7 @@ void CCore::InternalLogError(const char* Format, ...) {
 	vsnprintf(Out, sizeof(Out), Format2, marker);
 	va_end(marker);
 
-	m_Log->WriteLine("%s", Out);
+	m_Log->WriteLine(NULL, "%s", Out);
 }
 
 void CCore::InternalSetFileAndLine(const char *Filename, unsigned int Line) {

@@ -29,4 +29,6 @@ typedef struct file_s {
 	unsigned int Bytes;
 } file_t;
 
+#ifdef SBNC
 extern CVector<allocation_t> g_Allocations; /**< a list of all active memory blocks */
+#endif

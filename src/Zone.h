@@ -20,9 +20,6 @@
 template<typename Type, int HunkSize>
 void ZoneLeakCheck(void *Zone);
 
-typedef void (*ExitHandler)(void *Cookie);
-bool RegisterExitHandler(ExitHandler *Handler, void *Cookie);
-
 /**
  * CZoneInformation
  *

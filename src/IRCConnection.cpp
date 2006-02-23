@@ -87,8 +87,9 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 	if (!Unfreezing) {
 		const char* Password = Owning->GetServerPassword();
 
-		if (Password)
+		if (Password) {
 			WriteLine("PASS :%s", Password);
+		}
 
 		WriteLine("NICK %s", Owning->GetNick());
 		WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
