@@ -17,6 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifdef _DEBUG
+#define TCL_MEM_DEBUG 1
+#endif
+
 #include <tcl.h>
 
 #ifdef _MSC_VER

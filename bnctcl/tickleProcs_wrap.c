@@ -4031,6 +4031,26 @@ _wrap_getallocinfo(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 
 static int
+_wrap_hijacksocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,":hijacksocket ") == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)hijacksocket();
+            
+        } catch (const char* p) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4967,6 +4987,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncgetglobaltags", (swig_wrapper_func) _wrap_bncgetglobaltags, NULL},
     { SWIG_prefix "getzoneinfo", (swig_wrapper_func) _wrap_getzoneinfo, NULL},
     { SWIG_prefix "getallocinfo", (swig_wrapper_func) _wrap_getallocinfo, NULL},
+    { SWIG_prefix "hijacksocket", (swig_wrapper_func) _wrap_hijacksocket, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

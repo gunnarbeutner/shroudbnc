@@ -93,7 +93,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CIRCConnection *Unfreeze(CAssocArray *Box, CUser *Owner);
+	static CIRCConnection *Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
 	virtual void Write(void);

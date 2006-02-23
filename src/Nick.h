@@ -51,7 +51,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CNick *Unfreeze(CAssocArray *Box);
+	static CNick *Thaw(CAssocArray *Box);
 #endif
 
 	virtual const char *GetNick(void);

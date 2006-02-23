@@ -105,7 +105,7 @@ public:
 			sockaddr *LocalAddress = IRC->GetLocalAddress();
 			sockaddr *RemoteAddress = IRC->GetRemoteAddress();
 
-			if (LocalAddress->sa_family != RemoteAddress->sa_family) {
+			if (LocalAddress == NULL || RemoteAddress == NULL || LocalAddress->sa_family != RemoteAddress->sa_family) {
 				continue;
 			}
 

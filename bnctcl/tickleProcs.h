@@ -165,6 +165,8 @@ const char *bncgetglobaltags(void);
 const char *getzoneinfo(const char *Zone = 0);
 const char *getallocinfo(void);
 
+int hijacksocket(void);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

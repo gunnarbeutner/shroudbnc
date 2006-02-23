@@ -66,6 +66,8 @@ extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
 extern CHashtable<CTclClientSocket*, false, 5>* g_TclClientSockets;
 extern int g_SocketIdx;
 
+extern CClientConnection *g_CurrentClient;
+
 void RestartInterpreter(void);
 void RehashInterpreter(void);
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv);

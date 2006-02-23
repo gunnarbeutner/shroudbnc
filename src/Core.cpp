@@ -1210,15 +1210,15 @@ bool CCore::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-bool CCore::Unfreeze(CAssocArray *Box) {
+bool CCore::Thaw(CAssocArray *Box) {
 	CAssocArray *ClientsBox;
 
-	m_Listener = UnfreezeObject<CClientListener>(Box, "~listener");
-	m_ListenerV6 = UnfreezeObject<CClientListener>(Box, "~listenerv6");
+	m_Listener = ThawObject<CClientListener>(Box, "~listener");
+	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6");
 
-	m_SSLListener = UnfreezeObject<CClientListener>(Box, "~ssllistener");
+	m_SSLListener = ThawObject<CClientListener>(Box, "~ssllistener");
 	m_SSLListener->SetSSL(true);
-	m_SSLListenerV6 = UnfreezeObject<CClientListener>(Box, "~ssllistenerv6");
+	m_SSLListenerV6 = ThawObject<CClientListener>(Box, "~ssllistenerv6");
 	m_SSLListenerV6->SetSSL(true);
 
 	ClientsBox = Box->ReadBox("~clients");
@@ -1230,7 +1230,7 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 		CAssocArray *IrcBox = Box->ReadBox(User->Name);
 
 		if (IrcBox) {
-			IRC = CIRCConnection::Unfreeze(IrcBox, User->Value);
+			IRC = CIRCConnection::Thaw(IrcBox, User->Value);
 
 			User->Value->SetIRCConnection(IRC);
 		}
@@ -1238,7 +1238,7 @@ bool CCore::Unfreeze(CAssocArray *Box) {
 		if (ClientsBox != NULL) {
 			CClientConnection *Client;
 
-			Client = UnfreezeObject<CClientConnection>(ClientsBox, User->Name);
+			Client = ThawObject<CClientConnection>(ClientsBox, User->Name);
 			Client->SetOwner(User->Value);
 			User->Value->SetClientConnection(Client);
 

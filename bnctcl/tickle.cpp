@@ -109,6 +109,8 @@ class CTclSupport : public CModuleImplementation {
 
 		g_Interp = Tcl_CreateInterp();
 
+		Tcl_InitMemory(g_Interp);
+
 		Tcl_SetVar(g_Interp, "tcl_interactive", "0", TCL_GLOBAL_ONLY);
 
 		Tcl_AppInit(g_Interp);
@@ -131,10 +133,12 @@ class CTclSupport : public CModuleImplementation {
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		g_Ret = true;
 
+		g_CurrentClient = Client;
+
 		CUser* User = Client->GetOwner();
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
-		CallBinds(Type_Client, User ? User->GetUsername() : NULL, argc, argv);
+		CallBinds(Type_Client, User ? User->GetUsername() : "", argc, argv);
 		CallBinds(Type_PostScript, NULL, 0, NULL);
 
 		return g_Ret;
@@ -204,6 +208,8 @@ class CTclSupport : public CModuleImplementation {
 
 		g_NoticeUser = NoticeUser;
 
+		g_CurrentClient = Client;
+
 		if (strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
 			commandlist_t *Commands = Client->GetCommandList();
 			Utils = g_Bouncer->GetUtilities();
@@ -212,7 +218,6 @@ class CTclSupport : public CModuleImplementation {
 		}
 
 		if (strcasecmp(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
-
 			if (argc <= 1) {
 				if (NoticeUser)
 					User->RealNotice("Syntax: tcl :command");

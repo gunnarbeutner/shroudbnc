@@ -1767,7 +1767,7 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CClientConnection *CClientConnection::Unfreeze(CAssocArray *Box) {
+CClientConnection *CClientConnection::Thaw(CAssocArray *Box) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
@@ -1831,4 +1831,17 @@ void CClientConnection::SetPreviousNick(const char *Nick) {
 
 const char *CClientConnection::GetPreviousNick(void) {
 	return m_PreviousNick;
+}
+
+SOCKET CClientConnection::Hijack(void) {
+	SOCKET Socket;
+
+	Socket = m_Socket;
+
+	g_Bouncer->UnregisterSocket(m_Socket);
+	m_Socket = INVALID_SOCKET;
+
+	Kill("Hijacked!");
+
+	return Socket;
 }

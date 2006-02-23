@@ -26,6 +26,7 @@
 #include "TclSocket.h"
 
 static char* g_Context = NULL;
+CClientConnection *g_CurrentClient = NULL;
 
 binding_t* g_Binds = NULL;
 int g_BindCount = 0;
@@ -2040,4 +2041,32 @@ const char *getallocinfo(void) {
 	}
 
 	return List;
+}
+
+int hijacksocket(void) {
+	SOCKET Socket;
+	CTclClientSocket *TclSocket;
+
+	if (g_CurrentClient == NULL) {
+		throw "No client object available.";
+	}
+
+	if (g_CurrentClient->IsSSL()) {
+		throw "SSL client objects cannot be hijacked.";
+	}
+
+	Socket = g_CurrentClient->Hijack();
+	g_CurrentClient = NULL;
+
+	if (Socket == INVALID_SOCKET) {
+		throw "Invalid client object.";
+	}
+
+	TclSocket = new CTclClientSocket(Socket);
+
+	if (TclSocket == NULL) {
+		throw "TclSocket could not be instantiated.";
+	}
+
+	return TclSocket->GetIdx();
 }

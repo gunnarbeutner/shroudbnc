@@ -42,7 +42,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CBanlist *Unfreeze(CAssocArray *Box);
+	static CBanlist *Thaw(CAssocArray *Box);
 #endif
 
 	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);

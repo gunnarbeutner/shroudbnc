@@ -174,7 +174,7 @@ public:
 	virtual const char *DebugImpulse(int impulse);
 
 	virtual bool Freeze(CAssocArray *Box);
-	virtual bool Unfreeze(CAssocArray *Box);
+	virtual bool Thaw(CAssocArray *Box);
 	virtual bool InitializeFreeze(void);
 	virtual const loaderparams_s *GetLoaderParameters(void);
 

@@ -160,13 +160,13 @@ bool CBanlist::Freeze(CAssocArray *Box) {
 }
 
 /**
- * Unfreeze
+ * Thaw
  *
  * Depersists a banlist.
  *
  * @param Box the box
  */
-CBanlist *CBanlist::Unfreeze(CAssocArray *Box) {
+CBanlist *CBanlist::Thaw(CAssocArray *Box) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;

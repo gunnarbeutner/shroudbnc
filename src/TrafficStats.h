@@ -28,7 +28,7 @@ public:
 	CTrafficStats(void);
 
 	bool Freeze(CAssocArray *Box);
-	static CTrafficStats *Unfreeze(CAssocArray *Box);
+	static CTrafficStats *Thaw(CAssocArray *Box);
 #endif
 
 	virtual void AddInbound(unsigned int Bytes);

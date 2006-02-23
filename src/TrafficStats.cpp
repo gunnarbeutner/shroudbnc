@@ -78,7 +78,7 @@ bool CTrafficStats::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CTrafficStats *CTrafficStats::Unfreeze(CAssocArray *Box) {
+CTrafficStats *CTrafficStats::Thaw(CAssocArray *Box) {
 	CTrafficStats *TrafficStats;
 
 	TrafficStats = new CTrafficStats();

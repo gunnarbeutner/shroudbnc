@@ -39,7 +39,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CConfig *Unfreeze(CAssocArray *Box);
+	static CConfig *Thaw(CAssocArray *Box);
 #endif
 
 	virtual int ReadInteger(const char *Setting) const;

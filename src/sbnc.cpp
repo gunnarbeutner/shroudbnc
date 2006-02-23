@@ -79,7 +79,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	new CCore(Config, Parameters->argc, Parameters->argv);
 
 	if (Parameters->Box) {
-		g_Bouncer->Unfreeze(Parameters->Box);
+		g_Bouncer->Thaw(Parameters->Box);
 	}
 
 #if !defined(_WIN32)

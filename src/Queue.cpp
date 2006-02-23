@@ -175,7 +175,7 @@ bool CQueue::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CQueue *CQueue::Unfreeze(CAssocArray *Box) {
+CQueue *CQueue::Thaw(CAssocArray *Box) {
 	unsigned int i = 0;
 	char *Index;
 	const char *Line;

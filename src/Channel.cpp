@@ -478,7 +478,7 @@ bool CChannel::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CChannel *CChannel::Unfreeze(CAssocArray *Box) {
+CChannel *CChannel::Thaw(CAssocArray *Box) {
 	CAssocArray *NicksBox;
 	CBanlist *Banlist;
 	CChannel *Channel;
@@ -516,7 +516,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 
 	Channel->m_HasTopic = Box->ReadInteger("~channel.hastopic");
 
-	Banlist = UnfreezeObject<CBanlist>(Box, "~channel.banlist");
+	Banlist = ThawObject<CBanlist>(Box, "~channel.banlist");
 
 	if (Banlist != NULL) {
 		delete Channel->m_Banlist;
@@ -529,7 +529,7 @@ CChannel *CChannel::Unfreeze(CAssocArray *Box) {
 	while (true) {
 		asprintf(&Index, "%d", i);
 
-		CNick *Nick = UnfreezeObject<CNick>(NicksBox, Index);
+		CNick *Nick = ThawObject<CNick>(NicksBox, Index);
 
 		if (Nick == NULL) {
 			break;

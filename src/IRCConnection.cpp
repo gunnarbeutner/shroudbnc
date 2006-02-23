@@ -1259,7 +1259,7 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 	return true;
 }
 
-CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
+CIRCConnection *CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	CAssocArray *TempBox;
@@ -1294,7 +1294,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 
 	delete Connection->m_ISupport;
 
-	Connection->m_ISupport = UnfreezeObject<CConfig>(Box, "~irc.isupport");
+	Connection->m_ISupport = ThawObject<CConfig>(Box, "~irc.isupport");
 
 	Count = Box->ReadInteger("~irc.channels");
 
@@ -1309,7 +1309,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 			g_Bouncer->Fatal();
 		} CHECK_ALLOC_RESULT_END;
 
-		Channel = UnfreezeObject<CChannel>(Box, Out);
+		Channel = ThawObject<CChannel>(Box, Out);
 		Channel->SetOwner(Connection);
 
 		Connection->m_Channels->Add(Channel->GetName(), Channel);
@@ -1326,7 +1326,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 	if (TempBox != NULL) {
 		delete Connection->m_QueueHigh;
 
-		Connection->m_QueueHigh = CQueue::Unfreeze(TempBox);
+		Connection->m_QueueHigh = CQueue::Thaw(TempBox);
 	}
 
 	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueHigh, 0);
@@ -1336,7 +1336,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 	if (TempBox != NULL) {
 		delete Connection->m_QueueMiddle;
 
-		Connection->m_QueueMiddle = CQueue::Unfreeze(TempBox);
+		Connection->m_QueueMiddle = CQueue::Thaw(TempBox);
 	}
 
 	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueMiddle, 0);
@@ -1346,7 +1346,7 @@ CIRCConnection *CIRCConnection::Unfreeze(CAssocArray *Box, CUser *Owner) {
 	if (TempBox != NULL) {
 		delete Connection->m_QueueLow;
 
-		Connection->m_QueueLow = CQueue::Unfreeze(TempBox);
+		Connection->m_QueueLow = CQueue::Thaw(TempBox);
 	}
 
 	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);

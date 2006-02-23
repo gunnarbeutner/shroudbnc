@@ -50,7 +50,7 @@ public:
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);
-	static CClientConnection *Unfreeze(CAssocArray *Box);
+	static CClientConnection *Thaw(CAssocArray *Box);
 #endif
 
 	virtual bool ParseLineArgV(int argc, const char** argv);
@@ -75,4 +75,6 @@ public:
 
 	virtual void SetPreviousNick(const char *Nick);
 	virtual const char *GetPreviousNick(void);
+
+	virtual SOCKET Hijack(void);
 };

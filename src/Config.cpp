@@ -338,13 +338,13 @@ bool CConfig::Freeze(CAssocArray *Box) {
 }
 
 /**
- * Unfreeze
+ * Thaw
  *
  * Depersists a config object.
  *
  * @param Box the box
  */
-CConfig *CConfig::Unfreeze(CAssocArray *Box) {
+CConfig *CConfig::Thaw(CAssocArray *Box) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;

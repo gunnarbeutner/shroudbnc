@@ -34,7 +34,7 @@ public:
 
 #ifndef SWIG
 	bool CQueue::Freeze(CAssocArray *Box);
-	static CQueue *CQueue::Unfreeze(CAssocArray *Box);
+	static CQueue *CQueue::Thaw(CAssocArray *Box);
 #endif
 
 	virtual char *DequeueItem(void);

@@ -517,14 +517,14 @@ bool CNick::Freeze(CAssocArray *Box) {
 }
 
 /**
- * Unfreeze
+ * Thaw
  *
  * Creates a new nick object by reading its data from a box.
  *
  * @param Box the box
  * @param Owner the channel
  */
-CNick *CNick::Unfreeze(CAssocArray *Box) {
+CNick *CNick::Thaw(CAssocArray *Box) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;
@@ -544,8 +544,8 @@ CNick *CNick::Unfreeze(CAssocArray *Box) {
 	Nick->m_Creation = Box->ReadInteger("~nick.creation");
 	Nick->m_IdleSince = Box->ReadInteger("~nick.idlets");
 
-	// TODO: unfreeze nicktags
-//	Tags = UnfreezeObject<CConfig>(Box, "~nick.tags");
+	// TODO: Thaw nicktags
+//	Tags = ThawObject<CConfig>(Box, "~nick.tags");
 //	if (Tags != NULL) {
 //		Nick->m_Tags = Tags;
 //	}

@@ -17,10 +17,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * CListenerBase<InheritedClass>
+ *
+ * Implements a generic socket listener.
+ */
 template<typename InheritedClass>
 class CListenerBase : public CSocketEvents {
 private:
-	SOCKET m_Listener;
+	SOCKET m_Listener; /**< the listening socket */
 
 	virtual bool Read(bool DontProcess) {
 		char PeerAddress[MAX_SOCKADDR_LEN];
@@ -44,20 +49,51 @@ private:
 
 	virtual const char *GetClassName(void) { return "CListenerBase"; }
 
-protected:
-	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		closesocket(Client);
+	/**
+	 * Initialize
+	 *
+	 * Initialized the listener object.
+	 *
+	 * @param Listener a listening socket
+	 */
+	void Initialize(SOCKET Listener) {
+		m_Listener = Listener;
+
+		if (m_Listener == INVALID_SOCKET) {
+			return;
+		}
+
+		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
 	}
 
+protected:
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) = 0;
+
 public:
+	/**
+	 * CListenerBase
+	 *
+	 * Constructs a new CListenerBase object.
+	 *
+	 * @param Port the port of the socket listener
+	 * @param BindIp the ip address used for binding the listener
+	 * @param Family the socket family of the listener (AF_INET or AF_INET6)
+	 */
 	CListenerBase(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) {
-		Init(g_Bouncer->CreateListener(Port, BindIp, Family));
+		Initialize(g_Bouncer->CreateListener(Port, BindIp, Family));
 	}
 
 	CListenerBase(void) {
 		// used for unfreezing listeners
 	}
 
+	/**
+	 * Freeze
+	 *
+	 * Persists the socket listener in a box.
+	 *
+	 * @param Box the box
+	 */
 	bool Freeze(CAssocArray *Box) {
 		Box->AddInteger("~listener.fd", m_Listener);
 		g_Bouncer->UnregisterSocket(m_Listener);
@@ -68,24 +104,26 @@ public:
 		return true;
 	}
 
-	static InheritedClass *Unfreeze(CAssocArray *Box) {
+	/**
+	 * Thaw
+	 *
+	 * Depersists a listener object.
+	 *
+	 * @param Box the box which is being used for storing the listener
+	 */
+	static InheritedClass *Thaw(CAssocArray *Box) {
 		InheritedClass *Listener = new InheritedClass();
 		
-		Listener->Init(Box->ReadInteger("~listener.fd"));
+		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
 		return Listener;
 	}
 
-	void Init(SOCKET Listener) {
-		m_Listener = Listener;
-
-		if (m_Listener == INVALID_SOCKET) {
-			return;
-		}
-
-		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
-	}
-
+	/**
+	 * ~CListenerBase
+	 *
+	 * Destructs a listener object.
+	 */
 	virtual ~CListenerBase(void) {
 		if (g_Bouncer != NULL && m_Listener != INVALID_SOCKET) {
 			g_Bouncer->UnregisterSocket(m_Listener);
@@ -94,10 +132,20 @@ public:
 		closesocket(m_Listener);
 	}
 
+	/**
+	 * Destroy
+	 *
+	 * Destroys a listener object and calls its destructor.
+	 */
 	virtual void Destroy(void) {
 		delete this;
 	}
 
+	/**
+	 * IsValid
+	 *
+	 * Verifies that the underlying socket object is valid.
+	 */
 	virtual bool IsValid(void) { 
 		if (m_Listener != INVALID_SOCKET) {
 			return true;
@@ -106,13 +154,19 @@ public:
 		}
 	}
 
+	/**
+	 * GetSocket
+	 *
+	 * Returns the socket which is used by the listener object.
+	 */
 	virtual SOCKET GetSocket(void) {
 		return m_Listener;
 	}
-
-	virtual void SetSocket(SOCKET Socket) {
-		m_Listener = Socket;
-	}
 };
 
+/**
+ * IMPL_SOCKETLISTENER
+ *
+ * Can be used to implement a custom listener.
+ */
 #define IMPL_SOCKETLISTENER(ClassName) class ClassName : public CListenerBase<ClassName>
