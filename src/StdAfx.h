@@ -78,7 +78,8 @@ typedef lt_dlhandle HMODULE;
 #	include "c-ares/ares.h"
 #endif
 
-#if defined(_DEBUG) && defined(SBNC)
+#ifdef SBNC
+#ifdef _DEBUG
 void *DebugMalloc(size_t Size, const char *File);
 void DebugFree(void *Pointer, const char *File);
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File);
@@ -88,6 +89,17 @@ char *DebugStrDup(const char *String, const char *File);
 #define free(Pointer) DebugFree(Pointer, __FILE__)
 #define realloc(Pointer, NewSize) DebugReAlloc(Pointer, NewSize, __FILE__)
 #define strdup(String) DebugStrDup(String, __FILE__)
+#endif
+#endif
+
+#ifdef LEAKLEAK
+#define GC_DEBUG
+#include "gc.h"
+#define malloc(n) GC_MALLOC(n)
+#define calloc(m,n) GC_MALLOC((m)*(n))
+#define free(p) GC_FREE(p)
+#define realloc(p,n) GC_REALLOC((p),(n))
+#define CHECK_LEAKS() GC_gcollect()
 #endif
 
 // Do NOT use sprintf.

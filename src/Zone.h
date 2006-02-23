@@ -240,11 +240,19 @@ public:
 	void *operator new(size_t Size) {
 		assert(Size <= sizeof(InheritedClass));
 
+#ifdef LEAKLEAK
+		return malloc(Size);
+#else
 		return m_Zone.Allocate();
+#endif
 	}
 
 	void operator delete(void *Object) {
+#ifdef LEAKLEAK
+		free(Object);
+#else
 		m_Zone.Delete((InheritedClass *)Object);
+#endif
 	}
 
 	const CZone<InheritedClass, HunkSize> *GetZone(void) {

@@ -39,9 +39,7 @@ void DestroyObject(Type *Object) {
 	delete Object;
 }
 
-#ifdef SBNC
 int CmpString(const void *pA, const void *pB);
-#endif
 
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	typedef void (DestroyValue)(Type Object);
