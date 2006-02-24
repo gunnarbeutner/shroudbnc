@@ -51,6 +51,7 @@ Debug.h \
 	Nick.h \
 	OwnedObject.h \
 	Persistable.h \
+	Result.h \
 	Queue.h \
 	sbnc.h \
 	snprintf.h \
