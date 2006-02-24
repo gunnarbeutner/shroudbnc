@@ -114,9 +114,9 @@ public:
 	static RESULT(InheritedClass *) Thaw(CAssocArray *Box) {
 		InheritedClass *Listener = new InheritedClass();
 
-		CHECK_ALLOC_RESULT(Listener, new) {
+		if (Listener == NULL) {
 			THROW(InheritedClass *, Generic_OutOfMemory, "new operator failed.");
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
