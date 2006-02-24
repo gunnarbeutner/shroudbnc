@@ -387,49 +387,54 @@ CConfig *CUser::GetConfig(void) {
 }
 
 void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
+	bool FakeWasNull;
+	CClientConnection *OldClient;
+	char *CommandDup;
+	CUser *OldOwner;
+
 	if (Command == NULL) {
 		return;
 	}
 
-	char* C = strdup(Command);
+	if (FakeClient == NULL) {
+		FakeWasNull = true;
+	} else {
+		FakeWasNull = false;
+	}
 
-	if (C == NULL) {
-		LOGERROR("strdup() failed. Could not simulate command (%s, %s).", m_Name, Command);
+	CommandDup = strdup(Command);
 
+	CHECK_ALLOC_RESULT(CommandDup, strdup) {
 		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	if (FakeClient == NULL) {
+		FakeClient = new CClientConnection(INVALID_SOCKET);
+
+		CHECK_ALLOC_RESULT(FakeClient, new) {
+			free(CommandDup);
+
+			return;
+		} CHECK_ALLOC_RESULT_END;
 	}
 
-	if (m_Client)
-		m_Client->ParseLine(C);
-	else {
-		if (FakeClient == NULL) {
-			sockaddr_in null_peer;
-			memset(&null_peer, 0, sizeof(null_peer));
-			FakeClient = new CClientConnection(INVALID_SOCKET);
+	OldClient = m_Client;
+	m_Client = FakeClient;
 
-			if (FakeClient == NULL) {
-				LOGERROR("new operator failed. Could not simulate command (%s, %s).", m_Name, Command);
-			} else {
-				FakeClient->SetOwner(this);
+	OldOwner = FakeClient->GetOwner();
+	FakeClient->SetOwner(this);
 
-				FakeClient->ParseLine(C);
+	FakeClient->ParseLine(CommandDup);
 
-				FakeClient->SetOwner(NULL);
-				delete FakeClient;
-			}
-		} else {
-			CUser* Owner = FakeClient->GetOwner();
-			CClientConnection* Client = m_Client;
+	FakeClient->SetOwner(OldOwner);
 
-			m_Client = FakeClient;
-			FakeClient->SetOwner(this);
-			FakeClient->ParseLine(C);
-			FakeClient->SetOwner(Owner);
-			m_Client = Client;
-		}
+	m_Client = OldClient;
+
+	if (FakeWasNull) {
+		delete FakeClient;
 	}
 
-	free(C);
+	free(CommandDup);
 }
 
 void CUser::Reconnect(void) {
@@ -458,22 +463,11 @@ void CUser::Reconnect(void) {
 	}
 
 	if (GetIPv6()) {
-		asprintf(&Out, "Trying to reconnect to [%s]:%d", Server, Port);
+		g_Bouncer->Log("Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
+		Log("Trying to reconnect to [%s]:%d", Server, Port);
 	} else {
-		asprintf(&Out, "Trying to reconnect to %s:%d", Server, Port);
-	}
-
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-	} else {
-		g_Bouncer->Log("%s", Out);
-		free(Out);
-	}
-
-	if (GetIPv6()) {
-		Log("Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
-	} else {
-		Log("Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+		g_Bouncer->Log("Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+		Log("Trying to reconnect to %s:%d", Server, Port);
 	}
 
 	time(&m_LastReconnect);

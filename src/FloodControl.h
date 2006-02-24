@@ -49,8 +49,8 @@ class CFloodControl : public CZoneObject<CFloodControl, 16> {
 public:
 #ifndef SWIG
 	CFloodControl(void);
-#endif
 	virtual ~CFloodControl(void);
+#endif
 
 	virtual char *DequeueItem(bool Peek = false);
 	virtual int GetQueueSize(void);

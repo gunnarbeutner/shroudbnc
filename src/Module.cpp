@@ -135,8 +135,12 @@ HMODULE CModule::GetHandle(void) {
 	return m_Image;
 }
 
-const char *CModule::GetError(void) {
-	return m_Error;
+RESULT(bool) CModule::GetError(void) {
+	if (m_Error != NULL) {
+		THROW(bool, Generic_Unknown, m_Error);
+	} else  {
+		RETURN(bool, true);
+	}
 }
 
 void CModule::Destroy(void) {

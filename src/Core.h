@@ -101,8 +101,8 @@ class CCore {
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
-#endif
 	virtual ~CCore(void);
+#endif
 
 	virtual void StartMainLoop(void);
 
@@ -113,7 +113,7 @@ public:
 	virtual CHashtable<CUser *, false, 64> *GetUsers(void);
 	virtual int GetUserCount(void);
 
-	virtual CModule *LoadModule(const char *Filename, const char **Error);
+	virtual RESULT(CModule *) LoadModule(const char *Filename);
 	virtual bool UnloadModule(CModule *Module);
 	virtual CVector<CModule *> *GetModules(void);
 
@@ -213,3 +213,9 @@ extern CCore *g_Bouncer;
 		if (Variable == NULL)
 
 #define CHECK_ALLOC_RESULT_END } while (0)
+
+#ifdef SWIGINTERFACE
+%template(CVectorCModule) CVector<class CModule *>;
+%template(CVectorCZoneInformation) CVector<struct CZoneInformation *>;
+%template(CVectorFileT) CVector<file_t>;
+#endif

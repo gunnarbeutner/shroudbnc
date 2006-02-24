@@ -88,8 +88,8 @@ public:
 	CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL = false);
 	CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL = false, int Family = AF_INET);
 	CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning);
-#endif
 	virtual ~CIRCConnection();
+#endif
 
 #ifndef SWIG
 	bool Freeze(CAssocArray *Box);

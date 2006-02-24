@@ -94,14 +94,14 @@ public:
 	 *
 	 * @param Box the box
 	 */
-	bool Freeze(CAssocArray *Box) {
+	RESULT(bool) Freeze(CAssocArray *Box) {
 		Box->AddInteger("~listener.fd", m_Listener);
 		g_Bouncer->UnregisterSocket(m_Listener);
 		m_Listener = INVALID_SOCKET;
 
 		delete this;
 
-		return true;
+		RETURN(bool, true);
 	}
 
 	/**
@@ -111,12 +111,16 @@ public:
 	 *
 	 * @param Box the box which is being used for storing the listener
 	 */
-	static InheritedClass *Thaw(CAssocArray *Box) {
+	static RESULT(InheritedClass *) Thaw(CAssocArray *Box) {
 		InheritedClass *Listener = new InheritedClass();
-		
+
+		CHECK_ALLOC_RESULT(Listener, new) {
+			THROW(InheritedClass *, Generic_OutOfMemory, "new operator failed.");
+		} CHECK_ALLOC_RESULT_END;
+
 		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
-		return Listener;
+		RETURN(InheritedClass *, Listener);
 	}
 
 	/**

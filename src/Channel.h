@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CIRCConnection;
-
 /**
  * chanmode_s
  *
@@ -26,12 +24,13 @@ class CIRCConnection;
  */
 typedef struct chanmode_s {
 	char Mode; /**< the channel mode */
-	char* Parameter; /**< the associated parameter, or NULL if there is none */
+	char *Parameter; /**< the associated parameter, or NULL if there is none */
 } chanmode_t;
 
-/* Forward declaration of various classes */
+/* Forward declaration of some required classes */
 class CNick;
 class CBanlist;
+class CIRCConnection;
 
 /**
  * CChannel
@@ -69,8 +68,8 @@ public:
 	virtual ~CChannel(void);
 
 #ifndef SWIG
-	bool Freeze(CAssocArray *Box);
-	static CChannel *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CChannel *) Thaw(CAssocArray *Box);
 #endif
 
 	virtual const char *GetName(void);
@@ -110,3 +109,8 @@ public:
 
 	virtual bool SendWhoReply(bool Simulate);
 };
+
+#ifdef SWIGINTERFACE
+%template(CResultBool) CResult<bool>;
+%template(CHashtableCNick) CHashtable<class CNick *, false, 64>;
+#endif

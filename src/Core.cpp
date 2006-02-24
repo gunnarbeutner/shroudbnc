@@ -340,12 +340,12 @@ void CCore::StartMainLoop(void) {
 
 #ifdef _MSC_VER
 #ifndef _DEBUG
-	LoadModule("bnctcl.dll", NULL);
+	LoadModule("bnctcl.dll");
 #else
-	LoadModule("..\\bnctcl\\Debug\\bnctcl.dll", NULL);
+	LoadModule("..\\bnctcl\\Debug\\bnctcl.dll");
 #endif
 #else
-	LoadModule("./libbnctcl.la", NULL);
+	LoadModule("./libbnctcl.la");
 #endif
 
 	char *Out;
@@ -364,7 +364,7 @@ void CCore::StartMainLoop(void) {
 		free(Out);
 
 		if (File)
-			LoadModule(File, NULL);
+			LoadModule(File);
 		else
 			break;
 	}
@@ -496,6 +496,10 @@ void CCore::StartMainLoop(void) {
 
 		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
+#ifdef LEAKLEAK
+		CHECK_LEAKS();
+#endif
+
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
 
@@ -600,13 +604,14 @@ CVector<CModule *> *CCore::GetModules(void) {
 	return &m_Modules;
 }
 
-CModule* CCore::LoadModule(const char* Filename, const char **Error) {
+RESULT(CModule *) CCore::LoadModule(const char* Filename) {
 	char *CorePath;
+	RESULT(bool) Result;
 
 	CorePath = strdup(g_LoaderParameters->GetModulePath());
 
 	CHECK_ALLOC_RESULT(CorePath, GetModule) {
-		return NULL;
+		THROW(CModule *, Generic_OutOfMemory, "strdup() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	for (int i = strlen(CorePath) - 1; i >= 0; i--) {
@@ -626,24 +631,20 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 	free(CorePath);
 
 	CHECK_ALLOC_RESULT(Module, new) {
-		if (Error != NULL) {
-			*Error = "new operator failed";
-		}
-
-		return NULL;
+		THROW(CModule *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	if (Module->GetError() == NULL) {
-		if (!m_Modules.Insert(Module)) {
+	Result = Module->GetError();
+
+	if (!IsError(Result)) {
+		Result = m_Modules.Insert(Module);
+
+		if (IsError(Result)) {
 			delete Module;
 
 			LOGERROR("Insert() failed. Could not load module");
 
-			if (Error != NULL) {
-				*Error = "realloc() failed.";
-			}
-
-			return NULL;
+			THROWRESULT(CModule *, Result);
 		}
 
 		Log("Loaded module: %s", Module->GetFilename());
@@ -654,23 +655,16 @@ CModule* CCore::LoadModule(const char* Filename, const char **Error) {
 			UpdateModuleConfig();
 		}
 
-		return Module;
+		RETURN(CModule *, Module);
 	} else {
-		static char *ErrorMessage = NULL;
-
-		free(ErrorMessage);
-
-		if (Error) {
-			ErrorMessage = strdup(Module->GetError());
-			*Error = ErrorMessage;
-		}
-
-		Log("Module %s could not be loaded: %s", Filename, Module->GetError());
+		Log("Module %s could not be loaded: %s", Filename, GETDESCRIPTION(Result));
 
 		delete Module;
 
-		return NULL;
+		THROWRESULT(CModule *, Result);
 	}
+
+	THROW(CModule *, Generic_Unknown, NULL);
 }
 
 bool CCore::UnloadModule(CModule* Module) {

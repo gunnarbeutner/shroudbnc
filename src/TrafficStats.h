@@ -23,12 +23,15 @@
  * Records traffic statistics for a user.
  */
 class CTrafficStats : public CZoneObject<CTrafficStats, 32> {
+private:
+	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
+	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 public:
 #ifndef SWIG
 	CTrafficStats(void);
 
-	bool Freeze(CAssocArray *Box);
-	static CTrafficStats *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CTrafficStats *) Thaw(CAssocArray *Box);
 #endif
 
 	virtual void AddInbound(unsigned int Bytes);
@@ -36,7 +39,4 @@ public:
 
 	virtual void AddOutbound(unsigned int Bytes);
 	virtual unsigned int GetOutbound(void);
-private:
-	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
-	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 };

@@ -299,14 +299,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		const char *Error = NULL;
+		RESULT(CModule *) Module = g_Bouncer->LoadModule(argv[1]);
 
-		CModule* Module = g_Bouncer->LoadModule(argv[1], &Error);
-
-		if (Module != NULL) {
+		if (!IsError(Module)) {
 			SENDUSER("Module was successfully loaded.");
 		} else {
-			asprintf(&Out, "Module could not be loaded: %s", Error);
+			asprintf(&Out, "Module could not be loaded: %s", GETDESCRIPTION(Module));
 
 			CHECK_ALLOC_RESULT(Out, asprintf) {
 				return false;
@@ -1748,10 +1746,10 @@ void CClientConnection::WriteUnformattedLine(const char* In) {
 	}
 }
 
-bool CClientConnection::Freeze(CAssocArray *Box) {
+RESULT(bool) CClientConnection::Freeze(CAssocArray *Box) {
 	// too bad we can't preserve ssl encrypted connections
-	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
-		return false;
+	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL() || m_Nick == NULL) {
+		RETURN(bool, false);
 	}
 
 	Box->AddString("~client.peername", m_PeerName);
@@ -1764,22 +1762,22 @@ bool CClientConnection::Freeze(CAssocArray *Box) {
 
 	Destroy();
 
-	return true;
+	RETURN(bool, true);
 }
 
-CClientConnection *CClientConnection::Thaw(CAssocArray *Box) {
+RESULT(CClientConnection *) CClientConnection::Thaw(CAssocArray *Box) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
 
 	if (Box == NULL) {
-		return NULL;
+		THROW(CClientConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Socket = Box->ReadInteger("~client.fd");
 
 	if (Socket == INVALID_SOCKET) {
-		return NULL;
+		RETURN(CClientConnection *, NULL);
 	}
 
 	Client = new CClientConnection();
@@ -1802,10 +1800,10 @@ CClientConnection *CClientConnection::Thaw(CAssocArray *Box) {
 	} else {
 		delete Client;
 
-		return NULL;
+		THROW(CClientConnection *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
 	}
 
-	return Client;
+	RETURN(CClientConnection *, Client);
 }
 
 void CClientConnection::Kill(const char *Error) {

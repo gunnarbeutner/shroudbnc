@@ -108,6 +108,7 @@ char *DebugStrDup(const char *String, const char *File);
 #include "sbncloader/AssocArray.h"
 
 #include "sbnc.h"
+#include "Result.h"
 #include "Zone.h"
 #include "Vector.h"
 #include "Debug.h"

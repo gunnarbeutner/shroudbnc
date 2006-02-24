@@ -45,12 +45,12 @@ private:
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, bool SSL = false);
-#endif
 	virtual ~CClientConnection(void);
+#endif
 
 #ifndef SWIG
-	bool Freeze(CAssocArray *Box);
-	static CClientConnection *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CClientConnection *) Thaw(CAssocArray *Box);
 #endif
 
 	virtual bool ParseLineArgV(int argc, const char** argv);
@@ -78,3 +78,8 @@ public:
 
 	virtual SOCKET Hijack(void);
 };
+
+#ifdef SWIGINTERFACE
+%template(COwnedObjectCUser) COwnedObject<class CUser>;
+%template(CZoneObjectCClientConnection) CZoneObject<class CClientConnection, 16>;
+#endif

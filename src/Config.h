@@ -38,8 +38,8 @@ public:
 	virtual ~CConfig(void);
 
 #ifndef SWIG
-	bool Freeze(CAssocArray *Box);
-	static CConfig *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CConfig *) Thaw(CAssocArray *Box);
 #endif
 
 	virtual int ReadInteger(const char *Setting) const;
@@ -55,3 +55,8 @@ public:
 	virtual void Reload(void);
 	virtual unsigned int GetLength(void) const;
 };
+
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCConfig) CZoneObject<class CConfig, 128>;
+%template(HashTCharP) hash_t<char *>;
+#endif

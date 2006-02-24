@@ -495,7 +495,7 @@ bool CNick::SetTag(const char *Name, const char *Value) {
  *
  * @param Box the box which is used for storing the object's data
  */
-bool CNick::Freeze(CAssocArray *Box) {
+RESULT(bool) CNick::Freeze(CAssocArray *Box) {
 	Box->AddString("~nick.nick", m_Nick);
 	Box->AddString("~nick.prefixes", m_Prefixes);
 	Box->AddString("~nick.site", m_Site);
@@ -513,7 +513,7 @@ bool CNick::Freeze(CAssocArray *Box) {
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
 /**
@@ -524,17 +524,21 @@ bool CNick::Freeze(CAssocArray *Box) {
  * @param Box the box
  * @param Owner the channel
  */
-CNick *CNick::Thaw(CAssocArray *Box) {
+RESULT(CNick *) CNick::Thaw(CAssocArray *Box) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;
 
 	Name = Box->ReadString("~nick.nick");
 
+	if (Name == NULL) {
+		THROW(CNick *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
+	}
+
 	Nick = new CNick(NULL, Name);
 
 	CHECK_ALLOC_RESULT(Nick, new) {
-		return NULL;
+		THROW(CNick *, Generic_OutOfMemory, "new operator failed");
 	} CHECK_ALLOC_RESULT_END;
 
 	Nick->SetPrefixes(Box->ReadString("~nick.prefixes"));
@@ -550,5 +554,5 @@ CNick *CNick::Thaw(CAssocArray *Box) {
 //		Nick->m_Tags = Tags;
 //	}
 
-	return Nick;
+	RETURN(CNick *, Nick);
 }

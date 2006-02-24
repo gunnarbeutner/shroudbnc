@@ -97,8 +97,8 @@ class CUser : public CZoneObject<CUser, 32> {
 public:
 #ifndef SWIG
 	CUser(const char *Name);
-#endif
 	virtual ~CUser(void);
+#endif
 
 	virtual CClientConnection *GetClientConnection(void);
 	virtual CIRCConnection *GetIRCConnection(void);

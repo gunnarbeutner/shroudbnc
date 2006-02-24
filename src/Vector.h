@@ -17,6 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+typedef enum vector_error_e {
+	Vector_ReadOnly,
+	Vector_ItemNotFound
+} vector_error_t;
+
 /**
  * CVector
  *
@@ -30,6 +35,7 @@ private:
 	unsigned int m_Count; /**< the number of items in the list */
 
 public:
+#ifndef SWIG
 	/**
 	 * CVector
 	 *
@@ -44,11 +50,12 @@ public:
 	/**
 	 * ~CVector
 	 *
-	 * Destroys a list
+	 * Destroys a list.
 	 */
 	virtual ~CVector(void) {
 		Clear();
 	}
+#endif
 
 	/**
 	 * Insert
@@ -57,11 +64,11 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	virtual bool Insert(Type Item) {
+	virtual RESULT(bool) Insert(Type Item) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
-			return false;
+			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
 		}
 
 		NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
@@ -69,13 +76,13 @@ public:
 		if (NewList == NULL) {
 			m_Count--;
 
-			return false;
+			THROW(bool, Generic_OutOfMemory, "Out of memory.");
 		}
 
 		m_List = NewList;
 		m_List[m_Count - 1] = Item;
 
-		return true;
+		RETURN(bool, true);
 	}
 
 	/**
@@ -85,11 +92,11 @@ public:
 	 *
 	 * @param Index the index of the item which is to be removed
 	 */
-	virtual bool Remove(int Index) {
+	virtual RESULT(bool) Remove(int Index) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
-			return false;
+			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
 		}
 
 		m_List[Index] = m_List[m_Count - 1];
@@ -100,7 +107,7 @@ public:
 			m_List = NewList;
 		}
 
-		return true;
+		RETURN(bool, true);
 	}
 
 	/**
@@ -110,7 +117,7 @@ public:
 	 *
 	 * @param Item the item which is to be removed
 	 */
-	virtual bool Remove(Type Item) {
+	virtual RESULT(bool) Remove(Type Item) {
 		bool ReturnValue = false;
 
 		for (int i = m_Count - 1; i >= 0; i--) {
@@ -121,7 +128,11 @@ public:
 			}
 		}
 
-		return ReturnValue;
+		if (ReturnValue) {
+			RETURN(bool, true);
+		} else {
+			THROW(bool, Vector_ItemNotFound, "Item could not be found.");
+		}
 	}
 
 	/**

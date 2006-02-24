@@ -27,26 +27,29 @@
  * @param Object the object
  */
 template <typename Type>
-bool FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
+RESULT(bool) FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
 	CAssocArray *ObjectBox;
+	RESULT(bool) Result;
 
 	if (Container == NULL || Name == NULL || Object == NULL) {
-		return false;
+		THROW(bool, Generic_InvalidArgument, "Container, Name and/or Object cannot be NULL.");
 	}
 
 	ObjectBox = Container->Create();
 
 	if (ObjectBox == NULL) {
-		return false;
+		THROW(bool, Generic_OutOfMemory, "Create() failed.");
 	}
 
-	if (Object->Freeze(ObjectBox)) {
+	Result = Object->Freeze(ObjectBox);
+
+	if (!IsError(Result)) {
 		Container->AddBox(Name, ObjectBox);
 	} else {
 		ObjectBox->Destroy();
 	}
 
-	return true;
+	return Result;
 }
 
 /**
@@ -58,17 +61,17 @@ bool FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
  * @param Name the object's name in that container
  */
 template <typename Type>
-Type *ThawObject(CAssocArray *Container, const char *Name) {
+RESULT(Type *) ThawObject(CAssocArray *Container, const char *Name) {
 	CAssocArray *ObjectBox;
 
 	if (Container == NULL || Name == NULL) {
-		return NULL;
+		THROW(Type *, Generic_InvalidArgument, "Container and/or Name cannot be NULL.");
 	}
 
 	ObjectBox = Container->ReadBox(Name);
 
 	if (ObjectBox == NULL) {
-		return NULL;
+		THROW(Type *, Generic_Unknown, "There is no such box.");
 	}
 
 	return Type::Thaw(ObjectBox);

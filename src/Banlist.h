@@ -37,19 +37,24 @@ class CBanlist : public CZoneObject<CBanlist, 128> {
 public:
 #ifndef SWIG
 	CBanlist();
-#endif
 	virtual ~CBanlist();
+#endif
 
 #ifndef SWIG
-	bool Freeze(CAssocArray *Box);
-	static CBanlist *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CBanlist *) Thaw(CAssocArray *Box);
 #endif
 
-	virtual bool SetBan(const char *Mask, const char *Nick, time_t Timestamp);
-	virtual bool UnsetBan(const char *Mask);
+	virtual RESULT(bool) SetBan(const char *Mask, const char *Nick, time_t Timestamp);
+	virtual RESULT(bool) UnsetBan(const char *Mask);
 
 	virtual const ban_t *GetBan(const char *Mask) const;
 	virtual const hash_t<ban_t *> *Iterate(int Skip) const;
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 };
+
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCBanlist) CZoneObject<class CBanlist, 128>;
+%template(CResultBool) CResult<bool>;
+#endif

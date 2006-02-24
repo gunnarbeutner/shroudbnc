@@ -292,7 +292,7 @@ unsigned int CConfig::GetLength(void) const {
  *
  * @param Box the box
  */
-bool CConfig::Freeze(CAssocArray *Box) {
+RESULT(bool) CConfig::Freeze(CAssocArray *Box) {
 	unsigned int i = 0;
 	hash_t<char *> *Setting;
 	CAssocArray *Settings;
@@ -305,7 +305,7 @@ bool CConfig::Freeze(CAssocArray *Box) {
 		CHECK_ALLOC_RESULT(Settings, Box->Create) {
 			delete this;
 
-			return false;
+			THROW(bool, Generic_OutOfMemory, "Create() failed.");
 		} CHECK_ALLOC_RESULT_END;
 
 		while ((Setting = m_Settings.Iterate(i)) != NULL) {
@@ -316,7 +316,7 @@ bool CConfig::Freeze(CAssocArray *Box) {
 				Settings->Destroy();
 				delete this;
 
-				return false;
+				THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Value, "%s=%s", Setting->Name, Setting->Value);
@@ -334,7 +334,7 @@ bool CConfig::Freeze(CAssocArray *Box) {
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
 /**
@@ -344,7 +344,7 @@ bool CConfig::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-CConfig *CConfig::Thaw(CAssocArray *Box) {
+RESULT(CConfig *) CConfig::Thaw(CAssocArray *Box) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;
@@ -355,7 +355,7 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 	Config = new CConfig(NULL);
 
 	CHECK_ALLOC_RESULT(Config, new) {
-		return NULL;
+		THROW(CConfig *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	Temp = Box->ReadString("~config.file");
@@ -366,7 +366,7 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 		CHECK_ALLOC_RESULT(Config->m_Filename, strdup) {
 			delete Config;
 
-			return NULL;
+			THROW(CConfig *, Generic_OutOfMemory, "strdup() failed.");
 		} CHECK_ALLOC_RESULT_END;
 
 		Config->ParseConfig();
@@ -374,7 +374,7 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 		Settings = Box->ReadBox("~config.settings");
 
 		if (Settings == NULL) {
-			return Config;
+			RETURN(CConfig *, Config);
 		}
 
 		while (true) {
@@ -383,7 +383,7 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 			CHECK_ALLOC_RESULT(Index, asprintf) {
 				delete Config;
 
-				return NULL;
+				THROW(CConfig *, Generic_OutOfMemory, "asprintf() failed.");
 			} CHECK_ALLOC_RESULT_END;
 
 			Setting = Settings->ReadString(Index);
@@ -402,7 +402,7 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 				free(Index);
 				delete Config;
 
-				return NULL;
+				THROW(CConfig *, Generic_OutOfMemory, "strdup() failed.");
 			} CHECK_ALLOC_RESULT_END;
 
 			Value = strstr(dupSetting, "=");
@@ -418,5 +418,5 @@ CConfig *CConfig::Thaw(CAssocArray *Box) {
 		}
 	}
 
-	return Config;
+	RETURN(CConfig *, Config);
 }

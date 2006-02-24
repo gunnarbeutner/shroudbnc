@@ -38,6 +38,15 @@ CLog::CLog(const char *Filename) {
 }
 
 /**
+ * ~CLog
+ *
+ * Destructs a log object.
+ */
+CLog::~CLog(void) {
+	free(m_Filename);
+}
+
+/**
  * PlayToUser
  *
  * Sends the log to the specified user.

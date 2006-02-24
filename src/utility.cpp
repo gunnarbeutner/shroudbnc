@@ -623,18 +623,6 @@ int CmpCommandT(const void *pA, const void *pB) {
 }
 
 /**
- * CmpString
- *
- * Compares two strings. This function is intended to be used with qsort().
- *
- * @param pA the first string
- * @param pB the second string
- */
-int CmpString(const void *pA, const void *pB) {
-	return strcmp(*(const char **)pA, *(const char **)pB);
-}
-
-/**
  * DestroyString
  *
  * Frees a string. Used by CHashtable

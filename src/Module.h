@@ -33,13 +33,13 @@ class CModule : public CModuleFar {
 public:
 #ifndef SWIG
 	CModule(const char *Filename);
-#endif
 	virtual ~CModule(void);
+#endif
 
 	virtual CModuleFar *GetModule(void);
 	virtual const char *GetFilename(void);
 	virtual HMODULE GetHandle(void);
-	virtual const char *GetError(void);
+	virtual RESULT(bool) GetError(void);
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);

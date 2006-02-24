@@ -20,29 +20,11 @@
 #include "StdAfx.h"
 
 /**
- * CQueue
- *
- * Constructs an empty queue.
- */
-CQueue::CQueue() {
-	// nothing to do here, really
-}
-
-/**
- * ~CQueue
- *
- * Destroy a queue.
- */
-CQueue::~CQueue() {
-	// same here
-}
-
-/**
  * PeekItems
  *
  * Retrieves the next item from the queue without removing it.
  */
-const char *CQueue::PeekItem(void) {
+RESULT(const char *) CQueue::PeekItem(void) {
 	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
@@ -54,9 +36,9 @@ const char *CQueue::PeekItem(void) {
 	}
 
 	if (ThatItem != NULL) {
-		return ThatItem->Line;
+		RETURN(const char *, ThatItem->Line);
 	} else {
-		return NULL;
+		THROW(const char *, Generic_Unknown, "The queue is empty.");
 	}
 }
 
@@ -65,7 +47,7 @@ const char *CQueue::PeekItem(void) {
  *
  * Retrieves the next item from the queue and removes it.
  */
-char *CQueue::DequeueItem(void) {
+RESULT(char *) CQueue::DequeueItem(void) {
 	int Index;
 	queue_item_t *Item = NULL;
 	char *Line;
@@ -82,9 +64,9 @@ char *CQueue::DequeueItem(void) {
 
 		m_Items.Remove(Index);
 
-		return Line;
+		RETURN(char *, Line);
 	} else {
-		return NULL;
+		THROW(char *, Generic_Unknown, "The queue is empty.");
 	}
 }
 
@@ -95,22 +77,22 @@ char *CQueue::DequeueItem(void) {
  *
  * @param Line the item which is to be inserted
  */
-bool CQueue::QueueItem(const char *Line) {
+RESULT(bool) CQueue::QueueItem(const char *Line) {
 	queue_item_t Item;
 
 	if (Line == NULL) {
-		return false;
+		THROW(bool, Generic_InvalidArgument, "Line cannot be NULL.");
 	}
 
 	// ignore new items if the queue is full
 	if (m_Items.GetLength() >= MAX_QUEUE_SIZE) {
-		return false;
+		THROW(bool, Generic_Unknown, "The queue is full.");
 	}
 
 	Item.Line = strdup(Line);
 
 	CHECK_ALLOC_RESULT(Item.Line, strdup) {
-		return false;
+		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	Item.Priority = 0;
@@ -129,7 +111,7 @@ bool CQueue::QueueItem(const char *Line) {
  *
  * @param Line the item which is to be inserted
  */
-bool CQueue::QueueItemNext(const char *Line) {
+RESULT(bool) CQueue::QueueItemNext(const char *Line) {
 	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
 		m_Items[i].Priority += 2;
 	}
@@ -159,9 +141,20 @@ void CQueue::Clear(void) {
 	m_Items.Clear();
 }
 
-bool CQueue::Freeze(CAssocArray *Box) {
+/**
+ * Freeze
+ *
+ * Persists a queue.
+ *
+ * @param Box the box which is being used for storing the queue
+ */
+RESULT(bool) CQueue::Freeze(CAssocArray *Box) {
 	unsigned int i = 0;
 	char *Line, *Index;
+
+	if (Box == NULL) {
+		THROW(bool, Generic_InvalidArgument, "Box cannot be NULL.");
+	}
 
 	while ((Line = DequeueItem()) != NULL) {
 		asprintf(&Index, "%d", i);
@@ -172,23 +165,39 @@ bool CQueue::Freeze(CAssocArray *Box) {
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
-CQueue *CQueue::Thaw(CAssocArray *Box) {
+/**
+ * Thaw
+ *
+ * Depersists a queue.
+ *
+ * @param Box the box which is being used for storing the queue
+ */
+RESULT(CQueue *) CQueue::Thaw(CAssocArray *Box) {
 	unsigned int i = 0;
 	char *Index;
 	const char *Line;
 	CQueue *Queue;
 
 	if (Box == NULL) {
-		return NULL;
+		THROW(CQueue *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Queue = new CQueue();
 
+	if (Queue == NULL) {
+		THROW(CQueue *, Generic_OutOfMemory, "new operator failed.");
+	}
+
 	while (true) {
 		asprintf(&Index, "%d", i);
+
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			THROW(CQueue *, Generic_OutOfMemory, "asprintf() failed.");
+		} CHECK_ALLOC_RESULT_END;
+
 		Line = Box->ReadString(Index);
 
 		if (Line == NULL) {
@@ -202,5 +211,5 @@ CQueue *CQueue::Thaw(CAssocArray *Box) {
 		i++;
 	}
 
-	return Queue;
+	RETURN(CQueue *, Queue);
 }

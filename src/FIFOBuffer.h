@@ -31,8 +31,8 @@ class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
 public:
 #ifndef SWIG
 	CFIFOBuffer();
-#endif
 	virtual ~CFIFOBuffer();
+#endif
 
 	virtual unsigned int GetSize(void);
 

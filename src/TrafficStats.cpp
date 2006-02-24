@@ -69,26 +69,26 @@ unsigned int CTrafficStats::GetOutbound(void) {
 	return m_Outbound;
 }
 
-bool CTrafficStats::Freeze(CAssocArray *Box) {
+RESULT(bool) CTrafficStats::Freeze(CAssocArray *Box) {
 	Box->AddInteger("~traffic.in", m_Inbound);
 	Box->AddInteger("~traffic.out", m_Outbound);
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
-CTrafficStats *CTrafficStats::Thaw(CAssocArray *Box) {
+RESULT(CTrafficStats *) CTrafficStats::Thaw(CAssocArray *Box) {
 	CTrafficStats *TrafficStats;
 
 	TrafficStats = new CTrafficStats();
 
 	CHECK_ALLOC_RESULT(TrafficStats, new) {
-		return NULL;
+		THROW(CTrafficStats *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	TrafficStats->m_Inbound = Box->ReadInteger("~traffic.in");
 	TrafficStats->m_Outbound = Box->ReadInteger("~traffic.out");
 
-	return TrafficStats;
+	RETURN(CTrafficStats *, TrafficStats);
 }

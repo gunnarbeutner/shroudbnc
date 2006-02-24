@@ -46,12 +46,10 @@ class CNick : public COwnedObject<CChannel>, public CZoneObject<CNick, 1024> {
 public:
 #ifndef SWIG
 	CNick(CChannel *Owner, const char *Nick);
-#endif
 	virtual ~CNick(void);
 
-#ifndef SWIG
-	bool Freeze(CAssocArray *Box);
-	static CNick *Thaw(CAssocArray *Box);
+	RESULT(bool) Freeze(CAssocArray *Box);
+	static RESULT(CNick *) Thaw(CAssocArray *Box);
 #endif
 
 	virtual const char *GetNick(void);

@@ -440,11 +440,12 @@ bool CChannel::SendWhoReply(bool Simulate) {
 	return true;
 }
 
-bool CChannel::Freeze(CAssocArray *Box) {
+RESULT(bool) CChannel::Freeze(CAssocArray *Box) {
 	CAssocArray *Nicks;
 	CNick *Nick;
 	unsigned int Count, i = 0;
 	char *Index;
+	RESULT(bool) Result;
 
 	// TODO: persist channel modes
 	Box->AddString("~channel.name", m_Name);
@@ -454,7 +455,9 @@ bool CChannel::Freeze(CAssocArray *Box) {
 	Box->AddInteger("~channel.topicts", m_TopicStamp);
 	Box->AddInteger("~channel.hastopic", m_HasTopic);
 
-	FreezeObject<CBanlist>(Box, "~channel.banlist", m_Banlist);
+	Result = FreezeObject<CBanlist>(Box, "~channel.banlist", m_Banlist);
+	THROWIFERROR(bool, Result);
+
 	m_Banlist = NULL;
 
 	Nicks = Box->Create();
@@ -465,7 +468,11 @@ bool CChannel::Freeze(CAssocArray *Box) {
 		Nick = m_Nicks.Iterate(i)->Value;
 
 		asprintf(&Index, "%d", i);
-		FreezeObject<CNick>(Nicks, Index, Nick);
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
+		} CHECK_ALLOC_RESULT_END;
+		Result = FreezeObject<CNick>(Nicks, Index, Nick);
+		THROWIFERROR(bool, Result);
 		free(Index);
 	}
 
@@ -475,25 +482,25 @@ bool CChannel::Freeze(CAssocArray *Box) {
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
-CChannel *CChannel::Thaw(CAssocArray *Box) {
+RESULT(CChannel *) CChannel::Thaw(CAssocArray *Box) {
 	CAssocArray *NicksBox;
-	CBanlist *Banlist;
+	RESULT(CBanlist *) Banlist;
 	CChannel *Channel;
 	const char *Name, *Temp;
 	unsigned int i = 0;
 	char *Index;
 
 	if (Box == NULL) {
-		return NULL;
+		THROW(CChannel *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Name = Box->ReadString("~channel.name");
 
 	if (Name == NULL) {
-		return NULL;
+		THROW(CChannel *, Generic_Unknown, "Persistent data is invalid: Missing channelname.");
 	}
 
 	Channel = new CChannel(Name, NULL);
@@ -518,7 +525,7 @@ CChannel *CChannel::Thaw(CAssocArray *Box) {
 
 	Banlist = ThawObject<CBanlist>(Box, "~channel.banlist");
 
-	if (Banlist != NULL) {
+	if (!IsError(Banlist)) {
 		delete Channel->m_Banlist;
 
 		Channel->m_Banlist = Banlist;
@@ -528,6 +535,10 @@ CChannel *CChannel::Thaw(CAssocArray *Box) {
 
 	while (true) {
 		asprintf(&Index, "%d", i);
+
+		CHECK_ALLOC_RESULT(Index, asprintf) {
+			THROW(CChannel *, Generic_OutOfMemory, "asprintf() failed.");
+		} CHECK_ALLOC_RESULT_END;
 
 		CNick *Nick = ThawObject<CNick>(NicksBox, Index);
 
@@ -544,5 +555,5 @@ CChannel *CChannel::Thaw(CAssocArray *Box) {
 		i++;
 	}
 
-	return Channel;
+	RETURN(CChannel *, Channel);
 }

@@ -25,6 +25,11 @@ int g_TimerStats = 0;
  * CTimer
  *
  * Constructs a timer
+ *
+ * @param Interval the interval (in seconds) between calls to the timer's function
+ * @param Repeat whether the timer should repeat itself
+ * @param Function the timer's function
+ * @param Cookie a timer-specific cookie
  */
 CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
 	m_Interval = Interval; 
@@ -60,6 +65,8 @@ void CTimer::Destroy(void) {
  * Call
  *
  * Calls the timer's function
+ *
+ * @param Now the current time
  */
 bool CTimer::Call(time_t Now) {
 	bool ReturnValue;

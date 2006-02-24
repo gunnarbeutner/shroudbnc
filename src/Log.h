@@ -35,6 +35,7 @@ class CLog : public CZoneObject<CLog, 16> {
 public:
 #ifndef SWIG
 	CLog(const char *Filename);
+	~CLog(void);
 #endif
 
 	virtual void Clear(void);

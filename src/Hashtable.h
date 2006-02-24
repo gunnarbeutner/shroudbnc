@@ -27,6 +27,17 @@ template <typename Type> struct hash_t {
 	Type Value;
 };
 
+/**
+ * hashlist_t
+ *
+ * A bucket in a hashtable.
+ */
+template <typename HashListType> struct hashlist_t {
+	unsigned int Count;
+	char **Keys;
+	HashListType *Values;
+};
+
 typedef unsigned long hashvalue_t;
 
 /**
@@ -39,20 +50,23 @@ void DestroyObject(Type *Object) {
 	delete Object;
 }
 
-int CmpString(const void *pA, const void *pB);
+/**
+ * CmpString
+ *
+ * Compares two strings. This function is intended to be used with qsort().
+ *
+ * @param pA the first string
+ * @param pB the second string
+ */
+inline int CmpString(const void *pA, const void *pB) {
+	return strcmp(*(const char **)pA, *(const char **)pB);
+}
 
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
-	typedef void (DestroyValue)(Type Object);
-
-	template <typename HashListType> struct hashlist_t {
-		unsigned int Count;
-		char **Keys;
-		HashListType *Values;
-	};
-
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
-	DestroyValue *m_DestructorFunc; /**< the function which should be used for destroying items */
+	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 public:
+#ifndef SWIG
 	CHashtable(void) {
 		memset(m_Items, 0, sizeof(m_Items));
 
@@ -62,15 +76,16 @@ public:
 	~CHashtable(void) {
 		Clear();
 	}
+#endif
 
-	void Clear(void) {
+	virtual void Clear(void) {
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
 
 			for (unsigned int a = 0; a < List->Count; a++) {
 				free(List->Keys[a]);
 
-				if (m_DestructorFunc) {
+				if (m_DestructorFunc != NULL) {
 					m_DestructorFunc(List->Values[a]);
 				}
 			}
@@ -93,14 +108,14 @@ public:
 		return HashValue;
 	}
 
-	bool Add(const char *Key, Type Value) {
+	virtual RESULT(bool) Add(const char *Key, Type Value) {
 		char *dupKey;
 		char **newKeys;
 		Type *newValues;
 		hashlist_t<Type> *List;
 
 		if (Key == NULL) {
-			return false;
+			THROW(bool, Generic_InvalidArgument, "Key cannot be NULL.");
 		}
 
 		// Remove any existing item which has the same key
@@ -111,19 +126,15 @@ public:
 		dupKey = strdup(Key);
 
 		if (dupKey == NULL) {
-/*			LOGERROR("strdup() failed.");*/
-
-			return false;
+			THROW(bool, Generic_OutOfMemory, "strdup() failed.");
 		}
 
 		newKeys = (char **)realloc(List->Keys, (List->Count + 1) * sizeof(char*));
 
 		if (newKeys == NULL) {
-/*			LOGERROR("realloc() failed.");*/
-
 			free(dupKey);
 
-			return false;
+			THROW(bool, Generic_OutOfMemory, "realloc() failed.");
 		}
 
 		List->Keys = newKeys;
@@ -131,11 +142,9 @@ public:
 		newValues = (Type *)realloc(List->Values, (List->Count + 1) * sizeof(Type));
 
 		if (newValues == NULL) {
-/*			LOGERROR("realloc() failed.");*/
-
 			free(dupKey);
 
-			return false;
+			THROW(bool, Generic_OutOfMemory, "realloc() failed.");
 		}
 
 		List->Count++;
@@ -145,10 +154,10 @@ public:
 		List->Keys[List->Count - 1] = dupKey;
 		List->Values[List->Count -1] = Value;
 
-		return true;
+		RETURN(bool, true);
 	}
 
-	Type Get(const char *Key) const {
+	virtual Type Get(const char *Key) const {
 		if (Key == NULL) {
 			return NULL;
 		}
@@ -168,7 +177,7 @@ public:
 		}
 	}
 
-	unsigned int GetLength(void) const {
+	virtual unsigned int GetLength(void) const {
 		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -178,17 +187,17 @@ public:
 		return Count;
 	}
 
-	bool Remove(const char *Key, bool DontDestroy = false) {
+	virtual RESULT(bool) Remove(const char *Key, bool DontDestroy = false) {
 		hashlist_t<Type> *List;
 
 		if (Key == NULL) {
-			return false;
+			THROW(bool, Generic_InvalidArgument, "Key cannot be NULL.");
 		}
 
 		List = &m_Items[Hash(Key) % Size];
 
 		if (List->Count == 0) {
-			return true;
+			RETURN(bool, true);
 		} else if (List->Count == 1 && (CaseSensitive ? strcmp(List->Keys[0], Key) : strcasecmp(List->Keys[0], Key)) == 0) {
 			if (m_DestructorFunc != NULL && DontDestroy == false) {
 				m_DestructorFunc(List->Values[0]);
@@ -220,14 +229,14 @@ public:
 			}
 		}
 
-		return true;
+		RETURN(bool, true);
 	}
 
-	void RegisterValueDestructor(DestroyValue *Func) {
+	virtual void RegisterValueDestructor(void (*Func)(Type Object)) {
 		m_DestructorFunc = Func;
 	}
 
-	hash_t<Type> *Iterate(int Index) const {
+	virtual hash_t<Type> *Iterate(int Index) const {
 		int Skip = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -248,7 +257,7 @@ public:
 		return NULL;
 	}
 
-	char **GetSortedKeys(void) const {
+	virtual char **GetSortedKeys(void) const {
 		char **Keys = NULL;
 		unsigned int Count = 0;
 
@@ -273,6 +282,7 @@ public:
 
 };
 
+#ifdef SBNC
 class CHashCompare {
 	const char *m_String;
 	hashvalue_t m_Hash;
@@ -295,3 +305,4 @@ public:
 		}
 	}
 };
+#endif

@@ -84,8 +84,8 @@ public:
 #ifndef SWIG
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
 	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
-#endif
 	virtual ~CConnection(void);
+#endif
 
 	virtual SOCKET GetSocket(void);
 

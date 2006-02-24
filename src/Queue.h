@@ -17,30 +17,36 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/** Defines how many items can be stored in a single queue */
+#define MAX_QUEUE_SIZE 500
+
+/**
+ * queue_item_t
+ *
+ * An item from a queue.
+ */
 typedef struct queue_item_s {
 	int Priority;
 	char *Line;
 } queue_item_t;
 
-#define MAX_QUEUE_SIZE 500
-
+/**
+ * CQueue
+ *
+ * A queue which can be used for storing strings.
+ */
 class CQueue : public CZoneObject<CQueue, 64> {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG
-	CQueue(void);
-#endif
-	virtual ~CQueue(void);
-
-#ifndef SWIG
-	bool CQueue::Freeze(CAssocArray *Box);
-	static CQueue *CQueue::Thaw(CAssocArray *Box);
+	RESULT(bool) CQueue::Freeze(CAssocArray *Box);
+	static RESULT(CQueue *) CQueue::Thaw(CAssocArray *Box);
 #endif
 
-	virtual char *DequeueItem(void);
-	virtual const char *PeekItem(void);
-	virtual bool QueueItem(const char *Line);
-	virtual bool QueueItemNext(const char *Line);
+	virtual RESULT(char *) DequeueItem(void);
+	virtual RESULT(const char *) PeekItem(void);
+	virtual RESULT(bool) QueueItem(const char *Line);
+	virtual RESULT(bool) QueueItemNext(const char *Line);
 	virtual unsigned int GetLength(void);
 	virtual void Clear(void);
 };

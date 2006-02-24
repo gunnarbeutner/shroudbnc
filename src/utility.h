@@ -73,7 +73,6 @@ char* NickFromHostmask(const char *Hostmask);
 
 const char *UtilMd5(const char *String);
 
-int CmpString(const void *pA, const void *pB);
 void DestroyString(char *String);
 
 void FlushCommands(commandlist_t *Commands);
@@ -87,7 +86,7 @@ int CmpCommandT(const void *pA, const void *pB);
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
 
-#define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
+#define LOGERROR(...) g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError(##__VA_ARGS__)
 
 void StrTrim(char *String);
 

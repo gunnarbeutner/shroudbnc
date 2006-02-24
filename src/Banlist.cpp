@@ -58,13 +58,13 @@ CBanlist::~CBanlist() {
  * @param Nick the nick of the user who set the ban
  * @param Timestamp the timestamp of the ban
  */
-bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
+RESULT(bool) CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
 	Ban = (ban_t *)malloc(sizeof(ban_t));
 
 	CHECK_ALLOC_RESULT(Ban, malloc) {
-		return false;
+		THROW(bool, Generic_OutOfMemory, "malloc() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	Ban->Mask = strdup(Mask);
@@ -81,11 +81,11 @@ bool CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
  *
  * @param Mask the mask of the ban which is going to be removed
  */
-bool CBanlist::UnsetBan(const char *Mask) {
+RESULT(bool) CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
 		return m_Bans.Remove(Mask);
 	} else {
-		return false;
+		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
 	}
 }
 
@@ -118,13 +118,13 @@ const ban_t *CBanlist::GetBan(const char *Mask) const {
  *
  * @param Box the box which should be used for persisting the banlist
  */
-bool CBanlist::Freeze(CAssocArray *Box) {
+RESULT(bool) CBanlist::Freeze(CAssocArray *Box) {
 	char *Index;
 	ban_t *Ban;
 	unsigned int Count;
 
 	if (Box == NULL) {
-		return false;
+		THROW(bool, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Count = m_Bans.GetLength();
@@ -134,21 +134,21 @@ bool CBanlist::Freeze(CAssocArray *Box) {
 
 		asprintf(&Index, "%d.mask", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
-			return false;
+			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Box->AddString(Index, Ban->Mask);
 		free(Index);
 
 		asprintf(&Index, "%d.nick", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
-			return false;
+			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Box->AddString(Index, Ban->Nick);
 		free(Index);
 
 		asprintf(&Index, "%d.ts", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
-			return false;
+			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Box->AddInteger(Index, Ban->Timestamp);
 		free(Index);
@@ -156,7 +156,7 @@ bool CBanlist::Freeze(CAssocArray *Box) {
 
 	delete this;
 
-	return true;
+	RETURN(bool, true);
 }
 
 /**
@@ -166,7 +166,7 @@ bool CBanlist::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-CBanlist *CBanlist::Thaw(CAssocArray *Box) {
+RESULT(CBanlist *) CBanlist::Thaw(CAssocArray *Box) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;
@@ -174,20 +174,20 @@ CBanlist *CBanlist::Thaw(CAssocArray *Box) {
 	unsigned int i = 0;
 
 	if (Box == NULL) {
-		return NULL;
+		THROW(CBanlist *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Banlist = new CBanlist();
 
 	CHECK_ALLOC_RESULT(Banlist, new) {
-		return NULL;
+		THROW(CBanlist *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	while (true) {
 		asprintf(&Index, "%d.mask", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
 			delete Banlist;
-			return NULL;
+			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Mask = Box->ReadString(Index);
 		free(Index);
@@ -199,7 +199,7 @@ CBanlist *CBanlist::Thaw(CAssocArray *Box) {
 		asprintf(&Index, "%d.nick", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
 			delete Banlist;
-			return NULL;
+			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Nick = Box->ReadString(Index);
 		free(Index);
@@ -211,7 +211,7 @@ CBanlist *CBanlist::Thaw(CAssocArray *Box) {
 		asprintf(&Index, "%d.ts", i);
 		CHECK_ALLOC_RESULT(Index, asprintf) {
 			delete Banlist;
-			return NULL;
+			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 		Timestamp = Box->ReadInteger(Index);
 		free(Index);
@@ -221,5 +221,5 @@ CBanlist *CBanlist::Thaw(CAssocArray *Box) {
 		i++;
 	}
 
-	return Banlist;
+	RETURN(CBanlist *, Banlist);
 }
