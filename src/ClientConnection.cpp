@@ -1315,7 +1315,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 					if (argc == 3) {
 						if (Chan && Chan->AreModesValid()) {
-							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetChannelModes());
+							WriteLine(":%s 324 %s %s %s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], (const char *)Chan->GetChannelModes());
 							WriteLine(":%s 329 %s %s %d", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Chan->GetCreationTime());
 						} else
 							IRC->WriteLine("MODE %s", argv[2]);
