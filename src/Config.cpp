@@ -175,12 +175,10 @@ RESULT(bool) CConfig::WriteString(const char *Setting, const char *Value) {
 		ReturnValue = m_Settings.Remove(Setting);
 	}
 
-	if (ReturnValue == false) {
-		THROW(bool, Generic_Unknown, "Setting could not be modified.");
-	}
+	THROWIFERROR(bool, ReturnValue);
 
 	if (!m_WriteLock) {
-		return ReturnValue;
+		return Persist();
 	} else {
 		RETURN(bool, true);
 	}
