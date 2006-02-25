@@ -195,10 +195,10 @@ public:
 	virtual const char *GetDropModes(void);
 	virtual void SetDropModes(const char *DropModes);
 
-	virtual CVector<X509 *> *GetClientCertificates(void);
-	virtual bool AddClientCertificate(X509 *Certificate);
-	virtual bool RemoveClientCertificate(X509 *Certificate);
-	virtual bool FindClientCertificate(X509 *Certificate);
+	virtual const CVector<X509 *> *GetClientCertificates(void) const;
+	virtual bool AddClientCertificate(const X509 *Certificate);
+	virtual bool RemoveClientCertificate(const X509 *Certificate);
+	virtual bool FindClientCertificate(const X509 *Certificate) const;
 
 	virtual void SetSSL(bool SSL);
 	virtual bool GetSSL(void);

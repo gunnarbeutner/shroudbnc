@@ -129,13 +129,13 @@ CConfig::~CConfig() {
  *
  * @param Setting the configuration setting
  */
-const char *CConfig::ReadString(const char *Setting) const {
+RESULT(const char *) CConfig::ReadString(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
-		return Value;
+		RETURN(const char *, Value);
 	} else {
-		return NULL;
+		THROW(const char *, Generic_Unknown, "There is no such setting.");
 	}
 }
 
@@ -147,13 +147,13 @@ const char *CConfig::ReadString(const char *Setting) const {
  *
  * @param Setting the configuration setting
  */
-int CConfig::ReadInteger(const char *Setting) const {
+RESULT(int) CConfig::ReadInteger(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
-		return atoi(Value);
+		RETURN(int, atoi(Value));
 	} else {
-		return 0;
+		THROW(int, Generic_Unknown, "There is no such setting.");
 	}
 }
 
@@ -166,8 +166,8 @@ int CConfig::ReadInteger(const char *Setting) const {
  * @param Value the new value for the setting, can be NULL to indicate that
  *              the configuration setting is to be removed
  */
-bool CConfig::WriteString(const char *Setting, const char *Value) {
-	bool ReturnValue;
+RESULT(bool) CConfig::WriteString(const char *Setting, const char *Value) {
+	RESULT(bool) ReturnValue;
 
 	if (Value != NULL) {
 		ReturnValue = m_Settings.Add(Setting, strdup(Value));
@@ -176,13 +176,13 @@ bool CConfig::WriteString(const char *Setting, const char *Value) {
 	}
 
 	if (ReturnValue == false) {
-		return false;
+		THROW(bool, Generic_Unknown, "Setting could not be modified.");
 	}
 
-	if (m_WriteLock == false && Persist() == false) {
-		return false;
+	if (!m_WriteLock) {
+		return ReturnValue;
 	} else {
-		return true;
+		RETURN(bool, true);
 	}
 }
 
@@ -194,14 +194,14 @@ bool CConfig::WriteString(const char *Setting, const char *Value) {
  * @param Setting the configuration setting
  * @param Value the new value for the setting
  */
-bool CConfig::WriteInteger(const char *Setting, const int Value) {
+RESULT(bool) CConfig::WriteInteger(const char *Setting, const int Value) {
 	char *ValueString;
-	bool ReturnValue;
+	RESULT(bool) ReturnValue;
 
 	asprintf(&ValueString, "%d", Value);
 
 	CHECK_ALLOC_RESULT(ValueString, asprintf) {
-		return false;
+		THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	ReturnValue = WriteString(Setting, ValueString);
@@ -217,15 +217,15 @@ bool CConfig::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is volatile.
  */
-bool CConfig::Persist(void) const {
+RESULT(bool) CConfig::Persist(void) const {
 	if (m_Filename == NULL) {
-		return false;
+		RETURN(bool, false);
 	}
 
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
 	CHECK_ALLOC_RESULT(ConfigFile, fopen) {
-		return false;
+		THROW(bool, Generic_Unknown, "Could not open config file.");
 	} CHECK_ALLOC_RESULT_END;
 
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
@@ -239,7 +239,7 @@ bool CConfig::Persist(void) const {
 
 	fclose(ConfigFile);
 
-	return true;
+	RETURN(bool, true);
 }
 
 /**

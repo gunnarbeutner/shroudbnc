@@ -191,7 +191,7 @@ void CConnection::InitSocket(void) {
 	g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents *)this);
 }
 
-SOCKET CConnection::GetSocket(void) {
+SOCKET CConnection::GetSocket(void) const {
 	return m_Socket;
 }
 
@@ -420,7 +420,7 @@ void CConnection::ParseLine(const char *Line) {
 	// default implementation ignores any data
 }
 
-connection_role_e CConnection::GetRole(void) {
+connection_role_e CConnection::GetRole(void) const {
 	return m_Role;
 }
 
@@ -439,7 +439,7 @@ void CConnection::Kill(const char *Error) {
 	Timeout(10);
 }
 
-bool CConnection::HasQueuedData(void) {
+bool CConnection::HasQueuedData(void) const {
 #ifdef USESSL
 	if (IsSSL() && SSL_want_write(m_SSL)) {
 		return true;
@@ -454,7 +454,7 @@ bool CConnection::HasQueuedData(void) {
 }
 
 
-int CConnection::GetSendqSize(void) {
+int CConnection::GetSendqSize(void) const {
 	if (m_SendQ) {
 		return m_SendQ->GetSize();
 	} else {
@@ -462,7 +462,7 @@ int CConnection::GetSendqSize(void) {
 	}
 }
 
-int CConnection::GetRecvqSize(void) {
+int CConnection::GetRecvqSize(void) const {
 	if (m_RecvQ != NULL) {
 		return m_RecvQ->GetSize();
 	} else {
@@ -481,7 +481,7 @@ void CConnection::Lock(void) {
 	m_Locked = true;
 }
 
-bool CConnection::IsLocked(void) {
+bool CConnection::IsLocked(void) const {
 	return m_Locked;
 }
 
@@ -508,11 +508,11 @@ void CConnection::SetTrafficStats(CTrafficStats *Stats) {
 	m_Traffic = Stats;
 }
 
-CTrafficStats *CConnection::GetTrafficStats(void) {
+const CTrafficStats *CConnection::GetTrafficStats(void) const {
 	return m_Traffic;
 }
 
-const char *CConnection::GetClassName(void) {
+const char *CConnection::GetClassName(void) const {
 	return "CConnection";
 }
 
@@ -522,7 +522,7 @@ void CConnection::FlushSendQ(void) {
 	}
 }
 
-bool CConnection::IsSSL(void) {
+bool CConnection::IsSSL(void) const {
 #ifdef USESSL
 	return m_HasSSL;
 #else
@@ -530,7 +530,7 @@ bool CConnection::IsSSL(void) {
 #endif
 }
 
-X509 *CConnection::GetPeerCertificate(void) {
+const X509 *CConnection::GetPeerCertificate(void) const {
 #ifdef USESSL
 	if (IsSSL()) {
 		return SSL_get_peer_certificate(m_SSL);
@@ -540,7 +540,7 @@ X509 *CConnection::GetPeerCertificate(void) {
 	return NULL;
 }
 
-int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) {
+int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 	return 1;
 }
 
@@ -639,26 +639,26 @@ void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	AsyncConnect();
 }
 
-bool CConnection::ShouldDestroy(void) {
+bool CConnection::ShouldDestroy(void) const {
 	return m_LatchedDestruction;
 }
 
-sockaddr *CConnection::GetRemoteAddress(void) {
+sockaddr *CConnection::GetRemoteAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;
 	}
 }
 
-sockaddr *CConnection::GetLocalAddress(void) {
+sockaddr *CConnection::GetLocalAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;

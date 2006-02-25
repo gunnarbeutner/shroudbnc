@@ -60,7 +60,7 @@ public:
 		g_free(Buf);
 	}
 
-	virtual const char *GetClassName(void) {
+	virtual const char *GetClassName(void) const {
 		return "CTclSocket";
 	}
 

@@ -41,6 +41,11 @@ bool IRCPingTimer(time_t Now, void* IRCConnection);
 typedef void X509_STORE_CTX;
 #endif
 
+#ifdef SWIGINTERFACE
+%template(COwnedObjectCUser) COwnedObject<class CUser>;
+%template(CZoneObjectCIRCConnection) CZoneObject<class CIRCConnection, 16>;
+#endif
+
 class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZoneObject<CIRCConnection, 16> {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);

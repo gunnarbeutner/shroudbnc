@@ -17,6 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCConfig) CZoneObject<class CConfig, 128>;
+%template(HashTCharP) hash_t<char *>;
+#endif
+
 /**
  * CConfig
  *
@@ -30,7 +35,7 @@ class CConfig : public CZoneObject<CConfig, 128> {
 						   updated when settings are added/removed */
 
 	bool ParseConfig(void);
-	bool Persist(void) const;
+	RESULT(bool) Persist(void) const;
 public:
 #ifndef SWIG
 	CConfig(const char *Filename);
@@ -42,11 +47,11 @@ public:
 	static RESULT(CConfig *) Thaw(CAssocArray *Box);
 #endif
 
-	virtual int ReadInteger(const char *Setting) const;
-	virtual const char *ReadString(const char *Setting) const;
+	virtual RESULT(int) ReadInteger(const char *Setting) const;
+	virtual RESULT(const char *) ReadString(const char *Setting) const;
 
-	virtual bool WriteInteger(const char *Setting, const int Value);
-	virtual bool WriteString(const char *Setting, const char *Value);
+	virtual RESULT(bool) WriteInteger(const char *Setting, const int Value);
+	virtual RESULT(bool) WriteString(const char *Setting, const char *Value);
 
 	virtual hash_t<char *> *Iterate(int Index) const;
 
@@ -55,8 +60,3 @@ public:
 	virtual void Reload(void);
 	virtual unsigned int GetLength(void) const;
 };
-
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCConfig) CZoneObject<class CConfig, 128>;
-%template(HashTCharP) hash_t<char *>;
-#endif

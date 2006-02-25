@@ -131,7 +131,7 @@ public:
 	virtual void Error(void) {
 	}
 
-	bool HasQueuedData(void) {
+	bool HasQueuedData(void) const {
 		return false;
 	}
 
@@ -139,11 +139,11 @@ public:
 		return false;
 	}
 
-	bool ShouldDestroy(void) {
+	bool ShouldDestroy(void) const {
 		return false;
 	}
 
-	const char *GetClassName(void) {
+	const char *GetClassName(void) const {
 		return "CUdpSocket";
 	}
 

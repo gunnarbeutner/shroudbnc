@@ -34,14 +34,14 @@ public:
 	virtual bool Read(bool DontProcess);
 	virtual void Write(void);
 	virtual void Error(void);
-	virtual bool HasQueuedData(void);
+	virtual bool HasQueuedData(void) const;
 	virtual bool DoTimeout(void);
-	virtual bool ShouldDestroy(void);
+	virtual bool ShouldDestroy(void) const;
 
-	virtual const char* GetClassName(void);
+	virtual const char* GetClassName(void) const;
 
 	virtual void SetControlProc(const char* Proc);
-	virtual const char* GetControlProc(void);
+	virtual const char* GetControlProc(void) const;
 	virtual void WriteLine(const char* Line);
 
 	virtual int GetIdx(void);

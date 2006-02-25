@@ -86,7 +86,7 @@ int CmpCommandT(const void *pA, const void *pB);
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
 
-#define LOGERROR(...) g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError(##__VA_ARGS__)
+#define LOGERROR(...) g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError(__VA_ARGS__)
 
 void StrTrim(char *String);
 

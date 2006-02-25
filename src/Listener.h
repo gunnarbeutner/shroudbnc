@@ -43,11 +43,11 @@ private:
 
 	virtual void Write(void) { }
 	virtual void Error(void) { }
-	virtual bool HasQueuedData(void) { return false; }
+	virtual bool HasQueuedData(void) const { return false; }
 	virtual bool DoTimeout(void) { return false; }
-	virtual bool ShouldDestroy(void) { return false; }
+	virtual bool ShouldDestroy(void) const { return false; }
 
-	virtual const char *GetClassName(void) { return "CListenerBase"; }
+	virtual const char *GetClassName(void) const { return "CListenerBase"; }
 
 	/**
 	 * Initialize
@@ -114,9 +114,9 @@ public:
 	static RESULT(InheritedClass *) Thaw(CAssocArray *Box) {
 		InheritedClass *Listener = new InheritedClass();
 
-		if (Listener == NULL) {
+		CHECK_ALLOC_RESULT(Listener, new) {
 			THROW(InheritedClass *, Generic_OutOfMemory, "new operator failed.");
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
@@ -150,7 +150,7 @@ public:
 	 *
 	 * Verifies that the underlying socket object is valid.
 	 */
-	virtual bool IsValid(void) { 
+	virtual bool IsValid(void) const { 
 		if (m_Listener != INVALID_SOCKET) {
 			return true;
 		} else {
@@ -163,7 +163,7 @@ public:
 	 *
 	 * Returns the socket which is used by the listener object.
 	 */
-	virtual SOCKET GetSocket(void) {
+	virtual SOCKET GetSocket(void) const {
 		return m_Listener;
 	}
 };

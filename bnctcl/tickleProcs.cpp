@@ -375,17 +375,17 @@ int putserv(const char* text) {
 }
 
 int putclient(const char* text) {
-	CUser* Context = g_Bouncer->GetUser(g_Context);
+	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
 		return 0;
 
-	CClientConnection* Client = Context->GetClientConnection();
+	CClientConnection *Client = Context->GetClientConnection();
 
 	if (!Client)
 		return 0;
 
-	Client->WriteUnformattedLine(text);
+	Client->WriteLine("%s", text);
 
 	return 1;
 }
@@ -516,7 +516,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	CHashtable<CNick*, false, 64>* Names = Chan->GetNames();
+	const CHashtable<CNick*, false, 64>* Names = Chan->GetNames();
 
 	int Count = Names->GetLength();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));

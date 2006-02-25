@@ -23,6 +23,10 @@ class CUser;
 #define Log_Message 0
 #define Log_Motd 2
 
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCLog) CZoneObject<class CLog, 16>;
+#endif
+
 /**
  * CLog
  *

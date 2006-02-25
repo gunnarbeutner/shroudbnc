@@ -145,7 +145,7 @@ public:
 		m_Wrap->Error();
 	}
 
-	bool HasQueuedData(void) {
+	bool HasQueuedData(void) const {
 		return m_Wrap->HasQueuedData();
 	}
 
@@ -157,9 +157,9 @@ public:
 		return m_Wrap->DoTimeout();
 	}
 
-	bool ShouldDestroy(void) { return false; }
+	bool ShouldDestroy(void) const { return false; }
 
-	const char *GetClassName(void) {
+	const char *GetClassName(void) const {
 		return "CIdentClient";
 	}
 };

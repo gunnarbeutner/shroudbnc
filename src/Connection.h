@@ -80,6 +80,8 @@ private:
 	int m_Family;
 
 	void InitConnection(SOCKET Client, bool SSL);
+
+	virtual const char *GetClassName(void) const;
 public:
 #ifndef SWIG
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
@@ -87,38 +89,36 @@ public:
 	virtual ~CConnection(void);
 #endif
 
-	virtual SOCKET GetSocket(void);
+	virtual SOCKET GetSocket(void) const;
 
 	virtual void WriteUnformattedLine(const char *Line);
 	virtual void WriteLine(const char *Format, ...);
 	virtual bool ReadLine(char **Out);
 
-	virtual connection_role_e GetRole(void);
+	virtual connection_role_e GetRole(void) const;
 
 	virtual void Kill(const char *Error);
 
-	virtual int GetSendqSize(void);
-	virtual int GetRecvqSize(void);
+	virtual int GetSendqSize(void) const;
+	virtual int GetRecvqSize(void) const;
 
 	virtual void Lock(void);
-	virtual bool IsLocked(void);
+	virtual bool IsLocked(void) const;
 
 	virtual void Shutdown(void);
 
 	virtual void SetTrafficStats(CTrafficStats *Stats);
-	virtual CTrafficStats *GetTrafficStats(void);
+	virtual const CTrafficStats *GetTrafficStats(void) const;
 
 	virtual void FlushSendQ(void);
 
-	virtual bool IsSSL(void);
-	virtual X509 *GetPeerCertificate(void);
-	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context);
-	virtual bool ShouldDestroy(void);
+	virtual bool IsSSL(void) const;
+	virtual const X509 *GetPeerCertificate(void) const;
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
+	virtual bool ShouldDestroy(void) const;
 
-	virtual sockaddr *GetRemoteAddress(void);
-	virtual sockaddr *GetLocalAddress(void);
-
-	virtual const char *GetClassName(void);
+	virtual sockaddr *GetRemoteAddress(void) const;
+	virtual sockaddr *GetLocalAddress(void) const;
 
 	void Destroy(void);
 
@@ -127,5 +127,5 @@ public:
 	virtual void Write(void);
 	virtual bool DoTimeout(void);
 	virtual void Error(void);
-	virtual bool HasQueuedData(void);
+	virtual bool HasQueuedData(void) const;
 };

@@ -147,7 +147,7 @@ void CTclClientSocket::Error(void) {
 	m_Wrap->Error();
 }
 
-bool CTclClientSocket::HasQueuedData(void) {
+bool CTclClientSocket::HasQueuedData(void) const {
 	return m_Wrap->HasQueuedData();
 }
 
@@ -159,7 +159,7 @@ void CTclClientSocket::SetControlProc(const char* Proc) {
 	m_Control = strdup(Proc);
 }
 
-const char* CTclClientSocket::GetControlProc(void) {
+const char* CTclClientSocket::GetControlProc(void) const {
 	return m_Control;
 }
 
@@ -167,7 +167,7 @@ void CTclClientSocket::WriteLine(const char* Line) {
 	m_Wrap->WriteUnformattedLine(Line);
 }
 
-const char* CTclClientSocket::GetClassName(void) {
+const char* CTclClientSocket::GetClassName(void) const {
 	return "CTclClientSocket";
 }
 
@@ -183,6 +183,6 @@ void CTclClientSocket::DestroyLater(void) {
 	m_Destroy = true;
 }
 
-bool CTclClientSocket::ShouldDestroy(void) {
+bool CTclClientSocket::ShouldDestroy(void) const {
 	return false; 
 }

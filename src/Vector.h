@@ -31,7 +31,7 @@ template <typename Type>
 class CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
-	Type *m_List; /**< the actual list */
+	mutable Type *m_List; /**< the actual list */
 	unsigned int m_Count; /**< the number of items in the list */
 
 public:
@@ -142,7 +142,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
-	virtual Type& operator[] (int Index) {
+	virtual Type& operator[] (int Index) const {
 		// check m_Count
 
 		return m_List[Index];
@@ -155,7 +155,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
-	virtual Type& Get(int Index) {
+	virtual Type& Get(int Index) const {
 		return m_List[Index];
 	}
 
@@ -164,7 +164,7 @@ public:
 	 *
 	 * Returns the number of items.
 	 */
-	virtual unsigned int GetLength(void) {
+	virtual unsigned int GetLength(void) const {
 		return m_Count;
 	}
 
@@ -173,7 +173,7 @@ public:
 	 *
 	 * Returns the actual list which is used for storing the items.
 	 */
-	virtual Type *GetList(void) {
+	virtual Type *GetList(void) const {
 		return m_List;
 	}
 
@@ -198,7 +198,7 @@ public:
 	 *
 	 * @param Index the index of the item
 	 */
-	virtual Type *GetAddressOf(int Index) {
+	virtual Type *GetAddressOf(int Index) const {
 		return &(m_List[Index]);
 	}
 

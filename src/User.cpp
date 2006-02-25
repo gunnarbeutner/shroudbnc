@@ -431,20 +431,18 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	m_Client = OldClient;
 
 	if (FakeWasNull) {
-		delete FakeClient;
+		FakeClient->Destroy();
 	}
 
 	free(CommandDup);
 }
 
 void CUser::Reconnect(void) {
-	if (m_IRC) {
-		m_IRC->Kill("Reconnecting");
+	if (m_IRC != NULL) {
+		m_IRC->Kill("Reconnecting.");
 
 		SetIRCConnection(NULL);
 	}
-
-	char* Out;
 
 	if (m_ReconnectTimer) {
 		m_ReconnectTimer->Destroy();
@@ -481,10 +479,11 @@ void CUser::Reconnect(void) {
 			BindIp = NULL;
 	}
 
-	if (GetIdent() != NULL)
+	if (GetIdent() != NULL) {
 		g_Bouncer->SetIdent(GetIdent());
-	else
+	} else {
 		g_Bouncer->SetIdent(m_Name);
+	}
 
 	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
@@ -1043,7 +1042,7 @@ void CUser::SetDropModes(const char *DropModes) {
 	USER_SETFUNCTION(dropmodes, DropModes);
 }
 
-CVector<X509 *> *CUser::GetClientCertificates(void) {
+const CVector<X509 *> *CUser::GetClientCertificates(void) const {
 #ifdef USESSL
 	return &m_ClientCertificates;
 #else
@@ -1051,15 +1050,19 @@ CVector<X509 *> *CUser::GetClientCertificates(void) {
 #endif
 }
 
-bool CUser::AddClientCertificate(X509 *Certificate) {
+bool CUser::AddClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
+	X509 *DuplicateCertificate;
+
 	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			return true;
 		}
 	}
 
-	m_ClientCertificates.Insert(Certificate);
+	DuplicateCertificate = /*X509_dup(*/const_cast<X509 *>(Certificate)/*)*/;
+
+	m_ClientCertificates.Insert(DuplicateCertificate);
 
 	return PersistCertificates();
 #else
@@ -1067,10 +1070,12 @@ bool CUser::AddClientCertificate(X509 *Certificate) {
 #endif
 }
 
-bool CUser::RemoveClientCertificate(X509 *Certificate) {
+bool CUser::RemoveClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
 	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
+			X509_free(m_ClientCertificates[i]);
+
 			m_ClientCertificates.Remove(i);
 
 			return PersistCertificates();
@@ -1118,7 +1123,7 @@ bool CUser::PersistCertificates(void) {
 }
 #endif
 
-bool CUser::FindClientCertificate(X509 *Certificate) {
+bool CUser::FindClientCertificate(const X509 *Certificate) const {
 #ifdef USESSL
 	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
@@ -1170,11 +1175,9 @@ const char *CUser::GetTagString(const char *Tag) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	if (Setting == NULL) {
-		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
-
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	Value = m_Config->ReadString(Setting);
 
@@ -1204,11 +1207,9 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	if (Setting == NULL) {
-		LOGERROR("asprintf() failed. Could not store global tag.");
-
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	ReturnValue = m_Config->WriteString(Setting, Value);
 
@@ -1227,11 +1228,9 @@ bool CUser::SetTagInteger(const char *Tag, int Value) {
 
 	asprintf(&StringValue, "%d", Value);
 
-	if (StringValue == NULL) {
-		LOGERROR("asprintf() failed. Could not store global tag.");
-
+	CHECK_ALLOC_RESULT(StringValue, asprintf) {
 		return false;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	ReturnValue = SetTagString(Tag, StringValue);
 

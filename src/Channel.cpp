@@ -41,10 +41,11 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 
 	m_HasNames = false;
 	m_ModesValid = false;
-	m_Banlist = new CBanlist();
 
 	m_HasBans = false;
 	m_TempModes = NULL;
+
+	m_Banlist = new CBanlist();
 }
 
 CChannel::~CChannel() {
@@ -65,32 +66,38 @@ CChannel::~CChannel() {
 	delete m_Banlist;
 }
 
-const char *CChannel::GetName(void) {
+const char *CChannel::GetName(void) const {
 	return m_Name;
 }
 
-const char *CChannel::GetChannelModes(void) {
+RESULT(const char *) CChannel::GetChannelModes(void) {
 	int i;
 	size_t Size;
+	char *NewTempModes;
+	char ModeString[2];
+	int ModeType;
 
 	if (m_TempModes != NULL) {
-		return m_TempModes;
+		RETURN(const char *, m_TempModes);
 	}
 
-	Size = 1024;
+	Size = m_ModeCount + 1024;
 	m_TempModes = (char *)malloc(Size);
+
+	CHECK_ALLOC_RESULT(m_TempModes, malloc) {
+		THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
+	} CHECK_ALLOC_RESULT_END;
 
 	strcpy(m_TempModes, "+");
 
 	for (i = 0; i < m_ModeCount; i++) {
-		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+		ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && ModeType != 3) {
-			char m[2];
-			m[0] = m_Modes[i].Mode;
-			m[1] = '\0';
+			ModeString[0] = m_Modes[i].Mode;
+			ModeString[1] = '\0';
 
-			strcat(m_TempModes, m);
+			strcat(m_TempModes, ModeString);
 		}
 	}
 
@@ -101,18 +108,23 @@ const char *CChannel::GetChannelModes(void) {
 			strcat(m_TempModes, " ");
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
-				Size += 1024;
-				m_TempModes = (char*)realloc(m_TempModes, Size);
+				Size += strlen(m_Modes[i].Parameter) + 1024;
+				NewTempModes = (char*)realloc(m_TempModes, Size);
 
-				if (m_TempModes == NULL)
-					return "";
+				CHECK_ALLOC_RESULT(m_TempModes, malloc) {
+					free(m_TempModes);
+
+					THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
+				} CHECK_ALLOC_RESULT_END;
+
+				m_TempModes = NewTempModes;
 			}
 
 			strcat(m_TempModes, m_Modes[i].Parameter);
 		}
 	}
 
-	return m_TempModes;
+	RETURN(const char *, m_TempModes);
 }
 
 void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc, const char **pargv) {
@@ -257,7 +269,7 @@ chanmode_t *CChannel::FindSlot(char Mode) {
 	return NULL;
 }
 
-time_t CChannel::GetCreationTime(void) {
+time_t CChannel::GetCreationTime(void) const {
 	return m_Creation;
 }
 
@@ -265,7 +277,7 @@ void CChannel::SetCreationTime(time_t Time) {
 	m_Creation = Time;
 }
 
-const char *CChannel::GetTopic(void) {
+const char *CChannel::GetTopic(void) const {
 	return m_Topic;
 }
 
@@ -283,7 +295,7 @@ void CChannel::SetTopic(const char *Topic) {
 	m_HasTopic = 1;
 }
 
-const char *CChannel::GetTopicNick(void) {
+const char *CChannel::GetTopicNick(void) const {
 	return m_TopicNick;
 }
 
@@ -301,7 +313,7 @@ void CChannel::SetTopicNick(const char *Nick) {
 	m_HasTopic = 1;
 }
 
-time_t CChannel::GetTopicStamp(void) {
+time_t CChannel::GetTopicStamp(void) const {
 	return m_TopicStamp;
 }
 
@@ -310,7 +322,7 @@ void CChannel::SetTopicStamp(time_t Timestamp) {
 	m_HasTopic = 1;
 }
 
-int CChannel::HasTopic(void) {
+int CChannel::HasTopic(void) const {
 	return m_HasTopic;
 }
 
@@ -333,11 +345,24 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 }
 
 void CChannel::RemoveUser(const char *Nick) {
-	CNick *NickObject = m_Nicks.Get(Nick);
 	m_Nicks.Remove(Nick);
 }
 
-bool CChannel::HasNames(void) {
+void CChannel::RenameUser(const char *Nick, const char *NewNick) {
+	CNick *NickObj;
+
+	NickObj = m_Nicks.Get(Nick);
+
+	if (NickObj == NULL) {
+		return;
+	}
+
+	m_Nicks.Remove(Nick, true);
+	NickObj->SetNick(NewNick);
+	m_Nicks.Add(Nick, NickObj);
+}
+
+bool CChannel::HasNames(void) const {
 	return m_HasNames;
 }
 
@@ -345,7 +370,7 @@ void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
-CHashtable<CNick *, false, 64> *CChannel::GetNames(void) {
+const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
 	return &m_Nicks;
 }
 
@@ -364,7 +389,7 @@ void CChannel::ClearModes(void) {
 	}
 }
 
-bool CChannel::AreModesValid(void) {
+bool CChannel::AreModesValid(void) const {
 	return m_ModesValid;
 }
 
@@ -380,21 +405,23 @@ void CChannel::SetHasBans(void) {
 	m_HasBans = true;
 }
 
-bool CChannel::HasBans(void) {
+bool CChannel::HasBans(void) const {
 	return m_HasBans;
 }
 
-bool CChannel::SendWhoReply(bool Simulate) {
+bool CChannel::SendWhoReply(bool Simulate) const {
 	char CopyIdent[50];
 	char *Ident, *Host, *Site;
 	const char *Server, *Realname, *SiteTemp;
 	CClientConnection *Client = m_Owner->GetOwner()->GetClientConnection();
 
-	if (Client == NULL)
+	if (Client == NULL) {
 		return true;
+	}
 
-	if (!HasNames())
+	if (!HasNames()) {
 		return false;
+	}
 
 	int a = 0;
 

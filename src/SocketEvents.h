@@ -24,9 +24,9 @@ public:
 	virtual bool Read(bool DontProcess = false) = 0;
 	virtual void Write(void) = 0;
 	virtual void Error(void) = 0;
-	virtual bool HasQueuedData(void) = 0;
+	virtual bool HasQueuedData(void) const = 0;
 	virtual bool DoTimeout(void) = 0;
-	virtual bool ShouldDestroy(void) = 0;
+	virtual bool ShouldDestroy(void) const = 0;
 
-	virtual const char *GetClassName(void) = 0;
+	virtual const char *GetClassName(void) const = 0;
 };

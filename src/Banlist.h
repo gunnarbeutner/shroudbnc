@@ -28,6 +28,10 @@ typedef struct ban_s {
 	time_t Timestamp;
 } ban_t;
 
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCBanlist) CZoneObject<class CBanlist, 128>;
+#endif
+
 /**
  * CBanlist
  *
@@ -53,8 +57,3 @@ public:
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 };
-
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCBanlist) CZoneObject<class CBanlist, 128>;
-%template(CResultBool) CResult<bool>;
-#endif

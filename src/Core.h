@@ -40,12 +40,13 @@ typedef struct socket_s {
 
 typedef void (*ExitHandler)(void *Cookie);
 
-typedef struct exithandler_s {
-	ExitHandler Handler;
-	void *Cookie;
-} exithandler_t;
-
 class CClientListener;
+
+#ifdef SWIGINTERFACE
+%template(CVectorCModule) CVector<class CModule *>;
+%template(CVectorCZoneInformation) CVector<struct CZoneInformation *>;
+%template(CVectorFileT) CVector<file_t>;
+#endif
 
 class CCore {
 #ifndef SWIG
@@ -213,9 +214,3 @@ extern CCore *g_Bouncer;
 		if (Variable == NULL)
 
 #define CHECK_ALLOC_RESULT_END } while (0)
-
-#ifdef SWIGINTERFACE
-%template(CVectorCModule) CVector<class CModule *>;
-%template(CVectorCZoneInformation) CVector<struct CZoneInformation *>;
-%template(CVectorFileT) CVector<file_t>;
-#endif

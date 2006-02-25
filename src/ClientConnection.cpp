@@ -32,16 +32,13 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_Password = NULL;
 	m_Username = NULL;
 	m_PreviousNick = NULL;
-
 	m_PeerName = NULL;
 	m_PeerNameTemp = NULL;
-
 	m_ClientLookup = NULL;
-
 	m_CommandList = NULL;
 
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
-		Kill("Sorry, no new connections can be accepted at this moment. please try again later.");
+		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
 
 		return;
 	}
@@ -68,25 +65,33 @@ CClientConnection::~CClientConnection() {
 	free(m_PeerName);
 	free(m_PreviousNick);
 
-	if (m_ClientLookup != NULL) {
-		delete m_ClientLookup;
-	}
+	delete m_ClientLookup;
 }
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
-	char* Out;
-	CUser* targUser = m_Owner;
+	char *Out;
+	CUser *targUser = m_Owner;
+	CVector<CModule *> *Modules;
+	bool latchedRetVal = true;
 
-#define SENDUSER(Text) { \
-	if (NoticeUser) { \
-		targUser->RealNotice(Text); \
-	} else { \
-		targUser->Notice(Text); \
-	} \
-	}
+	Modules = g_Bouncer->GetModules();
+
+#define SENDUSER(Text) \
+	do { \
+		if (NoticeUser) { \
+			targUser->RealNotice(Text); \
+		} else { \
+			targUser->Notice(Text); \
+		} \
+	} while (0)
 
 	if (argc < 1) {
-		SENDUSER("Try /sbnc help");
+		if (NoticeUser) {
+			SENDUSER("You need to specify a command. Try /sbnc help");
+		} else {
+			SENDUSER("You need to specify a command. Try /msg -sBNC help");
+		}
+
 		return false;
 	}
 
@@ -185,12 +190,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			"Syntax: help [command]\nDisplays a list of commands or information about individual commands.");
 	}
 
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
-	bool latchedRetVal = true;
-
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		if (Modules->Get(i)->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser))
+		if (Modules->Get(i)->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser)) {
 			latchedRetVal = false;
+		}
 	}
 
 	if (strcasecmp(Subcommand, "help") == 0) {
@@ -235,8 +238,6 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			}
 
-			FlushCommands(&m_CommandList);
-
 			free(Format);
 			free(CommandList);
 
@@ -272,11 +273,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			}
 		}
 
+		FlushCommands(&m_CommandList);
+
 		return false;
 	}
 
-	if (!latchedRetVal)
+	if (!latchedRetVal) {
 		return false;
+	}
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
@@ -299,14 +303,16 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		RESULT(CModule *) Module = g_Bouncer->LoadModule(argv[1]);
+		RESULT(CModule *) ModuleResult = g_Bouncer->LoadModule(argv[1]);
 
-		if (!IsError(Module)) {
+		if (!IsError(ModuleResult)) {
 			SENDUSER("Module was successfully loaded.");
 		} else {
-			asprintf(&Out, "Module could not be loaded: %s", GETDESCRIPTION(Module));
+			asprintf(&Out, "Module could not be loaded: %s", GETDESCRIPTION(ModuleResult));
 
 			CHECK_ALLOC_RESULT(Out, asprintf) {
+				SENDUSER("Module could not be loaded.");
+
 				return false;
 			} CHECK_ALLOC_RESULT_END;
 
@@ -322,27 +328,24 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		unsigned int idx = atoi(argv[1]);
+		unsigned int Index = atoi(argv[1]);
 
-		if (idx == 0 || idx > Modules->GetLength()) {
+		if (Index == 0 || Index > Modules->GetLength()) {
 			SENDUSER("There is no such module.");
 		} else {
-			CModule* Mod = Modules->Get(idx - 1);
+			CModule *Module = Modules->Get(Index - 1);
 
-			if (!Mod) {
-				SENDUSER("This module is already unloaded.");
+			if (g_Bouncer->UnloadModule(Module)) {
+				SENDUSER("Done.");
 			} else {
-				if (g_Bouncer->UnloadModule(Mod)) {
-					SENDUSER("Done.");
-				} else {
-					SENDUSER("Failed to unload this module.");
-				}
+				SENDUSER("Failed to unload this module.");
 			}
 		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "set") == 0) {
-		CConfig* Config = m_Owner->GetConfig();
+		CConfig *Config = m_Owner->GetConfig();
+
 		if (argc < 3) {
 			SENDUSER("Configurable settings:");
 			SENDUSER("--");
@@ -419,9 +422,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 
-			const char* AutoModes = m_Owner->GetAutoModes();
+			const char *AutoModes = m_Owner->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
-			const char* DropModes = m_Owner->GetDropModes();
+			const char *DropModes = m_Owner->GetDropModes();
 			bool ValidDropModes = DropModes && *DropModes;
 
 			const char *AutoModesPrefix = "+", *DropModesPrefix = "-";
@@ -551,7 +554,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "showcert") == 0) {
 		int i = 0;
 		char Buffer[300];
-		CVector<X509 *> *Certificates;
+		const CVector<X509 *> *Certificates;
 		X509_NAME* name;
 		bool First = true;
 
@@ -606,7 +609,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		id = atoi(argv[1]);
 
 		X509 *Certificate;
-		CVector<X509 *> *Certificates = m_Owner->GetClientCertificates();
+		const CVector<X509 *> *Certificates = m_Owner->GetClientCertificates();
 
 		if (id == 0 || Certificates->GetLength() > id) {
 			Certificate = NULL;
@@ -1358,7 +1361,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
-						CHashtable<CNick*, false, 64>* H = Chan->GetNames();
+						const CHashtable<CNick*, false, 64>* H = Chan->GetNames();
 
 						int a = 0;
 
@@ -1554,7 +1557,6 @@ void CClientConnection::ParseLine(const char* Line) {
 bool CClientConnection::ValidateUser() {
 	bool Force = false;
 	CUser* User;
-
 	bool Blocked = true, Valid = false, ValidHost = false;
 
 #ifdef USESSL
@@ -1575,6 +1577,8 @@ bool CClientConnection::ValidateUser() {
 					MatchUsername = true;
 			}
 		}
+
+		X509_free(PeerCert);
 
 		if (AuthUser && Count == 1) { // found a single user who has this public certificate
 			free(m_Username);
@@ -1633,10 +1637,6 @@ void CClientConnection::Destroy(void) {
 	}
 
 	delete this;
-}
-
-void CClientConnection::SetOwner(CUser* Owner) {
-	m_Owner = Owner;
 }
 
 void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {

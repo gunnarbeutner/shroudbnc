@@ -24,7 +24,7 @@ typedef struct penalty_s {
 	int Amplifier;
 } penalty_t;
 
-static penalty_t penalties [] = {
+static penalty_t Penalties [] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
 	{ "WHO", 2 },
@@ -57,16 +57,18 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	m_Queues.Insert(IrcQueue);
 }
 
-char *CFloodControl::DequeueItem(bool Peek) {
+RESULT(char *) CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
+	RESULT(const char *) PeekItem;
+	RESULT(char *) Item;
 
 	if (m_Control && (m_Bytes > FLOODBYTES - 100)) {
-		return NULL;
+		RETURN(char *, NULL);
 	}
 
 	if (m_Control && (time(NULL) - m_LastCommand < g_Bouncer->GetConfig()->ReadInteger("system.floodwait"))) {
-		return NULL;
+		RETURN(char *, NULL);
 	}
 
 	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
@@ -76,34 +78,39 @@ char *CFloodControl::DequeueItem(bool Peek) {
 		}
 	}
 
-	if (ThatQueue) {
-		const char *PItem = ThatQueue->Queue->PeekItem();
+	if (ThatQueue == NULL) {
+		RETURN(char *, NULL);
+	}
 
-		if (PItem == NULL) {
-			LOGERROR("PeekItem() failed.");
+	PeekItem = ThatQueue->Queue->PeekItem();
 
-			return NULL;
+	if (IsError(PeekItem)) {
+		LOGERROR("PeekItem() failed.");
+
+		THROWRESULT(char *, PeekItem);
+	}
+
+	if (m_Control && (strlen(PeekItem) + m_Bytes > FLOODBYTES - 150 && m_Bytes > 1/4 * FLOODBYTES)) {
+		RETURN(char *, NULL);
+	} else if (Peek) {
+		RETURN(char *, const_cast<char*>((const char *)PeekItem));
+	}
+
+	Item = ThatQueue->Queue->DequeueItem();
+
+	THROWIFERROR(char *, Item);
+
+	if (m_Control) {
+		m_Bytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
+
+		if (m_FloodTimer == NULL) {
+			m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
 		}
+	}
 
-		if (m_Control && (strlen(PItem) + m_Bytes > FLOODBYTES - 150 && m_Bytes > 1/4 * FLOODBYTES))
-			return NULL;
-		else if (Peek)
-			return const_cast<char*>(PItem);
+	time(&m_LastCommand);
 
-		char *Item = ThatQueue->Queue->DequeueItem();
-		
-		if (Item && m_Control) {
-			m_Bytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
-
-			if (m_FloodTimer == NULL)
-				m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
-		}
-
-		time(&m_LastCommand);
-
-		return Item;
-	} else
-		return NULL;
+	RETURN(char *, Item);
 }
 
 int CFloodControl::GetQueueSize(void) {
@@ -115,7 +122,11 @@ int CFloodControl::GetQueueSize(void) {
 }
 
 bool CFloodControl::Pulse(time_t Now) {
-	m_Bytes -= 75 > m_Bytes ? m_Bytes : 75;
+	if (m_Bytes > 75) {
+		m_Bytes -= 75;
+	} else {
+		m_Bytes = 0;
+	}
 
 	if (GetRealLength() == 0 && m_Bytes == 0) {
 		m_FloodTimer = NULL;
@@ -161,8 +172,10 @@ bool FloodTimer(time_t Now, void *FloodControl) {
 int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 	const char *Space = strstr(Line, " ");
 	char *Command;
+	int i;
+	penalty_t Penalty;
 	
-	if (Space) {
+	if (Space != NULL) {
 		Command = (char *)malloc(Space - Line + 1);
 
 		if (Command == NULL) {
@@ -174,24 +187,24 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 		strncpy(Command, Line, Space - Line);
 		Command[Space - Line] = '\0';
 	} else {
-		Command = const_cast<char*>(Line);
+		Command = const_cast<char *>(Line);
 	}
 
-	int i = 0;
+	i = 0;
 
 	while (true) {
-		penalty_t penalty = penalties[i++];
+		Penalty = Penalties[i++];
 
-		if (penalty.Command == NULL) {
+		if (Penalty.Command == NULL) {
 			break;
 		}
 
-		if (strcasecmp(penalty.Command, Command) == 0) {
+		if (strcasecmp(Penalty.Command, Command) == 0) {
 			if (Space != NULL) {
 				free(Command);
 			}
 
-			return penalty.Amplifier;
+			return Penalty.Amplifier;
 		}
 
 	}

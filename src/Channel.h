@@ -32,6 +32,10 @@ class CNick;
 class CBanlist;
 class CIRCConnection;
 
+#ifdef SWIGINTERFACE
+%template(CHashtableCNick) CHashtable<class CNick *, false, 64>;
+#endif
+
 /**
  * CChannel
  *
@@ -72,45 +76,41 @@ public:
 	static RESULT(CChannel *) Thaw(CAssocArray *Box);
 #endif
 
-	virtual const char *GetName(void);
+	virtual const char *GetName(void) const;
 
-	virtual const char *GetChannelModes(void);
+	virtual RESULT(const char *) GetChannelModes(void);
 	virtual void ParseModeChange(const char *source, const char *modes, int pargc, const char **pargv);
 
-	virtual time_t GetCreationTime(void);
+	virtual time_t GetCreationTime(void) const;
 	virtual void SetCreationTime(time_t T);
 
-	virtual const char *GetTopic(void);
+	virtual const char *GetTopic(void) const;
 	virtual void SetTopic(const char *Topic);
 
-	virtual const char *GetTopicNick(void);
+	virtual const char *GetTopicNick(void) const;
 	virtual void SetTopicNick(const char *Nick);
 
-	virtual time_t GetTopicStamp(void);
+	virtual time_t GetTopicStamp(void) const;
 	virtual void SetTopicStamp(time_t TS);
 
-	virtual int HasTopic(void);
+	virtual int HasTopic(void) const;
 	virtual void SetNoTopic(void);
 
 	virtual void AddUser(const char *Nick, const char *ModeChar);
 	virtual void RemoveUser(const char *Nick);
+	virtual void RenameUser(const char *Nick, const char *NewNick);
 
-	virtual bool HasNames(void);
+	virtual bool HasNames(void) const;
 	virtual void SetHasNames(void);
-	virtual CHashtable<CNick *, false, 64> *GetNames(void);
+	virtual const CHashtable<CNick *, false, 64> *GetNames(void) const;
 
 	virtual void ClearModes(void);
-	virtual bool AreModesValid(void);
+	virtual bool AreModesValid(void) const;
 	virtual void SetModesValid(bool Valid);
 
 	virtual CBanlist *GetBanlist(void);
 	virtual void SetHasBans(void);
-	virtual bool HasBans(void);
+	virtual bool HasBans(void) const;
 
-	virtual bool SendWhoReply(bool Simulate);
+	virtual bool SendWhoReply(bool Simulate) const;
 };
-
-#ifdef SWIGINTERFACE
-%template(CResultBool) CResult<bool>;
-%template(CHashtableCNick) CHashtable<class CNick *, false, 64>;
-#endif

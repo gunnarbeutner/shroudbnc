@@ -397,17 +397,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int i = 0;
 
 		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			CHashtable<CNick*, false, 64>* Nicks = Chan->Value->GetNames();
+			const CHashtable<CNick*, false, 64>* Nicks = Chan->Value->GetNames();
 
-			CNick* NickObj = Nicks->Get(Nick);
-
-			if (NickObj) {
-				Nicks->Remove(Nick, true);
-
-				NickObj->SetNick(argv[2]);
-
-				Nicks->Add(argv[2], NickObj);
-			}
+			Chan->Value->RenameUser(Nick, argv[2]);
 		}
 
 		free(Nick);
@@ -419,7 +411,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		int i = 0;
 
 		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			Chan->Value->GetNames()->Remove(Nick);
+			Chan->Value->RemoveUser(Nick);
 		}
 
 		free(Nick);
@@ -713,13 +705,14 @@ void CIRCConnection::ParseLine(const char* Line) {
 			if (m_State != State_Connected)
 				m_State = State_Pong;
 		} else {
-			CUser* User = GetOwner();
+			CUser *User = GetOwner();
 
 			if (User) {
-				CClientConnection* Client = User->GetClientConnection();
+				CClientConnection *Client = User->GetClientConnection();
 
-				if (Client)
-					Client->WriteUnformattedLine(Line);
+				if (Client != NULL) {
+					Client->WriteLine("%s", Line);
+				}
 			}
 		}
 	}

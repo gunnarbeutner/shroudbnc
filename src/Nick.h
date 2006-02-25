@@ -25,6 +25,10 @@ typedef struct nicktag_s {
 	char *Value;
 } nicktag_t;
 
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCNick) CZoneObject<class CNick, 1024>;
+#endif
+
 /**
  * CNick
  *

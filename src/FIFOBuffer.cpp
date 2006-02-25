@@ -106,10 +106,15 @@ unsigned int CFIFOBuffer::GetSize(void) {
 /**
  * Peek
  *
- * Returns a pointer to the buffer's data without advancing the read pointer.
+ * Returns a pointer to the buffer's data without advancing the read pointer (or
+ * NULL if there is no data left in the buffer).
  */
 char *CFIFOBuffer::Peek(void) {
-	return m_Buffer + m_Offset;
+	if (GetSize() == 0) {
+		return NULL;
+	} else {
+		return m_Buffer + m_Offset;
+	}
 }
 
 /**
@@ -141,21 +146,21 @@ char *CFIFOBuffer::Read(unsigned int Bytes) {
  * @param Data a pointer to the data
  * @param Size the number of bytes which should be written
  */
-void CFIFOBuffer::Write(const char *Data, unsigned int Size) {
+RESULT(bool) CFIFOBuffer::Write(const char *Data, unsigned int Size) {
 	char *tempBuffer;
 
 	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
 		m_BufferSize + Size);
 
-	if (tempBuffer == NULL) {
-		LOGERROR("realloc() failed. Lost %d bytes.", Size);
-
-		return;
-	}
+	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
+		THROW(bool, Generic_OutOfMemory, "ResizeBuffer() failed.");
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Data, Size);
 	m_BufferSize += Size;
+
+	RETURN(bool, true);
 }
 
 /**
@@ -165,20 +170,22 @@ void CFIFOBuffer::Write(const char *Data, unsigned int Size) {
  *
  * @param Line the line
  */
-void CFIFOBuffer::WriteUnformattedLine(const char *Line) {
+RESULT(bool) CFIFOBuffer::WriteUnformattedLine(const char *Line) {
 	unsigned int Len = strlen(Line);
 
 	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
 		m_BufferSize + Len + 2);
 
 	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
-		return;
+		THROW(bool, Generic_OutOfMemory, "ResizeBuffer() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Line, Len);
 	memcpy(m_Buffer + m_BufferSize + Len, "\r\n", 2);
 	m_BufferSize += Len + 2;
+
+	RETURN(bool, true);
 }
 
 /**

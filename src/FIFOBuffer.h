@@ -40,6 +40,6 @@ public:
 	virtual char *Read(unsigned int Bytes);
 	virtual void Flush(void);
 
-	virtual void Write(const char *Data, unsigned int Size);
-	virtual void WriteUnformattedLine(const char *Line);
+	virtual RESULT(bool) Write(const char *Data, unsigned int Size);
+	virtual RESULT(bool) WriteUnformattedLine(const char *Line);
 };
