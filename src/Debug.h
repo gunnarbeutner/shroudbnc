@@ -17,16 +17,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * allocation_t
+ *
+ * Used for logging allocations.
+ */
 typedef struct allocation_s {
 	const char *File;
-	unsigned int Size;
+	size_t Size;
 	void *Pointer;
 } allocation_t;
 
+/**
+ * file_t
+ *
+ * Used for summarizing all allocations for a single source file
+ */
 typedef struct file_s {
 	const char *File;
 	unsigned int AllocationCount;
-	unsigned int Bytes;
+	size_t Bytes;
 } file_t;
 
 #ifdef SBNC

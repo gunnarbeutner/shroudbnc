@@ -44,7 +44,7 @@ public:
 
 	virtual void Clear(void);
 	virtual void WriteLine(const char *Timestamp, const char *Format,...);
-	virtual void PlayToUser(CUser *User, int Type);
-	virtual bool IsEmpty(void);
-	virtual const char *GetFilename(void);
+	virtual void PlayToUser(CUser *User, int Type) const;
+	virtual bool IsEmpty(void) const;
+	virtual const char *GetFilename(void) const;
 };

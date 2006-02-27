@@ -19,8 +19,6 @@
 
 #include "StdAfx.h"
 
-extern loaderparams_t *g_LoaderParameters;
-
 IMPL_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient)
 
 //////////////////////////////////////////////////////////////////////
@@ -71,7 +69,7 @@ CClientConnection::~CClientConnection() {
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 	char *Out;
 	CUser *targUser = m_Owner;
-	CVector<CModule *> *Modules;
+	const CVector<CModule *> *Modules;
 	bool latchedRetVal = true;
 
 	Modules = g_Bouncer->GetModules();
@@ -201,7 +199,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			// show help
 			hash_t<command_t *> *Hash;
 			hash_t<command_t *> *CommandList;
-			int i = 0, Align = 0, Len;
+			int i = 0;
+			size_t Align = 0, Len;
 
 			CommandList = (hash_t<command_t *> *)malloc(sizeof(hash_t<command_t *>) * m_CommandList->GetLength());
 
@@ -210,8 +209,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 				Len = strlen(Hash->Name);
 
-				if (Len > Align)
+				if (Len > Align) {
 					Align = Len;
+				}
 			}
 
 			qsort(CommandList, m_CommandList->GetLength(), sizeof(hash_t<command_t *>), CmpCommandT);
@@ -303,7 +303,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		RESULT(CModule *) ModuleResult = g_Bouncer->LoadModule(argv[1]);
+		RESULT<CModule *> ModuleResult = g_Bouncer->LoadModule(argv[1]);
 
 		if (!IsError(ModuleResult)) {
 			SENDUSER("Module was successfully loaded.");
@@ -416,7 +416,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 #endif
 
-			asprintf(&Out, "timezone - %d", m_Owner->GetGmtOffset());
+			asprintf(&Out, "timezone - %s%d", (m_Owner->GetGmtOffset() > 0) ? "+" : "", m_Owner->GetGmtOffset());
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -446,6 +446,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				SENDUSER(Out);
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
+
+			if (m_Owner->IsAdmin()) {
+				asprintf(&Out, "sysnotices - %s", m_Owner->GetSystemNotices() ? "on" : "off");
+				CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+					SENDUSER(Out);
+					free(Out);
+				} CHECK_ALLOC_RESULT_END;
+			}
 		} else {
 			if (strcasecmp(argv[1], "server") == 0) {
 				if (argc > 3) {
@@ -529,6 +537,16 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 #endif
 			} else if (strcasecmp(argv[1], "timezone") == 0) {
 				m_Owner->SetGmtOffset(atoi(argv[2]));
+			} else if (strcasecmp(argv[1], "sysnotices") == 0) {
+				if (strcasecmp(argv[2], "on") == 0)
+					m_Owner->SetSystemNotices(true);
+				else if (strcasecmp(argv[2], "off") == 0)
+					m_Owner->SetSystemNotices(false);
+				else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
+				}
 			} else {
 				SENDUSER("Unknown setting");
 				return false;
@@ -569,7 +587,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				First = false;
 			}
 
-			asprintf(&Out, "Client Certificate #%d", i);
+			asprintf(&Out, "Client Certificate #%d", i + 1);
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -708,7 +726,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		ArgRejoinArray(argv, 1);
-		IRC->WriteUnformattedLine(argv[1]);
+		IRC->WriteLine("%s", argv[1]);
 
 		return false;
 	} else if (strcasecmp(Subcommand, "gvhost") == 0 && m_Owner->IsAdmin()) {
@@ -735,9 +753,23 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				SENDUSER(Out);
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
+
+			if (Motd != NULL && m_Owner->IsAdmin()) {
+				if (NoticeUser) {
+					SENDUSER("Use /sbnc motd remove to remove the motd.");
+				} else {
+					SENDUSER("Use /msg -sBNC motd remove to remove the motd.");
+				}
+			}
 		} else if (m_Owner->IsAdmin()) {
 			ArgRejoinArray(argv, 1);
-			g_Bouncer->SetMotd(argv[1]);
+
+			if (strcasecmp(argv[1], "remove") == 0) {
+				g_Bouncer->SetMotd(NULL);
+			} else {
+				g_Bouncer->SetMotd(argv[1]);
+			}
+
 			SENDUSER("Done.");
 		}
 
@@ -955,8 +987,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "erase") == 0) {
-		m_Owner->GetLog()->Clear();
-		SENDUSER("Done.");
+		if (m_Owner->GetLog()->IsEmpty()) {
+			SENDUSER("Your personal log is empty.");
+		} else {
+			m_Owner->GetLog()->Clear();
+			SENDUSER("Done.");
+		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "playmainlog") == 0 && m_Owner->IsAdmin()) {
@@ -979,7 +1015,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "hosts") == 0) {
-		CVector<char *> *Hosts = m_Owner->GetHostAllows();
+		const CVector<char *> *Hosts = m_Owner->GetHostAllows();
 
 		SENDUSER("Hostmasks");
 		SENDUSER("---------");
@@ -995,35 +1031,39 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "hostadd") == 0) {
+		RESULT<bool> Result;
+
 		if (argc <= 1) {
 			SENDUSER("Syntax: HOSTADD hostmask");
 
 			return false;
 		}
 
-		CVector<char *> *Hosts = m_Owner->GetHostAllows();
+		Result = m_Owner->AddHostAllow(argv[1]);
 
-		if (m_Owner->CanHostConnect(argv[1]) && Hosts->GetLength() > 0) {
-			SENDUSER("This hostmask is already added or another hostmask supercedes it.");
-		} else if (Hosts->GetLength() >= 50) {
-			SENDUSER("You may not add more than 50 hostmasks.");
+		if (IsError(Result)) {
+			SENDUSER(GETDESCRIPTION(Result));
 		} else {
-			m_Owner->AddHostAllow(argv[1]);
-
 			SENDUSER("Done.");
 		}
 
 		return false;
-	} else if (strcasecmp(Subcommand, "hostdel") == 0 && argc > 1) {
+	} else if (strcasecmp(Subcommand, "hostdel") == 0) {
+		RESULT<bool> Result;
+
 		if (argc <= 1) {
 			SENDUSER("Syntax: HOSTDEL hostmask");
 
 			return false;
 		}
 
-		m_Owner->RemoveHostAllow(argv[1]);
+		Result = m_Owner->RemoveHostAllow(argv[1]);
 
-		SENDUSER("Done.");
+		if (IsError(Result)) {
+			SENDUSER(GETDESCRIPTION(Result));
+		} else {
+			SENDUSER("Done.");
+		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "admin") == 0 && m_Owner->IsAdmin()) {
@@ -1167,7 +1207,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	if (argc == 0)
 		return false;
 
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		if (!Modules->Get(i)->InterceptClientMessage(this, argc, argv))
@@ -1255,7 +1295,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			const char* Key;
 
 			if (argc > 2 && strstr(argv[0], ",") == NULL && strstr(argv[1], ",") == NULL)
-				m_Owner->GetKeyring()->AddKey(argv[1], argv[2]);
+				m_Owner->GetKeyring()->SetKey(argv[1], argv[2]);
 			else if (m_Owner->GetKeyring() && (Key = m_Owner->GetKeyring()->GetKey(argv[1])) && (IRC = m_Owner->GetIRCConnection())) {
 				IRC->WriteLine("JOIN %s %s", argv[1], Key);
 
@@ -1273,20 +1313,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 			}
-		} else if (strcasecmp(Command, "perror") == 0) {
-			if (argc < 2) {
-				m_Owner->Notice("Syntax: PERROR :quit-msg");
-				return false;
-			}
-
-			CIRCConnection* Conn = m_Owner->GetIRCConnection();
-
-			if (Conn)
-				Conn->Kill(argv[1]);
-
-			m_Owner->MarkQuitted();
-
-			return false;
 		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0 && strcasecmp(argv[1], "-sbnc") == 0) {
 			const char* Toks = ArgTokenize(argv[2]);
 			const char** Arr = ArgToArray(Toks);
@@ -1550,7 +1576,7 @@ void CClientConnection::ParseLine(const char* Line) {
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		if (IRC)
-			IRC->WriteUnformattedLine(Line);
+			IRC->WriteLine("%s", Line);
 	}
 }
 
@@ -1596,7 +1622,7 @@ bool CClientConnection::ValidateUser() {
 
 	if (User) {
 		Blocked = User->IsIpBlocked(GetRemoteAddress());
-		Valid = (Force || User->Validate(m_Password));
+		Valid = (Force || User->CheckPassword(m_Password));
 		ValidHost = User->CanHostConnect(m_PeerName);
 
 		if (ValidHost == false) {
@@ -1626,7 +1652,7 @@ bool CClientConnection::ValidateUser() {
 	return true;
 }
 
-const char* CClientConnection::GetNick(void) {
+const char* CClientConnection::GetNick(void) const {
 	return m_Nick;
 }
 
@@ -1649,7 +1675,7 @@ void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
 	ProcessBuffer();
 }
 
-const char* CClientConnection::GetPeerName(void) {
+const char* CClientConnection::GetPeerName(void) const {
 	return m_PeerName;
 }
 
@@ -1716,7 +1742,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 	}
 }
 
-const char* CClientConnection::GetClassName(void) {
+const char *CClientConnection::GetClassName(void) const {
 	return "CClientConnection";
 }
 
@@ -1739,14 +1765,14 @@ bool CClientConnection::Read(bool DontProcess) {
 void CClientConnection::WriteUnformattedLine(const char* In) {
 	CConnection::WriteUnformattedLine(In);
 
-	if (m_Owner && !m_Owner->IsAdmin() && GetSendqSize() > g_Bouncer->GetSendQSize() * 1024) {
+	if (m_Owner && !m_Owner->IsAdmin() && GetSendqSize() > g_Bouncer->GetSendqSize() * 1024) {
 		FlushSendQ();
 		CConnection::WriteUnformattedLine("");
 		Kill("SendQ exceeded.");
 	}
 }
 
-RESULT(bool) CClientConnection::Freeze(CAssocArray *Box) {
+RESULT<bool> CClientConnection::Freeze(CAssocArray *Box) {
 	// too bad we can't preserve ssl encrypted connections
 	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL() || m_Nick == NULL) {
 		RETURN(bool, false);
@@ -1757,15 +1783,15 @@ RESULT(bool) CClientConnection::Freeze(CAssocArray *Box) {
 	Box->AddInteger("~client.fd", GetSocket());
 
 	// protect the socket from being closed
-	g_Bouncer->UnregisterSocket(m_Socket);
-	m_Socket = INVALID_SOCKET;
+	g_Bouncer->UnregisterSocket(GetSocket());
+	SetSocket(INVALID_SOCKET);
 
 	Destroy();
 
 	RETURN(bool, true);
 }
 
-RESULT(CClientConnection *) CClientConnection::Thaw(CAssocArray *Box) {
+RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
@@ -1782,8 +1808,7 @@ RESULT(CClientConnection *) CClientConnection::Thaw(CAssocArray *Box) {
 
 	Client = new CClientConnection();
 
-	Client->m_Socket = Socket;
-	Client->InitSocket();
+	Client->SetSocket(Socket);
 
 	Temp = Box->ReadString("~client.peername");
 
@@ -1827,17 +1852,16 @@ void CClientConnection::SetPreviousNick(const char *Nick) {
 	m_PreviousNick = strdup(Nick);
 }
 
-const char *CClientConnection::GetPreviousNick(void) {
+const char *CClientConnection::GetPreviousNick(void) const {
 	return m_PreviousNick;
 }
 
 SOCKET CClientConnection::Hijack(void) {
 	SOCKET Socket;
 
-	Socket = m_Socket;
-
-	g_Bouncer->UnregisterSocket(m_Socket);
-	m_Socket = INVALID_SOCKET;
+	Socket = GetSocket();
+	g_Bouncer->UnregisterSocket(Socket);
+	SetSocket(INVALID_SOCKET);
 
 	Kill("Hijacked!");
 

@@ -31,7 +31,7 @@ proc sbnc:runthistimer {cookie} {
 
 	set idx [lsearch $timers "* $timerID"]
 
-	if {$idx == -1} { return }
+	if {$idx == 1} { return }
 
 	set timer [lindex $timers $idx]
 
@@ -54,7 +54,7 @@ proc sbnc:runthisutimer {cookie} {
 
 	set idx [lsearch $utimers "* $timerID"]
 
-	if {$idx == -1} { return }
+	if {$idx == 1} { return }
 
 	set timer [lindex $utimers $idx]
 
@@ -96,7 +96,7 @@ proc utimer {seconds tclcommand} {
 
 	set time [expr [clock seconds] + $seconds]
 	incr utimeridx
-	set id "timer$utimeridx"
+	set id "utimer$utimeridx"
 
 	set timer [list $time $tclcommand $id]
 

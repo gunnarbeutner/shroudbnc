@@ -29,25 +29,25 @@
 %exception {
 	try {
 		$function
-	} catch (const char* p) {
-		SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+	} catch (const char *Description) {
+		SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
 	}
 }
 
-%typemap(in) char* (Tcl_DString ds_, bool ds_use_ = false) {
+%typemap(in) char * (Tcl_DString ds_, bool ds_use_ = false) {
 	ds_use_ = true;
 	$1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString($input), -1, &ds_);
 }
 
-%typemap(freearg) char* {
+%typemap(freearg) char * {
 	if (ds_use_$argnum)
 		Tcl_DStringFree(&ds_$argnum);
 }
 
-%typemap(out) char* {
+%typemap(out) char * {
 	Tcl_DString ds_result;
 
-	Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, $1, -1, &ds_result),-1));
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, $1, -1, &ds_result),-1));
 	Tcl_DStringFree(&ds_result);
 }
 
@@ -68,7 +68,7 @@ class CTclClientSocket;
 // exported procs, which are accessible via tcl
 
 int putclient(const char* text);
-int simul(const char* User, const char* Command);
+const char *simul(const char* User, const char* Command);
 
 int internalbind(const char* type, const char* proc, const char* pattern = 0, const char* user = 0);
 int internalunbind(const char* type, const char* proc, const char* pattern = 0, const char* user = 0);

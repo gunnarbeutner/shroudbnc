@@ -15,334 +15,382 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# options
-set ::ifaceport 8090
-set ::ifacessl 0
-set ::ifacebindip ""
+# Interface 2
 
-# iface commands:
-# +user:
-# null
-# raw text
-# nick
-# value parameter
-# tag parameter
-# network
-# channels
-# uptimehr
-# traffic
-# chanmode channel
-# topic channel
-# chanlist channel
-# usercount channel
-# jump
-# set option value
-# log
-# eraselog
-# simul text
-# addhost host
-# delhost host
-# hosts
-# +admin
-# tcl command
-# userlist
-# adm user command parameters
-# mainlog
-# erasemainlog
-# adduser user password
-# deluser user
-# admin user
-# unadmin user
-# setident user ident
-# hasplugin plugin
-# suspend user reason
-# unsuspend user
-# global text
-# bncuserkill user reason
-# bncuserdisconnect user reason
-# sendmessagetouser user text
-# clearhost
-# getglobaltags
-# getglobaltag tag
-# setglobaltag tag value
+# There are no configurable options. The RPC interface (Version 2) uses
+# the same port like shroudBNC.
 
-catch [list listen $::ifaceport script sbnc:iface "" $::ifacessl $::ifacebindip]
+internalbind client iface:hijackclient RPC_IFACE
 
-set ::ifacehandlers [list]
-
-proc sbnc:iface {socket} {
-	control $socket sbnc:ifacemsg
+proc iface:hijackclient {client params} {
+	if {$client == "" && [string equal -nocase [lindex $params 0] "RPC_IFACE"]} {
+		set idx [hijacksocket]
+		control $idx iface:line
+		putdcc $idx RPC_IFACE_OK
+	}
 }
 
-proc sbnc:ifacecmd {command params account override} {
-	global ifacehandlers
+set ::ifacecmds [list]
 
-	set result ""
+proc registerifacecmd {module command proc {accessproc "access:anyone"} {paramcount -1}} {
+	global ifacecmds
 
-	if {[info exists ifacehandlers]} {
-		foreach handler $ifacehandlers {
-			if {[llength [info args [lindex $handler 1]]] > 3} {
-				set tempResult [[lindex $handler 1] $command $params $account $override]
-			} else {
-				set tempResult [[lindex $handler 1] $command $params $account]
-			}
+	if {[catch [list info args $proc]] && $paramcount < 0} {
+		return -code error "You need to specify a parameter count for native functions."
+	}
 
-			if {$tempResult != ""} {
-				return $tempResult
-			}
+	foreach cmd $ifacecmds {
+		if {[string equal [lindex $cmd 0] $module] && [string equal [lindex $cmd 1] $command]} {
+			unregisterifacecmd $module $command
 		}
 	}
 
-	switch -- $command {
-		"null" {
-			set result 1
-		}
-		"raw" {
-			puthelp [join $params]
-		}
-		"nick" {
-			set result $::botnick
-		}
-		"value" {
-			set result [getbncuser $account [lindex $params 0]]
-		}
-		"tag" {
-			set result [getbncuser $account tag [lindex $params 0]]
-		}
-		"network" {
-			set result [getisupport NETWORK]
-		}
-		"channels" {
-			set result [join [internalchannels]]
-		}
-		"uptimehr" {
-			set result [duration [getbncuser $account uptime]]
-		}
-		"traffic" {
-			set result "[trafficstats $account server in] [trafficstats $account server out] [trafficstats $account client in] [trafficstats $account client out]"
+	set index [lsearch -exact [reflect:commands] $command]
+
+	if {$index != -1} {
+		set cmd [lindex $ifacecmds $index]
+
+		if {[catch [list info args $proc] arguments]} {
+			set count $paramcount
+		} else {
+			set count [llength $arguments]
 		}
 
-		"chanmode" {
-			set result [getchanmode [lindex $params 0]]
-		}
-		"topic" {
-			set result [topic [lindex $params 0]]
-		}
-		"chanlist" {
-			set result [join [internalchanlist [lindex $params 0]]]
-		}
-		"usercount" {
-			set result [llength [internalchanlist [lindex $params 0]]]
-		}
-
-		"jump" {
-			jump
-		}
-		"set" {
-			if {[lsearch -exact [list server port serverpass realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes] [lindex $params 0]] == -1} {
-				set result "denied"
-			} else {
-				setbncuser $account [lindex $params 0] [join [lrange $params 1 end]]
-				set result 1
-			}
-		}
-		"log" {
-			set error [catch "open users/$account.log r" file]
-
-			if {$error} {
-				set result "Log could not be opened."
-			} else {
-				set stuff [read $file]
-				close $file
-
-				set result [join [split $stuff \n] \005]
-			}
-		}
-		"eraselog" {
-			set file [open users/$account.log w+]
-			close $file
-		}
-
-		"simul" {
-			simul $account [join $params]
-		}
-		"setlanguage" {
-			setbncuser $account tag lang [lindex $params 0]
-		}
-		"addhost" {
-			addbnchost [lindex $params 0]
-		}
-		"delhost" {
-			delbnchost [lindex $params 0]
-		}
-		"hosts" {
-			set result [join [getbnchosts]]
-		}
-		"hasplugin" {
-			set result 0
-
-			foreach plugin $ifacehandlers {
-				if {[string equal -nocase [lindex $plugin 0] [lindex $params 0]]} {
-					set result 1
-					break
-				}
-			}
+		if {[lindex $cmd 4] != $paramcount} {
+			set out "Invalid parameter count. Another function called \"$command\" which has "
+			append out "[lindex $cmd 4] parameters already exists in module \"[lindex $cmd 0]\". "
+			append out "Cannot create an override command which has $paramcount parameters."
+			return -code error $out
 		}
 	}
 
-	return $result
+	lappend ifacecmds [list $module $command $proc $accessproc $paramcount]
+
+	return
 }
 
-proc sbnc:ifacemsg {socket line} {
-	global ifacehandlers
+proc unregisterifacecmd {module command} {
+	global ifacecmds
 
-	set toks [split $line]
+	set i [expr [llength $ifacecmds] - 1]
+	while {$i >= 0} {
+		set cmd [lindex $ifacecmds $i]
 
-	set code [lindex $toks 0]
-	set account [lindex $toks 1]
-	set pass [lindex $toks 2]
-	set command [lindex $toks 3]
-	set params [lrange $toks 4 end]
+		if {[string equal [lindex $cmd 0] $module] && [string equal [lindex $cmd 1] $command]} {
+			set ifacecmds [lreplace $ifacecmds $i $i]
+		}
 
-#	setctx fnords
-#	puthelp "PRIVMSG #shroudtest2 :debug: $socket $line"
-
-	if {![bnccheckpassword $account $pass]} {
-		putdcc $socket "$code 105 Access denied."
-
-		return
+		incr i -1
 	}
 
-	setctx $account
+	return
+}
 
-	set result ""
+proc reflect:cancall {command user} {
+	global ifacecmds
 
-	set override 0
-
-	set result [sbnc:ifacecmd $command $params $account $override]
-
-	if {[getbncuser $account admin]} {
-		switch -- $command {
-			"tcl" {
-				if {[catch [join $params] result] != 0} {
-					set result [lindex [split $result \n] 0]
-				}
-			}
-			"userlist" {
-				set result [join [bncuserlist]]
-			}
-			"adm" {
-				setctx [lindex $params 0]
-				set account [getctx]
-				set override 1
-				set result [sbnc:ifacecmd [lindex $params 1] [lrange $params 2 end] [getctx] $override]
-			}
-			"mainlog" {
-				set error [catch {open sbnc.log r} file]
-
-				if {$error} {
-					set result "Log could not be opened."
-				} else {
-					set stuff [read $file]
-					close $file
-
-					set result [join [split $stuff \n] \005]
-				}
-			}
-			"erasemainlog" {
-				set file [open sbnc.log w+]
-				close $file
-			}
-			"adduser" {
-				set result [catch [list addbncuser [lindex $params 0] [lindex $params 1]]]
-			}
-			"deluser" {
-				set result [catch [list delbncuser [lindex $params 0]]]
-			}
-			"admin" {
-				setbncuser [lindex $params 0] admin 1
-			}
-			"unadmin" {
-				setbncuser [lindex $params 0] admin 0
-			}
-			"setident" {
-				setbncuser [lindex $params 0] ident [lindex $params 1]
-			}
-			"suspend" {
-				setbncuser [lindex $params 0] lock 1
-				setbncuser [lindex $params 0] suspendreason [join [lrange $params 1 end]]
-				setctx [lindex $params 0]
-				bncdisconnect "Your account has been suspended: [join [lrange $params 1 end]]"
-			}
-			"unsuspend" {
-				setbncuser [lindex $params 0] lock 0
-				setbncuser [lindex $params 0] suspendreason ""
-			}
-			"bncuserkill" {
-				setctx [lindex $params 0]
-				bnckill [join [lrange $params 1 end]]
-			}
-			"bncuserdisconnect" {
-				setctx [lindex $params 0]
-				bncdisconnect [join [lrange $params 1 end]]
-			}
-			"sendmessagetouser" {
-				set user [lindex $params 0]
-				set text [join [lrange $params 1 end]]
-				setctx $user
-				if {[getbncuser $user hasclient]} {
-					bncnotc $text
-				} else {
-					putlog $text
-				}
-			}
-			"clearhost" {
-				setctx [lindex $params 0]
-				foreach hosts [getbnchosts] {
-					delbnchost $hosts
-				}
-			}
-			"setglobaltag" {
-				bncsetglobaltag [lindex $params 0] [join [lrange $params 1 end]]
-			}
-			"getglobaltag" {
-				set result [bncgetglobaltag [lindex $params 0]]
-			}
-			"getglobaltags" {
-				set result [bncgetglobaltags]
-			}
-			"global" {
-				set text [join [lrange $params 0 end]]
-				foreach user [bncuserlist] {
-					setctx $user
-					if {[getbncuser $user hasclient]} {
-						bncnotc $text
-					} else {
-						putlog $text
-					}
-				}
+	foreach cmd $ifacecmds {
+		if {[string equal [lindex $cmd 0] "core"] && [string equal [lindex $cmd 1] $command]} {
+			if {[[lindex $cmd 3] $user]} {
+				return 1
+			} else {
+				return 0
 			}
 		}
 	}
 
-	putdcc $socket "$code $result"
+	foreach cmd $ifacecmds {
+		if {![string equal [lindex $cmd 0] "core"] && [string equal [lindex $cmd 1] $command] && [[lindex $cmd 3] $user]} {
+			return 1
+		}
+	}
+
+	return 0
 }
 
-proc registerifacehandler {plugin handler} {
-	global ifacehandlers
+proc reflect:commands {} {
+	global ifacecmds
 
-	if {![info exists ifacehandlers]} {
-		set ifacehandlers [list [list $plugin $handler]]
+	set commands [list]
+
+	foreach cmd $ifacecmds {
+		if {[lsearch -exact $commands [lindex $cmd 1]] == -1} {
+			lappend commands [lindex $cmd 1]
+		}
+	}
+
+	return $commands
+}
+
+proc reflect:params {command} {
+	global ifacecmds
+
+	foreach cmd $ifacecmds {
+		if {[string equal [lindex $cmd 1] $command]} {
+			if {[catch [list info args [lindex $cmd 2]] arguments]} {
+				set arguments [list]
+
+				set i 0
+				while {$i < [lindex $cmd 4]} {
+					lappend arguments _$i
+					incr i
+				}
+			}
+
+			return $arguments
+		}
+	}
+
+	return [list]
+}
+
+proc reflect:overrides {command} {
+	global ifacecmds
+
+	set results [list]
+
+	foreach cmd $ifacecmds {
+		if {[string equal [lindex $cmd 1] $command]} {
+			lappend results [list [lindex $cmd 0] [lindex $cmd 3]]
+		}
+	}
+
+	return $results
+}
+
+proc reflect:call2 {cmditem user arguments} {
+	set oldcontext [getctx]
+	set script [list [lindex $cmditem 2]]
+
+	foreach argument $arguments {
+		lappend script $argument
+	}
+
+	setctx $user
+	set error [catch [list eval $script] result]
+	setctx $oldcontext
+
+	if {$error} {
+		return "RPC_ERROR $result"
+	} elseif {$result == ""} {
+		return "RPC_NORESULT"
 	} else {
-		foreach existinghandler $ifacehandlers {
-			if {[string equal [lindex $existinghandler 0] $plugin]} { return }
-		}
-
-		lappend ifacehandlers [list $plugin $handler]
+		return "RPC_OK $result"
 	}
-
-	return ""
 }
 
-return ""
+proc reflect:call {command user arguments} {
+	if {![reflect:cancall $command $user]} {
+		return "RPC_UNKNOWN_FUNCTION"
+	}
 
+	global ifacecmds
+
+	if {[llength [reflect:params $command]] != [llength $arguments]} {
+		return "RPC_PARAMCOUNT"
+	}
+
+	foreach cmd $ifacecmds {
+		if {![string equal -nocase [lindex $cmd 0] "core"] && [string equal [lindex $cmd 1] $command]} {
+			if {[[lindex $cmd 3] $user]} {
+				set result [reflect:call2 $cmd $user $arguments]
+
+				if {$result != "RPC_NORESULT"} {
+					return $result
+				}
+			}
+		}
+	}
+
+	foreach cmd $ifacecmds {
+		if {[string equal -nocase [lindex $cmd 0] "core"] && [string equal [lindex $cmd 1] $command]} {
+			if {[[lindex $cmd 3] $user]} {
+				set result [reflect:call2 $cmd $user $arguments]
+
+				if {$result != "RPC_NORESULT"} {
+					return $result
+				}
+			}
+		}
+	}
+
+	return "RPC_OK"
+}
+
+proc access:admin {user} {
+	return [getbncuser $user admin]
+}
+
+proc access:anyone {user} {
+	return 1
+}
+
+proc iface:list {line} {
+	return "\n[join $line \n]"
+}
+
+proc iface:splitline {line} {
+	set toks [list]
+	set tok ""
+	# 0 = at beginning of new parameter, 1 = reading "enclosed" parameter, 2 reading word
+	set state 0
+
+	set i 0
+	while {$i < [string length $line]} {
+		if {$i > 0} {
+			set prev [string index $line [expr $i - 1]]
+		} else {
+			set prev ""
+		}
+
+		if {[expr $i + 1] < [string length $line]} {
+			set next [string index $line [expr $i + 1]]
+		} else {
+			set next ""
+		}
+
+		set char [string index $line $i]
+
+		if {$state == 0} {
+			if {$char == {"}} {
+				set state 1
+				incr i
+				continue
+			}
+
+			set state 2
+		}
+
+		if {$state == 1 && $char == {"} && $prev != "\\"} {
+			set state 0
+			incr i 2
+
+			lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
+			set tok ""
+
+			if {$next != " " && $next != ""} {
+				return -code error "Invalid input."
+			}
+
+			continue
+		}
+
+		if {$state == 2 && $char == " "} {
+			set state 0
+			incr i
+
+			lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
+			set tok ""
+
+			continue
+		}
+
+		append tok $char
+		incr i
+	}
+
+	if {$state == 1} {
+		return -code error "Invalid input."
+	}
+
+	if {$tok != ""} {
+		lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
+	}
+
+	return $toks
+}
+
+proc iface:evalline {line} {
+	global ifaceoverride
+
+	if {[catch [list iface:splitline $line] error]} {
+		return "RPC_PARSEERROR $error"
+	} else {
+		set toks $error
+	}
+
+	if {[llength $toks] < 3} {
+		return "RPC_INVALIDLINE"
+	}
+
+	set adm [split [lindex $toks 1] ":"]
+
+	if {[llength $adm] < 2 || [lsearch -exact [bncuserlist] [lindex $adm 0]] == -1} {
+		set ifaceoverride 0
+	} elseif {![getbncuser [lindex $adm 0] admin]} {
+		set ifaceoverride 0
+	} elseif {![bnccheckpassword [lindex $adm 0] [lindex $adm 1]]} {
+		set ifaceoverride 0
+	} else {
+		set ifaceoverride 1
+	}
+
+	if {![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride} {
+		return "RPC_INVALIDUSERPASS"
+	}
+
+	return [string map [list "\n" "\6"] [reflect:call [lindex $toks 2] [lindex $toks 0] [lrange $toks 3 end]]]
+}
+
+proc iface:isoverride {} {
+	global ifaceoverride
+
+	return $ifaceoverride
+}
+
+proc iface:line {idx line} {
+	putdcc $idx [iface:evalline $line]
+}
+
+# core interface commands
+
+proc iface-reflect:commands {} {
+	set commands [reflect:commands]
+	set result [list]
+
+	foreach command $commands {
+		if {[reflect:cancall $command [getctx]]} {
+			lappend result $command
+		}
+	}
+
+	return [iface:list $result]
+}
+
+registerifacecmd "reflect" "commands" "iface-reflect:commands"
+
+proc iface-reflect:params {command} {
+	if {[reflect:cancall $command [getctx]]} {
+		return [iface:list [reflect:params $command]]
+	}
+
+	return -code error "Unknown command."
+}
+
+registerifacecmd "reflect" "params" "iface-reflect:params"
+
+proc iface-reflect:overrides {command} {
+	if {[reflect:cancall $command [getctx]]} {
+		return [iface:list [reflect:overrides $command]]
+	}
+
+	return -code error "Unknown command."
+}
+
+registerifacecmd "reflect" "overrides" "iface-reflect:overrides"
+
+proc iface-reflect:modules {} {
+	global ifacecmds
+
+	set modules [list]
+
+	foreach cmd $ifacecmds {
+		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
+			lappend modules [lindex $cmd 0]
+		}
+	}
+
+	return [iface:list $modules]
+}
+
+registerifacecmd "reflect" "modules" "iface-reflect:modules"

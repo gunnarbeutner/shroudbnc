@@ -20,14 +20,23 @@
 class CUser;
 class CTrafficStats;
 class CFIFOBuffer;
-struct sockaddr_in;
 
+/**
+ * connection_role_e
+ *
+ * The role of a connection.
+ */
 enum connection_role_e {
 	Role_Unknown,
 	Role_Server = Role_Unknown,
 	Role_Client
 };
 
+/**
+ * CConnection
+ *
+ * A base class for connections.
+ */
 class CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CCore;
@@ -46,8 +55,6 @@ protected:
 
 	void AsyncConnect(void);
 
-	SOCKET m_Socket; /**< the socket */
-
 	bool m_Locked; /**< determines whether data can be written for this connection */
 	bool m_Shutdown; /**< are we about to close this socket? */
 	time_t m_Timeout; /**< timeout for this socket */
@@ -64,20 +71,21 @@ private:
 	CFIFOBuffer *m_SendQ; /**< send queue */
 	CFIFOBuffer *m_RecvQ; /**< receive queue */
 
-	CDnsQuery *m_DnsQuery;
-	CDnsQuery *m_BindDnsQuery;
-	unsigned short m_PortCache;
-	char *m_BindIpCache;
+	CDnsQuery *m_DnsQuery; /**< the dns query for looking up the hostname */
+	CDnsQuery *m_BindDnsQuery; /**< the dns query for looking up the bind address */
+	unsigned short m_PortCache; /**< the port or -1 if the cache is invalided */
+	char *m_BindIpCache; /**< the bind address */
 
-	bool m_LatchedDestruction;
-	CTrafficStats *m_Traffic;
+	bool m_LatchedDestruction; /**< should the connection object be destroyed? */
+	CTrafficStats *m_Traffic; /**< the traffic statistics for this connection */
 
-	void *m_BindAddr;
-	void *m_HostAddr;
+	void *m_BindAddr; /**< the bind address (an in_addr or in_addr6) */
+	void *m_HostAddr; /** the remote address (an in_addr or in_addr6) */
 
-	connection_role_e m_Role;
+	connection_role_e m_Role; /**< the role of this connection */
 
-	int m_Family;
+	SOCKET m_Socket; /**< the socket */
+	int m_Family; /**< the socket's address family */
 
 	void InitConnection(SOCKET Client, bool SSL);
 
@@ -89,6 +97,7 @@ public:
 	virtual ~CConnection(void);
 #endif
 
+	virtual void SetSocket(SOCKET Socket);
 	virtual SOCKET GetSocket(void) const;
 
 	virtual void WriteUnformattedLine(const char *Line);
@@ -99,8 +108,8 @@ public:
 
 	virtual void Kill(const char *Error);
 
-	virtual int GetSendqSize(void) const;
-	virtual int GetRecvqSize(void) const;
+	virtual size_t GetSendqSize(void) const;
+	virtual size_t GetRecvqSize(void) const;
 
 	virtual void Lock(void);
 	virtual bool IsLocked(void) const;

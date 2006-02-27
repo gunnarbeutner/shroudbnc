@@ -58,7 +58,7 @@ CBanlist::~CBanlist() {
  * @param Nick the nick of the user who set the ban
  * @param Timestamp the timestamp of the ban
  */
-RESULT(bool) CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
+RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
 	Ban = (ban_t *)malloc(sizeof(ban_t));
@@ -81,7 +81,7 @@ RESULT(bool) CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
  *
  * @param Mask the mask of the ban which is going to be removed
  */
-RESULT(bool) CBanlist::UnsetBan(const char *Mask) {
+RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
 		return m_Bans.Remove(Mask);
 	} else {
@@ -118,7 +118,7 @@ const ban_t *CBanlist::GetBan(const char *Mask) const {
  *
  * @param Box the box which should be used for persisting the banlist
  */
-RESULT(bool) CBanlist::Freeze(CAssocArray *Box) {
+RESULT<bool> CBanlist::Freeze(CAssocArray *Box) {
 	char *Index;
 	ban_t *Ban;
 	unsigned int Count;
@@ -166,7 +166,7 @@ RESULT(bool) CBanlist::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT(CBanlist *) CBanlist::Thaw(CAssocArray *Box) {
+RESULT<CBanlist *> CBanlist::Thaw(CAssocArray *Box) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;

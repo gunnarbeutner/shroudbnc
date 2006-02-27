@@ -25,25 +25,25 @@
 #include "TclClientSocket.h"
 #include "TclSocket.h"
 
-static char* g_Context = NULL;
+static char *g_Context = NULL;
 CClientConnection *g_CurrentClient = NULL;
 
-binding_t* g_Binds = NULL;
+binding_t *g_Binds = NULL;
 int g_BindCount = 0;
 
-tcltimer_t** g_Timers = NULL;
+tcltimer_t **g_Timers = NULL;
 int g_TimerCount = 0;
 
 extern Tcl_Encoding g_Encoding;
 
-extern Tcl_Interp* g_Interp;
+extern Tcl_Interp *g_Interp;
 
 extern bool g_Ret;
 extern bool g_NoticeUser;
 
-extern "C" int Bnc_Init(Tcl_Interp*);
+extern "C" int Bnc_Init(Tcl_Interp *);
 
-int Tcl_ProcInit(Tcl_Interp* interp) {
+int Tcl_ProcInit(Tcl_Interp *interp) {
 	return Bnc_Init(interp);
 }
 
@@ -51,19 +51,19 @@ void die(void) {
 	g_Bouncer->Shutdown();
 }
 
-void setctx(const char* ctx) {
+void setctx(const char *ctx) {
 	free(g_Context);
 
 	g_Context = ctx ? strdup(ctx) : NULL;
 }
 
-const char* getctx(void) {
+const char *getctx(void) {
 	return g_Context;
 }
 
-const char* bncuserlist(void) {
+const char *bncuserlist(void) {
 	int i;
-	int Count = g_Bouncer->GetUserCount();
+	int Count = g_Bouncer->GetUsers()->GetLength();
 
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
@@ -92,12 +92,12 @@ const char* internalchannels(void) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		throw "User is not connected to an IRC server.";
 
 	CHashtable<CChannel*, false, 16>* H = IRC->GetChannels();
 
@@ -132,12 +132,12 @@ const char* getchanmode(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
-		return NULL;
+		throw "User is not connected to an IRC server.";
 
 	CChannel* Chan = IRC->GetChannel(Channel);
 
@@ -150,7 +150,7 @@ const char* getchanmode(const char* Channel) {
 void rehash(void) {
 	RehashInterpreter();
 
-	g_Bouncer->GlobalNotice("Rehashing TCL module", true);
+	g_Bouncer->Log("Rehashing TCL module");
 }
 
 int internalbind(const char* type, const char* proc, const char* pattern, const char* user) {
@@ -362,14 +362,14 @@ int putserv(const char* text) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (!IRC)
 		return 0;
 
-	IRC->WriteUnformattedLine(text);
+	IRC->WriteLine("%s", text);
 
 	return 1;
 }
@@ -378,7 +378,7 @@ int putclient(const char* text) {
 	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
 	CClientConnection *Client = Context->GetClientConnection();
 
@@ -394,7 +394,7 @@ void jump(const char *Server, unsigned int Port, const char *Password) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return;
+		throw "Invalid user.";
 
 	if (Server)
 		Context->SetServer(Server);
@@ -413,7 +413,7 @@ bool onchan(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return false;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -447,7 +447,7 @@ const char* topic(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -466,7 +466,7 @@ const char* topicnick(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -485,7 +485,7 @@ int topicstamp(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -504,7 +504,7 @@ const char* internalchanlist(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -544,7 +544,7 @@ bool isop(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return false;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -580,7 +580,7 @@ bool isvoice(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return false;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -616,7 +616,7 @@ bool ishalfop(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return false;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -652,7 +652,7 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -881,41 +881,53 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 }
 
 void addbncuser(const char* User, const char* Password) {
-	char* Context = strdup(getctx());
+	RESULT<CUser *> Result;
+	char *Context;
 
-	CUser* U = g_Bouncer->CreateUser(User, Password);
-
-	if (!U)
-		throw "Could not create user.";
-
+	Context = strdup(getctx());
+	Result = g_Bouncer->CreateUser(User, Password);
 	setctx(Context);
-
 	free(Context);
+
+	if (IsError(Result)) {
+		throw GETDESCRIPTION(Result);
+	}
 }
 
 void delbncuser(const char* User) {
-	char* Context = strdup(getctx());
+	RESULT<bool> Result;
+	char *Context;
 
-	if (!g_Bouncer->RemoveUser(User))
-		throw "Could not remove user.";
-
+	Context = strdup(getctx());
+	Result = g_Bouncer->RemoveUser(User);
 	setctx(Context);
-
 	free(Context);
+
+	if (IsError(Result)) {
+		throw GETDESCRIPTION(Result);
+	}
 }
 
-int simul(const char* User, const char* Command) {
+const char *simul(const char* User, const char* Command) {
 	CUser* Context;
+	CFakeClient *FakeClient;
+	static char *Result = NULL;
 
 	Context = g_Bouncer->GetUser(User);
 
-	if (!Context)
-		return 0;
-	else {
-		Context->Simulate(Command);
-
-		return 1;
+	if (Context == NULL) {
+		return NULL;
 	}
+
+	FakeClient = g_Bouncer->CreateFakeClient();
+	Context->Simulate(Command, FakeClient);
+
+	free(Result);
+	Result = strdup(FakeClient->GetData());
+
+	g_Bouncer->DeleteFakeClient(FakeClient);
+
+	return Result;
 }
 
 const char* getchanhost(const char* Nick, const char*) {
@@ -925,33 +937,32 @@ const char* getchanhost(const char* Nick, const char*) {
 	Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
-	else {
-		CIRCConnection* IRC = Context->GetIRCConnection();
+		throw "Invalid user.";
 
-		if (IRC) {
-			int a = 0;
+	CIRCConnection* IRC = Context->GetIRCConnection();
 
-			if (IRC->GetCurrentNick() && strcasecmp(IRC->GetCurrentNick(), Nick) == 0) {
-				Host = IRC->GetSite();
+	if (IRC) {
+		int a = 0;
 
-				if (Host)
-					return Host;
-			}
+		if (IRC->GetCurrentNick() && strcasecmp(IRC->GetCurrentNick(), Nick) == 0) {
+			Host = IRC->GetSite();
 
-			if (IRC->GetChannels() == NULL)
-				return NULL;
-
-			while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-				CNick* U = Chan->Value->GetNames()->Get(Nick);
-
-				if (U/* && U->GetSite() != NULL*/)
-					return U->GetSite();
-			}
+			if (Host)
+				return Host;
 		}
 
-		return NULL;
+		if (IRC->GetChannels() == NULL)
+			return NULL;
+
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			CNick* U = Chan->Value->GetNames()->Get(Nick);
+
+			if (U/* && U->GetSite() != NULL*/)
+				return U->GetSite();
+		}
 	}
+
+	return NULL;
 }
 
 const char* getchanrealname(const char* Nick, const char*) {
@@ -960,26 +971,25 @@ const char* getchanrealname(const char* Nick, const char*) {
 	Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
-	else {
-		CIRCConnection* IRC = Context->GetIRCConnection();
+		throw "Invalid user.";
 
-		if (IRC) {
-			int a = 0;
+	CIRCConnection* IRC = Context->GetIRCConnection();
 
-			if (IRC->GetChannels() == NULL)
-				return NULL;
+	if (IRC) {
+		int a = 0;
 
-			while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
-				CNick* U = Chan->Value->GetNames()->Get(Nick);
+		if (IRC->GetChannels() == NULL)
+			return NULL;
 
-				if (U/* && U->GetSite() != NULL*/)
-					return U->GetRealname();
-			}
+		while (hash_t<CChannel*>* Chan = IRC->GetChannels()->Iterate(a++)) {
+			CNick* U = Chan->Value->GetNames()->Get(Nick);
+
+			if (U/* && U->GetSite() != NULL*/)
+				return U->GetRealname();
 		}
-
-		return NULL;
 	}
+
+	return NULL;
 }
 
 
@@ -987,7 +997,7 @@ int getchanjoin(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1011,7 +1021,7 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1056,7 +1066,7 @@ int floodcontrol(const char* Function) {
 	CUser* User = g_Bouncer->GetUser(g_Context);
 
 	if (!User)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = User->GetIRCConnection();
 
@@ -1091,7 +1101,7 @@ int clearqueue(const char* Queue) {
 	User = g_Bouncer->GetUser(g_Context);
 
 	if (User == NULL) {
-		return 0;
+		throw "Invalid user.";
 	}
 
 	IRC = User->GetIRCConnection();
@@ -1126,7 +1136,7 @@ int queuesize(const char* Queue) {
 	User = g_Bouncer->GetUser(g_Context);
 
 	if (User == NULL) {
-		return 0;
+		throw "Invalid user.";
 	}
 
 	CIRCConnection* IRC;
@@ -1171,7 +1181,7 @@ int putquick(const char* text) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1187,7 +1197,7 @@ const char* getisupport(const char* Feature) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1201,7 +1211,7 @@ int requiresparam(char Mode) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1215,7 +1225,7 @@ bool isprefixmode(char Mode) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1228,7 +1238,7 @@ bool isprefixmode(char Mode) {
 const char* bncmodules(void) {
 	static char* Buffer = NULL;
 
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	if (Buffer)
 		*Buffer = '\0';
@@ -1272,7 +1282,7 @@ int bncsettag(const char* channel, const char* nick, const char* tag, const char
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return 0;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1298,7 +1308,7 @@ const char* bncgettag(const char* channel, const char* nick, const char* tag) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1323,7 +1333,7 @@ void haltoutput(void) {
 }
 
 const char* bnccommand(const char* Cmd, const char* Parameters) {
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		const char* Result = Modules->Get(i)->Command(Cmd, Parameters);
@@ -1349,10 +1359,14 @@ void debugout(const char* String) {
 #endif
 }
 
-void putlog(const char* Text) {
-	CUser* User = g_Bouncer->GetUser(g_Context);
+void putlog(const char *Text) {
+	CUser *User = g_Bouncer->GetUser(g_Context);
 
-	if (User && Text) {
+	if (User == NULL) {
+		throw "Invalid user.";
+	}
+
+	if (Text != NULL) {
 		User->Log("%s", Text);
 	}
 }
@@ -1361,7 +1375,7 @@ int trafficstats(const char* User, const char* ConnectionType, const char* Type)
 	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return 0;
+		throw "Invalid user.";
 
 	unsigned int Bytes = 0;
 
@@ -1392,7 +1406,7 @@ void bncjoinchans(const char* User) {
 	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return;
+		throw "Invalid user.";
 
 	if (Context->GetIRCConnection())
 		Context->GetIRCConnection()->JoinChannels();
@@ -1419,7 +1433,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 		return TclSocket->GetIdx();
 	} else if (strcasecmp(Type, "off") == 0) {
 		int i = 0;
-		socket_t* Socket;
+		const socket_t* Socket;
 
 		while ((Socket = g_Bouncer->GetSocketByClass("CTclSocket", i++)) != NULL) {
 			sockaddr_in saddr;
@@ -1492,9 +1506,9 @@ bool bnccheckpassword(const char* User, const char* Password) {
 	CUser* Context = g_Bouncer->GetUser(User);
 
 	if (!Context)
-		return false;
+		throw "Invalid user.";
 
-	bool Ret = Context->Validate(Password);
+	bool Ret = Context->CheckPassword(Password);
 
 	return Ret;
 }
@@ -1503,7 +1517,7 @@ void bncdisconnect(const char* Reason) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return;
+		throw "Invalid user.";
 
 	CIRCConnection* Irc = Context->GetIRCConnection();
 
@@ -1519,7 +1533,7 @@ void bnckill(const char* Reason) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return;
+		throw "Invalid user.";
 
 	CClientConnection* Client = Context->GetClientConnection();
 
@@ -1533,7 +1547,7 @@ void bncreply(const char* Text) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return;
+		throw "Invalid user.";
 
 	if (g_NoticeUser)
 		Context->RealNotice(Text);
@@ -1545,7 +1559,7 @@ char* chanbans(const char* Channel) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (!Context)
-		return NULL;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1748,7 +1762,7 @@ const char* getcurrentnick(void) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return NULL;
+		throw "Invalid user.";
 
 	if (Context->GetIRCConnection())
 		return Context->GetIRCConnection()->GetCurrentNick();
@@ -1776,9 +1790,9 @@ const char* getbnchosts(void) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return NULL;
+		throw "Invalid user.";
 
-	CVector<char *> *Hosts = Context->GetHostAllows();
+	const CVector<char *> *Hosts = Context->GetHostAllows();
 
 	int argc = 0;
 	const char** argv = (const char**)malloc(Hosts->GetLength() * sizeof(const char*));
@@ -1803,7 +1817,7 @@ void delbnchost(const char* Host) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return;
+		throw "Invalid user.";
 
 	Context->RemoveHostAllow(Host, true);
 }
@@ -1812,9 +1826,9 @@ int addbnchost(const char* Host) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return 0;
+		throw "Invalid user.";
 
-	CVector<char *> *Hosts = Context->GetHostAllows();
+	const CVector<char *> *Hosts = Context->GetHostAllows();
 
 	if (Context->CanHostConnect(Host) && Hosts->GetLength() > 0)
 		return 0;
@@ -1828,7 +1842,7 @@ bool bncisipblocked(const char* Ip) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return false;
+		throw "Invalid user.";
 
 	sockaddr_in Peer;
 
@@ -1849,7 +1863,7 @@ bool bnccanhostconnect(const char* Host) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return false;
+		throw "Invalid user.";
 
 	bool Ret = Context->CanHostConnect(Host);
 
@@ -1861,18 +1875,18 @@ bool bncvalidusername(const char* Name) {
 }
 
 int bncgetsendq(void) {
-	return g_Bouncer->GetSendQSize();
+	return g_Bouncer->GetSendqSize();
 }
 
 void bncsetsendq(int NewSize) {
-	g_Bouncer->SetSendQSize(NewSize);
+	g_Bouncer->SetSendqSize(NewSize);
 }
 
 bool synthwho(const char *Channel, bool Simulate) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return false;
+		throw "Invalid user.";
 
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
@@ -1895,7 +1909,7 @@ void bncaddcommand(const char *Name, const char *Category, const char *Descripti
 	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return;
+		throw "Invalid user.";
 
 	CClientConnection *Client = Context->GetClientConnection();
 
@@ -1912,7 +1926,7 @@ void bncdeletecommand(const char *Name) {
 	CUser *Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
-		return;
+		throw "Invalid user.";
 
 	CClientConnection *Client = Context->GetClientConnection();
 
@@ -1961,7 +1975,7 @@ const char *bncgetglobaltags(void) {
 
 const char *getzoneinfo(const char *Zone) {
 	static char *List = NULL;
-	CVector<CZoneInformation *> *Zones;
+	const CVector<CZoneInformation *> *Zones;
 	char **argv;
 
 	if (List != NULL) {
@@ -2014,7 +2028,7 @@ const char *getzoneinfo(const char *Zone) {
 
 const char *getallocinfo(void) {
 	static char *List = NULL;
-	CVector<file_t> *Allocations;
+	const CVector<file_t> *Allocations;
 	char **argv;
 	char *sublist[3];
 

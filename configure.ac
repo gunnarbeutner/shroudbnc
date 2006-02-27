@@ -2,15 +2,15 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(shroudbnc, 1.1, gb@prco23.org)
+AC_INIT(shroudbnc, 1.2, gb@prco23.org)
 
-AM_INIT_AUTOMAKE(shroudbnc, 1.1)
+AM_INIT_AUTOMAKE(shroudbnc, 1.2)
 AM_CONFIG_HEADER(config.h src/c-ares/config.h)
 
 AC_PROG_MAKE_SET
 
 PACKAGE=sbnc
-VERSION=1.1
+VERSION=1.2
 
 AC_PREFIX_DEFAULT([\${HOME}/sbnc])
 

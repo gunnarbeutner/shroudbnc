@@ -88,13 +88,26 @@ public:
 	}
 
 	/**
+	 * ~CListenerBase
+	 *
+	 * Destructs a listener object.
+	 */
+	virtual ~CListenerBase(void) {
+		if (g_Bouncer != NULL && m_Listener != INVALID_SOCKET) {
+			g_Bouncer->UnregisterSocket(m_Listener);
+		}
+
+		closesocket(m_Listener);
+	}
+
+	/**
 	 * Freeze
 	 *
 	 * Persists the socket listener in a box.
 	 *
 	 * @param Box the box
 	 */
-	RESULT(bool) Freeze(CAssocArray *Box) {
+	RESULT<bool> Freeze(CAssocArray *Box) {
 		Box->AddInteger("~listener.fd", m_Listener);
 		g_Bouncer->UnregisterSocket(m_Listener);
 		m_Listener = INVALID_SOCKET;
@@ -111,7 +124,7 @@ public:
 	 *
 	 * @param Box the box which is being used for storing the listener
 	 */
-	static RESULT(InheritedClass *) Thaw(CAssocArray *Box) {
+	static RESULT<InheritedClass *> Thaw(CAssocArray *Box) {
 		InheritedClass *Listener = new InheritedClass();
 
 		CHECK_ALLOC_RESULT(Listener, new) {
@@ -121,19 +134,6 @@ public:
 		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
 		RETURN(InheritedClass *, Listener);
-	}
-
-	/**
-	 * ~CListenerBase
-	 *
-	 * Destructs a listener object.
-	 */
-	virtual ~CListenerBase(void) {
-		if (g_Bouncer != NULL && m_Listener != INVALID_SOCKET) {
-			g_Bouncer->UnregisterSocket(m_Listener);
-		}
-
-		closesocket(m_Listener);
 	}
 
 	/**

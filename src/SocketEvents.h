@@ -17,16 +17,70 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * CSocketEvents
+ *
+ * An interface for socket events.
+ */
 struct CSocketEvents {
 public:
+	/**
+	 * Destroy
+	 *
+	 * Used for destroying the object and the underlying object.
+	 */
 	virtual void Destroy(void) = 0;
 
+	/**
+	 * Read
+	 *
+	 * Called when the socket is ready for reading.
+	 *
+	 * @param DontProcess determines whether the function should
+	 *					  process the data
+	 */
 	virtual bool Read(bool DontProcess = false) = 0;
+
+	/**
+	 * Write
+	 *
+	 * Called when the socket is ready for writing.
+	 */
 	virtual void Write(void) = 0;
+
+	/**
+	 * Error
+	 *
+	 * Called when an error occured on the socket.
+	 */
 	virtual void Error(void) = 0;
+
+	/**
+	 * HasQueuedData
+	 *
+	 * Called to determine whether the object wants to write
+	 * data for the socket.
+	 */
 	virtual bool HasQueuedData(void) const = 0;
+
+	/**
+	 * DoTimeout
+	 *
+	 * Called to determine whether the socket is timing out.
+	 */
 	virtual bool DoTimeout(void) = 0;
+
+	/**
+	 * ShouldDestroy
+	 *
+	 * Called to determine whether the event object should be destroyed.
+	 */
 	virtual bool ShouldDestroy(void) const = 0;
 
+	/**
+	 * GetClassName
+	 *
+	 * Called to get the class' name.
+	 */
 	virtual const char *GetClassName(void) const = 0;
 };

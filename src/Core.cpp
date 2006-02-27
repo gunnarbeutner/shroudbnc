@@ -58,7 +58,7 @@ public:
 		// destruction is controlled by the main loop
 		ClientObject = new CClientConnection(Client, m_SSL);
 
-		g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
+		//g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
 	}
 
 	void SetSSL(bool SSL) {
@@ -131,11 +131,6 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 		m_Users.Add(Name, User);
 	}
 
-	i = 0;
-	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		User->Value->LoadEvent();
-	}
-
 	ArgFree(Args);
 
 	m_Listener = NULL;
@@ -145,7 +140,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 	time(&m_Startup);
 
-	m_SendQSizeCache = -1;
+	m_SendqSizeCache = -1;
 
 	m_Status = STATUS_RUN;
 }
@@ -351,7 +346,6 @@ void CCore::StartMainLoop(void) {
 	char *Out;
 
 	i = 0;
-
 	while (true) {
 		asprintf(&Out, "system.modules.mod%d", i++);
 
@@ -363,13 +357,19 @@ void CCore::StartMainLoop(void) {
 
 		free(Out);
 
-		if (File)
+		if (File != NULL) {
 			LoadModule(File);
-		else
+		} else {
 			break;
+		}
 	}
 
 	m_LoadingModules = false;
+
+	i = 0;
+	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
+		User->Value->LoadEvent();
+	}
 
 	int m_ShutdownLoop = 5;
 
@@ -565,18 +565,19 @@ void CCore::StartMainLoop(void) {
 #endif
 }
 
-CUser* CCore::GetUser(const char* Name) {
-	if (!Name)
+CUser *CCore::GetUser(const char* Name) {
+	if (Name == NULL) {
 		return NULL;
-
-	return m_Users.Get(Name);
+	} else {
+		return m_Users.Get(Name);
+	}
 }
 
-void CCore::GlobalNotice(const char* Text, bool AdminOnly) {
-	int i = 0;
+void CCore::GlobalNotice(const char *Text) {
+	unsigned int i = 0;
+
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		if (!AdminOnly || User->Value->IsAdmin())
-			User->Value->Notice(Text);
+		User->Value->Notice(Text);
 	}
 }
 
@@ -584,29 +585,25 @@ CHashtable<CUser *, false, 64> *CCore::GetUsers(void) {
 	return &m_Users;
 }
 
-int CCore::GetUserCount(void) {
-	return m_Users.GetLength();
-}
-
 void CCore::SetIdent(const char* Ident) {
 	if (m_Ident)
 		m_Ident->SetIdent(Ident);
 }
 
-const char* CCore::GetIdent(void) {
-	if (m_Ident)
+const char* CCore::GetIdent(void) const {
+	if (m_Ident != NULL)
 		return m_Ident->GetIdent();
 	else
 		return NULL;
 }
 
-CVector<CModule *> *CCore::GetModules(void) {
+const CVector<CModule *> *CCore::GetModules(void) const {
 	return &m_Modules;
 }
 
-RESULT(CModule *) CCore::LoadModule(const char* Filename) {
+RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 	char *CorePath;
-	RESULT(bool) Result;
+	RESULT<bool> Result;
 
 	CorePath = strdup(g_LoaderParameters->GetModulePath());
 
@@ -614,7 +611,7 @@ RESULT(CModule *) CCore::LoadModule(const char* Filename) {
 		THROW(CModule *, Generic_OutOfMemory, "strdup() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	for (int i = strlen(CorePath) - 1; i >= 0; i--) {
+	for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
 		if (CorePath[i] == '/' || CorePath[i] == '\\') {
 			CorePath[i] = '\0';
 
@@ -626,7 +623,7 @@ RESULT(CModule *) CCore::LoadModule(const char* Filename) {
 	lt_dlsetsearchpath(CorePath);
 #endif
 
-	CModule* Module = new CModule(BuildPath(Filename, CorePath));
+	CModule *Module = new CModule(BuildPath(Filename, CorePath));
 
 	free(CorePath);
 
@@ -676,8 +673,9 @@ bool CCore::UnloadModule(CModule* Module) {
 		UpdateModuleConfig();
 
 		return true;
-	} else
+	} else {
 		return false;
+	}
 }
 
 void CCore::UpdateModuleConfig(void) {
@@ -731,11 +729,11 @@ void CCore::UnregisterSocket(SOCKET Socket) {
 	}
 }
 
-SOCKET CCore::CreateListener(unsigned short Port, const char* BindIp, int Family) {
+SOCKET CCore::CreateListener(unsigned short Port, const char *BindIp, int Family) const {
 	return ::CreateListener(Port, BindIp, Family);
 }
 
-void CCore::Log(const char* Format, ...) {
+void CCore::Log(const char *Format, ...) {
 	char *Out;
 	int Ret;
 	va_list marker;
@@ -752,7 +750,7 @@ void CCore::Log(const char* Format, ...) {
 
 	for (unsigned int i = 0; i < m_Users.GetLength(); i++) {
 		CUser *User = m_Users.Iterate(i)->Value;
-		if (User->IsAdmin()) {
+		if (User->IsAdmin() && User->GetSystemNotices()) {
 			User->Notice(Out);
 		}
 	}
@@ -760,15 +758,17 @@ void CCore::Log(const char* Format, ...) {
 	free(Out);
 }
 
-void CCore::InternalLogError(const char* Format, ...) {
+void CCore::InternalLogError(const char *Format, ...) {
 	char Format2[512];
 	char Out[512];
 	const char* P = g_ErrorFile;
 	va_list marker;
 
-	while (*P++)
-		if (*P == '\\')
+	while (*P++) {
+		if (*P == '\\') {
 			g_ErrorFile = P + 1;
+		}
+	}
 
 	snprintf(Format2, sizeof(Format2), "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
 
@@ -798,67 +798,63 @@ void CCore::Shutdown(void) {
 	SetStatus(STATUS_SHUTDOWN);
 }
 
-CUser* CCore::CreateUser(const char* Username, const char* Password) {
-	CUser* User = GetUser(Username);
-	char* Out;
+RESULT<CUser *> CCore::CreateUser(const char* Username, const char* Password) {
+	CUser *User;
+	RESULT<bool> Result;
 
-	if (User) {
-		if (Password)
+	User = GetUser(Username);
+
+	if (User != NULL) {
+		if (Password != NULL) {
 			User->SetPassword(Password);
+		}
 
-		return User;
+		RETURN(CUser *, User);
 	}
 
-	if (!IsValidUsername(Username))
-		return NULL;
+	if (!IsValidUsername(Username)) {
+		THROW(CUser *, Generic_Unknown, "The username you specified is not valid.");
+	}
 
 	User = new CUser(Username);
 
-	if (!m_Users.Add(Username, User)) {
+	Result = m_Users.Add(Username, User);
+
+	if (IsError(Result)) {
 		delete User;
 
-		return NULL;
+		THROWRESULT(CUser *, Result);
 	}
 
-	if (Password)
+	if (Password != NULL) {
 		User->SetPassword(Password);
-
-	asprintf(&Out, "New user created: %s", Username);
-
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
-	} else {
-		Log("%s", Out);
-		GlobalNotice(Out, true);
-
-		free(Out);
 	}
+
+	Log("New user created: %s", Username);
 
 	UpdateUserConfig();
 
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
-		CModule* Module = m_Modules[i];
-
-		if (Module) {
-			Module->UserCreate(Username);
-		}
+		m_Modules[i]->UserCreate(Username);
 	}
 
 	User->LoadEvent();
 
-	return User;
+	RETURN(CUser *, User);
 }
 
-bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
-	CUser *User = GetUser(Username);
+RESULT<bool> CCore::RemoveUser(const char* Username, bool RemoveConfig) {
+	RESULT<bool> Result;
+	CUser *User;
+	
+	User = GetUser(Username);
 
-	if (User == NULL)
-		return false;
+	if (User == NULL) {
+		THROW(bool, Generic_Unknown, "There is no such user.");
+	}
 
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
-		CModule *Module = m_Modules[i];
-
-		Module->UserDelete(Username);
+		m_Modules[i]->UserDelete(Username);
 	}
 
 	if (RemoveConfig) {
@@ -867,16 +863,19 @@ bool CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	}
 
 	delete User;
-	m_Users.Remove(Username);
+	
+	Result = m_Users.Remove(Username);
+
+	THROWIFERROR(bool, Result);
 
 	Log("User removed: %s", Username);
 
 	UpdateUserConfig();
 
-	return true;
+	RETURN(bool, true);
 }
 
-bool CCore::IsValidUsername(const char* Username) {
+bool CCore::IsValidUsername(const char *Username) const {
 	for (unsigned int i = 0; i < strlen(Username); i++) {
 		if (!isalnum(Username[i]))
 			return false;
@@ -924,11 +923,11 @@ void CCore::UpdateUserConfig(void) {
 	free(Out);
 }
 
-time_t CCore::GetStartup(void) {
+time_t CCore::GetStartup(void) const {
 	return m_Startup;
 }
 
-bool CCore::Daemonize(void) {
+bool CCore::Daemonize(void) const {
 #ifndef _WIN32
 	pid_t pid;
 	pid_t sid;
@@ -968,7 +967,7 @@ bool CCore::Daemonize(void) {
 	return true;
 }
 
-void CCore::WritePidFile(void) {
+void CCore::WritePidFile(void) const {
 #ifndef _WIN32
 	pid_t pid = getpid();
 #else
@@ -990,32 +989,32 @@ void CCore::WritePidFile(void) {
 	}
 }
 
-const char* CCore::MD5(const char* String) {
+const char *CCore::MD5(const char* String) const {
 	return UtilMd5(String);
 }
 
 
-int CCore::GetArgC(void) {
+int CCore::GetArgC(void) const {
 	return m_Args.GetLength();
 }
 
-char** CCore::GetArgV(void) {
+const char* const* CCore::GetArgV(void) const {
 	return m_Args.GetList();
 }
 
-CConnection* CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) {
-	CConnection* Wrapper = new CConnection(Socket, SSL, Role);
+CConnection *CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) const {
+	CConnection *Wrapper = new CConnection(Socket, SSL, Role);
 
 	Wrapper->m_Wrapper = true;
 
 	return Wrapper;
 }
 
-void CCore::DeleteWrapper(CConnection* Wrapper) {
+void CCore::DeleteWrapper(CConnection *Wrapper) const {
 	delete Wrapper;
 }
 
-bool CCore::IsRegisteredSocket(CSocketEvents* Events) {
+bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		if (m_OtherSockets[i].Events == Events)
 			return true;
@@ -1024,11 +1023,11 @@ bool CCore::IsRegisteredSocket(CSocketEvents* Events) {
 	return false;
 }
 
-SOCKET CCore::SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
+SOCKET CCore::SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp) {
 	return ::SocketAndConnect(Host, Port, BindIp);
 }
 
-socket_t* CCore::GetSocketByClass(const char* Class, int Index) {
+const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	int a = 0;
 
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
@@ -1047,15 +1046,15 @@ socket_t* CCore::GetSocketByClass(const char* Class, int Index) {
 	return NULL;
 }
 
-CTimer* CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
+CTimer *CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const {
 	return new CTimer(Interval, Repeat, Function, Cookie);
 }
 
-void CCore::RegisterTimer(CTimer* Timer) {
+void CCore::RegisterTimer(CTimer *Timer) {
 	m_Timers.Insert(Timer);
 }
 
-void CCore::UnregisterTimer(CTimer* Timer) {
+void CCore::UnregisterTimer(CTimer *Timer) {
 	m_Timers.Remove(Timer);
 }
 
@@ -1067,7 +1066,7 @@ void CCore::UnregisterDnsQuery(CDnsQuery *DnsQuery) {
 	m_DnsQueries.Remove(DnsQuery);
 }
 
-int CCore::GetTimerStats(void) {
+int CCore::GetTimerStats(void) const {
 #ifdef _DEBUG
 	return g_TimerStats;
 #else
@@ -1075,39 +1074,43 @@ int CCore::GetTimerStats(void) {
 #endif
 }
 
-bool CCore::Match(const char *Pattern, const char *String) {
+bool CCore::Match(const char *Pattern, const char *String) const {
 	return (match(Pattern, String) == 0);
 }
 
-int CCore::GetSendQSize(void) {
-	if (m_SendQSizeCache != -1)
-		return m_SendQSizeCache;
+size_t CCore::GetSendqSize(void) const {
+	int Size;
 
-	int Size = m_Config->ReadInteger("system.sendq");
+	if (m_SendqSizeCache != -1) {
+		return m_SendqSizeCache;
+	}
 
-	if (Size == 0)
+	Size = m_Config->ReadInteger("system.sendq");
+
+	if (Size == 0) {
 		return DEFAULT_SENDQ;
-	else
+	} else {
 		return Size;
+	}
 }
 
-void CCore::SetSendQSize(int NewSize) {
+void CCore::SetSendqSize(size_t NewSize) {
 	m_Config->WriteInteger("system.sendq", NewSize);
-	m_SendQSizeCache = NewSize;
+	m_SendqSizeCache = NewSize;
 }
 
-const char *CCore::GetMotd(void) {
+const char *CCore::GetMotd(void) const {
 	return m_Config->ReadString("system.motd");
 }
 
-void CCore::SetMotd(const char* Motd) {
+void CCore::SetMotd(const char *Motd) {
 	m_Config->WriteString("system.motd", Motd);
 }
 
 void CCore::Fatal(void) {
 	Log("Fatal error occured.");
 
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 SSL_CTX *CCore::GetSSLContext(void) {
@@ -1118,7 +1121,7 @@ SSL_CTX *CCore::GetSSLClientContext(void) {
 	return m_SSLClientContext;
 }
 
-int CCore::GetSSLCustomIndex(void) {
+int CCore::GetSSLCustomIndex(void) const {
 #ifdef USESSL
 	return g_SSLCustomIndex;
 #else
@@ -1255,7 +1258,7 @@ bool CCore::InitializeFreeze(void) {
 	return true;
 }
 
-const loaderparams_s *CCore::GetLoaderParameters(void) {
+const loaderparams_s *CCore::GetLoaderParameters(void) const {
 	return g_LoaderParameters;
 }
 
@@ -1445,7 +1448,7 @@ bool CCore::MakeConfig(void) {
 	return true;
 }
 
-const char *CCore::GetTagString(const char *Tag) {
+const char *CCore::GetTagString(const char *Tag) const {
 	const char *Value;
 	char *Setting;
 
@@ -1468,7 +1471,7 @@ const char *CCore::GetTagString(const char *Tag) {
 	return Value;
 }
 
-int CCore::GetTagInteger(const char *Tag) {
+int CCore::GetTagInteger(const char *Tag) const {
 	const char *Value = GetTagString(Tag);
 
 	if (Value != NULL) {
@@ -1524,7 +1527,7 @@ bool CCore::SetTagInteger(const char *Tag, int Value) {
 	return ReturnValue;
 }
 
-const char *CCore::GetTagName(int Index) {
+const char *CCore::GetTagName(int Index) const {
 	int Skip = 0;
 	int Count = m_Config->GetLength();
 
@@ -1543,24 +1546,23 @@ const char *CCore::GetTagName(int Index) {
 	return NULL;
 }
 
-const char *CCore::GetBasePath(void) {
+const char *CCore::GetBasePath(void) const {
 	return g_LoaderParameters->basepath;
 }
 
-const char *CCore::BuildPath(const char *Filename, const char *BasePath) {
+const char *CCore::BuildPath(const char *Filename, const char *BasePath) const {
 	return g_LoaderParameters->BuildPath(Filename, BasePath);
 }
 
-const char *CCore::GetBouncerVersion(void) {
+const char *CCore::GetBouncerVersion(void) const {
 	return BNCVERSION;
 }
-
 
 void CCore::SetStatus(int NewStatus) {
 	m_Status = NewStatus;
 }
 
-int CCore::GetStatus(void) {
+int CCore::GetStatus(void) const {
 	return m_Status;
 }
 
@@ -1568,11 +1570,11 @@ void CCore::RegisterZone(CZoneInformation *ZoneInformation) {
 	m_Zones.Insert(ZoneInformation);
 }
 
-CVector<CZoneInformation *> *CCore::GetZones(void) {
+const CVector<CZoneInformation *> *CCore::GetZones(void) const {
 	return &m_Zones;
 }
 
-CVector<file_t> *CCore::GetAllocationInformation(void) {
+const CVector<file_t> *CCore::GetAllocationInformation(void) const {
 #ifndef _DEBUG
 	return NULL;
 #else
@@ -1612,4 +1614,12 @@ CVector<file_t> *CCore::GetAllocationInformation(void) {
 
 	return &Summary;
 #endif
+}
+
+CFakeClient *CCore::CreateFakeClient(void) const {
+	return new CFakeClient();
+}
+
+void CCore::DeleteFakeClient(CFakeClient *FakeClient) const {
+	delete FakeClient;
 }

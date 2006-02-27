@@ -17,8 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * CIdentSupport
+ *
+ * Used for "communicating" with ident daemons.
+ */
 class CIdentSupport {
-	char* m_Ident;
+	char *m_Ident; /**< the ident */
 public:
 #ifndef SWIG
 	CIdentSupport(void);
@@ -26,5 +31,5 @@ public:
 #endif
 
 	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void);
+	virtual const char *GetIdent(void) const;
 };

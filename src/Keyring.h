@@ -19,14 +19,19 @@
 
 class CConfig;
 
+/**
+ * CKeyring
+ *
+ * A keyring used for storing channel keys.
+ */
 class CKeyring : public CZoneObject<CKeyring, 16> {
+private:
+	CConfig *m_Config; /**< the config object for storing the channel keys */
 public:
 #ifndef SWIG
 	CKeyring(CConfig *Config);
 #endif
+
+	virtual bool SetKey(const char *Channel, const char *Key = NULL);
 	virtual const char *GetKey(const char *Channel);
-	virtual bool AddKey(const char *Channel, const char *Key);
-	virtual bool DeleteKey(const char *Channel);
-private:
-	CConfig *m_Config;
 };

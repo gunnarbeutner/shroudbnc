@@ -129,7 +129,7 @@ CConfig::~CConfig() {
  *
  * @param Setting the configuration setting
  */
-RESULT(const char *) CConfig::ReadString(const char *Setting) const {
+RESULT<const char *> CConfig::ReadString(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
@@ -147,7 +147,7 @@ RESULT(const char *) CConfig::ReadString(const char *Setting) const {
  *
  * @param Setting the configuration setting
  */
-RESULT(int) CConfig::ReadInteger(const char *Setting) const {
+RESULT<int> CConfig::ReadInteger(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
@@ -166,8 +166,8 @@ RESULT(int) CConfig::ReadInteger(const char *Setting) const {
  * @param Value the new value for the setting, can be NULL to indicate that
  *              the configuration setting is to be removed
  */
-RESULT(bool) CConfig::WriteString(const char *Setting, const char *Value) {
-	RESULT(bool) ReturnValue;
+RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
+	RESULT<bool> ReturnValue;
 
 	if (Value != NULL) {
 		ReturnValue = m_Settings.Add(Setting, strdup(Value));
@@ -192,9 +192,9 @@ RESULT(bool) CConfig::WriteString(const char *Setting, const char *Value) {
  * @param Setting the configuration setting
  * @param Value the new value for the setting
  */
-RESULT(bool) CConfig::WriteInteger(const char *Setting, const int Value) {
+RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
 	char *ValueString;
-	RESULT(bool) ReturnValue;
+	RESULT<bool> ReturnValue;
 
 	asprintf(&ValueString, "%d", Value);
 
@@ -215,7 +215,7 @@ RESULT(bool) CConfig::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is volatile.
  */
-RESULT(bool) CConfig::Persist(void) const {
+RESULT<bool> CConfig::Persist(void) const {
 	if (m_Filename == NULL) {
 		RETURN(bool, false);
 	}
@@ -290,7 +290,7 @@ unsigned int CConfig::GetLength(void) const {
  *
  * @param Box the box
  */
-RESULT(bool) CConfig::Freeze(CAssocArray *Box) {
+RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
 	unsigned int i = 0;
 	hash_t<char *> *Setting;
 	CAssocArray *Settings;
@@ -342,7 +342,7 @@ RESULT(bool) CConfig::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT(CConfig *) CConfig::Thaw(CAssocArray *Box) {
+RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;

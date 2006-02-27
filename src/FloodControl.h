@@ -19,12 +19,16 @@
 
 #define FLOODBYTES 450
 
+/**
+ * irc_queue_t
+ *
+ * A queue which has been attached to a CFloodControl object.
+ */
 typedef struct queue_s {
 	int Priority;
 	CQueue *Queue;
 } irc_queue_t;
 
-class CIRCConnection;
 class CTimer;
 
 #ifndef SWIG
@@ -35,33 +39,38 @@ bool FloodTimer(time_t Now, void *FloodControl);
 %template(CZoneObjectCFloodControl) CZoneObject<class CFloodControl, 16>;
 #endif
 
+/**
+ * CFloodControl
+ *
+ * A queue which tries to avoid "Excess Flood" errors.
+ */
 class CFloodControl : public CZoneObject<CFloodControl, 16> {
 #ifndef SWIG
 	friend bool FloodTimer(time_t Now, void *FloodControl);
 #endif
 
-	CVector<irc_queue_t> m_Queues;
-
-	int m_Bytes;
-	bool m_Control;
-	CTimer *m_FloodTimer;
-	time_t m_LastCommand;
+	CVector<irc_queue_t> m_Queues; /**< a list of queues which have been
+								attached to this object */
+	size_t m_Bytes; /**< the number of bytes which have recently been sent */
+	bool m_Control; /**< determines whether this object is delaying the output */
+	CTimer *m_FloodTimer; /**< used for gradually decreasing m_Bytes */
+	time_t m_LastCommand; /**< a TS when the last command was sent */
 
 	bool Pulse(time_t Time);
 
-	int CalculatePenaltyAmplifier(const char *Line);
+	static int CalculatePenaltyAmplifier(const char *Line);
 public:
 #ifndef SWIG
 	CFloodControl(void);
 	virtual ~CFloodControl(void);
 #endif
 
-	virtual RESULT(char *) DequeueItem(bool Peek = false);
+	virtual RESULT<char *> DequeueItem(bool Peek = false);
 	virtual int GetQueueSize(void);
 
 	virtual void AttachInputQueue(CQueue *Queue, int Priority);
-	virtual int GetBytes(void);
-	virtual int GetRealLength(void);
+	virtual int GetBytes(void) const;
+	virtual int GetRealLength(void) const;
 	virtual void Clear(void);
 
 	virtual void Enable(void);

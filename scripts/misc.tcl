@@ -209,13 +209,3 @@ proc ip2int {ip} {
 
 	return [expr ($a<<8+$b<<8+$c<<8)+$d]
 }
-
-proc stripcodes {flags text} {
-	variable result
-
-	regsub -all "\[\002\017\]" $text "" result
-	regsub -all "\003\[0-9\]\[0-9\]?\(,\[0-9\]\[0-9\]?\)?" $result "" result
-	regsub -all "\[\003\017\026\037\]" $result "" result
-
-	return $result
-}

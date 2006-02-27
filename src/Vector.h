@@ -64,7 +64,7 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	virtual RESULT(bool) Insert(Type Item) {
+	virtual RESULT<bool> Insert(Type Item) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
@@ -92,7 +92,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be removed
 	 */
-	virtual RESULT(bool) Remove(int Index) {
+	virtual RESULT<bool> Remove(int Index) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
@@ -117,7 +117,7 @@ public:
 	 *
 	 * @param Item the item which is to be removed
 	 */
-	virtual RESULT(bool) Remove(Type Item) {
+	virtual RESULT<bool> Remove(Type Item) {
 		bool ReturnValue = false;
 
 		for (int i = m_Count - 1; i >= 0; i--) {

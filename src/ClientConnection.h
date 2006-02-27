@@ -49,7 +49,7 @@ private:
 	bool ValidateUser();
 	void SetPeerName(const char *PeerName, bool LookupFailure);
 	virtual bool Read(bool DontProcess = false);
-	virtual const char* GetClassName(void);
+	virtual const char* GetClassName(void) const;
 	void WriteUnformattedLine(const char* In);
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
@@ -60,14 +60,14 @@ public:
 	CClientConnection(SOCKET Socket, bool SSL = false);
 	virtual ~CClientConnection(void);
 
-	RESULT(bool) Freeze(CAssocArray *Box);
-	static RESULT(CClientConnection *) Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CClientConnection *> Thaw(CAssocArray *Box);
 #endif
 
 	virtual void ParseLine(const char *Line);
 
-	virtual const char *GetNick(void);
-	virtual const char *GetPeerName(void);
+	virtual const char *GetNick(void) const;
+	virtual const char *GetPeerName(void) const;
 
 	virtual void Kill(const char *Error);
 	virtual void Destroy(void);
@@ -75,7 +75,46 @@ public:
 	virtual commandlist_t *GetCommandList(void);
 
 	virtual void SetPreviousNick(const char *Nick);
-	virtual const char *GetPreviousNick(void);
+	virtual const char *GetPreviousNick(void) const;
 
 	virtual SOCKET Hijack(void);
 };
+
+#ifndef SWIG
+class CFakeClient : public CClientConnection {
+	CFIFOBuffer m_Queue;
+	char *m_Data;
+
+	virtual void WriteUnformattedLine(const char *Line) {
+		m_Queue.WriteUnformattedLine(Line);
+	}
+public:
+	CFakeClient(void) : CClientConnection(INVALID_SOCKET, false) {
+		m_Data = NULL;
+	}
+
+	virtual ~CFakeClient(void) {
+		free(m_Data);
+	}
+	virtual const char *GetData(void) {
+		free(m_Data);
+
+		m_Data = (char *)malloc(m_Queue.GetSize() + 1);
+
+		memcpy(m_Data, m_Queue.Peek(), m_Queue.GetSize());
+		m_Data[m_Queue.GetSize()] = '\0';
+
+		return m_Data;
+	}
+
+	void *operator new (size_t Size) {
+		return malloc(Size);
+	}
+
+	void operator delete(void *Object) {
+		free(Object);
+	}
+};
+#else
+class CFakeClient;
+#endif

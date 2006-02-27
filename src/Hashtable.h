@@ -67,17 +67,32 @@ template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 public:
 #ifndef SWIG
+	/**
+	 * CHashtable
+	 *
+	 * Constructs an empty hashtable.
+	 */
 	CHashtable(void) {
 		memset(m_Items, 0, sizeof(m_Items));
 
 		m_DestructorFunc = NULL;
 	}
 
+	/**
+	 * ~CHashtable
+	 *
+	 * Destructs a hashtable
+	 */
 	~CHashtable(void) {
 		Clear();
 	}
 #endif
 
+	/**
+	 * Clear
+	 *
+	 * Removes all items from the hashtable.
+	 */
 	virtual void Clear(void) {
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
@@ -97,6 +112,13 @@ public:
 		memset(m_Items, 0, sizeof(m_Items));
 	}
 
+	/**
+	 * Hash
+	 *
+	 * Calculates a hash value for a string.
+	 *
+	 * @param String the string
+	 */
 	static hashvalue_t Hash(const char *String) {
 		unsigned long HashValue = 5381;
 		int c;
@@ -108,7 +130,15 @@ public:
 		return HashValue;
 	}
 
-	virtual RESULT(bool) Add(const char *Key, Type Value) {
+	/**
+	 * Add
+	 *
+	 * Inserts a new item into a hashtable.
+	 *
+	 * @param Key the name of the item
+	 * @param Value the item
+	 */
+	virtual RESULT<bool> Add(const char *Key, Type Value) {
 		char *dupKey;
 		char **newKeys;
 		Type *newValues;
@@ -157,12 +187,22 @@ public:
 		RETURN(bool, true);
 	}
 
+	/**
+	 * Get
+	 *
+	 * Returns the item which is associated to a key or NULL if
+	 * there is no such item.
+	 *
+	 * @param Key the key
+	 */
 	virtual Type Get(const char *Key) const {
+		const hashlist_t<Type> *List;
+
 		if (Key == NULL) {
 			return NULL;
 		}
 
-		const hashlist_t<Type> *List = &m_Items[Hash(Key) % Size];
+		List = &m_Items[Hash(Key) % Size];
 
 		if (List->Count == 0) {
 			return NULL;
@@ -177,17 +217,16 @@ public:
 		}
 	}
 
-	virtual unsigned int GetLength(void) const {
-		unsigned int Count = 0;
-
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
-			Count += m_Items[i].Count;
-		}
-
-		return Count;
-	}
-
-	virtual RESULT(bool) Remove(const char *Key, bool DontDestroy = false) {
+	/**
+	 * Remove
+	 *
+	 * Removes an item from the hashlist.
+	 *
+	 * @param Key the name of the item
+	 * @param DontDestroy determines whether the value destructor function
+	 *					  is going to be called for the item
+	 */
+	virtual RESULT<bool> Remove(const char *Key, bool DontDestroy = false) {
 		hashlist_t<Type> *List;
 
 		if (Key == NULL) {
@@ -232,11 +271,40 @@ public:
 		RETURN(bool, true);
 	}
 
+	/**
+	 * GetLength
+	 *
+	 * Returns the number of items in the hashtable.
+	 */
+	virtual unsigned int GetLength(void) const {
+		unsigned int Count = 0;
+
+		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+			Count += m_Items[i].Count;
+		}
+
+		return Count;
+	}
+
+	/**
+	 * RegisterValueDestructor
+	 *
+	 * Registers a value destructor for a hashtable.
+	 *
+	 * @param Func the value destructor
+	 */
 	virtual void RegisterValueDestructor(void (*Func)(Type Object)) {
 		m_DestructorFunc = Func;
 	}
 
-	virtual hash_t<Type> *Iterate(int Index) const {
+	/**
+	 * Iterate
+	 *
+	 * Returns the Index-th item of the hashtable.
+	 *
+	 * @param Index the index
+	 */
+	virtual hash_t<Type> *Iterate(unsigned int Index) const {
 		int Skip = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -257,6 +325,12 @@ public:
 		return NULL;
 	}
 
+	/**
+	 * GetSortedKeys
+	 *
+	 * Returns a NULL-terminated list of keys for the hashtable. The returned list
+	 * will eventually have to be passed to free().
+	 */
 	virtual char **GetSortedKeys(void) const {
 		char **Keys = NULL;
 		unsigned int Count = 0;
@@ -283,10 +357,20 @@ public:
 };
 
 #ifdef SBNC
+/**
+ * CHashCompare
+ *
+ * Used for comparing strings efficiently.
+ */
 class CHashCompare {
-	const char *m_String;
-	hashvalue_t m_Hash;
+	const char *m_String; /**< the actual string */
+	hashvalue_t m_Hash; /**< the string's hash value */
 public:
+	/**
+	 * CHashCompare
+	 *
+	 * Constructs a CHashCompare object.
+	 */
 	CHashCompare(const char *String) {
 		m_String = String;
 
@@ -297,7 +381,12 @@ public:
 		}
 	}
 
-	inline bool operator==(CHashCompare Other) const {
+	/**
+	 * operator==
+	 *
+	 * Compares two CHashCompare objects.
+	 */
+	bool operator==(CHashCompare Other) const {
 		if (m_Hash != Other.m_Hash) {
 			return false;
 		} else {

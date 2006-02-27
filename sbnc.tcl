@@ -3,6 +3,7 @@
 # use the tcl command 'rehash' (e.g. /sbnc tcl :rehash)
 
 # You should not modify this block
+source "scripts/alltools.tcl"
 source "scripts/namespace.tcl"
 source "scripts/timers.tcl"
 source "scripts/misc.tcl"
@@ -13,9 +14,9 @@ source "scripts/bind.tcl"
 source "scripts/usys.tcl"
 source "scripts/socket.tcl"
 source "scripts/botnet.tcl"
-
-# Load some useful procs
-source "scripts/alltools.tcl"
+source "scripts/iface.tcl"
+source "scripts/ifacecmds.tcl"
+source "scripts/partyline.tcl"
 
 #setctx "example"
 #source "scripts/tcl.tcl"
@@ -25,5 +26,3 @@ source "scripts/alltools.tcl"
 
 #set ::versionreply "example"
 #source "scripts/version.tcl"
-
-#source "scripts/partyline.tcl"

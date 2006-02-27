@@ -212,7 +212,7 @@ class CUptimeModule : public CModuleImplementation {
 
 		upPack.uptime = htonl(g_Bouncer->GetStartup());
 
-		if (g_Bouncer->GetUserCount() != 0) {
+		if (g_Bouncer->GetUsers()->GetLength() != 0) {
 			FirstUser = g_Bouncer->GetUsers()->Iterate(0)->Value;
 
 			upPack.ontime = htonl(Now - FirstUser->GetIRCUptime());
@@ -235,7 +235,7 @@ class CUptimeModule : public CModuleImplementation {
 		len = sizeof(upPack) + strlen(FirstUser->GetUsername()) + strlen(Server) + strlen(BNCVERSION);
 		mem = (PackUp *)malloc(len);
 		memcpy(mem, &upPack, sizeof(upPack));
-		snprintf(mem->string, len - sizeof(upPack) + sizeof(mem->string), "%s %s %s", FirstUser->GetUsername(), Server, BNCVERSION);
+		snprintf(mem->string, len - sizeof(upPack) + sizeof(mem->string), "%s %s %s", FirstUser->GetUsername(), Server, g_Bouncer->GetBouncerVersion());
 
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = htons(uptimeport);
@@ -277,4 +277,8 @@ bool UptimeTimerProc(time_t Now, void *Cookie) {
 extern "C" CModuleFar* bncGetObject(void) {
 	g_UptimeMod = new CUptimeModule();
 	return (CModuleFar*)g_UptimeMod;
+}
+
+extern "C" EXPORT int bncGetInterfaceVersion(void) {
+	return INTERFACEVERSION;
 }

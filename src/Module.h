@@ -39,15 +39,15 @@ public:
 	virtual CModuleFar *GetModule(void);
 	virtual const char *GetFilename(void);
 	virtual HMODULE GetHandle(void);
-	virtual RESULT(bool) GetError(void);
+	virtual RESULT<bool> GetError(void);
 
 	// proxy implementation of CModuleFar
 	virtual void Destroy(void);
 	virtual void Init(CCore *Root);
 
-	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char  **argv);
-	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv);
-	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser);
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char  **ArgV);
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV);
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser);
 
 	virtual void AttachClient(const char *Client);
 	virtual void DetachClient(const char *Client) ;

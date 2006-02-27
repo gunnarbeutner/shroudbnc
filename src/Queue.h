@@ -26,8 +26,8 @@
  * An item from a queue.
  */
 typedef struct queue_item_s {
-	int Priority;
-	char *Line;
+	int Priority; /**< the priority of this item; 0 is the highest priority */
+	char *Line; /**< the string which is associated with this item */
 } queue_item_t;
 
 /**
@@ -39,14 +39,14 @@ class CQueue : public CZoneObject<CQueue, 64> {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG
-	RESULT(bool) CQueue::Freeze(CAssocArray *Box);
-	static RESULT(CQueue *) CQueue::Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CQueue *> Thaw(CAssocArray *Box);
 #endif
 
-	virtual RESULT(char *) DequeueItem(void);
-	virtual RESULT(const char *) PeekItem(void);
-	virtual RESULT(bool) QueueItem(const char *Line);
-	virtual RESULT(bool) QueueItemNext(const char *Line);
-	virtual unsigned int GetLength(void);
+	virtual RESULT<char *> DequeueItem(void);
+	virtual RESULT<const char *> PeekItem(void) const;
+	virtual RESULT<bool> QueueItem(const char *Line);
+	virtual RESULT<bool> QueueItemNext(const char *Line);
+	virtual unsigned int GetLength(void) const;
 	virtual void Clear(void);
 };

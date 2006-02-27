@@ -57,6 +57,11 @@ bool UserReconnectTimer(time_t Now, void *User);
 	free(DupValue); \
 }
 
+/**
+ * CUser
+ *
+ * A bouncer user.
+ */
 class CUser : public CZoneObject<CUser, 32> {
 	friend class CCore;
 #ifndef SWIG
@@ -71,8 +76,8 @@ class CUser : public CZoneObject<CUser, 32> {
 	CConfig *m_Config; /**< the user's configuration object */
 	CLog *m_Log; /**< the user's log file */
 
-	time_t m_ReconnectTime;
-	time_t m_LastReconnect;
+	time_t m_ReconnectTime; /**< when the next connect() attempt is going to be made */
+	time_t m_LastReconnect; /**< when the last connect() attempt was made for this user */
 
 	CVector<badlogin_t> m_BadLogins; /**< a list of failed login attempts for this user */
 
@@ -83,12 +88,12 @@ class CUser : public CZoneObject<CUser, 32> {
 
 	CKeyring *m_Keys; /**< a list of channel keys */
 
-	CTimer *m_BadLoginPulse;
-	CTimer *m_ReconnectTimer;
+	CTimer *m_BadLoginPulse; /**< a timer which will remove "bad logins" */
+	CTimer *m_ReconnectTimer; /**< a timer which reconnects the user to an IRC server */
 
-	int m_IsAdminCache; /**< cached value which determines whether the user is an admin */
+	mutable int m_IsAdminCache; /**< cached value which determines whether the user is an admin */
 
-	CVector<X509 *> m_ClientCertificates;
+	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
 	bool PersistCertificates(void);
 
@@ -102,97 +107,98 @@ public:
 
 	virtual CClientConnection *GetClientConnection(void);
 	virtual CIRCConnection *GetIRCConnection(void);
-	virtual bool IsConnectedToIRC(void);
 
-	virtual bool Validate(const char *Password);
+	virtual bool CheckPassword(const char *Password) const;
 	virtual void Attach(CClientConnection *Client);
 
-	virtual const char *GetNick(void);
+	virtual const char *GetNick(void) const;
 	virtual void SetNick(const char *Nick);
 
-	virtual const char *GetRealname(void);
+	virtual const char *GetRealname(void) const;
 	virtual void SetRealname(const char *Realname);
 
-	virtual const char *GetUsername(void);
+	virtual const char *GetUsername(void) const;
 	virtual CConfig *GetConfig(void);
 
 	virtual void Simulate(const char *Command, CClientConnection *FakeClient = NULL);
 
 	virtual void Reconnect(void);
 
-	virtual bool ShouldReconnect(void);
+	virtual bool ShouldReconnect(void) const;
 	virtual void ScheduleReconnect(int Delay = 10);
 
 	virtual void Notice(const char *Text);
 	virtual void RealNotice(const char *Text);
 
-	virtual unsigned int GetIRCUptime(void);
+	virtual unsigned int GetIRCUptime(void) const;
 
 	virtual CLog *GetLog(void);
 	virtual void Log(const char *Format, ...);
 
 	virtual void Lock(void);
 	virtual void Unlock(void);
-	virtual bool IsLocked(void);
+	virtual bool IsLocked(void) const;
 
 	virtual void SetIRCConnection(CIRCConnection *IRC);
 	virtual void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
 
 	virtual void SetAdmin(bool Admin = true);
-	virtual bool IsAdmin(void);
+	virtual bool IsAdmin(void) const;
 
 	virtual void SetPassword(const char *Password);
 
 	virtual void SetServer(const char *Server);
-	virtual const char *GetServer(void);
+	virtual const char *GetServer(void) const;
 
 	virtual void SetPort(int Port);
-	virtual int GetPort(void);
+	virtual int GetPort(void) const;
 
 	virtual void MarkQuitted(bool RequireManualJump = false);
+	virtual int IsQuitted(void) const;
 
 	virtual void LoadEvent(void);
 
 	virtual void LogBadLogin(sockaddr *Peer);
-	virtual bool IsIpBlocked(sockaddr *Peer);
+	virtual bool IsIpBlocked(sockaddr *Peer) const;
 
-	virtual void AddHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual void RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual CVector<char *> *GetHostAllows(void);
-	virtual bool CanHostConnect(const char *Host);
+	virtual RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
+	virtual RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
+	virtual const CVector<char *> *GetHostAllows(void) const;
+	virtual bool CanHostConnect(const char *Host) const;
+	virtual bool IsValidHostAllow(const char *Mask) const;
 
-	virtual CTrafficStats *GetClientStats(void);
-	virtual CTrafficStats *GetIRCStats(void);
+	virtual const CTrafficStats *GetClientStats(void) const;
+	virtual const CTrafficStats *GetIRCStats(void) const;
 
 	virtual CKeyring *GetKeyring(void);
 
-	virtual time_t GetLastSeen(void);
+	virtual time_t GetLastSeen(void) const;
 
-	virtual const char *GetAwayNick(void);
+	virtual const char *GetAwayNick(void) const;
 	virtual void SetAwayNick(const char *Nick);
 
-	virtual const char *GetAwayText(void);
+	virtual const char *GetAwayText(void) const;
 	virtual void SetAwayText(const char *Reason);
 
-	virtual const char *GetVHost(void);
+	virtual const char *GetVHost(void) const;
 	virtual void SetVHost(const char *VHost);
 
-	virtual int GetDelayJoin(void);
+	virtual int GetDelayJoin(void) const;
 	virtual void SetDelayJoin(int DelayJoin);
 
-	virtual const char *GetConfigChannels(void);
+	virtual const char *GetConfigChannels(void) const;
 	virtual void SetConfigChannels(const char *Channels);
 
-	virtual const char *GetSuspendReason(void);
+	virtual const char *GetSuspendReason(void) const;
 	virtual void SetSuspendReason(const char *Reason);
 
-	virtual const char *GetServerPassword(void);
+	virtual const char *GetServerPassword(void) const;
 	virtual void SetServerPassword(const char *Password);
 
-	virtual const char *GetAutoModes(void);
+	virtual const char *GetAutoModes(void) const;
 	virtual void SetAutoModes(const char *AutoModes);
 
-	virtual const char *GetDropModes(void);
+	virtual const char *GetDropModes(void) const;
 	virtual void SetDropModes(const char *DropModes);
 
 	virtual const CVector<X509 *> *GetClientCertificates(void) const;
@@ -201,22 +207,24 @@ public:
 	virtual bool FindClientCertificate(const X509 *Certificate) const;
 
 	virtual void SetSSL(bool SSL);
-	virtual bool GetSSL(void);
+	virtual bool GetSSL(void) const;
 
 	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void);
+	virtual const char *GetIdent(void) const;
 
 	virtual void SetIPv6(bool IPv6);
-	virtual bool GetIPv6(void);
+	virtual bool GetIPv6(void) const;
 
-	virtual const char *GetTagString(const char *Tag);
-	virtual int GetTagInteger(const char *Tag);
+	virtual const char *GetTagString(const char *Tag) const;
+	virtual int GetTagInteger(const char *Tag) const;
 	virtual bool SetTagString(const char *Tag, const char *Value);
 	virtual bool SetTagInteger(const char *Tag, int Value);
-	virtual const char *GetTagName(int Index);
+	virtual const char *GetTagName(int Index) const;
 
-	virtual const char *FormatTime(time_t Timestamp);
+	virtual const char *FormatTime(time_t Timestamp) const;
+	virtual void SetGmtOffset(int Offset);
+	virtual int GetGmtOffset(void) const;
 
-	virtual void SetGmtOffset(unsigned int Offset);
-	virtual unsigned int GetGmtOffset(void);
+	virtual void SetSystemNotices(bool SystemNotices);
+	virtual bool GetSystemNotices(void) const;
 };

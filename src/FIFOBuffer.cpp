@@ -50,16 +50,15 @@ CFIFOBuffer::~CFIFOBuffer() {
  * @param OldSize the old size of the buffer
  * @param NewSize the new size of the buffer
  */
-void *CFIFOBuffer::ResizeBuffer(void *Buffer, unsigned int OldSize,
-								unsigned int NewSize) {
+void *CFIFOBuffer::ResizeBuffer(void *Buffer, size_t OldSize, size_t NewSize) {
 	if (OldSize != 0) {
 		OldSize += BLOCKSIZE - (OldSize % BLOCKSIZE);
 	}
 
-	unsigned int CeilNewSize = NewSize + BLOCKSIZE - (NewSize % BLOCKSIZE);
+	size_t CeilNewSize = NewSize + BLOCKSIZE - (NewSize % BLOCKSIZE);
 
-	unsigned int OldBlocks = OldSize / BLOCKSIZE;
-	unsigned int NewBlocks = CeilNewSize / BLOCKSIZE;
+	size_t OldBlocks = OldSize / BLOCKSIZE;
+	size_t NewBlocks = CeilNewSize / BLOCKSIZE;
 
 	if (NewBlocks != OldBlocks) {
 		return realloc(Buffer, NewBlocks * BLOCKSIZE);
@@ -99,7 +98,7 @@ void CFIFOBuffer::Optimize(void) {
  *
  * Returns the size of the buffer.
  */
-unsigned int CFIFOBuffer::GetSize(void) {
+size_t CFIFOBuffer::GetSize(void) const {
 	return m_BufferSize - m_Offset;
 }
 
@@ -109,7 +108,7 @@ unsigned int CFIFOBuffer::GetSize(void) {
  * Returns a pointer to the buffer's data without advancing the read pointer (or
  * NULL if there is no data left in the buffer).
  */
-char *CFIFOBuffer::Peek(void) {
+char *CFIFOBuffer::Peek(void) const {
 	if (GetSize() == 0) {
 		return NULL;
 	} else {
@@ -124,7 +123,7 @@ char *CFIFOBuffer::Peek(void) {
  *              If this value is greater than the size of the buffer,
  *              GetSize() bytes are read instead.
  */
-char *CFIFOBuffer::Read(unsigned int Bytes) {
+char *CFIFOBuffer::Read(size_t Bytes) {
 	char* ReturnValue = m_Buffer + m_Offset;
 
 	if (Bytes > GetSize()) {
@@ -146,7 +145,7 @@ char *CFIFOBuffer::Read(unsigned int Bytes) {
  * @param Data a pointer to the data
  * @param Size the number of bytes which should be written
  */
-RESULT(bool) CFIFOBuffer::Write(const char *Data, unsigned int Size) {
+RESULT<bool> CFIFOBuffer::Write(const char *Data, size_t Size) {
 	char *tempBuffer;
 
 	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
@@ -170,20 +169,20 @@ RESULT(bool) CFIFOBuffer::Write(const char *Data, unsigned int Size) {
  *
  * @param Line the line
  */
-RESULT(bool) CFIFOBuffer::WriteUnformattedLine(const char *Line) {
-	unsigned int Len = strlen(Line);
+RESULT<bool> CFIFOBuffer::WriteUnformattedLine(const char *Line) {
+	size_t Length = strlen(Line);
 
 	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
-		m_BufferSize + Len + 2);
+		m_BufferSize + Length + 2);
 
 	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
 		THROW(bool, Generic_OutOfMemory, "ResizeBuffer() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	m_Buffer = tempBuffer;
-	memcpy(m_Buffer + m_BufferSize, Line, Len);
-	memcpy(m_Buffer + m_BufferSize + Len, "\r\n", 2);
-	m_BufferSize += Len + 2;
+	memcpy(m_Buffer + m_BufferSize, Line, Length);
+	memcpy(m_Buffer + m_BufferSize + Length, "\r\n", 2);
+	m_BufferSize += Length + 2;
 
 	RETURN(bool, true);
 }

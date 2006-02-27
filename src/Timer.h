@@ -19,6 +19,15 @@
 
 typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
+#ifdef SWIGINTERFACE
+%template(CZoneObjectCTimer) CZoneObject<class CTimer, 64>;
+#endif
+
+/**
+ * CTimer
+ *
+ * A timer.
+ */
 class CTimer : public CZoneObject<CTimer, 64> {
 private:
 	friend class CCore;
@@ -30,7 +39,7 @@ private:
 	time_t m_Next; /**< the next scheduled time of execution */
 
 	bool Call(time_t Now);
-	time_t GetNextCall(void);
+	time_t GetNextCall(void) const;
 
 public:
 #ifndef SWIG
@@ -38,12 +47,8 @@ public:
 	virtual ~CTimer(void);
 #endif
 
-	virtual int GetInterval(void);
-	virtual bool GetRepeat(void);
+	virtual int GetInterval(void) const;
+	virtual bool GetRepeat(void) const;
 
 	virtual void Destroy(void);
 };
-
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCTimer) CZoneObject<class CTimer, 64>;
-#endif

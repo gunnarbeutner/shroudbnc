@@ -150,7 +150,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
-				InlineFunctionExpansion="1"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="../adns/src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;TICKLE_EXPORTS;NOADNSLIB"
 				StringPooling="true"
@@ -228,35 +232,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="itoa.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;TICKLE_EXPORTS;NOADNSLIB;$(NoInherit)"
-						UsePrecompiledHeader="0"
-						BrowseInformation="1"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;TICKLE_EXPORTS;NOADNSLIB;$(NoInherit)"
-						UsePrecompiledHeader="0"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="TclClientSocket.cpp"
 				>
@@ -389,10 +364,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="itoa.h"
-				>
-			</File>
 			<File
 				RelativePath="StdAfx.h"
 				>

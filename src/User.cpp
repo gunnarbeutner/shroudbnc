@@ -19,13 +19,22 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 extern time_t g_LastReconnect;
 
-CUser::CUser(const char* Name) {
+/**
+ * CUser
+ *
+ * Constructs a new user object.
+ *
+ * @param Name the name of the user
+ */
+CUser::CUser(const char *Name) {
+	char *Out;
+	unsigned int i;
+	const char *Hostmask;
+	X509 *Cert;
+	FILE *ClientCert;
+
 	m_Client = NULL;
 	m_IRC = NULL;
 	m_Name = strdup(Name);
@@ -34,7 +43,6 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	char* Out;
 	asprintf(&Out, "users/%s.conf", Name);
 
 	CHECK_ALLOC_RESULT(Out, asprintf) {
@@ -68,7 +76,7 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	unsigned int i = 0;
+	i = 0;
 	while (true) {
 		asprintf(&Out, "user.hosts.host%d", i++);
 
@@ -76,7 +84,7 @@ CUser::CUser(const char* Name) {
 			g_Bouncer->Fatal();
 		} CHECK_ALLOC_RESULT_END;
 
-		const char* Hostmask = m_Config->ReadString(Out);
+		Hostmask = m_Config->ReadString(Out);
 
 		free(Out);
 
@@ -104,8 +112,7 @@ CUser::CUser(const char* Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	X509* Cert;
-	FILE* ClientCert = fopen(g_Bouncer->BuildPath(Out), "r");
+	ClientCert = fopen(g_Bouncer->BuildPath(Out), "r");
 
 	free(Out);
 
@@ -124,15 +131,14 @@ CUser::CUser(const char* Name) {
 	}
 }
 
-void CUser::LoadEvent(void) {
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+/**
+ * ~CUser
+ *
+ * Destructs a user object.
+ */
+CUser::~CUser(void) {
+	unsigned int i;
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		Modules->Get(i)->UserLoad(m_Name);
-	}
-}
-
-CUser::~CUser() {
 	if (m_Client != NULL) {
 		m_Client->Kill("Removing user.");
 	}
@@ -156,7 +162,7 @@ CUser::~CUser() {
 	}
 
 #ifdef USESSL
-	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		X509_free(m_ClientCertificates[i]);
 	}
 #endif
@@ -165,36 +171,68 @@ CUser::~CUser() {
 		delete m_ReconnectTimer;
 	}
 
-	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
+	for (i = 0; i < m_HostAllows.GetLength(); i++) {
 		free(m_HostAllows.Get(i));
 	}
 }
 
+/**
+ * LoadEvent
+ *
+ * Used for notifying modules that a new user has been loaded.
+ */
+void CUser::LoadEvent(void) {
+	const CVector<CModule *> *Modules;
+	unsigned int i;
+
+	Modules = g_Bouncer->GetModules();
+
+	for (i = 0; i < Modules->GetLength(); i++) {
+		Modules->Get(i)->UserLoad(m_Name);
+	}
+}
+
+/**
+ * GetClientConnection
+ *
+ * Returns the client connection for the user, or NULL
+ * if nobody is currently logged in as the user.
+ */
 CClientConnection *CUser::GetClientConnection(void) {
 	return m_Client;
 }
 
+/**
+ * GetIRCConnection
+ *
+ * Returns the IRC connection for this user, or NULL
+ * if the user is not connected to an IRC server.
+ */
 CIRCConnection *CUser::GetIRCConnection(void) {
 	return m_IRC;
 }
 
-bool CUser::IsConnectedToIRC(void) {
-	if (m_IRC != NULL) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-void CUser::Attach(CClientConnection* Client) {
-	char* Out;
+/**
+ * Attach
+ *
+ * Attaches a client connection to the user.
+ *
+ * @param Client the client for this user
+ */
+void CUser::Attach(CClientConnection *Client) {
+	char *Out;
+	const char *Reason, *AutoModes, *IrcNick, *MotdText;
+	CLog *Motd;
+	unsigned int i;
+	char **Keys;
+	const CVector<CModule *> *Modules;
 
 	if (IsLocked()) {
-		const char* Reason = GetSuspendReason();
+		Reason = GetSuspendReason();
 
-		if (Reason == NULL)
+		if (Reason == NULL) {
 			Client->Kill("*** You cannot attach to this user.");
-		else {
+		} else {
 			asprintf(&Out, "*** Your account is suspended. Reason: %s", Reason);
 
 			if (Out == NULL) {
@@ -217,23 +255,25 @@ void CUser::Attach(CClientConnection* Client) {
 
 	SetClientConnection(Client, true);
 
-	CLog *Motd = new CLog("sbnc.motd");
+	Motd = new CLog("sbnc.motd");
 
-	if (m_IRC) {
-		m_IRC->WriteUnformattedLine("AWAY");
+	if (m_IRC != NULL) {
+		m_IRC->WriteLine("AWAY");
 
-		const char* AutoModes = m_Config->ReadString("user.automodes");
+		AutoModes = m_Config->ReadString("user.automodes");
 
-		if (AutoModes && *AutoModes)
+		if (AutoModes != NULL && m_IRC->GetCurrentNick() != NULL) {
 			m_IRC->WriteLine("MODE %s +%s", m_IRC->GetCurrentNick(), AutoModes);
+		}
 
-		const char* IrcNick = m_IRC->GetCurrentNick();
+		IrcNick = m_IRC->GetCurrentNick();
 
-		if (IrcNick) {
+		if (IrcNick != NULL) {
 			Client->WriteLine(":%s!%s@%s NICK :%s", Client->GetNick(), GetUsername(), Client->GetPeerName(), IrcNick);
 
-			if (Client->GetNick() && strcmp(Client->GetNick(), IrcNick) != 0)
+			if (Client->GetNick() != NULL && strcmp(Client->GetNick(), IrcNick) != 0) {
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
+			}
 
 			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 
@@ -245,25 +285,13 @@ void CUser::Attach(CClientConnection* Client) {
 
 			m_Client->ParseLine("VERSION");
 
-			int a = 0;
+			Keys = m_IRC->GetChannels()->GetSortedKeys();
 
-			char** Keys = m_IRC->GetChannels()->GetSortedKeys();
+			i = 0;
+			while (Keys != NULL && Keys[i] != NULL) {
+				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), m_Client->GetPeerName(), Keys[i]);
 
-			while (Keys[a]) {
-				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), m_Name, m_Client->GetPeerName(), Keys[a]);
-
-				asprintf(&Out, "TOPIC %s", Keys[a]);
-
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-
-					m_Client->Kill("Internal error.");
-				} else {
-					m_Client->ParseLine(Out);
-					free(Out);
-				}
-
-				asprintf(&Out, "NAMES %s", Keys[a]);
+				asprintf(&Out, "TOPIC %s", Keys[i]);
 
 				if (Out == NULL) {
 					LOGERROR("asprintf() failed.");
@@ -274,7 +302,18 @@ void CUser::Attach(CClientConnection* Client) {
 					free(Out);
 				}
 
-				a++;
+				asprintf(&Out, "NAMES %s", Keys[i]);
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+
+					m_Client->Kill("Internal error.");
+				} else {
+					m_Client->ParseLine(Out);
+					free(Out);
+				}
+
+				i++;
 			}
 
 			free(Keys);
@@ -289,9 +328,9 @@ void CUser::Attach(CClientConnection* Client) {
 		}
 	}
 
-	const char* MotdText = g_Bouncer->GetConfig()->ReadString("system.motd");
+	MotdText = g_Bouncer->GetConfig()->ReadString("system.motd");
 
-	if (MotdText && *MotdText) {
+	if (MotdText != NULL) {
 		asprintf(&Out, "Message of the day: %s", MotdText);
 		
 		if (Out == NULL) {
@@ -303,26 +342,33 @@ void CUser::Attach(CClientConnection* Client) {
 		}
 	}
 
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (i = 0; i < Modules->GetLength(); i++) {
 		Modules->Get(i)->AttachClient(GetUsername());
 	}
 
 	if (m_IRC == NULL) {
-		if (GetServer() == NULL || *(GetServer()) == '\0') {
+		if (GetServer() == NULL) {
 			Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
 		} else if (m_Config->ReadInteger("user.quitted") == 2) {
 			Notice("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
 		}
 	}
 
-	if (GetLog()->IsEmpty() == false) {
+	if (!GetLog()->IsEmpty()) {
 		Notice("You have new messages. Use '/msg -sBNC read' to view them.");
 	}
 }
 
-bool CUser::Validate(const char *Password) {
+/**
+ * CheckPassword
+ *
+ * Checks whether this user's password and the supplied password match.
+ *
+ * @param Password a password
+ */
+bool CUser::CheckPassword(const char *Password) const {
 	const char *RealPass = m_Config->ReadString("user.password");
 
 	if (RealPass == NULL || Password == NULL || strlen(Password) == 0) {
@@ -340,7 +386,12 @@ bool CUser::Validate(const char *Password) {
 	}
 }
 
-const char *CUser::GetNick(void) {
+/**
+ * GetNick
+ *
+ * Returns the current nick of the user.
+ */
+const char *CUser::GetNick(void) const {
 	if (m_Client != NULL && m_Client->GetNick() != NULL) {
 		return m_Client->GetNick();
 	} else if (m_IRC != NULL && m_IRC->GetCurrentNick() != NULL) {
@@ -362,11 +413,21 @@ const char *CUser::GetNick(void) {
 	}
 }
 
-const char *CUser::GetUsername(void) {
+/**
+ * GetUsername
+ *
+ * Returns the user's username.
+ */
+const char *CUser::GetUsername(void) const {
 	return m_Name;
 }
 
-const char *CUser::GetRealname(void) {
+/**
+ * GetRealname
+ *
+ * Returns the user's real name.
+ */
+const char *CUser::GetRealname(void) const {
 	const char *Realname = m_Config->ReadString("user.realname");
 
 	if (Realname == NULL) {
@@ -382,10 +443,24 @@ const char *CUser::GetRealname(void) {
 	}
 }
 
+/**
+ * GetConfig
+ *
+ * Returns the config object for this user.
+ */
 CConfig *CUser::GetConfig(void) {
 	return m_Config;
 }
 
+/**
+ * Simulate
+ *
+ * Executes the specified command in this user's context and redirects
+ * the output to the given client (or a dummy client if FakeClient is NULL).
+ *
+ * @param Command the command and its parameters
+ * @param FakeClient the client which is used for sending replies
+ */
 void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	bool FakeWasNull;
 	CClientConnection *OldClient;
@@ -437,23 +512,31 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	free(CommandDup);
 }
 
+/**
+ * Reconnect
+ *
+ * Reconnects the user to an IRC server.
+ */
 void CUser::Reconnect(void) {
+	const char *Server;
+	int Port;
+
 	if (m_IRC != NULL) {
 		m_IRC->Kill("Reconnecting.");
 
 		SetIRCConnection(NULL);
 	}
 
-	if (m_ReconnectTimer) {
+	if (m_ReconnectTimer != NULL) {
 		m_ReconnectTimer->Destroy();
 		m_ReconnectTimer = NULL;
 	}
 
-	const char* Server = GetServer();
-	int Port = GetPort();
+	Server = GetServer();
+	Port = GetPort();
 
-	if (!Server || !Port) {
-		ScheduleReconnect(120);
+	if (Server == NULL || Port == 0) {
+		ScheduleReconnect(600);
 
 		g_Bouncer->Log("%s has no default server. Can't (re)connect.", m_Name);
 
@@ -500,22 +583,36 @@ void CUser::Reconnect(void) {
 	}
 }
 
-bool CUser::ShouldReconnect(void) {
+/**
+ * ShouldReconnect
+ *
+ * Determines whether this user should reconnect (yet).
+ */
+bool CUser::ShouldReconnect(void) const {
 	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
 	if (Interval == 0) {
 		Interval = 15;
 	}
 
-	if (!m_IRC && !m_Config->ReadInteger("user.quitted") && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval)
+	if (m_IRC == NULL && m_Config->ReadInteger("user.quitted") == 0 && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval) {
 		return true;
-	else
+	} else {
 		return false;
+	}
 }
 
+/**
+ * ScheduleReconnect
+ *
+ * Schedules a connect attempt.
+ *
+ * @param Delay the delay
+ */
 void CUser::ScheduleReconnect(int Delay) {
-	if (m_IRC)
+	if (m_IRC != NULL) {
 		return;
+	}
 
 	m_Config->WriteInteger("user.quitted", 0);
 
@@ -523,14 +620,17 @@ void CUser::ScheduleReconnect(int Delay) {
 
 	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
-	if (Interval == 0)
+	if (Interval == 0) {
 		Interval = 15;
+	}
 
-	if (time(NULL) - g_LastReconnect < Interval && MaxDelay < Interval)
+	if (time(NULL) - g_LastReconnect < Interval && MaxDelay < Interval) {
 		MaxDelay = Interval;
+	}
 
-	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120 && !IsAdmin())
+	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120 && !IsAdmin()) {
 		MaxDelay = 120;
+	}
 
 	if (m_ReconnectTime < time(NULL) + MaxDelay) {
 		if (m_ReconnectTimer)
@@ -555,6 +655,13 @@ void CUser::ScheduleReconnect(int Delay) {
 	}
 }
 
+/**
+ * Notice
+ *
+ * Sends a message to the user.
+ *
+ * @param Text the text
+ */
 void CUser::Notice(const char *Text) {
 	const char *Nick = GetNick();
 
@@ -563,6 +670,13 @@ void CUser::Notice(const char *Text) {
 	}
 }
 
+/**
+ * RealNotice
+ *
+ * Sends a notice to the user.
+ *
+ * @param Text the text
+ */
 void CUser::RealNotice(const char *Text) {
 	const char *Nick = GetNick();
 
@@ -571,7 +685,12 @@ void CUser::RealNotice(const char *Text) {
 	}
 }
 
-unsigned int CUser::GetIRCUptime(void) {
+/**
+ * GetIRCUptime
+ *
+ * Returns the number of seconds this user has been connected to an IRC server.
+ */
+unsigned int CUser::GetIRCUptime(void) const {
 	if (m_IRC != NULL) {
 		return time(NULL) - m_LastReconnect;
 	} else {
@@ -579,10 +698,23 @@ unsigned int CUser::GetIRCUptime(void) {
 	}
 }
 
+/**
+ * GetLog
+ *
+ * Returns the log object for the user.
+ */
 CLog *CUser::GetLog(void) {
 	return m_Log;
 }
 
+/**
+ * Log
+ *
+ * Creates a new entry in the user's log.
+ *
+ * @param Format the format string
+ * @param ... additional parameters which are used in the format string
+ */
 void CUser::Log(const char *Format, ...) {
 	char *Out;
 	va_list marker;
@@ -604,18 +736,40 @@ void CUser::Log(const char *Format, ...) {
 	free(Out);
 }
 
-
+/**
+ * Lock
+ *
+ * Locks (i.e. suspends) the user.
+ */
 void CUser::Lock(void) {
 	m_Config->WriteInteger("user.lock", 1);
 }
 
+/**
+ * Unlock
+ *
+ * Unlocks (i.e. unsuspends) the user.
+ */
 void CUser::Unlock(void) {
 	m_Config->WriteInteger("user.lock", 0);
 }
 
-void CUser::SetIRCConnection(CIRCConnection* IRC) {
-	CVector<CModule *> *Modules;
-	bool WasNull = (m_IRC == NULL) ? true : false;
+/**
+ * SetIRCConnection
+ *
+ * Sets the IRC connection object for the user.
+ *
+ * @param IRC the irc connection
+ */
+void CUser::SetIRCConnection(CIRCConnection *IRC) {
+	const CVector<CModule *> *Modules;
+	bool WasNull;
+
+	if (m_IRC == NULL) {
+		WasNull = true;
+	} else {
+		WasNull = false;
+	}
 
 	m_IRC = IRC;
 
@@ -645,17 +799,31 @@ void CUser::SetIRCConnection(CIRCConnection* IRC) {
 	}
 }
 
+/**
+ * SetClientConnection
+ *
+ * Sets the client connection object for the user.
+ *
+ * @param Client the new client object
+ * @param DontSetAway determines whether the /away command is
+					  used for setting an away reason
+ */
 void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
-	if (!m_Client && !Client)
-		return;
+	const CVector<CModule *> *Modules;
+	unsigned int i;
+	const char *DropModes, *AwayNick, *AwayText, *Timestamp;
 
-	if (!m_Client) {
+	if (m_Client == NULL && Client == NULL) {
+		return;
+	}
+
+	if (m_Client == NULL) {
 		g_Bouncer->Log("User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
 
 		m_Config->WriteInteger("user.seen", time(NULL));
 	}
 
-	if (m_Client && Client) {
+	if (m_Client != NULL && Client != NULL) {
 		g_Bouncer->Log("User %s re-attached to an already active session. Old session was closed.", GetUsername());
 
 		m_Client->SetOwner(NULL);
@@ -666,66 +834,71 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 
 	m_Client = Client;
 
-	if (!Client) {
-		if (!DontSetAway) {
-			g_Bouncer->Log("User %s logged off.", GetUsername());
+	if (Client != NULL) {
+		Client->SetTrafficStats(m_ClientStats);
 
-			m_Config->WriteInteger("user.seen", time(NULL));
+		return;
+	}
+
+	if (!DontSetAway) {
+		g_Bouncer->Log("User %s logged off.", GetUsername());
+
+		m_Config->WriteInteger("user.seen", time(NULL));
+	}
+
+	Modules = g_Bouncer->GetModules();
+
+	for (i = 0; i < Modules->GetLength(); i++) {
+		Modules->Get(i)->DetachClient(GetUsername());
+	}
+
+	if (m_IRC != NULL && !DontSetAway) {
+		DropModes = m_Config->ReadString("user.dropmodes");
+
+		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL) {
+			m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
 		}
 
-		CVector<CModule *> *Modules = g_Bouncer->GetModules();
+		AwayNick = m_Config->ReadString("user.awaynick");
 
-		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			Modules->Get(i)->DetachClient(GetUsername());
+		if (AwayNick != NULL) {
+			m_IRC->WriteLine("NICK %s", AwayNick);
 		}
 
-		if (m_IRC && !DontSetAway) {
-			const char* DropModes = m_Config->ReadString("user.dropmodes");
+		AwayText = m_Config->ReadString("user.away");
 
-			if (DropModes && *DropModes)
-				m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
+		if (AwayText != NULL) {
+			bool AppendTS = (m_Config->ReadInteger("user.ts") != 0);
 
-			const char* Offnick = m_Config->ReadString("user.awaynick");
+			if (!AppendTS) {
+				m_IRC->WriteLine("AWAY :%s", AwayText);
+			} else {
+				Timestamp = FormatTime(time(NULL));
 
-			if (Offnick)
-				m_IRC->WriteLine("NICK %s", Offnick);
-
-			const char* Away = m_Config->ReadString("user.away");
-
-			if (Away && *Away) {
-				bool AppendTS = (m_Config->ReadInteger("user.ts") != 0);
-
-				if (!AppendTS)
-					m_IRC->WriteLine("AWAY :%s", Away);
-				else {
-					tm Now;
-					time_t tNow;
-					char strNow[100];
-
-					time(&tNow);
-					Now = *localtime(&tNow);
-
-#ifdef _WIN32
-					strftime(strNow, sizeof(strNow), "%#c" , &Now);
-#else
-					strftime(strNow, sizeof(strNow), "%c" , &Now);
-#endif
-
-					m_IRC->WriteLine("AWAY :%s (Away since %s)", Away, strNow);
-				}
+				m_IRC->WriteLine("AWAY :%s (Away since %s)", AwayText, Timestamp);
 			}
 		}
-	} else {
-		Client->SetTrafficStats(m_ClientStats);
 	}
 }
 
+/**
+ * SetAdmin
+ *
+ * Sets whether the user is an admin.
+ *
+ * @param Admin a boolean flag
+ */
 void CUser::SetAdmin(bool Admin) {
 	m_Config->WriteInteger("user.admin", Admin ? 1 : 0);
 	m_IsAdminCache = (int)Admin;
 }
 
-bool CUser::IsAdmin(void) {
+/**
+ * IsAdmin
+ *
+ * Returns whether the user is an admin.
+ */
+bool CUser::IsAdmin(void) const {
 	if (m_IsAdminCache == -1) {
 		m_IsAdminCache = m_Config->ReadInteger("user.admin");
 	}
@@ -737,6 +910,13 @@ bool CUser::IsAdmin(void) {
 	}
 }
 
+/**
+ * SetPassword
+ *
+ * Sets the user's password.
+ *
+ * @param Password the new password
+ */
 void CUser::SetPassword(const char *Password) {
 	if (g_Bouncer->GetConfig()->ReadInteger("system.md5") != 0) {
 		Password = g_Bouncer->MD5(Password);
@@ -745,19 +925,51 @@ void CUser::SetPassword(const char *Password) {
 	m_Config->WriteString("user.password", Password);
 }
 
+/**
+ * SetServer
+ *
+ * Sets the user's IRC server.
+ *
+ * @param Server the hostname of the server
+ */
 void CUser::SetServer(const char *Server) {
 	USER_SETFUNCTION(server, Server);
+
+	if (Server != NULL && !IsQuitted() && GetIRCConnection() == NULL) {
+		ScheduleReconnect();
+	}
 }
 
-const char *CUser::GetServer(void) {
+/**
+ * GetServer
+ *
+ * Returns the user's IRC server.
+ */
+const char *CUser::GetServer(void) const {
 	return m_Config->ReadString("user.server");
 }
 
+/**
+ * SetPort
+ *
+ * Sets the port of the user's IRC server.
+ *
+ * @param Port the port
+ */
 void CUser::SetPort(int Port) {
 	m_Config->WriteInteger("user.port", Port);
+
+	if (Port != 0 && !IsQuitted() && GetIRCConnection() == NULL) {
+		ScheduleReconnect();
+	}
 }
 
-int CUser::GetPort(void) {
+/**
+ * GetPort
+ *
+ * Returns the port of the user's IRC server.
+ */
+int CUser::GetPort(void) const {
 	int Port = m_Config->ReadInteger("user.port");
 
 	if (Port == 0) {
@@ -767,22 +979,71 @@ int CUser::GetPort(void) {
 	}
 }
 
-bool CUser::IsLocked(void) {
-	return m_Config->ReadInteger("user.lock") != 0;
+/**
+ * IsLocked
+ *
+ * Returns whether the user is locked.
+ */
+bool CUser::IsLocked(void) const {
+	if (m_Config->ReadInteger("user.lock") == 0) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
+/**
+ * SetNick
+ *
+ * Sets the user's nickname.
+ *
+ * @param Nick the user's nickname
+ */
 void CUser::SetNick(const char *Nick) {
 	USER_SETFUNCTION(nick, Nick);
 }
 
+/**
+ * SetRealname
+ *
+ * Sets the user's realname.
+ *
+ * @param Realname the new realname
+ */
 void CUser::SetRealname(const char *Realname) {
 	USER_SETFUNCTION(realname, Realname);
 }
 
+/**
+ * MarkQuitted
+ *
+ * Disconnects the user from the IRC server and tells the bouncer
+ * not to automatically reconnect this user.
+ *
+ * @param RequireManualJump specifies whether the user has to manually
+ *							reconnect, if you specify "false", the user
+ *							will reconnect when the bouncer is restarted
+ */
 void CUser::MarkQuitted(bool RequireManualJump) {
 	m_Config->WriteInteger("user.quitted", RequireManualJump ? 2 : 1);
 }
 
+/**
+ * IsQuitted
+ *
+ * Returns whether the user is marked as quitted.
+ */
+int CUser::IsQuitted(void) const {
+	return m_Config->ReadInteger("user.quitted.");
+}
+
+/**
+ * LogBadLogin
+ *
+ * Logs a bad login attempt.
+ *
+ * @param Peer the IP address of the client
+ */
 void CUser::LogBadLogin(sockaddr *Peer) {
 	badlogin_t BadLogin;
 
@@ -801,7 +1062,14 @@ void CUser::LogBadLogin(sockaddr *Peer) {
 	m_BadLogins.Insert(BadLogin);
 }
 
-bool CUser::IsIpBlocked(sockaddr *Peer) {
+/**
+ * IsIpBlocked
+ *
+ * Checks whether the specified IP address is blocked.
+ *
+ * @param Peer the IP address
+ */
+bool CUser::IsIpBlocked(sockaddr *Peer) const {
 	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
 		if (CompareAddress(m_BadLogins[i].Address, Peer) == 0) {
 			if (m_BadLogins[i].Count > 2) {
@@ -815,6 +1083,11 @@ bool CUser::IsIpBlocked(sockaddr *Peer) {
 	return false;
 }
 
+/**
+ * BadLoginPulse
+ *
+ * Periodically expires old "bad logins".
+ */
 void CUser::BadLoginPulse(void) {
 	for (int i = m_BadLogins.GetLength() - 1; i >= 0; i--) {
 		if (m_BadLogins[i].Count > 0) {
@@ -828,33 +1101,67 @@ void CUser::BadLoginPulse(void) {
 	}
 }
 
-void CUser::AddHostAllow(const char *Mask, bool UpdateConfig) {
+/**
+ * AddHostAllow
+ *
+ * Adds a new "host allow" entry. Only users are permitted to log in whose
+ * IP address/host is matched by a host in this list.
+ *
+ * @param Mask the new mask
+ * @param UpdateConfig whether to update the config files
+ */
+RESULT<bool> CUser::AddHostAllow(const char *Mask, bool UpdateConfig) {
 	char *dupMask;
+	RESULT<bool> Result;
 
-	if (Mask == NULL || CanHostConnect(Mask)) {
-		return;
+	if (Mask == NULL) {
+		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
+	}
+
+	if (m_HostAllows.GetLength() > 0 && CanHostConnect(Mask)) {
+		THROW(bool, Generic_Unknown, "This hostmask is already added or another hostmask supercedes it.");
+	}
+
+	if (!IsValidHostAllow(Mask)) {
+		THROW(bool, Generic_Unknown, "The specified mask is not valid.");
+	}
+
+	if (m_HostAllows.GetLength() > 50) {
+		THROW(bool, Generic_Unknown, "You cannot add more than 50 masks.");
 	}
 
 	dupMask = strdup(Mask);
 
 	CHECK_ALLOC_RESULT(dupMask, strdup) {
-		return;
+		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	if (m_HostAllows.Insert(dupMask) == false) {
+	Result = m_HostAllows.Insert(dupMask);
+
+	if (IsError(Result)) {
 		LOGERROR("Insert() failed. Host could not be added.");
 
 		free(dupMask);
 
-		return;
+		THROWRESULT(bool, Result);
 	}
 
 	if (UpdateConfig) {
 		UpdateHosts();
 	}
+
+	RETURN(bool, true);
 }
 
-void CUser::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
+/**
+ * RemoveHostAllow
+ *
+ * Removes an item from the host allow list.
+ *
+ * @param Mask the mask
+ * @param UpdateConfig whether to update the config files
+ */
+RESULT<bool> CUser::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
 	for (int i = m_HostAllows.GetLength() - 1; i >= 0; i--) {
 		if (strcasecmp(m_HostAllows[i], Mask) == 0) {
 			free(m_HostAllows[i]);
@@ -864,16 +1171,46 @@ void CUser::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
 				UpdateHosts();
 			}
 
-			return;
+			RETURN(bool, true);
 		}
 	}
+
+	THROW(bool, Generic_Unknown, "Host was not found.");
 }
 
-CVector<char *> *CUser::GetHostAllows(void) {
+/**
+ * IsValidHostAllow
+ *
+ * Checks whether the specified hostmask is valid for /sbnc hosts.
+ *
+ * @param Mask the mask
+ */
+bool CUser::IsValidHostAllow(const char *Mask) const {
+	if (strchr(Mask, '!') != NULL || strchr(Mask, '@') != NULL) {
+		return false;
+	} else {
+		return true;
+	}
+
+}
+
+/**
+ * GetHostAllows
+ *
+ * Returns a list of "host allow" masks.
+ */
+const CVector<char *> *CUser::GetHostAllows(void) const {
 	return &m_HostAllows;
 }
 
-bool CUser::CanHostConnect(const char *Host) {
+/**
+ * CanHostConnect
+ *
+ * Checks whether the specified host can use the user's account.
+ *
+ * @param Host the host
+ */
+bool CUser::CanHostConnect(const char *Host) const {
 	unsigned int Count = 0;
 
 	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
@@ -891,6 +1228,11 @@ bool CUser::CanHostConnect(const char *Host) {
 	}
 }
 
+/**
+ * UpdateHosts
+ *
+ * Updates the "host allow" list in the config file.
+ */
 void CUser::UpdateHosts(void) {
 	char *Out;
 	int a = 0;
@@ -916,32 +1258,63 @@ void CUser::UpdateHosts(void) {
 	free(Out);
 }
 
-CTrafficStats *CUser::GetClientStats(void) {
+/**
+ * GetClientStats
+ *
+ * Returns traffic statistics for the user's client sessions.
+ */
+const CTrafficStats *CUser::GetClientStats(void) const {
 	return m_ClientStats;
 }
 
-CTrafficStats *CUser::GetIRCStats(void) {
+/**
+ * GetIRCStats
+ *
+ * Returns traffic statistics for the user's IRC sessions.
+ */
+const CTrafficStats *CUser::GetIRCStats(void) const {
 	return m_IRCStats;
 }
 
+/**
+ * GetKeyring
+ *
+ * Returns a list of known channel keys for the user.
+ */
 CKeyring *CUser::GetKeyring(void) {
 	return m_Keys;
 }
 
+/**
+ * BadLoginTimer
+ *
+ * Thunks calls to the BadLoginPulse() functions.
+ *
+ * @param Now the current time
+ * @param User a CUser object
+ */
 bool BadLoginTimer(time_t Now, void *User) {
 	((CUser *)User)->BadLoginPulse();
 
 	return true;
 }
 
+/**
+ * UserReconnectTimer
+ *
+ * Checks whether the user should be reconnected to an IRC server.
+ *
+ * @param Now the current time
+ * @param User a CUser object
+ */
 bool UserReconnectTimer(time_t Now, void *User) {
 	int Interval;
+
+	((CUser *)User)->m_ReconnectTimer = NULL;
 
 	if (((CUser *)User)->GetIRCConnection() || !(g_Bouncer->GetStatus() == STATUS_RUN || g_Bouncer->GetStatus() == STATUS_PAUSE)) {
 		return false;
 	}
-
-	((CUser *)User)->m_ReconnectTimer = NULL;
 
 	Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
@@ -958,14 +1331,31 @@ bool UserReconnectTimer(time_t Now, void *User) {
 	return false;
 }
 
-time_t CUser::GetLastSeen(void) {
+/**
+ * GetLastSeen
+ *
+ * Returns a TS when the user was last seen.
+ */
+time_t CUser::GetLastSeen(void) const {
 	return m_Config->ReadInteger("user.seen");
 }
 
-const char *CUser::GetAwayNick(void) {
+/**
+ * GetAwayNick
+ *
+ * Returns the user's away nick.
+ */
+const char *CUser::GetAwayNick(void) const {
 	return m_Config->ReadString("user.awaynick");
 }
 
+/**
+ * SetAwayNick
+ *
+ * Sets the user's away nick.
+ *
+ * @param Nick the new away nick
+ */
 void CUser::SetAwayNick(const char *Nick) {
 	USER_SETFUNCTION(awaynick, Nick);
 
@@ -974,7 +1364,12 @@ void CUser::SetAwayNick(const char *Nick) {
 	}
 }
 
-const char *CUser::GetAwayText(void) {
+/**
+ * GetAwayText
+ *
+ * Returns the user's away reason.
+ */
+const char *CUser::GetAwayText(void) const {
 	return m_Config->ReadString("user.away");
 }
 
@@ -986,62 +1381,152 @@ void CUser::SetAwayText(const char *Reason) {
 	}
 }
 
-const char *CUser::GetVHost(void) {
+/**
+ * GetVHost
+ *
+ * Returns the user's virtual host.
+ */
+const char *CUser::GetVHost(void) const {
 	return m_Config->ReadString("user.ip");
 }
 
+/**
+ * SetVHost
+ *
+ * Sets the user's virtual host.
+ *
+ * @param VHost the new virtual host
+ */
 void CUser::SetVHost(const char *VHost) {
 	USER_SETFUNCTION(vhost, VHost);
 }
 
-int CUser::GetDelayJoin(void) {
+/**
+ * GetDelayJoin
+ *
+ * Returns whether the user is "delay joined".
+ */
+int CUser::GetDelayJoin(void) const {
 	return m_Config->ReadInteger("user.delayjoin");
 }
 
+/**
+ * SetDelayJoin
+ *
+ * Sets whether "delay join" is enabled for the user.
+ *
+ * @param DelayJoin a boolean flag
+ */
 void CUser::SetDelayJoin(int DelayJoin) {
 	m_Config->WriteInteger("user.delayjoin", DelayJoin);
 }
 
-const char *CUser::GetConfigChannels(void) {
+/**
+ * GetConfigChannels
+ *
+ * Returns a comma-seperated list of channels the user
+ * automatically joins when connected to an IRC server.
+ */
+const char *CUser::GetConfigChannels(void) const {
 	return m_Config->ReadString("user.channels");
 }
 
+/**
+ * SetConfigChannels
+ *
+ * Sets the user's list of channels.
+ *
+ * @param Channels the channels
+ */
 void CUser::SetConfigChannels(const char *Channels) {
 	USER_SETFUNCTION(channels, Channels);
 }
 
-const char *CUser::GetSuspendReason(void) {
+/**
+ * GetSuspendReason
+ *
+ * Returns the suspend reason for the user.
+ */
+const char *CUser::GetSuspendReason(void) const {
 	return m_Config->ReadString("user.suspend");
 }
 
+/**
+ * SetSuspendReason
+ *
+ * Sets the suspend reason for the user.
+ *
+ * @param Reason the new reason
+ */
 void CUser::SetSuspendReason(const char *Reason) {
 	USER_SETFUNCTION(suspend, Reason);
 }
 
-const char *CUser::GetServerPassword(void) {
+/**
+ * GetServerPassword
+ *
+ * Returns the user's server password.
+ */
+const char *CUser::GetServerPassword(void) const {
 	return m_Config->ReadString("user.spass");
 }
 
+/**
+ * SetServerPassword
+ *
+ * Sets the user's server password.
+ *
+ * @param Password the new password
+ */
 void CUser::SetServerPassword(const char *Password) {
 	USER_SETFUNCTION(spass, Password);
 }
 
-const char* CUser::GetAutoModes(void) {
+/**
+ * GetAutoModes
+ *
+ * Returns the user's "auto usermodes".
+ */
+const char *CUser::GetAutoModes(void) const {
 	return m_Config->ReadString("user.automodes");
 }
 
+/**
+ * SetAutoModes
+ *
+ * Sets the user's "auto modes".
+ *
+ * @param AutoModes the new usermodes
+ */
 void CUser::SetAutoModes(const char *AutoModes) {
 	USER_SETFUNCTION(automodes, AutoModes);
 }
 
-const char *CUser::GetDropModes(void) {
+/**
+ * GetDropModes
+ *
+ * Returns the user's "drop usermodes".
+ */
+const char *CUser::GetDropModes(void) const {
 	return m_Config->ReadString("user.dropmodes");
 }
 
+/**
+ * SetDropModes
+ *
+ * Sets the user's "drop modes".
+ *
+ * @param DropModes the new usermodes
+ */
 void CUser::SetDropModes(const char *DropModes) {
 	USER_SETFUNCTION(dropmodes, DropModes);
 }
 
+/**
+ * GetClientCertificates
+ *
+ * Returns the user's list of client certificates.
+ */
 const CVector<X509 *> *CUser::GetClientCertificates(void) const {
 #ifdef USESSL
 	return &m_ClientCertificates;
@@ -1050,6 +1535,13 @@ const CVector<X509 *> *CUser::GetClientCertificates(void) const {
 #endif
 }
 
+/**
+ * AddClientCertificate
+ *
+ * Inserts a new client certificate into the user's certificate chain.
+ *
+ * @param Certificate the certificate
+ */
 bool CUser::AddClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
 	X509 *DuplicateCertificate;
@@ -1060,7 +1552,7 @@ bool CUser::AddClientCertificate(const X509 *Certificate) {
 		}
 	}
 
-	DuplicateCertificate = /*X509_dup(*/const_cast<X509 *>(Certificate)/*)*/;
+	DuplicateCertificate = X509_dup(const_cast<X509 *>(Certificate));
 
 	m_ClientCertificates.Insert(DuplicateCertificate);
 
@@ -1070,6 +1562,13 @@ bool CUser::AddClientCertificate(const X509 *Certificate) {
 #endif
 }
 
+/**
+ * RemoveClientCertificate
+ *
+ * Removes a certificate from the user's certificate chain.
+ *
+ * @param Certificate the certificate
+ */
 bool CUser::RemoveClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
 	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
@@ -1087,6 +1586,11 @@ bool CUser::RemoveClientCertificate(const X509 *Certificate) {
 }
 
 #ifdef USESSL
+/**
+ * PersistCertificates
+ *
+ * Stores the client certificates in a file.
+ */
 bool CUser::PersistCertificates(void) {
 	char *TempFilename;
 	const char *Filename;
@@ -1123,6 +1627,14 @@ bool CUser::PersistCertificates(void) {
 }
 #endif
 
+/**
+ * FindClientCertificate
+ *
+ * Checks whether the specified certificate is in the user's chain of
+ * client certificates.
+ *
+ * @param Certificate a certificate
+ */
 bool CUser::FindClientCertificate(const X509 *Certificate) const {
 #ifdef USESSL
 	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
@@ -1135,7 +1647,12 @@ bool CUser::FindClientCertificate(const X509 *Certificate) const {
 	return false;
 }
 
-bool CUser::GetSSL(void) {
+/**
+ * GetSSL
+ *
+ * Returns whether the user is using SSL for IRC connections.
+ */
+bool CUser::GetSSL(void) const {
 #ifdef USESSL
 	if (m_Config->ReadInteger("user.ssl") != 0) {
 		return true;
@@ -1147,6 +1664,13 @@ bool CUser::GetSSL(void) {
 #endif
 }
 
+/**
+ * SetSSL
+ *
+ * Sets whether the user should use SSL for connections to IRC servers.
+ *
+ * @param SSL a boolean flag
+ */
 void CUser::SetSSL(bool SSL) {
 #ifdef USESSL
 	if (SSL) {
@@ -1157,15 +1681,34 @@ void CUser::SetSSL(bool SSL) {
 #endif
 }
 
-const char *CUser::GetIdent(void) {
+/**
+ * GetIdent
+ *
+ * Returns the user's custom ident, or NULL if there is no custom ident.
+ */
+const char *CUser::GetIdent(void) const {
 	return m_Config->ReadString("user.ident");
 }
 
+/**
+ * SetIdent
+ *
+ * Sets the user's custom ident.
+ *
+ * @param Ident the new ident
+ */
 void CUser::SetIdent(const char *Ident) {
 	USER_SETFUNCTION(ident, Ident);
 }
 
-const char *CUser::GetTagString(const char *Tag) {
+/**
+ * GetTagString
+ *
+ * Returns a tag's value as a string.
+ *
+ * @param Tag the name of the tag
+ */
+const char *CUser::GetTagString(const char *Tag) const {
 	char *Setting;
 	const char *Value;
 
@@ -1186,7 +1729,14 @@ const char *CUser::GetTagString(const char *Tag) {
 	return Value;
 }
 
-int CUser::GetTagInteger(const char *Tag) {
+/**
+ * GetTagInteger
+ *
+ * Returns a tag's value as an integer.
+ *
+ * @param Tag the name of the tag
+ */
+int CUser::GetTagInteger(const char *Tag) const {
 	const char *Value = GetTagString(Tag);
 
 	if (Value != NULL) {
@@ -1196,10 +1746,18 @@ int CUser::GetTagInteger(const char *Tag) {
 	}
 }
 
+/**
+ * SetTagString
+ *
+ * Sets a tag's value.
+ *
+ * @param Tag the name of the tag
+ * @param Value the new value
+ */
 bool CUser::SetTagString(const char *Tag, const char *Value) {
 	bool ReturnValue;
 	char *Setting;
-	CVector<CModule *> *Modules;
+	const CVector<CModule *> *Modules;
 
 	if (Tag == NULL) {
 		return false;
@@ -1211,17 +1769,27 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-	ReturnValue = m_Config->WriteString(Setting, Value);
-
 	Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		Modules->Get(i)->UserTagModified(Tag, Value);
 	}
 
+	ReturnValue = m_Config->WriteString(Setting, Value);
+
+	Modules = g_Bouncer->GetModules();
+
 	return ReturnValue;
 }
 
+/**
+ * SetTagInteger
+ *
+ * Sets a tag's value.
+ *
+ * @param Tag the name of the tag
+ * @param Value the new value
+ */
 bool CUser::SetTagInteger(const char *Tag, int Value) {
 	bool ReturnValue;
 	char *StringValue;
@@ -1239,7 +1807,14 @@ bool CUser::SetTagInteger(const char *Tag, int Value) {
 	return ReturnValue;
 }
 
-const char *CUser::GetTagName(int Index) {
+/**
+ * GetTagName
+ *
+ * Returns the Index-th tag.
+ *
+ * @param Index the index
+ */
+const char *CUser::GetTagName(int Index) const {
 	int Skip = 0;
 	int Count = m_Config->GetLength();
 
@@ -1258,7 +1833,12 @@ const char *CUser::GetTagName(int Index) {
 	return NULL;
 }
 
-bool CUser::GetIPv6(void) {
+/**
+ * GetIPv6
+ *
+ * Returns whether the user is using IPv6 for IRC connections.
+ */
+bool CUser::GetIPv6(void) const {
 	if (m_Config->ReadInteger("user.ipv6") != 0) {
 		return true;
 	} else {
@@ -1266,11 +1846,25 @@ bool CUser::GetIPv6(void) {
 	}
 }
 
+/**
+ * SetIPv6
+ *
+ * Sets whether the user should use IPv6 for connections to IRC servers.
+ *
+ * @param IPv6 a boolean flag
+ */
 void CUser::SetIPv6(bool IPv6) {
 	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
 }
 
-const char *CUser::FormatTime(time_t Timestamp) {
+/**
+ * FormatTime
+ *
+ * Formats a timestamp while considering the user's GMT offset.
+ *
+ * @param Timestamp the timestamp
+ */
+const char *CUser::FormatTime(time_t Timestamp) const {
 	tm *Time;
 	static char *Buffer = NULL;
 	char *NewLine;
@@ -1288,11 +1882,23 @@ const char *CUser::FormatTime(time_t Timestamp) {
 	return Buffer;
 }
 
-void CUser::SetGmtOffset(unsigned int Offset) {
+/**
+ * SetGmtOffset
+ *
+ * Sets the user's GMT offset (in minutes).
+ *
+ * @param Offset the new offset
+ */
+void CUser::SetGmtOffset(int Offset) {
 	m_Config->WriteInteger("user.tz", Offset);
 }
 
-unsigned int CUser::GetGmtOffset(void) {
+/**
+ * GetGmtOffset
+ *
+ * Returns the user's GMT offset (in minutes).
+ */
+int CUser::GetGmtOffset(void) const {
 	const char *Offset;
 	time_t Now;
 	tm GMTime;
@@ -1311,5 +1917,29 @@ unsigned int CUser::GetGmtOffset(void) {
 		return (CurrentTime->tm_hour - GMTime.tm_hour) * 60 + (CurrentTime->tm_min - GMTime.tm_min);
 	} else {
 		return atoi(Offset);
+	}
+}
+
+/**
+ * SetSystemNotices
+ *
+ * Sets whether the user should receive system notices.
+ *
+ * @param SystemNotices a boolean flag
+ */
+void CUser::SetSystemNotices(bool SystemNotices) {
+	m_Config->WriteInteger("user.ignsysnotices", SystemNotices ? 0 : 1);
+}
+
+/**
+ * GetSystemNotices
+ *
+ * Returns whether the user should receive system notices.
+ */
+bool CUser::GetSystemNotices(void) const {
+	if (m_Config->ReadInteger("user.ignsysnotices") == 0) {
+		return true;
+	} else {
+		return true;
 	}
 }

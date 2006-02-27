@@ -1365,8 +1365,8 @@ _wrap_putclient(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (int)putclient((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -1388,7 +1388,7 @@ static int
 _wrap_simul(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
-    int result;
+    char *result;
     Tcl_DString ds_1 ;
     bool ds_use_1 = false ;
     Tcl_DString ds_2 ;
@@ -1405,13 +1405,18 @@ _wrap_simul(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
     {
         try {
-            result = (int)simul((char const *)arg1,(char const *)arg2);
+            result = (char *)simul((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
-    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    {
+        Tcl_DString ds_result;
+        
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_DStringFree(&ds_result);
+    }
     {
         if (ds_use_1)
         Tcl_DStringFree(&ds_1);
@@ -1475,8 +1480,8 @@ _wrap_internalbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (int)internalbind((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -1559,8 +1564,8 @@ _wrap_internalunbind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         try {
             result = (int)internalunbind((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -1617,8 +1622,8 @@ _wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         try {
             setctx((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -1645,14 +1650,14 @@ _wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         try {
             result = (char *)getctx();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -1670,14 +1675,14 @@ _wrap_bncuserlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)bncuserlist();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -1718,14 +1723,14 @@ _wrap_getbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (char *)getbncuser((char const *)arg1,(char const *)arg2,(char const *)arg3);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -1799,8 +1804,8 @@ _wrap_setbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (int)setbncuser((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -1864,8 +1869,8 @@ _wrap_addbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             addbncuser((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -1906,8 +1911,8 @@ _wrap_delbncuser(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             delbncuser((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -1948,8 +1953,8 @@ _wrap_bnccheckpassword(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             result = (bool)bnccheckpassword((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -1991,14 +1996,14 @@ _wrap_internalchanlist(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             result = (char *)internalchanlist((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2024,14 +2029,14 @@ _wrap_bncversion(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (char *)bncversion();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -2049,14 +2054,14 @@ _wrap_bncnumversion(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             result = (char *)bncnumversion();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -2074,8 +2079,8 @@ _wrap_bncuptime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (int)bncuptime();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2101,8 +2106,8 @@ _wrap_floodcontrol(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (int)floodcontrol((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2136,14 +2141,14 @@ _wrap_getisupport(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)getisupport((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2170,8 +2175,8 @@ _wrap_requiresparam(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             result = (int)requiresparam(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2191,8 +2196,8 @@ _wrap_isprefixmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (bool)isprefixmode(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2225,14 +2230,14 @@ _wrap_getchanprefix(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             result = (char *)getchanprefix((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2266,14 +2271,14 @@ _wrap_internalchannels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             result = (char *)internalchannels();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -2291,14 +2296,14 @@ _wrap_bncmodules(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (char *)bncmodules();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -2344,8 +2349,8 @@ _wrap_bncsettag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (int)bncsettag((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2417,14 +2422,14 @@ _wrap_bncgettag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (char *)bncgettag((char const *)arg1,(char const *)arg2,(char const *)arg3);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2464,8 +2469,8 @@ _wrap_haltoutput(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             haltoutput();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -2498,14 +2503,14 @@ _wrap_bnccommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (char *)bnccommand((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2546,14 +2551,14 @@ _wrap_md5(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         try {
             result = (char *)md5((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -2585,8 +2590,8 @@ _wrap_debugout(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             debugout((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -2627,8 +2632,8 @@ _wrap_internalgetchanidle(ClientData clientData, Tcl_Interp *interp, int objc, T
         try {
             result = (int)internalgetchanidle((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2669,8 +2674,8 @@ _wrap_bncreply(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             bncreply((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -2722,8 +2727,8 @@ _wrap_trafficstats(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (int)trafficstats((char const *)arg1,(char const *)arg2,(char const *)arg3);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2772,8 +2777,8 @@ _wrap_bncjoinchans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             bncjoinchans((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -2841,8 +2846,8 @@ _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         try {
             result = (int)internallisten(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5,(char const *)arg6);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2900,8 +2905,8 @@ _wrap_internalsocketwriteln(ClientData clientData, Tcl_Interp *interp, int objc,
         try {
             internalsocketwriteln(arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -2942,8 +2947,8 @@ _wrap_internalconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         try {
             result = (int)internalconnect((char const *)arg1,arg2,arg3);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -2970,8 +2975,8 @@ _wrap_internalclosesocket(ClientData clientData, Tcl_Interp *interp, int objc, T
         try {
             internalclosesocket(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3011,8 +3016,8 @@ _wrap_internaltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             result = (int)internaltimer(arg1,arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3063,8 +3068,8 @@ _wrap_internalkilltimer(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
         try {
             result = (int)internalkilltimer((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3099,14 +3104,14 @@ _wrap_internaltimers(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         try {
             result = (char *)internaltimers();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3124,8 +3129,8 @@ _wrap_timerstats(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (int)timerstats();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3150,8 +3155,8 @@ _wrap_bncdisconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             bncdisconnect((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3184,8 +3189,8 @@ _wrap_bnckill(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             bnckill((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3212,14 +3217,14 @@ _wrap_getcurrentnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         try {
             result = (char *)getcurrentnick();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3237,14 +3242,14 @@ _wrap_internalbinds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             result = (char *)internalbinds();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3262,14 +3267,14 @@ _wrap_bncgetmotd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (char *)bncgetmotd();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3293,8 +3298,8 @@ _wrap_bncsetmotd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             bncsetmotd((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3321,14 +3326,14 @@ _wrap_bncgetgvhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (char *)bncgetgvhost();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3352,8 +3357,8 @@ _wrap_bncsetgvhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             bncsetgvhost((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3380,14 +3385,14 @@ _wrap_getbnchosts(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)getbnchosts();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3411,8 +3416,8 @@ _wrap_delbnchost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             delbnchost((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3446,8 +3451,8 @@ _wrap_addbnchost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (int)addbnchost((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3481,8 +3486,8 @@ _wrap_bncisipblocked(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         try {
             result = (bool)bncisipblocked((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3516,8 +3521,8 @@ _wrap_bnccanhostconnect(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
         try {
             result = (bool)bnccanhostconnect((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3551,8 +3556,8 @@ _wrap_bncvalidusername(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             result = (bool)bncvalidusername((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3579,8 +3584,8 @@ _wrap_bncgetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (int)bncgetsendq();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3599,8 +3604,8 @@ _wrap_bncsetsendq(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             bncsetsendq(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3648,8 +3653,8 @@ _wrap_bncaddcommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
         try {
             bncaddcommand((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3706,8 +3711,8 @@ _wrap_bncdeletecommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             bncdeletecommand((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3745,8 +3750,8 @@ _wrap_synthwho(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             result = (bool)synthwho((char const *)arg1,arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -3789,14 +3794,14 @@ _wrap_getchanrealname(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         try {
             result = (char *)getchanrealname((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -3831,14 +3836,14 @@ _wrap_impulse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             result = (char *)impulse(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3871,8 +3876,8 @@ _wrap_bncsetglobaltag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         try {
             bncsetglobaltag((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -3914,14 +3919,14 @@ _wrap_bncgetglobaltag(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         try {
             result = (char *)bncgetglobaltag((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -3947,14 +3952,14 @@ _wrap_bncgetglobaltags(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
         try {
             result = (char *)bncgetglobaltags();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -3981,14 +3986,14 @@ _wrap_getzoneinfo(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)getzoneinfo((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4014,14 +4019,14 @@ _wrap_getallocinfo(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (char *)getallocinfo();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     return TCL_OK;
@@ -4039,8 +4044,8 @@ _wrap_hijacksocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         try {
             result = (int)hijacksocket();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4075,8 +4080,8 @@ _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         try {
             result = (bool)onchan((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4118,14 +4123,14 @@ _wrap_topic(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
         try {
             result = (char *)topic((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4158,14 +4163,14 @@ _wrap_topicnick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (char *)topicnick((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4198,8 +4203,8 @@ _wrap_topicstamp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (int)topicstamp((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4233,14 +4238,14 @@ _wrap_getchanmode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)getchanmode((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4282,8 +4287,8 @@ _wrap_isop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         try {
             result = (bool)isop((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4334,8 +4339,8 @@ _wrap_isvoice(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             result = (bool)isvoice((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4386,8 +4391,8 @@ _wrap_ishalfop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             result = (bool)ishalfop((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4438,14 +4443,14 @@ _wrap_getchanhost(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (char *)getchanhost((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4500,8 +4505,8 @@ _wrap_jump(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         try {
             jump((char const *)arg1,arg2,(char const *)arg3);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -4534,8 +4539,8 @@ _wrap_rehash(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         try {
             rehash();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -4552,8 +4557,8 @@ _wrap_die(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         try {
             die();
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -4579,8 +4584,8 @@ _wrap_putserv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             result = (int)putserv((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4621,8 +4626,8 @@ _wrap_getchanjoin(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
         try {
             result = (int)getchanjoin((char const *)arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4658,8 +4663,8 @@ _wrap_rand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         try {
             result = (int)ticklerand(arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4685,8 +4690,8 @@ _wrap_clearqueue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         try {
             result = (int)clearqueue((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4720,8 +4725,8 @@ _wrap_queuesize(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
         try {
             result = (int)queuesize((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4755,8 +4760,8 @@ _wrap_puthelp(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             result = (int)puthelp((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4790,8 +4795,8 @@ _wrap_putquick(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             result = (int)putquick((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
@@ -4824,8 +4829,8 @@ _wrap_putlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         try {
             putlog((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     
@@ -4859,14 +4864,14 @@ _wrap_chanbans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         try {
             result = (char *)chanbans((char const *)arg1);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     {
         Tcl_DString ds_result;
         
-        Tcl_SetObjResult(interp,Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
         Tcl_DStringFree(&ds_result);
     }
     {
@@ -4899,8 +4904,8 @@ _wrap_control(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
         try {
             control(arg1,(char const *)arg2);
             
-        } catch (const char* p) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char*>(p));
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
         }
     }
     

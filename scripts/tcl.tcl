@@ -1,4 +1,4 @@
-bind pub n&- - stcl
+bind pub n&- % stcl
 
 proc stcl {nick host hand chan arg} {
 	set ctx [getctx]

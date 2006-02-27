@@ -22,6 +22,7 @@
 class CConfig;
 class CUser;
 class CLog;
+class CClientListener;
 class CClientConnection;
 class CIRCConnection;
 class CIdentSupport;
@@ -31,16 +32,12 @@ class CTimer;
 class CAssocArray;
 struct CSocketEvents;
 struct sockaddr_in;
-struct loaderparams_s;
 
 typedef struct socket_s {
 	SOCKET Socket;
 	CSocketEvents *Events;
 } socket_t;
 
-typedef void (*ExitHandler)(void *Cookie);
-
-class CClientListener;
 
 #ifdef SWIGINTERFACE
 %template(CVectorCModule) CVector<class CModule *>;
@@ -77,7 +74,7 @@ class CCore {
 
 	CVector<CDnsQuery *> m_DnsQueries;
 
-	int m_SendQSizeCache;
+	size_t m_SendqSizeCache;
 
 	SSL_CTX *m_SSLContext;
 	SSL_CTX *m_SSLClientContext;
@@ -86,8 +83,8 @@ class CCore {
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
-	bool Daemonize(void);
-	void WritePidFile(void);
+	bool Daemonize(void) const;
+	void WritePidFile(void) const;
 	bool MakeConfig(void);
 
 	CVector<CZoneInformation *> m_Zones;
@@ -109,94 +106,96 @@ public:
 
 	virtual CUser *GetUser(const char *Name);
 
-	virtual void GlobalNotice(const char *Text, bool AdminOnly = false);
+	virtual void GlobalNotice(const char *Text);
 
 	virtual CHashtable<CUser *, false, 64> *GetUsers(void);
-	virtual int GetUserCount(void);
 
-	virtual RESULT(CModule *) LoadModule(const char *Filename);
+	virtual RESULT<CModule *> LoadModule(const char *Filename);
 	virtual bool UnloadModule(CModule *Module);
-	virtual CVector<CModule *> *GetModules(void);
+	virtual const CVector<CModule *> *GetModules(void) const;
 
 	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void);
+	virtual const char *GetIdent(void) const;
 
 	virtual CConfig *GetConfig(void);
 
 	virtual void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
 	virtual void UnregisterSocket(SOCKET Socket);
 
-	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
+	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET) const;
 
 	virtual void Log(const char *Format, ...);
 	virtual CLog *GetLog(void);
 
 	virtual void Shutdown(void);
 
-	virtual CUser *CreateUser(const char *Username, const char *Password);
-	virtual bool RemoveUser(const char *Username, bool RemoveConfig = true);
-	virtual bool IsValidUsername(const char *Username);
+	virtual RESULT<CUser *> CreateUser(const char *Username, const char *Password);
+	virtual RESULT<bool> RemoveUser(const char *Username, bool RemoveConfig = true);
+	virtual bool IsValidUsername(const char *Username) const;
 
-	virtual time_t GetStartup(void);
+	virtual time_t GetStartup(void) const;
 
-	virtual const char *MD5(const char *String);
+	virtual const char *MD5(const char *String) const;
 
-	virtual int GetArgC(void);
-	virtual char **GetArgV(void);
+	virtual int GetArgC(void) const;
+	virtual const char * const* GetArgV(void) const;
 
-	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
-	virtual void DeleteWrapper(CConnection *Wrapper);
+	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server) const;
+	virtual void DeleteWrapper(CConnection *Wrapper) const;
 
-	virtual bool IsRegisteredSocket(CSocketEvents *Events);
+	virtual bool IsRegisteredSocket(CSocketEvents *Events) const;
 	virtual SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
 
-	virtual socket_t *GetSocketByClass(const char *Class, int Index);
+	virtual const socket_t *GetSocketByClass(const char *Class, int Index) const;
 
-	virtual CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
+	virtual CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const;
 
-	virtual int GetTimerStats(void);
+	virtual int GetTimerStats(void) const;
 
-	virtual bool Match(const char *Pattern, const char *String);
+	virtual bool Match(const char *Pattern, const char *String) const;
 
-	virtual int GetSendQSize(void);
-	virtual void SetSendQSize(int NewSize);
+	virtual size_t GetSendqSize(void) const;
+	virtual void SetSendqSize(size_t NewSize);
 
-	virtual const char *GetMotd(void);
+	virtual const char *GetMotd(void) const;
 	virtual void SetMotd(const char *Motd);
 
 	virtual void InternalLogError(const char *Format, ...);
 	virtual void InternalSetFileAndLine(const char *Filename, unsigned int Line);
 	virtual void Fatal(void);
 
-	virtual SSL_CTX *GetSSLContext(void);
+	virtual SSL_CTX *GetSSLContext(void) ;
 	virtual SSL_CTX *GetSSLClientContext(void);
-	virtual int GetSSLCustomIndex(void);
+	virtual int GetSSLCustomIndex(void) const;
 
 	virtual const char *DebugImpulse(int impulse);
 
 	virtual bool Freeze(CAssocArray *Box);
 	virtual bool Thaw(CAssocArray *Box);
 	virtual bool InitializeFreeze(void);
-	virtual const loaderparams_s *GetLoaderParameters(void);
+	virtual const loaderparams_s *GetLoaderParameters(void) const;
 
 	virtual const utility_t *GetUtilities(void);
 
-	virtual const char *GetTagString(const char *Tag);
-	virtual int GetTagInteger(const char *Tag);
+	virtual const char *GetTagString(const char *Tag) const;
+	virtual int GetTagInteger(const char *Tag) const;
 	virtual bool SetTagString(const char *Tag, const char *Value);
 	virtual bool SetTagInteger(const char *Tag, int Value);
-	virtual const char *GetTagName(int Index);
+	virtual const char *GetTagName(int Index) const;
 
-	virtual const char *GetBasePath(void);
-	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL);
+	virtual const char *GetBasePath(void) const;
+	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL) const;
 
-	virtual const char *GetBouncerVersion(void);
+	virtual const char *GetBouncerVersion(void) const;
 
 	virtual void SetStatus(int NewStatus);
-	virtual int GetStatus(void);
+	virtual int GetStatus(void) const;
 
-	virtual CVector<CZoneInformation *> *GetZones(void);
-	virtual CVector<file_t> *GetAllocationInformation(void);
+	virtual const CVector<CZoneInformation *> *GetZones(void) const;
+	virtual const CVector<file_t> *GetAllocationInformation(void) const;
+
+	virtual CFakeClient *CreateFakeClient(void) const;
+	virtual void DeleteFakeClient(CFakeClient *FakeClient) const;
 };
 
 extern CCore *g_Bouncer;

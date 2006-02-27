@@ -35,7 +35,7 @@ class CConfig : public CZoneObject<CConfig, 128> {
 						   updated when settings are added/removed */
 
 	bool ParseConfig(void);
-	RESULT(bool) Persist(void) const;
+	RESULT<bool> Persist(void) const;
 public:
 #ifndef SWIG
 	CConfig(const char *Filename);
@@ -43,15 +43,15 @@ public:
 	virtual ~CConfig(void);
 
 #ifndef SWIG
-	RESULT(bool) Freeze(CAssocArray *Box);
-	static RESULT(CConfig *) Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CConfig *> Thaw(CAssocArray *Box);
 #endif
 
-	virtual RESULT(int) ReadInteger(const char *Setting) const;
-	virtual RESULT(const char *) ReadString(const char *Setting) const;
+	virtual RESULT<int> ReadInteger(const char *Setting) const;
+	virtual RESULT<const char *> ReadString(const char *Setting) const;
 
-	virtual RESULT(bool) WriteInteger(const char *Setting, const int Value);
-	virtual RESULT(bool) WriteString(const char *Setting, const char *Value);
+	virtual RESULT<bool> WriteInteger(const char *Setting, const int Value);
+	virtual RESULT<bool> WriteString(const char *Setting, const char *Value);
 
 	virtual hash_t<char *> *Iterate(int Index) const;
 

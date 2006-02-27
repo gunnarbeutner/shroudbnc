@@ -45,12 +45,12 @@ public:
 #endif
 
 #ifndef SWIG
-	RESULT(bool) Freeze(CAssocArray *Box);
-	static RESULT(CBanlist *) Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CBanlist *> Thaw(CAssocArray *Box);
 #endif
 
-	virtual RESULT(bool) SetBan(const char *Mask, const char *Nick, time_t Timestamp);
-	virtual RESULT(bool) UnsetBan(const char *Mask);
+	virtual RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);
+	virtual RESULT<bool> UnsetBan(const char *Mask);
 
 	virtual const ban_t *GetBan(const char *Mask) const;
 	virtual const hash_t<ban_t *> *Iterate(int Skip) const;

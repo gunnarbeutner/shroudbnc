@@ -45,7 +45,7 @@ void CTrafficStats::AddInbound(unsigned int Bytes) {
  *
  * Returns the amount of used inbound traffic (in bytes).
  */
-unsigned int CTrafficStats::GetInbound(void) {
+unsigned int CTrafficStats::GetInbound(void) const {
 	return m_Inbound;
 }
 
@@ -65,11 +65,11 @@ void CTrafficStats::AddOutbound(unsigned int Bytes) {
  *
  * Returns the amount of used outbound traffic (in bytes).
  */
-unsigned int CTrafficStats::GetOutbound(void) {
+unsigned int CTrafficStats::GetOutbound(void) const {
 	return m_Outbound;
 }
 
-RESULT(bool) CTrafficStats::Freeze(CAssocArray *Box) {
+RESULT<bool> CTrafficStats::Freeze(CAssocArray *Box) {
 	Box->AddInteger("~traffic.in", m_Inbound);
 	Box->AddInteger("~traffic.out", m_Outbound);
 
@@ -78,7 +78,7 @@ RESULT(bool) CTrafficStats::Freeze(CAssocArray *Box) {
 	RETURN(bool, true);
 }
 
-RESULT(CTrafficStats *) CTrafficStats::Thaw(CAssocArray *Box) {
+RESULT<CTrafficStats *> CTrafficStats::Thaw(CAssocArray *Box) {
 	CTrafficStats *TrafficStats;
 
 	TrafficStats = new CTrafficStats();

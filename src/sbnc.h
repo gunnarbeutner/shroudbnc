@@ -11,12 +11,18 @@ typedef void (*SetModuleProc)(const char *Module);
 typedef const char *(*BuildPathProc)(const char *Filename, const char *BasePath);
 typedef const char *(*GetModuleProc)(void);
 
+/**
+ * loaderparams_t
+ *
+ * Parameters which are passed to the shroudBNC module
+ * by the loader.
+ */
 typedef struct loaderparams_s {
-	int Version;
+	int Version; /**< the version of this structure */
 
-	int argc;
-	char **argv;
-	const char *basepath;
+	int argc; /**< the number of arguments for the shroudBNC module */
+	char **argv; /**< the arguments for the shroudBNC module */
+	const char *basepath; /**< the path of shroudBNC */
 
 	CAssocArray *Box;
 

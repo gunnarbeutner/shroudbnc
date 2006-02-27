@@ -15,36 +15,50 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# options
-set ::contactuser "all"
-
-if {[lsearch -exact [info commands] "registerifacehandler"] != -1} {
-	registerifacehandler contact contact:ifacecmd
-}
-
 # iface commands:
 # +user:
 # sendmessage text
-proc contact:ifacecmd {command params account} {
-	global contactuser
+# +admin
+# setcontactusers users
+# getcontactusers
+proc iface-contact:sendmessage {text} {
+	set contactusers [split [string tolower [bncgetglobaltag contactusers]]]
 
-	if {[string equal -nocase $command "sendmessage"]} {
-		set user [lindex $params 0]
+	set wholetext "Message from user [getctx]: $text"
 
-		set text "Message from user $account: [join $params]"
+	foreach user [bncuserlist] {
+		if {([lsearch -exact $contactusers [string tolower $user]] || [string equal -nocase [lindex $contactusers 0] "all"]) && [getbncuser $user admin]} {
+			setctx $user
 
-		foreach u [bncuserlist] {
-			if {[lsearch -exact $contactuser $u] != -1 || ([string equal -nocase $contactuser "all"]) && [getbncuser $u admin]} {
-				setctx $u
-
-				foreach line [split $text \5] {
-					if {[getbncuser $u hasclient]} {
-						bncnotc $line
-					} else {
-						putlog $line
-					}
-				}
+			if {[getbncuser $user hasclient]} {
+				bncnotc $wholetext
+			} else {
+				putlog $wholetext
 			}
 		}
 	}
+}
+
+if {[bncgetglobaltag contactusers] == ""} {
+	bncsetglobaltag contactusers "all"
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "contact" "sendmessage" "iface-contact:sendmessage"
+}
+
+proc iface-contact:setcontactusers {users} {
+	bncsetglobaltag contactusers [split $users]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "contact" "setcontactusers" "iface-contact:setcontactusers" "access:admin"
+}
+
+proc iface-contact:getcontactusers {} {
+	return [iface:list [split [bncgetglobaltag contactusers]]]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "contact" "getcontactusers" "iface-contact:getcontactusers" "access:admin"
 }

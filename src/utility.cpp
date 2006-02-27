@@ -35,7 +35,7 @@ extern "C" {
  */
 const char *ArgTokenize(const char *Data) {
 	char* Copy;
-	unsigned int LengthData;
+	size_t LengthData;
 
 	if (Data == NULL) {
 		return NULL;
@@ -185,12 +185,13 @@ void ArgRejoinArray(const char **ArgV, int Index) {
  */
 const char **ArgDupArray(const char **ArgV) {
 	char **Dup;
-	int Len = 0;
-	int Offset;
+	size_t Len = 0;
+	size_t Offset;
 	int Count = ArgCount(ArgV[0]);
 
-	for (int i = 0; i < Count; i++)
+	for (int i = 0; i < Count; i++) {
 		Len += strlen(ArgV[i]) + 1;
+	}
 
 	Dup = (char **)malloc(Count * sizeof(char *) + Len + 2);
 
@@ -500,11 +501,10 @@ const char *UtilMd5(const char *String) {
 	MD5_CTX context;
 	static char Result[33];
 	unsigned char digest[16];
-	unsigned int len = strlen(String);
 
-	MD5Init (&context);
-	MD5Update (&context, (unsigned char *)String, len);
-	MD5Final (digest, &context);
+	MD5Init(&context);
+	MD5Update(&context, (unsigned char *)String, strlen(String));
+	MD5Final(digest, &context);
 
 	for (int i = 0; i < 16; i++) {
 #undef sprintf

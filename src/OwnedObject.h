@@ -25,8 +25,13 @@
 template <typename Type>
 class COwnedObject {
 protected:
-	Type *m_Owner;
+	Type *m_Owner; /**< the owner of this object */
 
+	/**
+	 * COwnedObject
+	 *
+	 * Constructs a new COwnedObject.
+	 */
 	COwnedObject(void) {
 		m_Owner = NULL;
 	}

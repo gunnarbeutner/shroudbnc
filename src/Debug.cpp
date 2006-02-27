@@ -39,7 +39,7 @@ CVector<allocation_t> g_Allocations;
 void* DebugMalloc(size_t Size, const char *File) {
 	allocation_t Allocation;
 
-	for (int i = strlen(File) - 1; i >= 0; i--) {
+	for (size_t i = strlen(File) - 1; i >= 0; i--) {
 		if (File[i] == '\\' || File[i] == '/') {
 			File = &File[i + 1];
 
@@ -94,7 +94,7 @@ void DebugFree(void *Pointer, const char *File) {
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
 	void *NewPointer;
 
-	for (int i = strlen(File) - 1; i >= 0; i--) {
+	for (size_t i = strlen(File) - 1; i >= 0; i--) {
 		if (File[i] == '\\' || File[i] == '/') {
 			File = &File[i + 1];
 

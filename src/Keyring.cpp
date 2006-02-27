@@ -32,41 +32,15 @@ CKeyring::CKeyring(CConfig *Config) {
 }
 
 /**
- * GetKey
+ * SetKey
  *
- * Returns the key for the specified channel or NULL if there is no key
- * or the key is unknown.
- *
- * @param Channel the channel for which the key should be retrieved
- */
-const char *CKeyring::GetKey(const char* Channel) {
-	char *Setting = (char *)malloc(5 + strlen(Channel));
-
-	if (Setting == NULL) {
-		LOGERROR("malloc() failed. Key could not be retrieved (%s).", Channel);
-
-		return NULL;
-	}
-
-	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
-
-	const char *ReturnValue = m_Config->ReadString(Setting);
-
-	free(Setting);
-
-	return ReturnValue;
-}
-
-/**
- * AddKey
- *
- * Saves a key for a specific channel in the keyring. Returns true if the key
- * was successfully saved, false otherwise.
+ * Saves or removes a key for a specific channel in the keyring. Returns true if the key
+ * was successfully set, false otherwise.
  *
  * @param Channel the channel
  * @param Key the key
  */
-bool CKeyring::AddKey(const char *Channel, const char *Key) {
+bool CKeyring::SetKey(const char *Channel, const char *Key) {
 	bool ReturnValue;
 	char *Setting = (char *)malloc(5 + strlen(Channel));
 
@@ -87,24 +61,25 @@ bool CKeyring::AddKey(const char *Channel, const char *Key) {
 }
 
 /**
- * DeleteKey
+ * GetKey
  *
- * Removes a channel key from the keyring. Returns true if the key was
- * successfully removed, false otherwise.
+ * Returns the key for the specified channel or NULL if there is no key
+ * or the key is unknown.
+ *
+ * @param Channel the channel for which the key should be retrieved
  */
-bool CKeyring::DeleteKey(const char *Channel) {
-	bool ReturnValue;
+const char *CKeyring::GetKey(const char* Channel) {
 	char *Setting = (char *)malloc(5 + strlen(Channel));
 
 	if (Setting == NULL) {
-		LOGERROR("malloc() failed. Key could not be removed (%s).", Channel);
+		LOGERROR("malloc() failed. Key could not be retrieved (%s).", Channel);
 
-		return false;
+		return NULL;
 	}
 
 	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
 
-	ReturnValue = m_Config->WriteString(Setting, NULL);
+	const char *ReturnValue = m_Config->ReadString(Setting);
 
 	free(Setting);
 

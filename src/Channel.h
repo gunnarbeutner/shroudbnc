@@ -72,13 +72,13 @@ public:
 	virtual ~CChannel(void);
 
 #ifndef SWIG
-	RESULT(bool) Freeze(CAssocArray *Box);
-	static RESULT(CChannel *) Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CChannel *> Thaw(CAssocArray *Box);
 #endif
 
 	virtual const char *GetName(void) const;
 
-	virtual RESULT(const char *) GetChannelModes(void);
+	virtual RESULT<const char *> GetChannelModes(void);
 	virtual void ParseModeChange(const char *source, const char *modes, int pargc, const char **pargv);
 
 	virtual time_t GetCreationTime(void) const;

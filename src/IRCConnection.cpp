@@ -25,28 +25,20 @@ extern time_t g_LastReconnect;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CIRCConnection::CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL) : CConnection(Socket, SSL) {
-	InitIrcConnection(Owning);
+CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL) : CConnection(Socket, SSL) {
+	InitIrcConnection(Owner);
 }
 
-CIRCConnection::CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
-	InitIrcConnection(Owning);
+CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
+	InitIrcConnection(Owner);
 }
 
-CIRCConnection::CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning) : CConnection(Socket, false) {
-	InitIrcConnection(Owning, true);
-
-	m_CurrentNick = strdup(Box->ReadString("irc.nick"));
-	m_Server = strdup(Box->ReadString("irc.server"));
-
-}
-
-void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
+void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	SetRole(Role_Client);
+	SetOwner(Owner);
 
 	time(&g_LastReconnect);
 	m_LastResponse = g_LastReconnect;
-	m_LastBurst = g_LastReconnect;
 
 	m_State = State_Connecting;
 
@@ -85,17 +77,15 @@ void CIRCConnection::InitIrcConnection(CUser* Owning, bool Unfreezing) {
 	}
 
 	if (!Unfreezing) {
-		const char* Password = Owning->GetServerPassword();
+		const char* Password = Owner->GetServerPassword();
 
 		if (Password) {
 			WriteLine("PASS :%s", Password);
 		}
 
-		WriteLine("NICK %s", Owning->GetNick());
-		WriteLine("USER %s \"\" \"fnords\" :%s", Owning->GetUsername(), Owning->GetRealname());
+		WriteLine("NICK %s", Owner->GetNick());
+		WriteLine("USER %s \"\" \"fnords\" :%s", Owner->GetUsername(), Owner->GetRealname());
 	}
-
-	m_Owner = Owning;
 
 	m_Channels = new CHashtable<CChannel*, false, 16>();
 
@@ -297,9 +287,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 2 && hashRaw == hashPart) {
 		bool bRet = ModuleEvent(argc, argv);
 
-		if (b_Me)
+		if (b_Me) {
 			RemoveChannel(argv[2]);
-		else {
+		} else {
 			CChannel* Chan = GetChannel(argv[2]);
 
 			if (Chan) {
@@ -437,7 +427,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			JoinChannels();
 
 		if (m_State != State_Connected) {
-			CVector<CModule *> *Modules = g_Bouncer->GetModules();
+			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 				Modules->Get(i)->ServerLogon(m_Owner->GetUsername());
@@ -460,11 +450,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		const char* AutoModes = GetOwner()->GetAutoModes();
 		const char* DropModes = GetOwner()->GetDropModes();
 
-		if (AutoModes && *AutoModes)
+		if (AutoModes != NULL) {
 			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
+		}
 
-		if (!GetOwner()->GetClientConnection() && DropModes && *DropModes)
+		if (DropModes != NULL && GetOwner()->GetClientConnection() == NULL) {
 			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
+		}
 
 		m_State = State_Connected;
 	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
@@ -664,7 +656,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 }
 
 bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		if (!Modules->Get(i)->InterceptIRCMessage(this, argc, argv)) {
@@ -728,7 +720,7 @@ void CIRCConnection::ParseLine(const char* Line) {
 	ArgFree(Args);
 }
 
-const char* CIRCConnection::GetCurrentNick(void) {
+const char* CIRCConnection::GetCurrentNick(void) const {
 	return m_CurrentNick;
 }
 
@@ -754,7 +746,7 @@ void CIRCConnection::RemoveChannel(const char* Channel) {
 	UpdateChannelConfig();
 }
 
-const char* CIRCConnection::GetServer(void) {
+const char* CIRCConnection::GetServer(void) const {
 	return m_Server;
 }
 
@@ -789,30 +781,12 @@ void CIRCConnection::UpdateChannelConfig(void) {
 	free(Out);
 }
 
-bool CIRCConnection::IsOnChannel(const char* Channel) {
-	int a = 0;
-
-	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
-		if (strcasecmp(Chan->Name, Channel) == 0)
-			return true;
-	}
-
-	return false;
-}
-
-char* CIRCConnection::NickFromHostmask(const char* Hostmask) {
-	return ::NickFromHostmask(Hostmask);
-}
-
-void CIRCConnection::FreeNick(char* Nick) {
-	free(Nick);
-}
-
-bool CIRCConnection::HasQueuedData(void) {
-	if (m_FloodControl->GetQueueSize())
+bool CIRCConnection::HasQueuedData(void) const {
+	if (m_FloodControl->GetQueueSize() > 0) {
 		return true;
-	else
+	} else {
 		return CConnection::HasQueuedData();
+	}
 }
 
 void CIRCConnection::Write(void) {
@@ -826,19 +800,17 @@ void CIRCConnection::Write(void) {
 	free(Line);
 }
 
-const char* CIRCConnection::GetISupport(const char* Feature) {
-	const char* Val = m_ISupport->ReadString(Feature);
-
-	return Val;
+const char *CIRCConnection::GetISupport(const char *Feature) const {
+	return m_ISupport->ReadString(Feature);
 }
 
-bool CIRCConnection::IsChanMode(char Mode) {
+bool CIRCConnection::IsChanMode(char Mode) const {
 	const char* Modes = GetISupport("CHANMODES");
 
 	return strchr(Modes, Mode) != NULL;
 }
 
-int CIRCConnection::RequiresParameter(char Mode) {
+int CIRCConnection::RequiresParameter(char Mode) const {
 	char* Modes = strdup(GetISupport("CHANMODES"));
 
 	if (Modes == NULL) {
@@ -898,7 +870,7 @@ CChannel* CIRCConnection::GetChannel(const char* Name) {
 	return m_Channels->Get(Name);
 }
 
-bool CIRCConnection::IsNickPrefix(char Char) {
+bool CIRCConnection::IsNickPrefix(char Char) const {
 	const char* Prefixes = GetISupport("PREFIX");
 	bool flip = false;
 
@@ -916,7 +888,7 @@ bool CIRCConnection::IsNickPrefix(char Char) {
 	return false;
 }
 
-bool CIRCConnection::IsNickMode(char Char) {
+bool CIRCConnection::IsNickMode(char Char) const {
 	const char *Prefixes = GetISupport("PREFIX");
 
 	while (*Prefixes != '\0' && *Prefixes != ')')
@@ -928,7 +900,7 @@ bool CIRCConnection::IsNickMode(char Char) {
 	return false;
 }
 
-char CIRCConnection::PrefixForChanMode(char Mode) {
+char CIRCConnection::PrefixForChanMode(char Mode) const {
 	const char* Prefixes = GetISupport("PREFIX");
 	const char* pref = strstr(Prefixes, ")");
 
@@ -950,15 +922,15 @@ char CIRCConnection::PrefixForChanMode(char Mode) {
 	return '\0';
 }
 
-const char* CIRCConnection::GetServerVersion(void) {
+const char* CIRCConnection::GetServerVersion(void) const {
 	return m_ServerVersion;
 }
 
-const char* CIRCConnection::GetServerFeat(void) {
+const char* CIRCConnection::GetServerFeat(void) const {
 	return m_ServerFeat;
 }
 
-CConfig* CIRCConnection::GetISupportAll(void) {
+const CConfig *CIRCConnection::GetISupportAll(void) const {
 	return m_ISupport;
 }
 
@@ -980,7 +952,7 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 
 void CIRCConnection::UpdateHostHelper(const char* Host) {
 	const char *NickEnd;
-	int Offset;
+	size_t Offset;
 	char* Copy;
 
 	NickEnd = strstr(Host, "!");
@@ -1029,7 +1001,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	free(Copy);
 }
 
-CFloodControl* CIRCConnection::GetFloodControl(void) {
+CFloodControl *CIRCConnection::GetFloodControl(void) {
 	return m_FloodControl;
 }
 
@@ -1116,7 +1088,7 @@ void CIRCConnection::JoinChannels(void) {
 	}
 }
 
-const char* CIRCConnection::GetClassName(void) {
+const char* CIRCConnection::GetClassName(void) const {
 	return "CIRCConnection";
 }
 
@@ -1140,7 +1112,7 @@ bool DelayJoinTimer(time_t Now, void* IRCConnection) {
 bool IRCPingTimer(time_t Now, void* IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
 
-	if (IRC->m_Socket == INVALID_SOCKET) {
+	if (IRC->GetSocket() == INVALID_SOCKET) {
 		return true;
 	}
 
@@ -1159,11 +1131,11 @@ CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }
 
-const char* CIRCConnection::GetSite(void) {
+const char* CIRCConnection::GetSite(void) const {
 	return m_Site;
 }
 
-int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) {
+int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) const {
 #ifdef USESSL
 	m_Owner->Notice(Context->cert->name);
 #endif
@@ -1245,8 +1217,8 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 	Box->AddBox("~irc.queuelow", QueueLowBox);
 
 	// protect the socket from being closed
-	g_Bouncer->UnregisterSocket(m_Socket);
-	m_Socket = INVALID_SOCKET;
+	g_Bouncer->UnregisterSocket(GetSocket());
+	SetSocket(INVALID_SOCKET);
 
 	Destroy();
 
@@ -1362,7 +1334,7 @@ void CIRCConnection::Kill(const char *Error) {
 	CConnection::Kill(Error);
 }
 
-char CIRCConnection::GetHighestUserFlag(const char *Modes) {
+char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 	bool Flip = false;
 	const char *Prefixes = GetISupport("PREFIX");
 
@@ -1389,8 +1361,8 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) {
 
 void CIRCConnection::Error(void) {
 	if (m_State == State_Connecting && GetOwner() != NULL) {
-		g_Bouncer->Log("An error occured while re-connecting for user %s", GetOwner()->GetUsername());
+		g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
 
-		GetOwner()->Notice("An error occured while re-connecting to a server.");
+		GetOwner()->Notice("An error occured while connecting to a server.");
 	}
 }

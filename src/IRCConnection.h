@@ -17,11 +17,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+/**
+ * connection_state_e
+ *
+ * Describes the status of an IRC connection.
+ */
 enum connection_state_e {
-	State_Unknown,
-	State_Connecting,
-	State_Pong,
-	State_Connected
+	State_Unknown, /**< unknown status */
+	State_Connecting, /**< first ping event has not yet been received */
+	State_Pong, /**< first pong has been sent */
+	State_Connected /**< the motd has been received */
 };
 
 class CUser;
@@ -37,122 +42,110 @@ bool DelayJoinTimer(time_t Now, void* IRCConnection);
 bool IRCPingTimer(time_t Now, void* IRCConnection);
 #endif
 
-#ifndef USESSL
-typedef void X509_STORE_CTX;
-#endif
-
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
 %template(CZoneObjectCIRCConnection) CZoneObject<class CIRCConnection, 16>;
 #endif
 
+/**
+ * CIRCConnection
+ *
+ * An IRC connection.
+ */
 class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZoneObject<CIRCConnection, 16> {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
 #endif
 
-	connection_state_e m_State;
+	connection_state_e m_State; /**< the current status of the IRC connection */
 
-	char* m_CurrentNick;
-	char* m_Server;
+	char *m_CurrentNick; /**< the current nick for this IRC connection */
+	char *m_Site; /**< the ident@host of this IRC connection */
+	char *m_Server; /**< the hostname of the IRC server */
 
-	CHashtable<CChannel*, false, 16>* m_Channels;
+	CHashtable<CChannel *, false, 16> *m_Channels; /**< the channels this IRC user is on */
 
-	char* m_ServerVersion;
-	char* m_ServerFeat;
+	char *m_ServerVersion; /**< the version from the 351 reply */
+	char *m_ServerFeat; /**< the server features from the 351 reply */
 
-	CConfig* m_ISupport;
-
-	time_t m_LastBurst;
+	CConfig *m_ISupport; /**< the key/value pairs from the 005 replies */
 	
-	CTimer* m_DelayJoinTimer;
-	CTimer* m_PingTimer;
+	CTimer *m_DelayJoinTimer; /**< timer for delay-joining channels */
+	CTimer *m_PingTimer; /**< timer for sending regular PINGs to the server */
 
-	CQueue* m_QueueLow;
-	CQueue* m_QueueMiddle;
-	CQueue* m_QueueHigh;
-	CFloodControl* m_FloodControl;
+	CQueue *m_QueueLow; /**< low-priority queue */
+	CQueue *m_QueueMiddle; /**< middle-priority queue */
+	CQueue *m_QueueHigh; /**< high-priority queue */
+	CFloodControl *m_FloodControl; /**< flood control object for the IRC connection */
 
-	char* m_Site;
-
-	time_t m_LastResponse;
+	time_t m_LastResponse; /**< a TS which describes when the last line was received from the server */
 
 	CChannel *AddChannel(const char* Channel);
 	void RemoveChannel(const char* Channel);
 
 	void UpdateChannelConfig(void);
-	void UpdateHostHelper(const char* Host);
+	void UpdateHostHelper(const char *Host);
 	void UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server);
 
-	bool ModuleEvent(int argc, const char** argv);
+	bool ModuleEvent(int ArgC, const char **ArgV);
 
-	void InitIrcConnection(CUser* Owning, bool Unfreezing = false);
+	void InitIrcConnection(CUser *Owner, bool Unfreezing = false);
+
+	void WriteUnformattedLine(const char *Line);
+
+	virtual bool Read(void);
+	virtual void Error(void);
+	virtual void Write(void);
+	virtual bool HasQueuedData(void) const;
+	virtual const char *GetClassName(void) const;
+
+	bool ParseLineArgV(int ArgC, const char **ArgV);
+
+	void AsyncDnsFinished(hostent *Response);
+	void AsyncBindIpDnsFinished(hostent *Response);
 public:
 #ifndef SWIG
-	CIRCConnection(SOCKET Socket, CUser* Owning, bool SSL = false);
-	CIRCConnection(const char* Host, unsigned short Port, CUser* Owning, const char* BindIp, bool SSL = false, int Family = AF_INET);
-	CIRCConnection(SOCKET Socket, CAssocArray *Box, CUser *Owning);
+	CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL = false);
+	CIRCConnection(const char* Host, unsigned short Port, CUser* Owner, const char* BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
-#endif
 
-#ifndef SWIG
 	bool Freeze(CAssocArray *Box);
 	static CIRCConnection *Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
-	virtual void Write(void);
-	virtual bool HasQueuedData(void);
-	virtual void WriteUnformattedLine(const char* In);
+	virtual CChannel *GetChannel(const char *Name);
+	virtual CHashtable<CChannel *, false, 16> *GetChannels(void);
 
-	virtual CChannel* GetChannel(const char* Name);
-	virtual CHashtable<CChannel*, false, 16>* GetChannels(void);
+	virtual const char *GetCurrentNick(void) const;
+	virtual const char *GetSite(void) const;
+	virtual const char *GetServer(void) const;
 
-	virtual const char* GetCurrentNick(void);
-	virtual const char* GetServer(void);
+	virtual const char *GetServerVersion(void) const;
+	virtual const char *GetServerFeat(void) const;
 
-	virtual const char* GetClassName(void);
+	virtual CQueue *GetQueueHigh(void);
+	virtual CQueue *GetQueueMiddle(void);
+	virtual CQueue *GetQueueLow(void);
 
-	virtual bool IsOnChannel(const char* Channel);
+	virtual CFloodControl *GetFloodControl(void);
 
-	virtual char* NickFromHostmask(const char* Hostmask);
-	virtual void FreeNick(char* Nick);
+	virtual const CConfig *GetISupportAll(void) const;
+	virtual const char *GetISupport(const char *Feature) const;
+	virtual bool IsChanMode(char Mode) const;
+	virtual int RequiresParameter(char Mode) const;
+	virtual bool IsNickPrefix(char Char) const;
+	virtual bool IsNickMode(char Char) const;
+	virtual char PrefixForChanMode(char Mode) const;
+	virtual char GetHighestUserFlag(const char *Modes) const;
 
-	virtual CConfig* GetISupportAll(void);
-	virtual const char* GetISupport(const char* Feature);
-	virtual bool IsChanMode(char Mode);
-	virtual int RequiresParameter(char Mode);
-
-	virtual bool IsNickPrefix(char Char);
-	virtual bool IsNickMode(char Char);
-	virtual char PrefixForChanMode(char Mode);
-
-	virtual void ParseLine(const char* Line);
-	virtual bool ParseLineArgV(int argc, const char** argv);
-
-	virtual const char* GetServerVersion(void);
-	virtual const char* GetServerFeat(void);
-
-	virtual CQueue* GetQueueHigh(void);
-	virtual CQueue* GetQueueMiddle(void);
-	virtual CQueue* GetQueueLow(void);
-
-	virtual CFloodControl* GetFloodControl(void);
+	virtual void ParseLine(const char *Line);
 
 	virtual void JoinChannels(void);
 
-	virtual bool Read(void);
-	virtual void Error(void);
 	virtual void Destroy(void);
 
-	virtual void AsyncDnsFinished(hostent *response);
-	virtual void AsyncBindIpDnsFinished(hostent *response);
-
-	virtual const char* GetSite(void);
-
-	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context);
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
 	virtual void Kill(const char *Error);
-
-	virtual char GetHighestUserFlag(const char *Modes);
 };

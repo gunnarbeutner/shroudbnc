@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////
 
 CModule::CModule(const char *Filename) {
-	CVector<CModule *> *Modules;
+	const CVector<CModule *> *Modules;
 
 	m_Far = NULL;
 	m_File = strdup(Filename);
@@ -135,7 +135,7 @@ HMODULE CModule::GetHandle(void) {
 	return m_Image;
 }
 
-RESULT(bool) CModule::GetError(void) {
+RESULT<bool> CModule::GetError(void) {
 	if (m_Error != NULL) {
 		THROW(bool, Generic_Unknown, m_Error);
 	} else  {

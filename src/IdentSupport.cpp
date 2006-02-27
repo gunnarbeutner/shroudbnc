@@ -19,18 +19,31 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CIdentSupport
+ *
+ * Constructs a new ident support object.
+ */
 CIdentSupport::CIdentSupport(void) {
 	m_Ident = NULL;
 }
 
+/**
+ * ~CIdentSupport
+ *
+ * Destructs an ident support object.
+ */
 CIdentSupport::~CIdentSupport(void) {
 	free(m_Ident);
 }
 
+/**
+ * SetIdent
+ *
+ * Sets the default ident for the bouncer.
+ *
+ * @param Ident the ident
+ */
 void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
 
@@ -79,6 +92,11 @@ void CIdentSupport::SetIdent(const char *Ident) {
 	m_Ident = NewIdent;
 }
 
-const char *CIdentSupport::GetIdent(void) {
+/**
+ * GetIdent
+ *
+ * Returns the default ident.
+ */
+const char *CIdentSupport::GetIdent(void) const {
 	return m_Ident;
 }

@@ -111,48 +111,64 @@ proc qauth:server {client params} {
 	}
 }
 
-proc qauth:ifacecmd {command params account} {
-	switch -- $command {
-		"qsetuser" {
-			setbncuser $account tag quser [lindex $params 0]
-			return 0
-		}
-		"qsetpass" {
-			setbncuser $account tag qpass [lindex $params 0]
-			return 0
-		}
-		"qsetx" {
-			if {[string is integer [lindex $params 0]] && [lindex $params 0]} {
-				set qx on
-			} else {
-				set qx off
-			}
+proc iface-qauth:qsetuser {username} {
+	setbncuser [getctx] tag quser $username
+}
 
-			setbncuser $account tag qx $qx
-			return 0
-		}
-		"qgetuser" {
-			return [getbncuser $account tag quser]
-		}
-		"qhaspass" {
-			set pass [getbncuser $account tag qpass]
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qsetuser" "iface-qauth:qsetuser"
+}
 
-			if {$pass == ""} {
-				return 0
-			} else {
-				return 1
-			}
-		}
-		"qgetx" {
-			if {[string equal -nocase [getbncuser $account tag qx] "on"]} {
-				return 1
-			} else {
-				return 0
-			}
-		}
+proc iface-qauth:qsetpass {password} {
+	setbncuser [getctx] tag qpass $password
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qsetpass" "iface-qauth:qsetuser"
+}
+
+proc iface-qauth:qsetx {value} {
+	if {[string is integer $value] && $value} {
+		set qx on
+	} else {
+		set qx off
+	}
+
+	setbncuser [getctx] tag qx $qx
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qsetx" "iface-qauth:qsetx"
+}
+
+proc iface-qauth:qgetuser {} {
+	return [getbncuser [getctx] tag quser]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qgetuser" "iface-qauth:qgetuser"
+}
+
+proc iface-qauth:qhaspass {} {
+	if {[getbncuser [getctx] tag qpass] == ""} {
+		return 0
+	} else {
+		return 1
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacehandler"] != -1} {
-	registerifacehandler qauth qauth:ifacecmd
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qhaspass" "iface-qauth:qhaspass"
+}
+
+proc iface-qauth:qgetx {} {
+	if {[string equal -nocase [getbncuser [getctx] tag qx] "on"]} {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "qauth" "qgetx" "iface-qauth:qgetx"
 }

@@ -19,10 +19,14 @@
 
 #include "StdAfx.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CChannel
+ *
+ * Constructs a new channel object.
+ *
+ * @param Name the name of the channel
+ * @param Owner the owner of the channel object
+ */
 CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	SetOwner(Owner);
 
@@ -48,6 +52,11 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_Banlist = new CBanlist();
 }
 
+/**
+ * ~CChannel
+ *
+ * Desctructs a channel object.
+ */
 CChannel::~CChannel() {
 	free(m_Name);
 
@@ -66,11 +75,21 @@ CChannel::~CChannel() {
 	delete m_Banlist;
 }
 
+/**
+ * GetName
+ *
+ * Returns the name of the channel.
+ */
 const char *CChannel::GetName(void) const {
 	return m_Name;
 }
 
-RESULT(const char *) CChannel::GetChannelModes(void) {
+/**
+ * GetChannelModes
+ *
+ * Returns the channel's modes.
+ */
+RESULT<const char *> CChannel::GetChannelModes(void) {
 	int i;
 	size_t Size;
 	char *NewTempModes;
@@ -127,6 +146,16 @@ RESULT(const char *) CChannel::GetChannelModes(void) {
 	RETURN(const char *, m_TempModes);
 }
 
+/**
+ * ParseModeChange
+ *
+ * Parses a mode change and updates the internal structures.
+ *
+ * @param Source the source of the mode change
+ * @param Modes the modified modes
+ * @param pargc the number of parameters
+ * @param pargv the parameters
+ */
 void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc, const char **pargv) {
 	bool Flip = true;
 	int p = 0;
@@ -137,7 +166,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		m_TempModes = NULL;
 	}
 
-	CVector<CModule *> *Modules = g_Bouncer->GetModules();
+	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < strlen(Modes); i++) {
 		char Current = Modes[i];
@@ -195,7 +224,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		}
 
 		if (Current == 'k' && Flip && strcmp(pargv[p], "*") != 0) {
-			m_Owner->GetOwner()->GetKeyring()->AddKey(m_Name, pargv[p]);
+			m_Owner->GetOwner()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
@@ -239,6 +268,11 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 	}
 }
 
+/**
+ * AllocSlot
+ *
+ * Allocates a slot for a channelmode.
+ */
 chanmode_t *CChannel::AllocSlot(void) {
 	chanmode_t *Modes;
 
@@ -259,6 +293,13 @@ chanmode_t *CChannel::AllocSlot(void) {
 	return &m_Modes[m_ModeCount - 1];
 }
 
+/**
+ * FindSlot
+ *
+ * Returns the slot for a channelmode.
+ *
+ * @param Mode the mode
+ */
 chanmode_t *CChannel::FindSlot(char Mode) {
 	for (int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode == Mode) {
@@ -269,18 +310,40 @@ chanmode_t *CChannel::FindSlot(char Mode) {
 	return NULL;
 }
 
+/**
+ * GetCreationTime
+ *
+ * Returns a timestamp which describes when the channel was created.
+ */
 time_t CChannel::GetCreationTime(void) const {
 	return m_Creation;
 }
 
+/**
+ * SetCreationTime
+ *
+ * Sets the timestamp when this channel was created.
+ */
 void CChannel::SetCreationTime(time_t Time) {
 	m_Creation = Time;
 }
 
+/**
+ * GetTopic
+ *
+ * Returns the channel's topic.
+ */
 const char *CChannel::GetTopic(void) const {
 	return m_Topic;
 }
 
+/**
+ * SetTopic
+ *
+ * Sets the channel's topic (just internally).
+ *
+ * @param Topic the channel's topic
+ */
 void CChannel::SetTopic(const char *Topic) {
 	char *NewTopic;
 
@@ -295,10 +358,22 @@ void CChannel::SetTopic(const char *Topic) {
 	m_HasTopic = 1;
 }
 
+/**
+ * GetTopicNick
+ *
+ * Returns the nick of the user who set the topic.
+ */
 const char *CChannel::GetTopicNick(void) const {
 	return m_TopicNick;
 }
 
+/**
+ * SetTopicNick
+ *
+ * Sets the nick of the user who set the topic.
+ *
+ * @param Nick the nick of the user
+ */
 void CChannel::SetTopicNick(const char *Nick) {
 	char *NewTopicNick;
 
@@ -313,23 +388,53 @@ void CChannel::SetTopicNick(const char *Nick) {
 	m_HasTopic = 1;
 }
 
+/**
+ * GetTopicStamp
+ *
+ * Returns the timestamp which describes when the topic was set.
+ */
 time_t CChannel::GetTopicStamp(void) const {
 	return m_TopicStamp;
 }
 
+/**
+ * SetTopicStamp
+ *
+ * Sets the timestamp which describes when the topic was set.
+ *
+ * @param Timestamp the timestamp
+ */
 void CChannel::SetTopicStamp(time_t Timestamp) {
 	m_TopicStamp = Timestamp;
 	m_HasTopic = 1;
 }
 
+/**
+ * HasTopic
+ *
+ * Checks whether the bouncer knows the channel's topic.
+ */
 int CChannel::HasTopic(void) const {
 	return m_HasTopic;
 }
 
+/**
+ * SetNoTopic
+ *
+ * Specifies that no topic is set.
+ */
 void CChannel::SetNoTopic(void) {
 	m_HasTopic = -1;
 }
 
+/**
+ * AddUser
+ *
+ * Creates a new user for this channel.
+ *
+ * @param Nick the nick of the user
+ * @param ModeChars the mode chars for the user
+ */
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
@@ -344,10 +449,25 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	m_Nicks.Add(Nick, NickObj);
 }
 
+/**
+ * RemoveUser
+ *
+ * Removes a user from a channel.
+ *
+ * @param Nick the nick of the user
+ */
 void CChannel::RemoveUser(const char *Nick) {
 	m_Nicks.Remove(Nick);
 }
 
+/**
+ * RenameUser
+ *
+ * Renames a user for the channel.
+ *
+ * @param Nick the old nick of the user
+ * @param NewNick the new nick of the user
+ */
 void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 	CNick *NickObj;
 
@@ -362,18 +482,38 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 	m_Nicks.Add(Nick, NickObj);
 }
 
+/**
+ * HasNames
+ *
+ * Check whether the bouncer knows the names for the channel.
+ */
 bool CChannel::HasNames(void) const {
 	return m_HasNames;
 }
 
+/**
+ * SetHasNames
+ *
+ * Specifies that the names are known for the channel.
+ */
 void CChannel::SetHasNames(void) {
 	m_HasNames = true;
 }
 
+/**
+ * GetNames
+ *
+ * Returns a hashtable containing the nicks for the channel.
+ */
 const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
 	return &m_Nicks;
 }
 
+/**
+ * ClearModes
+ *
+ * Clears all modes for the channel.
+ */
 void CChannel::ClearModes(void) {
 	for (int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
@@ -389,26 +529,61 @@ void CChannel::ClearModes(void) {
 	}
 }
 
+/**
+ * AreModesValid
+ *
+ * Checks whether the modes are valid for the channel.
+ */
 bool CChannel::AreModesValid(void) const {
 	return m_ModesValid;
 }
 
+/**
+ * SetModesValid
+ *
+ * Sets whether the modes are valid.
+ *
+ * @param Valid a boolean flag describing whether the modes are valid
+ */
 void CChannel::SetModesValid(bool Valid) {
 	m_ModesValid = Valid;
 }
 
+/**
+ * GetBanlist
+ *
+ * Returns a list of bans for the channel.
+ */
 CBanlist *CChannel::GetBanlist(void) {
 	return m_Banlist;
 }
 
+/**
+ * SetHasBans
+ *
+ * Sets whether the banlist is valid.
+ */
 void CChannel::SetHasBans(void) {
 	m_HasBans = true;
 }
 
+/**
+ * HasBans
+ *
+ * Checks whether the banlist is valid.
+ */
 bool CChannel::HasBans(void) const {
 	return m_HasBans;
 }
 
+/**
+ * SendWhoReply
+ *
+ * Sends a /who reply from the cache. The client connection is left in an
+ * undetermined state if Simulate is false and false is returned by the function.
+ *
+ * @param Simulate determines whether to simulate the operation
+ */
 bool CChannel::SendWhoReply(bool Simulate) const {
 	char CopyIdent[50];
 	char *Ident, *Host, *Site;
@@ -467,12 +642,19 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 	return true;
 }
 
-RESULT(bool) CChannel::Freeze(CAssocArray *Box) {
+/**
+ * Freeze
+ *
+ * Persists the channel in a box.
+ *
+ * @param Box the box for storing the channel object
+ */
+RESULT<bool> CChannel::Freeze(CAssocArray *Box) {
 	CAssocArray *Nicks;
 	CNick *Nick;
 	unsigned int Count, i = 0;
 	char *Index;
-	RESULT(bool) Result;
+	RESULT<bool> Result;
 
 	// TODO: persist channel modes
 	Box->AddString("~channel.name", m_Name);
@@ -512,9 +694,16 @@ RESULT(bool) CChannel::Freeze(CAssocArray *Box) {
 	RETURN(bool, true);
 }
 
-RESULT(CChannel *) CChannel::Thaw(CAssocArray *Box) {
+/**
+ * Thaw
+ *
+ * Depersists a channel object from a box.
+ *
+ * @param Box the box used for storing the channel object
+ */
+RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box) {
 	CAssocArray *NicksBox;
-	RESULT(CBanlist *) Banlist;
+	RESULT<CBanlist *> Banlist;
 	CChannel *Channel;
 	const char *Name, *Temp;
 	unsigned int i = 0;

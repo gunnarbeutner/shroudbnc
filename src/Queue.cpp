@@ -24,7 +24,7 @@
  *
  * Retrieves the next item from the queue without removing it.
  */
-RESULT(const char *) CQueue::PeekItem(void) {
+RESULT<const char *> CQueue::PeekItem(void) const {
 	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
@@ -47,7 +47,7 @@ RESULT(const char *) CQueue::PeekItem(void) {
  *
  * Retrieves the next item from the queue and removes it.
  */
-RESULT(char *) CQueue::DequeueItem(void) {
+RESULT<char *> CQueue::DequeueItem(void) {
 	int Index;
 	queue_item_t *Item = NULL;
 	char *Line;
@@ -77,7 +77,7 @@ RESULT(char *) CQueue::DequeueItem(void) {
  *
  * @param Line the item which is to be inserted
  */
-RESULT(bool) CQueue::QueueItem(const char *Line) {
+RESULT<bool> CQueue::QueueItem(const char *Line) {
 	queue_item_t Item;
 
 	if (Line == NULL) {
@@ -111,7 +111,7 @@ RESULT(bool) CQueue::QueueItem(const char *Line) {
  *
  * @param Line the item which is to be inserted
  */
-RESULT(bool) CQueue::QueueItemNext(const char *Line) {
+RESULT<bool> CQueue::QueueItemNext(const char *Line) {
 	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
 		m_Items[i].Priority += 2;
 	}
@@ -124,7 +124,7 @@ RESULT(bool) CQueue::QueueItemNext(const char *Line) {
  *
  * Returns the number of items which are in the queue.
  */
-unsigned int CQueue::GetLength(void) {
+unsigned int CQueue::GetLength(void) const {
 	return m_Items.GetLength();
 }
 
@@ -148,7 +148,7 @@ void CQueue::Clear(void) {
  *
  * @param Box the box which is being used for storing the queue
  */
-RESULT(bool) CQueue::Freeze(CAssocArray *Box) {
+RESULT<bool> CQueue::Freeze(CAssocArray *Box) {
 	unsigned int i = 0;
 	char *Line, *Index;
 
@@ -175,7 +175,7 @@ RESULT(bool) CQueue::Freeze(CAssocArray *Box) {
  *
  * @param Box the box which is being used for storing the queue
  */
-RESULT(CQueue *) CQueue::Thaw(CAssocArray *Box) {
+RESULT<CQueue *> CQueue::Thaw(CAssocArray *Box) {
 	unsigned int i = 0;
 	char *Index;
 	const char *Line;

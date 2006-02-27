@@ -64,15 +64,6 @@ CNick::~CNick() {
 }
 
 /**
- * GetNick
- *
- * Returns the current nick of the user.
- */
-const char *CNick::GetNick(void) {
-	return m_Nick;
-}
-
-/**
  * SetNick
  *
  * Sets the user's nickname.
@@ -97,11 +88,20 @@ bool CNick::SetNick(const char *Nick) {
 }
 
 /**
+ * GetNick
+ *
+ * Returns the current nick of the user.
+ */
+const char *CNick::GetNick(void) const {
+	return m_Nick;
+}
+
+/**
  * IsOp
  *
  * Returns whether the user is an op.
  */
-bool CNick::IsOp(void) {
+bool CNick::IsOp(void) const {
 	return HasPrefix('@');
 }
 
@@ -110,7 +110,7 @@ bool CNick::IsOp(void) {
  *
  * Returns whether the user is voiced.
  */
-bool CNick::IsVoice(void) {
+bool CNick::IsVoice(void) const {
 	return HasPrefix('+');
 }
 
@@ -119,7 +119,7 @@ bool CNick::IsVoice(void) {
  *
  * Returns whether the user is a half-op.
  */
-bool CNick::IsHalfop(void) {
+bool CNick::IsHalfop(void) const {
 	return HasPrefix('%');
 }
 
@@ -130,7 +130,7 @@ bool CNick::IsHalfop(void) {
  *
  * @param Prefix the prefix (e.g. @, +)
  */
-bool CNick::HasPrefix(char Prefix) {
+bool CNick::HasPrefix(char Prefix) const {
 	if (m_Prefixes != NULL && strchr(m_Prefixes, Prefix) != NULL) {
 		return true;
 	} else {
@@ -147,7 +147,7 @@ bool CNick::HasPrefix(char Prefix) {
  */
 bool CNick::AddPrefix(char Prefix) {
 	char *Prefixes;
-	int LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
+	size_t LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
 
 	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
 
@@ -171,7 +171,7 @@ bool CNick::AddPrefix(char Prefix) {
  */
 bool CNick::RemovePrefix(char Prefix) {
 	int a = 0;
-	unsigned int LengthPrefixes;
+	size_t LengthPrefixes;
 
 	if (m_Prefixes == NULL) {
 		return true;
@@ -230,7 +230,7 @@ bool CNick::SetPrefixes(const char *Prefixes) {
  *
  * Returns all prefixes for a user.
  */
-const char *CNick::GetPrefixes(void) {
+const char *CNick::GetPrefixes(void) const {
 	return m_Prefixes;
 }
 
@@ -303,7 +303,7 @@ bool CNick::SetServer(const char *Server) {
  * Returns the user's site without querying other nick
  * objects if the information is not available.
  */
-const char *CNick::InternalGetSite(void) {
+const char *CNick::InternalGetSite(void) const {
 	if (m_Site == NULL) {
 		return NULL;
 	}
@@ -323,7 +323,7 @@ const char *CNick::InternalGetSite(void) {
  * Returns the user's realname without querying other nick
  * objects if the information is not available.
  */
-const char *CNick::InternalGetRealname(void) {
+const char *CNick::InternalGetRealname(void) const {
 	return m_Realname;
 }
 
@@ -333,7 +333,7 @@ const char *CNick::InternalGetRealname(void) {
  * Returns the user's server without querying other nick
  * objects if the information is not available.
  */
-const char *CNick::InternalGetServer(void) {
+const char *CNick::InternalGetServer(void) const {
 	return m_Server;
 }
 
@@ -369,7 +369,7 @@ const char *CNick::InternalGetServer(void) {
  *
  * Returns the user's site.
  */
-const char *CNick::GetSite(void) {
+const char *CNick::GetSite(void) const {
 	IMPL_NICKACCESSOR(InternalGetSite)
 }
 
@@ -378,7 +378,7 @@ const char *CNick::GetSite(void) {
  *
  * Returns the user's realname.
  */
-const char *CNick::GetRealname(void) {
+const char *CNick::GetRealname(void) const {
 	IMPL_NICKACCESSOR(InternalGetRealname)
 }
 
@@ -387,7 +387,7 @@ const char *CNick::GetRealname(void) {
  *
  * Returns the user's server.
  */
-const char *CNick::GetServer(void) {
+const char *CNick::GetServer(void) const {
 	IMPL_NICKACCESSOR(InternalGetServer)
 }
 
@@ -397,7 +397,7 @@ const char *CNick::GetServer(void) {
  * Returns a timestamp which determines when
  * the user joined the channel.
  */
-time_t CNick::GetChanJoin(void) {
+time_t CNick::GetChanJoin(void) const {
 	return m_Creation;
 }
 
@@ -407,7 +407,7 @@ time_t CNick::GetChanJoin(void) {
  * Returns a timestamp which determines when
  * the user last said something.
  */
-time_t CNick::GetIdleSince(void) {
+time_t CNick::GetIdleSince(void) const {
 	return m_IdleSince;
 }
 
@@ -431,7 +431,7 @@ bool CNick::SetIdleSince(time_t Time) {
  *
  * @param Name the name of the tag
  */
-const char *CNick::GetTag(const char *Name) {
+const char *CNick::GetTag(const char *Name) const {
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
 			return m_Tags[i].Value;
@@ -495,7 +495,7 @@ bool CNick::SetTag(const char *Name, const char *Value) {
  *
  * @param Box the box which is used for storing the object's data
  */
-RESULT(bool) CNick::Freeze(CAssocArray *Box) {
+RESULT<bool> CNick::Freeze(CAssocArray *Box) {
 	Box->AddString("~nick.nick", m_Nick);
 	Box->AddString("~nick.prefixes", m_Prefixes);
 	Box->AddString("~nick.site", m_Site);
@@ -524,7 +524,7 @@ RESULT(bool) CNick::Freeze(CAssocArray *Box) {
  * @param Box the box
  * @param Owner the channel
  */
-RESULT(CNick *) CNick::Thaw(CAssocArray *Box) {
+RESULT<CNick *> CNick::Thaw(CAssocArray *Box) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;

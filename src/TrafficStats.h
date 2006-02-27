@@ -30,13 +30,13 @@ public:
 #ifndef SWIG
 	CTrafficStats(void);
 
-	RESULT(bool) Freeze(CAssocArray *Box);
-	static RESULT(CTrafficStats *) Thaw(CAssocArray *Box);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CTrafficStats *> Thaw(CAssocArray *Box);
 #endif
 
 	virtual void AddInbound(unsigned int Bytes);
-	virtual unsigned int GetInbound(void);
+	virtual unsigned int GetInbound(void) const;
 
 	virtual void AddOutbound(unsigned int Bytes);
-	virtual unsigned int GetOutbound(void);
+	virtual unsigned int GetOutbound(void) const;
 };

@@ -146,7 +146,7 @@ bool IsError(const CResult<Type> &Result) {
 }
 
 // some macros for using CResult objects
-#define RESULT(Type) CResult<Type>
+#define RESULT CResult
 #define RETURN(Type, Result) do { CResult<Type> cResult(Result); return cResult; } while (0)
 #define THROW(Type, Code, Description) do { CResult<Type> cResult(Code, Description); return cResult; } while (0)
 #define THROWRESULT(Type, Result) do { assert(IsError(Result)); CResult<Type> cResult(Result.GetCode(), Result.GetDescription()); if (IsError(Result)) { return cResult; } } while (0)

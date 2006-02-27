@@ -15,16 +15,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# This script demonstrates how to add own settings (/sbnc set) and modify
-# the ircd's replies. Once enabled it will replace your own nick with
-# \2YourNick\2 in any PRIVMSGs you receive from the server, thus effectively
-# highlighting your nick in the other users' messages.
+internalbind server sbnc:bold
+internalbind client sbnc:boldcmds
 
-internalbind server highlight:server
-internalbind command highlight:command
-
-proc highlight:server {client parameters} {
-	if {[string equal -nocase [lindex $parameters 1] "PRIVMSG"] && [getbncuser $client tag "highlight"] == "1"} {
+proc sbnc:bold {client parameters} {
+	if {[string equal -nocase [lindex $parameters 1] "PRIVMSG"] && [string equal -nocase [getbncuser $client tag "highlight"] "on"]} {
 		if {[string first [string tolower $::botnick] [string tolower [lindex $parameters 3]]] != -1} {
 			haltoutput
 			putclient ":[lindex $parameters 0] PRIVMSG [lindex $parameters 2] :[string map -nocase "$::botnick \002${::botnick}\002" [lindex $parameters 3]]"
@@ -32,35 +27,15 @@ proc highlight:server {client parameters} {
 	}
 }
 
-proc highlight:command {client parameters} {
-	if {[string equal -nocase [lindex $parameters 0] "set"]} {
-		if {[llength $parameters] < 3} {
-			if {[getbncuser $client tag highlight] == "1"} {
-				set highlight "On"
-			} else {
-				set highlight "Off"
-			}
-
-			utimer 0 [list bncreply "highlight - $highlight"]
-
-			return
+proc sbnc:boldcmds {client parameters} {
+	if {[string equal -nocase "highlight" [lindex $parameters 0]]} {
+		if {[llength $parameters] < 2} {
+			bncnotc "Current highlight mode: [getbncuser $client tag "highlight"]"
+		} else {
+			setbncuser $client tag "highlight" [lindex $parameters 1]
+			bncnotc "Set highlight mode: [lindex $parameters 1]"
 		}
 
-		if {[string equal -nocase [lindex $parameters 1] "highlight"]} {
-			if {[string equal -nocase [lindex $parameters 2] "on"]} {
-				set highlight 1
-			} elseif {[string equal -nocase [lindex $parameters 2] "off"]} {
-				set highlight 0
-			} else {
-				bncreply "Value must be either 'on' or 'off'."
-				haltoutput
-
-				return
-			}
-
-			setbncuser $client tag highlight $highlight
-			bncreply "Done."
-			haltoutput
-		}
+		haltoutput
 	}
 }

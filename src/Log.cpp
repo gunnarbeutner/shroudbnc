@@ -57,7 +57,7 @@ CLog::~CLog(void) {
  *             Log_Messages - use IRC messages
  *             Log_Motd - use IRC motd replies
  */
-void CLog::PlayToUser(CUser *User, int Type) {
+void CLog::PlayToUser(CUser *User, int Type) const {
 	FILE *LogFile;
 
 	CIRCConnection *IRC = User->GetIRCConnection();
@@ -199,7 +199,7 @@ void CLog::Clear(void) {
  *
  * Checks whether the log is empty.
  */
-bool CLog::IsEmpty(void) {
+bool CLog::IsEmpty(void) const {
 	char Line[500];
 	FILE *LogFile;
 
@@ -228,7 +228,7 @@ bool CLog::IsEmpty(void) {
  * Returns the filename of the log, or NULL
  * if the log is not persistant.
  */
-const char *CLog::GetFilename(void) {
+const char *CLog::GetFilename(void) const {
 	if (m_Filename[0] != '\0') {
 		return m_Filename;
 	} else {

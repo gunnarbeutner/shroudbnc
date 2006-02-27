@@ -105,7 +105,7 @@ bool CTimer::Call(time_t Now) {
  *
  * Returns the next scheduled time of exection
  */
-time_t CTimer::GetNextCall(void) {
+time_t CTimer::GetNextCall(void) const {
 	return m_Next;
 }
 
@@ -114,7 +114,7 @@ time_t CTimer::GetNextCall(void) {
  *
  * Returns the timer's interval.
  */
-int CTimer::GetInterval(void) {
+int CTimer::GetInterval(void) const {
 	return m_Interval;
 }
 
@@ -123,6 +123,6 @@ int CTimer::GetInterval(void) {
  *
  * Returns whether the timer is being called repeatedly.
  */
-bool CTimer::GetRepeat(void) {
+bool CTimer::GetRepeat(void) const {
 	return m_Repeat;
 }

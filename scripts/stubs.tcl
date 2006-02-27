@@ -38,6 +38,11 @@ proc setchan {idx channel} { }
 proc console {idx {chan ""} {modes ""}} { }
 proc echo {idx {status ""}} { }
 proc strip {idx flags} { }
+proc putbot {nick message} { }
+proc putallbots {message} { }
+proc bots {} { }
+proc botlist {} { }
+proc islinked {bot} { return 0 }
 proc dccused {} { return 0 }
 proc dcclist {{type ""}} { }
 proc whom {chan} { }
@@ -51,5 +56,3 @@ proc unlink {bot} { }
 proc chanlist {chan} { return [internalchanlist $chan] }
 
 proc addhost {hand host} { setuser $hand HOSTS $host }
-
-proc onchansplit {nick {chan ""}} { return 0 }

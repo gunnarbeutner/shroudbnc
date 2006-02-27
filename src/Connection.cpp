@@ -31,10 +31,15 @@ extern "C" {
 IMPL_DNSEVENTPROXY(CConnection, AsyncDnsFinished);
 IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CConnection
+ *
+ * Constructs a new connection object.
+ *
+ * @param Socket the underlying socket
+ * @param SSL whether to use SSL
+ * @param Role the role of the connection
+ */
 CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 	char Address[MAX_SOCKADDR_LEN];
 	socklen_t AddressLength = sizeof(Address);
@@ -47,6 +52,17 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 	InitConnection(Socket, SSL);
 }
 
+/**
+ * CConnection
+ *
+ * Constructs a new connection object.
+ *
+ * @param Host the remote host
+ * @param Port the port
+ * @param BindIp the local bind address
+ * @param SSL whether to use SSL for the connection
+ * @param Family the socket family
+ */
 CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {
 	m_Family = Family;
 
@@ -74,6 +90,14 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 	AsyncConnect();
 }
 
+/**
+ * InitConnection
+ *
+ * Initializes a new connection object.
+ *
+ * @param Client the socket
+ * @param SSL whether to use SSL
+ */
 void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_Socket = Client;
 
@@ -121,7 +145,12 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	}
 }
 
-CConnection::~CConnection() {
+/**
+ * ~CConnection
+ *
+ * Destructs the connection object.
+ */
+CConnection::~CConnection(void) {
 	delete m_SendQ;
 	delete m_RecvQ;
 
@@ -147,6 +176,11 @@ CConnection::~CConnection() {
 #endif
 }
 
+/**
+ * InitSocket
+ *
+ * Initializes the socket.
+ */
 void CConnection::InitSocket(void) {
 	if (m_Socket == INVALID_SOCKET) {
 		return;
@@ -191,10 +225,37 @@ void CConnection::InitSocket(void) {
 	g_Bouncer->RegisterSocket(m_Socket, (CSocketEvents *)this);
 }
 
+/**
+ * SetSocket
+ *
+ * Sets the socket for the connection object.
+ *
+ * @param Socket the new socket
+ */
+void CConnection::SetSocket(SOCKET Socket) {
+	m_Socket = Socket;
+
+	if (Socket != INVALID_SOCKET) {
+		InitSocket();
+	}
+}
+
+/**
+ * GetSocket
+ *
+ * Returns the socket for the connection object.
+ */
 SOCKET CConnection::GetSocket(void) const {
 	return m_Socket;
 }
 
+/**
+ * Read
+ *
+ * Called when data is available on the socket.
+ *
+ * @param DontProcess determines whether to process the data
+ */
 bool CConnection::Read(bool DontProcess) {
 	int ReadResult;
 	char Buffer[8192];
@@ -252,8 +313,13 @@ bool CConnection::Read(bool DontProcess) {
 	return true;
 }
 
+/**
+ * Write
+ *
+ * Called when data can be written for the socket.
+ */
 void CConnection::Write(void) {
-	unsigned int Size;
+	size_t Size;
 
 	if (m_SendQ) {
 		Size = m_SendQ->GetSize();
@@ -309,10 +375,15 @@ void CConnection::Write(void) {
 	}
 }
 
+/**
+ * ProcessBuffer
+ *
+ * Processes the data which is in the recvq.
+ */
 void CConnection::ProcessBuffer(void) {
 	char *RecvQ;
 	char *Line;
-	unsigned int Size;
+	size_t Size;
 	
 	if (m_RecvQ == NULL) {
 		return;
@@ -341,10 +412,17 @@ void CConnection::ProcessBuffer(void) {
 	m_RecvQ->Read(Line - RecvQ);
 }
 
-// inefficient -- avoid this function at all costs, use ReadLines() instead
+/**
+ * ReadLine
+ *
+ * Reads a line from the recvq and places a pointer to the line in "Out". This
+ * function is rather inefficient. Use ReadLines() instead.
+ *
+ * @param Out points to the line
+ */
 bool CConnection::ReadLine(char** Out) {
 	char* old_recvq;
-	unsigned int Size;
+	size_t Size;
 	char* Pos = NULL;
 	bool advance = false;
 
@@ -389,12 +467,27 @@ bool CConnection::ReadLine(char** Out) {
 	}
 }
 
+/**
+ * WriteUnformattedLine
+ *
+ * Writes a line for the connection.
+ *
+ * @param Line the line
+ */
 void CConnection::WriteUnformattedLine(const char *Line) {
 	if (m_Locked == false && m_SendQ != NULL && Line != NULL) {
 		m_SendQ->WriteUnformattedLine(Line);
 	}
 }
 
+/**
+ * WriteLine
+ *
+ * Writes a line for the connection.
+ *
+ * @param Format the format string
+ * @param ... additional parameters used in the format string
+ */
 void CConnection::WriteLine(const char *Format, ...) {
 	char *Line;
 	va_list Marker;
@@ -416,18 +509,44 @@ void CConnection::WriteLine(const char *Format, ...) {
 	free(Line);
 }
 
+/**
+ * ParseLine
+ *
+ * Processes a line.
+ *
+ * @param Line the line
+ */
 void CConnection::ParseLine(const char *Line) {
 	// default implementation ignores any data
 }
 
+/**
+ * GetRole
+ *
+ * Returns the role of the connection.
+ */
 connection_role_e CConnection::GetRole(void) const {
 	return m_Role;
 }
 
+/**
+ * SetRole
+ *
+ * Sets the role of the connection.
+ *
+ * @param Role the role of the connection
+ */
 void CConnection::SetRole(connection_role_e Role) {
 	m_Role = Role;
 }
 
+/**
+ * Kill
+ *
+ * "Kills" the connection.
+ *
+ * @param Error the reason
+ */
 void CConnection::Kill(const char *Error) {
 	if (m_Shutdown) {
 		return;
@@ -439,6 +558,12 @@ void CConnection::Kill(const char *Error) {
 	Timeout(10);
 }
 
+/**
+ * HasQueuedData
+ *
+ * Checks whether the connection object has data which can be
+ * written to the socket.
+ */
 bool CConnection::HasQueuedData(void) const {
 #ifdef USESSL
 	if (IsSSL() && SSL_want_write(m_SSL)) {
@@ -453,8 +578,12 @@ bool CConnection::HasQueuedData(void) const {
 	}
 }
 
-
-int CConnection::GetSendqSize(void) const {
+/**
+ * GetSendqSize
+ *
+ * Returns the size of the sendq.
+ */
+size_t CConnection::GetSendqSize(void) const {
 	if (m_SendQ) {
 		return m_SendQ->GetSize();
 	} else {
@@ -462,7 +591,12 @@ int CConnection::GetSendqSize(void) const {
 	}
 }
 
-int CConnection::GetRecvqSize(void) const {
+/**
+ * GetRecvqSize
+ *
+ * Returns the size of the recvq.
+ */
+size_t CConnection::GetRecvqSize(void) const {
 	if (m_RecvQ != NULL) {
 		return m_RecvQ->GetSize();
 	} else {
@@ -470,30 +604,67 @@ int CConnection::GetRecvqSize(void) const {
 	}
 }
 
+/**
+ * Error
+ *
+ * Called when an error occured for the socket.
+ */
 void CConnection::Error(void) {
 }
 
+/**
+ * Destroy
+ *
+ * Destroys the connection object.
+ */
 void CConnection::Destroy(void) {
 	delete this;
 }
 
+/**
+ * Lock
+ *
+ * Locks the connection object.
+ */
 void CConnection::Lock(void) {
 	m_Locked = true;
 }
 
+/**
+ * IsLocked
+ *
+ * Checks whether the connection object is locked.
+ */
 bool CConnection::IsLocked(void) const {
 	return m_Locked;
 }
 
+/**
+ * Shutdown
+ *
+ * Shuts down the connection object.
+ */
 void CConnection::Shutdown(void) {
 	m_Shutdown = true;
 }
 
+/**
+ * Timeout
+ *
+ * Sets the timeout TS for the connection.
+ *
+ * @param TimeLeft the time
+ */
 void CConnection::Timeout(int TimeLeft) {
 	time(&m_Timeout);
 	m_Timeout += TimeLeft;
 }
 
+/**
+ * DoTimeout
+ *
+ * Checks whether a timeout occured.
+ */
 bool CConnection::DoTimeout(void) {
 	if (m_Timeout > 0 && m_Timeout < time(NULL)) {
 		Destroy();
@@ -504,24 +675,51 @@ bool CConnection::DoTimeout(void) {
 	}
 }
 
+/**
+ * SetTrafficStats
+ *
+ * Sets the traffic stats object for the connection.
+ *
+ * @param Stats the new stats object
+ */
 void CConnection::SetTrafficStats(CTrafficStats *Stats) {
 	m_Traffic = Stats;
 }
 
+/**
+ * GetTrafficStats
+ *
+ * Returns the traffic stats object for the connection.
+ */
 const CTrafficStats *CConnection::GetTrafficStats(void) const {
 	return m_Traffic;
 }
 
+/**
+ * GetClassName
+ *
+ * Returns the class' name.
+ */
 const char *CConnection::GetClassName(void) const {
 	return "CConnection";
 }
 
+/**
+ * FlushSendQ
+ *
+ * Flushes the sendq.
+ */
 void CConnection::FlushSendQ(void) {
 	if (m_SendQ != NULL) {
 		m_SendQ->Flush();
 	}
 }
 
+/**
+ * IsSSL
+ *
+ * Returns whether SSL is enabled for the connection.
+ */
 bool CConnection::IsSSL(void) const {
 #ifdef USESSL
 	return m_HasSSL;
@@ -530,6 +728,11 @@ bool CConnection::IsSSL(void) const {
 #endif
 }
 
+/**
+ * GetPeerCertificate
+ *
+ * Gets the remote side's certificate.
+ */
 const X509 *CConnection::GetPeerCertificate(void) const {
 #ifdef USESSL
 	if (IsSSL()) {
@@ -540,10 +743,20 @@ const X509 *CConnection::GetPeerCertificate(void) const {
 	return NULL;
 }
 
+/**
+ * SSLVerify
+ *
+ * Used for verifying the peer's client certificate.
+ */
 int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 	return 1;
 }
 
+/**
+ * AsyncConnect
+ *
+ * Tries to establish a connection.
+ */
 void CConnection::AsyncConnect(void) {
 	if (m_HostAddr != NULL && (m_BindAddr != NULL || m_BindIpCache == NULL)) {
 		sockaddr *Remote, *Bind = NULL;
@@ -597,6 +810,13 @@ void CConnection::AsyncConnect(void) {
 	}
 }
 
+/**
+ * AsyncDnsFinished
+ *
+ * Called when the DNS query for the remote host is finished.
+ *
+ * @param Response the response
+ */
 void CConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL) {
 		// we cannot destroy the object here as there might still be the other
@@ -619,6 +839,14 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 	}
 }
 
+/**
+ * AsyncBindIpDnsFinished
+ *
+ * Called when the DNS query for the local bind address is finished.
+ *
+ * @param Response the response
+ */
+
 void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response != NULL) {
 		int Size;
@@ -639,10 +867,20 @@ void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	AsyncConnect();
 }
 
+/**
+ * ShouldDestroy
+ *
+ * Called to determine whether this connection object is to be destroyed.
+ */
 bool CConnection::ShouldDestroy(void) const {
 	return m_LatchedDestruction;
 }
 
+/**
+ * GetRemoteAddress
+ *
+ * Returns the remote side's address.
+ */
 sockaddr *CConnection::GetRemoteAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
@@ -654,6 +892,11 @@ sockaddr *CConnection::GetRemoteAddress(void) const {
 	}
 }
 
+/**
+ * GetLocalAddress
+ *
+ * Returns the local side's address.
+ */
 sockaddr *CConnection::GetLocalAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);

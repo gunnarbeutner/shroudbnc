@@ -27,9 +27,9 @@
  * @param Object the object
  */
 template <typename Type>
-RESULT(bool) FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
+RESULT<bool> FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
 	CAssocArray *ObjectBox;
-	RESULT(bool) Result;
+	RESULT<bool> Result;
 
 	if (Container == NULL || Name == NULL || Object == NULL) {
 		THROW(bool, Generic_InvalidArgument, "Container, Name and/or Object cannot be NULL.");
@@ -61,7 +61,7 @@ RESULT(bool) FreezeObject(CAssocArray *Container, const char *Name, Type *Object
  * @param Name the object's name in that container
  */
 template <typename Type>
-RESULT(Type *) ThawObject(CAssocArray *Container, const char *Name) {
+RESULT<Type *> ThawObject(CAssocArray *Container, const char *Name) {
 	CAssocArray *ObjectBox;
 
 	if (Container == NULL || Name == NULL) {

@@ -33,41 +33,39 @@ proc awaymsg:command {client parameters} {
 
 	if {[string equal -nocase $command "set"]} {
 		if {[string equal -nocase [lindex $parameters 1] "awaymessage"] && [llength $parameters] >= 3} {
-		    if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-		        set locked [lock:islocked $client awaymessage]
-			if {![string equal $locked "0"]} { 
-			    return
+			if {![getbncuser $client tag lockawaymessage]} {
+				setbncuser $client tag awaymessage [lindex $parameters 2]
+				bncreply "Done."
+				haltoutput
 			}
-		    }
-		    setbncuser $client tag awaymessage [lindex $parameters 2]
-		    bncreply "Done."
-		    haltoutput
 		} elseif {[string equal [lindex $parameters 2] ""]} {
 			utimer 0 [list bncreply "awaymessage - [getbncuser $client tag awaymessage]"]
 		}
 	}
 }
 
-
-proc awaymsg:ifacecmd {command params account} {
-	switch -- $command {
-		"set" {
-			if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-				if {![string equal [lock:islocked $account "awaymessage"] "0"]} { return }
-			}
-
-			if {[string equal -nocase [lindex $params 0] "awaymessage"]} {
-				setbncuser $account tag awaymessage [join [lrange $params 1 end]]
-			}
+proc iface-awaymsg:setvalue {setting value} {
+	if {[string equal -nocase $setting "awaymessage"]} {
+		if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
+			if {[lock:islocked [getctx] "awaymessage"]} { return -code error "Setting cannot be modified." }
 		}
-		"value" {
-			if {[string equal -nocase [lindex $params 0] "awaymessage"]} {
-				return [getbncuser $account tag awaymessage]
-			}
-		}
+
+		setbncuser [getctx] tag awaymessage $value
+
+		return 1
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacehandler"] != -1} {
-	registerifacehandler awaymsg awaymsg:ifacecmd
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "awaymsg" "setvalue" "iface-awaymsg:setvalue"
+}
+
+proc iface-awaymsg:getvalue {setting} {
+	if {[string equal -nocase $setting "awaymessage"]} {
+		return [getbncuser [getctx] tag awaymessage]
+	}
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "awaymsg" "getvalue" "iface-awaymsg:getvalue"
 }

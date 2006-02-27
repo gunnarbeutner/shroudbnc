@@ -27,32 +27,182 @@ class CClientConnection;
  * The interface for modules.
  */
 struct CModuleFar {
+	/**
+	 * Destroy
+	 *
+	 * Destroys the module.
+	 */
 	virtual void Destroy(void) = 0;
+
+	/**
+	 * Init
+	 *
+	 * Initializes the module.
+	 *
+	 * @param Root a reference to the CCore object
+	 */
 	virtual void Init(CCore *Root) = 0;
 
-	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) = 0;
-	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) = 0;
-	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) = 0;
+	/**
+	 * InterceptIRCMessage
+	 *
+	 * Called when a line is received for an IRC connection. Returns "true" if the module
+	 * has handled the line.
+	 *
+	 * @param Connection the IRC connection
+	 * @param ArgC the number of arguments
+	 * @param ArgV the arguments
+	 */
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char **ArgV) = 0;
 
+	/**
+	 * InterceptClientMessage
+	 *
+	 * Called when a line is received for a client connection. Returns "true" if the module
+	 * has handled the line.
+	 *
+	 * @param Connection the IRC connection
+	 * @param ArgC the number of arguments
+	 * @param ArgV the arguments
+	 */
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV) = 0;
+
+	/**
+	 * InterceptClientCommand
+	 *
+	 * Called when an /sbnc command is received for a client connection. Returns "true" if the module
+	 * has handled the command.
+	 *
+	 * @param Connection the IRC connection
+	 * @param Subcommand the command
+	 * @param ArgC the number of arguments
+	 * @param ArgV the arguments
+	 */
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser) = 0;
+
+	/**
+	 * AttachClient
+	 *
+	 * Called when a user logs in.
+	 *
+	 * @param Client the name of the user
+	 */
 	virtual void AttachClient(const char *Client) = 0;
+
+	/**
+	 * DetachClient
+	 *
+	 * Called when a user logs out.
+	 *
+	 * @param Client the name of the user
+	 */
 	virtual void DetachClient(const char *Client) = 0;
 
+	/**
+	 * ServerDisconnect
+	 *
+	 * Called when a user disconnects from an IRC server.
+	 *
+	 * @param Client the name of the user
+	 */
 	virtual void ServerDisconnect(const char *Client) = 0;
+
+	/**
+	 * ServerConnect
+	 *
+	 * Called when a user connects to an IRC server.
+	 *
+	 * @param Client the name of the user
+	 */
 	virtual void ServerConnect(const char *Client) = 0;
+
+	/**
+	 * ServerLogon
+	 *
+	 * Called when the MOTD has been received for an IRC connection.
+	 *
+	 * @param Client the name of the user
+	 */
 	virtual void ServerLogon(const char *Client) = 0;
 
+	/**
+	 * UserLoad
+	 *
+	 * Called when a user's config file is loaded from disk.
+	 *
+	 * @param User the name of the user
+	 */
 	virtual void UserLoad(const char *User) = 0;
+
+	/**
+	 * UserCreate
+	 *
+	 * Called when a new user is being created.
+	 *
+	 * @param User the name of the user
+	 */
 	virtual void UserCreate(const char *User) = 0;
+
+	/**
+	 * UserDelete
+	 *
+	 * Called when a user is being removed.
+	 *
+	 * @param User the name of the user
+	 */
 	virtual void UserDelete(const char *User) = 0;
 
+	/**
+	 * SingleModeChange
+	 *
+	 * Called for each mode change.
+	 *
+	 * @param IRC the irc connection
+	 * @param Channel the channel's name
+	 * @param Source the source of the mode change
+	 * @param Flip whether the mode is set or unset
+	 * @param Mode the channel mode
+	 * @param Parameter the parameter for the mode change, or NULL
+	 */
 	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter) = 0;
 
+	/**
+	 * Command
+	 *
+	 * Used for inter-module communication. Returns a string if the command has
+	 * been handled, or NULL otherwise.
+	 *
+	 * @param Cmd the command
+	 * @param Parameters any parameters for the command
+	 */
 	virtual const char *Command(const char *Cmd, const char *Parameters) = 0;
 
+	/**
+	 * TagModified
+	 *
+	 * Called when a global tag has been modified.
+	 *
+	 * @param Tag the name of the tag
+	 * @param Value the new value of the tag
+	 */
 	virtual void TagModified(const char *Tag, const char *Value) = 0;
+
+	/**
+	 * UserTagModified
+	 *
+	 * Called when a user's tag has been modified.
+	 *
+	 * @param Tag the name of the tag
+	 * @param Value the new value of the tag
+	 */
 	virtual void UserTagModified(const char *Tag, const char *Value) = 0;
 };
 
+/**
+ * CModuleImplementation
+ *
+ * A default implementation of CModuleFar.
+ */
 class CModuleImplementation : public CModuleFar {
 private:
 	CCore *m_Core;
@@ -68,15 +218,15 @@ protected:
 		m_Core = Root;
 	}
 
-	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int argc, const char **argv) {
+	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char **ArgV) {
 		return true;
 	}
 
-	virtual bool InterceptClientMessage(CClientConnection *Connection, int argc, const char **argv) {
+	virtual bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV) {
 		return true;
 	}
 
-	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
+	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser) {
 		return false;
 	}
 

@@ -20,13 +20,18 @@
 #define BLOCKSIZE 4096
 #define OPTIMIZEBLOCKS 16
 
+/**
+ * CFIFOBuffer
+ *
+ * A fifo buffer.
+ */
 class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
 	char* m_Buffer; /**< the fifo buffer's data */
-	unsigned int m_BufferSize; /**< the size of the buffer */
-	unsigned int m_Offset; /**< the number of unused bytes at the
+	size_t m_BufferSize; /**< the size of the buffer */
+	size_t m_Offset; /**< the number of unused bytes at the
 								beginning of the buffer */
 
-	void *ResizeBuffer(void *Buffer, unsigned int OldSize, unsigned int NewSize);
+	void *ResizeBuffer(void *Buffer, size_t OldSize, size_t NewSize);
 	inline void Optimize(void);
 public:
 #ifndef SWIG
@@ -34,12 +39,12 @@ public:
 	virtual ~CFIFOBuffer();
 #endif
 
-	virtual unsigned int GetSize(void);
+	virtual size_t GetSize(void) const;
 
-	virtual char *Peek(void);
-	virtual char *Read(unsigned int Bytes);
+	virtual char *Peek(void) const;
+	virtual char *Read(size_t Bytes);
 	virtual void Flush(void);
 
-	virtual RESULT(bool) Write(const char *Data, unsigned int Size);
-	virtual RESULT(bool) WriteUnformattedLine(const char *Line);
+	virtual RESULT<bool> Write(const char *Data, size_t Size);
+	virtual RESULT<bool> WriteUnformattedLine(const char *Line);
 };

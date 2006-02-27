@@ -19,11 +19,21 @@
 
 #include "StdAfx.h"
 
+/**
+ * penalty_t
+ *
+ * A "penalty" for client commands.
+ */
 typedef struct penalty_s {
 	char *Command;
 	int Amplifier;
 } penalty_t;
 
+/**
+ * Penalties
+ *
+ * Some pre-defined penalties for various client commands.
+ */
 static penalty_t Penalties [] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
@@ -31,10 +41,11 @@ static penalty_t Penalties [] = {
 	{ NULL, 0 }
 };
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CFloodControl
+ *
+ * Constructs a new flood control object.
+ */
 CFloodControl::CFloodControl(void) {
 	m_Bytes = 0;
 	m_Control = true;
@@ -42,12 +53,25 @@ CFloodControl::CFloodControl(void) {
 	m_LastCommand = 0;
 }
 
-CFloodControl::~CFloodControl() {
+/**
+ * ~CFloodControl
+ *
+ * Destructs a CFloodControl object.
+ */
+CFloodControl::~CFloodControl(void) {
 	if (m_FloodTimer) {
 		m_FloodTimer->Destroy();
 	}
 }
 
+/**
+ * AttachInputQueue
+ *
+ * Attaches a queue to this flood control object.
+ *
+ * @param Queue the new queue
+ * @param Priority the priority of the queue (the highest priority is 0)
+ */
 void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	irc_queue_t IrcQueue;
 
@@ -57,11 +81,18 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	m_Queues.Insert(IrcQueue);
 }
 
-RESULT(char *) CFloodControl::DequeueItem(bool Peek) {
+/**
+ * DequeueItem
+ *
+ * Removes the next item from the queue and returns it.
+ *
+ * @param Peek determines whether to actually remove the item
+ */
+RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
-	RESULT(const char *) PeekItem;
-	RESULT(char *) Item;
+	RESULT<const char *> PeekItem;
+	RESULT<char *> Item;
 
 	if (m_Control && (m_Bytes > FLOODBYTES - 100)) {
 		RETURN(char *, NULL);
@@ -113,6 +144,12 @@ RESULT(char *) CFloodControl::DequeueItem(bool Peek) {
 	RETURN(char *, Item);
 }
 
+/**
+ * GetQueueSize
+ *
+ * Returns 1 if there is at least one item in the queue, which
+ * could immediately retrieved using DequeueItem().
+ */
 int CFloodControl::GetQueueSize(void) {
 	if (DequeueItem(true) != NULL) {
 		return 1;
@@ -121,6 +158,13 @@ int CFloodControl::GetQueueSize(void) {
 	}
 }
 
+/**
+ * Pulse
+ *
+ * Called periodically by a timer.
+ *
+ * @param Now the current time
+ */
 bool CFloodControl::Pulse(time_t Now) {
 	if (m_Bytes > 75) {
 		m_Bytes -= 75;
@@ -137,11 +181,21 @@ bool CFloodControl::Pulse(time_t Now) {
 	}
 }
 
-int CFloodControl::GetBytes(void) {
+/**
+ * GetBytes
+ *
+ * Returns the number of bytes which have been recently sent.
+ */
+int CFloodControl::GetBytes(void) const {
 	return m_Bytes;
 }
 
-int CFloodControl::GetRealLength(void) {
+/**
+ * GetRealLength
+ *
+ * Returns the actual size of the queues.
+ */
+int CFloodControl::GetRealLength(void) const {
 	int Count = 0;
 
 	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
@@ -151,24 +205,54 @@ int CFloodControl::GetRealLength(void) {
 	return Count;
 }
 
+/**
+ * Clear
+ *
+ * Clears all queues which have been attached to the flood control object.
+ */
 void CFloodControl::Clear(void) {
 	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
 		m_Queues[i].Queue->Clear();
 	}
 }
 
+/**
+ * Enable
+ *
+ * Enabled the flood control object.
+ */
 void CFloodControl::Enable(void) {
 	m_Control = true;
 }
 
+/**
+ * Disable
+ *
+ * Disabled the flood control object.
+ */
 void CFloodControl::Disable(void) {
 	m_Control = false;
 }
 
+/**
+ * FloodTimer
+ *
+ * Used for gradually decreasing the m_Bytes member of CFloodControl objects.
+ *
+ * @param Now the current time
+ * @param FloodControl the CFloodControl Object
+ */
 bool FloodTimer(time_t Now, void *FloodControl) {
-	return ((CFloodControl*)FloodControl)->Pulse(Now);
+	return ((CFloodControl *)FloodControl)->Pulse(Now);
 }
 
+/**
+ * CalculatePenaltyAmplifier
+ *
+ * Returns the penalty amplifier for a line.
+ *
+ * @param Line the line
+ */
 int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 	const char *Space = strstr(Line, " ");
 	char *Command;
