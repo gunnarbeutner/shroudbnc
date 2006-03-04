@@ -8,7 +8,8 @@ channel.tcl \
 contact.tcl \
 fakemode.tcl \
 highlight.tcl \
-iface.tcl \
+iface2.tcl \
+ifacecmds.tcl \
 lock.tcl \
 misc.tcl \
 namespace.tcl \

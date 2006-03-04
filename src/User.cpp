@@ -1186,12 +1186,11 @@ RESULT<bool> CUser::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
  * @param Mask the mask
  */
 bool CUser::IsValidHostAllow(const char *Mask) const {
-	if (strchr(Mask, '!') != NULL || strchr(Mask, '@') != NULL) {
+	if (Mask == NULL || strchr(Mask, '!') != NULL || strchr(Mask, '@') != NULL) {
 		return false;
 	} else {
 		return true;
 	}
-
 }
 
 /**

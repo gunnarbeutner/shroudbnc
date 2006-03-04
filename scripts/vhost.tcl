@@ -143,56 +143,65 @@ proc vhost:autosetvhost {user} {
 
 # iface commands
 # +user
-# freeip
-# set vhost
-# vhosts
+# getfreeip
+# setvalue vhost
+# getvhosts
 
-proc vhost:ifacecmd {command params account} {
-	global trust
+proc iface-vhost:getfreeip {} {
+	return [vhost:findip]
+}
 
-	switch -- $command {
-		"freeip" {
-			return [vhost:findip]
-		}
-		"set" {
-			if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-				if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
-			}
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "vhost" "getfreeip" "iface-vhost:freeip"
+}
 
-			if {![getbncuser $account admin] && [string equal -nocase [lindex $params 0] "vhost"]} {
-				set ip [lindex $params 1]
+proc iface-vhost:setvalue {setting value} {
+	if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
+		if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
+	}
 
-				set limit [vhost:getlimit $ip]
-				if {$limit == 0} { return "You may not use this virtual host." }
+	if {![getbncuser $account admin] && [string equal -nocase $setting "vhost"]} {
+		set limit [vhost:getlimit $value]
+		if {$limit == 0} { return -code error "You may not use this virtual host." }
 
-				set count [vhost:countvhost $ip]
-				if {$count >= $limit} { return "Sorry, the virtual host $ip is already being used by $count users. Please use another virtual host." }
+		set count [vhost:countvhost $value]
+		if {$count >= $limit} { return -code error "Sorry, the virtual host $ip is already being used by $count users. Please use another virtual host." }
 
-				setbncuser $account vhost $ip
-				return "1"
-			}
-		}
-		"vhosts" {
-			set vhosts [list]
+		setbncuser $account vhost $value
 
-			foreach host $trust {
-				lappend vhosts [list [lindex $host 0] [vhost:countvhost [lindex $host 0]] [lindex $host 1] [lindex $host 2]]
-			}
-
-			return [join $vhosts \005]
-		}
-		"adduser" {
-			set res [catch [list addbncuser [lindex $params 0] [lindex $params 1]]]
-
-			if {!$res} {
-				vhost:autosetvhost [lindex $params 0]
-			}
-
-			return $res
-		}
+		return "1"
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacehandler"] != -1} {
-	registerifacehandler vhost vhost:ifacecmd
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "vhost" "setvalue" "iface-vhost:setvalue"
+}
+
+proc iface-vhost:getvhosts {} {
+	set vhosts [list]
+
+	foreach host $trust {
+		lappend vhosts "[lindex $host 0] [vhost:countvhost [lindex $host 0]] [lindex $host 1] [lindex $host 2]"
+	}
+
+	return [iface:list $vhosts]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "vhost" "getvhosts" "iface-vhost:getvhosts"
+}
+
+proc iface-vhost:adduser {username password} {
+	set result [catch [list addbncuser $username $password]]
+
+	if {!$result} {
+		vhost:autosetvhost [lindex $params 0]
+		return $result
+	} else {
+		return -code error $result
+	}
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "vhost" "adduser" "iface-vhost:adduser"
 }

@@ -522,7 +522,6 @@ RESULT<bool> CNick::Freeze(CAssocArray *Box) {
  * Creates a new nick object by reading its data from a box.
  *
  * @param Box the box
- * @param Owner the channel
  */
 RESULT<CNick *> CNick::Thaw(CAssocArray *Box) {
 	const char *Name;

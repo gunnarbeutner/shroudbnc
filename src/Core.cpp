@@ -1236,11 +1236,14 @@ bool CCore::Thaw(CAssocArray *Box) {
 			CClientConnection *Client;
 
 			Client = ThawObject<CClientConnection>(ClientsBox, User->Name);
-			Client->SetOwner(User->Value);
-			User->Value->SetClientConnection(Client);
 
-			if (User->Value->IsAdmin()) {
-				User->Value->Notice("shroudBNC was reloaded.");
+			if (Client != NULL) {
+				Client->SetOwner(User->Value);
+				User->Value->SetClientConnection(Client);
+
+				if (User->Value->IsAdmin()) {
+					User->Value->Notice("shroudBNC was reloaded.");
+				}
 			}
 		}
 	}

@@ -77,6 +77,7 @@ struct CModuleFar {
 	 * @param Subcommand the command
 	 * @param ArgC the number of arguments
 	 * @param ArgV the arguments
+	 * @param NoticeUser whether to send replies as notices
 	 */
 	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser) = 0;
 

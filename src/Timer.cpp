@@ -24,7 +24,7 @@ int g_TimerStats = 0;
 /**
  * CTimer
  *
- * Constructs a timer
+ * Constructs a timer.
  *
  * @param Interval the interval (in seconds) between calls to the timer's function
  * @param Repeat whether the timer should repeat itself
@@ -46,7 +46,7 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Coo
 /**
  * ~CTimer
  *
- * Destroys a timer
+ * Destroys a timer.
  */
 CTimer::~CTimer(void) {
 	g_Bouncer->UnregisterTimer(this);
@@ -55,7 +55,7 @@ CTimer::~CTimer(void) {
 /**
  * Destroy
  *
- * Manually destroys a timer
+ * Manually destroys a timer.
  */
 void CTimer::Destroy(void) {
 	delete this;
@@ -103,7 +103,7 @@ bool CTimer::Call(time_t Now) {
 /**
  * GetNextCall
  *
- * Returns the next scheduled time of exection
+ * Returns the next scheduled time of execution.
  */
 time_t CTimer::GetNextCall(void) const {
 	return m_Next;

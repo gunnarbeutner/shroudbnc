@@ -49,8 +49,8 @@ private:
 	bool ValidateUser();
 	void SetPeerName(const char *PeerName, bool LookupFailure);
 	virtual bool Read(bool DontProcess = false);
-	virtual const char* GetClassName(void) const;
-	void WriteUnformattedLine(const char* In);
+	virtual const char *GetClassName(void) const;
+	virtual void WriteUnformattedLine(const char *Line);
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 

@@ -53,7 +53,12 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 }
 
 CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {
-	// nothing to do here
+	m_Nick = NULL;
+	m_Password = NULL;
+	m_Username = NULL;
+	m_PeerName = NULL;
+	m_PreviousNick = NULL;
+	m_ClientLookup = NULL;
 }
 
 CClientConnection::~CClientConnection() {
@@ -1762,8 +1767,8 @@ bool CClientConnection::Read(bool DontProcess) {
 	return Ret;
 }
 
-void CClientConnection::WriteUnformattedLine(const char* In) {
-	CConnection::WriteUnformattedLine(In);
+void CClientConnection::WriteUnformattedLine(const char *Line) {
+	CConnection::WriteUnformattedLine(Line);
 
 	if (m_Owner && !m_Owner->IsAdmin() && GetSendqSize() > g_Bouncer->GetSendqSize() * 1024) {
 		FlushSendQ();

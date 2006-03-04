@@ -1268,7 +1268,7 @@ const char* bncmodules(void) {
 		Tcl_Free(Mods);
 	}
 
-	Mods = Tcl_Merge(a - 1, const_cast<char **>(List));
+	Mods = Tcl_Merge(a, const_cast<char **>(List));
 
 	for (int c = 0; c < a; c++)
 		Tcl_Free(List[c]);

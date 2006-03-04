@@ -190,7 +190,7 @@ proc sbnc:callbinds {type flags chan mask args} {
 	set allbinds $binds
 
 	set old [getctx]
-	setctx ":all"
+	setctx ":any"
 	namespace eval [getns] {
 		if {![info exists binds]} { set binds "" }
 	}
