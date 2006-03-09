@@ -30,8 +30,6 @@ extern time_t g_LastReconnect;
  */
 CUser::CUser(const char *Name) {
 	char *Out;
-	unsigned int i;
-	const char *Hostmask;
 	X509 *Cert;
 	FILE *ClientCert;
 
@@ -75,25 +73,6 @@ CUser::CUser(const char *Name) {
 	CHECK_ALLOC_RESULT(m_Log, new) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
-
-	i = 0;
-	while (true) {
-		asprintf(&Out, "user.hosts.host%d", i++);
-
-		CHECK_ALLOC_RESULT(Out, asprintf) {
-			g_Bouncer->Fatal();
-		} CHECK_ALLOC_RESULT_END;
-
-		Hostmask = m_Config->ReadString(Out);
-
-		free(Out);
-
-		if (Hostmask != NULL) {
-			AddHostAllow(Hostmask, false);
-		} else {
-			break;
-		}
-	}
 
 	m_ClientStats = new CTrafficStats();
 	m_IRCStats = new CTrafficStats();
@@ -169,10 +148,6 @@ CUser::~CUser(void) {
 
 	if (m_ReconnectTimer != NULL) {
 		delete m_ReconnectTimer;
-	}
-
-	for (i = 0; i < m_HostAllows.GetLength(); i++) {
-		free(m_HostAllows.Get(i));
 	}
 }
 
@@ -536,7 +511,7 @@ void CUser::Reconnect(void) {
 	Port = GetPort();
 
 	if (Server == NULL || Port == 0) {
-		ScheduleReconnect(600);
+		ScheduleReconnect(120);
 
 		g_Bouncer->Log("%s has no default server. Can't (re)connect.", m_Name);
 
@@ -811,14 +786,15 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	const CVector<CModule *> *Modules;
 	unsigned int i;
-	const char *DropModes, *AwayNick, *AwayText, *Timestamp;
+	const char *DropModes, *AwayNick, *AwayText, *Timestamp, *AwayMessage;
+	hash_t<CChannel *> *Channel;
 
 	if (m_Client == NULL && Client == NULL) {
 		return;
 	}
 
 	if (m_Client == NULL) {
-		g_Bouncer->Log("User %s logged on (from %s).", GetUsername(), Client->GetPeerName());
+		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), IpToString(Client->GetRemoteAddress()));
 
 		m_Config->WriteInteger("user.seen", time(NULL));
 	}
@@ -844,6 +820,15 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 		g_Bouncer->Log("User %s logged off.", GetUsername());
 
 		m_Config->WriteInteger("user.seen", time(NULL));
+
+		AwayMessage = m_Config->ReadString("user.awaymessage");
+
+		if (AwayMessage != NULL && m_IRC != NULL) {
+			i = 0;
+			while ((Channel = m_IRC->GetChannels()->Iterate(i++)) != NULL) {
+				m_IRC->WriteLine("PRIVMSG %s :\001ACTION is now away: %s\001", Channel->Name, AwayMessage);
+			}
+		}
 	}
 
 	Modules = g_Bouncer->GetModules();
@@ -1102,162 +1087,6 @@ void CUser::BadLoginPulse(void) {
 }
 
 /**
- * AddHostAllow
- *
- * Adds a new "host allow" entry. Only users are permitted to log in whose
- * IP address/host is matched by a host in this list.
- *
- * @param Mask the new mask
- * @param UpdateConfig whether to update the config files
- */
-RESULT<bool> CUser::AddHostAllow(const char *Mask, bool UpdateConfig) {
-	char *dupMask;
-	RESULT<bool> Result;
-
-	if (Mask == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
-	}
-
-	if (m_HostAllows.GetLength() > 0 && CanHostConnect(Mask)) {
-		THROW(bool, Generic_Unknown, "This hostmask is already added or another hostmask supercedes it.");
-	}
-
-	if (!IsValidHostAllow(Mask)) {
-		THROW(bool, Generic_Unknown, "The specified mask is not valid.");
-	}
-
-	if (m_HostAllows.GetLength() > 50) {
-		THROW(bool, Generic_Unknown, "You cannot add more than 50 masks.");
-	}
-
-	dupMask = strdup(Mask);
-
-	CHECK_ALLOC_RESULT(dupMask, strdup) {
-		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
-	} CHECK_ALLOC_RESULT_END;
-
-	Result = m_HostAllows.Insert(dupMask);
-
-	if (IsError(Result)) {
-		LOGERROR("Insert() failed. Host could not be added.");
-
-		free(dupMask);
-
-		THROWRESULT(bool, Result);
-	}
-
-	if (UpdateConfig) {
-		UpdateHosts();
-	}
-
-	RETURN(bool, true);
-}
-
-/**
- * RemoveHostAllow
- *
- * Removes an item from the host allow list.
- *
- * @param Mask the mask
- * @param UpdateConfig whether to update the config files
- */
-RESULT<bool> CUser::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
-	for (int i = m_HostAllows.GetLength() - 1; i >= 0; i--) {
-		if (strcasecmp(m_HostAllows[i], Mask) == 0) {
-			free(m_HostAllows[i]);
-			m_HostAllows.Remove(i);
-
-			if (UpdateConfig) {
-				UpdateHosts();
-			}
-
-			RETURN(bool, true);
-		}
-	}
-
-	THROW(bool, Generic_Unknown, "Host was not found.");
-}
-
-/**
- * IsValidHostAllow
- *
- * Checks whether the specified hostmask is valid for /sbnc hosts.
- *
- * @param Mask the mask
- */
-bool CUser::IsValidHostAllow(const char *Mask) const {
-	if (Mask == NULL || strchr(Mask, '!') != NULL || strchr(Mask, '@') != NULL) {
-		return false;
-	} else {
-		return true;
-	}
-}
-
-/**
- * GetHostAllows
- *
- * Returns a list of "host allow" masks.
- */
-const CVector<char *> *CUser::GetHostAllows(void) const {
-	return &m_HostAllows;
-}
-
-/**
- * CanHostConnect
- *
- * Checks whether the specified host can use the user's account.
- *
- * @param Host the host
- */
-bool CUser::CanHostConnect(const char *Host) const {
-	unsigned int Count = 0;
-
-	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
-		if (mmatch(m_HostAllows[i], Host) == 0) {
-			return true;
-		} else {
-			Count++;
-		}
-	}
-
-	if (Count > 0) {
-		return false;
-	} else {
-		return true;	
-	}
-}
-
-/**
- * UpdateHosts
- *
- * Updates the "host allow" list in the config file.
- */
-void CUser::UpdateHosts(void) {
-	char *Out;
-	int a = 0;
-
-	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
-		asprintf(&Out, "user.hosts.host%d", a++);
-
-		CHECK_ALLOC_RESULT(Out, asprintf) {
-			g_Bouncer->Fatal();
-		} CHECK_ALLOC_RESULT_END;
-
-		m_Config->WriteString(Out, m_HostAllows[i]);
-		free(Out);
-	}
-
-	asprintf(&Out, "user.hosts.host%d", a);
-
-	CHECK_ALLOC_RESULT(Out, asprintf) {
-		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
-
-	m_Config->WriteString(Out, NULL);
-	free(Out);
-}
-
-/**
  * GetClientStats
  *
  * Returns traffic statistics for the user's client sessions.
@@ -1397,7 +1226,7 @@ const char *CUser::GetVHost(void) const {
  * @param VHost the new virtual host
  */
 void CUser::SetVHost(const char *VHost) {
-	USER_SETFUNCTION(vhost, VHost);
+	USER_SETFUNCTION(ip, VHost);
 }
 
 /**
@@ -1941,4 +1770,25 @@ bool CUser::GetSystemNotices(void) const {
 	} else {
 		return true;
 	}
+}
+
+/**
+ * SetAwayMessage
+ *
+ * Sets the user's away message which is spammed to every channel the
+ * user is in when he disconnects.
+ *
+ * @param Text the new away message
+ */
+void CUser::SetAwayMessage(const char *Text) {
+	m_Config->WriteString("user.awaymessage", Text);
+}
+
+/**
+ * GetAwayMessage
+ *
+ * Returns the user's away message or NULL if none is set.
+ */
+const char *CUser::GetAwayMessage(void) const {
+	return m_Config->ReadString("user.awaymessage");
 }

@@ -33,7 +33,7 @@ proc sbnc:channelflush {} {
 					continue
 				}
 
-				if {![channel get $channel inactive] && ![channel get $channel autochan]} } {
+				if {![channel get $channel inactive] && ![channel get $channel autochan]} {
 					# simul so we can take advantage of keyrings
 					simul [getctx] "JOIN $channel"
 				}

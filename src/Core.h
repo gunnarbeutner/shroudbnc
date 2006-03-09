@@ -81,8 +81,11 @@ class CCore {
 
 	int m_Status;
 
+	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
+
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
+	void UpdateHosts(void);
 	bool Daemonize(void) const;
 	void WritePidFile(void) const;
 	bool MakeConfig(void);
@@ -196,6 +199,12 @@ public:
 
 	virtual CFakeClient *CreateFakeClient(void) const;
 	virtual void DeleteFakeClient(CFakeClient *FakeClient) const;
+
+	virtual RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
+	virtual RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
+	virtual const CVector<char *> *GetHostAllows(void) const;
+	virtual bool CanHostConnect(const char *Host) const;
+	virtual bool IsValidHostAllow(const char *Mask) const;
 };
 
 extern CCore *g_Bouncer;

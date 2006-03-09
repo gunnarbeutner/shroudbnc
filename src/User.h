@@ -81,8 +81,6 @@ class CUser : public CZoneObject<CUser, 32> {
 
 	CVector<badlogin_t> m_BadLogins; /**< a list of failed login attempts for this user */
 
-	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this account */
-
 	CTrafficStats *m_ClientStats; /**< traffic stats for the user's client connection(s) */
 	CTrafficStats *m_IRCStats; /**< traffic stats for the user's irc connection(s) */
 
@@ -97,7 +95,6 @@ class CUser : public CZoneObject<CUser, 32> {
 
 	bool PersistCertificates(void);
 
-	void UpdateHosts(void);
 	void BadLoginPulse(void);
 public:
 #ifndef SWIG
@@ -161,12 +158,6 @@ public:
 	virtual void LogBadLogin(sockaddr *Peer);
 	virtual bool IsIpBlocked(sockaddr *Peer) const;
 
-	virtual RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual const CVector<char *> *GetHostAllows(void) const;
-	virtual bool CanHostConnect(const char *Host) const;
-	virtual bool IsValidHostAllow(const char *Mask) const;
-
 	virtual const CTrafficStats *GetClientStats(void) const;
 	virtual const CTrafficStats *GetIRCStats(void) const;
 
@@ -227,4 +218,7 @@ public:
 
 	virtual void SetSystemNotices(bool SystemNotices);
 	virtual bool GetSystemNotices(void) const;
+
+	virtual void SetAwayMessage(const char *Text);
+	virtual const char *GetAwayMessage(void) const;
 };

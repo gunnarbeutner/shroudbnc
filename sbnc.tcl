@@ -14,7 +14,7 @@ source "scripts/bind.tcl"
 source "scripts/usys.tcl"
 source "scripts/socket.tcl"
 source "scripts/botnet.tcl"
-source "scripts/iface.tcl"
+source "scripts/iface2.tcl"
 source "scripts/ifacecmds.tcl"
 source "scripts/partyline.tcl"
 

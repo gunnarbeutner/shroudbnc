@@ -713,6 +713,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetAwayNick();
 	else if (strcasecmp(Type, "away") == 0)
 		return Context->GetAwayText();
+	else if (strcasecmp(Type, "awaymessage") == 0)
+		return Context->GetAwayMessage();
 	else if (strcasecmp(Type, "vhost") == 0)
 		return Context->GetVHost() ? Context->GetVHost() : g_Bouncer->GetConfig()->ReadString("system.ip");
 	else if (strcasecmp(Type, "channels") == 0)
@@ -816,7 +818,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return Buffer;
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -845,6 +847,8 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetDelayJoin(atoi(Value));
 	else if (strcasecmp(Type, "away") == 0)
 		Context->SetAwayText(Value);
+	else if (strcasecmp(Type, "awaymessage") == 0)
+		Context->SetAwayMessage(Value);
 	else if (strcmp(Type, "password") == 0)
 		Context->SetPassword(Value);
 	else if (strcmp(Type, "ssl") == 0)
@@ -875,7 +879,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcasecmp(Type, "timezone") == 0)
 		Context->SetGmtOffset(atoi(Value));
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone";
+		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone";
 
 	return 1;
 }
@@ -1787,12 +1791,7 @@ void bncsetgvhost(const char* GVHost) {
 }
 
 const char* getbnchosts(void) {
-	CUser* Context = g_Bouncer->GetUser(g_Context);
-
-	if (Context == NULL)
-		throw "Invalid user.";
-
-	const CVector<char *> *Hosts = Context->GetHostAllows();
+	const CVector<char *> *Hosts = g_Bouncer->GetHostAllows();
 
 	int argc = 0;
 	const char** argv = (const char**)malloc(Hosts->GetLength() * sizeof(const char*));
@@ -1814,26 +1813,23 @@ const char* getbnchosts(void) {
 }
 
 void delbnchost(const char* Host) {
-	CUser* Context = g_Bouncer->GetUser(g_Context);
+	RESULT<bool> Result;
 
-	if (Context == NULL)
-		throw "Invalid user.";
+	Result = g_Bouncer->RemoveHostAllow(Host, true);
 
-	Context->RemoveHostAllow(Host, true);
+	if (IsError(Result)) {
+		throw GETDESCRIPTION(Result);
+	}
 }
 
 int addbnchost(const char* Host) {
-	CUser* Context = g_Bouncer->GetUser(g_Context);
+	RESULT<bool> Result;
 
-	if (Context == NULL)
-		throw "Invalid user.";
+	Result = g_Bouncer->AddHostAllow(Host);
 
-	const CVector<char *> *Hosts = Context->GetHostAllows();
-
-	if (Context->CanHostConnect(Host) && Hosts->GetLength() > 0)
-		return 0;
-
-	Context->AddHostAllow(Host);
+	if (IsError(Result)) {
+		throw GETDESCRIPTION(Result);
+	}
 
 	return 1;
 }
@@ -1860,14 +1856,7 @@ bool bncisipblocked(const char* Ip) {
 }
 
 bool bnccanhostconnect(const char* Host) {
-	CUser* Context = g_Bouncer->GetUser(g_Context);
-
-	if (Context == NULL)
-		throw "Invalid user.";
-
-	bool Ret = Context->CanHostConnect(Host);
-
-	return Ret;
+	return g_Bouncer->CanHostConnect(Host);
 }
 
 bool bncvalidusername(const char* Name) {

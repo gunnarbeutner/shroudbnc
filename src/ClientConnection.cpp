@@ -151,6 +151,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				"Syntax: reload [filename]\nReloads shroudBNC (a new .so module file can be specified).");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
+			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
+				"Syntax: hosts\nLists all hosts which are permitted to use this bouncer.");
+			AddCommand(&m_CommandList, "hostadd", "Admin", "adds a hostmask",
+				"Syntax: hostadd <host>\nAdds a host to the bouncer's hostlist. E.g. *.tiscali.de");
+			AddCommand(&m_CommandList, "hostdel", "Admin", "removes a hostmask",
+				"Syntax: hostdel <host>\nRemoves a host from the bouncer's hostlist.");
 		}
 
 		AddCommand(&m_CommandList, "read", "User", "plays your message log",
@@ -159,14 +165,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			"Syntax: erase\nErases your private log.");
 		AddCommand(&m_CommandList, "set", "User", "sets configurable options for your user",
 			"Syntax: set [option] [value]\nDisplays or changes configurable options for your user.");
+		AddCommand(&m_CommandList, "unset", "User", "restores the default value of an option",
+			"Syntax: unset <option>\nRestores the default value of an option.");
 		AddCommand(&m_CommandList, "jump", "User", "reconnects to the irc server",
 			"Syntax: jump\nReconnects to the irc server.");
-		AddCommand(&m_CommandList, "hosts", "User", "lists all hostmasks, which are permitted to use this account",
-			"Syntax: hosts\nLists all hosts which are permitted to use this account.");
-		AddCommand(&m_CommandList, "hostadd", "User", "adds a hostmask",
-			"Syntax: hostadd <host>\nAdds a host to your hostlist. E.g. *.tiscali.de");
-		AddCommand(&m_CommandList, "hostdel", "User", "removes a hostmask",
-			"Syntax: hostdel <host>\nRemoves a host from your hostlist.");
 		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells shroudBNC not to rejoin them when you reconnect to a server",
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
@@ -348,6 +350,23 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
+	} else if (strcasecmp(Subcommand, "unset") == 0) {
+		if (argc < 2) {
+			SENDUSER("Syntax: unset option");
+		} else {
+			if (NoticeUser) {
+				asprintf(&Out, "SBNC SET %s :", argv[1]);
+			} else {
+				asprintf(&Out, "PRIVMSG -sBNC :SET %s :", argv[1]);
+			}
+
+			CHECK_ALLOC_RESULT(Out, asprintf) {} else {
+				ParseLine(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
+		}
+
+		return false;
 	} else if (strcasecmp(Subcommand, "set") == 0) {
 		CConfig *Config = m_Owner->GetConfig();
 
@@ -363,7 +382,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 
-			asprintf(&Out, "server - %s:%d", m_Owner->GetServer(), m_Owner->GetPort());
+			if (m_Owner->GetServer() != NULL) {
+				asprintf(&Out, "server - %s:%d", m_Owner->GetServer(), m_Owner->GetPort());
+			} else {
+				Out = strdup("server - Not set");
+			}
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -388,6 +411,12 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 
 			asprintf(&Out, "away - %s", m_Owner->GetAwayText() ? m_Owner->GetAwayText() : "Not set");
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
+
+			asprintf(&Out, "awaymessage - %s", m_Owner->GetAwayMessage() ? m_Owner->GetAwayMessage() : "Not set");
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -453,7 +482,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 
 			if (m_Owner->IsAdmin()) {
-				asprintf(&Out, "sysnotices - %s", m_Owner->GetSystemNotices() ? "on" : "off");
+				asprintf(&Out, "sysnotices - %s", m_Owner->GetSystemNotices() ? "On" : "Off");
 				CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 					SENDUSER(Out);
 					free(Out);
@@ -462,10 +491,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		} else {
 			if (strcasecmp(argv[1], "server") == 0) {
 				if (argc > 3) {
-					m_Owner->SetServer(argv[2]);
 					m_Owner->SetPort(atoi(argv[3]));
-
-					m_Owner->ScheduleReconnect(0);
+					m_Owner->SetServer(argv[2]);
+				} else if (argc > 2 && strlen(argv[2]) == 0) {
+					m_Owner->SetServer(NULL);
+					m_Owner->SetPort(6667);
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
 
@@ -479,6 +509,9 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			} else if (strcasecmp(argv[1], "away") == 0) {
 				ArgRejoinArray(argv, 2);
 				m_Owner->SetAwayText(argv[2]);
+			} else if (strcasecmp(argv[1], "awaymessage") == 0) {
+				ArgRejoinArray(argv, 2);
+				m_Owner->SetAwayMessage(argv[2]);
 			} else if (strcasecmp(argv[1], "vhost") == 0) {
 				m_Owner->SetVHost(argv[2]);
 			} else if (strcasecmp(argv[1], "serverpass") == 0) {
@@ -553,7 +586,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 					return false;
 				}
 			} else {
-				SENDUSER("Unknown setting");
+				SENDUSER("Unknown setting.");
 				return false;
 			}
 
@@ -1019,8 +1052,8 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcasecmp(Subcommand, "hosts") == 0) {
-		const CVector<char *> *Hosts = m_Owner->GetHostAllows();
+	} else if (strcasecmp(Subcommand, "hosts") == 0 && m_Owner->IsAdmin()) {
+		const CVector<char *> *Hosts = g_Bouncer->GetHostAllows();
 
 		SENDUSER("Hostmasks");
 		SENDUSER("---------");
@@ -1035,7 +1068,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("End of HOSTS.");
 
 		return false;
-	} else if (strcasecmp(Subcommand, "hostadd") == 0) {
+	} else if (strcasecmp(Subcommand, "hostadd") == 0 && m_Owner->IsAdmin()) {
 		RESULT<bool> Result;
 
 		if (argc <= 1) {
@@ -1044,7 +1077,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		Result = m_Owner->AddHostAllow(argv[1]);
+		Result = g_Bouncer->AddHostAllow(argv[1]);
 
 		if (IsError(Result)) {
 			SENDUSER(GETDESCRIPTION(Result));
@@ -1053,7 +1086,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		}
 
 		return false;
-	} else if (strcasecmp(Subcommand, "hostdel") == 0) {
+	} else if (strcasecmp(Subcommand, "hostdel") == 0 && m_Owner->IsAdmin()) {
 		RESULT<bool> Result;
 
 		if (argc <= 1) {
@@ -1062,7 +1095,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		Result = m_Owner->RemoveHostAllow(argv[1]);
+		Result = g_Bouncer->RemoveHostAllow(argv[1]);
 
 		if (IsError(Result)) {
 			SENDUSER(GETDESCRIPTION(Result));
@@ -1588,7 +1621,7 @@ void CClientConnection::ParseLine(const char* Line) {
 bool CClientConnection::ValidateUser() {
 	bool Force = false;
 	CUser* User;
-	bool Blocked = true, Valid = false, ValidHost = false;
+	bool Blocked = true, Valid = false;
 
 #ifdef USESSL
 	int Count = 0;
@@ -1628,30 +1661,25 @@ bool CClientConnection::ValidateUser() {
 	if (User) {
 		Blocked = User->IsIpBlocked(GetRemoteAddress());
 		Valid = (Force || User->CheckPassword(m_Password));
-		ValidHost = User->CanHostConnect(m_PeerName);
-
-		if (ValidHost == false) {
-			ValidHost = User->CanHostConnect(IpToString(GetRemoteAddress()));
-		}
 	}
 
-	if ((m_Password || Force) && User && !Blocked && Valid && ValidHost) {
+	if ((m_Password || Force) && User && !Blocked && Valid) {
 		User->Attach(this);
 		//WriteLine(":Notice!notice@shroudbnc.info NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
-		if (User && !Blocked) {
-			User->LogBadLogin(GetRemoteAddress());
+		if (User != NULL) {
+			if (!Blocked) {
+				User->LogBadLogin(GetRemoteAddress());
+			}
+
+			if (Blocked) {
+				g_Bouncer->Log("Blocked login attempt from %s[%s] for %s", m_PeerName, IpToString(GetRemoteAddress()), m_Username);
+			} else {
+				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(GetRemoteAddress()));
+			}
 		}
 
-		if (User && !ValidHost && !Blocked) {
-			g_Bouncer->Log("Attempted login from %s for %s denied: Host does not match any host allows.", IpToString(GetRemoteAddress()), m_Username);
-		} else if (User && Blocked) {
-			g_Bouncer->Log("Blocked login attempt from %s for %s", IpToString(GetRemoteAddress()), m_Username);
-		} else if (User) {
-			g_Bouncer->Log("Wrong password for user %s", m_Username);
-		}
-
-		Kill("*** Unknown user or wrong password.");
+			Kill("*** Unknown user or wrong password.");
 	}
 
 	return true;
@@ -1676,6 +1704,16 @@ void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
 	}
 
 	m_PeerName = strdup(PeerName);
+
+	if (!g_Bouncer->CanHostConnect(m_PeerName) && !g_Bouncer->CanHostConnect(IpToString(GetRemoteAddress()))) {
+		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, IpToString(GetRemoteAddress()));
+
+		FlushSendQ();
+
+		Kill("Your host is not allowed to use this bouncer.");
+
+		return;
+	}
 
 	ProcessBuffer();
 }
