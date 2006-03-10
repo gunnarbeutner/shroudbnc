@@ -681,7 +681,7 @@ const char *IpToString(sockaddr *Address) {
  * @param pA the first sockaddr
  * @param pB the second sockaddr
  */
-int CompareAddress(sockaddr *pA, sockaddr *pB) {
+int CompareAddress(const sockaddr *pA, const sockaddr *pB) {
 	if (pA->sa_family != pB->sa_family) {
 		return -1;
 	}

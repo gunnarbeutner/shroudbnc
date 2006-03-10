@@ -943,10 +943,6 @@ const char *CUser::GetServer(void) const {
  */
 void CUser::SetPort(int Port) {
 	m_Config->WriteInteger("user.port", Port);
-
-	if (Port != 0 && !IsQuitted() && GetIRCConnection() == NULL) {
-		ScheduleReconnect();
-	}
 }
 
 /**

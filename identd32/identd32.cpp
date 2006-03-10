@@ -92,6 +92,7 @@ public:
 		}
 
 		int i = 0, LPort, RPort;
+		const char *Ident;
 		hash_t<CUser *> *UserHash;
 
 		while ((UserHash = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
@@ -122,8 +123,14 @@ public:
 			}
 
 			if (LPort == LocalPort && RPort == RemotePort) {
+				Ident = UserHash->Value->GetIdent();
+
+				if (Ident == NULL) {
+					Ident = UserHash->Name;
+				}
+
 				// 113 , 3559 : USERID : UNIX : shroud
-				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, UserHash->Name);
+				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, Ident);
 
 				g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
 

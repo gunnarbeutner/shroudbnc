@@ -1326,6 +1326,8 @@ const utility_t *CCore::GetUtilities(void) {
 
 		Utils->Alloc = malloc;
 		Utils->Free = free;
+
+		Utils->IpToString = IpToString;
 	}
 
 	return Utils;

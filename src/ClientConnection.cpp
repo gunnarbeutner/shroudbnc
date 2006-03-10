@@ -463,10 +463,10 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 			const char *AutoModesPrefix = "+", *DropModesPrefix = "-";
 
-			if (!ValidAutoModes || (AutoModes && *AutoModes == '+'))
+			if (!ValidAutoModes || (AutoModes && (*AutoModes == '+' || *AutoModes == '-')))
 				AutoModesPrefix = "";
 
-			if (!ValidDropModes || (DropModes && *DropModes == '-'))
+			if (!ValidDropModes || (DropModes && (*DropModes == '-' || *DropModes == '+')))
 				DropModesPrefix = "";
 
 			asprintf(&Out, "automodes - %s%s", AutoModesPrefix, ValidAutoModes ? AutoModes : "Not set");

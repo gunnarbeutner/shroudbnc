@@ -678,6 +678,7 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 }
 
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2) {
+	CIRCConnection *IRC;
 	static char *Buffer = NULL;
 
 	if (Buffer != NULL) {
@@ -695,7 +696,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "serverpass") == 0)
 		return Context->GetServerPassword();
 	else if (strcasecmp(Type, "realserver") == 0) {
-		CIRCConnection* IRC = Context->GetIRCConnection();;
+		IRC = Context->GetIRCConnection();;
 
 		if (IRC)
 			return IRC->GetServer();
@@ -817,8 +818,19 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		g_asprintf(&Buffer, "%d", Context->GetGmtOffset());
 
 		return Buffer;
+	} else if (strcasecmp(Type, "localip") == 0) {
+		const utility_t *Utilities;
+		IRC = Context->GetIRCConnection();
+
+		Utilities = g_Bouncer->GetUtilities();
+
+		if (IRC != NULL && IRC->GetLocalAddress() != NULL) {
+			return Utilities->IpToString(IRC->GetLocalAddress());
+		} else {
+			return NULL;
+		}
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
