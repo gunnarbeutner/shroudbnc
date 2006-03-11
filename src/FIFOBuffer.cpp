@@ -61,7 +61,13 @@ void *CFIFOBuffer::ResizeBuffer(void *Buffer, size_t OldSize, size_t NewSize) {
 	size_t NewBlocks = CeilNewSize / BLOCKSIZE;
 
 	if (NewBlocks != OldBlocks) {
-		return realloc(Buffer, NewBlocks * BLOCKSIZE);
+		if (NewSize == 0) {
+			free(Buffer);
+
+			return NULL;
+		} else {
+			return realloc(Buffer, NewBlocks * BLOCKSIZE);
+		}
 	} else {
 		return Buffer;
 	}
@@ -75,15 +81,21 @@ void *CFIFOBuffer::ResizeBuffer(void *Buffer, size_t OldSize, size_t NewSize) {
 void CFIFOBuffer::Optimize(void) {
 	char *NewBuffer;
 
-	if (m_Offset <= OPTIMIZEBLOCKS * BLOCKSIZE) {
+	if (m_Offset == 0 || m_Offset < m_BufferSize / 5) {
+		return;
+	}
+
+	if (m_BufferSize - m_Offset == 0) {
+		free(m_Buffer);
+
+		m_Buffer = NULL;
+		m_BufferSize = 0;
+		m_Offset = 0;
+
 		return;
 	}
 
 	NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
-
-	if (NewBuffer == NULL) {
-		return;
-	}
 
 	memcpy(NewBuffer, m_Buffer + m_Offset, m_BufferSize - m_Offset);
 
@@ -126,13 +138,13 @@ char *CFIFOBuffer::Peek(void) const {
 char *CFIFOBuffer::Read(size_t Bytes) {
 	char* ReturnValue = m_Buffer + m_Offset;
 
+	Optimize();
+
 	if (Bytes > GetSize()) {
 		m_Offset += GetSize();
 	} else {
 		m_Offset += Bytes;
 	}
-
-	Optimize();
 
 	return ReturnValue;
 }

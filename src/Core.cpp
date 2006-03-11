@@ -802,7 +802,7 @@ void CCore::InternalLogError(const char *Format, ...) {
 	vsnprintf(Out, sizeof(Out), Format2, marker);
 	va_end(marker);
 
-	m_Log->WriteLine(NULL, "%s", Out);
+	m_Log->WriteUnformattedLine(NULL, Out);
 }
 
 void CCore::InternalSetFileAndLine(const char *Filename, unsigned int Line) {
@@ -953,7 +953,7 @@ time_t CCore::GetStartup(void) const {
 	return m_Startup;
 }
 
-bool CCore::Daemonize(void) const {
+bool CCore::Daemonize(void) {
 #ifndef _WIN32
 	pid_t pid;
 	pid_t sid;

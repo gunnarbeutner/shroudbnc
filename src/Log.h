@@ -34,8 +34,6 @@ class CUser;
  */
 class CLog : public CZoneObject<CLog, 16> {
 	char *m_Filename; /**< the filename of the log, can be an empty string */
-
-	void WriteUnformattedLine(const char *Timestamp, const char *Line);
 public:
 #ifndef SWIG
 	CLog(const char *Filename);
@@ -44,6 +42,7 @@ public:
 
 	virtual void Clear(void);
 	virtual void WriteLine(const char *Timestamp, const char *Format,...);
+	virtual void WriteUnformattedLine(const char *Timestamp, const char *Line);
 	virtual void PlayToUser(CUser *User, int Type) const;
 	virtual bool IsEmpty(void) const;
 	virtual const char *GetFilename(void) const;

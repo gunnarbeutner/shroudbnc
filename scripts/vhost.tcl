@@ -15,23 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-# format: ip limit hostname
-set ::trust {
-{192.168.4.1 5 temple.prco23.org}
-{192.168.4.2 5 test.prco23.org}
-{192.168.4.3 5 test2.prco23.org}
-}
-
-set ::defaulthost "192.168.4.1"
-
 internalbind command vhost:command
+internalbind usrcreate vhost:newuser
 
 proc vhost:host2ip {host} {
-	global trust
+	set vhosts [bncgetglobaltag vhosts]
 
-	foreach vh $trust {
-		if {[string equal -nocase [lindex $vh 2] $host]} {
-			return [lindex $vh 0]
+	foreach vhost $vhosts {
+		if {[string equal -nocase [lindex $vhost 2] $host]} {
+			return [lindex $vhost 0]
 		}
 	}
 
@@ -39,16 +31,14 @@ proc vhost:host2ip {host} {
 }
 
 proc vhost:countvhost {ip} {
-	global defaulthost
-
 	set count 0
 
 	set ip [vhost:host2ip $ip]
 
-	if {$ip == ""} { set ip $defaulthost }
+	if {$ip == ""} { set ip [vhost:getdefaultip] }
 
 	foreach user [bncuserlist] {
-		if {[string equal [getbncuser $user vhost] $ip] || ([getbncuser $user vhost] == "" && [string equal $ip $defaulthost])} {
+		if {[string equal [getbncuser $user vhost] $ip] || ([getbncuser $user vhost] == "" && [string equal $ip [vhost:getdefaultip]])} {
 			incr count
 		}
 	}
@@ -57,13 +47,12 @@ proc vhost:countvhost {ip} {
 }
 
 proc vhost:getlimit {ip} {
-	global trust defaulthost
-
+	set vhosts [bncgetglobaltag vhosts]
 	set ip [vhost:host2ip $ip]
 
-	if {$ip == ""} { set ip $defaulthost }
+	if {$ip == ""} { set ip [vhost:getdefaultip] }
 
-	set res [lsearch -inline $trust "$ip *"]
+	set res [lsearch -inline $vhosts "$ip *"]
 
 	if {$res != ""} {
 		return [lindex $res 1]
@@ -72,9 +61,19 @@ proc vhost:getlimit {ip} {
 	}
 }
 
-proc vhost:command {client parameters} {
-	global trust
+proc vhost:getdefaultip {} {
+	foreach user [bncuserlist] {
+		if {[getbncuser $user vhost] == ""} {
+			set localip [getbncuser $user localip]
 
+			if {$localip != ""} { return $localip }
+		}
+	}
+
+	return ""
+}
+
+proc vhost:command {client parameters} {
 	if {![getbncuser $client admin] && [string equal -nocase [lindex $parameters 0] "set"] && [string equal -nocase [lindex $parameters 1] "vhost"]} {
 		if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
 			if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
@@ -102,10 +101,12 @@ proc vhost:command {client parameters} {
 		}
 	}
 
+	set vhosts [bncgetglobaltag vhosts]
+
 	if {[string equal -nocase [lindex $parameters 0] "vhosts"]} {
-		foreach ip $trust {
-			if {[lindex $ip 1] > 0} {
-				bncreply "[lindex $ip 0] ([lindex $ip 2]) [vhost:countvhost [lindex $ip 0]]/[vhost:getlimit [lindex $ip 0]] connections"
+		foreach vhost $vhosts {
+			if {[lindex $vhost 1] > 0} {
+				bncreply "[lindex $vhost 0] ([lindex $vhost 2]) [vhost:countvhost [lindex $vhost 0]]/[vhost:getlimit [lindex $vhost 0]] connections"
 			}
 		}
 
@@ -114,21 +115,66 @@ proc vhost:command {client parameters} {
 		haltoutput
 	}
 
+	if {[getbncuser [getctx] admin] && [string equal -nocase [lindex $parameters 0] "addvhost"]} {
+		set ip [lindex $parameters 1]
+		set limit [lindex $parameters 2]
+		set host [lindex $parameters 3]
+
+		if {$host == ""} {
+			bncreply "Syntax: ADDVHOST <ip> <host> <limit>"
+
+			haltoutput
+			return
+		}
+
+		if {[catch [list vhost:addvhost $ip $limit $host] error]} {
+			bncreply $error
+		} else {
+			bncreply "Done."
+		}
+
+		haltoutput
+	}
+
+	if {[getbncuser [getctx] admin] && [string equal -nocase [lindex $parameters 0] "delvhost"]} {
+		set ip [vhost:host2ip [lindex $parameters 1]]
+
+		if {$ip == ""} {
+			bncreply "Syntax: DELVHOST <ip>"
+
+			haltoutput
+			return
+		}
+
+		if {[catch [list vhost:delvhost $ip] error]} {
+			bncreply $error
+		} else {
+			bncreply "Done."
+		}
+
+		haltoutput
+	}
+
 	if {[string equal -nocase [lindex $parameters 0] "help"]} {
 		bncaddcommand vhosts User "lists all available vhosts" "Syntax: vhosts\nDisplays a list of all available virtual vhosts."
+
+		if {[getbncuser [getctx] admin]} {
+			bncaddcommand addvhost Admin "adds a new vhost" "Syntax: addvhost ip limit host\nAdds a new vhost."
+			bncaddcommand delvhost Admin "removes a vhost" "Syntax: delvhost ip\nRemoves a vhost."
+		}
 	}
 }
 
 proc vhost:findip {} {
-	global trust
+	set vhosts [bncgetglobaltag vhosts]
 
 	set min 9000
 	set minip ""
 
-	foreach ip $trust {
-		if {[vhost:countvhost [lindex $ip 0]] < $min} {
-			set min [vhost:countvhost [lindex $ip 0]]
-			set minip [lindex $ip 0]
+	foreach vhost $vhosts {
+		if {[vhost:countvhost [lindex $vhost 0]] < $min} {
+			set min [vhost:countvhost [lindex $vhost 0]]
+			set minip [lindex $vhost 0]
 
 			if {$min == 0} { break }
 		}
@@ -137,8 +183,43 @@ proc vhost:findip {} {
 	return $minip
 }
 
-proc vhost:autosetvhost {user} {
+proc vhost:newuser {user} {
 	setbncuser $user vhost [vhost:findip]
+}
+
+proc vhost:addvhost {ip limit host} {
+	if {[vhost:getlimit $ip] != 0 || [vhost:getlimit $host] != 0} {
+		return -code error "This vhost has already been added."
+	} else {
+		set vhosts [bncgetglobaltag vhosts]
+		lappend vhosts [list $ip $limit $host]
+		bncsetglobaltag vhosts $vhosts
+	}
+}
+
+proc vhost:delvhost {ip} {
+	set vhosts [bncgetglobaltag vhosts]
+	set ip [vhost:host2ip $ip]
+	set i 0
+	set found 0
+
+	while {$i < [llength $vhosts]} {
+		set vhost [lindex $vhosts $i]
+
+		if {[string equal -nocase $ip [lindex $vhost 0]]} {
+			set vhosts [lreplace $vhosts $i $i]
+			set found 1
+			break
+		}
+
+		incr i
+	}
+
+	if {$found} {
+		bncsetglobaltag vhosts $vhosts
+	} else {
+		return -code error "There is no such vhost."
+	}
 }
 
 # iface commands
@@ -146,28 +227,31 @@ proc vhost:autosetvhost {user} {
 # getfreeip
 # setvalue vhost
 # getvhosts
+# +admin
+# addvhost ip limit host
+# delvhost ip
 
 proc iface-vhost:getfreeip {} {
 	return [vhost:findip]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
-	registerifacecmd "vhost" "getfreeip" "iface-vhost:freeip"
+	registerifacecmd "vhost" "getfreeip" "iface-vhost:getfreeip"
 }
 
 proc iface-vhost:setvalue {setting value} {
-	if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-		if {![string equal [lock:islocked $account "vhost"] "0"]} { return }
+	if {[iface:isoverride] || [lsearch -exact [info commands] "lock:islocked"] != -1} {
+		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
 	}
 
-	if {![getbncuser $account admin] && [string equal -nocase $setting "vhost"]} {
+	if {![getbncuser [getctx] admin] && [string equal -nocase $setting "vhost"]} {
 		set limit [vhost:getlimit $value]
 		if {$limit == 0} { return -code error "You may not use this virtual host." }
 
 		set count [vhost:countvhost $value]
 		if {$count >= $limit} { return -code error "Sorry, the virtual host $ip is already being used by $count users. Please use another virtual host." }
 
-		setbncuser $account vhost $value
+		setbncuser [getctx] vhost $value
 
 		return "1"
 	}
@@ -178,30 +262,32 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-vhost:getvhosts {} {
-	set vhosts [list]
+	set vhosts [bncgetglobaltag vhosts]
+	set result [list]
 
-	foreach host $trust {
-		lappend vhosts "[lindex $host 0] [vhost:countvhost [lindex $host 0]] [lindex $host 1] [lindex $host 2]"
+	foreach vhost $vhosts {
+		lappend result "[lindex $vhost 0] [vhost:countvhost [lindex $vhost 0]] [lindex $vhost 1] [lindex $vhost 2]"
 	}
 
-	return [iface:list $vhosts]
+	return [iface:list $result]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 	registerifacecmd "vhost" "getvhosts" "iface-vhost:getvhosts"
 }
 
-proc iface-vhost:adduser {username password} {
-	set result [catch [list addbncuser $username $password]]
-
-	if {!$result} {
-		vhost:autosetvhost [lindex $params 0]
-		return $result
-	} else {
-		return -code error $result
-	}
+proc iface-vhost:addvhost {ip limit host} {
+	vhost:addvhost $ip $limit $host
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
-	registerifacecmd "vhost" "adduser" "iface-vhost:adduser"
+	registerifacecmd "vhost" "addvhost" "iface-vhost:addvhost" "access:admin"
+}
+
+proc iface-vhost:delvhost {ip} {
+	vhost:delvhost $ip
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "vhost" "delvhost" "iface-vhost:delvhost" "access:admin"
 }

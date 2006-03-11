@@ -160,13 +160,10 @@ proc reflect:overrides {command} {
 
 proc reflect:call2 {cmditem user arguments} {
 	set oldcontext [getctx]
-	set script [list [lindex $cmditem 2]]
-
-	foreach argument $arguments {
-		lappend script $argument
-	}
+	set script [concat [list [lindex $cmditem 2]] $arguments]
 
 	setctx $user
+#	puthelp "PRIVMSG #shroudtest2 :[join $cmditem] -  $user - [join $arguments]"
 	set error [catch [list eval $script] result]
 	setctx $oldcontext
 
@@ -180,11 +177,11 @@ proc reflect:call2 {cmditem user arguments} {
 }
 
 proc reflect:call {command user arguments} {
+	global ifacecmds
+
 	if {![reflect:cancall $command $user]} {
 		return "RPC_UNKNOWN_FUNCTION"
 	}
-
-	global ifacecmds
 
 	if {[llength [reflect:params $command]] != [llength $arguments]} {
 		return "RPC_PARAMCOUNT"

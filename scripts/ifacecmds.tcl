@@ -98,7 +98,7 @@ proc iface:jump {} {
 registerifacecmd "core" "jump" "iface:jump"
 
 proc iface:setvalue {setting value} {
-	set allowedsettings [list server port serverpass realname nick awaynick away channels vhost delayjoin password appendts quitasaway automodes dropmodes]
+	set allowedsettings [list server port serverpass realname nick awaynick away awaymessage channels vhost delayjoin password appendts quitasaway automodes dropmodes]
 
 	if {[lsearch -exact $allowedsettings $setting] == -1} {
 		return -code error "You may not modify this setting."
@@ -131,6 +131,38 @@ proc iface:simul {command} {
 }
 
 registerifacecmd "core" "simul" "iface:simul"
+
+proc iface:hasmodule {module} {
+	if {[lsearch -exact [iface-reflect:modules] $module] != -1} {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+registerifacecmd "core" "hasmodule" "iface:hasmodule"
+
+proc iface:hascommand {command} {
+	if {[lsearch -exact [iface-reflect:commands] $command] != -1} {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+registerifacecmd "core" "hascommand" "iface:hascommand"
+
+proc iface:setlanguage {language} {
+	setbncuser [getctx] tag lang $language
+}
+
+registerifacecmd "core" "setlanguage" "iface:setlanguage"
+
+proc iface:getversion {} {
+	return [bncversion]
+}
+
+registerifacecmd "core" "getversion" "iface:getversion"
 
 # Admin commands
 
@@ -238,3 +270,39 @@ proc iface:rehash {} {
 }
 
 registerifacecmd "core" "rehash" "iface:rehash" "access:admin"
+
+proc iface:getglobaltag {tag} {
+	return [bncgetglobaltag $tag]
+}
+
+registerifacecmd "core" "getglobaltag" "iface:getglobaltag" "access:admin"
+
+proc iface:setglobaltag {tag value} {
+	bncsetglobaltag $tag $value
+}
+
+registerifacecmd "core" "setglobaltag" "iface:setglobaltag" "access:admin"
+
+proc iface:getglobaltags {} {
+	return [bncgetglobaltags]
+}
+
+registerifacecmd "core" "getglobaltags" "iface:getglobaltags" "access:admin"
+
+proc iface:gethosts {} {
+	return [iface:list [getbnchosts]]
+}
+
+registerifacecmd "core" "gethosts" "iface:gethosts" "access:admin"
+
+proc iface:addhost {host} {
+	addbnchost $host
+}
+
+registerifacecmd "core" "addhost" "iface:addhost" "access:admin"
+
+proc iface:delhost {host} {
+	delbnchost $host
+}
+
+registerifacecmd "core" "delhost" "iface:delhost" "access:admin"

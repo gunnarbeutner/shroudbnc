@@ -345,7 +345,8 @@ void CConnection::Write(void) {
 			}
 		} else {
 #endif
-			WriteResult = send(m_Socket, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size, 0);
+			// TODO: remove comment?
+			WriteResult = send(m_Socket, m_SendQ->Peek(), Size /*> SENDSIZE ? SENDSIZE : Size*/, 0);
 #ifdef USESSL
 		}
 #endif
