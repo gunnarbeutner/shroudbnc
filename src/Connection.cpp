@@ -26,7 +26,6 @@ extern "C" {
 #endif
 
 #define BLOCKSIZE 4096
-#define SENDSIZE 4096
 
 IMPL_DNSEVENTPROXY(CConnection, AsyncDnsFinished);
 IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
@@ -187,12 +186,8 @@ void CConnection::InitSocket(void) {
 	}
 
 #ifndef _WIN32
-	const int optBuffer = 4 * SENDSIZE;
-	const int optLowWat = SENDSIZE;
 	const int optLinger = 0;
 
-	setsockopt(m_Socket, SOL_SOCKET, SO_SNDBUF, &optBuffer, sizeof(optBuffer));
-	setsockopt(m_Socket, SOL_SOCKET, SO_SNDLOWAT, &optLowWat, sizeof(optLowWat));
 	setsockopt(m_Socket, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
 #endif
 
@@ -332,7 +327,7 @@ void CConnection::Write(void) {
 
 #ifdef USESSL
 		if (IsSSL()) {
-			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size > SENDSIZE ? SENDSIZE : Size);
+			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size /*> SENDSIZE ? SENDSIZE : Size*/);
 
 			if (WriteResult == -1) {
 				switch (SSL_get_error(m_SSL, WriteResult)) {

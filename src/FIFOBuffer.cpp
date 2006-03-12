@@ -136,9 +136,11 @@ char *CFIFOBuffer::Peek(void) const {
  *              GetSize() bytes are read instead.
  */
 char *CFIFOBuffer::Read(size_t Bytes) {
-	char* ReturnValue = m_Buffer + m_Offset;
+	char* ReturnValue;
 
 	Optimize();
+
+	ReturnValue = m_Buffer + m_Offset;
 
 	if (Bytes > GetSize()) {
 		m_Offset += GetSize();
