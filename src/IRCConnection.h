@@ -63,6 +63,7 @@ class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZ
 	char *m_CurrentNick; /**< the current nick for this IRC connection */
 	char *m_Site; /**< the ident\@host of this IRC connection */
 	char *m_Server; /**< the hostname of the IRC server */
+	char *m_Usermodes; /**< the usermodes */
 
 	CHashtable<CChannel *, false, 16> *m_Channels; /**< the channels this IRC user is on */
 
@@ -148,4 +149,6 @@ public:
 	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
 	virtual void Kill(const char *Error);
+
+	virtual const char *GetUsermodes(void);
 };

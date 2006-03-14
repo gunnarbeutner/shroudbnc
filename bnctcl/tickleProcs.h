@@ -162,6 +162,8 @@ void bncsetglobaltag(const char *Tag, const char *Value = 0);
 const char *bncgetglobaltag(const char *Tag);
 const char *bncgetglobaltags(void);
 
+const char *getusermodes(void);
+
 const char *getzoneinfo(const char *Zone = 0);
 const char *getallocinfo(void);
 

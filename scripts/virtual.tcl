@@ -17,8 +17,7 @@
 
 internalbind command virtual:commandiface
 
-set ::vsbncserver [list irc.quakenet.org 6667]
-set ::vsbncdeluser 1
+set ::vsbncdeluser 0
 
 proc virtual:commandiface {client parameters} {
 	if {![virtual:isadmin $client] && ![getbncuser $client admin]} { return }
@@ -197,16 +196,14 @@ proc virtual:cmd:who {account parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human readable error
 proc virtual:vresetpass {caller user pass} {
 	if {![getbncuser $caller admin] && ![string equal -nocase [virtual:getgroup $caller] [virtual:getgroup $user]]} {
-		return [list -1 "There's no such user."]
+		return -code error "There's no such user."
 	}
 
 	setbncuser $user password $pass
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:resetpass {client parameters} {
@@ -220,10 +217,8 @@ proc virtual:cmd:resetpass {client parameters} {
 		return
 	}
 
-	set result [virtual:vresetpass $client $user $pass]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vresetpass $client $user $pass] error]} {
+		bncreply $error
 		haltoutput
 
 		return
@@ -233,38 +228,36 @@ proc virtual:cmd:resetpass {client parameters} {
 	haltoutput
 }
 
-# 0 - done
-# -1 - human readable error
-proc virtual:vdeluser {caller user {overridegroups 0}} {
+proc virtual:vdeluser {caller user} {
 	global vsbncdeluser
 
 	if {[string equal -nocase $user $caller]} {
-		return [list -1 "You can't remove your own account."]
+		return -code error "You can't remove your own account."
 	}
 
 	if {![getbncuser $caller admin]} {
 		if {![string equal -nocase [virtual:getgroup $user] [virtual:getgroup $caller]]} {
-			return [list -1 "There's no such user."]
+			return -code error "There's no such user."
 		}
 
 		if {[getbncuser $user lock]} {
-			return [list -1 "You can't remove suspended accounts."]
+			return -code error "You can't remove suspended accounts."
 		}
 	}
 
-	if {!$overridegroups && [getbncuser $caller admin]} {
+	if {[getbncuser $caller admin]} {
 		if {[getbncuser $user tag maxbncs] != ""} {
-			return [list -1 "You cannot remove this user. Delete the group instead if you really want to delete this user."]
+			return -code error "You cannot remove this user. Delete the group instead if you really want to delete this user."
 		}
 	}
 
 	if {!$vsbncdeluser && ![getbncuser $caller admin]} {
-		return [list -1 "Operation not permitted."]
+		return -code error "Operation not permitted."
 	}
 
 	delbncuser $user
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:deluser {client parameters} {
@@ -276,10 +269,8 @@ proc virtual:cmd:deluser {client parameters} {
 		return
 	}
 
-	set result [virtual:vdeluser $client $user]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vdeluser $client $user] error]} {
+		bncreply $error
 		haltoutput
 
 		return
@@ -289,20 +280,11 @@ proc virtual:cmd:deluser {client parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human-readable error
-# -2 - exceeding limit
 proc virtual:vadduser {user pass group {checklimits 1} {override 0}} {
-	global vsbncserver
-
-	if {![string is alnum $user]} {
-		return [list -1 "Sorry, the ident must be alpha-numeric."]
-	}
-
 	set error [catch [list getbncuser $user server] result]
 
 	if {!$error} {
-		return [list -1 "The ident '$user' is already in use."]
+		return -code error "The ident '$user' is already in use."
 	}
 
 	set nogroup 1
@@ -314,7 +296,7 @@ proc virtual:vadduser {user pass group {checklimits 1} {override 0}} {
 	}
 
 	if {$nogroup && !$override} {
-		return [list -1 "There is no such group: $group"]
+		return -code error "There is no such group: $group"
 	}
 
 	if {$checklimits} {
@@ -328,23 +310,14 @@ proc virtual:vadduser {user pass group {checklimits 1} {override 0}} {
 		}
 
 		if {[llength $bncs] >= $maxbncs} {
-			return [join [list -2 [llength $bncs]]]
+			return -code error "You cannot add more than $maxbncs users."
 		}
 	}
 
 	addbncuser $user $pass
-	setbncuser $user server [lindex $vsbncserver 0]
-	setbncuser $user port [lindex $vsbncserver 1]
 	virtual:setgroup $user $group
 
-	if {[lsearch -exact [info commands] "vhost:autosetvhost"] != -1} {
-		vhost:autosetvhost $user
-	}
-
-	setctx $user
-	bncdisconnect "No reason."
-
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:adduser {client parameters} {
@@ -376,17 +349,8 @@ proc virtual:cmd:adduser {client parameters} {
 		set checklimits 1
 	}
 
-	set return [split [virtual:vadduser $user $pass $group $checklimits $override]]
-
-	if {[lindex $return 0] == -1} {
-		bncreply [lindex $return 1]
-		haltoutput
-
-		return
-	}
-
-	if {[lindex $return 0] == -2} {
-		bncreply "You already have [lindex $return 1] bouncers. Ask the bouncer admin for an upgrade of your account."
+	if {[catch [list virtual:vadduser $user $pass $group $checklimits $override] error]} {
+		bncreply $error
 		haltoutput
 
 		return
@@ -396,31 +360,24 @@ proc virtual:cmd:adduser {client parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human readable error
 proc virtual:vaddgroup {group limit} {
 	set pass [randstring 8]
 
-	if {![string is integer $limit]} {
-		return [list -1 "Limit should be a number."]
+	if {$limit == "" || ![string is integer $limit]} {
+		return -code error "Limit should be a number."]
 	}
 
 	foreach user [bncuserlist] {
 		if {[string equal -nocase $group [virtual:getgroup $user]]} {
-			return [list -1 "This groupname is already in use. Try /sbnc who $group to view a list of users."]
+			return -code error "This groupname is already in use. Try /sbnc who $group to view a list of users."
 		}
 	}
 
-	set result [virtual:vadduser $group $pass $group 0 1]
-
-	if {[lindex $result 0] == -1} {
-		return $result
-	}
-
+	virtual:vadduser $group $pass $group 0 1
 	virtual:setadmin $group $group
 	setbncuser $group tag maxbncs $limit
 
-	return [list 0 $pass]
+	return $pass
 }
 
 proc virtual:cmd:addgroup {client parameters} {
@@ -433,19 +390,18 @@ proc virtual:cmd:addgroup {client parameters} {
 		return
 	}
 
-	set result [virtual:vaddgroup $group $limit]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vaddgroup $group $limit] error]} {
+		bncreply $error
 		haltoutput
 		return
+	} else {
+		set pass $error
 	}
 
 	bncreply "Created a new group and user '$group' with password '$pass'."
 	haltoutput
 }
 
-# 0 - ok
 proc virtual:vdelgroup {group} {
 	foreach user [bncuserlist] {
 		if {[string equal -nocase $group [virtual:getgroup $user]] && ![getbncuser $user admin]} {
@@ -453,7 +409,7 @@ proc virtual:vdelgroup {group} {
 		}
 	}
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:delgroup {client parameters} {
@@ -471,16 +427,14 @@ proc virtual:cmd:delgroup {client parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human readable error
 proc virtual:vadmin {user} {
 	if {[virtual:getgroup $user] == ""} {
-		return [list -1 "'$user' is not in a group."]
+		return -code error "'$user' is not in a group."
 	}
 
 	virtual:setadmin [virtual:getgroup $user] $user
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:vadmin {client parameters} {
@@ -492,10 +446,8 @@ proc virtual:cmd:vadmin {client parameters} {
 		return
 	}
 
-	set result [virtual:vadmin $user]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vadmin $user] error]} {
+		bncreply $error
 		haltoutput
 		return
 	}
@@ -504,20 +456,18 @@ proc virtual:cmd:vadmin {client parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human readable error
 proc virtual:vunadmin {user} {
 	if {[virtual:getgroup $user] == ""} {
-		return [list -1 "'$user' is not in a group."]
+		return -code error "'$user' is not in a group."
 	}
 
 	if {[getbncuser $user tag maxbncs] != ""} {
-		return [list -1 "You cannot remove this user's admin privilesges. Delete the group instead.."]
+		return -code error "You cannot remove this user's admin privilesges. Delete the group instead."
 	}
 
 	virtual:setadmin [virtual:getgroup $user] $user 0
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:vunadmin {client parameters} {
@@ -529,10 +479,8 @@ proc virtual:cmd:vunadmin {client parameters} {
 		return
 	}
 
-	set result [virtual:vunadmin $user]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vunadmin $user] error]} {
+		bncreply $error
 		haltoutput
 		return
 	}
@@ -560,20 +508,18 @@ proc virtual:cmd:getlimit {client parameters} {
 	haltoutput
 }
 
-# 0 - ok
-# -1 - human readable error
 proc virtual:vsetlimit {group limit} {
 	if {[virtual:getadmin $group] == ""} {
-		return [list -1 "'$group' is not a group."]
+		return -code error "'$group' is not a group."
 	}
 
 	if {![string is integer $limit]} {
-		return [list -1 "You did not specify a valid limit."]
+		return -code error "You did not specify a valid limit."
 	}
 
 	virtual:setmaxbncs $group $limit
 
-	return [list 0]
+	return 0
 }
 
 proc virtual:cmd:setlimit {client parameters} {
@@ -586,10 +532,8 @@ proc virtual:cmd:setlimit {client parameters} {
 		return
 	}
 
-	set result [virtual:vsetlimit $group $limit]
-
-	if {[lindex $result 0] == -1} {
-		bncreply [lindex $result 1]
+	if {[catch [list virtual:vsetlimit $group $limit] error]} {
+		bncreply $error
 		haltoutput
 		return
 	}
@@ -662,136 +606,225 @@ proc virtual:cmd:groups {client parameters} {
 # vaddgroup [group] [limit]
 # vdelgroup [group]
 # vsetgroup user group
-proc virtual:ifacecmd {command params account} {
-	set group [virtual:getgroup $account]
 
-	switch -- $command {
-		"vgetgroup" {
-			if {[getbncuser $account admin] && [lindex $params 0] != ""} {
-				set group [virtual:getgroup [lindex $params 0]]
-			}
+proc access:vadmin {user} {
+	if {[access:admin $user]} { return 1}
+	if {[virtual:getgroup $user] == ""} { return 0 }
+	if {![virtual:isadmin $user]} { return 0 }
 
-			return $group
-		}
-		"visadmin" {
-			if {[lindex $params 0] != "" && ([getbncuser $account admin] || ([virtual:isadmin $account] && [string equal -nocase $group [virtual:getgroup [lindex $params 0]]]))} {
-				set user [lindex $params 0]
-			} else {
-				set user $account
-			}
+	return 1
+}
 
-			return [virtual:isadmin $user]
-		}
-	}
-
-	if {([virtual:isadmin $account] && $group != "") || [getbncuser $account admin]} {
-		switch -- $command {
-			"vgetlimit" {
-				if {[getbncuser $account admin] && [lindex $params 0] != ""} {
-					set group [lindex $params 0]
-				}
-
-				return [virtual:getmaxbncs $group]
-			}
-			"vgroupusers" {
-				if {[getbncuser $account admin]} {
-					set group [lindex $params 0]
-				}
-
-				return [join [virtual:vgroupusers $group]]
-			}
-			"vadduser" {
-				if {[getbncuser $account admin]} {
-					set checklimits 0
-				} else {
-					set checklimits 1
-				}
-
-				return [join [virtual:vadduser [lindex $params 0] [lindex $params 1] $group $checklimits]]
-			}
-			"vdeluser" {
-				return [join [virtual:vdeluser $account [lindex $params 0]]]
-			}
-			"vresetpass" {
-				return [join [virtual:vresetpass $account [lindex $params 0] [lindex $params 1]]]
-			}
-			"vuptimehr" {
-				if {[virtual:isadmin $account] && [string equal -nocase [virtual:getgroup [lindex $params 0]] $group]} {
-					set user [lindex $params 0]
-				} else {
-					return
-				}
-
-				return [duration [getbncuser $user uptime]]
-			}
-			"vchannels" {
-				if {[virtual:isadmin $account] && [string equal -nocase [virtual:getgroup [lindex $params 0]] $group]} {
-					set user [lindex $params 0]
-				} else {
-					return
-				}
-
-				setctx $user
-				return [join [internalchannels]]
-			}
-			"vclient" {
-				if {[virtual:isadmin $account] && [string equal -nocase [virtual:getgroup [lindex $params 0]] $group]} {
-					set user [lindex $params 0]
-				} else {
-					return
-				}
-
-				return [getbncuser $user client]
-			}
-			"vsuspended" {
-				if {[virtual:isadmin $account] && [string equal -nocase [virtual:getgroup [lindex $params 0]] $group]} {
-					set user [lindex $params 0]
-				} else {
-					return
-				}
-
-				return [getbncuser $user lock]
-			}
-		}
-	}
-
-	if {[getbncuser $account admin]} {
-		switch -- $command {
-			"vsetlimit" {
-				return [join [virtual:vsetlimit [lindex $params 0] [lindex $params 1]]]
-			}
-			"vadmin" {
-				return [join [virtual:vadmin [lindex $params 0]]]
-			}
-			"vunadmin" {
-				return [join [virtual:vunadmin [lindex $params 0]]]
-			}
-			"vgroups" {
-				set bncs [list]
-				foreach u [bncuserlist] {
-					if {[virtual:getgroup $u] != ""} {
-						lappend bncs [virtual:getgroup $u]
-					}
-				}
-
-				return [join [sbnc:uniq $bncs]]
-			}
-			"vaddgroup" {
-				return [join [virtual:vaddgroup [lindex $params 0] [lindex $params 1]]]
-			}
-			"vdelgroup" {
-				return [join [virtual:vdelgroup [lindex $params 0]]]
-			}
-			"vsetgroup" {
-				setbncuser [lindex $params 0] tag group [lindex $params 1]
-			}
-			"vgetadmin" {
-				return [virtual:getadmin [lindex $params 0]]
-			}
-		}
+proc virtual:canmodify {user} {
+	if {[string equal -nocase [virtual:getgroup $user] [virtual:getgroup [getctx]]] || [getbncuser [getctx] admin]} {
+		return 1
+	} else {
+		return -code error "You cannot modify this user."
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacehandler"] != -1} {
-	registerifacehandler virtual virtual:ifacecmd
+proc virtual:canmodifygroup {group} {
+	if {[string equal -nocase $group [virtual:getgroup [getctx]]] || [getbncuser [getctx] admin]} {
+		return 1
+	} else {
+		return -code error "You cannot modify this user."
+	}
+}
+
+# Iface2 commands
+
+proc iface-virtual:getgroup {username} {
+	virtual:canmodify $username
+
+	return [virtual:getgroup $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgroup" "iface-virtual:getgroup"
+}
+
+proc iface-virtual:isvadmin {username} {
+	virtual:canmodify $username
+
+	return [access:vadmin $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "isvadmin" "iface-virtual:isvadmin"
+}
+
+proc iface-virtual:getgrouplimit {group} {
+	virtual:canmodifygroup $group
+
+	return [virtual:getmaxbncs $group]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgrouplimit" "iface-virtual:getgrouplimit" "access:vadmin"
+}
+
+proc iface-virtual:getgroupusers {group} {
+	virtual:canmodifygroup $group
+
+	return [iface:list [virtual:vgroupusers $group]]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgroupusers" "iface-virtual:getgroupusers" "access:vadmin"
+}
+
+proc iface-virtual:adduser {username password} {
+	if {[getbncuser [getctx] admin]} {
+		set checklimits 0
+	} else {
+		set checklimits 1
+	}
+
+	return [virtual:vadduser $username $password [virtual:getgroup [getctx]] $checklimits]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "adduser" "iface-virtual:adduser" "access:vadmin"
+}
+
+proc iface-virtual:deluser {username} {
+	virtual:canmodify $username
+
+	return [virtual:vdeluser [getctx] $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "deluser" "iface-virtual:deluser" "access:vadmin"
+}
+
+proc iface-virtual:vresetpass {username password} {
+	virtual:canmodify $username
+
+	setbncuser $username password $password
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vresetpass" "iface-virtual:vresetpass" "access:vadmin"
+}
+
+proc iface-virtual:vgetuptimehr {username} {
+	virtual:canmodify $username
+
+	return [duration [getbncuser $username uptime]]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vgetuptimehr" "iface-virtual:vgetuptimehr" "access:vadmin"
+}
+
+proc iface-virtual:vgetchannels {username} {
+	virtual:canmodify $username
+
+	setctx $username
+	return [iface:list [internalchannels]]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vgetchannels" "iface-virtual:vgetchannels" "access:vadmin"
+}
+
+proc iface-virtual:vissuspended {username} {
+	virtual:canmodify $username
+
+	return [getbncuser $username lock]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vissuspended" "iface-virtual:vissuspended" "access:vadmin"
+}
+
+proc iface-virtual:vgetclient {username} {
+	virtual:canmodify $username
+
+	setctx $username
+	return [getbncuser $username client]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vgetclient" "iface-virtual:vgetclient" "access:vadmin"
+}
+
+proc iface-virtual:setgrouplimit {group limit} {
+	return [virtual:vsetlimit $group $limit]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "setgrouplimit" "iface-virtual:setgrouplimit" "access:admin"
+}
+
+proc iface-virtual:getgroups {} {
+	set groups [list]
+
+	foreach user [bncuserlist] {
+		if {[virtual:getgroup $user] != ""} {
+			lappend groups [virtual:getgroup $user]
+		}
+	}
+
+	return [iface:list $groups]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgroups" "iface-virtual:getgroups" "access:admin"
+}
+
+proc iface-virtual:getgroup {username} {
+	return [virtual:getgroup $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgroup" "iface-virtual:getgroup" "access:admin"
+}
+
+proc iface-virtual:setgroup {username group} {
+	virtual:setgroup $username $group
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "setgroup" "iface-virtual:setgroup" "access:admin"
+}
+
+proc iface-virtual:vadmin {username} {
+	return [virtual:vadmin $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vadmin" "iface-virtual:vadmin" "access:admin"
+}
+
+proc iface-virtual:vunadmin {username} {
+	return [virtual:vunadmin $username]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "vunadmin" "iface-virtual:vunadmin" "access:admin"
+}
+
+proc iface-virtual:addgroup {group limit} {
+	return [virtual:vaddgroup $group $limit]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "addgroup" "iface-virtual:addgroup" "access:admin"
+}
+
+proc iface-virtual:delgroup {group} {
+	return [virtual:vdelgroup $group]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "delgroup" "iface-virtual:delgroup" "access:admin"
+}
+
+proc iface-virtual:getgroupadmin {group} {
+	return [virtual:getadmin $group]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getgroupadmin" "iface-virtual:getgroupadmin" "access:admin"
 }

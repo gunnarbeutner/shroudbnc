@@ -102,7 +102,13 @@ bool CTclClientSocket::Read(bool DontProcess) {
 
 	while (m_Wrap->ReadLine(&Line) && m_Control) {
 		Tcl_Obj* objv[3];
-		
+
+		if (strlen(Line) == 0) {
+			g_free(Line);
+
+			continue;
+		}
+
 		char *ptr;
 		g_asprintf(&ptr, "%d", m_Idx);
 

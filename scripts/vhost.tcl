@@ -240,7 +240,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-vhost:setvalue {setting value} {
-	if {[iface:isoverride] || [lsearch -exact [info commands] "lock:islocked"] != -1} {
+	if {[iface:isoverride]} { return }
+
+	if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
 		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
 	}
 

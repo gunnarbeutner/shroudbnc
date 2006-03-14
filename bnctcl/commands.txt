@@ -66,6 +66,17 @@ floodcontrol <Function>
     off - disables the flood protection
   Returns: 0 if the function failed, 1 if the function succeeded (for on / off) or the number of bytes / items.
 
+getusermodes
+
+  Description: Returns the user's usermodes.
+  Returns: A string.
+
+hijacksocket
+
+  Description: Converts a client object into a tcl socket idx. The socket is then owned by the tcl script. This function
+  can only be used in a "client" internalbind.
+  Returns: A socket idx.
+
 ** Context management ***
 
 setctx <Context>
@@ -121,6 +132,11 @@ internalbind <Type> <Proc> [<Pattern>] [<User>]
   Returns:
 
 internalunbind <Type> <Proc> [<Pattern>] [<User>]
+
+  Description:
+  Returns:
+
+impulse <Impulse>
 
   Description:
   Returns:

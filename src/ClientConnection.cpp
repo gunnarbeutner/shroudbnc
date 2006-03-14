@@ -1618,7 +1618,7 @@ void CClientConnection::ParseLine(const char* Line) {
 	}
 }
 
-bool CClientConnection::ValidateUser() {
+bool CClientConnection::ValidateUser(void) {
 	bool Force = false;
 	CUser* User;
 	bool Blocked = true, Valid = false;
@@ -1637,8 +1637,9 @@ bool CClientConnection::ValidateUser() {
 				AuthUser = UserHash->Value;
 				Count++;
 
-				if (strcasecmp(UserHash->Name, m_Username) == 0)
+				if (strcasecmp(UserHash->Name, m_Username) == 0) {
 					MatchUsername = true;
+				}
 			}
 		}
 
@@ -1652,8 +1653,11 @@ bool CClientConnection::ValidateUser() {
 			Force = true;
 	}
 
-	if (AuthUser == NULL && m_Password == NULL)
+	if (AuthUser == NULL && m_Password == NULL) {
+		g_Bouncer->Log("No valid client certificates found for login from %s[%s]", m_PeerName, IpToString(GetRemoteAddress()));
+
 		return false;
+	}
 #endif
 
 	User = g_Bouncer->GetUser(m_Username);
@@ -1677,9 +1681,13 @@ bool CClientConnection::ValidateUser() {
 			} else {
 				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(GetRemoteAddress()));
 			}
+		} else {
+			g_Bouncer->Log("Login attempt for unknown user %s from %s[%s]", m_Username, m_PeerName, IpToString(GetRemoteAddress()));
 		}
 
-			Kill("*** Unknown user or wrong password.");
+		Kill("*** Unknown user or wrong password.");
+
+		return false;
 	}
 
 	return true;

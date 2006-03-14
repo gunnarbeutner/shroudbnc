@@ -260,6 +260,10 @@ void CUser::Attach(CClientConnection *Client) {
 
 			m_Client->ParseLine("VERSION");
 
+			if (m_IRC->GetUsermodes() != NULL) {
+				m_Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
+			}
+
 			Keys = m_IRC->GetChannels()->GetSortedKeys();
 
 			i = 0;

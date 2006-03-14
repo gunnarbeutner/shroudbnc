@@ -28,11 +28,9 @@ proc putbot {bot message} {
 proc putallbots {message} {
 	set ctx [getctx]
 
-	foreach user [bncuserlist] {
-		if {![string equal -nocase $user $ctx]} {
-			setctx $user
-			sbnc:callbinds "bot" - {} [lindex [split $message] 0] $ctx [lindex [split $message] 0] [join [lrange [split $message] 1 end]]
-		}
+	foreach user [bots] {
+		setctx $user
+		sbnc:callbinds "bot" - {} [lindex [split $message] 0] $ctx [lindex [split $message] 0] [join [lrange [split $message] 1 end]]
 	}
 
 	setctx $ctx
@@ -45,15 +43,15 @@ proc bots {} {
 }
 
 proc botlist {} {
-	set bl [list]
+	set bots [list]
 
 	foreach user [bncuserlist] {
 		if {![string equal -nocase $user [getctx]]} {
-			lappend bl [list $user [getctx] [bncversion] "-"]
+			lappend bots [list $user [getctx] [bncversion] "-"]
 		}
 	}
 
-	return $bl
+	return $bots
 }
 
 proc islinked {bot} {

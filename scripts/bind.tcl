@@ -198,9 +198,7 @@ proc sbnc:callbinds {type flags chan mask args} {
 	upvar [getns]::binds binds
 	setctx $old
 
-	foreach bind $binds {
-		lappend allbinds $bind
-	}
+	set allbinds [concat $allbinds $binds]
 
 	set count 0
 

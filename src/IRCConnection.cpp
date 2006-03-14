@@ -122,11 +122,13 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_DelayJoinTimer = NULL;
 
 	m_Site = NULL;
+	m_Usermodes = NULL;
 }
 
 CIRCConnection::~CIRCConnection() {
 	free(m_CurrentNick);
 	free(m_Site);
+	free(m_Usermodes);
 
 	delete m_Channels;
 
@@ -520,8 +522,53 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 3 && hashRaw == hashMode) {
 		CChannel* Chan = GetChannel(argv[2]);
 
-		if (Chan)
+		if (Chan != NULL) {
 			Chan->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
+		} else if (strcmp(m_CurrentNick, argv[2]) == 0) {
+			bool Flip = true, WasNull;
+			const char *Modes = argv[3];
+			size_t Length = strlen(Modes) + 1;
+
+			if (m_Usermodes != NULL) {
+				Length += strlen(m_Usermodes);
+			}
+
+			WasNull = (m_Usermodes != NULL) ? false : true;
+			m_Usermodes = (char *)realloc(m_Usermodes, Length);
+
+			if (WasNull) {
+				m_Usermodes[0] = '\0';
+			}
+
+			while (*Modes != '\0') {
+				if (*Modes == '+') {
+					Flip = true;
+				} else if (*Modes == '-') {
+					Flip = false;
+				} else {
+					if (Flip) {
+						size_t Position = strlen(m_Usermodes);
+						m_Usermodes[Position] = *Modes;
+						m_Usermodes[Position + 1] = '\0';
+					} else {
+						char *CurrentModes = m_Usermodes;
+						size_t a = 0;
+
+						while (*CurrentModes != '\0') {
+							*CurrentModes = m_Usermodes[a];
+
+							if (*CurrentModes != *Modes) {
+								CurrentModes++;
+							}
+
+							a++;
+						}
+					}
+				}
+
+				Modes++;
+			}
+		}
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 4 && iRaw == 329) {
@@ -1364,5 +1411,13 @@ void CIRCConnection::Error(void) {
 		g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
 
 		GetOwner()->Notice("An error occured while connecting to a server.");
+	}
+}
+
+const char *CIRCConnection::GetUsermodes(void) {
+	if (m_Usermodes != NULL && strlen(m_Usermodes) > 0) {
+		return m_Usermodes;
+	} else {
+		return NULL;
 	}
 }

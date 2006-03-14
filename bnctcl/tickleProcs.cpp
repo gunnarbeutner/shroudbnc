@@ -2092,3 +2092,17 @@ int hijacksocket(void) {
 
 	return TclSocket->GetIdx();
 }
+
+const char *getusermodes(void) {
+	CUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		throw "Invalid user.";
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (IRC == NULL)
+		return NULL;
+
+	return IRC->GetUsermodes();
+}
