@@ -532,7 +532,7 @@ void CUser::Reconnect(void) {
 
 	time(&m_LastReconnect);
 
-	const char* BindIp = BindIp = m_Config->ReadString("user.ip");
+	const char* BindIp = GetVHost();
 
 	if (!BindIp || BindIp[0] == '\0') {
 		BindIp = g_Bouncer->GetConfig()->ReadString("system.vhost");

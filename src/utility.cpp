@@ -252,8 +252,9 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 
 	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	if (Socket == INVALID_SOCKET)
+	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
+	}
 
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
@@ -325,18 +326,8 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp) {
 
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
-	if (BindIp) {
-#ifdef IPV6
-		if (BindIp->sa_family == AF_INET) {
-#endif
-			Size = sizeof(sockaddr_in);
-#ifdef IPV6
-		} else {
-			Size = sizeof(sockaddr_in6);
-		}
-#endif
-
-		bind(Socket, (sockaddr *)&BindIp, Size);
+	if (BindIp != NULL) {
+		bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
 	}
 
 #ifdef IPV6

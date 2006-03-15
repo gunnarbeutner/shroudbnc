@@ -63,7 +63,7 @@ CTclClientSocket::~CTclClientSocket() {
 }
 
 void CTclClientSocket::Destroy(void) {
-	if (m_Control) {
+	if (m_Control != NULL && g_Interp != NULL) {
 		Tcl_Obj* objv[3];
 
 		char *ptr;

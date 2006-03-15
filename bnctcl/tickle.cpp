@@ -61,6 +61,8 @@ class CTclSupport : public CModuleImplementation {
 
 		Tcl_Release(g_Interp);
 
+		g_Interp = NULL;
+
 		Tcl_Finalize();
 
 		int i = 0;

@@ -74,7 +74,7 @@ class CCore {
 
 	CVector<CDnsQuery *> m_DnsQueries;
 
-	size_t m_SendqSizeCache;
+	int m_SendqSizeCache;
 
 	SSL_CTX *m_SSLContext;
 	SSL_CTX *m_SSLClientContext;

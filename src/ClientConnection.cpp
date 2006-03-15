@@ -50,6 +50,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 
 		m_ClientLookup->GetHostByAddr(GetRemoteAddress());
 	}
+
+	m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
 }
 
 CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {
@@ -69,6 +71,7 @@ CClientConnection::~CClientConnection() {
 	free(m_PreviousNick);
 
 	delete m_ClientLookup;
+	delete m_AuthTimer;
 }
 
 bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
@@ -1690,6 +1693,9 @@ bool CClientConnection::ValidateUser(void) {
 		return false;
 	}
 
+	delete m_AuthTimer;
+	m_AuthTimer = NULL;
+
 	return true;
 }
 
@@ -1888,7 +1894,7 @@ void CClientConnection::Kill(const char *Error) {
 		m_Owner = NULL;
 	}
 
-	WriteLine(":Notice!notice!shroudbnc.info NOTICE * :%s", Error);
+	WriteLine(":Notice!notice@shroudbnc.info NOTICE * :%s", Error);
 
 	CConnection::Kill(Error);
 }
@@ -1917,4 +1923,13 @@ SOCKET CClientConnection::Hijack(void) {
 	Kill("Hijacked!");
 
 	return Socket;
+}
+
+bool ClientAuthTimer(time_t Now, void *Client) {
+	CClientConnection *ClientConnection = (CClientConnection *)Client;
+
+	ClientConnection->Kill("*** Connection timed out. Please reconnect and log in.");
+	ClientConnection->m_AuthTimer = NULL;
+
+	return false;
 }

@@ -37,8 +37,11 @@ private:
 	char *m_PeerName; /**< the hostname of the user */
 	char *m_PeerNameTemp; /**< a temporary variable for the hostname */
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
+	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
 
 #ifndef SWIG
+	friend bool ClientAuthTimer(time_t Now, void *Client);
+
 public:
 	virtual void AsyncDnsFinishedClient(hostent* response);
 
