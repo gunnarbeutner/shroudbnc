@@ -19,8 +19,6 @@ set ::userport 7080
 
 catch [list listen $::userport script sbnc:telnet]
 
-internalbind client sbnc:telnetq PRIVMSG
-
 proc sbnc:telnet {socket} {
 	sbnc:telnetbanner $socket
 	control $socket sbnc:telnetmsg

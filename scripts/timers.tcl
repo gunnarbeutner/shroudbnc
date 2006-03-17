@@ -30,12 +30,20 @@ proc sbnc:runthistimer {cookie} {
 	upvar [getns]::timers timers
 
 	set idx [lsearch $timers "* $timerID"]
-
-	if {$idx == 1} { return }
+	if {$idx == -1} { return }
 
 	set timer [lindex $timers $idx]
 
-	catch {eval [lindex $timer 1]}
+	if {[catch [lindex $timer 1] error]} {
+		foreach user [bncuserlist] {
+			if {[getbncuser $user admin]} {
+				bncnotc "Error in timer $timerID: $error"
+			}
+		}
+	}
+
+	set idx [lsearch $timers "* $timerID"]
+	if {$idx == -1} { return }
 
 	set timers [lreplace $timers $idx $idx]
 }
@@ -53,12 +61,20 @@ proc sbnc:runthisutimer {cookie} {
 	upvar [getns]::utimers utimers
 
 	set idx [lsearch $utimers "* $timerID"]
-
-	if {$idx == 1} { return }
+	if {$idx == -1} { return }
 
 	set timer [lindex $utimers $idx]
 
-	catch {eval [lindex $timer 1]}
+	if {[catch [lindex $timer 1] error]} {
+		foreach user [bncuserlist] {
+			if {[getbncuser $user admin]} {
+				bncnotc "Error in utimer $timerID: $error"
+			}
+		}
+	}
+
+	set idx [lsearch $utimers "* $timerID"]
+	if {$idx == -1} { return }
 
 	set utimers [lreplace $utimers $idx $idx]
 }
