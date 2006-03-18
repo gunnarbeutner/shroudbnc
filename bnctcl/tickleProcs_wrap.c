@@ -2797,6 +2797,27 @@ _wrap_bncjoinchans(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 
 static int
+_wrap_internalvalidsocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    int result;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"i:internalvalidsocket Socket ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            result = (int)internalvalidsocket(arg1);
+            
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_internallisten(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     unsigned short arg1 ;
     char *arg2 = (char *) 0 ;
@@ -4983,6 +5004,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncreply", (swig_wrapper_func) _wrap_bncreply, NULL},
     { SWIG_prefix "trafficstats", (swig_wrapper_func) _wrap_trafficstats, NULL},
     { SWIG_prefix "bncjoinchans", (swig_wrapper_func) _wrap_bncjoinchans, NULL},
+    { SWIG_prefix "internalvalidsocket", (swig_wrapper_func) _wrap_internalvalidsocket, NULL},
     { SWIG_prefix "internallisten", (swig_wrapper_func) _wrap_internallisten, NULL},
     { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
     { SWIG_prefix "internalconnect", (swig_wrapper_func) _wrap_internalconnect, NULL},

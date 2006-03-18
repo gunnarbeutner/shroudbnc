@@ -30,3 +30,7 @@ proc putdcc {idx text} {
 proc killdcc {idx} {
 	internalclosesocket $idx
 }
+
+proc valididx {idx} {
+	return [internalvalidsocket $idx]
+}

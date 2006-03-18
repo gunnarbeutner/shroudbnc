@@ -1480,6 +1480,18 @@ void control(int Socket, const char* Proc) {
 	SockPtr->SetControlProc(Proc);
 }
 
+int internalvalidsocket(int Socket) {
+	char *Buf;
+	g_asprintf(&Buf, "%d", Socket);
+	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+	g_free(Buf);
+
+	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
+		return false;
+	else
+		return true;
+}
+
 void internalsocketwriteln(int Socket, const char* Line) {
 	char *Buf;
 	g_asprintf(&Buf, "%d", Socket);

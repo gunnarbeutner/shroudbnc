@@ -50,6 +50,8 @@ proc getdccidle {idx} { return 0 }
 proc getdccaway {idx} { }
 proc dccdumpfile {idx file} { }
 
+proc maskhost {host} { return $maskhost }
+
 proc link {args} { }
 proc unlink {bot} { }
 
