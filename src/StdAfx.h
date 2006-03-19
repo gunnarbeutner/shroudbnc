@@ -47,11 +47,8 @@
 #endif
 
 #ifdef HAVE_POLL
-
 #	include <sys/poll.h>
-
 #else
-
 struct pollfd {
 	int fd;
 	short events;
@@ -67,8 +64,9 @@ struct pollfd {
 #define POLLNVAL 040
 
 int poll(pollfd *fds, unsigned long nfds, int timo);
-
 #endif
+
+#include "fdhelper.h"
 
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT

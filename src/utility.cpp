@@ -774,6 +774,7 @@ void FreeString(char *String) {
 	free(String);
 }
 
+#ifndef _WIN32
 /**
  * FdSetToPollFd
  *
@@ -784,7 +785,7 @@ void FreeString(char *String) {
  * @param FDError an fd_set
  * @param PollFdCount the number of pollfd structs
  */
-pollfd *FdSetToPollFd(const fd_set *FDRead, const fd_set *FDWrite, const fd_set *FDError, unsigned int *PollFdCount) {
+pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount) {
 	static CVector<pollfd> PollFds;
 
 	PollFds.Clear();
@@ -831,7 +832,7 @@ pollfd *FdSetToPollFd(const fd_set *FDRead, const fd_set *FDWrite, const fd_set 
  * @param FDWrite an fd_set
  * @param FDError an fd_set
  */
-void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, fd_set *FDRead, fd_set *FDWrite, fd_set *FDError) {
+void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError) {
 	FD_ZERO(FDRead);
 	FD_ZERO(FDWrite);
 	FD_ZERO(FDError);
@@ -913,4 +914,5 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
     }
     return rc;
 }
-#endif
+#endif /* !HAVE_POLL */
+#endif /* !_WIN32 */

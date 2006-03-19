@@ -21,6 +21,8 @@
 #undef FD_SETSIZE
 #define FD_SETSIZE 16384
 
+#include "../fdhelper.h"
+
 #if !defined(WIN32) || defined(WATT32)
 #include <netinet/in.h>
 /* We define closesocket() here so that we can use this function all over

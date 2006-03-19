@@ -520,14 +520,16 @@ void CCore::StartMainLoop(void) {
 
 		time(&Last);
 
+#if defined(HAVE_POLL) || !defined(_WIN32)
 		unsigned int FDCount;
 		pollfd *foo = FdSetToPollFd(&FDRead, &FDWrite, &FDError, &FDCount);
 
 		int ready = poll(foo, FDCount, SleepInterval * 1000);
 
 		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
-
-		//int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
+#else
+		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
+#endif
 
 #ifdef LEAKLEAK
 		CHECK_LEAKS();
@@ -568,6 +570,7 @@ void CCore::StartMainLoop(void) {
 
 				}
 			}
+#if !defined(HAVE_POLL) && defined(_WIN32)
 		} else if (ready == -1) {
 			//printf("select() failed :/\n");
 
@@ -589,6 +592,7 @@ void CCore::StartMainLoop(void) {
 					}
 				}
 			}
+#endif
 		}
 	}
 
