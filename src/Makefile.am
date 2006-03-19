@@ -13,7 +13,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ClientConnection.cpp \
 	Connection.cpp \
 	Debug.cpp \
-Debug.h \
+	Debug.h \
 	DnsEvents.cpp \
 	FIFOBuffer.cpp \
 	FloodControl.cpp \
@@ -63,7 +63,8 @@ Debug.h \
 	utility.h \
 	Vector.h \
 	win32.h \
-	Zone.h
+	Zone.h \
+	fdhelper.h
 libsbnc_la_LIBADD=c-ares/libcares.la md5/libmd5.la libltdl/libltdlc.la @SSLLDFLAGS@
 libsbnc_la_LDFLAGS=-no-undefined
 AM_CFLAGS=-DSBNC @SSLCFLAGS@
