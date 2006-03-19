@@ -112,7 +112,7 @@ proc utimer {seconds tclcommand} {
 
 	set time [expr [clock seconds] + $seconds]
 	incr utimeridx
-	set id "utimer$utimeridx"
+	set id "timer$utimeridx"
 
 	set timer [list $time $tclcommand $id]
 

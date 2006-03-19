@@ -285,18 +285,6 @@ proc unbind {type flags mask procname} {
 
 	upvar [getns]::binds binds
 
-	if {$procname == ""} {
-		set list ""
-
-		foreach bind $binds {
-			if {[lindex $bind 0]} {
-				lappend list $bind
-			}
-		}
-
-		return $list
-	}
-
 	set newbinds ""
 
 	foreach bind $binds {

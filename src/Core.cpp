@@ -1194,6 +1194,21 @@ const char *CCore::DebugImpulse(int impulse) {
 		_exit(0);
 	}
 
+	if (impulse == 10) {
+		for (unsigned int i = 0; i < 100) {
+			asprintf(&Name, "test%d", rand());
+
+			CUser *User = CreateUser(Name, NULL);
+
+			if ((rand() + 1) % 2 == 0)
+				User->SetServer("irc.prco23.org");
+			else
+				User->SetServer("irc.saeder-krupp.org");
+
+			User->Reconnect();
+		}
+	}
+
 	return NULL;
 }
 
