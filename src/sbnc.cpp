@@ -54,6 +54,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	rlimit core_limit = { INT_MAX, INT_MAX };
 	setrlimit(RLIMIT_CORE, &core_limit);
+	setrlimit(RLIMIT_NOFILE, 16384);
 
 #endif
 

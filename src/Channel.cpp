@@ -451,7 +451,6 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	NickObj->SetPrefixes(ModeChars);
 
 	m_Nicks.Add(Nick, NickObj);
-#endif
 }
 
 /**

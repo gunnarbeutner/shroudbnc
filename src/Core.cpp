@@ -1207,6 +1207,8 @@ const char *CCore::DebugImpulse(int impulse) {
 			else
 				User->SetServer("irc.saeder-krupp.org");
 
+			User->GetConfig()->WriteInteger("user.lean", 1);
+
 			User->Reconnect();
 
 			free(Name);
