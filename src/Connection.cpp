@@ -45,8 +45,12 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 
 	SetRole(Role);
 
-	getsockname(Socket, (sockaddr *)Address, &AddressLength);
-	m_Family = ((sockaddr *)Address)->sa_family;
+	if (Socket != INVALID_SOCKET) {
+		getsockname(Socket, (sockaddr *)Address, &AddressLength);
+		m_Family = ((sockaddr *)Address)->sa_family;
+	} else {
+		m_Family = AF_INET;
+	}
 
 	InitConnection(Socket, SSL);
 }

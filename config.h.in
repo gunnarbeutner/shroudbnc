@@ -1,5 +1,10 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+#undef HAVE_POLL
+
+/* Define to 1 if you have AF_INET6. */
+#undef HAVE_AF_INET6
+
 /* Define to 1 if you have the `argz_append' function. */
 #undef HAVE_ARGZ_APPEND
 
@@ -21,11 +26,20 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
+/* Define to 1 if you have the <arpa/nameser_compat.h> header file. */
+#undef HAVE_ARPA_NAMESER_COMPAT_H
+
+/* Define to 1 if you have the <arpa/nameser.h> header file. */
+#undef HAVE_ARPA_NAMESER_H
+
 /* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
 
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
+
+/* Define to 1 if you have the `bitncmp' function. */
+#undef HAVE_BITNCMP
 
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
@@ -36,6 +50,9 @@
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
+
+/* disabled non-blocking sockets */
+#undef HAVE_DISABLED_NONBLOCKING
 
 /* Define if you have the GNU dld library. */
 #undef HAVE_DLD
@@ -70,6 +87,9 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* use FIONBIO for non-blocking sockets */
+#undef HAVE_FIONBIO
+
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
 
@@ -79,17 +99,62 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define to 1 if you have the `if_indextoname' function. */
+#undef HAVE_IF_INDEXTONAME
+
 /* Define to 1 if you have the `index' function. */
 #undef HAVE_INDEX
+
+/* Define to 1 if you have the `inet_net_pton' function. */
+#undef HAVE_INET_NET_PTON
+
+/* Define to 1 if inet_net_pton supports IPv6. */
+#undef HAVE_INET_NET_PTON_IPV6
 
 /* Define to 1 if you have the `inet_ntoa' function. */
 #undef HAVE_INET_NTOA
 
+/* Define to 1 if you have the `inet_ntop' function. */
+#undef HAVE_INET_NTOP
+
+/* Define to 1 if inet_ntop supports IPv6. */
+#undef HAVE_INET_NTOP_IPV6
+
+/* Define to 1 if you have the `inet_pton' function. */
+#undef HAVE_INET_PTON
+
+/* Define to 1 if inet_pton supports IPv6. */
+#undef HAVE_INET_PTON_IPV6
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `dl' library (-ldl). */
+/* use ioctlsocket() for non-blocking sockets */
+#undef HAVE_IOCTLSOCKET
+
+/* use Ioctlsocket() for non-blocking sockets */
+#undef HAVE_IOCTLSOCKET_CASE
+
+/* Define to 1 if you have the `advapi32' library (-ladvapi32). */
+#undef HAVE_LIBADVAPI32
+
+/* Define to 1 if you have the `c' library (-lc). */
+#undef HAVE_LIBC
+
+/* Define if you have the libdl library or equivalent. */
 #undef HAVE_LIBDL
+
+/* Define to 1 if you have the `iberty' library (-liberty). */
+#undef HAVE_LIBIBERTY
+
+/* Define to 1 if you have the `iphlpapi' library (-liphlpapi). */
+#undef HAVE_LIBIPHLPAPI
+
+/* Define to 1 if you have the `shlwapi' library (-lshlwapi). */
+#undef HAVE_LIBSHLWAPI
+
+/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+#undef HAVE_LIBWS2_32
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -131,11 +196,20 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* Define to 1 if you have the <net/if.h> header file. */
+#undef HAVE_NET_IF_H
+
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
 
 /* Define to 1 if you have the <openssl/ssl.h> header file. */
 #undef HAVE_OPENSSL_SSL_H
+
+/* use O_NONBLOCK for non-blocking sockets */
+#undef HAVE_O_NONBLOCK
+
+/* Define to 1 if you have PF_INET6. */
+#undef HAVE_PF_INET6
 
 /* Define if libtool can extract symbol lists from object files. */
 #undef HAVE_PRELOADED_SYMBOLS
@@ -156,8 +230,14 @@
 /* Define if you have the shl_load function. */
 #undef HAVE_SHL_LOAD
 
+/* Define to 1 if your struct sockaddr_in6 has sin6_scope_id. */
+#undef HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID
+
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
+
+/* use SO_NONBLOCK for non-blocking sockets */
+#undef HAVE_SO_NONBLOCK
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
    zero-length file name argument. */
@@ -208,6 +288,15 @@
 /* Define to 1 if you have the `strtoul' function. */
 #undef HAVE_STRTOUL
 
+/* Define to 1 if you have struct addrinfo. */
+#undef HAVE_STRUCT_ADDRINFO
+
+/* Define to 1 if you have struct in6_addr. */
+#undef HAVE_STRUCT_IN6_ADDR
+
+/* Define to 1 if you have struct sockaddr_in6. */
+#undef HAVE_STRUCT_SOCKADDR_IN6
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H
@@ -248,6 +337,9 @@
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
+
+/* Define to 1 if you have the <winsock.h> header file. */
+#undef HAVE_WINSOCK_H
 
 /* Define to 1 if `fork' works. */
 #undef HAVE_WORKING_FORK
@@ -312,6 +404,12 @@
 /* Define to the type of arg 5 for `select'. */
 #undef SELECT_TYPE_ARG5
 
+/* The size of a `struct in6_addr', as computed by sizeof. */
+#undef SIZEOF_STRUCT_IN6_ADDR
+
+/* The size of a `struct in_addr', as computed by sizeof. */
+#undef SIZEOF_STRUCT_IN_ADDR
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -347,6 +445,9 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+
+/* the length of a socket address */
+#undef socklen_t
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
