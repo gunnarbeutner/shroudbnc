@@ -520,7 +520,14 @@ void CCore::StartMainLoop(void) {
 
 		time(&Last);
 
-		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
+		unsigned int FDCount;
+		pollfd *foo = FdSetToPollFd(&FDRead, &FDWrite, &FDError, &FDCount);
+
+		int ready = poll(foo, FDCount, SleepInterval * 1000);
+
+		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
+
+		//int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 
 #ifdef LEAKLEAK
 		CHECK_LEAKS();

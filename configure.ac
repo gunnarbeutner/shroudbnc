@@ -57,6 +57,7 @@ AC_CHECK_LIB(ws2_32, main)
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
 AC_CHECK_LIB(iberty, asprintf)
+AC_CHECK_LIB(c, poll)
 
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)

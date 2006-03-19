@@ -73,7 +73,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 int main(int argc, char* argv[]) { return 0; }
 #endif
 
-class CUdpSocket : CSocketEvents {
+class CUdpSocket {
 	SOCKET m_Socket;
 
 public:
@@ -102,15 +102,10 @@ public:
 		}
 
 		ioctlsocket(m_Socket, FIONBIO, &lTrue);
-
-		g_Bouncer->RegisterSocket(m_Socket, this);
 	}
 
 	~CUdpSocket() {
-		if (m_Socket != INVALID_SOCKET) {
-			g_Bouncer->UnregisterSocket(m_Socket);
-			closesocket(m_Socket);
-		}
+		closesocket(m_Socket);
 	}
 
 	void Destroy(void) {
@@ -119,32 +114,6 @@ public:
 
 	bool IsValid(void) {
 		return (m_Socket != INVALID_SOCKET);
-	}
-
-	virtual bool Read(bool DontProcess = false) {
-		return true;
-	}
-
-	virtual void Write(void) {
-	}
-
-	virtual void Error(void) {
-	}
-
-	bool HasQueuedData(void) const {
-		return false;
-	}
-
-	bool DoTimeout(void) {
-		return false;
-	}
-
-	bool ShouldDestroy(void) const {
-		return false;
-	}
-
-	const char *GetClassName(void) const {
-		return "CUdpSocket";
 	}
 
 	int SendTo(const char *Data, int Length, sockaddr_in Destination) {

@@ -119,3 +119,6 @@ int SetPermissions(const char *Filename, int Modes);
 bool RegisterZone(CZoneInformation *ZoneInformation);
 
 void FreeString(char *String);
+
+pollfd *FdSetToPollFd(const fd_set *FDRead, const fd_set *FDWrite, const fd_set *FDError, unsigned int *PollFdCount);
+void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, fd_set *FDRead, fd_set *FDWrite, fd_set *FDError);

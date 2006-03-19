@@ -27,6 +27,9 @@
 #define _USE_32BIT_TIME_T
 #endif
 
+#undef FD_SETSIZE
+#define FD_SETSIZE 16384
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -41,6 +44,30 @@
 #	include "win32.h"
 #else
 #	include "unix.h"
+#endif
+
+#ifdef HAVE_POLL
+
+#	include <sys/poll.h>
+
+#else
+
+struct pollfd {
+	int fd;
+	short events;
+	short revents;
+};
+
+#define POLLIN 001
+#define POLLPRI 002
+#define POLLOUT 004
+#define POLLNORM POLLIN
+#define POLLERR 010
+#define POLLHUP 020
+#define POLLNVAL 040
+
+int poll(pollfd *fds, unsigned long nfds, int timo);
+
 #endif
 
 #ifndef _MSC_VER

@@ -21,8 +21,6 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 
-#define FD_SETSIZE 16384
-
 #ifndef RUBY
 #	include <windows.h>
 #	include <winsock2.h>

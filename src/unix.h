@@ -19,9 +19,6 @@
 
 // *nix specific things
 
-#undef FD_SETSIZE
-#define FD_SETSIZE 16384
-
 #include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
