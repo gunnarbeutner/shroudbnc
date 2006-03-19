@@ -1768,7 +1768,7 @@ bool CUser::GetSystemNotices(void) const {
 	if (m_Config->ReadInteger("user.ignsysnotices") == 0) {
 		return true;
 	} else {
-		return true;
+		return false;
 	}
 }
 

@@ -56,7 +56,7 @@ CConfig::CConfig(const char *Filename) {
  * setting=value
  */
 bool CConfig::ParseConfig(void) {
-	char Line[4096];
+	char Line[40960];
 	char *dupEq;
 	FILE *ConfigFile;
 

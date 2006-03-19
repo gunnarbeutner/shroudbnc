@@ -1195,7 +1195,9 @@ const char *CCore::DebugImpulse(int impulse) {
 	}
 
 	if (impulse == 10) {
-		for (unsigned int i = 0; i < 100) {
+		char *Name;
+
+		for (unsigned int i = 0; i < 100; i++) {
 			asprintf(&Name, "test%d", rand());
 
 			CUser *User = CreateUser(Name, NULL);
@@ -1206,6 +1208,8 @@ const char *CCore::DebugImpulse(int impulse) {
 				User->SetServer("irc.saeder-krupp.org");
 
 			User->Reconnect();
+
+			free(Name);
 		}
 	}
 

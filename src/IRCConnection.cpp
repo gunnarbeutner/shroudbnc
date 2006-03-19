@@ -1033,6 +1033,12 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		}
 	}
 
+	if (m_Owner->GetConfig()->ReadInteger("user.lean")) {
+		free(Copy);
+
+		return;
+	}
+
 	int i = 0;
 
 	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
