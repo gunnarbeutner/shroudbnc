@@ -61,7 +61,6 @@ typedef struct _types_sfd_set {
 #undef SFD_ISSET
 #define SFD_ISSET(d, set)  (SFDS_BITS (set)[SFDELT (d)] & SFDMASK (d))
 
-#define fd_set sfd_set
 #else /* !_WIN32 */
 #define sfd_set fd_set
 #define SFD_ZERO FD_ZERO
