@@ -49,7 +49,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul])
+AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul poll])
 AC_LIB_LTDL
 
 AC_CHECK_LIB(iphlpapi, main)
@@ -57,7 +57,6 @@ AC_CHECK_LIB(ws2_32, main)
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
 AC_CHECK_LIB(iberty, asprintf)
-AC_CHECK_LIB(c, poll)
 
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)
