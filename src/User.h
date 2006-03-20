@@ -221,4 +221,7 @@ public:
 
 	virtual void SetAwayMessage(const char *Text);
 	virtual const char *GetAwayMessage(void) const;
+
+	virtual void SetLeanMode(unsigned int Mode);
+	virtual unsigned int GetLeanMode(void);
 };

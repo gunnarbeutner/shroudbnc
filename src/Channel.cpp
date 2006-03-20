@@ -438,6 +438,10 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
+	if (m_Owner->GetOwner()->GetLeanMode() > 1) {
+		return;
+	}
+
 	NickObj = new CNick(this, Nick);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
@@ -488,11 +492,11 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
  * Check whether the bouncer knows the names for the channel.
  */
 bool CChannel::HasNames(void) const {
-#ifndef LEAN
+	if (m_Owner->GetOwner()->GetLeanMode() > 1) {
+		return false;
+	}
+
 	return m_HasNames;
-#else
-	return false;
-#endif
 }
 
 /**

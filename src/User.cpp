@@ -1792,3 +1792,23 @@ void CUser::SetAwayMessage(const char *Text) {
 const char *CUser::GetAwayMessage(void) const {
 	return m_Config->ReadString("user.awaymessage");
 }
+
+/**
+ * SetAwayMessage
+ *
+ * Sets the "lean" mode for a user.
+ *
+ * @param Mode the mode (0, 1 or 2)
+ */
+void CUser::SetLeanMode(unsigned int Mode) {
+	m_Config->WriteInteger("user.lean", Mode);
+}
+
+/**
+ * GetLeanMode
+ *
+ * Returns the state of the "lean" flag.
+ */
+unsigned int CUser::GetLeanMode(void) {
+	return m_Config->ReadInteger("user.lean");
+}

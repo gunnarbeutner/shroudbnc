@@ -984,7 +984,7 @@ const CConfig *CIRCConnection::GetISupportAll(void) const {
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
 	int a = 0, i = 0;
 
-	if (m_Owner->GetConfig()->ReadInteger("user.lean")) {
+	if (m_Owner->GetLeanMode() > 0) {
 		return;
 	}
 
@@ -1006,7 +1006,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	size_t Offset;
 	char* Copy;
 
-	if (m_Owner->GetConfig()->ReadInteger("user.lean") && m_Site != NULL) {
+	if (m_Owner->GetLeanMode() > 0 && m_Site != NULL) {
 		return;
 	}
 
@@ -1041,7 +1041,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		}
 	}
 
-	if (m_Owner->GetConfig()->ReadInteger("user.lean")) {
+	if (m_Owner->GetLeanMode() > 0) {
 		free(Copy);
 
 		return;

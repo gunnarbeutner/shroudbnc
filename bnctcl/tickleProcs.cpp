@@ -829,8 +829,12 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		} else {
 			return NULL;
 		}
+	} else if (strcasecmp(Type, "lean") == 0) {
+		g_asprintf(&Buffer, "%d", Context->GetLeanMode());
+
+		return Buffer;
 	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean";
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {
@@ -890,8 +894,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetIdent(Value);
 	else if (strcasecmp(Type, "timezone") == 0)
 		Context->SetGmtOffset(atoi(Value));
+	else if (strcmp(Type, "lean") == 0)
+		Context->SetLeanMode(atoi(Value));
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone";
+		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean";
 
 	return 1;
 }
