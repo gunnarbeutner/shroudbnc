@@ -438,10 +438,6 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
-	if (m_Owner->GetOwner()->GetConfig()->ReadInteger("user.lean")) {
-		return;
-	}
-
 	NickObj = new CNick(this, Nick);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {

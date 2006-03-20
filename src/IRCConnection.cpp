@@ -984,6 +984,10 @@ const CConfig *CIRCConnection::GetISupportAll(void) const {
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
 	int a = 0, i = 0;
 
+	if (m_Owner->GetConfig()->ReadInteger("user.lean")) {
+		return;
+	}
+
 	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
 		if (!Chan->Value->HasNames())
 			return;
@@ -1001,6 +1005,10 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 	const char *NickEnd;
 	size_t Offset;
 	char* Copy;
+
+	if (m_Owner->GetConfig()->ReadInteger("user.lean") && m_Site != NULL) {
+		return;
+	}
 
 	NickEnd = strstr(Host, "!");
 
