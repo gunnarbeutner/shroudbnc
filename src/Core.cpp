@@ -347,7 +347,7 @@ void CCore::StartMainLoop(void) {
 	}
 #endif
 
-	fd_set FDRead, FDWrite, FDError;
+	sfd_set FDRead, FDWrite, FDError;
 
 	Log("Starting main loop.");
 
@@ -436,9 +436,9 @@ void CCore::StartMainLoop(void) {
 			SleepInterval = Best - Now;
 		}
 
-		FD_ZERO(&FDRead);
-		FD_ZERO(&FDWrite);
-		FD_ZERO(&FDError);
+		SFD_ZERO(&FDRead);
+		SFD_ZERO(&FDWrite);
+		SFD_ZERO(&FDError);
 
 		CUser *ReconnectUser = NULL;
 
@@ -520,16 +520,16 @@ void CCore::StartMainLoop(void) {
 
 		time(&Last);
 
-#if defined(HAVE_POLL) || !defined(_WIN32)
+//#if defined(HAVE_POLL) || !defined(_WIN32)
 		unsigned int FDCount;
 		pollfd *foo = FdSetToPollFd(&FDRead, &FDWrite, &FDError, &FDCount);
 
 		int ready = poll(foo, FDCount, SleepInterval * 1000);
 
 		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
-#else
-		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
-#endif
+//#else
+//		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
+//#endif
 
 #ifdef LEAKLEAK
 		CHECK_LEAKS();
@@ -570,7 +570,7 @@ void CCore::StartMainLoop(void) {
 
 				}
 			}
-#if !defined(HAVE_POLL) && defined(_WIN32)
+/*#if !defined(HAVE_POLL) && defined(_WIN32)
 		} else if (ready == -1) {
 			//printf("select() failed :/\n");
 
@@ -580,8 +580,8 @@ void CCore::StartMainLoop(void) {
 				SOCKET Socket = m_OtherSockets[a].Socket;
 
 				if (Socket != INVALID_SOCKET) {
-					FD_ZERO(&set);
-					FD_SET(Socket, &set);
+					SFD_ZERO(&set);
+					SFD_SET(Socket, &set);
 
 					timeval zero = { 0, 0 };
 					int code = select(FD_SETSIZE - 1, &set, NULL, NULL, &zero);
@@ -593,7 +593,7 @@ void CCore::StartMainLoop(void) {
 				}
 			}
 #endif
-		}
+*/		}
 	}
 
 #ifdef USESSL

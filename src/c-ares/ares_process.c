@@ -66,6 +66,8 @@
 #define HAVE_IOCTLSOCKET
 #endif
 
+#define fd_set sfd_set
+
 static void write_tcp_data(ares_channel channel, fd_set *write_fds,
                            time_t now);
 static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now);
@@ -115,7 +117,7 @@ static void write_tcp_data(ares_channel channel, fd_set *write_fds, time_t now)
       /* Make sure server has data to send and is selected in write_fds. */
       server = &channel->servers[i];
       if (!server->qhead || server->tcp_socket == ARES_SOCKET_BAD
-          || !FD_ISSET(server->tcp_socket, write_fds))
+          || !SFD_ISSET(server->tcp_socket, write_fds))
         continue;
 
       /* Count the number of send queue items. */
@@ -207,7 +209,7 @@ static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now)
       /* Make sure the server has a socket and is selected in read_fds. */
       server = &channel->servers[i];
       if (server->tcp_socket == ARES_SOCKET_BAD ||
-          !FD_ISSET(server->tcp_socket, read_fds))
+          !SFD_ISSET(server->tcp_socket, read_fds))
         continue;
 
       if (server->tcp_lenbuf_pos != 2)
@@ -281,7 +283,7 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
       server = &channel->servers[i];
 
       if (server->udp_socket == ARES_SOCKET_BAD ||
-          !FD_ISSET(server->udp_socket, read_fds))
+          !SFD_ISSET(server->udp_socket, read_fds))
         continue;
 
       count = recv(server->udp_socket, buf, sizeof(buf), 0);

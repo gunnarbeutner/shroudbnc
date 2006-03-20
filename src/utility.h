@@ -120,5 +120,5 @@ bool RegisterZone(CZoneInformation *ZoneInformation);
 
 void FreeString(char *String);
 
-pollfd *FdSetToPollFd(const fd_set *FDRead, const fd_set *FDWrite, const fd_set *FDError, unsigned int *PollFdCount);
-void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, fd_set *FDRead, fd_set *FDWrite, fd_set *FDError);
+pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount);
+void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError);

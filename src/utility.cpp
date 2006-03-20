@@ -774,7 +774,7 @@ void FreeString(char *String) {
 	free(String);
 }
 
-#ifndef _WIN32
+//#ifndef _WIN32
 /**
  * FdSetToPollFd
  *
@@ -804,7 +804,7 @@ pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_s
 			pfd.events |= POLLOUT;
 		}
 
-		if (FD_ISSET(i, FDWrite)) {
+		if (FD_ISSET(i, FDError)) {
 			pfd.events |= POLLERR;
 		}
 
@@ -833,9 +833,9 @@ pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_s
  * @param FDError an fd_set
  */
 void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError) {
-	FD_ZERO(FDRead);
-	FD_ZERO(FDWrite);
-	FD_ZERO(FDError);
+	SFD_ZERO(FDRead);
+	SFD_ZERO(FDWrite);
+	SFD_ZERO(FDError);
 
 	for (unsigned int i = 0; i < PollFdCount; i++) {
 		if (PollFd[i].revents & (POLLIN|POLLPRI)) {
@@ -846,7 +846,7 @@ void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRe
 			FD_SET(PollFd[i].fd, FDWrite);
 		}
 
-		if (PollFd[i].revents & POLLERR) {
+		if (PollFd[i].revents & (POLLERR|POLLHUP|POLLNVAL)) {
 			FD_SET(PollFd[i].fd, FDError);
 		}
 	}
@@ -915,4 +915,4 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
     return rc;
 }
 #endif /* !HAVE_POLL */
-#endif /* !_WIN32 */
+//#endif /* !_WIN32 */

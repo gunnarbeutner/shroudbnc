@@ -30,6 +30,8 @@
 #undef FD_SETSIZE
 #define FD_SETSIZE 16384
 
+#include "fdhelper.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -65,8 +67,6 @@ struct pollfd {
 
 int poll(pollfd *fds, unsigned long nfds, int timo);
 #endif
-
-#include "fdhelper.h"
 
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT

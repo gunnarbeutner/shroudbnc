@@ -20,43 +20,48 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef _WIN32
-#ifndef FD_SETSIZE
-#define FD_SETSIZE 16384
-#endif
+#ifndef _FDHELPER_H
+#define _FDHELPER_H
 
-#define NBBY sizeof(char) /* number of bits in a byte */
+//#ifndef _WIN32
+#undef FD_SETSIZE
+#define FD_SETSIZE 16384
+
 typedef long sfd_mask;
-#define NFDBITS (sizeof (sfd_mask) * NBBY) /* bits per mask */
-#define howmany(x,y) (((x)+((y)-1))/(y))
+#undef NFDBITS
+#define NFDBITS (8 * sizeof (sfd_mask)) /* bits per mask */
 typedef struct _types_sfd_set {
-        sfd_mask fds_bits[howmany(FD_SETSIZE, NFDBITS)];
+        sfd_mask fds_bits[FD_SETSIZE / NFDBITS];
 } _types_sfd_set;
 
-# define FDS_BITS(set) ((set)->fds_bits)
+# define SFDS_BITS(set) ((set)->fds_bits)
 
 #define sfd_set _types_sfd_set
 
-#undef FD_ZERO
-#define FD_ZERO(set)  \
+#undef SFD_ZERO
+#define SFD_ZERO(set)  \
   do {                                                                        \
     unsigned int __i;                                                         \
-    fd_set *__arr = (set);                                                    \
+    sfd_set *__arr = (set);                                                    \
     for (__i = 0; __i < sizeof (sfd_set) / sizeof (sfd_mask); ++__i)          \
-      FDS_BITS (__arr)[__i] = 0;                                              \
+      SFDS_BITS (__arr)[__i] = 0;                                              \
   } while (0)
 
-#define     FDELT(d)      ((d) / NFDBITS)
-#define     FDMASK(d)     ((sfd_mask) 1 << ((d) % NFDBITS))
+#define     SFDELT(d)      ((d) / NFDBITS)
+#define     SFDMASK(d)     ((sfd_mask) 1 << ((d) % NFDBITS))
 
-#undef FD_SET
-#define FD_SET(d, set)    (FDS_BITS (set)[FDELT (d)] |= FDMASK (d))
+#undef SFD_SET
+#define SFD_SET(d, set)    (SFDS_BITS (set)[SFDELT (d)] |= SFDMASK (d))
 
-#undef FD_CLR
-#define FD_CLR(d, set)    (FDS_BITS (set)[FDELT (d)] &= ~FDMASK (d))
+#undef SFD_CLR
+#define SFD_CLR(d, set)    (SFDS_BITS (set)[SFDELT (d)] &= ~SFDMASK (d))
 
-#undef FD_ISSET
-#define FD_ISSET(d, set)  (FDS_BITS (set)[FDELT (d)] & FDMASK (d))
+#undef SFD_ISSET
+#define SFD_ISSET(d, set)  (SFDS_BITS (set)[SFDELT (d)] & SFDMASK (d))
 
-#define fd_set sfd_set
-#endif
+//#define fd_set sfd_set
+//#else /* !_WIN32 */
+//#define sfd_set fd_set
+//#endif
+
+#endif /* _FDHELPER_H */
