@@ -487,11 +487,11 @@ void CCore::StartMainLoop(void) {
 //				if (m_OtherSockets[i].Socket > nfds)
 //					nfds = m_OtherSockets[i].Socket;
 
-				FD_SET(m_OtherSockets[i].Socket, &FDRead);
-				FD_SET(m_OtherSockets[i].Socket, &FDError);
+				SFD_SET(m_OtherSockets[i].Socket, &FDRead);
+				SFD_SET(m_OtherSockets[i].Socket, &FDError);
 
 				if (m_OtherSockets[i].Events->HasQueuedData()) {
-					FD_SET(m_OtherSockets[i].Socket, &FDWrite);
+					SFD_SET(m_OtherSockets[i].Socket, &FDWrite);
 				}
 			}
 		}

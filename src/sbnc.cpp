@@ -53,10 +53,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	}
 
 	rlimit core_limit = { INT_MAX, INT_MAX };
-	rlimit fd_limit = { FD_SETSIZE, FD_SETSIZE };
 	setrlimit(RLIMIT_CORE, &core_limit);
-	setrlimit(RLIMIT_NOFILE, &fd_limit);
-
 #endif
 
 #if !defined(_WIN32 ) || defined(__MINGW32__)

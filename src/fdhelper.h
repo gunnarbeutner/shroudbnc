@@ -24,8 +24,10 @@
 #define _FDHELPER_H
 
 //#ifndef _WIN32
+#define SFD_SETSIZE 16384
+
 #undef FD_SETSIZE
-#define FD_SETSIZE 16384
+#define FD_SETSIZE SFD_SETSIZE
 
 typedef long sfd_mask;
 #undef NFDBITS
@@ -42,9 +44,9 @@ typedef struct _types_sfd_set {
 #define SFD_ZERO(set)  \
   do {                                                                        \
     unsigned int __i;                                                         \
-    sfd_set *__arr = (set);                                                    \
+    sfd_set *__arr = (set);                                                   \
     for (__i = 0; __i < sizeof (sfd_set) / sizeof (sfd_mask); ++__i)          \
-      SFDS_BITS (__arr)[__i] = 0;                                              \
+      SFDS_BITS (__arr)[__i] = 0;                                             \
   } while (0)
 
 #define     SFDELT(d)      ((d) / NFDBITS)

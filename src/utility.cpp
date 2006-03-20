@@ -790,21 +790,21 @@ pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_s
 
 	PollFds.Clear();
 
-	for (unsigned int i = 0; i < FD_SETSIZE; i++) {
+	for (unsigned int i = 0; i < SFD_SETSIZE; i++) {
 		pollfd pfd;
 
 		pfd.events = 0;
 		pfd.revents = 0;
 
-		if (FD_ISSET(i, FDRead)) {
+		if (SFD_ISSET(i, FDRead)) {
 			pfd.events |= POLLIN;
 		}
 
-		if (FD_ISSET(i, FDWrite)) {
+		if (SFD_ISSET(i, FDWrite)) {
 			pfd.events |= POLLOUT;
 		}
 
-		if (FD_ISSET(i, FDError)) {
+		if (SFD_ISSET(i, FDError)) {
 			pfd.events |= POLLERR;
 		}
 
@@ -839,15 +839,15 @@ void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRe
 
 	for (unsigned int i = 0; i < PollFdCount; i++) {
 		if (PollFd[i].revents & (POLLIN|POLLPRI)) {
-			FD_SET(PollFd[i].fd, FDRead);
+			SFD_SET(PollFd[i].fd, FDRead);
 		}
 
 		if (PollFd[i].revents & POLLOUT) {
-			FD_SET(PollFd[i].fd, FDWrite);
+			SFD_SET(PollFd[i].fd, FDWrite);
 		}
 
 		if (PollFd[i].revents & (POLLERR|POLLHUP|POLLNVAL)) {
-			FD_SET(PollFd[i].fd, FDError);
+			SFD_SET(PollFd[i].fd, FDError);
 		}
 	}
 }
