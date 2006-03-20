@@ -23,7 +23,7 @@
 #ifndef _FDHELPER_H
 #define _FDHELPER_H
 
-//#ifndef _WIN32
+#ifndef _WIN32
 #define SFD_SETSIZE 16384
 
 #undef FD_SETSIZE
@@ -61,9 +61,14 @@ typedef struct _types_sfd_set {
 #undef SFD_ISSET
 #define SFD_ISSET(d, set)  (SFDS_BITS (set)[SFDELT (d)] & SFDMASK (d))
 
-//#define fd_set sfd_set
-//#else /* !_WIN32 */
-//#define sfd_set fd_set
-//#endif
+#define fd_set sfd_set
+#else /* !_WIN32 */
+#define sfd_set fd_set
+#define SFD_ZERO FD_ZERO
+#define SFD_SET FD_SET
+#define SFD_CLR FD_CLR
+#define SFD_ISSET FD_ISSET
+#define SFD_SETSIZE FD_SETSIZE
+#endif
 
 #endif /* _FDHELPER_H */

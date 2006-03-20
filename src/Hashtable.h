@@ -65,6 +65,7 @@ inline int CmpString(const void *pA, const void *pB) {
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
+	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
 public:
 #ifndef SWIG
 	/**
@@ -76,6 +77,8 @@ public:
 		memset(m_Items, 0, sizeof(m_Items));
 
 		m_DestructorFunc = NULL;
+
+		m_LengthCache = 0;
 	}
 
 	/**
@@ -184,6 +187,8 @@ public:
 		List->Keys[List->Count - 1] = dupKey;
 		List->Values[List->Count -1] = Value;
 
+		m_LengthCache++;
+
 		RETURN(bool, true);
 	}
 
@@ -249,6 +254,8 @@ public:
 			List->Count = 0;
 			List->Keys = NULL;
 			List->Values = NULL;
+
+			m_LengthCache--;
 		} else {
 			for (unsigned int i = 0; i < List->Count; i++) {
 				if (List->Keys[i] && (CaseSensitive ? strcmp(List->Keys[i], Key) : strcasecmp(List->Keys[i], Key)) == 0) {
@@ -262,6 +269,8 @@ public:
 
 					List->Values[i] = List->Values[List->Count - 1];
 					List->Count--;
+
+					m_LengthCache--;
 
 					break;
 				}
@@ -277,13 +286,15 @@ public:
 	 * Returns the number of items in the hashtable.
 	 */
 	virtual unsigned int GetLength(void) const {
-		unsigned int Count = 0;
+/*		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			Count += m_Items[i].Count;
 		}
 
-		return Count;
+		return Count;*/
+
+		return m_LengthCache;
 	}
 
 	/**
@@ -305,15 +316,39 @@ public:
 	 * @param Index the index
 	 */
 	virtual hash_t<Type> *Iterate(unsigned int Index) const {
+		static void *thisPointer = NULL;
+		static unsigned int cache_Index = 0, cache_i = 0, cache_a = 0;
 		int Skip = 0;
+		unsigned int i, a;
+		bool first = true;
 
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
-			for (unsigned int a = 0; a < m_Items[i].Count; a++) {
+		if (thisPointer == this && cache_Index == Index - 1) {
+			i = cache_i;
+			a = cache_a;
+			Skip = cache_Index;
+		} else {
+			i = 0;
+			a = 0;
+		}
+
+		for (; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+			if (!first) {
+				a = 0;
+			} else {
+				first = false;
+			}
+
+			for (;a < m_Items[i].Count; a++) {
 				if (Skip == Index) {
 					static hash_t<Type> Item;
 
 					Item.Name = m_Items[i].Keys[a];
 					Item.Value = m_Items[i].Values[a];
+
+					cache_Index = Index;
+					cache_i = i;
+					cache_a = a;
+					thisPointer = (void *)this;
 
 					return &Item;
 				}
