@@ -570,9 +570,16 @@ void CCore::StartMainLoop(void) {
 
 				}
 			}
-#if !defined(HAVE_POLL) && defined(_WIN32)
 		} else if (ready == -1) {
-			//printf("select() failed :/\n");
+#ifndef _WIN32
+			if (errno != EBADF) {
+#else
+			if (WSAGetLastError() != WSAENOTSOCK) {
+#endif
+				continue;
+			}
+
+#if !defined(HAVE_POLL) && defined(_WIN32)
 
 			fd_set set;
 
@@ -580,11 +587,28 @@ void CCore::StartMainLoop(void) {
 				SOCKET Socket = m_OtherSockets[a].Socket;
 
 				if (Socket != INVALID_SOCKET) {
-					SFD_ZERO(&set);
-					SFD_SET(Socket, &set);
+					FD_ZERO(&set);
+					FD_SET(Socket, &set);
 
 					timeval zero = { 0, 0 };
 					int code = select(FD_SETSIZE - 1, &set, NULL, NULL, &zero);
+
+					if (code == -1) {
+						m_OtherSockets[a].Events->Error();
+						m_OtherSockets[a].Events->Destroy();
+					}
+				}
+			}
+#else
+			pollfd pfd;
+
+			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
+				SOCKET Socket = m_OtherSockets[a].Socket;
+
+				if (Socket != INVALID_SOCKET) {
+					pfd.fd = Socket;
+
+					int code = poll(&pfd, 1, 0);
 
 					if (code == -1) {
 						m_OtherSockets[a].Events->Error();
