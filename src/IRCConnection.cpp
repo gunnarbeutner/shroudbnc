@@ -37,7 +37,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	SetRole(Role_Client);
 	SetOwner(Owner);
 
-	time(&g_LastReconnect);
+	g_LastReconnect = g_CurrentTime;
 	m_LastResponse = g_LastReconnect;
 
 	m_State = State_Connecting;
@@ -153,7 +153,7 @@ CIRCConnection::~CIRCConnection() {
 }
 
 bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
-	time(&m_LastResponse);
+	m_LastResponse = g_CurrentTime;
 
 	if (argc < 2)
 		return true;
@@ -204,7 +204,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			CNick* User = Chan->GetNames()->Get(Nick);
 
 			if (User)
-				User->SetIdleSince(time(NULL));
+				User->SetIdleSince(g_CurrentTime);
 		}
 
 		if (!ModuleEvent(argc, argv)) {
@@ -599,7 +599,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		if (Chan) {
 			Chan->SetTopic(argv[3]);
-			Chan->SetTopicStamp(time(NULL));
+			Chan->SetTopicStamp(g_CurrentTime);
 			Chan->SetTopicNick(argv[0]);
 		}
 
@@ -1161,10 +1161,10 @@ bool IRCPingTimer(time_t Now, void* IRCConnection) {
 		return true;
 	}
 
-	if (time(NULL) - IRC->m_LastResponse > 300) {
+	if (g_CurrentTime - IRC->m_LastResponse > 300) {
 		IRC->WriteLine("PING :sbnc");
 
-		if (time(NULL) - IRC->m_LastResponse > 600) {
+		if (g_CurrentTime - IRC->m_LastResponse > 600) {
 			IRC->Kill("Server does not respond.");
 		}
 	}

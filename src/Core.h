@@ -208,6 +208,7 @@ public:
 };
 
 extern CCore *g_Bouncer;
+extern time_t g_CurrentTime;
 
 #define CHECK_ALLOC_RESULT(Variable, Function) \
 	do { \

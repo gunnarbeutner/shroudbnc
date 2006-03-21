@@ -1491,7 +1491,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel *Channel = IRC->GetChannel(argv[2]);
 
-					if (Channel && time(NULL) - m_Owner->GetLastSeen() < 300 && Channel->SendWhoReply(true)) {
+					if (Channel && g_CurrentTime - m_Owner->GetLastSeen() < 300 && Channel->SendWhoReply(true)) {
 						Channel->SendWhoReply(false);
 					} else {
 						IRC->WriteLine("WHO %s", argv[2]);

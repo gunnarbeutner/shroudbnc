@@ -39,7 +39,7 @@ CNick::CNick(CChannel *Owner, const char *Nick) {
 	m_Realname = NULL;
 	m_Server = NULL;
 
-	time(&m_Creation);
+	m_Creation = g_CurrentTime;
 	m_IdleSince = m_Creation;
 
 	m_Owner = Owner;

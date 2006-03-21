@@ -27,6 +27,7 @@ extern loaderparams_s *g_LoaderParameters;
 
 const char* g_ErrorFile;
 unsigned int g_ErrorLine;
+time_t g_CurrentTime;
 
 CHashtable<command_t, false, 16> *g_Commands = NULL;
 
@@ -210,6 +211,8 @@ CCore::~CCore() {
 void CCore::StartMainLoop(void) {
 	unsigned int i;
 	bool b_DontDetach = false;
+
+	time(&g_CurrentTime);
 
 	printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
@@ -534,6 +537,8 @@ void CCore::StartMainLoop(void) {
 #ifdef LEAKLEAK
 		CHECK_LEAKS();
 #endif
+
+		time(&g_CurrentTime);
 
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();

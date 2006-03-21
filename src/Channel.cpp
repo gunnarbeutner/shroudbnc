@@ -217,7 +217,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 		if (Current == 'b' && m_Banlist != NULL) {
 			if (Flip) {
-				m_Banlist->SetBan(pargv[p], Source, time(NULL));
+				m_Banlist->SetBan(pargv[p], Source, g_CurrentTime);
 			} else {
 				m_Banlist->UnsetBan(pargv[p]);
 			}

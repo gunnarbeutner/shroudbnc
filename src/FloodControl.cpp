@@ -98,7 +98,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		RETURN(char *, NULL);
 	}
 
-	if (m_Control && (time(NULL) - m_LastCommand < g_Bouncer->GetConfig()->ReadInteger("system.floodwait"))) {
+	if (m_Control && (g_CurrentTime - m_LastCommand < g_Bouncer->GetConfig()->ReadInteger("system.floodwait"))) {
 		RETURN(char *, NULL);
 	}
 
@@ -139,7 +139,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		}
 	}
 
-	time(&m_LastCommand);
+	m_LastCommand = g_CurrentTime;
 
 	RETURN(char *, Item);
 }

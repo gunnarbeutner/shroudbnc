@@ -530,7 +530,7 @@ void CUser::Reconnect(void) {
 		Log("Trying to reconnect to %s:%d", Server, Port);
 	}
 
-	time(&m_LastReconnect);
+	m_LastReconnect = g_CurrentTime;
 
 	const char* BindIp = GetVHost();
 
@@ -574,7 +574,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && m_Config->ReadInteger("user.quitted") == 0 && m_ReconnectTime < time(NULL) && time(NULL) - m_LastReconnect > 120 && time(NULL) - g_LastReconnect > Interval) {
+	if (m_IRC == NULL && m_Config->ReadInteger("user.quitted") == 0 && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval) {
 		return true;
 	} else {
 		return false;
@@ -603,27 +603,26 @@ void CUser::ScheduleReconnect(int Delay) {
 		Interval = 15;
 	}
 
-	if (time(NULL) - g_LastReconnect < Interval && MaxDelay < Interval) {
+	if (g_CurrentTime - g_LastReconnect < Interval && MaxDelay < Interval) {
 		MaxDelay = Interval;
 	}
 
-	if (time(NULL) - m_LastReconnect < 120 && MaxDelay < 120 && !IsAdmin()) {
+	if (g_CurrentTime - m_LastReconnect < 120 && MaxDelay < 120 && !IsAdmin()) {
 		MaxDelay = 120;
 	}
 
-	if (m_ReconnectTime < time(NULL) + MaxDelay) {
+	if (m_ReconnectTime < g_CurrentTime + MaxDelay) {
 		if (m_ReconnectTimer)
 			m_ReconnectTimer->Destroy();
 
 		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
 
-		time(&m_ReconnectTime);
-		m_ReconnectTime += MaxDelay;
+		m_ReconnectTime = g_CurrentTime + MaxDelay;
 	}
 
 	if (GetServer()) {
 		char *Out;
-		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - time(NULL));
+		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - g_CurrentTime);
 
 		CHECK_ALLOC_RESULT(Out, asprintf) {
 			return;
@@ -671,7 +670,7 @@ void CUser::RealNotice(const char *Text) {
  */
 unsigned int CUser::GetIRCUptime(void) const {
 	if (m_IRC != NULL) {
-		return time(NULL) - m_LastReconnect;
+		return g_CurrentTime - m_LastReconnect;
 	} else {
 		return 0;
 	}
@@ -707,7 +706,7 @@ void CUser::Log(const char *Format, ...) {
 	} CHECK_ALLOC_RESULT_END;
 
 	if (GetClientConnection() == NULL) {
-		m_Log->WriteLine(FormatTime(time(NULL)), "%s", Out);
+		m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
 	}
 
 	Notice(Out);
@@ -772,7 +771,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 			m_ReconnectTimer = NULL;
 		}
 
-		time(&m_LastReconnect);
+		m_LastReconnect = g_CurrentTime;
 
 		IRC->SetTrafficStats(m_IRCStats);
 	}
@@ -800,7 +799,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	if (m_Client == NULL) {
 		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), IpToString(Client->GetRemoteAddress()));
 
-		m_Config->WriteInteger("user.seen", time(NULL));
+		m_Config->WriteInteger("user.seen", g_CurrentTime);
 	}
 
 	if (m_Client != NULL && Client != NULL) {
@@ -823,7 +822,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	if (!DontSetAway) {
 		g_Bouncer->Log("User %s logged off.", GetUsername());
 
-		m_Config->WriteInteger("user.seen", time(NULL));
+		m_Config->WriteInteger("user.seen", g_CurrentTime);
 
 		AwayMessage = m_Config->ReadString("user.awaymessage");
 
@@ -862,7 +861,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 			if (!AppendTS) {
 				m_IRC->WriteLine("AWAY :%s", AwayText);
 			} else {
-				Timestamp = FormatTime(time(NULL));
+				Timestamp = FormatTime(g_CurrentTime);
 
 				m_IRC->WriteLine("AWAY :%s (Away since %s)", AwayText, Timestamp);
 			}
@@ -1150,7 +1149,7 @@ bool UserReconnectTimer(time_t Now, void *User) {
 		Interval = 15;
 	}
 
-	if (time(NULL) - g_LastReconnect > Interval) {
+	if (g_CurrentTime - g_LastReconnect > Interval) {
 		((CUser *)User)->Reconnect();
 	} else {
 		((CUser*)User)->ScheduleReconnect(Interval);
@@ -1728,19 +1727,16 @@ void CUser::SetGmtOffset(int Offset) {
  */
 int CUser::GetGmtOffset(void) const {
 	const char *Offset;
-	time_t Now;
 	tm GMTime;
 	tm *CurrentTime;
-
-	time(&Now);
 
 	Offset = m_Config->ReadString("user.tz");
 
 	if (Offset == NULL) {
-		CurrentTime = gmtime(&Now);
+		CurrentTime = gmtime(&g_CurrentTime);
 		memcpy(&GMTime, CurrentTime, sizeof(GMTime));
 
-		CurrentTime = localtime(&Now);
+		CurrentTime = localtime(&g_CurrentTime);
 
 		return (CurrentTime->tm_hour - GMTime.tm_hour) * 60 + (CurrentTime->tm_min - GMTime.tm_min);
 	} else {

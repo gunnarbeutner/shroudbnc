@@ -656,8 +656,7 @@ void CConnection::Shutdown(void) {
  * @param TimeLeft the time
  */
 void CConnection::Timeout(int TimeLeft) {
-	time(&m_Timeout);
-	m_Timeout += TimeLeft;
+	m_Timeout = g_CurrentTime + TimeLeft;
 }
 
 /**
@@ -666,7 +665,7 @@ void CConnection::Timeout(int TimeLeft) {
  * Checks whether a timeout occured.
  */
 bool CConnection::DoTimeout(void) {
-	if (m_Timeout > 0 && m_Timeout < time(NULL)) {
+	if (m_Timeout > 0 && m_Timeout < g_CurrentTime) {
 		Destroy();
 
 		return true;
