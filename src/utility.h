@@ -34,6 +34,11 @@ typedef struct command_s {
 /** A list of commands. */
 typedef class CHashtable<command_t *, false, 16> *commandlist_t;
 
+/**
+ * utility_t
+ *
+ * Useful utility functions.
+ */
 typedef struct utility_s {
 	const char *(*ArgParseServerLine)(const char *Data);
 	const char *(*ArgTokenize)(const char *Data);
@@ -67,6 +72,23 @@ void ArgFree(const char *Args);
 void ArgFreeArray(const char **Array);
 const char *ArgGet(const char *Args, int Arg);
 int ArgCount(const char *Args);
+
+/**
+ * tokendata_t
+ *
+ * Used for storing tokenized strings.
+ */
+typedef struct tokendata_s {
+	unsigned int count; /**< number of tokens */
+	size_t pointers[32]; /**< relative pointers to individual tokens */
+	char string[512]; /**< the tokenized string */
+} tokendata_t;
+
+/** Version 2 of some tokenization functions */
+tokendata_t ArgTokenize2(const char *String);
+const char **ArgToArray2(const tokendata_t& Tokens);
+const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg);
+int ArgCount2(const tokendata_t& Tokens);
 
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp);

@@ -607,29 +607,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 5 && iRaw == 353) {
 		CChannel* Chan = GetChannel(argv[4]);
 
-		const char* nicks;
+		tokendata_t nicks;
 		const char** nickv;
 		int nickc;
 
-		nicks = ArgTokenize(argv[5]);
-
-		if (nicks == NULL) {
-			LOGERROR("ArgTokenize() failed. could not parse 353 reply for channel %s", argv[4]);
-
-			return false;
-		}
-
-		nickv = ArgToArray(nicks);
+		nicks = ArgTokenize2(argv[5]);
+		nickv = ArgToArray2(nicks);
 
 		if (nickv == NULL) {
-			LOGERROR("ArgToArray() failed. could not parse 353 reply for channel %s", argv[4]);
-
-			ArgFree(nicks);
+			LOGERROR("ArgToArray2() failed. could not parse 353 reply for channel %s", argv[4]);
 
 			return false;
 		}
 
-		nickc = ArgCount(nicks);
+		nickc = ArgCount2(nicks);
 
 		if (Chan) {
 			for (int i = 0; i < nickc; i++) {
@@ -654,7 +645,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		}
 
 		ArgFreeArray(nickv);
-		ArgFree(nicks);
 	} else if (argc > 3 && iRaw == 366) {
 		CChannel* Chan = GetChannel(argv[3]);
 
@@ -718,21 +708,16 @@ void CIRCConnection::ParseLine(const char* Line) {
 	if (!GetOwner())
 		return;
 
-	const char* Args = ArgParseServerLine(Line);
-
-	if (Args == NULL) {
-		LOGERROR("ArgParseServerLine() returned NULL. Could not parse line (%s).", Line);
-
-		return;
+	if (Line[0] == ':') {
+		Line++;
 	}
 
-	const char** argv = ArgToArray(Args);
-	int argc = ArgCount(Args);
+	tokendata_t Args = ArgTokenize2(Line);
+	const char** argv = ArgToArray2(Args);
+	int argc = ArgCount2(Args);
 
 	if (argv == NULL) {
-		LOGERROR("ArgToArray returned NULL. Could not parse line (%s).", Line);
-
-		ArgFree(Args);
+		LOGERROR("ArgToArray2 returned NULL. Could not parse line (%s).", Line);
 
 		return;
 	}
@@ -764,7 +749,6 @@ void CIRCConnection::ParseLine(const char* Line) {
 	//puts(Line);
 
 	ArgFreeArray(argv);
-	ArgFree(Args);
 }
 
 const char* CIRCConnection::GetCurrentNick(void) const {

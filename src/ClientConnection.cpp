@@ -1355,13 +1355,15 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				}
 			}
 		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0 && strcasecmp(argv[1], "-sbnc") == 0) {
-			const char* Toks = ArgTokenize(argv[2]);
-			const char** Arr = ArgToArray(Toks);
+			tokendata_t Tokens;
+			
+			Tokens = ArgTokenize2(argv[2]);
 
-			ProcessBncCommand(Arr[0], ArgCount(Toks), Arr, false);
+			const char **Arr = ArgToArray2(Tokens);
+
+			ProcessBncCommand(Arr[0], ArgCount2(Tokens), Arr, false);
 
 			ArgFreeArray(Arr);
-			ArgFree(Toks);
 
 			return false;
 		} else if (strcasecmp(Command, "sbnc") == 0) {
@@ -1588,30 +1590,22 @@ void CClientConnection::ParseLine(const char* Line) {
 	if (strlen(Line) > 512)
 		return; // protocol violation
 
-	const char* Args;
+	tokendata_t Args;
 	const char** argv;
 	int argc;
 
-	Args = ArgTokenize(Line);
+	Args = ArgTokenize2(Line);
+	argv = ArgToArray2(Args);
 
-	CHECK_ALLOC_RESULT(Args, ArgTokenize)  {
+	CHECK_ALLOC_RESULT(argv, ArgToArray2)  {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	argv = ArgToArray(Args);
-
-	CHECK_ALLOC_RESULT(argv, ArgToArray)  {
-		ArgFree(Args);
-
-		return;
-	} CHECK_ALLOC_RESULT_END;
-
-	argc = ArgCount(Args);
+	argc = ArgCount2(Args);
 
 	bool Ret = ParseLineArgV(argc, argv);
 
 	ArgFreeArray(argv);
-	ArgFree(Args);
 
 	if (m_Owner && Ret) {
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();

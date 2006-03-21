@@ -229,6 +229,94 @@ void ArgFreeArray(const char **Array) {
 }
 
 /**
+ * ArgTokenize2
+ *
+ * Tokenizes a string and returns it.
+ *
+ * @param String the string
+ */
+tokendata_t ArgTokenize2(const char *String) {
+	tokendata_t tokens;
+	register unsigned int a = 1;
+	size_t Len = strlen(String);
+
+	memset(tokens.string, 0, sizeof(tokens.string));
+	strncpy(tokens.string, String, sizeof(tokens.string));
+
+	tokens.pointers[0] = 0;
+
+	for (unsigned int i = 0; i < Len; i++) {
+		if (String[i] == ' ' && String[i + 1] != ' ') {
+			tokens.pointers[a] = i + 1;
+			tokens.string[i] = '\0';
+
+			a++;
+
+			if (a >= 32) {
+				break;
+			}
+
+			if (String[i + 1] == ':') {
+				tokens.pointers[a - 1]++;
+
+				break;
+			}
+		}
+	}
+
+	tokens.count = a;
+
+	return tokens;
+}
+
+/**
+ * ArgToArray2
+ *
+ * Constructs a pointer array for a tokendata_t structure. The returned
+ * array has to be passed to ArgFreeArray.
+ *
+ * @param Tokens the tokenized string
+ */
+const char **ArgToArray2(const tokendata_t& Tokens) {
+	const char **Pointers;
+	
+	Pointers = (const char **)malloc(sizeof(const char *) * 32);
+
+	for (unsigned int i = 0; i <= min(Tokens.count, 32); i++) {
+		Pointers[i] = Tokens.pointers[i] + Tokens.string;
+	}
+
+	return Pointers;
+}
+
+/**
+ * ArgGet2
+ *
+ * Retrieves an argument from a tokenized string.
+ *
+ * @param Tokens the tokenized string
+ * @param Arg the index of the argument which is to be returned
+ */
+const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg) {
+	if (Arg >= Tokens.count) {
+		return NULL;
+	} else {
+		return Tokens.pointers[Arg] + Tokens.string;
+	}
+}
+
+/**
+ * ArgCount2
+ *
+ * Returns the number of arguments in a tokenized string.
+ *
+ * @param Tokens the tokenized string
+ */
+int ArgCount2(const tokendata_t& Tokens) {
+	return Tokens.count;
+}
+
+/**
  * SocketAndConnect
  *
  * Creates a socket and connects to the specified host/port. You should use
