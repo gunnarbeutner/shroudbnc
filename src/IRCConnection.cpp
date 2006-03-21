@@ -705,14 +705,19 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 }
 
 void CIRCConnection::ParseLine(const char* Line) {
-	if (!GetOwner())
-		return;
+	const char *RealLine = Line;
 
-	if (Line[0] == ':') {
-		Line++;
+	if (GetOwner() == NULL) {
+		return;
 	}
 
-	tokendata_t Args = ArgTokenize2(Line);
+	if (Line[0] == ':') {
+		RealLine = Line + 1;
+	} else {
+		RealLine = Line;
+	}
+
+	tokendata_t Args = ArgTokenize2(RealLine);
 	const char** argv = ArgToArray2(Args);
 	int argc = ArgCount2(Args);
 

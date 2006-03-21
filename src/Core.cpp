@@ -414,14 +414,18 @@ void CCore::StartMainLoop(void) {
 		time(&Now);
 
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
-			time_t NextCall = m_Timers[c]->GetNextCall();
+			CTimer *Timer;
+			time_t NextCall;
+			
+			Timer = m_Timers[c];
+			NextCall = Timer->GetNextCall();
 
 			if (Now >= NextCall) {
 				if (Now - 5 > NextCall) {
-					Log("Timer drift for timer %p: %d seconds", m_Timers[c], Now - NextCall);
+					Log("Timer drift for timer %p: %d seconds", Timer, Now - NextCall);
 				}
 
-				m_Timers[c]->Call(Now);
+				Timer->Call(Now);
 			}
 		}
 
@@ -435,9 +439,7 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		if (Best != 0) {
-			SleepInterval = Best - Now;
-		}
+		SleepInterval = Best - Now;
 
 		SFD_ZERO(&FDRead);
 		SFD_ZERO(&FDWrite);
@@ -522,6 +524,10 @@ void CCore::StartMainLoop(void) {
 		}
 
 		time(&Last);
+
+#ifdef _DEBUG
+		printf("select/poll: %d seconds\n", SleepInterval);
+#endif
 
 #if defined(HAVE_POLL) || !defined(_WIN32)
 		unsigned int FDCount;
