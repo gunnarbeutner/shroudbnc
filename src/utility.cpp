@@ -238,7 +238,7 @@ void ArgFreeArray(const char **Array) {
 tokendata_t ArgTokenize2(const char *String) {
 	tokendata_t tokens;
 	register unsigned int a = 1;
-	size_t Len = strlen(String);
+	size_t Len = min(strlen(String), sizeof(tokens.string) - 1);
 
 	memset(tokens.string, 0, sizeof(tokens.string));
 	strncpy(tokens.string, String, sizeof(tokens.string));

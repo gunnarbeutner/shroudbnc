@@ -1366,6 +1366,29 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 			ArgFreeArray(Arr);
 
 			return false;
+		} else if (strcasecmp(Command, "userhost") == 0) {
+			if (argc == 2) {
+				const char *Server, *Ident;
+				CIRCConnection *IRC;
+
+				IRC = m_Owner->GetIRCConnection();
+
+				if (IRC != NULL) {
+					Server = IRC->GetServer();
+				} else {
+					Server = "bouncer";
+				}
+
+				Ident = m_Owner->GetIdent();
+
+				if (Ident == NULL) {
+					Ident = m_Owner->GetUsername();
+				}
+
+				WriteLine(":%s 302 %s :%s=+%s@%s", Server, m_Nick, m_Nick, Ident, m_PeerName);
+
+				return false;
+			}
 		} else if (strcasecmp(Command, "sbnc") == 0) {
 			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
 		} else if (strcasecmp(Command, "synth") == 0) {
