@@ -1161,7 +1161,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			if (User->GetIRCConnection())
 				User->GetIRCConnection()->Kill("Requested.");
 
-			User->MarkQuitted();
+			User->MarkQuitted(true);
 
 			if (argc > 2) {
 				ArgRejoinArray(argv, 2);

@@ -83,6 +83,7 @@ CUser::CUser(const char *Name) {
 	m_ReconnectTimer = NULL;
 
 	m_IsAdminCache = -1;
+	m_LeanModeCache = -1;
 
 #ifdef USESSL
 	asprintf(&Out, "users/%s.pem", Name);
