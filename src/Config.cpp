@@ -82,7 +82,7 @@ bool CConfig::ParseConfig(void) {
 	m_WriteLock = true;
 
 	while (feof(ConfigFile) == 0) {
-		fgets(Line, sizeof(Line), ConfigFile);
+		fgets(Line, LineLength, ConfigFile);
 
 		if (Line[strlen(Line) - 1] == '\n')
 			Line[strlen(Line) - 1] = '\0';
