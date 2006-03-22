@@ -107,9 +107,7 @@ CUser::CUser(const char *Name) {
 #endif
 
 	if (m_Config->ReadInteger("user.quitted") != 2) {
-		m_AutoConnect = true;
-	} else {
-		m_AutoConnect = false;
+		ScheduleReconnect();
 	}
 }
 
@@ -577,7 +575,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && (m_Config->ReadInteger("user.quitted") == 0 || m_AutoConnect) && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval) {
+	if (m_IRC == NULL && m_Config->ReadInteger("user.quitted") == 0 && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval) {
 		return true;
 	} else {
 		return false;
