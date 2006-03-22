@@ -60,6 +60,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	lt_dlinit();
 #endif
 
+	time(&g_CurrentTime);
+
 	Config = new CConfig(Parameters->BuildPath("sbnc.conf", NULL));
 
 	if (Config == NULL) {

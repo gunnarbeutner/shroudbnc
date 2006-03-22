@@ -394,7 +394,7 @@ void CConnection::ProcessBuffer(void) {
 	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
-		if (RecvQ[i] == '\n' || (Size > i + 1 && RecvQ[i] == '\r' && RecvQ[i + 1] == '\n')) {
+		if (RecvQ[i] == '\n' || (RecvQ[i] == '\r' && Size > i + 1 && RecvQ[i + 1] == '\n')) {
 			RecvQ[i] = '\0';
 
 			if (Line[0] != '\0') {
