@@ -34,6 +34,8 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 }
 
 void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
+	const char *Ident;
+
 	SetRole(Role_Client);
 	SetOwner(Owner);
 
@@ -84,7 +86,14 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 		}
 
 		WriteLine("NICK %s", Owner->GetNick());
-		WriteLine("USER %s \"\" \"fnords\" :%s", Owner->GetUsername(), Owner->GetRealname());
+
+		if (Owner->GetIdent() != NULL) {
+			Ident = GetIdent());
+		} else {
+			Ident = m_Name;
+		}
+
+		WriteLine("USER %s \"\" \"fnords\" :%s", Ident, Owner->GetRealname());
 	}
 
 	m_Channels = new CHashtable<CChannel*, false, 16>();
@@ -706,6 +715,7 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 
 void CIRCConnection::ParseLine(const char* Line) {
 	const char *RealLine = Line;
+	char *Out;
 
 	if (GetOwner() == NULL) {
 		return;
@@ -729,7 +739,12 @@ void CIRCConnection::ParseLine(const char* Line) {
 
 	if (ParseLineArgV(argc, argv)) {
 		if (strcasecmp(argv[0], "ping") == 0 && argc > 1) {
-			WriteLine("PONG :%s", argv[1]);
+			asprintf(&Out, "PONG :%s", argv[1]);
+
+			CHECK_ALLOC_RESULT(Out, asprintf) {} else {
+				m_QueueHigh->QueueItem(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
 
 			if (m_State != State_Connected)
 				m_State = State_Pong;
