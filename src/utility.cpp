@@ -240,7 +240,6 @@ tokendata_t ArgTokenize2(const char *String) {
 	register unsigned int a = 1;
 	size_t Len = min(strlen(String), sizeof(tokens.string) - 1);
 
-	memset(tokens.string, 0, sizeof(tokens.string));
 	strncpy(tokens.string, String, sizeof(tokens.string));
 
 	tokens.pointers[0] = 0;

@@ -93,6 +93,10 @@ class CUser : public CZoneObject<CUser, 32> {
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
+	bool m_AutoConnect; /**< should the user reconnect even though user.quitted is enabled? */
+
+	int m_LeanModeCache; /**< cache for the "user.lean" setting */
+
 	bool PersistCertificates(void);
 
 	void BadLoginPulse(void);

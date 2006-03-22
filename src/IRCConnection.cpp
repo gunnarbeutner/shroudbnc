@@ -483,7 +483,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		free(Out);
 	} else if (argc > 3 && iRaw == 465) {
 		g_Bouncer->Log("G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
-		GetOwner()->GetLog()->WriteLine("G/K-line reason: %s", argv[3]);
+		GetOwner()->Log("G/K-line reason: %s", argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);

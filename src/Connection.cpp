@@ -397,7 +397,7 @@ void CConnection::ProcessBuffer(void) {
 		if (RecvQ[i] == '\n' || (Size > i + 1 && RecvQ[i] == '\r' && RecvQ[i + 1] == '\n')) {
 			RecvQ[i] = '\0';
 
-			if (strlen(Line) > 0) {
+			if (Line[0] != '\0') {
 				ParseLine(Line);
 			}
 
