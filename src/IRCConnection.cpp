@@ -88,9 +88,9 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 		WriteLine("NICK %s", Owner->GetNick());
 
 		if (Owner->GetIdent() != NULL) {
-			Ident = GetIdent());
+			Ident = Owner->GetIdent();
 		} else {
-			Ident = m_Name;
+			Ident = Owner->GetUsername();
 		}
 
 		WriteLine("USER %s \"\" \"fnords\" :%s", Ident, Owner->GetRealname());
