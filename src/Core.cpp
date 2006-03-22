@@ -1248,10 +1248,10 @@ const char *CCore::DebugImpulse(int impulse) {
 
 			CUser *User = CreateUser(Name, NULL);
 
-			if ((rand() + 1) % 2 == 0)
-				User->SetServer("irc.prco23.org");
-			else
-				User->SetServer("irc.saeder-krupp.org");
+//			if ((rand() + 1) % 2 == 0)
+				User->SetServer("irc.devspot.org");
+//			else
+//				User->SetServer("irc.saeder-krupp.org");
 
 			User->SetLeanMode(2);
 

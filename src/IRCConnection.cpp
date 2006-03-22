@@ -463,7 +463,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		m_State = State_Connected;
 	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL)
-			GetOwner()->ScheduleReconnect(50);
+			GetOwner()->ScheduleReconnect(120);
 		else
 			GetOwner()->ScheduleReconnect(5);
 

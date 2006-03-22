@@ -623,7 +623,7 @@ void CUser::ScheduleReconnect(int Delay) {
 		m_ReconnectTime = g_CurrentTime + MaxDelay;
 	}
 
-	if (GetServer() != NULL) {
+	if (GetServer() != NULL && GetClientConnection() != NULL) {
 		char *Out;
 		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - g_CurrentTime);
 
@@ -631,7 +631,7 @@ void CUser::ScheduleReconnect(int Delay) {
 			return;
 		} CHECK_ALLOC_RESULT_END;
 
-		Log(Out);
+		Notice(Out);
 
 		free(Out);
 	}
