@@ -1249,7 +1249,7 @@ const char *CCore::DebugImpulse(int impulse) {
 			CUser *User = CreateUser(Name, NULL);
 
 //			if ((rand() + 1) % 2 == 0)
-				User->SetServer("irc.devspot.org");
+				User->SetServer("217.112.85.191");
 //			else
 //				User->SetServer("irc.saeder-krupp.org");
 
