@@ -21,8 +21,5 @@ source "scripts/partyline.tcl"
 #setctx "example"
 #source "scripts/tcl.tcl"
 
-#set ::account354 "example"
-#source "scripts/account.tcl"
-
 #set ::versionreply "example"
 #source "scripts/version.tcl"
