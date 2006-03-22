@@ -56,7 +56,8 @@ CConfig::CConfig(const char *Filename) {
  * setting=value
  */
 bool CConfig::ParseConfig(void) {
-	char Line[40960];
+	const size_t LineLength = 131072;
+	char *Line;
 	char *dupEq;
 	FILE *ConfigFile;
 
@@ -64,9 +65,17 @@ bool CConfig::ParseConfig(void) {
 		return false;
 	}
 
+	Line = (char *)malloc(LineLength);
+
+	CHECK_ALLOC_RESULT(Line, malloc) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
 	ConfigFile = fopen(m_Filename, "r");
 
 	if (ConfigFile == NULL) {
+		free(Line);
+
 		return false;
 	}
 
@@ -108,6 +117,8 @@ bool CConfig::ParseConfig(void) {
 	fclose(ConfigFile);
 
 	m_WriteLock = false;
+
+	free(Line);
 
 	return true;
 }

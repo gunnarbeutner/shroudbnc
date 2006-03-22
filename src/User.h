@@ -62,7 +62,7 @@ bool UserReconnectTimer(time_t Now, void *User);
  *
  * A bouncer user.
  */
-class CUser : public CZoneObject<CUser, 32> {
+class CUser : public CZoneObject<CUser, 1024> {
 	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
