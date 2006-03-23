@@ -33,6 +33,8 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
 	Query->AsyncDnsEvent(Status, HostEntity);
+
+	Query->DestroyChannel();
 }
 
 /**
@@ -49,17 +51,43 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
  */
 
 CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout) {
-	ares_options Options;
-
+	m_Timeout = Timeout;
 	m_EventObject = EventInterface;
 	m_EventFunction = EventFunction;
 
-	ares_init(&m_Channel);
+	m_Channel = NULL;
+}
 
-	Options.timeout = Timeout;
-	ares_init_options(&m_Channel, &Options, ARES_OPT_TIMEOUT);
+/**
+ * InitChannel
+ *
+ * Initializes a new ARES channel.
+ */
+void CDnsQuery::InitChannel(void) {
+	if (m_Channel == NULL) {
+		ares_options Options;
 
-	g_Bouncer->RegisterDnsQuery(this);
+		ares_init(&m_Channel);
+
+		Options.timeout = m_Timeout;
+		ares_init_options(&m_Channel, &Options, ARES_OPT_TIMEOUT);
+
+		g_Bouncer->RegisterDnsQuery(this);
+	}
+}
+
+/**
+ * DestroyChannel
+ *
+ * Destroys the ARES channel.
+ */
+void CDnsQuery::DestroyChannel(void) {
+	if (m_Channel != NULL) {
+		ares_destroy(m_Channel);
+		m_Channel = NULL;
+
+		g_Bouncer->UnregisterDnsQuery(this);
+	}
 }
 
 /**
@@ -68,9 +96,7 @@ CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int T
  * Destructs a DNS query object.
  */
 CDnsQuery::~CDnsQuery(void) {
-	ares_destroy(m_Channel);
-
-	g_Bouncer->UnregisterDnsQuery(this);
+	DestroyChannel();
 }
 
 /**
@@ -83,6 +109,7 @@ CDnsQuery::~CDnsQuery(void) {
  * @param Family the address family (AF_INET or AF_INET6)
  */
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
+	InitChannel();
 	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, this);
 }
 
@@ -107,6 +134,7 @@ void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	}
 #endif
 
+	InitChannel();
 	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
 }
 

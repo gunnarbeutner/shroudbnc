@@ -31,17 +31,22 @@ typedef void (*DnsEventFunction)(void *Object, hostent *Response);
  * A class for dns queries.
  */
 class CDnsQuery {
+	friend void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
+
 	void *m_EventObject; /**< the object used for callbacks */
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
 	ares_channel m_Channel; /**< the ares channel object */
+	time_t m_Timeout; /**< timeout for the dns query (in seconds) */
+
+	void InitChannel(void);
+	void DestroyChannel(void);
+	void AsyncDnsEvent(int Status, hostent *Response);
 public:
 	CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout = 5);
 	~CDnsQuery(void);
 	void GetHostByName(const char *Host, int Family = AF_INET);
 	void GetHostByAddr(sockaddr *Address);
 	ares_channel GetChannel(void);
-
-	void AsyncDnsEvent(int Status, hostent *Response);
 };
 
 /**

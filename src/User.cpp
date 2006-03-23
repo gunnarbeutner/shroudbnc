@@ -799,7 +799,9 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 		return;
 	}
 
-	Remote = Client->GetRemoteAddress();
+	if (Client != NULL) {
+		Remote = Client->GetRemoteAddress();
+	}
 
 	if (m_Client == NULL) {
 		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");

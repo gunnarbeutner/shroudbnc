@@ -733,11 +733,23 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 
 		RETURN(CModule *, Module);
 	} else {
-		Log("Module %s could not be loaded: %s", Filename, GETDESCRIPTION(Result));
+		static char *ErrorString = NULL;
+
+		free(ErrorString);
+
+		ErrorString = strdup(GETDESCRIPTION(Result));
+
+		CHECK_ALLOC_RESULT(ErrorString, strdup) {
+			delete Module;
+
+			THROW(CModule *, Generic_OutOfMemory, "strdup() failed.");
+		} CHECK_ALLOC_RESULT_END;
+
+		Log("Module %s could not be loaded: %s", Filename, ErrorString);
 
 		delete Module;
 
-		THROWRESULT(CModule *, Result);
+		THROW(CModule *, Generic_Unknown, ErrorString);
 	}
 
 	THROW(CModule *, Generic_Unknown, NULL);
@@ -1279,6 +1291,51 @@ const char *CCore::DebugImpulse(int impulse) {
 		}
 	}
 
+	if (impulse == 12) {
+		int i = 0;
+		hash_t<CUser *> *User;
+		static char *Out = NULL;
+		unsigned int diff;
+
+		while ((User = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
+			if (User->Value->GetClientConnection() == NULL && User->Value->GetIRCConnection() != NULL) {
+				CIRCConnection *IRC = User->Value->GetIRCConnection();
+
+#ifndef _WIN32
+				timeval start, end;
+
+				gettimeofday(&start, NULL);
+#else
+				DWORD start, end;
+
+				start = GetTickCount();
+#endif
+
+#define BENCHMARK_LINES 2000000
+
+				for (int a = 0; a < BENCHMARK_LINES; a++) {
+					IRC->ParseLine(":fakeserver.performance-test PRIVMSG #random-channel :abcdefghijklmnopqrstuvwxyz");
+				}
+
+#ifndef _WIN32
+				gettimeofday(&end, NULL);
+				diff = ((end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec) / 1000;
+#else
+				end = GetTickCount();
+				diff = end - start;
+#endif
+
+				unsigned int lps = BENCHMARK_LINES / diff;
+
+				free(Out);
+
+				asprintf(&Out, "%d lines parsed in %d msecs, approximately %d lines/msec", BENCHMARK_LINES, diff, lps);
+
+				return Out;
+			}
+		}
+	}
+
 	return NULL;
 }
 
@@ -1335,9 +1392,14 @@ bool CCore::Thaw(CAssocArray *Box) {
 	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6");
 
 	m_SSLListener = ThawObject<CClientListener>(Box, "~ssllistener");
-	m_SSLListener->SetSSL(true);
+	if (m_SSLListener != NULL) {
+		m_SSLListener->SetSSL(true);
+	}
+
 	m_SSLListenerV6 = ThawObject<CClientListener>(Box, "~ssllistenerv6");
-	m_SSLListenerV6->SetSSL(true);
+	if (m_SSLListenerV6 != NULL) {
+		m_SSLListenerV6->SetSSL(true);
+	}
 
 	ClientsBox = Box->ReadBox("~clients");
 

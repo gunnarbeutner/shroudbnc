@@ -1760,7 +1760,7 @@ void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
 	Remote = GetRemoteAddress();
 
 	if (!g_Bouncer->CanHostConnect(m_PeerName) && (Remote == NULL || !g_Bouncer->CanHostConnect(IpToString(Remote)))) {
-		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, (Remote != NULL) ? IpToString(Remote) "unknown ip");
+		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, (Remote != NULL) ? IpToString(Remote) : "unknown ip");
 
 		FlushSendQ();
 
