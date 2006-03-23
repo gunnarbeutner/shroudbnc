@@ -844,7 +844,9 @@ bool RegisterZone(CZoneInformation *ZoneInformation) {
 
 		return true;
 	} else {
+#ifdef _DEBUG
 		printf("Error in RegisterZone!\n");
+#endif
 
 		return false;
 	}

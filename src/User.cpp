@@ -575,7 +575,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && m_Config->ReadInteger("user.quitted") == 0 && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval) {
+	if (m_IRC == NULL && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
 		return true;
 	} else {
 		return false;

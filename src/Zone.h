@@ -185,11 +185,13 @@ public:
 
 
 	virtual void PerformLeakCheck(void) const {
+#ifdef _DEBUG
 		int Count = GetCount();
 
 		if (Count > 0) {
 			printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), GetTypeSize());
 		}
+#endif
 	}
 
 	virtual unsigned int GetCount(void) const {

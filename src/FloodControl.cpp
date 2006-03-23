@@ -41,6 +41,8 @@ static penalty_t Penalties [] = {
 	{ NULL, 0 }
 };
 
+int CFloodControl::m_FloodWaitCache;
+
 /**
  * CFloodControl
  *
@@ -51,6 +53,8 @@ CFloodControl::CFloodControl(void) {
 	m_Control = true;
 	m_FloodTimer = NULL;
 	m_LastCommand = 0;
+
+	m_FloodWaitCache = g_Bouncer->GetConfig()->ReadInteger("system.floodwait");
 }
 
 /**
@@ -98,7 +102,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		RETURN(char *, NULL);
 	}
 
-	if (m_Control && (g_CurrentTime - m_LastCommand < g_Bouncer->GetConfig()->ReadInteger("system.floodwait"))) {
+	if (m_Control && (g_CurrentTime - m_LastCommand < m_FloodWaitCache)) {
 		RETURN(char *, NULL);
 	}
 
