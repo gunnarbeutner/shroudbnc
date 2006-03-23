@@ -42,6 +42,7 @@ static penalty_t Penalties [] = {
 };
 
 int CFloodControl::m_FloodWaitCache;
+time_t g_NextCommand;
 
 /**
  * CFloodControl
@@ -51,21 +52,9 @@ int CFloodControl::m_FloodWaitCache;
 CFloodControl::CFloodControl(void) {
 	m_Bytes = 0;
 	m_Control = true;
-	m_FloodTimer = NULL;
 	m_LastCommand = 0;
 
 	m_FloodWaitCache = g_Bouncer->GetConfig()->ReadInteger("system.floodwait");
-}
-
-/**
- * ~CFloodControl
- *
- * Destructs a CFloodControl object.
- */
-CFloodControl::~CFloodControl(void) {
-	if (m_FloodTimer) {
-		m_FloodTimer->Destroy();
-	}
 }
 
 /**
@@ -93,12 +82,14 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
  * @param Peek determines whether to actually remove the item
  */
 RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
+	size_t CurrentBytes;
+	unsigned int Delay;
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
-	RESULT<const char *> PeekItem;
-	RESULT<char *> Item;
 
-	if (m_Control && (m_Bytes > FLOODBYTES - 100)) {
+	CurrentBytes = GetBytes();
+
+	if (m_Control && (CurrentBytes > FLOODBYTES - 100)) {
 		RETURN(char *, NULL);
 	}
 
@@ -117,7 +108,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		RETURN(char *, NULL);
 	}
 
-	PeekItem = ThatQueue->Queue->PeekItem();
+	RESULT<const char *> PeekItem = ThatQueue->Queue->PeekItem();
 
 	if (IsError(PeekItem)) {
 		LOGERROR("PeekItem() failed.");
@@ -125,21 +116,25 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		THROWRESULT(char *, PeekItem);
 	}
 
-	if (m_Control && (strlen(PeekItem) + m_Bytes > FLOODBYTES - 150 && m_Bytes > 1/4 * FLOODBYTES)) {
+	if (m_Control && (strlen(PeekItem) + CurrentBytes > FLOODBYTES - 150 && CurrentBytes > 1/4 * FLOODBYTES)) {
 		RETURN(char *, NULL);
 	} else if (Peek) {
 		RETURN(char *, const_cast<char*>((const char *)PeekItem));
 	}
 
-	Item = ThatQueue->Queue->DequeueItem();
+	RESULT<char *> Item = ThatQueue->Queue->DequeueItem();
 
 	THROWIFERROR(char *, Item);
 
-	if (m_Control) {
-		m_Bytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
+	if (m_Control != NULL) {
+		CurrentBytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
+		m_Bytes = CurrentBytes;
 
-		if (m_FloodTimer == NULL) {
-			m_FloodTimer = g_Bouncer->CreateTimer(1, true, FloodTimer, this);
+		// figure out when we're going to send the next command
+		Delay = CurrentBytes / 75;
+
+		if (g_CurrentTime + Delay < g_NextCommand) {
+			g_NextCommand = g_CurrentTime + Delay;
 		}
 	}
 
@@ -163,35 +158,16 @@ int CFloodControl::GetQueueSize(void) {
 }
 
 /**
- * Pulse
- *
- * Called periodically by a timer.
- *
- * @param Now the current time
- */
-bool CFloodControl::Pulse(time_t Now) {
-	if (m_Bytes > 75) {
-		m_Bytes -= 75;
-	} else {
-		m_Bytes = 0;
-	}
-
-	if (GetRealLength() == 0 && m_Bytes == 0) {
-		m_FloodTimer = NULL;
-
-		return false;
-	} else {
-		return true;
-	}
-}
-
-/**
  * GetBytes
  *
  * Returns the number of bytes which have been recently sent.
  */
 int CFloodControl::GetBytes(void) const {
-	return m_Bytes;
+	if ((g_CurrentTime - m_LastCommand) * 75 > m_Bytes) {
+		return 0;
+	} else {
+		return m_Bytes - (g_CurrentTime - m_LastCommand) * 75;
+	}
 }
 
 /**
@@ -236,18 +212,6 @@ void CFloodControl::Enable(void) {
  */
 void CFloodControl::Disable(void) {
 	m_Control = false;
-}
-
-/**
- * FloodTimer
- *
- * Used for gradually decreasing the m_Bytes member of CFloodControl objects.
- *
- * @param Now the current time
- * @param FloodControl the CFloodControl Object
- */
-bool FloodTimer(time_t Now, void *FloodControl) {
-	return ((CFloodControl *)FloodControl)->Pulse(Now);
 }
 
 /**

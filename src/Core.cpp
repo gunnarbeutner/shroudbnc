@@ -165,6 +165,8 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	}
 
 	m_Status = STATUS_RUN;
+
+	g_NextCommand = 0;
 }
 
 CCore::~CCore() {
@@ -429,7 +431,11 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		Best = Now + 60;
+		if (g_NextCommand > Now) {
+			Best = g_NextCommand;
+		} else {
+			Best = Now + 60;
+		}
 
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			time_t NextCall = m_Timers[c]->GetNextCall();
@@ -1258,6 +1264,17 @@ const char *CCore::DebugImpulse(int impulse) {
 			User->Reconnect();
 
 			free(Name);
+		}
+	}
+
+	if (impulse == 11) {
+		int i = 0;
+		hash_t<CUser *> *User;
+
+		while ((User = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
+			if (match("test*", User->Name) == 0) {
+				g_Bouncer->RemoveUser(User->Name);
+			}
 		}
 	}
 

@@ -616,7 +616,7 @@ void CUser::ScheduleReconnect(int Delay) {
 		if (m_ReconnectTimer)
 			m_ReconnectTimer->Destroy();
 
-		m_ReconnectTimer = g_Bouncer->CreateTimer(MaxDelay, false, UserReconnectTimer, this);
+		m_ReconnectTimer = new CTimer(MaxDelay, false, UserReconnectTimer, this);
 
 		m_ReconnectTime = g_CurrentTime + MaxDelay;
 	}

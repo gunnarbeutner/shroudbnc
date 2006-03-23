@@ -39,21 +39,18 @@ bool FloodTimer(time_t Now, void *FloodControl);
 %template(CZoneObjectCFloodControl) CZoneObject<class CFloodControl, 16>;
 #endif
 
+extern time_t g_NextCommand; /**< time of next burst */
+
 /**
  * CFloodControl
  *
  * A queue which tries to avoid "Excess Flood" errors.
  */
 class CFloodControl : public CZoneObject<CFloodControl, 16> {
-#ifndef SWIG
-	friend bool FloodTimer(time_t Now, void *FloodControl);
-#endif
-
 	CVector<irc_queue_t> m_Queues; /**< a list of queues which have been
 								attached to this object */
 	size_t m_Bytes; /**< the number of bytes which have recently been sent */
 	bool m_Control; /**< determines whether this object is delaying the output */
-	CTimer *m_FloodTimer; /**< used for gradually decreasing m_Bytes */
 	time_t m_LastCommand; /**< a TS when the last command was sent */
 
 	bool Pulse(time_t Time);
@@ -64,7 +61,6 @@ class CFloodControl : public CZoneObject<CFloodControl, 16> {
 public:
 #ifndef SWIG
 	CFloodControl(void);
-	virtual ~CFloodControl(void);
 #endif
 
 	virtual RESULT<char *> DequeueItem(bool Peek = false);

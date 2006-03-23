@@ -731,9 +731,13 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			return false;
 		}
 
-		g_Bouncer->RemoveUser(argv[1]);
+		RESULT<bool> Result = g_Bouncer->RemoveUser(argv[1]);
 
-		SENDUSER("Done.");
+		if (IsError(Result)) {
+			SENDUSER(GETDESCRIPTION(Result));
+		} else {
+			SENDUSER("Done.");
+		}
 
 		return false;
 	} else if (strcasecmp(Subcommand, "simul") == 0 && m_Owner->IsAdmin()) {
