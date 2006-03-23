@@ -144,10 +144,10 @@ proc auth:dequeuewho {} {
 
 	set result [list]
 
-	foreach item [split $chan] {
+	foreach item [split $chan ","] {
 		set account [getchanlogin $item]
 
-		if {$account != "" && $account != 0} {
+		if {$account == "" || $account == 0} {
 			lappend result $item
 		}
 	}
