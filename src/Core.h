@@ -57,7 +57,7 @@ class CCore {
 	CClientListener *m_Listener, *m_ListenerV6;
 	CClientListener *m_SSLListener, *m_SSLListenerV6;
 
-	CHashtable<CUser *, false, 64> m_Users;
+	CHashtable<CUser *, false, 512> m_Users;
 	CVector<CModule *> m_Modules;
 	CVector<socket_t> m_OtherSockets;
 	CVector<CTimer *>m_Timers;
@@ -111,7 +111,7 @@ public:
 
 	virtual void GlobalNotice(const char *Text);
 
-	virtual CHashtable<CUser *, false, 64> *GetUsers(void);
+	virtual CHashtable<CUser *, false, 512> *GetUsers(void);
 
 	virtual RESULT<CModule *> LoadModule(const char *Filename);
 	virtual bool UnloadModule(CModule *Module);

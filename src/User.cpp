@@ -793,13 +793,16 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	unsigned int i;
 	const char *DropModes, *AwayNick, *AwayText, *Timestamp, *AwayMessage;
 	hash_t<CChannel *> *Channel;
+	sockaddr *Remote;
 
 	if (m_Client == NULL && Client == NULL) {
 		return;
 	}
 
+	Remote = Client->GetRemoteAddress();
+
 	if (m_Client == NULL) {
-		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), IpToString(Client->GetRemoteAddress()));
+		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		m_Config->WriteInteger("user.seen", g_CurrentTime);
 	}

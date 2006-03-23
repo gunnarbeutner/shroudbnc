@@ -55,8 +55,6 @@ class CFloodControl : public CZoneObject<CFloodControl, 16> {
 
 	bool Pulse(time_t Time);
 
-	static int m_FloodWaitCache; /**< cache for "system.floodwait" */
-
 	static int CalculatePenaltyAmplifier(const char *Line);
 public:
 #ifndef SWIG

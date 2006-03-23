@@ -68,7 +68,7 @@ const char *bncuserlist(void) {
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-	CHashtable<CUser *, false, 64> *Users = g_Bouncer->GetUsers();
+	CHashtable<CUser *, false, 512> *Users = g_Bouncer->GetUsers();
 
 	i = 0;
 	while (hash_t<CUser *> *User = Users->Iterate(i++)) {

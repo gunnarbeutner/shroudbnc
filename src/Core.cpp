@@ -660,7 +660,7 @@ void CCore::GlobalNotice(const char *Text) {
 	}
 }
 
-CHashtable<CUser *, false, 64> *CCore::GetUsers(void) {
+CHashtable<CUser *, false, 512> *CCore::GetUsers(void) {
 	return &m_Users;
 }
 

@@ -241,6 +241,7 @@ tokendata_t ArgTokenize2(const char *String) {
 	size_t Len = min(strlen(String), sizeof(tokens.string) - 1);
 
 	strncpy(tokens.string, String, sizeof(tokens.string));
+	tokens.string[sizeof(tokens.string) - 1] = '\0';
 
 	tokens.pointers[0] = 0;
 
@@ -760,6 +761,10 @@ const char *IpToString(sockaddr *Address) {
  * @param pB the second sockaddr
  */
 int CompareAddress(const sockaddr *pA, const sockaddr *pB) {
+	if (pA == NULL || pB == NULL) {
+		return -1; // two NULL addresses are never equal
+	}
+
 	if (pA->sa_family != pB->sa_family) {
 		return -1;
 	}

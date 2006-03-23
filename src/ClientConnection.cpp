@@ -46,9 +46,17 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
-		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(GetRemoteAddress()));
+		sockaddr *Remote = GetRemoteAddress();
 
-		m_ClientLookup->GetHostByAddr(GetRemoteAddress());
+		if (Remote == NULL) {
+			Kill("Internal error: GetRemoteAddress() failed. Could not look up your hostname.");
+
+			return;
+		}
+
+		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(Remote));
+
+		m_ClientLookup->GetHostByAddr(Remote);
 	}
 
 	m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
@@ -1652,6 +1660,13 @@ bool CClientConnection::ValidateUser(void) {
 	bool MatchUsername = false;
 	X509* PeerCert = NULL;
 	CUser* AuthUser = NULL;
+	sockaddr *Remote;
+
+	Remote = GetRemoteAddress();
+
+	if (Remote == NULL) {
+		return false;
+	}
 
 	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
 		int i = 0;
@@ -1678,7 +1693,7 @@ bool CClientConnection::ValidateUser(void) {
 	}
 
 	if (AuthUser == NULL && m_Password == NULL) {
-		g_Bouncer->Log("No valid client certificates found for login from %s[%s]", m_PeerName, IpToString(GetRemoteAddress()));
+		g_Bouncer->Log("No valid client certificates found for login from %s[%s]", m_PeerName, IpToString(Remote));
 
 		return false;
 	}
@@ -1687,7 +1702,7 @@ bool CClientConnection::ValidateUser(void) {
 	User = g_Bouncer->GetUser(m_Username);
 
 	if (User) {
-		Blocked = User->IsIpBlocked(GetRemoteAddress());
+		Blocked = User->IsIpBlocked(Remote);
 		Valid = (Force || User->CheckPassword(m_Password));
 	}
 
@@ -1697,16 +1712,16 @@ bool CClientConnection::ValidateUser(void) {
 	} else {
 		if (User != NULL) {
 			if (!Blocked) {
-				User->LogBadLogin(GetRemoteAddress());
+				User->LogBadLogin(Remote);
 			}
 
 			if (Blocked) {
-				g_Bouncer->Log("Blocked login attempt from %s[%s] for %s", m_PeerName, IpToString(GetRemoteAddress()), m_Username);
+				g_Bouncer->Log("Blocked login attempt from %s[%s] for %s", m_PeerName, IpToString(Remote), m_Username);
 			} else {
-				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(GetRemoteAddress()));
+				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(Remote));
 			}
 		} else {
-			g_Bouncer->Log("Login attempt for unknown user %s from %s[%s]", m_Username, m_PeerName, IpToString(GetRemoteAddress()));
+			g_Bouncer->Log("Login attempt for unknown user %s from %s[%s]", m_Username, m_PeerName, IpToString(Remote));
 		}
 
 		Kill("*** Unknown user or wrong password.");
@@ -1734,14 +1749,18 @@ void CClientConnection::Destroy(void) {
 }
 
 void CClientConnection::SetPeerName(const char* PeerName, bool LookupFailure) {
+	sockaddr *Remote;
+
 	if (m_PeerName != NULL) {
 		free(m_PeerName);
 	}
 
 	m_PeerName = strdup(PeerName);
 
-	if (!g_Bouncer->CanHostConnect(m_PeerName) && !g_Bouncer->CanHostConnect(IpToString(GetRemoteAddress()))) {
-		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, IpToString(GetRemoteAddress()));
+	Remote = GetRemoteAddress();
+
+	if (!g_Bouncer->CanHostConnect(m_PeerName) && (Remote == NULL || !g_Bouncer->CanHostConnect(IpToString(Remote)))) {
+		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, (Remote != NULL) ? IpToString(Remote) "unknown ip");
 
 		FlushSendQ();
 
@@ -1759,10 +1778,18 @@ const char* CClientConnection::GetPeerName(void) const {
 
 void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 	int i = 0;
+	sockaddr *Remote;
+
+	Remote = GetRemoteAddress();
 
 	if (Response == NULL) {
 		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS query failed. Using IP address as your hostname.");
-		SetPeerName(IpToString(GetRemoteAddress()), true);
+
+		if (Remote != NULL) {
+			SetPeerName(IpToString(Remote), true);
+		} else {
+			Kill("Failed to look up IP address.");
+		}
 	} else {
 		if (m_PeerNameTemp == NULL) {
 			m_PeerNameTemp = strdup(Response->h_name);
@@ -1793,7 +1820,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 #endif
 				}
 
-				if (CompareAddress(saddr, GetRemoteAddress()) == 0) {
+				if (CompareAddress(saddr, Remote) == 0) {
 					SetPeerName(m_PeerNameTemp, false);
 					free(m_PeerNameTemp);
 
@@ -1814,8 +1841,12 @@ void CClientConnection::AsyncDnsFinishedClient(hostent* Response) {
 			}
 
 			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward and reverse DNS replies do not match. Using IP address instead.");
-			SetPeerName(IpToString(GetRemoteAddress()), true);
-			// TODO: destroy query
+
+			if (Remote != NULL) {
+				SetPeerName(IpToString(Remote), true);
+			} else {
+				Kill("Failed to look up IP address.");
+			}
 		}
 	}
 }
