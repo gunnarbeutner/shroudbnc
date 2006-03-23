@@ -431,8 +431,9 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		if (g_NextCommand > Now) {
+		if (g_NextCommand != 0) {
 			Best = g_NextCommand;
+			g_NextCommand = 0;
 		} else {
 			Best = Now + 60;
 		}

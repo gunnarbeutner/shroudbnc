@@ -74,6 +74,18 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	m_Queues.Insert(IrcQueue);
 }
 
+#define ScheduleCommand() \
+	int Bytes = min(CurrentBytes, FLOODBYTES - 100); \
+	if (Bytes > 0) { \
+		Delay = (Bytes / 75) + 1; \
+	} else { \
+		Delay = 0; \
+	} \
+	\
+	if ((g_CurrentTime + Delay < g_NextCommand || g_NextCommand < g_CurrentTime) && GetRealLength() > 0) { \
+		g_NextCommand = g_CurrentTime + Delay; \
+	}
+
 /**
  * DequeueItem
  *
@@ -90,10 +102,14 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	CurrentBytes = GetBytes();
 
 	if (m_Control && (CurrentBytes > FLOODBYTES - 100)) {
+		ScheduleCommand();
+
 		RETURN(char *, NULL);
 	}
 
 	if (m_Control && (g_CurrentTime - m_LastCommand < m_FloodWaitCache)) {
+		ScheduleCommand();
+
 		RETURN(char *, NULL);
 	}
 
@@ -126,16 +142,11 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 
 	THROWIFERROR(char *, Item);
 
-	if (m_Control != NULL) {
+	if (m_Control) {
 		CurrentBytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
 		m_Bytes = CurrentBytes;
 
-		// figure out when we're going to send the next command
-		Delay = CurrentBytes / 75;
-
-		if (g_CurrentTime + Delay < g_NextCommand) {
-			g_NextCommand = g_CurrentTime + Delay;
-		}
+		ScheduleCommand();
 	}
 
 	m_LastCommand = g_CurrentTime;
