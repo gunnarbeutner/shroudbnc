@@ -1654,12 +1654,6 @@ bool CClientConnection::ValidateUser(void) {
 	bool Force = false;
 	CUser* User;
 	bool Blocked = true, Valid = false;
-
-#ifdef USESSL
-	int Count = 0;
-	bool MatchUsername = false;
-	X509* PeerCert = NULL;
-	CUser* AuthUser = NULL;
 	sockaddr *Remote;
 
 	Remote = GetRemoteAddress();
@@ -1667,6 +1661,12 @@ bool CClientConnection::ValidateUser(void) {
 	if (Remote == NULL) {
 		return false;
 	}
+
+#ifdef USESSL
+	int Count = 0;
+	bool MatchUsername = false;
+	X509* PeerCert = NULL;
+	CUser* AuthUser = NULL;
 
 	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
 		int i = 0;
