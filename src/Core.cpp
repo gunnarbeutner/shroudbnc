@@ -839,9 +839,10 @@ void CCore::Log(const char *Format, ...) {
 
 	m_Log->WriteLine(NULL, "%s", Out);
 
-	for (unsigned int i = 0; i < m_Users.GetLength(); i++) {
-		CUser *User = m_Users.Iterate(i)->Value;
-		if (User->IsAdmin() && User->GetSystemNotices()) {
+	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
+		CUser *User = m_AdminUsers.Get(i);
+
+		if (User->GetSystemNotices()) {
 			User->Notice(Out);
 		}
 	}
@@ -1976,4 +1977,8 @@ void CCore::UpdateHosts(void) {
 
 	m_Config->WriteString(Out, NULL);
 	free(Out);
+}
+
+CVector<CUser *> *CCore::GetAdminUsers(void) {
+	return &m_AdminUsers;
 }

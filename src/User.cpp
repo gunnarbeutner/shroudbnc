@@ -109,6 +109,10 @@ CUser::CUser(const char *Name) {
 	if (m_Config->ReadInteger("user.quitted") != 2) {
 		ScheduleReconnect();
 	}
+
+	if (IsAdmin()) {
+		g_Bouncer->GetAdminUsers()->Insert(this);
+	}
 }
 
 /**
@@ -150,6 +154,8 @@ CUser::~CUser(void) {
 	if (m_ReconnectTimer != NULL) {
 		delete m_ReconnectTimer;
 	}
+
+	g_Bouncer->GetAdminUsers()->Remove(this);
 }
 
 /**
@@ -886,6 +892,12 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 void CUser::SetAdmin(bool Admin) {
 	m_Config->WriteInteger("user.admin", Admin ? 1 : 0);
 	m_IsAdminCache = (int)Admin;
+
+	if (Admin) {
+		g_Bouncer->GetAdminUsers()->Insert(this);
+	} else {
+		g_Bouncer->GetAdminUsers()->Remove(this);
+	}
 }
 
 /**

@@ -34,6 +34,7 @@ class CTimer;
  */
 class CDnsQuery {
 	friend void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
+	friend bool DestroyDnsChannelTimer(time_t Now, void *Cookie);
 
 	void *m_EventObject; /**< the object used for callbacks */
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */

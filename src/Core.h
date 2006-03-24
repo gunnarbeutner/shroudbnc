@@ -91,6 +91,7 @@ class CCore {
 	bool MakeConfig(void);
 
 	CVector<CZoneInformation *> m_Zones;
+	CVector<CUser *> m_AdminUsers;
 
 	void RegisterTimer(CTimer *Timer);
 	void UnregisterTimer(CTimer *Timer);
@@ -205,6 +206,8 @@ public:
 	virtual const CVector<char *> *GetHostAllows(void) const;
 	virtual bool CanHostConnect(const char *Host) const;
 	virtual bool IsValidHostAllow(const char *Mask) const;
+
+	virtual CVector<CUser *> *GetAdminUsers(void);
 };
 
 extern CCore *g_Bouncer;
