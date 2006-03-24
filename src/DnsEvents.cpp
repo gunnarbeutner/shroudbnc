@@ -31,6 +31,9 @@ bool DestroyDnsChannelTimer(time_t Now, void *Cookie) {
 	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
 	Query->DestroyChannel();
+	Query->m_ChannelDestructionTimer = NULL;
+
+	return false;
 }
 
 /**
@@ -110,6 +113,8 @@ void CDnsQuery::DestroyChannel(void) {
  * Destructs a DNS query object.
  */
 CDnsQuery::~CDnsQuery(void) {
+	delete m_ChannelDestructionTimer;
+
 	DestroyChannel();
 }
 

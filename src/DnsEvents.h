@@ -25,6 +25,8 @@
  */
 typedef void (*DnsEventFunction)(void *Object, hostent *Response);
 
+class CTimer;
+
 /**
  * CDnsQuery
  *
