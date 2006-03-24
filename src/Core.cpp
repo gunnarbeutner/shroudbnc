@@ -993,19 +993,15 @@ void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
 	int i;
 	char* Out = NULL;
-	size_t NewLength = 0, Length = 10;
+	size_t NewLength = 0, Length = 1;
+	bool WasNull = true;
 
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		bool WasNull = false;
-
-		if (Out == NULL)
-			WasNull = true;
-
 		NewLength += strlen(User->Name) + 1;
 
-		if (Length / MEMORYBLOCKSIZE > NewLength / MEMORYBLOCKSIZE) {
-			Out = (char*)realloc(Out, NewLength / MEMORYBLOCKSIZE + 1);
+		if ((Length / MEMORYBLOCKSIZE > NewLength / MEMORYBLOCKSIZE) || Length == 1) {
+			Out = (char*)realloc(Out, (NewLength / MEMORYBLOCKSIZE + 1) * MEMORYBLOCKSIZE);
 		}
 
 		Length = NewLength;
@@ -1016,19 +1012,18 @@ void CCore::UpdateUserConfig(void) {
 			return;
 		}
 
-		if (WasNull)
-			*Out = '\0';
-
-		if (*Out) {
+		if (!WasNull) {
 			strcat(Out, " ");
 			strcat(Out, User->Name);
 		} else {
 			strcpy(Out, User->Name);
+			WasNull = false;
 		}
 	}
 
-	if (m_Config)
+	if (m_Config != NULL) {
 		m_Config->WriteString("system.users", Out);
+	}
 
 	free(Out);
 }
@@ -1286,10 +1281,12 @@ const char *CCore::DebugImpulse(int impulse) {
 
 			CUser *User = CreateUser(Name, NULL);
 
-//			if ((rand() + 1) % 2 == 0)
-				User->SetServer("217.112.85.191");
-//			else
-//				User->SetServer("irc.saeder-krupp.org");
+			User->SetServer("217.112.85.191");
+
+			if ((rand() + 1) % 2 == 0)
+				User->SetPort(6667);
+			else
+				User->SetPort(6668);
 
 			User->SetLeanMode(2);
 

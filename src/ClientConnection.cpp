@@ -69,6 +69,7 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_PeerName = NULL;
 	m_PreviousNick = NULL;
 	m_ClientLookup = NULL;
+	m_AuthTimer = NULL;
 }
 
 CClientConnection::~CClientConnection() {
