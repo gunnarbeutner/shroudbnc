@@ -990,8 +990,10 @@ bool CCore::IsValidUsername(const char *Username) const {
 }
 
 void CCore::UpdateUserConfig(void) {
+#define MEMORYBLOCKSIZE 4096
 	int i;
 	char* Out = NULL;
+	size_t NewLength = 0, Length = 10;
 
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
@@ -1000,7 +1002,13 @@ void CCore::UpdateUserConfig(void) {
 		if (Out == NULL)
 			WasNull = true;
 
-		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(User->Name) + 10);
+		NewLength += strlen(User->Name) + 1;
+
+		if (Length / MEMORYBLOCKSIZE > NewLength / MEMORYBLOCKSIZE) {
+			Out = (char*)realloc(Out, NewLength / MEMORYBLOCKSIZE + 1);
+		}
+
+		Length = NewLength;
 
 		if (Out == NULL) {
 			LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
