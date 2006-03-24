@@ -79,7 +79,7 @@ CUser::CUser(const char *Name) {
 
 	m_Keys = new CKeyring(m_Config);
 
-	m_BadLoginPulse = g_Bouncer->CreateTimer(200, true, BadLoginTimer, this);
+	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
 	m_ReconnectTimer = NULL;
 
 	m_IsAdminCache = -1;

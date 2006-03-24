@@ -35,7 +35,7 @@ proc sbnc:partyline {client parameters} {
 
 	global botnick botname server partyline partytopic partyts partywho
 
-	if {[lsearch [string tolower $partyline] [string tolower [lindex $parameters 1]]] == -1} { return }
+	if {[lsearch -exact [string tolower $partyline] [string tolower [lindex $parameters 1]]] == -1} { return }
 
 	haltoutput
 

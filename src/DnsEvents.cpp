@@ -20,6 +20,20 @@
 #include "StdAfx.h"
 
 /**
+ * DestroyDnsChannelTimer
+ *
+ * Asynchronously destroys an ARES channel.
+ *
+ * @param Now the current time
+ * @param Cookie the CDnsQuery object
+ */
+bool DestroyDnsChannelTimer(time_t Now, void *Cookie) {
+	CDnsQuery *Query = (CDnsQuery *)Cookie;
+
+	Query->DestroyChannel();
+}
+
+/**
  * GenericDnsQueryCallback
  *
  * Used as a thunk between c-ares' C-style callbacks and shroudBNC's
@@ -34,7 +48,7 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 
 	Query->AsyncDnsEvent(Status, HostEntity);
 
-	Query->DestroyChannel();
+	Query->m_ChannelDestructionTimer = new CTimer(1, false, DestroyDnsChannelTimer, Cookie);
 }
 
 /**

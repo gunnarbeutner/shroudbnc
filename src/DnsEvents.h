@@ -37,6 +37,7 @@ class CDnsQuery {
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
 	ares_channel m_Channel; /**< the ares channel object */
 	time_t m_Timeout; /**< timeout for the dns query (in seconds) */
+	CTimer *m_ChannelDestructionTimer; /**< timer which is used for destroying the channel */
 
 	void InitChannel(void);
 	void DestroyChannel(void);

@@ -937,6 +937,7 @@ RESULT<CUser *> CCore::CreateUser(const char* Username, const char* Password) {
 RESULT<bool> CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 	RESULT<bool> Result;
 	CUser *User;
+	char *UsernameCopy;
 	
 	User = GetUser(Username);
 
@@ -953,13 +954,22 @@ RESULT<bool> CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 		unlink(User->GetLog()->GetFilename());
 	}
 
+	UsernameCopy = strdup(User->GetUsername());
+
 	delete User;
 	
 	Result = m_Users.Remove(Username);
 
-	THROWIFERROR(bool, Result);
+	if (IsError(Result)) {
+		free(UsernameCopy);
 
-	Log("User removed: %s", Username);
+		THROWRESULT(bool, Result);
+	}
+
+	if (UsernameCopy != NULL) {
+		Log("User removed: %s", UsernameCopy);
+		free(UsernameCopy);
+	}
 
 	UpdateUserConfig();
 
