@@ -68,6 +68,7 @@ void CTimer::Destroy(void) {
  * @param Now the current time
  */
 bool CTimer::Call(time_t Now) {
+	time_t ThisCall;
 	bool ReturnValue;
 
 #ifdef _DEBUG
@@ -75,6 +76,7 @@ bool CTimer::Call(time_t Now) {
 #endif
 
 	if (m_Interval != 0) {
+		ThisCall = m_Next;
 		m_Next = Now + m_Interval;
 	}
 
@@ -88,7 +90,7 @@ bool CTimer::Call(time_t Now) {
 		return true;
 	}
 
-	ReturnValue = m_Proc(Now, m_Cookie);
+	ReturnValue = m_Proc(ThisCall, m_Cookie);
 
 	if (ReturnValue == false || m_Repeat == false) {
 		Destroy();
@@ -124,4 +126,27 @@ int CTimer::GetInterval(void) const {
  */
 bool CTimer::GetRepeat(void) const {
 	return m_Repeat;
+}
+
+/**
+ * Reschedule
+ *
+ * Reschedules the next call for the timer.
+ *
+ * @param Next the next call
+ */
+void CTimer::Reschedule(time_t Next) {
+	m_Next = Next;
+}
+
+/**
+ * NullTimer
+ *
+ * A timer function which does nothing.
+ *
+ * @param Now the current time
+ * @param Cookie a timer cookie (will be ignored)
+ */
+bool NullTimer(time_t Now, void *Cookie) {
+	return true;
 }

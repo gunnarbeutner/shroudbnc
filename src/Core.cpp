@@ -165,8 +165,6 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	}
 
 	m_Status = STATUS_RUN;
-
-	g_NextCommand = 0;
 }
 
 CCore::~CCore() {
@@ -413,41 +411,6 @@ void CCore::StartMainLoop(void) {
 	while ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) && GetStatus() != STATUS_FREEZE) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
-		time(&Now);
-
-		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
-			CTimer *Timer;
-			time_t NextCall;
-			
-			Timer = m_Timers[c];
-			NextCall = Timer->GetNextCall();
-
-			if (Now >= NextCall) {
-				if (Now - 5 > NextCall) {
-					Log("Timer drift for timer %p: %d seconds", Timer, Now - NextCall);
-				}
-
-				Timer->Call(Now);
-			}
-		}
-
-		if (g_NextCommand != 0) {
-			Best = g_NextCommand;
-			g_NextCommand = 0;
-		} else {
-			Best = Now + 60;
-		}
-
-		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
-			time_t NextCall = m_Timers[c]->GetNextCall();
-
-			if (NextCall < Best) {
-				Best = NextCall;
-			}
-		}
-
-		SleepInterval = Best - Now;
-
 		SFD_ZERO(&FDRead);
 		SFD_ZERO(&FDWrite);
 		SFD_ZERO(&FDError);
@@ -507,6 +470,36 @@ void CCore::StartMainLoop(void) {
 				}
 			}
 		}
+
+		time(&Now);
+
+		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
+			CTimer *Timer;
+			time_t NextCall;
+			
+			Timer = m_Timers[c];
+			NextCall = Timer->GetNextCall();
+
+			if (Now >= NextCall) {
+				if (Now - 5 > NextCall) {
+					Log("Timer drift for timer %p: %d seconds", Timer, Now - NextCall);
+				}
+
+				Timer->Call(Now);
+			}
+		}
+
+		Best = Now + 60;
+
+		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
+			time_t NextCall = m_Timers[c]->GetNextCall();
+
+			if (NextCall < Best) {
+				Best = NextCall;
+			}
+		}
+
+		SleepInterval = Best - Now;
 
 		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE)) {
 			SleepInterval = 1;
@@ -993,18 +986,21 @@ void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
 	int i;
 	char* Out = NULL;
-	size_t NewLength = 0, Length = 1;
+	size_t Blocks = 0, NewBlocks = 1, Length = 1;
 	bool WasNull = true;
 
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		NewLength += strlen(User->Name) + 1;
+		Length += strlen(User->Name) + 1;
 
-		if ((Length / MEMORYBLOCKSIZE > NewLength / MEMORYBLOCKSIZE) || Length == 1) {
-			Out = (char*)realloc(Out, (NewLength / MEMORYBLOCKSIZE + 1) * MEMORYBLOCKSIZE);
+		NewBlocks += Length / MEMORYBLOCKSIZE;
+		Length -= (Length / MEMORYBLOCKSIZE) * MEMORYBLOCKSIZE;
+
+		if (NewBlocks > Blocks) {
+			Out = (char*)realloc(Out, (NewBlocks + 1) * MEMORYBLOCKSIZE);
 		}
 
-		Length = NewLength;
+		Blocks = NewBlocks;
 
 		if (Out == NULL) {
 			LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");

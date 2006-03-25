@@ -39,16 +39,19 @@ private:
 	time_t m_Next; /**< the next scheduled time of execution */
 
 	bool Call(time_t Now);
-	time_t GetNextCall(void) const;
-
 public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
 	virtual ~CTimer(void);
 #endif
 
+	virtual time_t GetNextCall(void) const;
 	virtual int GetInterval(void) const;
 	virtual bool GetRepeat(void) const;
 
+	virtual void Reschedule(time_t Next);
+
 	virtual void Destroy(void);
 };
+
+bool NullTimer(time_t Now, void *Cookie);

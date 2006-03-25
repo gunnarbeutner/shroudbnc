@@ -41,7 +41,7 @@ static penalty_t Penalties [] = {
 	{ NULL, 0 }
 };
 
-time_t g_NextCommand;
+CTimer *g_FloodTimer = NULL;
 
 /**
  * CFloodControl
@@ -52,6 +52,10 @@ CFloodControl::CFloodControl(void) {
 	m_Bytes = 0;
 	m_Control = true;
 	m_LastCommand = 0;
+
+	if (g_FloodTimer == NULL) {
+		g_FloodTimer = new CTimer(300, true, FloodTimer, NULL);
+	}
 }
 
 /**
@@ -72,15 +76,19 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 }
 
 #define ScheduleCommand() \
-	int Bytes = min(CurrentBytes, FLOODBYTES - 100); \
+	int Bytes = CurrentBytes - (FLOODBYTES - 100); \
 	if (Bytes > 0) { \
 		Delay = (Bytes / 75) + 1; \
 	} else { \
 		Delay = 0; \
 	} \
 	\
-	if ((g_CurrentTime + Delay < g_NextCommand || g_NextCommand < g_CurrentTime) && GetRealLength() > 0) { \
-		g_NextCommand = g_CurrentTime + Delay; \
+	time_t NextCommand = 0; \
+	if (g_FloodTimer != NULL) { \
+		NextCommand = g_FloodTimer->GetNextCall(); \
+	} \
+	if (Delay > 0 && (g_CurrentTime + Delay < NextCommand || NextCommand < g_CurrentTime) && GetRealLength() > 0) { \
+		g_FloodTimer->Reschedule(g_CurrentTime + Delay); \
 	}
 
 /**
@@ -123,9 +131,8 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		THROWRESULT(char *, PeekItem);
 	}
 
-	if (m_Control && (strlen(PeekItem) + CurrentBytes > FLOODBYTES - 150 && CurrentBytes > 1/4 * FLOODBYTES)) {
-		RETURN(char *, NULL);
-	} else if (Peek) {
+
+	if (Peek) {
 		RETURN(char *, const_cast<char*>((const char *)PeekItem));
 	}
 
@@ -268,4 +275,21 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 	}
 
 	return 1;
+}
+
+/**
+ * FloodTimer
+ *
+ * Controls the output of the CFloodControl class.
+ *
+ * @param Now the them when the timer should have been executed
+ * @param Null a NULL pointer
+ */
+bool FloodTimer(time_t Now, void *Null) {
+	if (Now < g_CurrentTime) {
+		// the timer was executed too late, force re-evaluation
+		g_FloodTimer->Reschedule(g_CurrentTime + 1);
+	}
+
+	return true;
 }

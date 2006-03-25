@@ -32,14 +32,12 @@ typedef struct queue_s {
 class CTimer;
 
 #ifndef SWIG
-bool FloodTimer(time_t Now, void *FloodControl);
+bool FloodTimer(time_t Now, void *Null);
 #endif
 
 #ifdef SWIGINTERFACE
 %template(CZoneObjectCFloodControl) CZoneObject<class CFloodControl, 16>;
 #endif
-
-extern time_t g_NextCommand; /**< time of next burst */
 
 /**
  * CFloodControl
