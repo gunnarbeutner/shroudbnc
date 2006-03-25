@@ -1229,6 +1229,20 @@ const char* getisupport(const char* Feature) {
 	return IRC->GetISupport(Feature);
 }
 
+void setisupport(const char *Feature, const char *Value) {
+	CUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		throw "Invalid user.";
+
+	CIRCConnection* IRC = Context->GetIRCConnection();
+
+	if (!IRC)
+		return;
+
+	IRC->SetISupport(Feature, Value);
+}
+
 int requiresparam(char Mode) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 

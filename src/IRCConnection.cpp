@@ -855,6 +855,10 @@ const char *CIRCConnection::GetISupport(const char *Feature) const {
 	return m_ISupport->ReadString(Feature);
 }
 
+void CIRCConnection::SetISupport(const char *Feature, const char *Value) {
+	m_ISupport->WriteString(Feature, Value);
+}
+
 bool CIRCConnection::IsChanMode(char Mode) const {
 	const char* Modes = GetISupport("CHANMODES");
 

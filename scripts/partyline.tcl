@@ -19,6 +19,7 @@ internalbind client sbnc:partyline
 internalbind attach sbnc:partyattach
 internalbind detach sbnc:partydetach
 internalbind usrdelete sbnc:partysync
+internalbind server sbnc:partychantypes 005
 
 set ::partyline [list &partyline &test]
 
@@ -27,6 +28,27 @@ foreach chan $::partyline {
 		set ::partytopic($chan) "shroudBNC Partyline"
 		set ::partyts($chan) [unixtime]
 		set ::partywho($chan) "-sBNC"
+	}
+}
+
+# work around some weird "feature" in mirc, which sends a /part for channels when the channel's prefix isn't in CHANTYPES
+proc sbnc:partychantypes {client params} {
+	if {[lindex $params 1] != 5} { return }
+
+	set toks [lrange $params 3 end-1]
+
+	set i 0
+	while {$i < [llength $toks]} {
+		if {[string equal -nocase [lindex [split [lindex $toks $i] "="] 0] "CHANTYPES"]} {
+			if {[string first [lindex $toks $i] "!"] == -1} {
+				set chantypes "[lindex $toks $i]&"
+				setisupport CHANTYPES $chantypes
+				putclient ":[join [lrange $params 0 2]] [join [lreplace $params $i $i $chantypes]] :[lindex $params end]"
+				haltoutput
+			}
+		}
+
+		incr i
 	}
 }
 

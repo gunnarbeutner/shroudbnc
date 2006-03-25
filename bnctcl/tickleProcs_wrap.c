@@ -2166,6 +2166,55 @@ _wrap_getisupport(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
+_wrap_setisupport(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_2 ;
+    bool ds_use_2 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"oo:setisupport Feature Value ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    {
+        ds_use_2 = true;
+        arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+    }
+    {
+        try {
+            setisupport((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+        }
+    }
+    
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_requiresparam(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char arg1 ;
     int result;
@@ -4989,6 +5038,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncuptime", (swig_wrapper_func) _wrap_bncuptime, NULL},
     { SWIG_prefix "floodcontrol", (swig_wrapper_func) _wrap_floodcontrol, NULL},
     { SWIG_prefix "getisupport", (swig_wrapper_func) _wrap_getisupport, NULL},
+    { SWIG_prefix "setisupport", (swig_wrapper_func) _wrap_setisupport, NULL},
     { SWIG_prefix "requiresparam", (swig_wrapper_func) _wrap_requiresparam, NULL},
     { SWIG_prefix "isprefixmode", (swig_wrapper_func) _wrap_isprefixmode, NULL},
     { SWIG_prefix "getchanprefix", (swig_wrapper_func) _wrap_getchanprefix, NULL},

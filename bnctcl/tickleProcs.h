@@ -92,6 +92,7 @@ int bncuptime(void);
 int floodcontrol(const char* Function);
 
 const char* getisupport(const char* Feature);
+void setisupport(const char *Feature, const char *Value);
 int requiresparam(char Mode);
 bool isprefixmode(char Mode);
 const char* getchanprefix(const char* Channel, const char* Nick);

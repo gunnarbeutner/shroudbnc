@@ -133,6 +133,7 @@ public:
 
 	virtual const CConfig *GetISupportAll(void) const;
 	virtual const char *GetISupport(const char *Feature) const;
+	virtual void SetISupport(const char *Feature, const char *Value);
 	virtual bool IsChanMode(char Mode) const;
 	virtual int RequiresParameter(char Mode) const;
 	virtual bool IsNickPrefix(char Char) const;

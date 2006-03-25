@@ -4,7 +4,9 @@
 #define PORTABLE_SNPRINTF_VERSION_MAJOR 2
 #define PORTABLE_SNPRINTF_VERSION_MINOR 2
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 #ifdef HAVE_SNPRINTF
 #include <stdio.h>
@@ -25,6 +27,8 @@ extern int vasprintf (char **ptr, const char *fmt, va_list ap);
 extern int asnprintf (char **ptr, size_t str_m, const char *fmt, /*args*/ ...);
 extern int vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif
