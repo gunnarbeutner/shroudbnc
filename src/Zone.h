@@ -35,17 +35,23 @@ public:
 };
 
 /**
+ * hunkobject_t
+ *
+ * A single hunk object.
+ */
+template<typename Type>
+struct hunkobject_s {
+	bool Valid;
+	char Data[sizeof(Type)];
+};
+
+/**
  * CZone<Type>
  *
  * A memory zone used for efficiently storing similar objects.
  */
 template<typename Type, int HunkSize>
 class CZone : public CZoneInformation {
-	template<typename HunkType>
-	struct hunkobject_s {
-		bool Valid;
-		char Data[sizeof(HunkType)];
-	};
 
 	template<typename HunkType, int HunkObjectSize>
 	struct hunk_s {
