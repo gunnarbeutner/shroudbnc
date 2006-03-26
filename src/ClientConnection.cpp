@@ -1380,7 +1380,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 			return false;
 		} else if (strcasecmp(Command, "userhost") == 0) {
-			if (argc == 2) {
+			if (argc == 2 && strcasecmp(argv[1], m_Nick) == 0) {
 				const char *Server, *Ident;
 				CIRCConnection *IRC;
 
