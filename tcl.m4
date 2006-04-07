@@ -62,6 +62,7 @@ AC_DEFUN([SC_PATH_TCLCONFIG], [
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -dr /usr/local/lib/tcl?.? 2>/dev/null` \
 			`ls -dr /usr/lib/tcl?.? 2>/dev/null` \
+			`ls -dr /usr/lib64/tcl?.? 2>/dev/null` \
 			`ls -d /usr/contrib/lib 2>/dev/null` \
 			`ls -d /usr/lib 2>/dev/null` \
 			; do

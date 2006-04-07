@@ -215,7 +215,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 		int ModeType = m_Owner->RequiresParameter(Current);
 
-		if (Current == 'b' && m_Banlist != NULL) {
+		if (Current == 'b' && m_Banlist != NULL && p < pargc) {
 			if (Flip) {
 				m_Banlist->SetBan(pargv[p], Source, g_CurrentTime);
 			} else {
@@ -223,12 +223,18 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			}
 		}
 
-		if (Current == 'k' && Flip && strcmp(pargv[p], "*") != 0) {
+		if (Current == 'k' && Flip && p < pargc && strcmp(pargv[p], "*") != 0) {
 			m_Owner->GetOwner()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, ((Flip && ModeType != 0) || (!Flip && ModeType != 0 && ModeType != 1)) ? pargv[p] : NULL);
+			const char *arg = NULL;
+
+			if (((Flip && ModeType != 0) || (!Flip && ModeType != 0 && ModeType != 1)) && p < pargc) {
+				arg = pargv[p];
+			}
+
+			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, arg);
 		}
 
 		if (Flip) {
@@ -248,7 +254,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 			Slot->Mode = Current;
 			
-			if (ModeType != 0) {
+			if (ModeType != 0 && p < pargc) {
 				Slot->Parameter = strdup(pargv[p++]);
 			} else {
 				Slot->Parameter = NULL;

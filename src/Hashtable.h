@@ -62,6 +62,25 @@ inline int CmpString(const void *pA, const void *pB) {
 	return strcmp(*(const char **)pA, *(const char **)pB);
 }
 
+/**
+ * Hash
+ *
+ * Calculates a hash value for a string.
+ *
+ * @param String the string
+ */
+inline unsigned long Hash(const char *String) {
+	unsigned long HashValue = 5381;
+	int c;
+
+	while (c = *String++) {
+		HashValue = ((HashValue << 5) + HashValue) + c; /* hash * 33 + c */
+	}
+
+	return HashValue;
+}
+
+
 template<typename Type, bool CaseSensitive, int Size> class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
@@ -113,24 +132,6 @@ public:
 		}
 
 		memset(m_Items, 0, sizeof(m_Items));
-	}
-
-	/**
-	 * Hash
-	 *
-	 * Calculates a hash value for a string.
-	 *
-	 * @param String the string
-	 */
-	static hashvalue_t Hash(const char *String) {
-		unsigned long HashValue = 5381;
-		int c;
-
-		while (c = *String++) {
-			HashValue = ((HashValue << 5) + HashValue) + c; /* hash * 33 + c */
-		}
-
-		return HashValue;
 	}
 
 	/**
@@ -410,7 +411,7 @@ public:
 		m_String = String;
 
 		if (String) {
-			m_Hash = CHashtable<void *, false, 2^16>::Hash(String);
+			m_Hash = Hash(String);
 		} else {
 			m_Hash = 0;
 		}

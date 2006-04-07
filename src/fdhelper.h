@@ -23,17 +23,15 @@
 #ifndef _FDHELPER_H
 #define _FDHELPER_H
 
-#ifndef _WIN32
+#undef SFD_SETSIZE
 #define SFD_SETSIZE 16384
 
-#undef FD_SETSIZE
-#define FD_SETSIZE SFD_SETSIZE
-
+#ifndef _WIN32
 typedef long sfd_mask;
-#undef NFDBITS
-#define NFDBITS (8 * sizeof (sfd_mask)) /* bits per mask */
+#undef SNFDBITS
+#define SNFDBITS (8 * sizeof (sfd_mask)) /* bits per mask */
 typedef struct _types_sfd_set {
-        sfd_mask fds_bits[FD_SETSIZE / NFDBITS];
+        sfd_mask fds_bits[SFD_SETSIZE / SNFDBITS];
 } _types_sfd_set;
 
 # define SFDS_BITS(set) ((set)->fds_bits)
@@ -49,8 +47,8 @@ typedef struct _types_sfd_set {
       SFDS_BITS (__arr)[__i] = 0;                                             \
   } while (0)
 
-#define     SFDELT(d)      ((d) / NFDBITS)
-#define     SFDMASK(d)     ((sfd_mask) 1 << ((d) % NFDBITS))
+#define     SFDELT(d)      ((d) / SNFDBITS)
+#define     SFDMASK(d)     ((sfd_mask) 1 << ((d) % SNFDBITS))
 
 #undef SFD_SET
 #define SFD_SET(d, set)    (SFDS_BITS (set)[SFDELT (d)] |= SFDMASK (d))
@@ -62,12 +60,14 @@ typedef struct _types_sfd_set {
 #define SFD_ISSET(d, set)  (SFDS_BITS (set)[SFDELT (d)] & SFDMASK (d))
 
 #else /* !_WIN32 */
+#undef FD_SETSIZE
+#define FD_SETSIZE SFD_SETSIZE
+
 #define sfd_set fd_set
 #define SFD_ZERO FD_ZERO
 #define SFD_SET FD_SET
 #define SFD_CLR FD_CLR
 #define SFD_ISSET FD_ISSET
-#define SFD_SETSIZE FD_SETSIZE
 #endif
 
 #endif /* _FDHELPER_H */

@@ -866,59 +866,23 @@ bool CIRCConnection::IsChanMode(char Mode) const {
 }
 
 int CIRCConnection::RequiresParameter(char Mode) const {
-	char* Modes = strdup(GetISupport("CHANMODES"));
+	int ReturnValue = 3;
+	const char *Modes = GetISupport("CHANMODES");
+	size_t Len = strlen(Modes);
 
-	if (Modes == NULL) {
-		LOGERROR("strdup() failed.");
+	for (size_t i = 0; i < Len; i++) {
+		if (Modes[i] == Mode) {
+			return Mode;
+		} else if (Modes[i] == ',') {
+			ReturnValue--;
+		}
 
-		return 0;
+		if (ReturnValue == 0) {
+			return 0;
+		}
 	}
 
-	for (unsigned int i = 0; i < strlen(Modes); i++) {
-		if (Modes[i] == ',')
-			Modes[i] = ' ';
-	}
-
-	const char* Args = ArgTokenize(Modes);
-
-	if (Args == NULL) {
-		LOGERROR("ArgTokenize() failed.");
-
-		free(Modes);
-
-		return 0;
-	}
-
-	free(Modes);
-
-	const char** argv = ArgToArray(Args);
-
-	if (argv == NULL) {
-		LOGERROR("ArgToArray() failed.");
-
-		ArgFree(Args);
-
-		return 0;
-	}
-
-	int argc = ArgCount(Args);
-	int RetVal = 0;
-
-	if (argc > 0 && strchr(argv[0], Mode) != NULL)
-		RetVal = 3;
-	else if (argc > 1 && strchr(argv[1], Mode) != NULL)
-		RetVal = 2;
-	else if (argc > 2 && strchr(argv[2], Mode) != NULL)
-		RetVal = 1;
-	else if (argc > 3 && strchr(argv[3], Mode) != NULL)
-		RetVal = 0;
-	else if (IsNickMode(Mode))
-		RetVal = 2;
-
-	ArgFree(Args);
-	ArgFreeArray(argv);
-	
-	return RetVal;
+	return ReturnValue;
 }
 
 CChannel* CIRCConnection::GetChannel(const char* Name) {

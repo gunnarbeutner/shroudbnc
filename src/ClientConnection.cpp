@@ -42,7 +42,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	}
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s", g_Bouncer->GetBouncerVersion());
+		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s - Copyright (C) 2005 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 

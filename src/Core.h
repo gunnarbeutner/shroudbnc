@@ -211,7 +211,10 @@ public:
 };
 
 extern CCore *g_Bouncer;
+
+#ifndef SWIG
 extern time_t g_CurrentTime;
+#endif
 
 #define CHECK_ALLOC_RESULT(Variable, Function) \
 	do { \

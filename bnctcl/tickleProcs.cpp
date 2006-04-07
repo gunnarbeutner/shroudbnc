@@ -1064,12 +1064,7 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 }
 
 int ticklerand(int limit) {
-	int val = int(rand() / float(RAND_MAX) * limit);
-
-	if (val > limit - 1)
-		return limit - 1;
-	else
-		return val;
+	return rand() % limit;
 }
 
 const char* bncversion(void) {

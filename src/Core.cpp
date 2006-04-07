@@ -537,7 +537,7 @@ void CCore::StartMainLoop(void) {
 
 		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
 #else
-		int ready = select(FD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
+		int ready = select(SFD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
 #endif
 
 #ifdef LEAKLEAK
@@ -602,7 +602,7 @@ void CCore::StartMainLoop(void) {
 					FD_SET(Socket, &set);
 
 					timeval zero = { 0, 0 };
-					int code = select(FD_SETSIZE - 1, &set, NULL, NULL, &zero);
+					int code = select(SFD_SETSIZE - 1, &set, NULL, NULL, &zero);
 
 					if (code == -1) {
 						m_OtherSockets[a].Events->Error();
@@ -704,6 +704,21 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 	} CHECK_ALLOC_RESULT_END;
 
 	Result = Module->GetError();
+
+	if (IsError(Result)) {
+		CModule *Module2 = new CModule(BuildPath(Filename));
+
+		CHECK_ALLOC_RESULT(Module2, new) {
+			THROW(CModule *, Generic_OutOfMemory, "new operator failed.");
+		} CHECK_ALLOC_RESULT_END;
+
+		if (!IsError(Module2->GetError())) {
+			delete Module;
+			Module = Module2;
+		} else {
+			delete Module2;
+		}
+	}
 
 	if (!IsError(Result)) {
 		Result = m_Modules.Insert(Module);
