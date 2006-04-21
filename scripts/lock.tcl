@@ -5,7 +5,7 @@ set ::globallocks [list awaymessage]
 proc lock:command {client parameters} { 
 	set command [lindex $parameters 0]
 	
-	if {[string equal -nocase $command "help"]} {
+	if {[string equal -nocase $command "help"] && [getbncuser $client admin]} {
 		bncaddcommand lock Admin "locks a user's settings" "/sbnc lock <user> \[setting\]\nShows locked settings for a user or locks a setting"
 		bncaddcommand unlock Admin "unlocks a user's settings" "/sbnc unlock <user> <setting>\nUnlocks a users setting"
 	}

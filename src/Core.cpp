@@ -147,7 +147,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 
 	i = 0;
 	while (true) {
-		asprintf(&Out, "user.hosts.host%d", i++);
+		asprintf(&Out, "system.hosts.host%d", i++);
 
 		CHECK_ALLOC_RESULT(Out, asprintf) {
 			Fatal();

@@ -1533,7 +1533,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
 				}
-			} else if (strcasecmp(argv[1], "version") == 0) {
+			} else if (strcasecmp(argv[1], "version") == 0 && argc == 2) {
 				CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 				if (IRC) {
