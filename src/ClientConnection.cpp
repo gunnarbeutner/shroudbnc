@@ -1626,12 +1626,13 @@ void CClientConnection::ParseLine(const char* Line) {
 	if (strlen(Line) > 512)
 		return; // protocol violation
 
+	bool ReturnValue;
 	tokendata_t Args;
-	const char** argv;
+	const char** argv, ** real_argv;
 	int argc;
 
 	Args = ArgTokenize2(Line);
-	argv = ArgToArray2(Args);
+	argv = real_argv = ArgToArray2(Args);
 
 	CHECK_ALLOC_RESULT(argv, ArgToArray2)  {
 		return;
@@ -1639,11 +1640,22 @@ void CClientConnection::ParseLine(const char* Line) {
 
 	argc = ArgCount2(Args);
 
-	bool Ret = ParseLineArgV(argc, argv);
+	if (argc > 0) {
+		if (argv[0][0] == ':') {
+			argv = &argv[1];
+			argc--;
+		}
+	}
 
-	ArgFreeArray(argv);
+	if (argc > 0) {
+		ReturnValue = ParseLineArgV(argc, argv);
+	} else {
+		ReturnValue = true;
+	}
 
-	if (m_Owner && Ret) {
+	ArgFreeArray(real_argv);
+
+	if (m_Owner != NULL && ReturnValue) {
 		CIRCConnection* IRC = m_Owner->GetIRCConnection();
 
 		if (IRC)

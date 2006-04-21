@@ -1,11 +1,11 @@
 scriptsdir=$(exec_prefix)/scripts
 scripts_DATA=account.tcl \
 alltools.tcl \
-awaymessage.tcl \
 bind.tcl \
 botnet.tcl \
 channel.tcl \
 contact.tcl \
+defaultserver.tcl \
 fakemode.tcl \
 highlight.tcl \
 iface2.tcl \
