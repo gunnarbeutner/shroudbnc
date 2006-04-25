@@ -333,7 +333,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				asprintf(&Out, "JOIN %s", argv[2]);
 
 				if (Out == NULL) {
-					LOGERROR("asprintf() failed. Could not rejoin channel.");
+ 					LOGERROR("asprintf() failed. Could not rejoin channel.");
 
 					return bRet;
 				}
@@ -872,7 +872,7 @@ int CIRCConnection::RequiresParameter(char Mode) const {
 
 	for (size_t i = 0; i < Len; i++) {
 		if (Modes[i] == Mode) {
-			return Mode;
+			return ReturnValue;
 		} else if (Modes[i] == ',') {
 			ReturnValue--;
 		}

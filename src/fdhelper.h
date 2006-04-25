@@ -31,10 +31,10 @@ typedef long sfd_mask;
 #undef SNFDBITS
 #define SNFDBITS (8 * sizeof (sfd_mask)) /* bits per mask */
 typedef struct _types_sfd_set {
-        sfd_mask fds_bits[SFD_SETSIZE / SNFDBITS];
+        sfd_mask sfds_bits[SFD_SETSIZE / SNFDBITS];
 } _types_sfd_set;
 
-# define SFDS_BITS(set) ((set)->fds_bits)
+#define SFDS_BITS(set) ((set)->sfds_bits)
 
 #define sfd_set _types_sfd_set
 

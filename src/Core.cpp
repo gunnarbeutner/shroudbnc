@@ -560,14 +560,14 @@ void CCore::StartMainLoop(void) {
 				CSocketEvents* Events = m_OtherSockets[a].Events;
 
 				if (Socket != INVALID_SOCKET) {
-					if (FD_ISSET(Socket, &FDError)) {
+					if (SFD_ISSET(Socket, &FDError)) {
 						Events->Error();
 						Events->Destroy();
 
 						continue;
 					}
 
-					if (FD_ISSET(Socket, &FDRead)) {
+					if (SFD_ISSET(Socket, &FDRead)) {
 						if (!Events->Read()) {
 							Events->Destroy();
 
@@ -575,7 +575,7 @@ void CCore::StartMainLoop(void) {
 						}
 					}
 
-					if (Events && FD_ISSET(Socket, &FDWrite)) {
+					if (Events && SFD_ISSET(Socket, &FDWrite)) {
 						Events->Write();
 					}
 
