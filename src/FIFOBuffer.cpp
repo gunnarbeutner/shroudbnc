@@ -85,7 +85,7 @@ void CFIFOBuffer::Optimize(void) {
 		return;
 	}
 
-	if (m_BufferSize - m_Offset == 0) {
+	if (m_BufferSize - m_Offset <= 0) {
 		free(m_Buffer);
 
 		m_Buffer = NULL;

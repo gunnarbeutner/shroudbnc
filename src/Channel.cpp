@@ -489,7 +489,7 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 
 	m_Nicks.Remove(Nick, true);
 	NickObj->SetNick(NewNick);
-	m_Nicks.Add(Nick, NickObj);
+	m_Nicks.Add(NewNick, NickObj);
 }
 
 /**

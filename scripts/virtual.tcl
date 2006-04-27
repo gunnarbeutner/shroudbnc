@@ -364,7 +364,7 @@ proc virtual:vaddgroup {group limit} {
 	set pass [randstring 8]
 
 	if {$limit == "" || ![string is integer $limit]} {
-		return -code error "Limit should be a number."]
+		return -code error "Limit should be a number."
 	}
 
 	foreach user [bncuserlist] {

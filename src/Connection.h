@@ -87,6 +87,8 @@ private:
 	SOCKET m_Socket; /**< the socket */
 	int m_Family; /**< the socket's address family */
 
+	bool m_Connected; /**< is the object connected? */
+
 	void InitConnection(SOCKET Client, bool SSL);
 
 	virtual const char *GetClassName(void) const;
@@ -130,6 +132,8 @@ public:
 	virtual sockaddr *GetLocalAddress(void) const;
 
 	void Destroy(void);
+
+	virtual bool IsConnected(void);
 
 	// should really be "protected"
 	virtual bool Read(bool DontProcess = false);

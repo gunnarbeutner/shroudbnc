@@ -411,6 +411,8 @@ void CCore::StartMainLoop(void) {
 	while ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) && GetStatus() != STATUS_FREEZE) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
+		time(&Now);
+
 		SFD_ZERO(&FDRead);
 		SFD_ZERO(&FDWrite);
 		SFD_ZERO(&FDError);

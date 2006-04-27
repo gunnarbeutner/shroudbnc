@@ -146,18 +146,34 @@ bool CTclClientSocket::Read(bool DontProcess) {
 }
 
 void CTclClientSocket::Write(void) {
+	if (m_Wrap == NULL) {
+		return;
+	}
+
 	m_Wrap->Write();
 }
 
 void CTclClientSocket::Error(void) {
+	if (m_Wrap == NULL) {
+		return;
+	}
+
 	m_Wrap->Error();
 }
 
 bool CTclClientSocket::HasQueuedData(void) const {
+	if (m_Wrap == NULL) {
+		return false;
+	}
+
 	return m_Wrap->HasQueuedData();
 }
 
 bool CTclClientSocket::DoTimeout(void) {
+	if (m_Wrap == NULL) {
+		return false;
+	}
+
 	return m_Wrap->DoTimeout();
 }
 

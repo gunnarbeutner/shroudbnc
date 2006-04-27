@@ -259,6 +259,8 @@ bool CConnection::Read(bool DontProcess) {
 	int ReadResult;
 	char Buffer[8192];
 
+	m_Connected = true;
+
 	if (m_Shutdown) {
 		return true;
 	}
@@ -905,4 +907,13 @@ sockaddr *CConnection::GetLocalAddress(void) const {
 	} else {
 		return NULL;
 	}
+}
+
+/**
+ * IsConnected
+ *
+ * Checks whether the connection object is connected.
+ */
+bool CConnection::IsConnected(void) {
+	return m_Connected;
 }

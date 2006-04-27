@@ -1394,9 +1394,13 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 
 void CIRCConnection::Error(void) {
 	if (m_State == State_Connecting && GetOwner() != NULL) {
-		g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
-
-		GetOwner()->Notice("An error occured while connecting to a server.");
+		if (!IsConnected()) {
+			g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
+			GetOwner()->Notice("An error occured while connecting to a server.");
+		} else {
+			g_Bouncer->Log("An error occured while processing a connection for user %s", GetOwner()->GetUsername());
+			GetOwner()->Notice("An error occured while processing a connection.");
+		}
 	}
 }
 

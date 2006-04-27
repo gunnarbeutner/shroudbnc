@@ -287,7 +287,7 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
 	
 	Pointers = (const char **)malloc(sizeof(const char *) * 32);
 
-	for (unsigned int i = 0; i <= min(Tokens.count, 32); i++) {
+	for (unsigned int i = 0; i < min(Tokens.count, 32); i++) {
 		Pointers[i] = Tokens.pointers[i] + Tokens.string;
 	}
 
