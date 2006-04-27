@@ -30,6 +30,7 @@ CModule::CModule(const char *Filename) {
 	bool Result = false;
 
 	m_Far = NULL;
+	m_Image = NULL;
 	m_File = strdup(Filename);
 
 	CorePath = strdup(g_LoaderParameters->GetModulePath());
@@ -118,6 +119,7 @@ bool CModule::InternalLoad(const char *Filename) {
 				m_Error = strdup("This module is already loaded.");
 
 				FreeLibrary(m_Image);
+				m_Image = NULL;
 
 				return false;
 			}
@@ -130,6 +132,9 @@ bool CModule::InternalLoad(const char *Filename) {
 			m_Error = strdup("This module was compiled for an earlier version"
 				" of shroudBNC. Please recompile the module and try again.");
 
+			FreeLibrary(m_Image);
+			m_Image = NULL;
+
 			return false;
 		}
 
@@ -137,6 +142,7 @@ bool CModule::InternalLoad(const char *Filename) {
 			m_Error = strdup("GetModule() failed.");
 
 			FreeLibrary(m_Image);
+			m_Image = NULL;
 
 			return false;
 		}
