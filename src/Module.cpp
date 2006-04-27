@@ -107,9 +107,9 @@ bool CModule::InternalLoad(const char *Filename) {
 		if (ErrorMsg != NULL) {
 			LocalFree(ErrorMsg);
 		}
+#endif
 
 		return false;
-#endif
 	} else {
 		Modules = g_Bouncer->GetModules();
 

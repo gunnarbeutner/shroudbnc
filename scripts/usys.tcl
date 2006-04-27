@@ -1,25 +1,55 @@
+# usys.tcl (c)2006 Alex Sajzew
+# shroudBNC - an object-oriented framework for IRC
+# Copyright (C) 2005 Gunnar Beutner
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
 set max:handLength 9
+
+internalbind server sbnc:ban:join JOIN
+internalbind modec sbnc:ban:op +o
+internalbind modec sbnc:ban:op +h
+internalbind modec sbnc:ban:unban -b
+internaltimer 60 1 sbnc:checkBans
 
 proc adduser {handle {hostmask ""}} {
 
-	set handle [string range [string map {: ""} $handle] 0 [expr ${::max:handLength} - 1]]
+	set handle [string range $handle 0 [expr ${::max:handLength} - 1]]
 
 	if {[validuser $handle]} { return 0 }
 
 	namespace eval [getns] {
 		set handle [uplevel 1 {set handle}]
-		if {![array exists userInfo:[string tolower ${handle}]]} {
-			array set userInfo:[string tolower ${handle}] ""
+		if {![info exists userInfo(:[string tolower $handle])]} {
+			set userInfo(:[string tolower $handle]) $handle
+		}
+		if {![info exists userList]} {
+			set userList ""
 		}
 	}
 
-	upvar [getns]::userInfo:[string tolower ${handle}] u [getns]::userList ulist
+	set handle [string tolower $handle]
 
-	set u(glb) "-"
-	lappend ulist $handle
+	upvar [getns]::userInfo ui [getns]::userList ulist
+
+	set ui(glb:$handle) "-"
+	set ui(chf:$handle) ""
+	lappend ulist $ui(:$handle)
 
 	if {$hostmask != ""} {
-		set u(hosts) "{$hostmask}"
+		set ui(hosts:$handle) "{$hostmask}"
 	}
 
 	return 1
@@ -28,216 +58,187 @@ proc adduser {handle {hostmask ""}} {
 
 proc chattr {handle {changes ""} {channel ""}} {
 
+	set handle [string tolower $handle]
+
 	namespace eval [getns] {
 		set handle [uplevel 1 {set handle}]
-		if {![array exists userInfo:[string tolower ${handle}]]} {
-			array set userInfo:[string tolower ${handle}] ""
+		if {![info exists userInfo(:$handle)]} {
+			return "*"
 		}
 	}
 
-	upvar [getns]::userInfo:[string tolower ${handle}] u
+	upvar [getns]::userInfo ui
 
 	if {$changes == "" && $channel == ""} {
-
-		if {[info exists u(glb)]} {
-			return [set u(glb)]
-		} else {
-			return "*"
-		}
-
+		return $ui(glb:$handle)
 	}
 
 	if {$changes != "" && $channel == ""} {
-
 		if {[string index $changes 0] == "#"} {
 
-			if {![validuser $handle]} { return "*" }
-
-			if {![info exists u(chanf)]} {
-				return "[chattr $handle]|-"
-			}
-
-			foreach chan [set u(chanf)] {
-
-				if {[string equal -nocase $changes [lindex $chan 0]]} {
-					return "[chattr $handle]|[lindex $chan 2]"
+			if {[info exists ui(chf:$handle)]} {
+				foreach chan $ui(chf:$handle) {
+					if {[string equal -nocase $changes [lindex [split $chan] 0]]} {
+						return "$ui(glb:$handle)|[lindex [split $chan] 2]"
+					}
 				}
-
 			}
 
-			return "[chattr $handle]|-"
-
-		} elseif {[string index $changes 0] == "-"} {
-
-			if {![validuser $handle]} { return "*" }
-
-			set glob [chattr $handle]
-
-			if {$glob == "-"} {
-				set glob ""
-			}
-
-			foreach f [split [string range $changes 1 end] ""] {
-				if {![string is ascii "$f"] || ![string is alpha "$f"]} { continue }
-				set glob [string map [list $f ""] $glob]
-			}
-
-			if {$glob == " " || $glob == ""} {
-				set glob "-"
-			}
-
-			set glob [join $glob ""]
-
-			set glob [join [lsort [split $glob ""]] ""]
-
-			set u(glb) $glob
-
-			return [chattr $handle]
+			return "$ui(glb:$handle)|-"
 
 		} else {
 
-			if {[string index $changes 0] == "+"} {
-				set changes [string range $changes 1 end]
+			set glb $ui(glb:$handle)
+
+			if {$glb == "-"} {
+				set glb ""
 			}
 
-			if {![validuser $handle]} { return "*" }
+			set action "add"
 
-			set glob [chattr $handle]
+			foreach char [split $changes ""] {
+				if {$char == " " || $char == ""} { continue }
 
-			if {$glob == "-"} {
-				set glob ""
-			}
+				if {$char == "|"} {
+					if {$glb == ""} {
+						set glb "-"
+					}
 
-			foreach f [split $changes ""] {
-				if {![string is ascii "$f"] || ![string is alpha "$f"]} { continue }
-				if {[string first $f $glob] == -1} {
-					lappend glob $f
+					set ui(glb:$handle) [join [lsort [split $glb ""]] ""]
+
+					return [chattr $handle]
 				}
+
+				if {$char == "-"} {
+					set action "remove"
+				} elseif {$char == "+"} {
+					set action "add"
+				} else {
+
+					if {![string is ascii $char] || ![string is alpha $char]} { continue }
+
+					switch -- $action {
+						remove {
+							set glb [string map [list $char ""] $glb]
+						}
+						add {
+							if {[string first $char $glb] == -1} {
+								append glb $char
+							}
+						}
+					}
+
+				 }
+
 			}
 
-			set glob [join $glob ""]
+			if {$glb == ""} {
+				set glb "-"
+			}
 
-			set glob [join [lsort [split $glob ""]] ""]
-
-			set u(glb) $glob
+			set ui(glb:$handle) [join [lsort [split $glb ""]] ""]
 
 			return [chattr $handle]
-
 		}
 
 	} else {
 
-		set i 0
+        if {![validchan $channel]} { return -code error "no such channel" }
 
-		if {![validuser $handle]} { return "*" }
-		if {![validchan $channel]} { return -code error "no such channel" }
+        set glbc [lindex [split $changes |] 0]
+        set chfc [lindex [split $changes |] 1]
 
-	  	set globc [lindex [split $changes |] 0]
-	  	set cfc [lindex [split $changes |] 1]
+        set glb $ui(glb:$handle)
+        set chf [lindex [split [chattr $handle $channel] |] 1]
 
-	  	set glob [chattr $handle]
-	  	set cf [lindex [split [chattr $handle $channel] |] 1]
+        if {$glb == "-"} {
+            set glb ""
+        }
 
-	  	if {$glob == "-"} {
-	  		set glob ""
-	  	}
+        if {$chf == "-"} {
+        	set chf ""
+        }
 
-	  	if {$cf == "-"} {
-	  		set cf ""
-	  	}
+        if {$glbc != "" && $glbc != "-"} {
+            set glb [chattr $handle $glbc]
+        }
 
-	  	if {$globc != "" && $globc != "-"} {
-	  		set glob [chattr $handle $globc]
-	  	} else {
-	  		set glob [chattr $handle]
-	  	}
+        set action add
 
-	  	if {[string index $cfc 0] == "-"} {
+        foreach char [split $chfc ""] {
+            if {$char == " " || $char == ""} { continue }
 
-	  		foreach f [split [string range $cfc 1 end] ""] {
-	  			if {![string is ascii "$f"] || ![string is alpha "$f"]} { continue }
-	  			set cf [string map [list $f ""] $cf]
-	  	   	}
+            if {$char == "-"} {
+                set action "remove"
+            } elseif {$char == "+"} {
+                set action "add"
+            } else {
 
-	  	} else {
+                if {![string is ascii $char] || ![string is alpha $char]} { continue }
 
-	  		if {[string index $cfc 0] == "+"} {
-	  			set cfc [string range $cfc 1 end]
-	  		}
+                switch -- $action {
+                    remove {
+                        set chf [string map [list $char ""] $chf]
+                    }
+                    add {
+                        if {[string first $char $chf] == -1} {
+                            append chf $char
+                        }
+                    }
+                }
 
-	  		foreach f [split $cfc ""] {
+             }
 
-				if {![string is ascii "$f"] || ![string is alpha "$f"]} { continue }
-	  			if {[string first $f $cf] == -1} {
-	  				lappend cf $f
-	  			}
+        }
 
-	  		}
+		set chf [join [lsort [split $chf ""]] ""]
 
-	  	}
+        set i 0
 
-	  	set cf [join $cf ""]
-		set cf [join [lsort [split $cf ""]] ""]
+        foreach chan $ui(chf:$handle) {
+            if {[string equal -nocase $channel [lindex [split $chan] 0]]} {
+                set ui(chf:$handle) [lreplace $ui(chf:$handle) $i $i]
+                continue
+            }
+            incr i
+        }
 
-		if {$cf == "" || $cf == " "} {
-			set cf "-"
-		}
+        if {$chf != "" && $chf != " "} {
+            lappend ui(chf:$handle) "$channel [laston $handle $channel] $chf"
+        }
 
-		set u(glb) $glob
+        return [chattr $handle $channel]
 
-		set i 0
-
-		if {[info exists u(chanf)]} {
-			foreach chan $u(chanf) {
-				if {[string equal -nocase $channel [lindex $chan 0]]} {
-					set u(chanf) [lreplace $u(chanf) $i $i]
-					continue
-				}
-				incr i
-	  		}
-	  	}
-
-		if {$cf != "-"} {
-
-	  		lappend u(chanf) "$channel [laston $handle $channel] $cf"
-
-	  	}
-
-	  	return [chattr $handle $channel]
-
-	}
+    }
 }
 
 proc deluser {handle} {
 
+	set handle [string tolower $handle]
+
 	namespace eval [getns] {
 		set handle [uplevel 1 {set handle}]
-		if {![array exists userInfo:[string tolower ${handle}]]} {
-			array set userInfo:[string tolower ${handle}]
+		if {![info exists userInfo(:$handle)]} {
+			return 0
 		}
 		if {![info exists userList]} {
 			set userList ""
 		}
 	}
 
-	upvar [getns]::userInfo:[string tolower ${handle}] u [getns]::userList ulist
 
-	if {[validuser $handle]} {
+	upvar [getns]::userInfo ui [getns]::userList ulist
 
-		set i [lsearch -exact [string tolower $ulist] [string tolower $handle]]
-		set ulist [lreplace $ulist $i $i]
-
-		if {[array exists u]} {
-			array unset u
+	foreach var [array names ui "*$handle"] {
+		if {[string equal -nocase [lrange [split $var :] 1 end] [split $handle :]]} {
+			unset ui($var)
 		}
-
-		return 1
-
-	} else {
-
-		return 0
-
 	}
+
+	set p [lsearch -exact [string tolower $ulist] [string tolower $handle]]
+	set ulist [lreplace $ulist $p $p]
+
+	return 1
 
 }
 
@@ -245,37 +246,27 @@ proc countusers { } {
 
 	namespace eval [getns] {
 		if {![info exists userList]} {
-			set userList ""
+			return 0
+		} else {
+			return [llength $userList]
 		}
 	}
 
-	upvar [getns]::userList ulist
+}
 
-	return [llength $ulist]
-
+proc laston {handle {chan ""}} {
+	return 0
 }
 
 proc validuser {handle} {
 
-	namespace eval [getns] {
-		if {![info exists userList]} {
-			set userList ""
-		}
-	}
-
-	upvar [getns]::userList ulist
-
-	if {![info exists ulist]} { return 0 }
-
-	if {[lsearch -exact [string tolower $ulist] [string tolower $handle]] != -1} {
-		return 1
-	} else {
+	if {[chattr $handle] == "*"} {
 		return 0
+	} else {
+		return 1
 	}
 
 }
-
-
 
 proc matchattr {handle flags {channel ""}} {
 
@@ -301,7 +292,7 @@ proc matchattr {handle flags {channel ""}} {
 
 	if {$cfn != "" && $channel != ""} {
 
-		foreach f [split $cfn ""] {
+		foreach f [split $cfn] {
 			if {[string first $f [lindex [split [chattr $handle $channel] |] 1]] != -1} {
 				set cr 1
 			}
@@ -319,10 +310,22 @@ proc matchattr {handle flags {channel ""}} {
 
 	} elseif {[string first "|" $flags] != -1} {
 
-		if {$gr || $cr} {
-			return 1
+		if {$gfn == "-" || $cfn == "-"} {
+
+			if {$gr && $cr} {
+				return 1
+			} else {
+				return 0
+			}
+
 		} else {
-			return 0
+
+			if {$gr || $cr} {
+				return 1
+			} else {
+				return 0
+			}
+
 		}
 
 	} else {
@@ -332,56 +335,44 @@ proc matchattr {handle flags {channel ""}} {
 	}
 }
 
-
-
-
-proc laston {handle {chan ""}} {
-	return 0
-}
-
-
 proc setuser {args} {
 
 	if {[llength $args] < 3} {
 		return -code error "wrong # args: should be \"setuser handle type ?setting....?\""
 	}
 
-	set hand [lindex $args 0]
+	set hand [string tolower [lindex $args 0]]
 	set type [lindex $args 1]
 	set setting [string map {\{ \\\{ \} \\\}} [join [lrange $args 2 end]]]
 
-	if {![validuser $hand]} {
-		return "No such user."
-	}
-
 	namespace eval [getns] {
 		set hand [uplevel 1 {set hand}]
-		if {![array exists userInfo:[string tolower ${hand}]]} {
-			array set userInfo:[string tolower ${hand}] ""
+		if {![info exists userInfo(:$hand)]} {
+			return -code error "No such user."
 		}
 	}
 
-	upvar [getns]::userInfo:[string tolower ${hand}] u
+	upvar [getns]::userInfo ui
 
 	switch -exact -- [string tolower $type] {
 		hosts {
 			if {$setting == ""} {
-				if {[info exists u(hosts)]} {
-					unset u(hosts)
+				if {[info exists ui(hosts:$hand)]} {
+					unset ui(hosts:$hand)
 				}
 			} else {
 				set setting [lindex [split $setting] 0]
 				set i 0
 				set w 0
 
-				if {[info exists u(hosts)]} {
+				if {[info exists ui(hosts:$hand)]} {
 
-					foreach h $u(hosts) {
-						if {[string match -nocase $setting $h]} {
-							set u(hosts) [lreplace $u(hosts) $i $i]
+					foreach host $ui(hosts:$hand) {
+						if {[string match -nocase $setting $host]} {
+							set ui(hosts:$hand) [lreplace $ui(hosts:$hand) $i $i]
 							continue
 						}
-						if {[string match -nocase $h $setting]} {
+						if {[string match -nocase $host $setting]} {
 							set w 1
 						}
 						incr i
@@ -390,13 +381,13 @@ proc setuser {args} {
 				}
 
 				if {!$w} {
-					lappend u(hosts) $setting
+					lappend ui(hosts:$hand) $setting
 				}
 			}
 		}
 		laston {
 			if {[llength $setting] == 1} {
-				set u(laston) $setting
+				set ui(laston:$hand) $setting
 			} else {
 
 				set v 0
@@ -405,132 +396,121 @@ proc setuser {args} {
 				if {![string is integer [lindex [split $setting] 0]]} {
 					set t 0
 				} else {
-					set t [lindex [split $setting] 0]
+					set t [lindex [split $setting ] 0]
 				}
 
-				foreach c $u(chanf) {
-					if {[string equal -nocase [lindex [split $c] 0] [lindex [split $setting] 1]]} {
-						set u(chanf) [lreplace $u(chanf) $i $i "[lindex [split $c] 0][string repeat " " [expr 21 - [string length [lindex [split $c] 0]]]]$t [lindex [split $c] 2]"]
+				foreach chan $ui(chf:$hand) {
+					if {[string equal -nocase [lindex [split $chan] 0] [lindex [split $setting] 1]]} {
+						set ui(chf:$hand) [lreplace $ui(chf:$hand) $i $i "[lindex [split $chan] 0] $t [lindex [split $chan] 2]"]
 						set v 1
 					}
 					incr i
 				}
 
 				if {!$v} {
-					set u(laston) "$t [lindex [split $setting] 1]"
+					set ui(laston:$hand) "$t [lindex [split $setting] 1]"
 				}
 			}
 		}
 		info {
-			set u(info) "{$setting}"
+			set ui(info:$hand) "{$setting}"
 		}
 		comment {
-			set u(comment) "{$setting}"
-		}
-		pass {
-			set u(pass) [md5 $setting]
+			set ui(comment:$hand) "{$setting}"
 		}
 		xtra {
 			set name [lindex [split $setting] 0]
 			set arg [lrange [split $setting] 1 end]
 
-			if {[info exists u(xtra)]} {
+			if {[info exists ui(xtra:$hand)]} {
 
 				set i 0
 
-				foreach x $u(xtra) {
-					if {[string equal -nocase $name [lindex [split $x] 0]]} {
-						set u(xtra) [lreplace $u(xtra) $i $i]
+				foreach xtra $ui(xtra:$hand) {
+					if {[string equal -nocase $name [lindex [split $xtra] 0]]} {
+						set ui(xtra:$hand) [lreplace $ui(xtra:$hand) $i $i]
+						continue
 					}
+					incr i
 				}
+
 				if {$arg != ""} {
-					lappend u(xtra) "$name $arg"
+					lappend ui(xtra:$hand) "$name $arg"
 				}
 
 			} else {
-				set u(xtra) "{$name $arg}"
+				set ui(xtra:$hand) "{$name $arg}"
 			}
 		}
 		default {
 			return -code error "No such info type: $type"
 		}
 	}
-	return
 }
 
 proc getuser {args} {
-	global userfile
 
 	if {[llength $args] < 2} {
 		return -code error "wrong # args: should be \"getuser handle type\""
 	}
 
-	set hand [lindex $args 0]
+	set hand [string tolower [lindex $args 0]]
 	set type [lindex $args 1]
 	set opt [lindex $args 2]
 
-	if {![validuser $hand]} {
-		return "No such user."
-	}
-
 	namespace eval [getns] {
 		set hand [uplevel 1 {set hand}]
-		if {![array exists userInfo:[string tolower ${hand}]]} {
-			array set userInfo:[string tolower ${hand}] ""
+		if {![info exists userInfo(:$hand)]} {
+			return "No such user."
 		}
 	}
 
-	upvar [getns]::userInfo:[string tolower ${hand}] u
+	upvar [getns]::userInfo ui
 
 	switch -exact -- [string tolower $type] {
 		hosts {
-			if {[info exists u(hosts)]} {
-				return $u(hosts)
+			if {[info exists ui(hosts:$hand)]} {
+				return $ui(hosts:$hand)
 			} else {
 				return
 			}
 		}
 		laston {
+			if {![info exists $ui(laston:$hand)]} { return }
 			if {$opt == ""} {
-				return $u(laston)
+				return $ui(laston:$hand)
 			} else {
-				foreach c $u(chanf) {
-					if {[string equal -nocase [lindex [split $c] 0] $opt]} {
-						return [lindex $c 1]
-					} else {
-						return 0
+				foreach chan ui(chf:$hand) {
+					if {[string equal -nocase [lindex [split $chan] 0] $opt]} {
+						return [lindex [split $chan] 1]
 					}
-				}
+			  	}
+
+			  	return 0
+
 			}
 		}
 		info {
-			if {[info exists u(info)]} {
-				return [join $u(info)]
+			if {[info exists ui(info:$hand)]} {
+				return [join $ui(info:$hand)]
 			} else {
 				return
 			}
 		}
 		comment {
-			if {[info exists u(comment)]} {
-				return [join $u(comment)]
-			} else {
-				return
-			}
-		}
-		pass {
-			if {[info exists u(pass)]} {
-				return $u(pass)
-			} else {
-				return
+			if {[info exists ui(comment:$hand)]} {
+				return [join $ui(comment:$hand)]
 			}
 		}
 		xtra {
-			if {[info exists u(xtra)]} {
-				foreach x $u(xtra) {
-					if {[string equal -nocase [lindex [split $x] 0] $opt]} {
-						return [lrange [split $x] 1 end]
+			if {[info exists ui(xtra:$hand)]} {
+
+				foreach xtra $ui(xtra:$hand) {
+					if {[string equal -nocase [lindex [split $xtra] 0] $opt]} {
+						return [lrange [split $xtra] 1 end]
 					}
 				}
+
 			}
 			return
 		}
@@ -540,118 +520,31 @@ proc getuser {args} {
 	}
 }
 
-proc reload { } {
-	global userfile
+proc addhost {hand host} {
+	setuser $hand hosts $host
+	return
+}
 
-	set file [open $userfile "RDONLY CREAT"]
-	set info [read $file]
-	close $file
-
-	set u -1
+proc delhost {handle hostmask} {
 
 	namespace eval [getns] {
-		set chanList ""
-		if {![info exists userList]} {
-			set userList ""
-		} else {
-			foreach nick $userList {
-				if {[array exists userInfo:[string tolower ${nick}]]} {
-					array unset userInfo:[string tolower ${nick}]
-				}
-		  	}
-		  	set userList ""
+		set hand [string tolower [uplevel 1 {set handle}]]
+		set host [uplevel 1 {set hostmask}]
+
+		if {![info exists userInfo(hosts:$hand)]} {
+			return 0
 		}
+		set i 0
+		foreach mask $userInfo(hosts:$hand) {
+			if {[string equal -nocase $host $mask]} {
+				set userInfo(hosts:$hand) [lreplace $userInfo(hosts:$hand) $i $i]
+				return 1
+			}
+			incr i
+		}
+		return 0
 	}
 
-	upvar [getns]::chanList clist [getns]::userList ulist
-
-	foreach line [split $info \n] {
-		if {$line == ""} { continue }
-
-		if {[llength $line] == 3 && [lindex $line 1] == "-" && [string equal "[lindex $line 0][string repeat " " [expr ${::max:handLength}+2-[string length [lindex $line 0]]]]-" [string range $line 0 11]]} {
-			set user [lindex $line 0]
-
-			namespace eval [getns] {
-				set user [uplevel 1 {set user}]
-				if {![array exists userInfo:[string tolower ${user}]]} {
-					array set userInfo:[string tolower ${user}] ""
-				}
-			}
-
-			upvar [getns]::userInfo:[string tolower ${user}] us
-			set u 1
-			lappend ulist $user
-			set us(glb) [lindex $line 2]
-		}
-
-		if {$u == 1} {
-
-			if {[string range $line 0 1] == "! "} {
-				lappend us(chanf) [lrange $line 1 end]
-			}
-
-			if {[string range $line 0 1] == "--"} {
-				lappend us([string tolower [string range [lindex $line 0] 2 end]]) [lrange $line 1 end]
-			}
-
-		}
-
-		switch -exact -- [string range $line 0 1] {
-			"::" {
-				set chan [string range [lindex $line 0] 2 end]
-
-				namespace eval [getns] {
-					set chan [uplevel 1 {set chan}]
-					if {![array exists chanInfo:[string tolower ${chan}]]} {
-						set chanInfo:[string tolower ${chan}] ""
-					}
-				}
-
-				upvar [getns]::chanInfo:[string tolower ${chan}] ch
-				set act bans
-				set u 0
-				lappend clist $chan
-			}
-			"&&" {
-				set chan [string range [lindex $line 0] 2 end]
-
-				namespace eval [getns] {
-					set chan [uplevel 1 {set chan}]
-					if {![array exists chanInfo:[string tolower ${chan}]]} {
-						set chanInfo:[string tolower ${chan}] ""
-					}
-				}
-
-				upvar [getns]::chanInfo:[string tolower ${chan}] ch
-				set act exempts
-				set u 0
-				lappend clist $chan
-			}
-			"\$\$" {
-				set chan [string range [lindex $line 0] 2 end]
-
-				namespace eval [getns] {
-					set chan [uplevel 1 {set chan}]
-					if {![array exists chanInfo:[string tolower ${chan}]]} {
-						set chanInfo:[string tolower ${chan}] ""
-					}
-				}
-
-				upvar [getns]::chanInfo:[string tolower ${chan}] ch
-				set act invites
-				set u 0
-				lappend clist $chan
-			}
-		}
-
-		if {$u == 0} {
-
-			if {[string range $line 0 1] == "- "} {
-				lappend ch($act) [string range $line 2 end]
-			}
-
-		}
-	}
 }
 
 proc save { } {
@@ -669,64 +562,109 @@ proc save { } {
 
 	puts $file "#4v: sBNC [lindex [split $::version] 0] -- [getctx] -- written [clock format [clock seconds] -format {%a %b %d %T %Y}]"
 
-	foreach user $ulist {
+	foreach hand [lsort $ulist] {
 
 		namespace eval [getns] {
-			set user [uplevel 1 {set user}]
-			if {![array exists userInfo[string tolower ${user}]]} {
-				array set userInfo[string tolower ${user}] ""
+			set hand [uplevel 1 {set hand}]
+			if {![info exists userInfo(:$hand)]} {
+				continue
 			}
 		}
 
-		upvar [getns]::userInfo:[string tolower ${user}] u
-		puts $file "$user[string repeat " " [expr ${::max:handLength}+2-[string length $user]]]- [set u(glb)]"
-		foreach a [lsort [array names u]] {
-			if {[string equal -nocase $a "glb"]} { continue }
-			foreach arg $u($a) {
-				if {$arg == "" || $arg == " "} { continue }
-				if {[string equal -nocase $a "chanf"]} {
-					puts $file "! [lindex $arg 0][string repeat " " [expr 21-[string length [lindex $arg 0]]]][lindex $arg 1] [lindex $arg 2]"
-				} else {
-					puts $file "--[string toupper $a] $arg"
-				}
+		set user $hand
+		set hand [string tolower $hand]
+
+		upvar [getns]::userInfo ui
+
+		puts $file "$user[string repeat " " [expr ${::max:handLength}+2-[string length $hand]]]- $ui(glb:$hand)"
+
+		set type "chf hosts laston info comment xtra"
+
+		if {[info exists ui(chf:$hand)]} {
+
+			foreach chan $ui(chf:$hand) {
+				puts $file "! [lindex [split $chan] 0][string repeat " " [expr 21-[string length [lindex [split $chan] 0]]]][lindex [split $chan] 1] [lindex [split $chan] 2]"
 			}
+		}
+
+		foreach type "hosts laston info comment xtra" {
+
+			if {[info exists ui($type:$hand)]} {
+
+				foreach arg $ui($type:$hand) {
+					puts $file "--[string toupper $type] $arg"
+				}
+
+			}
+
 		}
 	}
 
 	foreach type "bans exempts invites" {
-		foreach chan [string tolower [channels]] {
+
+		namespace eval [getns] {
+			set type [uplevel 1 {set type}]
+			set file [uplevel 1 {set file}]
+			if {[info exists glbInfo($type)]} {
+				switch $type {
+					bans {
+						puts $file "*ban - -"
+						foreach ban $glbInfo($type) {
+							puts $file "- $ban"
+						}
+					}
+					exempts {
+						puts $file "*exempt - -"
+						foreach exempt $glbInfo($type) {
+							puts $file "% $exempt"
+						}
+					}
+					invites {
+						puts $file "*Invite - -"
+						foreach invite $glbInfo($type) {
+							puts $file "@ $invite"
+						}
+					}
+				}
+			}
+		}
+
+
+		foreach c [channels] {
+			set chan [string tolower $c]
 
 			namespace eval [getns] {
 				set chan [uplevel 1 {set chan}]
-				if {![array exists chanInfo:[string tolower ${chan}]]} {
-					set chanInfo:[string tolower ${chan}] ""
+				set c [uplevel 1 {set c}]
+				if {![info exists chanInfo(:$chan)]} {
+					set chanInfo(:$chan) $c
 				}
 			}
 
-			upvar [getns]::chanInfo:[string tolower ${chan}] ch
+			upvar [getns]::chanInfo ci
 
 			switch $type {
 				bans {
-					puts $file "::$chan bans"
-					if {[info exists ch(bans)]} {
-						foreach b $ch(bans) {
-							puts $file "- $b"
-					   	}
+					puts $file "::$c $type"
+					if {[info exists ci($type:$chan)]} {
+						foreach ban $ci($type:$chan) {
+							puts $file "- $ban"
+						}
 					}
 				}
 				exempts {
-					puts $file "::$chan exempts"
-					if {[info exists ch(exempts)]} {
-						foreach e $ch(exempts) {
-							puts $file "- $e"
-					   	}
+					puts $file "&&$c $type"
+					if {[info exists ci($type:$chan)]} {
+						foreach exempt $ci($type:$chan) {
+							puts $file "% $exempt"
+						}
 					}
 				}
 				invites {
-					puts $file "::$chan invites"
-					if {[info exists ch(invites)]} {
-						foreach i $ch(invites) {
-							puts $file "- $i"
+					puts $file "\$\$$c $type"
+					if {[info exists ci($type:$chan)]} {
+						foreach invite $ci($type:$chan) {
+							puts $file "@ $invite"
 						}
 					}
 				}
@@ -735,6 +673,829 @@ proc save { } {
 	}
 
 	close $file
+
+}
+
+proc reload { } {
+	global userfile
+
+	set file [open $userfile "RDONLY CREAT"]
+	set info [read $file]
+	close $file
+
+	set u -1
+
+	namespace eval [getns] {
+		set userList ""
+		array unset userInfo
+		array unset chanInfo
+		array unset glbInfo
+	}
+
+	upvar [getns]::userList ulist
+
+	set ginfo 0
+
+	foreach line [split $info \n] {
+		if {$line == ""} { continue }
+
+		if {[llength $line] == 3 && [lindex $line 1] == "-" && [string equal -nocase "[lindex $line 0][string repeat " " [expr ${::max:handLength}+2-[string length [lindex $line 0]]]]-" [string range $line 0 [expr ${::max:handLength}+2]]]} {
+			set user [lindex $line 0]
+
+			namespace eval [getns] {
+				set user [uplevel 1 {set user}]
+				lappend userList $user
+				set userInfo(:[string tolower $user]) $user
+			}
+
+			set hand [string tolower $user]
+
+			upvar [getns]::userInfo ui
+
+			set ui(glb:$hand) [lindex $line 2]
+			set u 1
+
+			continue
+
+		}
+
+		if {$u == 1} {
+
+			if {[string range $line 0 1] == "! "} {
+				lappend ui(chf:$hand) [lrange $line 2 end]
+				continue
+			}
+
+			if {[string range $line 0 1] == "--"} {
+				lappend ui([string tolower [string range [lindex $line 0] 2 end]]:$hand) [lrange $line 1 end]
+				continue
+			}
+
+		}
+
+        switch -exact -- [string range $line 0 1] {
+            "*b" {
+                namespace eval [getns] {
+                    if {![info exists glbInfo(bans)]} {
+                        set glbInfo(bans) ""
+                    }
+                }
+
+                set act bans
+                upvar [getns]::glbInfo gi
+                set ginfo 1
+            }
+            "*e" {
+                namespace eval [getns] {
+                    if {![info exists glbInfo(exempts)]} {
+                        set glbInfo(exempts) ""
+                    }
+                }
+
+                set act exempts
+                upvar [getns]::glbInfo gi
+                set ginfo 1
+            }
+            "*I" {
+                namespace eval [getns] {
+                    if {![info exists glbInfo(invites)]} {
+                        set glbInfo(invites) ""
+                    }
+                }
+
+                set act invites
+                upvar [getns]::glbInfo gi
+                set ginfo 1
+            }
+            "::" {
+                set c [string range [lindex $line 0] 2 end]
+                set chan [string tolower $c]
+
+                namespace eval [getns] {
+                    set chan [uplevel 1 {set chan}]
+                    set c [uplevel 1 {set c}]
+                    if {![info exists chanInfo(:$chan)]} {
+                        set chanInfo(:$chan) $c
+                    }
+                }
+
+                upvar [getns]::chanInfo ci
+
+                set act bans
+                set ginfo 0
+                set u 0
+            }
+            "&&" {
+                set c [string range [lindex $line 0] 2 end]
+                set chan [string tolower $c]
+
+                namespace eval [getns] {
+                    set chan [uplevel 1 {set chan}]
+                    set c [uplevel 1 {set c}]
+                    if {![info exists chanInfo(:$chan)]} {
+                        set chanInfo(:$chan) $c
+                    }
+                }
+
+                upvar [getns]::chanInfo ci
+
+                set act exempts
+                set ginfo 0
+                set u 0
+            }
+            "\$\$" {
+                set c [string range [lindex $line 0] 2 end]
+                set chan [string tolower $c]
+
+                namespace eval [getns] {
+                    set chan [uplevel 1 {set chan}]
+                    set c [uplevel 1 {set c}]
+                    if {![info exists chanInfo(:$chan)]} {
+                        set chanInfo(:$chan) $c
+                    }
+                }
+
+                upvar [getns]::chanInfo ci
+
+                set act invites
+                set ginfo 0
+                set u 0
+            }
+        	"- " {
+                if {$ginfo} {
+                    lappend gi($act) [string range $line 2 end]
+                } else {
+                    lappend ci($act:$chan) [string range $line 2 end]
+                }
+            }
+            "% " {
+                if {$ginfo} {
+                    lappend gi($act) [string range $line 2 end]
+                } else {
+                    lappend ci($act:$chan) [string range $line 2 end]
+                }
+            }
+            "@ " {
+                if {$ginfo} {
+                    lappend gi($act) [string range $line 2 end]
+                } else {
+                    lappend ci($act:$chan) [string range $line 2 end]
+                }
+            }
+		}
+	}
+}
+
+proc newban {ban creator comment {lifetime ""} {options ""}} {
+
+	if {[string match -nocase $ban $::botname]} { return }
+
+	if {[string first "!" $ban] == -1 && [string first "@" $ban] == -1} {
+	    set ban "$ban!*@*"
+	} elseif {[string first "!" $ban] == -1 && [string first "@" $ban] != -1} {
+		set ban "[lindex [split $ban @] 0]!*@[join [lrange [split $ban @] 1 end] @]"
+	} elseif {[string first "!" $ban] != -1 && [string first "@" $ban] == -1} {
+		set ban "$ban@*"
+	}
+
+	set last 0
+
+	if {$lifetime == ""} {
+		set lifetime +0
+	} else {
+		if {[string is integer $lifetime] && $lifetime != "0"} {
+			set lifetime +[expr [unixtime] + ($lifetime*60)]
+		} else {
+			set lifetime +0
+		}
+	}
+
+	if {[string equal -nocase $options "sticky"]} {
+		set lifetime "${lifetime}*"
+	} elseif {![string equal -nocase $options "none"] && $options != ""} {
+		return -code error "invalid option $options (must be one of: sticky, none)"
+	}
+
+	foreach chan [channels] {
+        foreach user [chanlist $chan] {
+            if {[string match -nocase $ban "$user![getchanhost $user]"]} {
+            	set last [clock seconds]
+            	pushmode $chan -o $user
+                pushmode $chan +b $ban
+                putkick $chan $user $comment
+            } else {
+                if {[string equal -nocase $options "sticky"]} {
+                    pushmode $chan +b $ban
+                }
+            }
+        }
+    }
+
+	set banline "$ban:$lifetime:+[unixtime]:$last:$creator:$comment"
+
+	namespace eval [getns] {
+		set banline [uplevel 1 {set banline}]
+
+		if {[info exists glbInfo(bans)] && $glbInfo(bans) != ""} {
+			set i 0
+			set r 0
+			foreach ban $glbInfo(bans) {
+				if {[string equal -nocase [lindex [split $ban :] 0] [lindex [split $banline :] 0]]} {
+					set glbInfo(bans) [lreplace $glbInfo(bans) $i $i $banline]
+					set r 1
+					continue
+				}
+				incr i
+			}
+			if {!$r} {
+				set glbInfo(bans) [linsert $glbInfo(bans) 0 $banline]
+			}
+		} else {
+			set glbInfo(bans) "{$banline}"
+		}
+	}
+
+    return
+}
+
+proc killban {ban} {
+
+	namespace eval [getns] {
+		set ban [uplevel 1 {set ban}]
+
+		if {[string is integer $ban]} {
+
+			if {[llength $glbInfo(bans)] >= $ban} {
+				incr ban -1
+				set glbInfo(bans) [lreplace $glbInfo(bans) $ban $ban]
+				return 1
+			} else {
+				return 0
+			}
+
+		} else {
+
+			set i 0
+			foreach host $glbInfo(bans) {
+				if {[string equal -nocase $ban [lindex [split $host :] 0]]} {
+					set glbInfo(bans) [lreplace $glbInfo(bans) $i $i]
+
+					foreach chan [channels] {
+						pushmode $chan -b $ban
+					}
+
+					return 1
+				}
+				incr i
+			}
+
+			return 0
+
+		}
+	}
+}
+
+proc newchanban {channel ban creator comment {lifetime ""} {options ""}} {
+
+	if {![validchan $channel]} {
+		return -code error "invalid channel: $channel"
+	}
+
+	if {[string match -nocase $ban $::botname]} { return }
+
+	if {[string first "!" $ban] == -1 && [string first "@" $ban] == -1} {
+	    set ban "$ban!*@*"
+	} elseif {[string first "!" $ban] == -1 && [string first "@" $ban] != -1} {
+		set ban "[lindex [split $ban @] 0]!*@[join [lrange [split $ban @] 1 end] @]"
+	} elseif {[string first "!" $ban] != -1 && [string first "@" $ban] == -1} {
+		set ban "$ban@*"
+	}
+
+	set last 0
+
+	if {$lifetime == ""} {
+		set lifetime +0
+	} else {
+		if {[string is integer $lifetime] && $lifetime != "0"} {
+			set lifetime +[expr [unixtime] + ($lifetime*60)]
+		} else {
+			set lifetime +0
+		}
+	}
+
+	if {[string equal -nocase $options "sticky"]} {
+		set lifetime "${lifetime}*"
+	} elseif {![string equal -nocase $options "none"] && $options != ""} {
+		return -code error "invalid option $options (must be one of: sticky, none)"
+	}
+
+	set chan [string tolower $channel]
+
+	foreach user [chanlist $chan] {
+        if {[string match -nocase $ban "$user![getchanhost $user]"]} {
+        	set last [clock seconds]
+        	pushmode $chan -o $user
+            pushmode $chan +b $ban
+            putkick $chan $user $comment
+        } else {
+            if {[string equal -nocase $options "sticky"]} {
+                pushmode $chan +b $ban
+            }
+        }
+	}
+
+	set banline "$ban:$lifetime:+[unixtime]:$last:$creator:$comment"
+
+	namespace eval [getns] {
+		set banline [uplevel 1 {set banline}]
+		set chan [uplevel 1 {set chan}]
+
+		if {[info exists chanInfo(bans:$chan)] && $chanInfo(bans:$chan) != ""} {
+			set i 0
+			set r 0
+			foreach ban $chanInfo(bans:$chan) {
+				if {[string equal -nocase [lindex [split $ban :] 0] [lindex [split $banline :] 0]]} {
+					set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i $banline]
+					set r 1
+					continue
+				}
+				incr i
+			}
+			if {!$r} {
+				set chanInfo(bans:$chan) [linsert $chanInfo(bans:$chan) 0 $banline]
+			}
+		} else {
+			set chanInfo(bans:$chan) "{$banline}"
+		}
+	}
+
+	return
+}
+
+proc killchanban {channel ban} {
+
+	if {![validchan $channel]} {
+		return -code error "invalid channel: $channel"
+	}
+
+	namespace eval [getns] {
+		set ban [uplevel 1 {set ban}]
+		set chan [string tolower [uplevel 1 {set channel}]]
+
+		if {[string is integer $ban]} {
+
+			if {[llength $chanInfo(bans:$chan)] >= $ban} {
+				incr ban -1
+				set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $ban $ban]
+				return 1
+			} else {
+				return 0
+			}
+
+		} else {
+
+			set i 0
+			foreach host $chanInfo(bans:$chan) {
+				if {[string equal -nocase $ban [lindex [split $host :] 0]]} {
+					set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i]
+					pushmode $chan -b $ban
+					return 1
+				}
+				incr i
+			}
+
+			return 0
+
+		}
+	}
+}
+
+proc banlist {{channel ""}} {
+
+	if {$channel == ""} {
+		namespace eval [getns] {
+			if {![info exists glbInfo(bans)]} {
+				return
+			}
+		}
+
+		upvar [getns]::glbInfo(bans) bans
+
+	} else {
+	  	if {![validchan $channel]} {
+			return -code error "invalid channel: $channel"
+		}
+		namespace eval [getns] {
+			set chan [string tolower [uplevel 1 {set channel}]]
+			if {![info exists chanInfo(bans:$chan)]} {
+				return
+			}
+		}
+
+		upvar [getns]::chanInfo(bans:[string tolower $channel]) bans
+
+	}
+
+	foreach ban $bans {
+        set comment [join [lrange [split $ban :] 5 end] :]
+        set host [lindex [split $ban :] 0]
+        set creator [lindex [split $ban :] 4]
+        set etime [string range [lindex [split $ban :] 1] 1 end]
+
+        if {[llength [split $comment]] > 1} {
+            set comment "{$comment}"
+        }
+        if {[llength [split $host]] > 1} {
+            set host "{$host}"
+        }
+        if {[llength [split $creator]] > 1} {
+            set creator "{$creator}"
+        }
+        if {[string index $etime end] == "*"} {
+            set etime [string range $etime 0 end-1]
+        }
+
+        lappend banlist "$host $comment $etime [string range [lindex [split $ban :] 2] 1 end] [lindex [split $ban :] 3] $creator"
+    }
+
+    if {[info exists banlist]} {
+        return $banlist
+    } else {
+        return ""
+    }
+}
+
+proc sbnc:ban:join {client parameters} {
+
+	namespace eval [getns] {
+		set parameters [uplevel 1 {set parameters}]
+		set host [lindex $parameters 0]
+		set user [lindex [split $host !] 0]
+		set chan [string tolower [lindex $parameters 2]]
+
+		if {[string equal -nocase $::botname $host]} { return }
+
+        if {[info exists glbInfo(bans)]} {
+
+			set i 0
+            foreach gban $glbInfo(bans) {
+                if {[string match -nocase [lindex [split $gban :] 0] $host]} {
+                	set comment [join [lrange [split $gban :] 5 end] :]
+                	set glbInfo(bans) [lreplace $glbInfo(bans) $i $i [join [lreplace [split $gban :] 3 3 [clock seconds]] :]]
+                    pushmode $chan -o $user
+                    pushmode $chan +b [lindex [split $gban :] 0]
+                    putkick $chan $user $comment
+                }
+                incr i
+            }
+
+        }
+
+        if {[info exists chanInfo(bans:$chan)]} {
+
+			set i 0
+            foreach cban $chanInfo(bans:$chan) {
+                if {[string match -nocase [lindex [split $cban :] 0] $host]} {
+                	set comment [join [lrange [split $cban :] 5 end] :]
+					set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i [join [lreplace [split $cban :] 3 3 [clock seconds]] :]]
+                    pushmode $chan -o $user
+                    pushmode $chan +b [lindex [split $cban :] 0]
+                    putkick $chan $user $comment
+                }
+                incr i
+            }
+
+        }
+	}
+
+}
+
+proc sbnc:ban:op {client parameters} {
+
+	if {![string equal -nocase $::botnick [lindex $parameters 3]]} { return }
+
+	namespace eval [getns] {
+		set parameters [uplevel 1 {set parameters}]
+		set chan [string tolower [lindex $parameters 1]]
+
+		foreach user [chanlist $chan] {
+			set host "$user![getchanhost $user]"
+
+			if {[info exists glbInfo(bans)]} {
+
+				set i 0
+                foreach gban $glbInfo(bans) {
+                    if {[string match -nocase [lindex [split $gban :] 0] $host]} {
+                    	set comment [join [lrange [split $gban :] 5 end] :]
+                    	set glbInfo(bans) [lreplace $glbInfo(bans) $i $i [join [lreplace [split $gban :] 3 3 [clock seconds]] :]]
+                        pushmode $chan -o $user
+                        pushmode $chan +b [lindex [split $gban :] 0]
+                        putkick $chan $user $comment
+                    } else {
+                    	if {[string index [lindex [split $gban :] 1] end] == "*"} {
+                    		pushmode $chan +b [lindex [split $gban :] 0]
+                    	}
+                    }
+                }
+
+            }
+
+            if {[info exists chanInfo(bans:$chan)]} {
+
+                foreach cban $chanInfo(bans:$chan) {
+                    if {[string match -nocase [lindex [split $cban :] 0] $host]} {
+                    	set comment [join [lrange [split $cban :] 5 end] :]
+                    	set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i [join [lreplace [split $cban :] 3 3 [clock seconds]] :]]
+                        pushmode $chan -o $user
+                        pushmode $chan +b [lindex [split $cban :] 0]
+                        putkick $chan $user $comment
+                    } else {
+                    	if {[string index [lindex [split $cban :] 1] end] == "*"} {
+                    		pushmode $chan +b [lindex [split $cban :] 0]
+                    	}
+                    }
+                }
+
+			}
+		}
+	}
+
+}
+
+proc sbnc:ban:unban {client parameters} {
+
+	namespace eval [getns] {
+		set parameters [uplevel 1 {set parameters}]
+		set chan [string tolower [lindex $parameters 1]]
+		set host [lindex $parameters 3]
+
+		if {[info exists glbInfo(bans)]} {
+			foreach ban $glbInfo(bans) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]] && [string index [lindex [split $ban :] 1] end] == "*"} {
+					pushmode $chan +b [lindex [split $ban :] 0]
+				}
+			}
+		}
+
+		if {[info exists chanInfo(bans:$chan)]} {
+			foreach ban $chanInfo(bans:$chan) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]] && [string index [lindex [split $ban :] 1] end] == "*"} {
+					pushmode $chan +b [lindex [split $ban :] 0]
+				}
+		   	}
+		}
+	}
+
+}
+
+
+proc sbnc:checkBans { } {
+
+	foreach user [bncuserlist] {
+		setctx $user
+        namespace eval [getns] {
+            if {[info exists glbInfo(bans)]} {
+                set i 0
+                foreach ban glbInfo(bans) {
+                    set lifetime [lindex [split $ban :] 1]
+                    if {[string index $lifetime end] == "*"} {
+                        set lifetime [string range $lifetime 1 end-1]
+                    } else {
+                        set lifetime [string range $lifetime 1 end]
+                    }
+                    if {[clock seconds] >= $lifetime && $lifetime != 0} {
+                        set glbInfo(bans) [lreplace $glbInfo(bans) $i $i]
+
+                        foreach chan [channels] {
+                            pushmode $chan -b [lindex [split $ban :] 0]
+                        }
+
+                        continue
+                    }
+                    incr i
+                }
+            }
+
+            set i 0
+
+            foreach chan [channels] {
+                if {[info exists chanInfo(bans:$chan)]} {
+                    foreach ban $chanInfo(bans:$chan) {
+                        set lifetime [lindex [split $ban :] 1]
+                        if {[string index $lifetime end] == "*"} {
+                            set lifetime [string range $lifetime 1 end-1]
+                        } else {
+                            set lifetime [string range $lifetime 1 end]
+                        }
+                        if {[clock seconds] >= $lifetime && $lifetime != 0} {
+                            set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i]
+                            pushmode $chan -b [lindex [split $ban :] 0]
+                            continue
+                        }
+                        incr i
+                    }
+                }
+            }
+        }
+    }
+}
+
+proc stick {banmask {channel ""}} {
+
+	if {$channel == ""} {
+		namespace eval [getns] {
+			if {![info exists glbInfo(bans)] || $glbInfo(bans) == ""} {
+				return 0
+			}
+			set host [uplevel 1 {set banmask}]
+
+			set i 0
+			foreach ban $glbInfo(bans) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]]} {
+					if {[string index [lindex [split $ban :] 1] end] == "*"} {
+						return 1
+					} else {
+						set glbInfo(bans) [lreplace $glbInfo(bans) $i $i [join [lreplace [split $ban :] 1 1 [lindex [split $ban :] 1]*] :]]
+						foreach chan [channels] {
+							pushmode $chan +b [lindex [split $ban :] 0]
+					  	}
+						return 1
+					}
+				}
+				incr i
+			}
+		}
+	} else {
+		namespace eval [getns] {
+			set chan [string tolower [uplevel 1 {set channel}]]
+			if {![info exists chanInfo(bans:$chan)] || $chanInfo(bans:$chan) == ""} {
+				return 0
+			}
+			set host [uplevel 1 {set banmask}]
+
+			set i 0
+			foreach ban $chanInfo(bans:$chan) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]]} {
+					if {[string index [lindex [split $ban :] 1] end] == "*"} {
+						return 1
+					} else {
+						 set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i [join [lreplace [split $ban :] 1 1 [lindex [split $ban :] 1]*] :]]
+						 pushmode $chan +b [lindex [split $ban :] 0]
+						 return 1
+					}
+				}
+				incr i
+			}
+		}
+	}
+
+	return 0
+
+}
+
+proc unstick {banmask {channel ""}} {
+
+	if {$channel == ""} {
+		namespace eval [getns] {
+			if {![info exists glbInfo(bans)] || $glbInfo(bans) == ""} {
+				return 0
+			}
+			set host [uplevel 1 {set banmask}]
+
+			set i 0
+			foreach ban $glbInfo(bans) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]]} {
+					if {[string index [lindex [split $ban :] 1] end] != "*"} {
+						return 1
+					} else {
+						set glbInfo(bans) [lreplace $glbInfo(bans) $i $i [join [lreplace [split $ban :] 1 1 [string range [lindex [split $ban :] 1] 0 end-1]] :]]
+						return 1
+					}
+				}
+				incr i
+			}
+		}
+	} else {
+		namespace eval [getns] {
+			set chan [string tolower [uplevel 1 {set channel}]]
+			if {![info exists chanInfo(bans:$chan)] || $chanInfo(bans:$chan) == ""} {
+				return 0
+			}
+			set host [uplevel 1 {set banmask}]
+
+			set i 0
+			foreach ban $chanInfo(bans:$chan) {
+				if {[string equal -nocase $host [lindex [split $ban :] 0]]} {
+					if {[string index [lindex [split $ban :] 1] end] != "*"} {
+						return 1
+					} else {
+						 set chanInfo(bans:$chan) [lreplace $chanInfo(bans:$chan) $i $i [join [lreplace [split $ban :] 1 1 [string range [lindex [split $ban :] 1] 0 end-1]] :]]
+						 return 1
+					}
+				}
+				incr i
+			}
+		}
+	}
+
+	return 0
+
+}
+
+proc isban {ban {channel ""}} {
+
+	namespace eval [getns] {
+		set ban [uplevel 1 {set ban}]
+
+		if {[info exists glbInfo(bans)] && $glbInfo(bans) != ""} {
+
+            foreach banmask $glbInfo(bans) {
+                if {[string equal -nocase $ban [lindex [split $banmask :] 0]]} {
+                    return 1
+                }
+            }
+		}
+
+		set chan [string tolower [uplevel 1 {set channel}]]
+
+		if {$chan != ""} {
+			if {[info exists chanInfo(bans:$chan)] && $chanInfo(bans:$chan) != ""} {
+			    foreach banmask $chanInfo(bans:$chan) {
+                    if {[string equal -nocase $ban [lindex [split $banmask :] 0]]} {
+                        return 1
+                    }
+                }
+            }
+		}
+	}
+
+	return 0
+
+}
+
+proc ispermban {ban {channel ""}} {
+
+	namespace eval [getns] {
+		set ban [uplevel 1 {set ban}]
+
+		if {[info exists glbInfo(bans)] && $glbInfo(bans) != ""} {
+
+            foreach banmask $glbInfo(bans) {
+                if {[string equal -nocase $ban [lindex [split $banmask :] 0]] && [string range [lindex [split $banmask :] 1] 0 1] == +0} {
+                    return 1
+                }
+            }
+		}
+
+		set chan [string tolower [uplevel 1 {set channel}]]
+
+		if {$chan != ""} {
+			if {[info exists chanInfo(bans:$chan)] && $chanInfo(bans:$chan) != ""} {
+			    foreach banmask $chanInfo(bans:$chan) {
+                    if {[string equal -nocase $ban [lindex [split $banmask :] 0]] && [string range [lindex [split $banmask :] 1] 0 1] == +0} {
+                        return 1
+                    }
+                }
+            }
+		}
+	}
+
+	return 0
+
+}
+
+proc matchban {args} {
+
+	if {[llength $args] == 0 || [llength $args] > 2} {
+		return -code error "wrong # args: should be \"matchban user!nick@host ?channel?\""
+	}
+
+	namespace eval [getns] {
+		set args [uplevel 1 {set args}]
+		set mask [lindex $args 0]
+		set chan [string tolower [lindex $args 1]]
+
+		if {[info exists glbInfo(bans)] && $glbInfo(bans) != ""} {
+
+            foreach ban $glbInfo(bans) {
+                if {[string match -nocase [lindex [split $ban :] 0] $mask]} {
+                    return 1
+                }
+            }
+		}
+
+		if {$chan != ""} {
+			if {[info exists chanInfo(bans:$chan)] && $chanInfo(bans:$chan) != ""} {
+			    foreach ban $chanInfo(bans:$chan) {
+                    if {[string match -nocase [lindex [split $ban :] 0] $mask]} {
+                        return 1
+                    }
+                }
+            }
+		}
+	}
+
+	return 0
 
 }
 
@@ -756,16 +1517,14 @@ proc finduser {args} {
 
 		namespace eval [getns] {
 			set user [uplevel 1 {set user}]
-			if {![array exists userInfo:${user}]} {
-				array set userInfo:${user} ""
+			if {![info exists userInfo(hosts:$user)]} {
+				continue
 			}
 		}
 
-		upvar [getns]::userInfo:${user} u
+		upvar [getns]::userInfo ui
 
-		if {![info exists u(hosts)]} { continue }
-
-		foreach host $u(hosts) {
+		foreach host $ui(hosts:$user) {
 			if {[string match -nocase $host $args]} {
 				set i [string length [join [lrange [regexp -inline [string tolower [string map {* "(.*?)"} $host]] [string tolower $args]] 1 end] ""]]
 				if {[info exists b]} {
@@ -788,42 +1547,8 @@ proc finduser {args} {
 
 }
 
-proc userlist {{flags "-"}} {
-
-	namespace eval [getns] {
-		if {![info exists userList]} {
-			set userList ""
-		}
-	}
-
-	upvar [getns]::userList ulist
-	set ret [list]
-
-	foreach user $ulist {
-		if {[matchattr $user $flags]} {
-			lappend ret $user
-		}
-	}
-
-	return $ret
-
-}
-
-proc passwdok {handle pass} {
-	set upass [getuser $handle PASS]
-
-	if {$upass == ""} {
-		return 0
-	} elseif {[string equal -nocase [md5 $pass] $upass]} {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
-internalbind usrdelete sbnc:userconfdelete
 
 proc sbnc:userpulse {} {
 	foreach user [bncuserlist] {
@@ -837,10 +1562,6 @@ proc sbnc:userunload { } {
 		setctx $user
 		save
 	}
-}
-
-proc sbnc:userconfdelete {client} {
-	file delete "users/$client.user"
 }
 
 if {![info exists sbnc:userinit]} {
