@@ -30,6 +30,8 @@ class CModule : public CModuleFar {
 	char *m_File; /**< the filename of the module */
 	CModuleFar *m_Far; /**< the module's implementation of the CModuleFar class */
 	char *m_Error; /**< the last error */
+
+	bool InternalLoad(const char *Path);
 public:
 #ifndef SWIG
 	CModule(const char *Filename);

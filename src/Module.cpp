@@ -19,15 +19,59 @@
 
 #include "StdAfx.h"
 
+extern loaderparams_s *g_LoaderParameters;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 CModule::CModule(const char *Filename) {
-	const CVector<CModule *> *Modules;
+	char *CorePath;
+	bool Result = false;
 
 	m_Far = NULL;
 	m_File = strdup(Filename);
+
+	CorePath = strdup(g_LoaderParameters->GetModulePath());
+
+	if (CorePath != NULL) {
+		for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
+			if (CorePath[i] == '/' || CorePath[i] == '\\') {
+				CorePath[i] = '\0';
+
+				break;
+			}
+		}
+
+#if !defined(_WIN32) || defined(__MINGW32__)
+		lt_dlsetsearchpath(CorePath);
+#endif
+	
+		Result = InternalLoad(g_Bouncer->BuildPath(Filename, CorePath));
+	}
+
+	if (!Result) {
+		InternalLoad(Filename);
+	}
+}
+
+CModule::~CModule() {
+	if (m_Far) {
+		m_Far->Destroy();
+	}
+
+	if (m_Image) {
+		FreeLibrary(m_Image);
+	}
+
+	free(m_File);
+
+	free(m_Error);
+}
+
+bool CModule::InternalLoad(const char *Filename) {
+	const CVector<CModule *> *Modules;
+
 	m_Image = LoadLibrary(Filename);
 
 	if (!m_Image) {
@@ -53,14 +97,18 @@ CModule::CModule(const char *Filename) {
 		ErrorMsg = lt_dlerror();
 #endif
 
-		if (ErrorMsg == NULL)
+		if (ErrorMsg == NULL) {
 			m_Error = strdup("Unknown error.");
-		else
+		} else {
 			m_Error = strdup(ErrorMsg);
+		}
 
 #ifdef _WIN32
-		if (ErrorMsg)
+		if (ErrorMsg != NULL) {
 			LocalFree(ErrorMsg);
+		}
+
+		return false;
 #endif
 	} else {
 		Modules = g_Bouncer->GetModules();
@@ -69,7 +117,9 @@ CModule::CModule(const char *Filename) {
 			if (Modules->Get(i)->GetHandle() == m_Image) {
 				m_Error = strdup("This module is already loaded.");
 
-				return;
+				FreeLibrary(m_Image);
+
+				return false;
 			}
 		}
 		FNGETINTERFACEVERSION pfGetInterfaceVersion =
@@ -80,31 +130,21 @@ CModule::CModule(const char *Filename) {
 			m_Error = strdup("This module was compiled for an earlier version"
 				" of shroudBNC. Please recompile the module and try again.");
 
-			return;
+			return false;
 		}
 
 		if (GetModule() == NULL) {
 			m_Error = strdup("GetModule() failed.");
 
-			return;
+			FreeLibrary(m_Image);
+
+			return false;
 		}
 
 		m_Error = NULL;
 	}
-}
 
-CModule::~CModule() {
-	if (m_Far) {
-		m_Far->Destroy();
-	}
-
-	if (m_Image) {
-		FreeLibrary(m_Image);
-	}
-
-	free(m_File);
-
-	free(m_Error);
+	return true;
 }
 
 CModuleFar *CModule::GetModule(void) {

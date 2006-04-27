@@ -676,51 +676,15 @@ const CVector<CModule *> *CCore::GetModules(void) const {
 }
 
 RESULT<CModule *> CCore::LoadModule(const char *Filename) {
-	char *CorePath;
 	RESULT<bool> Result;
 
-	CorePath = strdup(g_LoaderParameters->GetModulePath());
-
-	CHECK_ALLOC_RESULT(CorePath, GetModule) {
-		THROW(CModule *, Generic_OutOfMemory, "strdup() failed.");
-	} CHECK_ALLOC_RESULT_END;
-
-	for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
-		if (CorePath[i] == '/' || CorePath[i] == '\\') {
-			CorePath[i] = '\0';
-
-			break;
-		}
-	}
-
-#if !defined(_WIN32) || defined(__MINGW32__)
-	lt_dlsetsearchpath(CorePath);
-#endif
-
-	CModule *Module = new CModule(BuildPath(Filename, CorePath));
-
-	free(CorePath);
+	CModule *Module = new CModule(Filename);
 
 	CHECK_ALLOC_RESULT(Module, new) {
 		THROW(CModule *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	Result = Module->GetError();
-
-	if (IsError(Result)) {
-		CModule *Module2 = new CModule(BuildPath(Filename));
-
-		CHECK_ALLOC_RESULT(Module2, new) {
-			THROW(CModule *, Generic_OutOfMemory, "new operator failed.");
-		} CHECK_ALLOC_RESULT_END;
-
-		if (!IsError(Module2->GetError())) {
-			delete Module;
-			Module = Module2;
-		} else {
-			delete Module2;
-		}
-	}
 
 	if (!IsError(Result)) {
 		Result = m_Modules.Insert(Module);
