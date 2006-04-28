@@ -1462,7 +1462,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel* Chan = IRC->GetChannel(argv[2]);
 
-					if (Chan && Chan->HasNames() != 0) {
+					if (Chan && g_CurrentTime - m_Owner->GetLastSeen() < 300 && Chan->HasNames() != 0) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
