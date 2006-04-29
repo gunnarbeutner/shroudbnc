@@ -17,9 +17,3 @@ source "scripts/botnet.tcl"
 source "scripts/iface2.tcl"
 source "scripts/ifacecmds.tcl"
 source "scripts/partyline.tcl"
-
-#setctx "example"
-#source "scripts/tcl.tcl"
-
-#set ::versionreply "example"
-#source "scripts/version.tcl"

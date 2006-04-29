@@ -38,6 +38,13 @@ typedef struct socket_s {
 	CSocketEvents *Events;
 } socket_t;
 
+typedef struct additionallistener_s {
+	unsigned short Port;
+	char *BindAddress;
+	bool SSL;
+	CSocketEvents *Listener;
+	CSocketEvents *ListenerV6;
+} additionallistener_t;
 
 #ifdef SWIGINTERFACE
 %template(CVectorCModule) CVector<class CModule *>;
@@ -69,6 +76,7 @@ class CCore {
 	CIdentSupport *m_Ident;
 
 	bool m_LoadingModules;
+	bool m_LoadingListeners;
 
 	CVector<char *>m_Args;
 
@@ -82,6 +90,8 @@ class CCore {
 	int m_Status;
 
 	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
+
+	CVector<additionallistener_t> m_AdditionalListeners;
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -100,6 +110,10 @@ class CCore {
 	void UnregisterDnsQuery(CDnsQuery *DnsQuery);
 
 	void RegisterZone(CZoneInformation *ZoneInformation);
+
+	void InitializeAdditionalListeners(void);
+	void UninitializeAdditionalListeners(void);
+	void UpdateAdditionalListeners(void);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
@@ -208,6 +222,15 @@ public:
 	virtual bool IsValidHostAllow(const char *Mask) const;
 
 	virtual CVector<CUser *> *GetAdminUsers(void);
+
+	virtual RESULT<bool> AddAdditionalListener(unsigned short Port, const char *BindAddress = NULL, bool SSL = false);
+	virtual RESULT<bool> RemoveAdditionalListener(unsigned short Port);
+	virtual CVector<additionallistener_t> *GetAdditionalListeners(void);
+
+	virtual CClientListener *GetMainListener(void) const;
+	virtual CClientListener *GetMainListenerV6(void) const;
+	virtual CClientListener *GetMainSSLListener(void) const;
+	virtual CClientListener *GetMainSSLListenerV6(void) const;
 };
 
 extern CCore *g_Bouncer;

@@ -505,7 +505,9 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 		return INVALID_SOCKET;
 	}
 
+#ifndef _WIN32
 	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
+#endif
 
 #ifdef IPV6
 	if (Family == AF_INET) {

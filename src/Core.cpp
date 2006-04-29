@@ -41,36 +41,6 @@ time_t g_LastReconnect = 0;
 extern int g_TimerStats;
 #endif
 
-IMPL_SOCKETLISTENER(CClientListener) {
-	bool m_SSL;
-public:
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
-		m_SSL = SSL;
-	}
-
-	CClientListener(void) { }
-
-	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		CClientConnection *ClientObject;
-		unsigned long lTrue = 1;
-
-		ioctlsocket(Client, FIONBIO, &lTrue);
-
-		// destruction is controlled by the main loop
-		ClientObject = new CClientConnection(Client, m_SSL);
-
-		//g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
-	}
-
-	void SetSSL(bool SSL) {
-		m_SSL = SSL;
-	}
-
-	bool GetSSL(void) {
-		return m_SSL;
-	}
-};
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -165,6 +135,9 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	}
 
 	m_Status = STATUS_RUN;
+
+	m_LoadingModules = false;
+	m_LoadingListeners = false;
 }
 
 CCore::~CCore() {
@@ -177,6 +150,8 @@ CCore::~CCore() {
 
 		m_Modules.Remove(a);
 	}
+
+	UninitializeAdditionalListeners();
 
 	for (c = m_OtherSockets.GetLength() - 1; c >= 0; c--) {
 		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
@@ -349,6 +324,8 @@ void CCore::StartMainLoop(void) {
 		return;
 	}
 #endif
+
+	InitializeAdditionalListeners();
 
 	sfd_set FDRead, FDWrite, FDError;
 
@@ -1961,6 +1938,218 @@ void CCore::UpdateHosts(void) {
 	free(Out);
 }
 
+/**
+ * GetAdminUsers
+ *
+ * Returns a list of users who are admins.
+ */
 CVector<CUser *> *CCore::GetAdminUsers(void) {
 	return &m_AdminUsers;
+}
+
+RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindAddress, bool SSL) {
+	additionallistener_t AdditionalListener;
+	CClientListener *Listener, *ListenerV6;
+
+	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+		if (m_AdditionalListeners[i].Port == Port) {
+			THROW(bool, Generic_Unknown, "This port is already in use.");
+		}
+	}
+
+	Listener = new CClientListener(Port, BindAddress, AF_INET, SSL);
+
+	if (Listener == NULL || !Listener->IsValid()) {
+		delete Listener;
+
+		if (SSL) {
+			Log("Failed to create additional SSL listener on port %d.", Port);
+			THROW(bool, Generic_OutOfMemory, "Failed to create additional SSL listener on that port.");
+		} else {
+			Log("Failed to create additional listener on port %d.", Port);
+			THROW(bool, Generic_OutOfMemory, "Failed to create additional listener on that port.");
+		}
+	}
+
+	ListenerV6 = new CClientListener(Port, BindAddress, AF_INET6, SSL);
+
+	if (ListenerV6 == NULL || !ListenerV6->IsValid()) {
+		delete ListenerV6;
+		ListenerV6 = NULL;
+	}
+
+	AdditionalListener.Port = Port;
+
+	if (BindAddress != NULL) {
+		AdditionalListener.BindAddress = strdup(BindAddress);
+	} else {
+		AdditionalListener.BindAddress = NULL;
+	}
+
+	AdditionalListener.SSL = SSL;
+	AdditionalListener.Listener = Listener;
+	AdditionalListener.ListenerV6 = ListenerV6;
+
+	m_AdditionalListeners.Insert(AdditionalListener);
+
+	UpdateAdditionalListeners();
+
+	if (!SSL) {
+		Log("Created additional listener on port %d.", Port);
+	} else {
+		Log("Created additional SSL listener on port %d.", Port);
+	}
+
+	RETURN(bool, true);
+}
+
+RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
+	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+		if (m_AdditionalListeners[i].Port == Port) {
+			if (m_AdditionalListeners[i].Listener != NULL) {
+				m_AdditionalListeners[i].Listener->Destroy();
+			}
+
+			if (m_AdditionalListeners[i].ListenerV6 != NULL) {
+				m_AdditionalListeners[i].ListenerV6->Destroy();
+			}
+
+			free(m_AdditionalListeners[i].BindAddress);
+
+			RESULT<bool> Result = m_AdditionalListeners.Remove(i);
+			THROWIFERROR(bool, Result);
+
+			UpdateAdditionalListeners();
+
+			RETURN(bool, true);
+		}
+	}
+
+	RETURN(bool, false);
+}
+
+CVector<additionallistener_t> *CCore::GetAdditionalListeners(void) {
+	return &m_AdditionalListeners;
+}
+
+void CCore::InitializeAdditionalListeners(void) {
+	unsigned short Port;
+	bool SSL;
+	unsigned int i;
+	char *Out;
+
+	m_LoadingListeners = true;
+
+	i = 0;
+	while (true) {
+		asprintf(&Out, "system.listeners.listener%d", i++);
+
+		CHECK_ALLOC_RESULT(Out, asprintf) {
+			Fatal();
+		} CHECK_ALLOC_RESULT_END;
+
+		const char* ListenerString = m_Config->ReadString(Out);
+
+		free(Out);
+
+		if (ListenerString != NULL) {
+			const char *ListenerToks = ArgTokenize(ListenerString);
+			const char *PortString = ArgGet(ListenerToks, 1);
+			const char *SSLString = ArgGet(ListenerToks, 2);
+			const char *Address = NULL;
+
+			SSL = false;
+
+			if (ArgCount(ListenerToks) > 0) {
+				Port = atoi(PortString);
+
+				if (ArgCount(ListenerToks) > 1) {
+					SSL = (atoi(SSLString) != 0);
+
+					if (ArgCount(ListenerToks) > 2) {
+						Address = ArgGet(ListenerToks, 3);
+					}
+				}
+			}
+
+			AddAdditionalListener(Port, Address, SSL);
+		} else {
+			break;
+		}
+	}
+
+	m_LoadingListeners = false;
+}
+
+void CCore::UninitializeAdditionalListeners(void) {
+	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+		if (m_AdditionalListeners[i].Listener != NULL) {
+			m_AdditionalListeners[i].Listener->Destroy();
+		}
+
+		if (m_AdditionalListeners[i].ListenerV6 != NULL) {
+			m_AdditionalListeners[i].ListenerV6->Destroy();
+		}
+
+		free(m_AdditionalListeners[i].BindAddress);
+	}
+
+	m_AdditionalListeners.Clear();
+}
+
+void CCore::UpdateAdditionalListeners(void) {
+	char *Out, *Value;
+	int a = 0;
+
+	if (m_LoadingListeners) {
+		return;
+	}
+
+	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+		asprintf(&Out, "system.listeners.listener%d", a++);
+
+		CHECK_ALLOC_RESULT(Out, asprintf) {
+			Fatal();
+		} CHECK_ALLOC_RESULT_END;
+
+		if (m_AdditionalListeners[i].BindAddress != NULL) {
+			asprintf(&Value, "%d %d %s", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL, m_AdditionalListeners[i].BindAddress);
+		} else {
+			asprintf(&Value, "%d %d", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL);
+		}
+
+		CHECK_ALLOC_RESULT(Value, asprintf) {
+			Fatal();
+		} CHECK_ALLOC_RESULT_END;
+
+		m_Config->WriteString(Out, Value);
+
+		free(Out);
+	}
+
+	asprintf(&Out, "system.listeners.listener%d", a);
+
+	CHECK_ALLOC_RESULT(Out, asprintf) {
+		Fatal();
+	} CHECK_ALLOC_RESULT_END;
+
+	m_Config->WriteString(Out, NULL);
+
+	free(Out);
+}
+
+CClientListener *CCore::GetMainListener(void) const {
+	return m_Listener;
+}
+
+CClientListener *CCore::GetMainListenerV6(void) const {
+	return m_ListenerV6;
+}
+
+CClientListener *CCore::GetMainSSLListener(void) const {
+	return m_SSLListener;
+}
+
+CClientListener *CCore::GetMainSSLListenerV6(void) const {
+	return m_SSLListenerV6;
 }

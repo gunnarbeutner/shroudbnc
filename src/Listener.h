@@ -166,6 +166,17 @@ public:
 	virtual SOCKET GetSocket(void) const {
 		return m_Listener;
 	}
+
+	virtual unsigned short GetPort(void) const {
+		sockaddr_in Address;
+		socklen_t Length = sizeof(Address);
+
+		if (m_Listener == INVALID_SOCKET || getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
+			return 0;
+		} else {
+			return ntohs(Address.sin_port);
+		}
+	}
 };
 
 /**
@@ -174,3 +185,37 @@ public:
  * Can be used to implement a custom listener.
  */
 #define IMPL_SOCKETLISTENER(ClassName) class ClassName : public CListenerBase<ClassName>
+
+#ifndef SWIG
+IMPL_SOCKETLISTENER(CClientListener) {
+	bool m_SSL;
+public:
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
+		m_SSL = SSL;
+	}
+
+	CClientListener(void) { }
+
+	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
+		CClientConnection *ClientObject;
+		unsigned long lTrue = 1;
+
+		ioctlsocket(Client, FIONBIO, &lTrue);
+
+		// destruction is controlled by the main loop
+		ClientObject = new CClientConnection(Client, m_SSL);
+
+		//g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
+	}
+
+	void SetSSL(bool SSL) {
+		m_SSL = SSL;
+	}
+
+	bool GetSSL(void) {
+		return m_SSL;
+	}
+};
+#else
+ class CClientListener;
+#endif

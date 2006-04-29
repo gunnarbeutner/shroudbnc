@@ -131,6 +131,7 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	}
 
 	m_LatchedDestruction = false;
+	m_Connected = false;
 
 #ifdef USESSL
 	m_HasSSL = SSL;

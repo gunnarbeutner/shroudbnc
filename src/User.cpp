@@ -749,6 +749,7 @@ void CUser::Unlock(void) {
  */
 void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	const CVector<CModule *> *Modules;
+	CIRCConnection *OldIRC;
 	bool WasNull;
 
 	if (m_IRC == NULL) {
@@ -757,14 +758,21 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		WasNull = false;
 	}
 
+	OldIRC = m_IRC;
 	m_IRC = IRC;
 
 	Modules = g_Bouncer->GetModules();
 
 	if (!IRC && !WasNull) {
-		Log("You were disconnected from the IRC server.");
+		if (OldIRC->IsConnected()) {
+			Log("You were disconnected from the IRC server.");
 
-		g_Bouncer->Log("%s was disconnected from the server.", GetUsername());
+			g_Bouncer->Log("%s was disconnected from the server.", GetUsername());
+		} else {
+			Log("Could not connect to a server.");
+
+			g_Bouncer->Log("An attempt of connecting to a server failed for user %s", GetUsername());
+		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			Modules->Get(i)->ServerDisconnect(GetUsername());
