@@ -186,7 +186,7 @@ public:
  */
 #define IMPL_SOCKETLISTENER(ClassName) class ClassName : public CListenerBase<ClassName>
 
-#ifndef SWIG
+#ifdef SBNC
 IMPL_SOCKETLISTENER(CClientListener) {
 	bool m_SSL;
 public:
@@ -217,5 +217,5 @@ public:
 	}
 };
 #else
- class CClientListener;
+class CClientListener;
 #endif
