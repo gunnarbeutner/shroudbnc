@@ -38,6 +38,7 @@ private:
 	char *m_PeerNameTemp; /**< a temporary variable for the hostname */
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
 	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
+	bool m_NamesXSupport; /**< does this client support NAMESX? */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);

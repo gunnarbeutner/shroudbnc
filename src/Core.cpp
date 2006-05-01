@@ -930,7 +930,7 @@ RESULT<bool> CCore::RemoveUser(const char* Username, bool RemoveConfig) {
 
 bool CCore::IsValidUsername(const char *Username) const {
 	for (unsigned int i = 0; i < strlen(Username); i++) {
-		if (!isalnum(Username[i]))
+		if (!isalnum(Username[i]) || (i == 0 && isdigit(Username[i])))
 			return false;
 	}
 
@@ -2018,6 +2018,8 @@ RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
 
 			RESULT<bool> Result = m_AdditionalListeners.Remove(i);
 			THROWIFERROR(bool, Result);
+
+			Log("Removed listener on port %d.", Port);
 
 			UpdateAdditionalListeners();
 

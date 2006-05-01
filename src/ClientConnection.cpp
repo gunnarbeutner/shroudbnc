@@ -34,6 +34,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_PeerNameTemp = NULL;
 	m_ClientLookup = NULL;
 	m_CommandList = NULL;
+	m_NamesXSupport = false;
 
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
 		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
@@ -985,13 +986,14 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "who") == 0 && m_Owner->IsAdmin()) {
-		int i = 0;
+		char **Keys = g_Bouncer->GetUsers()->GetSortedKeys();
+		int Count = g_Bouncer->GetUsers()->GetLength();
 
-		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		for (int i = 0; i < Count; i++) {
 			const char* Server, *ClientAddr;
-			CUser* User = UserHash->Value;
+			CUser* User = g_Bouncer->GetUser(Keys[i]);
 
-			if (!User)
+			if (User == NULL)
 				continue;
 
 			if (User->GetIRCConnection())
@@ -1511,6 +1513,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 
 				return false;
 			}
+		} else if (strcasecmp(Command, "protoctl") == 0) {
+			if (argc > 1 && strcasecmp(argv[1], "namesx") == 0) {
+				m_NamesXSupport = true;
+
+				return false;
+			}
 		} else if (strcasecmp(Command, "sbnc") == 0) {
 			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
 		} else if (strcasecmp(Command, "synth") == 0) {
@@ -1571,7 +1579,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 				if (IRC) {
 					CChannel* Chan = IRC->GetChannel(argv[2]);
 
-					if (Chan && g_CurrentTime - m_Owner->GetLastSeen() < 300 && Chan->HasNames() != 0) {
+					if (Chan && Chan->HasNames() != 0) {
 						char* Nicks = (char*)malloc(1);
 						Nicks[0] = '\0';
 
@@ -1585,10 +1593,22 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 							const char* Prefix = NickObj->GetPrefixes();
 							const char* Nick = NickObj->GetNick();
 
-							char outPref[2] = { IRC->GetHighestUserFlag(Prefix), '\0' };
+							const char *outPref;
+							char outPrefTemp[2] = { IRC->GetHighestUserFlag(Prefix), '\0' };
 
-							if (Nick == NULL)
+							if (m_NamesXSupport) {
+								if (Prefix != NULL) {
+									outPref = Prefix;
+								} else {
+									outPref = "";
+								}
+							} else {
+								outPref = outPrefTemp;
+							}
+
+							if (Nick == NULL) {
 								continue;
+							}
 
 							Nicks = (char*)realloc(Nicks, (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2);
 

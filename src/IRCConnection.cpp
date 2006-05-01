@@ -122,6 +122,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_ISupport->WriteString("CHANMODES", "bIe,k,l");
 	m_ISupport->WriteString("CHANTYPES", "#&+");
 	m_ISupport->WriteString("PREFIX", "(ov)@+");
+	m_ISupport->WriteString("NAMESX", "");
 
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
@@ -511,6 +512,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			char* Eq = strstr(Dup, "=");
 
+			if (strcasecmp(Dup, "NAMESX") == 0) {
+				WriteLine("PROTOCTL NAMESX");
+			}
+
 			if (Eq) {
 				*Eq = '\0';
 
@@ -616,12 +621,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 5 && iRaw == 353) {
 		CChannel* Chan = GetChannel(argv[4]);
 
-		tokendata_t nicks;
+		const char *nicks;
 		const char** nickv;
 		int nickc;
 
-		nicks = ArgTokenize2(argv[5]);
-		nickv = ArgToArray2(nicks);
+		nicks = ArgTokenize(argv[5]);
+		nickv = ArgToArray(nicks);
 
 		if (nickv == NULL) {
 			LOGERROR("ArgToArray2() failed. could not parse 353 reply for channel %s", argv[4]);
@@ -629,7 +634,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		}
 
-		nickc = ArgCount2(nicks);
+		nickc = ArgCount(nicks);
 
 		if (Chan) {
 			for (int i = 0; i < nickc; i++) {
