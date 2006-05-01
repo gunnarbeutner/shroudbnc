@@ -50,6 +50,10 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	char *Out;
 	const char *Hostmask;
 
+	char *SourcePath = strdup(BuildPath("sbnc.log"));
+	rename(SourcePath, BuildPath("sbnc.log.old"));
+	free(SourcePath);
+
 	m_Log = new CLog("sbnc.log");
 
 	if (m_Log == NULL) {
