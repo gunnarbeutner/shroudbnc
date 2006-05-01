@@ -107,7 +107,7 @@ void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
 #define BNCVERSION "1.2 $Revision: 503 $"
-#define INTERFACEVERSION 23
+#define INTERFACEVERSION 24
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
