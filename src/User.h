@@ -31,8 +31,9 @@ class CTimer;
  * Describes a failed login attempt.
  */
 typedef struct badlogin_s {
-	sockaddr *Address;
-	unsigned int Count;
+	sockaddr *Address; /**< the address of the user */
+	unsigned int Count; /**< the number of times the user has used an
+							 incorrect password */
 } badlogin_t;
 
 #ifndef SWIG
@@ -40,6 +41,14 @@ bool BadLoginTimer(time_t Now, void *User);
 bool UserReconnectTimer(time_t Now, void *User);
 #endif
 
+/**
+ * USER_SETFUNCTION
+ *
+ * Implements a Set*-function
+ *
+ * @param Setting the name of the setting
+ * @param Value the new value for this setting
+ */
 #define USER_SETFUNCTION(Setting, Value) { \
 	char *DupValue = NULL; \
 	\

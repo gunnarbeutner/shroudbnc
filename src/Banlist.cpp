@@ -36,17 +36,8 @@ void DestroyBan(ban_t *Ban) {
  *
  * Constructs an empty banlist
  */
-CBanlist::CBanlist() {
+CBanlist::CBanlist(void) {
 	m_Bans.RegisterValueDestructor(DestroyBan);
-}
-
-/**
- * ~CBanlist
- *
- * Destroys a banlist
- */
-CBanlist::~CBanlist() {
-	// nothing to do here either
 }
 
 /**

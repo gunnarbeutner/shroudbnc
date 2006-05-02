@@ -20,9 +20,14 @@
 class CChannel;
 class CConfig;
 
+/**
+ * nicktag_t
+ *
+ * A tag which can be attached to nick objects.
+ */
 typedef struct nicktag_s {
-	char *Name;
-	char *Value;
+	char *Name; /**< the name of the tag */
+	char *Value; /**< the value of the tag */
 } nicktag_t;
 
 #ifdef SWIGINTERFACE

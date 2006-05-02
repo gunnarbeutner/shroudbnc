@@ -49,7 +49,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {
 		printf("You cannot run shroudBNC as 'root'. Use an ordinary user account and remove the suid bit if it is set.\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	rlimit core_limit = { INT_MAX, INT_MAX };
@@ -71,7 +71,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 		lt_dlexit();
 #endif
 
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	g_LoaderParameters = Parameters;
@@ -107,7 +107,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	lt_dlexit();
 #endif
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /**

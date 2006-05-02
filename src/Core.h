@@ -33,17 +33,27 @@ class CAssocArray;
 struct CSocketEvents;
 struct sockaddr_in;
 
+/**
+ * socket_t
+ *
+ * A registered socket.
+ */
 typedef struct socket_s {
-	SOCKET Socket;
-	CSocketEvents *Events;
+	SOCKET Socket; /**< the underlying socket object */
+	CSocketEvents *Events; /**< the event interface for this socket */
 } socket_t;
 
+/**
+ * additionallistener_t
+ *
+ * An additional listener for client connections.
+ */
 typedef struct additionallistener_s {
-	unsigned short Port;
-	char *BindAddress;
-	bool SSL;
-	CSocketEvents *Listener;
-	CSocketEvents *ListenerV6;
+	unsigned short Port; /**< the port of the listener */
+	char *BindAddress; /**< the bind address, or NULL */
+	bool SSL; /**< whether this is an SSL listener */
+	CSocketEvents *Listener; /**< IPv4 listener object */
+	CSocketEvents *ListenerV6; /**< IPv6 listener object */
 } additionallistener_t;
 
 #ifdef SWIGINTERFACE
@@ -52,6 +62,11 @@ typedef struct additionallistener_s {
 %template(CVectorFileT) CVector<file_t>;
 #endif
 
+/**
+ * CCore
+ *
+ * The main application class.
+ */
 class CCore {
 #ifndef SWIG
 	friend class CTimer;
@@ -59,39 +74,42 @@ class CCore {
 	friend bool RegisterZone(CZoneInformation *ZoneInformation);
 #endif
 
-	CConfig *m_Config;
+	CConfig *m_Config; /**< sbnc.conf object */
 
-	CClientListener *m_Listener, *m_ListenerV6;
-	CClientListener *m_SSLListener, *m_SSLListenerV6;
+	CClientListener *m_Listener, *m_ListenerV6; /**< the main unencrypted listeners */
+	CClientListener *m_SSLListener, *m_SSLListenerV6; /**< the main ssl listeners */
 
-	CHashtable<CUser *, false, 512> m_Users;
-	CVector<CModule *> m_Modules;
-	CVector<socket_t> m_OtherSockets;
-	CVector<CTimer *>m_Timers;
+	CHashtable<CUser *, false, 512> m_Users; /**< the bouncer users */
+	CVector<CModule *> m_Modules; /**< currently loaded modules */
+	CVector<socket_t> m_OtherSockets; /**< a list of active sockets */
+	CVector<CTimer *>m_Timers; /**< a list of active timers */
 
-	time_t m_Startup;
+	time_t m_Startup; /**< TS when the bouncer was started */
 
-	CLog *m_Log;
+	CLog *m_Log; /**< the bouncer's main log */
 
-	CIdentSupport *m_Ident;
+	CIdentSupport *m_Ident; /**< ident support interface */
 
-	bool m_LoadingModules;
-	bool m_LoadingListeners;
+	bool m_LoadingModules; /**< are we currently loading modules? */
+	bool m_LoadingListeners; /**< are we currently loading listeners */
 
-	CVector<char *>m_Args;
+	CVector<char *>m_Args; /**< program arguments */
 
-	CVector<CDnsQuery *> m_DnsQueries;
+	CVector<CDnsQuery *> m_DnsQueries; /**< currently active dns queries */
 
-	int m_SendqSizeCache;
+	int m_SendqSizeCache; /**< cached size of the sendq (or -1 if unknown) */
 
-	SSL_CTX *m_SSLContext;
-	SSL_CTX *m_SSLClientContext;
+	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
+	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
-	int m_Status;
+	int m_Status; /**< the program's status code */
 
 	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
 
-	CVector<additionallistener_t> m_AdditionalListeners;
+	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
+
+	CVector<CZoneInformation *> m_Zones; /**< currently used allocation zones */
+	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -99,9 +117,6 @@ class CCore {
 	bool Daemonize(void) ;
 	void WritePidFile(void) const;
 	bool MakeConfig(void);
-
-	CVector<CZoneInformation *> m_Zones;
-	CVector<CUser *> m_AdminUsers;
 
 	void RegisterTimer(CTimer *Timer);
 	void UnregisterTimer(CTimer *Timer);
@@ -233,12 +248,20 @@ public:
 	virtual CClientListener *GetMainSSLListenerV6(void) const;
 };
 
-extern CCore *g_Bouncer;
-
 #ifndef SWIG
-extern time_t g_CurrentTime;
+extern CCore *g_Bouncer; /**< the main bouncer object */
+extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
 #endif
 
+/**
+ * CHECK_ALLOC_RESULT
+ *
+ * Verifies that the result of an allocation function
+ * is not NULL.
+ *
+ * @param Variable the variable holding the result
+ * @param Function the name of the allocation function
+ */
 #define CHECK_ALLOC_RESULT(Variable, Function) \
 	do { \
 		if (Variable == NULL) { \
@@ -251,4 +274,9 @@ extern time_t g_CurrentTime;
 		} \
 		if (Variable == NULL)
 
+/**
+ * CHECK_ALLOC_RESULT_END
+ *
+ * Marks the end of a CHECK_ALLOC_RESULT block.
+ */
 #define CHECK_ALLOC_RESULT_END } while (0)

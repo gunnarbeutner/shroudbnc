@@ -170,7 +170,7 @@ void CUser::LoadEvent(void) {
 	Modules = g_Bouncer->GetModules();
 
 	for (i = 0; i < Modules->GetLength(); i++) {
-		Modules->Get(i)->UserLoad(m_Name);
+		(*Modules)[i]->UserLoad(m_Name);
 	}
 }
 
@@ -331,7 +331,7 @@ void CUser::Attach(CClientConnection *Client) {
 	Modules = g_Bouncer->GetModules();
 
 	for (i = 0; i < Modules->GetLength(); i++) {
-		Modules->Get(i)->AttachClient(GetUsername());
+		(*Modules)[i]->AttachClient(GetUsername());
 	}
 
 	if (m_IRC == NULL) {
@@ -775,11 +775,11 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			Modules->Get(i)->ServerDisconnect(GetUsername());
+			(*Modules)[i]->ServerDisconnect(GetUsername());
 		}
 	} else if (IRC) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			Modules->Get(i)->ServerConnect(GetUsername());
+			(*Modules)[i]->ServerConnect(GetUsername());
 		}
 
 		if (m_ReconnectTimer) {
@@ -858,7 +858,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	Modules = g_Bouncer->GetModules();
 
 	for (i = 0; i < Modules->GetLength(); i++) {
-		Modules->Get(i)->DetachClient(GetUsername());
+		(*Modules)[i]->DetachClient(GetUsername());
 	}
 
 	if (m_IRC != NULL && !DontSetAway) {
@@ -1626,7 +1626,7 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 	Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		Modules->Get(i)->UserTagModified(Tag, Value);
+		(*Modules)[i]->UserTagModified(Tag, Value);
 	}
 
 	ReturnValue = m_Config->WriteString(Setting, Value);

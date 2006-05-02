@@ -53,7 +53,3 @@ public:
 
 	virtual void Destroy(void);
 };
-
-#ifndef SWIG
-bool NullTimer(time_t Now, void *Cookie);
-#endif

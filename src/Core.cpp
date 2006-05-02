@@ -25,7 +25,7 @@
 
 extern loaderparams_s *g_LoaderParameters;
 
-const char* g_ErrorFile;
+const char *g_ErrorFile;
 unsigned int g_ErrorLine;
 time_t g_CurrentTime;
 
@@ -45,7 +45,7 @@ extern int g_TimerStats;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CCore::CCore(CConfig* Config, int argc, char** argv) {
+CCore::CCore(CConfig *Config, int argc, char **argv) {
 	int i;
 	char *Out;
 	const char *Hostmask;
@@ -59,7 +59,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 	if (m_Log == NULL) {
 		printf("Log system could not be initialized. Shutting down.");
 
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	m_Log->Clear();
@@ -86,7 +86,7 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 		Config->Reload();
 	}
 
-	const char* Args;
+	const char *Args;
 	int Count;
 
 	Args = ArgTokenize(Users);
@@ -145,21 +145,18 @@ CCore::CCore(CConfig* Config, int argc, char** argv) {
 }
 
 CCore::~CCore() {
-	int a, c, d;
+	int a;
 	unsigned int i;
 
 	for (a = m_Modules.GetLength() - 1; a >= 0; a--) {
-		if (m_Modules[a])
-			delete m_Modules[a];
-
-		m_Modules.Remove(a);
+		delete m_Modules[a];
 	}
 
 	UninitializeAdditionalListeners();
 
-	for (c = m_OtherSockets.GetLength() - 1; c >= 0; c--) {
-		if (m_OtherSockets[c].Socket != INVALID_SOCKET) {
-			m_OtherSockets[c].Events->Destroy();
+	for (a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
+		if (m_OtherSockets[a].Socket != INVALID_SOCKET) {
+			m_OtherSockets[a].Events->Destroy();
 		}
 	}
 
@@ -168,9 +165,8 @@ CCore::~CCore() {
 		delete User->Value;
 	}
 
-	for (d = m_Timers.GetLength() - 1; d >= 0 ; d--) {
-		if (m_Timers[d])
-			delete m_Timers[d];
+	for (a = m_Timers.GetLength() - 1; a >= 0 ; a--) {
+		delete m_Timers[a];
 	}
 
 	delete m_Log;
@@ -179,11 +175,11 @@ CCore::~CCore() {
 	g_Bouncer = NULL;
 
 	for (i = 0; i < m_Zones.GetLength(); i++) {
-		m_Zones.Get(i)->PerformLeakCheck();
+		m_Zones[i]->PerformLeakCheck();
 	}
 
 	for (i = 0; i < m_HostAllows.GetLength(); i++) {
-		free(m_HostAllows.Get(i));
+		free(m_HostAllows[i]);
 	}
 }
 
@@ -196,7 +192,7 @@ void CCore::StartMainLoop(void) {
 	printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
 	int argc = m_Args.GetLength();
-	char** argv = m_Args.GetList();
+	char **argv = m_Args.GetList();
 
 	for (int a = 1; a < argc; a++) {
 		if (strcmp(argv[a], "-n") == 0 || strcmp(argv[a], "/n") == 0)
@@ -228,7 +224,7 @@ void CCore::StartMainLoop(void) {
 #endif
 		Port = 9000;
 
-	const char* BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+	const char *BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
 	if (m_Listener == NULL) {
 		if (Port != 0) {
@@ -278,7 +274,7 @@ void CCore::StartMainLoop(void) {
 	SSL_library_init();
 	SSL_load_error_strings();
 
-	SSL_METHOD* SSLMethod = SSLv23_method();
+	SSL_METHOD *SSLMethod = SSLv23_method();
 	m_SSLContext = SSL_CTX_new(SSLMethod);
 	m_SSLClientContext = SSL_CTX_new(SSLMethod);
 
@@ -310,7 +306,6 @@ void CCore::StartMainLoop(void) {
 	} else {
 		SSL_CTX_set_verify(m_SSLClientContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 	}
-
 #endif
 
 	if (Port != 0 && m_Listener != NULL && m_Listener->IsValid())
@@ -321,9 +316,9 @@ void CCore::StartMainLoop(void) {
 	}
 
 #ifdef USESSL
-	if (SSLPort != 0 && m_SSLListener != NULL && m_SSLListener->IsValid())
+	if (SSLPort != 0 && m_SSLListener != NULL && m_SSLListener->IsValid()) {
 		Log("Created ssl listener.");
-	else if (SSLPort != 0) {
+	} else if (SSLPort != 0) {
 		Log("Could not create ssl listener port");
 		return;
 	}
@@ -335,8 +330,9 @@ void CCore::StartMainLoop(void) {
 
 	Log("Starting main loop.");
 
-	if (!b_DontDetach)
+	if (!b_DontDetach) {
 		Daemonize();
+	}
 
 	WritePidFile();
 
@@ -363,7 +359,7 @@ void CCore::StartMainLoop(void) {
 			Fatal();
 		} CHECK_ALLOC_RESULT_END;
 
-		const char* File = m_Config->ReadString(Out);
+		const char *File = m_Config->ReadString(Out);
 
 		free(Out);
 
@@ -402,7 +398,7 @@ void CCore::StartMainLoop(void) {
 
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
-			CIRCConnection* IRC;
+			CIRCConnection *IRC;
 
 			if (UserHash->Value) {
 				if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
@@ -492,7 +488,7 @@ void CCore::StartMainLoop(void) {
 
 		int nfds = 0;
 		timeval tv;
-		timeval* tvp = &tv;
+		timeval *tvp = &tv;
 
 		memset(tvp, 0, sizeof(timeval));
 
@@ -540,7 +536,7 @@ void CCore::StartMainLoop(void) {
 
 			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
 				SOCKET Socket = m_OtherSockets[a].Socket;
-				CSocketEvents* Events = m_OtherSockets[a].Events;
+				CSocketEvents *Events = m_OtherSockets[a].Events;
 
 				if (Socket != INVALID_SOCKET) {
 					if (SFD_ISSET(Socket, &FDError)) {
@@ -620,7 +616,7 @@ void CCore::StartMainLoop(void) {
 #endif
 }
 
-CUser *CCore::GetUser(const char* Name) {
+CUser *CCore::GetUser(const char *Name) {
 	if (Name == NULL) {
 		return NULL;
 	} else {
@@ -640,12 +636,12 @@ CHashtable<CUser *, false, 512> *CCore::GetUsers(void) {
 	return &m_Users;
 }
 
-void CCore::SetIdent(const char* Ident) {
+void CCore::SetIdent(const char *Ident) {
 	if (m_Ident)
 		m_Ident->SetIdent(Ident);
 }
 
-const char* CCore::GetIdent(void) const {
+const char *CCore::GetIdent(void) const {
 	if (m_Ident != NULL)
 		return m_Ident->GetIdent();
 	else
@@ -710,7 +706,7 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 	THROW(CModule *, Generic_Unknown, NULL);
 }
 
-bool CCore::UnloadModule(CModule* Module) {
+bool CCore::UnloadModule(CModule *Module) {
 	if (m_Modules.Remove(Module)) {
 		Log("Unloaded module: %s", Module->GetFilename());
 
@@ -725,7 +721,7 @@ bool CCore::UnloadModule(CModule* Module) {
 }
 
 void CCore::UpdateModuleConfig(void) {
-	char* Out;
+	char *Out;
 	int a = 0;
 
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
@@ -751,7 +747,7 @@ void CCore::UpdateModuleConfig(void) {
 	free(Out);
 }
 
-void CCore::RegisterSocket(SOCKET Socket, CSocketEvents* EventInterface) {
+void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	socket_s s = { Socket, EventInterface };
 
 	UnregisterSocket(Socket);
@@ -808,7 +804,7 @@ void CCore::Log(const char *Format, ...) {
 void CCore::InternalLogError(const char *Format, ...) {
 	char Format2[512];
 	char Out[512];
-	const char* P = g_ErrorFile;
+	const char *P = g_ErrorFile;
 	va_list marker;
 
 	while (*P++) {
@@ -845,7 +841,7 @@ void CCore::Shutdown(void) {
 	SetStatus(STATUS_SHUTDOWN);
 }
 
-RESULT<CUser *> CCore::CreateUser(const char* Username, const char* Password) {
+RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 	CUser *User;
 	RESULT<bool> Result;
 
@@ -890,7 +886,7 @@ RESULT<CUser *> CCore::CreateUser(const char* Username, const char* Password) {
 	RETURN(CUser *, User);
 }
 
-RESULT<bool> CCore::RemoveUser(const char* Username, bool RemoveConfig) {
+RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 	RESULT<bool> Result;
 	CUser *User;
 	char *UsernameCopy;
@@ -947,7 +943,7 @@ bool CCore::IsValidUsername(const char *Username) const {
 void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
 	int i;
-	char* Out = NULL;
+	char *Out = NULL;
 	size_t Blocks = 0, NewBlocks = 1, Length = 1;
 	bool WasNull = true;
 
@@ -1049,7 +1045,7 @@ void CCore::WritePidFile(void) const {
 
 
 	if (pid) {
-		FILE* pidFile;
+		FILE *pidFile;
 
 		pidFile = fopen(BuildPath("sbnc.pid"), "w");
 
@@ -1062,7 +1058,7 @@ void CCore::WritePidFile(void) const {
 	}
 }
 
-const char *CCore::MD5(const char* String) const {
+const char *CCore::MD5(const char *String) const {
 	return UtilMd5(String);
 }
 
@@ -1071,7 +1067,7 @@ int CCore::GetArgC(void) const {
 	return m_Args.GetLength();
 }
 
-const char* const* CCore::GetArgV(void) const {
+const char *const *CCore::GetArgV(void) const {
 	return m_Args.GetList();
 }
 
@@ -2054,7 +2050,7 @@ void CCore::InitializeAdditionalListeners(void) {
 			Fatal();
 		} CHECK_ALLOC_RESULT_END;
 
-		const char* ListenerString = m_Config->ReadString(Out);
+		const char *ListenerString = m_Config->ReadString(Out);
 
 		free(Out);
 

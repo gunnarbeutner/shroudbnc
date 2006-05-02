@@ -40,11 +40,8 @@ typedef struct ban_s {
 class CBanlist : public CZoneObject<CBanlist, 128> {
 public:
 #ifndef SWIG
-	CBanlist();
-	virtual ~CBanlist();
-#endif
+	CBanlist(void);
 
-#ifndef SWIG
 	RESULT<bool> Freeze(CAssocArray *Box);
 	static RESULT<CBanlist *> Thaw(CAssocArray *Box);
 #endif

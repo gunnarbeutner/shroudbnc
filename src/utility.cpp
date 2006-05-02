@@ -243,17 +243,17 @@ void ArgFreeArray(const char **Array) {
 tokendata_t ArgTokenize2(const char *String) {
 	tokendata_t tokens;
 	register unsigned int a = 1;
-	size_t Len = min(strlen(String), sizeof(tokens.string) - 1);
+	size_t Len = min(strlen(String), sizeof(tokens.String) - 1);
 
-	strncpy(tokens.string, String, sizeof(tokens.string));
-	tokens.string[sizeof(tokens.string) - 1] = '\0';
+	strncpy(tokens.String, String, sizeof(tokens.String));
+	tokens.String[sizeof(tokens.String) - 1] = '\0';
 
-	tokens.pointers[0] = 0;
+	tokens.Pointers[0] = 0;
 
 	for (unsigned int i = 0; i < Len; i++) {
 		if (String[i] == ' ' && String[i + 1] != ' ') {
-			tokens.pointers[a] = i + 1;
-			tokens.string[i] = '\0';
+			tokens.Pointers[a] = i + 1;
+			tokens.String[i] = '\0';
 
 			a++;
 
@@ -262,14 +262,14 @@ tokendata_t ArgTokenize2(const char *String) {
 			}
 
 			if (String[i + 1] == ':') {
-				tokens.pointers[a - 1]++;
+				tokens.Pointers[a - 1]++;
 
 				break;
 			}
 		}
 	}
 
-	tokens.count = a;
+	tokens.Count = a;
 
 	return tokens;
 }
@@ -287,8 +287,8 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
 	
 	Pointers = (const char **)malloc(sizeof(const char *) * 32);
 
-	for (unsigned int i = 0; i < min(Tokens.count, 32); i++) {
-		Pointers[i] = Tokens.pointers[i] + Tokens.string;
+	for (unsigned int i = 0; i < min(Tokens.Count, 32); i++) {
+		Pointers[i] = Tokens.Pointers[i] + Tokens.String;
 	}
 
 	return Pointers;
@@ -303,10 +303,10 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
  * @param Arg the index of the argument which is to be returned
  */
 const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg) {
-	if (Arg >= Tokens.count) {
+	if (Arg >= Tokens.Count) {
 		return NULL;
 	} else {
-		return Tokens.pointers[Arg] + Tokens.string;
+		return Tokens.Pointers[Arg] + Tokens.String;
 	}
 }
 
@@ -317,8 +317,8 @@ const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg) {
  *
  * @param Tokens the tokenized string
  */
-int ArgCount2(const tokendata_t& Tokens) {
-	return Tokens.count;
+unsigned int ArgCount2(const tokendata_t& Tokens) {
+	return Tokens.Count;
 }
 
 /**

@@ -73,13 +73,17 @@ proc vhost:getdefaultip {} {
 	return ""
 }
 
+proc vhost:isip {ip} {
+	return [regexp {(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)} $ip]
+}
+
 proc vhost:command {client parameters} {
 	if {![getbncuser $client admin] && [string equal -nocase [lindex $parameters 0] "set"] && [string equal -nocase [lindex $parameters 1] "vhost"]} {
 		if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
 			if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
 		}
 
-		if {![regexp {(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)} [lindex $parameters 2]]} {
+		if {![vhost:isip [lindex $parameters 2]]} {
 			bncreply "You have to specify a valid IP address."
 
 			haltoutput
@@ -121,7 +125,21 @@ proc vhost:command {client parameters} {
 		set host [lindex $parameters 3]
 
 		if {$host == ""} {
-			bncreply "Syntax: ADDVHOST <ip> <host> <limit>"
+			bncreply "Syntax: ADDVHOST <ip> <limit> <host>"
+
+			haltoutput
+			return
+		}
+
+		if {![vhost:isip $ip]} {
+			bncreply "You did not specify a valid IP address."
+
+			haltoutput
+			return
+		}
+
+		if {![string is integer $limit]} {
+			bncreply "You did not specify a valid limit."
 
 			haltoutput
 			return

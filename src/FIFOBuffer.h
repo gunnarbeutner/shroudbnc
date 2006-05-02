@@ -25,7 +25,7 @@
  * A fifo buffer.
  */
 class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
-	char* m_Buffer; /**< the fifo buffer's data */
+	char *m_Buffer; /**< the fifo buffer's data */
 	size_t m_BufferSize; /**< the size of the buffer */
 	size_t m_Offset; /**< the number of unused bytes at the
 								beginning of the buffer */

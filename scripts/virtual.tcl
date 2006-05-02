@@ -137,7 +137,7 @@ proc virtual:cmd:who {account parameters} {
 		set group [virtual:getgroup $account]
 	}
 
-	foreach user [bncuserlist] {
+	foreach user [lsort [bncuserlist]] {
 		if {[string equal -nocase [virtual:getgroup $user] $group] || $group == ""} {
 			set out ""
 

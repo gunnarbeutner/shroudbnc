@@ -115,7 +115,7 @@ bool CModule::InternalLoad(const char *Filename) {
 		Modules = g_Bouncer->GetModules();
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			if (Modules->Get(i)->GetHandle() == m_Image) {
+			if ((*Modules)[i]->GetHandle() == m_Image) {
 				m_Error = strdup("This module is already loaded.");
 
 				FreeLibrary(m_Image);

@@ -330,6 +330,13 @@ RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
 
 			asprintf(&Value, "%s=%s", Setting->Name, Setting->Value);
 
+			CHECK_ALLOC_RESULT(Value, asprintf) {
+				Settings->Destroy();
+				delete this;
+
+				THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
+			} CHECK_ALLOC_RESULT_END;
+
 			Settings->AddString(Index, Value);
 
 			free(Index);

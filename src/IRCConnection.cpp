@@ -79,9 +79,9 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	}
 
 	if (!Unfreezing) {
-		const char* Password = Owner->GetServerPassword();
+		const char *Password = Owner->GetServerPassword();
 
-		if (Password) {
+		if (Password != NULL) {
 			WriteLine("PASS :%s", Password);
 		}
 
@@ -96,7 +96,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 		WriteLine("USER %s \"\" \"fnords\" :%s", Ident, Owner->GetRealname());
 	}
 
-	m_Channels = new CHashtable<CChannel*, false, 16>();
+	m_Channels = new CHashtable<CChannel *, false, 16>();
 
 	if (m_Channels == NULL) {
 		LOGERROR("new operator failed. Could not create channel list.");
@@ -107,7 +107,6 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_Channels->RegisterValueDestructor(DestroyObject<CChannel>);
 
 	m_Server = NULL;
-
 	m_ServerVersion = NULL;
 	m_ServerFeat = NULL;
 
@@ -162,22 +161,29 @@ CIRCConnection::~CIRCConnection() {
 	}
 }
 
-bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
+/* TODO: move variable declaration (Nick, Channel, Client, etc.) */
+bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
+	CChannel *Channel;
+	CClientConnection *Client;
+
 	m_LastResponse = g_CurrentTime;
 
 	if (argc < 2)
 		return true;
 
-	const char* Reply = argv[0];
-	const char* Raw = argv[1];
-	char* Nick = ::NickFromHostmask(Reply);
+	const char *Reply = argv[0];
+	const char *Raw = argv[1];
+	char *Nick = ::NickFromHostmask(Reply);
 	int iRaw = atoi(Raw);
 
 	bool b_Me = false;
-	if (m_CurrentNick && Nick && strcasecmp(Nick, m_CurrentNick) == 0)
+	if (m_CurrentNick && Nick && strcasecmp(Nick, m_CurrentNick) == 0) {
 		b_Me = true;
+	}
 
 	free(Nick);
+
+	Client = GetOwner()->GetClientConnection();
 
 	// HASH values
 	CHashCompare hashRaw(argv[1]);
@@ -194,27 +200,30 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	// END of HASH values
 
 	if (argc > 3 && iRaw == 433) {
-		bool Ret = ModuleEvent(argc, argv);
+		bool ReturnValue = ModuleEvent(argc, argv);
 
-		if (GetCurrentNick() != NULL && GetOwner()->GetClientConnection() != NULL)
+		if (GetCurrentNick() != NULL && Client != NULL) {
 			return true;
+		}
 
-		if (Ret)
+		if (ReturnValue) {
 			WriteLine("NICK :%s_", argv[3]);
+		}
 
-		return Ret;
-	} else if (argc > 3 && hashRaw == hashPrivmsg && !GetOwner()->GetClientConnection()) {
-		const char* Host;
-		const char* Dest = argv[2];
-		char* Nick = ::NickFromHostmask(Reply);
+		return ReturnValue;
+	} else if (argc > 3 && hashRaw == hashPrivmsg && Client == NULL) {
+		const char *Host;
+		const char *Dest = argv[2];
+		char *Nick = ::NickFromHostmask(Reply);
 
-		CChannel* Chan = GetChannel(Dest);
+		Channel = GetChannel(Dest);
 
-		if (Chan) {
-			CNick* User = Chan->GetNames()->Get(Nick);
+		if (Channel != NULL) {
+			CNick *User = Channel->GetNames()->Get(Nick);
 
-			if (User)
+			if (User != NULL) {
 				User->SetIdleSince(g_CurrentTime);
+			}
 		}
 
 		if (!ModuleEvent(argc, argv)) {
@@ -222,9 +231,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			return false;
 		}
 
+		/* don't log ctcp requests */
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
-			char* Dup;
-			char* Delim;
+			char *Dup;
+			char *Delim;
 
 			Dup = strdup(Reply);
 
@@ -238,7 +248,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 			Delim = strstr(Dup, "!");
 
-			if (Delim) {
+			if (Delim != NULL) {
 				*Delim = '\0';
 
 				Host = Delim + 1;
@@ -254,9 +264,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		UpdateHostHelper(Reply);
 
 		return true;
-	} else if (argc > 3 && hashRaw == hashNotice && !GetOwner()->GetClientConnection()) {
-		const char* Dest = argv[2];
-		char* Nick;
+	} else if (argc > 3 && hashRaw == hashNotice && Client == NULL) {
+		const char *Dest = argv[2];
+		char *Nick;
 		
 		if (!ModuleEvent(argc, argv)) {
 			return false;
@@ -264,6 +274,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		Nick = ::NickFromHostmask(Reply);
 
+		/* don't log ctcp replies */
 		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			GetOwner()->Log("%s (notice): %s", Reply, argv[3]);
 		}
@@ -275,14 +286,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (b_Me) {
 			AddChannel(argv[2]);
 
-			/* m_Owner can be NULL if AddChannel failed */
-			if (m_Owner && !m_Owner->GetClientConnection())
+			/* GetOwner() can be NULL if AddChannel failed */
+			if (GetOwner() != NULL && Client != NULL) {
 				WriteLine("MODE %s", argv[2]);
+			}
 		}
 
-		CChannel* Chan = GetChannel(argv[2]);
+		Channel = GetChannel(argv[2]);
 
-		if (Chan) {
+		if (Channel != NULL) {
 			Nick = NickFromHostmask(Reply);
 
 			if (Nick == NULL) {
@@ -291,7 +303,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			Chan->AddUser(Nick, '\0');
+			Channel->AddUser(Nick, '\0');
 			free(Nick);
 		}
 
@@ -302,9 +314,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		if (b_Me) {
 			RemoveChannel(argv[2]);
 		} else {
-			CChannel* Chan = GetChannel(argv[2]);
+			Channel = GetChannel(argv[2]);
 
-			if (Chan) {
+			if (Channel != NULL) {
 				Nick = ::NickFromHostmask(Reply);
 
 				if (Nick == NULL) {
@@ -313,7 +325,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 					return false;
 				}
 
-				Chan->RemoveUser(Nick);
+				Channel->RemoveUser(Nick);
 
 				free(Nick);
 			}
@@ -325,11 +337,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 	} else if (argc > 3 && hashRaw == hashKick) {
 		bool bRet = ModuleEvent(argc, argv);
 
-		if (m_CurrentNick && strcasecmp(argv[3], m_CurrentNick) == 0) {
+		if (m_CurrentNick != NULL && strcasecmp(argv[3], m_CurrentNick) == 0) {
 			RemoveChannel(argv[2]);
 
-			if (GetOwner()->GetClientConnection() == NULL) {
-				char* Out;
+			if (Client == NULL) {
+				char *Out;
 
 				asprintf(&Out, "JOIN %s", argv[2]);
 
@@ -343,7 +355,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 				free(Out);
 
-				char* Dup = strdup(Reply);
+				char *Dup = strdup(Reply);
 
 				if (Dup == NULL) {
 					LOGERROR("strdup() failed. Could not log event.");
@@ -351,8 +363,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 					return bRet;
 				}
 
-				char* Delim = strstr(Dup, "!");
-				const char* Host;
+				char *Delim = strstr(Dup, "!");
+				const char *Host;
 
 				if (Delim) {
 					*Delim = '\0';
@@ -365,19 +377,18 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				free(Dup);
 			}
 		} else {
-			CChannel* Chan = GetChannel(argv[2]);
+			Channel = GetChannel(argv[2]);
 
-			if (Chan)
-				Chan->RemoveUser(argv[3]);
+			if (Channel != NULL) {
+				Channel->RemoveUser(argv[3]);
+			}
 		}
 
 		UpdateHostHelper(Reply);
 
 		return bRet;
 	} else if (argc > 2 && iRaw == 1) {
-		CClientConnection* Client = GetOwner()->GetClientConnection();
-
-		if (Client) {
+		if (Client != NULL) {
 			if (strcmp(Client->GetNick(), argv[2]) != 0) {
 				Client->WriteLine(":%s!ident@sbnc NICK :%s", Client->GetNick(), argv[2]);
 			}
@@ -398,10 +409,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		int i = 0;
 
-		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			const CHashtable<CNick*, false, 64>* Nicks = Chan->Value->GetNames();
-
-			Chan->Value->RenameUser(Nick, argv[2]);
+		while (hash_t<CChannel *> *ChannelHash = m_Channels->Iterate(i++)) {
+			ChannelHash->Value->RenameUser(Nick, argv[2]);
 		}
 
 		free(Nick);
@@ -410,19 +419,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		Nick = NickFromHostmask(argv[0]);
 
-		int i = 0;
+		unsigned int i = 0;
 
-		while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
-			Chan->Value->RemoveUser(Nick);
+		while (hash_t<CChannel *> *ChannelHash = m_Channels->Iterate(i++)) {
+			ChannelHash->Value->RemoveUser(Nick);
 		}
 
 		free(Nick);
-		
+
 		return bRet;
 	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
 		int DelayJoin = m_Owner->GetDelayJoin();
-		CClientConnection *Client = GetOwner()->GetClientConnection();
-
 		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
 			const char *Site = GetSite();
 
@@ -430,54 +437,55 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				Site = "unknown@host";
 			}
 
-			GetOwner()->GetClientConnection()->WriteLine(":%s!%s NICK %s", Client->GetPreviousNick(), Site, m_CurrentNick);
+			Client->WriteLine(":%s!%s NICK %s", Client->GetPreviousNick(), Site, m_CurrentNick);
 		}
 
-		if (DelayJoin == 1)
+		if (DelayJoin == 1) {
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
-		else if (DelayJoin == 0)
+		} else if (DelayJoin == 0) {
 			JoinChannels();
+		}
 
 		if (m_State != State_Connected) {
 			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				Modules->Get(i)->ServerLogon(m_Owner->GetUsername());
+				(*Modules)[i]->ServerLogon(m_Owner->GetUsername());
 			}
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
-
 			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
 		}
 
-		if (GetOwner()->GetClientConnection() == NULL) {
+		if (Client == NULL) {
 			bool AppendTS = (GetOwner()->GetConfig()->ReadInteger("user.ts") != 0);
-			const char* AwayReason = GetOwner()->GetAwayText();
+			const char *AwayReason = GetOwner()->GetAwayText();
 
 			if (AwayReason != NULL) {
 				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
 			}
 		}
 
-		const char* AutoModes = GetOwner()->GetAutoModes();
-		const char* DropModes = GetOwner()->GetDropModes();
+		const char *AutoModes = GetOwner()->GetAutoModes();
+		const char *DropModes = GetOwner()->GetDropModes();
 
 		if (AutoModes != NULL) {
 			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
 		}
 
-		if (DropModes != NULL && GetOwner()->GetClientConnection() == NULL) {
+		if (DropModes != NULL && Client == NULL) {
 			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
 		}
 
 		m_State = State_Connected;
 	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
-		if (strstr(Raw, "throttle") != NULL)
+		if (strstr(Raw, "throttle") != NULL) {
 			GetOwner()->ScheduleReconnect(120);
-		else
+		} else {
 			GetOwner()->ScheduleReconnect(5);
+		}
 
-		char* Out;
+		char *Out;
 
 		asprintf(&Out, "Error received for %s: %s", GetOwner()->GetUsername(), argv[1]);
 
@@ -502,7 +510,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		m_ServerFeat = strdup(argv[5]);
 	} else if (argc > 3 && iRaw == 5) {
 		for (int i = 3; i < argc - 1; i++) {
-			char* Dup = strdup(argv[i]);
+			char *Dup = strdup(argv[i]);
 
 			if (Dup == NULL) {
 				LOGERROR("strdup failed. Could not parse 005 reply.");
@@ -510,7 +518,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 				return false;
 			}
 
-			char* Eq = strstr(Dup, "=");
+			char *Eq = strstr(Dup, "=");
 
 			if (strcasecmp(Dup, "NAMESX") == 0) {
 				WriteLine("PROTOCTL NAMESX");
@@ -526,18 +534,18 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 			free(Dup);
 		}
 	} else if (argc > 4 && iRaw == 324) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan) {
-			Chan->ClearModes();
-			Chan->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
-			Chan->SetModesValid(true);
+		if (Channel != NULL) {
+			Channel->ClearModes();
+			Channel->ParseModeChange(argv[0], argv[4], argc - 5, &argv[5]);
+			Channel->SetModesValid(true);
 		}
 	} else if (argc > 3 && hashRaw == hashMode) {
-		CChannel* Chan = GetChannel(argv[2]);
+		Channel = GetChannel(argv[2]);
 
-		if (Chan != NULL) {
-			Chan->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
+		if (Channel != NULL) {
+			Channel->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
 		} else if (strcmp(m_CurrentNick, argv[2]) == 0) {
 			bool Flip = true, WasNull;
 			const char *Modes = argv[3];
@@ -586,92 +594,92 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 4 && iRaw == 329) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan)
-			Chan->SetCreationTime(atoi(argv[4]));
+		if (Channel != NULL) {
+			Channel->SetCreationTime(atoi(argv[4]));
+		}
 	} else if (argc > 4 && iRaw == 332) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan)
-			Chan->SetTopic(argv[4]);
+		if (Channel != NULL) {
+			Channel->SetTopic(argv[4]);
+		}
 	} else if (argc > 5 && iRaw == 333) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan) {
-			Chan->SetTopicNick(argv[4]);
-			Chan->SetTopicStamp(atoi(argv[5]));
+		if (Channel != NULL) {
+			Channel->SetTopicNick(argv[4]);
+			Channel->SetTopicStamp(atoi(argv[5]));
 		}
 	} else if (argc > 3 && iRaw == 331) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan) {
-			Chan->SetNoTopic();
+		if (Channel != NULL) {
+			Channel->SetNoTopic();
 		}
 	} else if (argc > 3 && hashRaw == hashTopic) {
-		CChannel* Chan = GetChannel(argv[2]);
+		Channel = GetChannel(argv[2]);
 
-		if (Chan) {
-			Chan->SetTopic(argv[3]);
-			Chan->SetTopicStamp(g_CurrentTime);
-			Chan->SetTopicNick(argv[0]);
+		if (Channel != NULL) {
+			Channel->SetTopic(argv[3]);
+			Channel->SetTopicStamp(g_CurrentTime);
+			Channel->SetTopicNick(argv[0]);
 		}
 
 		UpdateHostHelper(Reply);
 	} else if (argc > 5 && iRaw == 353) {
-		CChannel* Chan = GetChannel(argv[4]);
+		Channel = GetChannel(argv[4]);
 
-		const char *nicks;
-		const char** nickv;
-		int nickc;
+		if (Channel != NULL) {
+			const char *nicks = ArgTokenize(argv[5]);
+			const char **nickv = ArgToArray(nicks);
 
-		nicks = ArgTokenize(argv[5]);
-		nickv = ArgToArray(nicks);
+			if (nickv == NULL) {
+				LOGERROR("ArgToArray2() failed. could not parse 353 reply for channel %s", argv[4]);
 
-		if (nickv == NULL) {
-			LOGERROR("ArgToArray2() failed. could not parse 353 reply for channel %s", argv[4]);
+				return false;
+			}
 
-			return false;
-		}
+			int nickc = ArgCount(nicks);
 
-		nickc = ArgCount(nicks);
-
-		if (Chan) {
 			for (int i = 0; i < nickc; i++) {
-				const char* n = nickv[i];
+				const char *n = nickv[i];
 
-				while (IsNickPrefix(*n))
+				while (IsNickPrefix(*n)) {
 					++n;
+				}
 
-				char* Modes = NULL;
+				char *Modes = NULL;
 
 				if (nickv[i] != n) {
-					Modes = (char*)malloc(n - nickv[i] + 1);
+					Modes = (char *)malloc(n - nickv[i] + 1);
 
 					strncpy(Modes, nickv[i], n - nickv[i]);
 					Modes[n - nickv[i]] = '\0';
 				}
 
-				Chan->AddUser(n, Modes);
+				Channel->AddUser(n, Modes);
 
 				free(Modes);
 			}
+
+			ArgFreeArray(nickv);
 		}
-
-		ArgFreeArray(nickv);
 	} else if (argc > 3 && iRaw == 366) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan)
-			Chan->SetHasNames();
+		if (Channel != NULL) {
+			Channel->SetHasNames();
+		}
 	} else if (argc > 9 && iRaw == 352) {
-		const char* Ident = argv[4];
-		const char* Host = argv[5];
-		const char* Server = argv[6];
-		const char* Nick = argv[7];
-		const char* Realname = argv[9];
+		const char *Ident = argv[4];
+		const char *Host = argv[5];
+		const char *Server = argv[6];
+		const char *Nick = argv[7];
+		const char *Realname = argv[9];
 
-		char* Mask = (char*)malloc(strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1);
+		char *Mask = (char *)malloc(strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1);
 
 		snprintf(Mask, strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1, "%s!%s@%s", Nick, Ident, Host);
 
@@ -680,15 +688,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 
 		free(Mask);
 	} else if (argc > 6 && iRaw == 367) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan)
-			Chan->GetBanlist()->SetBan(argv[4], argv[5], atoi(argv[6]));
+		if (Channel != NULL) {
+			Channel->GetBanlist()->SetBan(argv[4], argv[5], atoi(argv[6]));
+		}
 	} else if (argc > 3 && iRaw == 368) {
-		CChannel* Chan = GetChannel(argv[3]);
+		Channel = GetChannel(argv[3]);
 
-		if (Chan)
-			Chan->SetHasBans();
+		if (Channel != NULL) {
+			Channel->SetHasBans();
+		}
 	} else if (argc > 3 && iRaw == 396) {
 		free(m_Site);
 		m_Site = strdup(argv[3]);
@@ -700,17 +710,18 @@ bool CIRCConnection::ParseLineArgV(int argc, const char** argv) {
 		return false;
 	}
 
-	if (m_Owner)
+	if (GetOwner() != NULL) {
 		return ModuleEvent(argc, argv);
-	else
+	} else {
 		return true;
+	}
 }
 
-bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
+bool CIRCConnection::ModuleEvent(int argc, const char **argv) {
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		if (!Modules->Get(i)->InterceptIRCMessage(this, argc, argv)) {
+		if (!(*Modules)[i]->InterceptIRCMessage(this, argc, argv)) {
 			return false;
 		}
 	}
@@ -718,7 +729,7 @@ bool CIRCConnection::ModuleEvent(int argc, const char** argv) {
 	return true;
 }
 
-void CIRCConnection::ParseLine(const char* Line) {
+void CIRCConnection::ParseLine(const char *Line) {
 	const char *RealLine = Line;
 	char *Out;
 
@@ -733,7 +744,7 @@ void CIRCConnection::ParseLine(const char* Line) {
 	}
 
 	tokendata_t Args = ArgTokenize2(RealLine);
-	const char** argv = ArgToArray2(Args);
+	const char **argv = ArgToArray2(Args);
 	int argc = ArgCount2(Args);
 
 	if (argv == NULL) {
@@ -776,12 +787,12 @@ void CIRCConnection::ParseLine(const char* Line) {
 	ArgFreeArray(argv);
 }
 
-const char* CIRCConnection::GetCurrentNick(void) const {
+const char *CIRCConnection::GetCurrentNick(void) const {
 	return m_CurrentNick;
 }
 
-CChannel *CIRCConnection::AddChannel(const char* Channel) {
-	CChannel* ChannelObj = new CChannel(Channel, this);
+CChannel *CIRCConnection::AddChannel(const char *Channel) {
+	CChannel *ChannelObj = new CChannel(Channel, this);
 
 	if (ChannelObj == NULL) {
 		LOGERROR("new operator failed. could not add channel.");
@@ -796,25 +807,25 @@ CChannel *CIRCConnection::AddChannel(const char* Channel) {
 	return ChannelObj;
 }
 
-void CIRCConnection::RemoveChannel(const char* Channel) {
+void CIRCConnection::RemoveChannel(const char *Channel) {
 	m_Channels->Remove(Channel);
 
 	UpdateChannelConfig();
 }
 
-const char* CIRCConnection::GetServer(void) const {
+const char *CIRCConnection::GetServer(void) const {
 	return m_Server;
 }
 
 void CIRCConnection::UpdateChannelConfig(void) {
-	char* Out = NULL;
+	char *Out = NULL;
 
 	int a = 0;
 
-	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(a++)) {
 		bool WasNull = (Out == NULL);
 
-		Out = (char*)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
+		Out = (char *)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
 
 		if (Out == NULL) {
 			LOGERROR("realloc() failed. Channel config file might be out of date.");
@@ -822,17 +833,19 @@ void CIRCConnection::UpdateChannelConfig(void) {
 			return;
 		}
 
-		if (!WasNull)
+		if (!WasNull) {
 			strcat(Out, ",");
-		else
+		} else {
 			Out[0] = '\0';
+		}
 
 		strcat(Out, Chan->Name);
 	}
 
 	/* m_Owner can be NULL if the last channel was not created successfully */
-	if (m_Owner)
-		m_Owner->SetConfigChannels(Out);
+	if (GetOwner() != NULL) {
+		GetOwner()->SetConfigChannels(Out);
+	}
 
 	free(Out);
 }
@@ -846,7 +859,7 @@ bool CIRCConnection::HasQueuedData(void) const {
 }
 
 void CIRCConnection::Write(void) {
-	char* Line = m_FloodControl->DequeueItem();
+	char *Line = m_FloodControl->DequeueItem();
 
 	if (Line != NULL)
 		CConnection::WriteUnformattedLine(Line);
@@ -865,7 +878,7 @@ void CIRCConnection::SetISupport(const char *Feature, const char *Value) {
 }
 
 bool CIRCConnection::IsChanMode(char Mode) const {
-	const char* Modes = GetISupport("CHANMODES");
+	const char *Modes = GetISupport("CHANMODES");
 
 	return strchr(Modes, Mode) != NULL;
 }
@@ -890,12 +903,12 @@ int CIRCConnection::RequiresParameter(char Mode) const {
 	return ReturnValue;
 }
 
-CChannel* CIRCConnection::GetChannel(const char* Name) {
+CChannel *CIRCConnection::GetChannel(const char *Name) {
 	return m_Channels->Get(Name);
 }
 
 bool CIRCConnection::IsNickPrefix(char Char) const {
-	const char* Prefixes = GetISupport("PREFIX");
+	const char *Prefixes = GetISupport("PREFIX");
 	bool flip = false;
 
 	if (Prefixes == NULL)
@@ -925,8 +938,8 @@ bool CIRCConnection::IsNickMode(char Char) const {
 }
 
 char CIRCConnection::PrefixForChanMode(char Mode) const {
-	const char* Prefixes = GetISupport("PREFIX");
-	const char* pref = strstr(Prefixes, ")");
+	const char *Prefixes = GetISupport("PREFIX");
+	const char *pref = strstr(Prefixes, ")");
 
 	Prefixes++;
 
@@ -946,11 +959,11 @@ char CIRCConnection::PrefixForChanMode(char Mode) const {
 	return '\0';
 }
 
-const char* CIRCConnection::GetServerVersion(void) const {
+const char *CIRCConnection::GetServerVersion(void) const {
 	return m_ServerVersion;
 }
 
-const char* CIRCConnection::GetServerFeat(void) const {
+const char *CIRCConnection::GetServerFeat(void) const {
 	return m_ServerFeat;
 }
 
@@ -965,7 +978,7 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 		return;
 	}
 
-	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(a++)) {
+	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(a++)) {
 		if (!Chan->Value->HasNames())
 			return;
 
@@ -978,10 +991,10 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 	}
 }
 
-void CIRCConnection::UpdateHostHelper(const char* Host) {
+void CIRCConnection::UpdateHostHelper(const char *Host) {
 	const char *NickEnd;
 	size_t Offset;
-	char* Copy;
+	char *Copy;
 
 	if (m_Owner->GetLeanMode() > 0 && m_Site != NULL) {
 		return;
@@ -1002,8 +1015,8 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 		return;
 	}
 
-	const char* Nick = Copy;
-	char* Site = Copy + Offset;
+	const char *Nick = Copy;
+	char *Site = Copy + Offset;
 
 	*Site = '\0';
 	Site++;
@@ -1026,7 +1039,7 @@ void CIRCConnection::UpdateHostHelper(const char* Host) {
 
 	int i = 0;
 
-	while (hash_t<CChannel*>* Chan = m_Channels->Iterate(i++)) {
+	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(i++)) {
 		if (!Chan->Value->HasNames())
 			continue;
 
@@ -1043,7 +1056,7 @@ CFloodControl *CIRCConnection::GetFloodControl(void) {
 	return m_FloodControl;
 }
 
-void CIRCConnection::WriteUnformattedLine(const char* In) {
+void CIRCConnection::WriteUnformattedLine(const char *In) {
 	if (!m_Locked)
 		m_QueueMiddle->QueueItem(In);
 }
@@ -1066,10 +1079,10 @@ void CIRCConnection::JoinChannels(void) {
 		m_DelayJoinTimer = NULL;
 	}
 
-	const char* Chans = GetOwner()->GetConfigChannels();
+	const char *Chans = GetOwner()->GetConfigChannels();
 
 	if (Chans && *Chans) {
-		char* dup, *newChanList, *tok, *ChanList = NULL;
+		char *dup, *newChanList, *tok, *ChanList = NULL;
 		CKeyring* Keyring;
 
 		dup = strdup(Chans);
@@ -1085,7 +1098,7 @@ void CIRCConnection::JoinChannels(void) {
 		Keyring = m_Owner->GetKeyring();
 
 		while (tok) {
-			const char* Key = Keyring->GetKey(tok);
+			const char *Key = Keyring->GetKey(tok);
 
 			if (Key)
 				WriteLine("JOIN %s %s", tok, Key);
@@ -1096,10 +1109,10 @@ void CIRCConnection::JoinChannels(void) {
 						free(ChanList);
 					}
 
-					ChanList = (char*)malloc(strlen(tok) + 1);
+					ChanList = (char *)malloc(strlen(tok) + 1);
 					strcpy(ChanList, tok);
 				} else {
-					newChanList = (char*)realloc(ChanList, strlen(ChanList) + 1 + strlen(tok) + 2);
+					newChanList = (char *)realloc(ChanList, strlen(ChanList) + 1 + strlen(tok) + 2);
 
 					if (newChanList == NULL) {
 						LOGERROR("realloc() failed. Could not join channel.");
@@ -1126,7 +1139,7 @@ void CIRCConnection::JoinChannels(void) {
 	}
 }
 
-const char* CIRCConnection::GetClassName(void) const {
+const char *CIRCConnection::GetClassName(void) const {
 	return "CIRCConnection";
 }
 
@@ -1165,11 +1178,11 @@ bool IRCPingTimer(time_t Now, void* IRCConnection) {
 	return true;
 }
 
-CHashtable<CChannel*, false, 16>* CIRCConnection::GetChannels(void) {
+CHashtable<CChannel *, false, 16> *CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }
 
-const char* CIRCConnection::GetSite(void) const {
+const char *CIRCConnection::GetSite(void) const {
 	return m_Site;
 }
 

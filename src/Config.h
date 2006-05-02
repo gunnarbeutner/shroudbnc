@@ -39,10 +39,8 @@ class CConfig : public CZoneObject<CConfig, 128> {
 public:
 #ifndef SWIG
 	CConfig(const char *Filename);
-#endif
 	virtual ~CConfig(void);
 
-#ifndef SWIG
 	RESULT<bool> Freeze(CAssocArray *Box);
 	static RESULT<CConfig *> Thaw(CAssocArray *Box);
 #endif

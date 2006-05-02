@@ -137,10 +137,11 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_HasSSL = SSL;
 	m_SSL = NULL;
 
-	if (GetRole() == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL == true) {
+	if (GetRole() == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL) {
 		m_HasSSL = false;
 
-		LOGERROR("No SSL server certificate available. Falling back to non-SSL mode.");
+		LOGERROR("No SSL server certificate available. Falling back to"
+			" non-SSL mode. This might not work.");
 	}
 #endif
 
@@ -198,7 +199,7 @@ void CConnection::InitSocket(void) {
 
 #ifdef USESSL
 	if (IsSSL()) {
-		if (m_SSL) {
+		if (m_SSL != NULL) {
 			SSL_free(m_SSL);
 		}
 
@@ -308,7 +309,7 @@ bool CConnection::Read(bool DontProcess) {
 		return true;
 	}
 
-	if (DontProcess == false) {
+	if (!DontProcess) {
 		ProcessBuffer();
 	}
 
@@ -478,7 +479,7 @@ bool CConnection::ReadLine(char** Out) {
  * @param Line the line
  */
 void CConnection::WriteUnformattedLine(const char *Line) {
-	if (m_Locked == false && m_SendQ != NULL && Line != NULL) {
+	if (!m_Locked && m_SendQ != NULL && Line != NULL) {
 		m_SendQ->WriteUnformattedLine(Line);
 	}
 }

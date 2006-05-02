@@ -71,6 +71,8 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_PreviousNick = NULL;
 	m_ClientLookup = NULL;
 	m_AuthTimer = NULL;
+	m_CommandList = NULL;
+	m_NamesXSupport = false;
 }
 
 CClientConnection::~CClientConnection() {
@@ -161,7 +163,11 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd",
 				"Syntax: motd [text]\nShows or modifies the motd.");
 			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC",
+#ifndef _WIN32
 				"Syntax: reload [filename]\nReloads shroudBNC (a new .so module file can be specified).");
+#else
+				"Syntax: reload [filename]\nReloads shroudBNC (a new .dll module file can be specified).");
+#endif
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
 			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
@@ -192,7 +198,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
 		if (!m_Owner->IsAdmin()) {
-			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server",
+			AddCommand(&m_CommandList, "disconnect", "User", "disconnects a user from the irc server",
 				"Syntax: disconnect\nDisconnects you from the irc server.");
 		}
 #ifdef USESSL
@@ -215,7 +221,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 	}
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		if (Modules->Get(i)->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser)) {
+		if ((*Modules)[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser)) {
 			latchedRetVal = false;
 		}
 	}
@@ -310,7 +316,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && m_Owner->IsAdmin()) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			asprintf(&Out, "%d: %x %s", i + 1, Modules->Get(i)->GetHandle(), Modules->Get(i)->GetFilename());
+			asprintf(&Out, "%d: %x %s", i + 1, (*Modules)[i]->GetHandle(), (*Modules)[i]->GetFilename());
 
 			CHECK_ALLOC_RESULT(Out, asprintf) {
 				return false;
@@ -359,7 +365,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		if (Index == 0 || Index > Modules->GetLength()) {
 			SENDUSER("There is no such module.");
 		} else {
-			CModule *Module = Modules->Get(Index - 1);
+			CModule *Module = (*Modules)[Index - 1];
 
 			if (g_Bouncer->UnloadModule(Module)) {
 				SENDUSER("Done.");
@@ -636,7 +642,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		Certificates = m_Owner->GetClientCertificates();
 
 		for (unsigned int i = 0; i < Certificates->GetLength(); i++) {
-			X509 *Certificate = Certificates->Get(i);
+			X509 *Certificate = (*Certificates)[i];
 
 			if (First == false) {
 				SENDUSER("---");
@@ -689,7 +695,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		if (id == 0 || Certificates->GetLength() > id) {
 			Certificate = NULL;
 		} else {
-			Certificate = Certificates->Get(id - 1);
+			Certificate = (*Certificates)[id - 1];
 		}
 
 		if (Certificate != NULL) {
@@ -1186,7 +1192,7 @@ bool CClientConnection::ProcessBncCommand(const char* Subcommand, int argc, cons
 		SENDUSER("---------");
 
 		for (unsigned int i = 0; i < Hosts->GetLength(); i++) {
-			SENDUSER(Hosts->Get(i));
+			SENDUSER((*Hosts)[i]);
 		}
 
 		if (Hosts->GetLength() == 0)
@@ -1375,7 +1381,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char** argv) {
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-		if (!Modules->Get(i)->InterceptClientMessage(this, argc, argv))
+		if (!(*Modules)[i]->InterceptClientMessage(this, argc, argv))
 			return false;
 	}
 

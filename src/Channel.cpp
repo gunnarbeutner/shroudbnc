@@ -64,7 +64,7 @@ CChannel::~CChannel() {
 	free(m_TopicNick);
 	free(m_TempModes);
 
-	for (int i = 0; i < m_ModeCount; i++) {
+	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
 			free(m_Modes[i].Parameter);
 		}
@@ -90,7 +90,7 @@ const char *CChannel::GetName(void) const {
  * Returns the channel's modes.
  */
 RESULT<const char *> CChannel::GetChannelModes(void) {
-	int i;
+	unsigned int i;
 	size_t Size;
 	char *NewTempModes;
 	char ModeString[2];
@@ -193,7 +193,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			}
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, pargv[p]);
+				(*Modules)[i]->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, pargv[p]);
 			}
 
 			if (Flip && Current == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
@@ -234,7 +234,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				arg = pargv[p];
 			}
 
-			Modules->Get(i)->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, arg);
+			(*Modules)[i]->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, arg);
 		}
 
 		if (Flip) {
@@ -260,7 +260,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				Slot->Parameter = NULL;
 			}
 		} else {
-			if (Slot) {
+			if (Slot != NULL) {
 				Slot->Mode = '\0';
 				free(Slot->Parameter);
 
@@ -500,9 +500,9 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 bool CChannel::HasNames(void) const {
 	if (m_Owner->GetOwner()->GetLeanMode() > 1) {
 		return false;
+	} else {
+		return m_HasNames;
 	}
-
-	return m_HasNames;
 }
 
 /**

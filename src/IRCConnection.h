@@ -38,8 +38,8 @@ class CTimer;
 class CAssocArray;
 
 #ifndef SWIG
-bool DelayJoinTimer(time_t Now, void* IRCConnection);
-bool IRCPingTimer(time_t Now, void* IRCConnection);
+bool DelayJoinTimer(time_t Now, void *IRCConnection);
+bool IRCPingTimer(time_t Now, void *IRCConnection);
 #endif
 
 #ifdef SWIGINTERFACE
@@ -54,8 +54,8 @@ bool IRCPingTimer(time_t Now, void* IRCConnection);
  */
 class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZoneObject<CIRCConnection, 16> {
 #ifndef SWIG
-	friend bool DelayJoinTimer(time_t Now, void* IRCConnection);
-	friend bool IRCPingTimer(time_t Now, void* IRCConnection);
+	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
+	friend bool IRCPingTimer(time_t Now, void *IRCConnection);
 #endif
 
 	connection_state_e m_State; /**< the current status of the IRC connection */

@@ -187,15 +187,43 @@ public:
 #define IMPL_SOCKETLISTENER(ClassName) class ClassName : public CListenerBase<ClassName>
 
 #ifdef SBNC
+ /**
+  * CClientListener
+  *
+  * A listener which can be used by bouncer clients to connect to the bouncer.
+  */
 IMPL_SOCKETLISTENER(CClientListener) {
-	bool m_SSL;
+	bool m_SSL; /**< whether this is an SSL listener */
 public:
+	/**
+	 * CClientListener
+	 *
+	 * Constructs  a new client listener.
+	 *
+	 * @param Port the port
+	 * @param BindIp the bind address (or NULL)
+	 * @param Family socket family (AF_INET or AF_INET6)
+	 * @param SSL whether the listener should be using ssl
+	 */
 	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
 		m_SSL = SSL;
 	}
 
+	/**
+	 * CClientListener
+	 *
+	 * Default constructor.
+	 */
 	CClientListener(void) { }
 
+	/**
+	 * Accept
+	 *
+	 * Accepts a new client.
+	 *
+	 * @param Client the client socket
+	 * @param PeerAddress the remote address of the client
+	 */
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CClientConnection *ClientObject;
 		unsigned long lTrue = 1;
@@ -208,11 +236,23 @@ public:
 		//g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
 	}
 
+	/**
+	 * SetSSL
+	 *
+	 * Sets whether this listener should accept SSL clients.
+	 *
+	 * @param SSL boolean flag
+	 */
 	void SetSSL(bool SSL) {
 		m_SSL = SSL;
 	}
 
-	bool GetSSL(void) {
+	/**
+	 * GetSSL
+	 *
+	 * Checks whether this listener accepts SSL clients.
+	 */
+	bool GetSSL(void) const {
 		return m_SSL;
 	}
 };

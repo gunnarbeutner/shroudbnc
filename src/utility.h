@@ -17,9 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CIRCConnection;
-class CUser;
-
 /**
  * command_t
  *
@@ -79,23 +76,27 @@ int ArgCount(const char *Args);
  * Used for storing tokenized strings.
  */
 typedef struct tokendata_s {
-	unsigned int count; /**< number of tokens */
-	size_t pointers[32]; /**< relative pointers to individual tokens */
-	char string[512]; /**< the tokenized string */
+	unsigned int Count; /**< number of tokens */
+	size_t Pointers[32]; /**< relative pointers to individual tokens */
+	char String[512]; /**< the tokenized string */
 } tokendata_t;
 
-/** Version 2 of some tokenization functions */
+/* Version 2 of some tokenization functions
+ * these functions have some limitations:
+ * -only up to 32 tokens per string are supported
+ * -strings cannot be longer than 512 chars
+ */
 tokendata_t ArgTokenize2(const char *String);
 const char **ArgToArray2(const tokendata_t& Tokens);
 const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg);
-int ArgCount2(const tokendata_t& Tokens);
+unsigned int ArgCount2(const tokendata_t& Tokens);
 
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp);
 
 SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
 
-char* NickFromHostmask(const char *Hostmask);
+char *NickFromHostmask(const char *Hostmask);
 
 const char *UtilMd5(const char *String);
 

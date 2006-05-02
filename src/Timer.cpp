@@ -138,15 +138,3 @@ bool CTimer::GetRepeat(void) const {
 void CTimer::Reschedule(time_t Next) {
 	m_Next = Next;
 }
-
-/**
- * NullTimer
- *
- * A timer function which does nothing.
- *
- * @param Now the current time
- * @param Cookie a timer cookie (will be ignored)
- */
-bool NullTimer(time_t Now, void *Cookie) {
-	return true;
-}

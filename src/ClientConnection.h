@@ -39,14 +39,13 @@ private:
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
 	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
 	bool m_NamesXSupport; /**< does this client support NAMESX? */
+	CDnsQuery *m_ClientLookup; /**< dns query for looking up the user's hostname */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
 
 public:
 	virtual void AsyncDnsFinishedClient(hostent* response);
-
-	CDnsQuery *m_ClientLookup; /**< dns query for looking up the user's hostname */
 private:
 #endif
 
@@ -85,21 +84,50 @@ public:
 };
 
 #ifndef SWIG
+/**
+ * CFakeClient
+ *
+ * A fake client connection which is used by CClientConnection::Simulate.
+ */
 class CFakeClient : public CClientConnection {
-	CFIFOBuffer m_Queue;
-	char *m_Data;
+	CFIFOBuffer m_Queue; /**< used for storing inbound data */
+	char *m_Data; /**< temporary "static" copy of m_Queue's data */
 
+	/**
+	 * WriteUnformattedLine
+	 *
+	 * Re-implementation of CClientConnection::WriteUnformattedLine.
+	 *
+	 * @param Line the line
+	 */
 	virtual void WriteUnformattedLine(const char *Line) {
 		m_Queue.WriteUnformattedLine(Line);
 	}
 public:
+	/**
+	 * CFakeClient
+	 *
+	 * Constructs a new fake client.
+	 */
 	CFakeClient(void) : CClientConnection(INVALID_SOCKET, false) {
 		m_Data = NULL;
 	}
 
+	/**
+	 * ~CFakeClient
+	 *
+	 * Destructs a fake client.
+	 */
 	virtual ~CFakeClient(void) {
 		free(m_Data);
 	}
+
+	/**
+	 * GetData
+	 *
+	 * Returns a temporary buffer containing the lines which have been
+	 * sent to the client so far.
+	 */
 	virtual const char *GetData(void) {
 		free(m_Data);
 
@@ -111,10 +139,21 @@ public:
 		return m_Data;
 	}
 
+	/**
+	 * operator new
+	 *
+	 * Overrides the base class new operator. CClientConnection's would not work
+	 * because CFakeClient objects are larger than CClientConnection objects.
+	 */
 	void *operator new (size_t Size) {
 		return malloc(Size);
 	}
 
+	/**
+	 * operator delete
+	 *
+	 * Overrides the base class new operator.
+	 */
 	void operator delete(void *Object) {
 		free(Object);
 	}

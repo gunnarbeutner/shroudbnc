@@ -27,13 +27,13 @@ proc sbnc:channelflush {} {
 		savechannels
 
 		foreach channel [channels] {
-			if {![botonchan $channel] && [validchan $channel]} {
+			if {![botonchan $channel]} {
 				if {[channel get $channel autochan]} {
 					channel remove $channel
 					continue
 				}
 
-				if {![channel get $channel inactive] && ![channel get $channel autochan]} {
+				if {![channel get $channel inactive]} {
 					# simul so we can take advantage of keyrings
 					simul [getctx] "JOIN $channel"
 				}
@@ -58,7 +58,7 @@ proc sbnc:channeljoin {client params} {
 	if {![isbotnick [lindex [split [lindex $params 0] "!"] 0]]} { return }
 
 	if {[string equal -nocase [lindex $params 1] "JOIN"]} {
-		if {[catch [list channel get [lindex $params 2] inactive] error]} {
+		if {[catch [channel get [lindex $params 2] inactive] error]} {
 			channel set [lindex $params 2] +autochan
 		}
 
@@ -91,7 +91,9 @@ proc channel {option chan args} {
 		add {
 			set channels($chan) [join $args]
 
-			simul [getctx] "JOIN $chan"
+			if {![channel get $chan autochan]} {
+				simul [getctx] "JOIN $chan"
+			}
 
 			return 1
 		}
