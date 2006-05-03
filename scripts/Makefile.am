@@ -6,7 +6,6 @@ botnet.tcl \
 channel.tcl \
 contact.tcl \
 defaultserver.tcl \
-fakemode.tcl \
 highlight.tcl \
 iface2.tcl \
 ifacecmds.tcl \
