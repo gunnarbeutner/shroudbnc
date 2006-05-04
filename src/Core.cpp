@@ -152,6 +152,8 @@ CCore::~CCore() {
 		delete m_Modules[a];
 	}
 
+	m_Modules.Clear();
+
 	UninitializeAdditionalListeners();
 
 	for (a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {

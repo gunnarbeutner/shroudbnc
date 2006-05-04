@@ -527,9 +527,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				if (argc > 3) {
 					m_Owner->SetPort(atoi(argv[3]));
 					m_Owner->SetServer(argv[2]);
-				} else if (argc > 2 && strlen(argv[2]) == 0) {
-					m_Owner->SetServer(NULL);
-					m_Owner->SetPort(6667);
+				} else if (argc > 2) {
+					if (strlen(argv[2]) == 0) {
+						m_Owner->SetServer(NULL);
+						m_Owner->SetPort(6667);
+					} else {
+						m_Owner->SetPort(6667);
+						m_Owner->SetServer(argv[2]);
+					}
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
 
