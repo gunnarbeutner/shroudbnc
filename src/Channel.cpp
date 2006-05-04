@@ -128,7 +128,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
-				NewTempModes = (char*)realloc(m_TempModes, Size);
+				NewTempModes = (char *)realloc(m_TempModes, Size);
 
 				CHECK_ALLOC_RESULT(m_TempModes, malloc) {
 					free(m_TempModes);
@@ -617,10 +617,11 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 	while (hash_t<CNick *> *NickHash = GetNames()->Iterate(a++)) {
 		CNick *NickObj = NickHash->Value;
 
-		if ((SiteTemp = NickObj->GetSite()) == NULL)
+		if ((SiteTemp = NickObj->GetSite()) == NULL) {
 			return false;
+		}
 
-		Site = const_cast<char*>(SiteTemp);
+		Site = const_cast<char *>(SiteTemp);
 		Host = strchr(Site, '@');
 
 		if (Host == NULL) {
@@ -637,12 +638,14 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 		Host++;
 
 		Server = NickObj->GetServer();
-		if (Server == NULL)
+		if (Server == NULL) {
 			Server = "*.unknown.org";
+		}
 
 		Realname = NickObj->GetRealname();
-		if (Realname == NULL)
+		if (Realname == NULL) {
 			Realname = "3 Unknown Client";
+		}
 
 		if (!Simulate) {
 			Client->WriteLine(":%s 352 %s %s %s %s %s %s H :%s", m_Owner->GetServer(), m_Owner->GetCurrentNick(),
@@ -650,8 +653,9 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 		}
 	}
 
-	if (!Simulate)
+	if (!Simulate) {
 		Client->WriteLine(":%s 315 %s %s :End of /WHO list.", m_Owner->GetServer(), m_Owner->GetCurrentNick(), m_Name);
+	}
 
 	return true;
 }

@@ -171,7 +171,7 @@ public:
 	virtual const char *MD5(const char *String) const;
 
 	virtual int GetArgC(void) const;
-	virtual const char * const* GetArgV(void) const;
+	virtual const char *const *GetArgV(void) const;
 
 	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server) const;
 	virtual void DeleteWrapper(CConnection *Wrapper) const;

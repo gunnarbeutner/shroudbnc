@@ -121,8 +121,6 @@ CUser::CUser(const char *Name) {
  * Destructs a user object.
  */
 CUser::~CUser(void) {
-	unsigned int i;
-
 	if (m_Client != NULL) {
 		m_Client->Kill("Removing user.");
 	}
@@ -146,7 +144,7 @@ CUser::~CUser(void) {
 	}
 
 #ifdef USESSL
-	for (i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		X509_free(m_ClientCertificates[i]);
 	}
 #endif
@@ -165,11 +163,10 @@ CUser::~CUser(void) {
  */
 void CUser::LoadEvent(void) {
 	const CVector<CModule *> *Modules;
-	unsigned int i;
 
 	Modules = g_Bouncer->GetModules();
 
-	for (i = 0; i < Modules->GetLength(); i++) {
+	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 		(*Modules)[i]->UserLoad(m_Name);
 	}
 }
@@ -322,7 +319,7 @@ void CUser::Attach(CClientConnection *Client) {
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
-			Notice(Out);
+			Privmsg(Out);
 
 			free(Out);
 		}
@@ -336,14 +333,14 @@ void CUser::Attach(CClientConnection *Client) {
 
 	if (m_IRC == NULL) {
 		if (GetServer() == NULL) {
-			Notice("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+			Privmsg("You haven't set a server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
 		} else if (m_Config->ReadInteger("user.quitted") == 2) {
-			Notice("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
+			Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
 		}
 	}
 
 	if (!GetLog()->IsEmpty()) {
-		Notice("You have new messages. Use '/msg -sBNC read' to view them.");
+		Privmsg("You have new messages. Use '/msg -sBNC read' to view them.");
 	}
 }
 
@@ -524,8 +521,6 @@ void CUser::Reconnect(void) {
 	if (Server == NULL || Port == 0) {
 		ScheduleReconnect(120);
 
-//		g_Bouncer->Log("%s has no default server. Can't (re)connect.", m_Name);
-
 		return;
 	}
 
@@ -539,13 +534,14 @@ void CUser::Reconnect(void) {
 
 	m_LastReconnect = g_CurrentTime;
 
-	const char* BindIp = GetVHost();
+	const char *BindIp = GetVHost();
 
-	if (!BindIp || BindIp[0] == '\0') {
+	if (BindIp == NULL || BindIp[0] == '\0') {
 		BindIp = g_Bouncer->GetConfig()->ReadString("system.vhost");
+	}
 
-		if (BindIp && BindIp[0] == '\0')
-			BindIp = NULL;
+	if (BindIp != NULL && BindIp[0] == '\0') {
+		BindIp = NULL;
 	}
 
 	if (GetIdent() != NULL) {
@@ -554,7 +550,7 @@ void CUser::Reconnect(void) {
 		g_Bouncer->SetIdent(m_Name);
 	}
 
-	CIRCConnection* Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
+	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
 	if (Connection == NULL) {
 		g_Bouncer->Log("Internal error: Could not create IRC connection object for %s", GetUsername());
@@ -596,15 +592,16 @@ bool CUser::ShouldReconnect(void) const {
  * @param Delay the delay
  */
 void CUser::ScheduleReconnect(int Delay) {
+	int MaxDelay, Interval;
+
 	if (m_IRC != NULL) {
 		return;
 	}
 
 	m_Config->WriteInteger("user.quitted", 0);
 
-	int MaxDelay = Delay;
-
-	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+	MaxDelay = Delay;
+	Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
 	if (Interval == 0) {
 		Interval = 15;
@@ -619,8 +616,9 @@ void CUser::ScheduleReconnect(int Delay) {
 	}
 
 	if (m_ReconnectTime < g_CurrentTime + MaxDelay) {
-		if (m_ReconnectTimer)
+		if (m_ReconnectTimer != NULL) {
 			m_ReconnectTimer->Destroy();
+		}
 
 		m_ReconnectTimer = new CTimer(MaxDelay, false, UserReconnectTimer, this);
 
@@ -631,24 +629,22 @@ void CUser::ScheduleReconnect(int Delay) {
 		char *Out;
 		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - g_CurrentTime);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
-			return;
+		CHECK_ALLOC_RESULT(Out, asprintf) {} else {
+			Privmsg(Out);
+
+			free(Out);
 		} CHECK_ALLOC_RESULT_END;
-
-		Notice(Out);
-
-		free(Out);
 	}
 }
 
 /**
- * Notice
+ * Privmsg
  *
  * Sends a message to the user.
  *
  * @param Text the text
  */
-void CUser::Notice(const char *Text) {
+void CUser::Privmsg(const char *Text) {
 	const char *Nick = GetNick();
 
 	if (m_Client != NULL && Nick != NULL) {
@@ -709,17 +705,15 @@ void CUser::Log(const char *Format, ...) {
 	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	CHECK_ALLOC_RESULT(Out, vasprintf) {
-		return;
+	CHECK_ALLOC_RESULT(Out, vasprintf) {} else {
+		if (GetClientConnection() == NULL) {
+			m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
+		}
+
+		Privmsg(Out);
+
+		free(Out);
 	} CHECK_ALLOC_RESULT_END;
-
-	if (GetClientConnection() == NULL) {
-		m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
-	}
-
-	Notice(Out);
-
-	free(Out);
 }
 
 /**
@@ -763,7 +757,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 	Modules = g_Bouncer->GetModules();
 
-	if (!IRC && !WasNull) {
+	if (IRC == NULL && !WasNull) {
 		if (OldIRC->IsConnected()) {
 			Log("You were disconnected from the IRC server.");
 
@@ -782,7 +776,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 			(*Modules)[i]->ServerConnect(GetUsername());
 		}
 
-		if (m_ReconnectTimer) {
+		if (m_ReconnectTimer != NULL) {
 			m_ReconnectTimer->Destroy();
 			m_ReconnectTimer = NULL;
 		}
@@ -802,7 +796,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
  * @param DontSetAway determines whether the /away command is
 					  used for setting an away reason
  */
-void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
+void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 	const CVector<CModule *> *Modules;
 	unsigned int i;
 	const char *DropModes, *AwayNick, *AwayText, *Timestamp, *AwayMessage;
@@ -824,7 +818,7 @@ void CUser::SetClientConnection(CClientConnection* Client, bool DontSetAway) {
 	}
 
 	if (m_Client != NULL && Client != NULL) {
-		g_Bouncer->Log("User %s re-attached to an already active session. Old session was closed.", GetUsername());
+		g_Bouncer->Log("User %s re-attached to an already active session. Old session was closed.", m_Name);
 
 		m_Client->SetOwner(NULL);
 		m_Client->Kill("Another client has connected.");

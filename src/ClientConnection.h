@@ -45,7 +45,7 @@ private:
 	friend bool ClientAuthTimer(time_t Now, void *Client);
 
 public:
-	virtual void AsyncDnsFinishedClient(hostent* response);
+	virtual void AsyncDnsFinishedClient(hostent *response);
 private:
 #endif
 

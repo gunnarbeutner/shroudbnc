@@ -36,7 +36,7 @@ CVector<allocation_t> g_Allocations;
  * @param Size the size of the new object
  * @param File the file where the DebugMalloc() call comes from
  */
-void* DebugMalloc(size_t Size, const char *File) {
+void *DebugMalloc(size_t Size, const char *File) {
 	allocation_t Allocation;
 
 	for (size_t i = strlen(File) - 1; i >= 0; i--) {

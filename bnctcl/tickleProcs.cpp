@@ -1595,7 +1595,7 @@ void bncreply(const char* Text) {
 	if (g_NoticeUser)
 		Context->RealNotice(Text);
 	else
-		Context->Notice(Text);
+		Context->Privmsg(Text);
 }
 
 char* chanbans(const char* Channel) {

@@ -224,7 +224,7 @@ class CTclSupport : public CModuleImplementation {
 				if (NoticeUser)
 					User->RealNotice("Syntax: tcl :command");
 				else
-					User->Notice("Syntax: tcl :command");
+					User->Privmsg("Syntax: tcl :command");
 
 				return true;
 			}
@@ -253,7 +253,7 @@ class CTclSupport : public CModuleImplementation {
 				if (NoticeUser)
 					User->RealNotice("An error occured in the tcl script:");
 				else
-					User->Notice("An error occured in the tcl script:");
+					User->Privmsg("An error occured in the tcl script:");
 			}
 
 			if (strResult && *strResult) {
@@ -269,7 +269,7 @@ class CTclSupport : public CModuleImplementation {
 					if (NoticeUser)
 						User->RealNotice(strResult ? (*token ? token : "empty string.") : "<null>");
 					else
-						User->Notice(strResult ? (*token ? token : "empty string.") : "<null>");
+						User->Privmsg(strResult ? (*token ? token : "empty string.") : "<null>");
 
 					token = strtok(NULL, "\n");
 				}
@@ -277,7 +277,7 @@ class CTclSupport : public CModuleImplementation {
 					if (NoticeUser)
 						User->RealNotice("<null>");
 					else
-						User->Notice("<null>");
+						User->Privmsg("<null>");
 			}
 
 			return true;

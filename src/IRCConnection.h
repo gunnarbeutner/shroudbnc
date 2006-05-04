@@ -82,8 +82,8 @@ class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZ
 
 	time_t m_LastResponse; /**< a TS which describes when the last line was received from the server */
 
-	CChannel *AddChannel(const char* Channel);
-	void RemoveChannel(const char* Channel);
+	CChannel *AddChannel(const char *Channel);
+	void RemoveChannel(const char *Channel);
 
 	void UpdateChannelConfig(void);
 	void UpdateHostHelper(const char *Host);
@@ -108,7 +108,7 @@ class CIRCConnection : public CConnection, public COwnedObject<CUser>, public CZ
 public:
 #ifndef SWIG
 	CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL = false);
-	CIRCConnection(const char* Host, unsigned short Port, CUser* Owner, const char* BindIp, bool SSL = false, int Family = AF_INET);
+	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 
 	bool Freeze(CAssocArray *Box);

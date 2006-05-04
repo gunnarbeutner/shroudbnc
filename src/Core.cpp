@@ -195,8 +195,10 @@ void CCore::StartMainLoop(void) {
 	char **argv = m_Args.GetList();
 
 	for (int a = 1; a < argc; a++) {
-		if (strcmp(argv[a], "-n") == 0 || strcmp(argv[a], "/n") == 0)
+		if (strcmp(argv[a], "-n") == 0 || strcmp(argv[a], "/n") == 0) {
 			b_DontDetach = true;
+		}
+
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
 			puts("");
 			printf("Syntax: %s [OPTION]", argv[0]);
@@ -218,11 +220,12 @@ void CCore::StartMainLoop(void) {
 #ifdef USESSL
 	int SSLPort = m_Config->ReadInteger("system.sslport");
 
-	if (Port == 0 && SSLPort == 0)
+	if (Port == 0 && SSLPort == 0) {
 #else
-	if (Port == 0)
+	if (Port == 0) {
 #endif
 		Port = 9000;
+	}
 
 	const char *BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
 
@@ -308,9 +311,9 @@ void CCore::StartMainLoop(void) {
 	}
 #endif
 
-	if (Port != 0 && m_Listener != NULL && m_Listener->IsValid())
+	if (Port != 0 && m_Listener != NULL && m_Listener->IsValid()) {
 		Log("Created main listener.");
-	else if (Port != 0) {
+	} else if (Port != 0) {
 		Log("Could not create listener port");
 		return;
 	}
@@ -379,8 +382,9 @@ void CCore::StartMainLoop(void) {
 
 	int m_ShutdownLoop = 5;
 
-	if (g_LoaderParameters->SigEnable)
+	if (g_LoaderParameters->SigEnable != NULL) {
 		g_LoaderParameters->SigEnable();
+	}
 
 	time_t Last = 0;
 	time_t LastCheck = 0;
@@ -409,8 +413,9 @@ void CCore::StartMainLoop(void) {
 						UserHash->Value->SetIRCConnection(NULL);
 					}
 
-					if (IRC->ShouldDestroy())
+					if (IRC->ShouldDestroy()) {
 						IRC->Destroy();
+					}
 				}
 
 				if ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE) && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
@@ -429,17 +434,19 @@ void CCore::StartMainLoop(void) {
 
 		for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
 			if (m_OtherSockets[a].Socket != INVALID_SOCKET) {
-				if (m_OtherSockets[a].Events->DoTimeout())
+				if (m_OtherSockets[a].Events->DoTimeout()) {
 					continue;
-				else if (m_OtherSockets[a].Events->ShouldDestroy())
+				} else if (m_OtherSockets[a].Events->ShouldDestroy()) {
 					m_OtherSockets[a].Events->Destroy();
+				}
 			}
 		}
 
 		for (i = 0; i < m_OtherSockets.GetLength(); i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
-//				if (m_OtherSockets[i].Socket > nfds)
+//				if (m_OtherSockets[i].Socket > nfds) {
 //					nfds = m_OtherSockets[i].Socket;
+//				}
 
 				SFD_SET(m_OtherSockets[i].Socket, &FDRead);
 				SFD_SET(m_OtherSockets[i].Socket, &FDError);
@@ -492,8 +499,9 @@ void CCore::StartMainLoop(void) {
 
 		memset(tvp, 0, sizeof(timeval));
 
-		if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && SleepInterval > 3)
+		if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && SleepInterval > 3) {
 			interval.tv_sec = 3;
+		}
 
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
@@ -628,7 +636,7 @@ void CCore::GlobalNotice(const char *Text) {
 	unsigned int i = 0;
 
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		User->Value->Notice(Text);
+		User->Value->Privmsg(Text);
 	}
 }
 
@@ -637,15 +645,17 @@ CHashtable<CUser *, false, 512> *CCore::GetUsers(void) {
 }
 
 void CCore::SetIdent(const char *Ident) {
-	if (m_Ident)
+	if (m_Ident != NULL) {
 		m_Ident->SetIdent(Ident);
+	}
 }
 
 const char *CCore::GetIdent(void) const {
-	if (m_Ident != NULL)
+	if (m_Ident != NULL) {
 		return m_Ident->GetIdent();
-	else
+	} else {
 		return NULL;
+	}
 }
 
 const CVector<CModule *> *CCore::GetModules(void) const {
@@ -794,7 +804,7 @@ void CCore::Log(const char *Format, ...) {
 		CUser *User = m_AdminUsers.Get(i);
 
 		if (User->GetSystemNotices()) {
-			User->Notice(Out);
+			User->Privmsg(Out);
 		}
 	}
 
@@ -930,14 +940,16 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 
 bool CCore::IsValidUsername(const char *Username) const {
 	for (unsigned int i = 0; i < strlen(Username); i++) {
-		if (!isalnum(Username[i]) || (i == 0 && isdigit(Username[i])))
+		if (!isalnum(Username[i]) || (i == 0 && isdigit(Username[i]))) {
 			return false;
+		}
 	}
 
-	if (strlen(Username) == 0)
+	if (strlen(Username) == 0) {
 		return false;
-	else
+	} else {
 		return true;
+	}
 }
 
 void CCore::UpdateUserConfig(void) {
@@ -955,7 +967,7 @@ void CCore::UpdateUserConfig(void) {
 		Length -= (Length / MEMORYBLOCKSIZE) * MEMORYBLOCKSIZE;
 
 		if (NewBlocks > Blocks) {
-			Out = (char*)realloc(Out, (NewBlocks + 1) * MEMORYBLOCKSIZE);
+			Out = (char *)realloc(Out, (NewBlocks + 1) * MEMORYBLOCKSIZE);
 		}
 
 		Blocks = NewBlocks;
@@ -1008,19 +1020,27 @@ bool CCore::Daemonize(void) {
 
 	fd = open("/dev/null", O_RDWR);
 	if (fd) {
-		if (fd != 0)
+		if (fd != 0) {
 			dup2(fd, 0);
-		if (fd != 1)
+		}
+
+		if (fd != 1) {
 			dup2(fd, 1);
-		if (fd != 2)
+		}
+
+		if (fd != 2) {
 			dup2(fd, 2);
-		if (fd > 2)
+		}
+
+		if (fd > 2) {
 			close(fd);
+		}
 	}
 
-	sid=setsid();
-	if (sid==-1)
+	sid = setsid();
+	if (sid == -1) {
 		return false;
+	}
 #else
 	char *Title;
 
@@ -1085,8 +1105,9 @@ void CCore::DeleteWrapper(CConnection *Wrapper) const {
 
 bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
-		if (m_OtherSockets[i].Events == Events)
+		if (m_OtherSockets[i].Events == Events) {
 			return true;
+		}
 	}
 
 	return false;
@@ -1102,14 +1123,17 @@ const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		socket_t Socket = m_OtherSockets[i];
 
-		if (Socket.Socket == INVALID_SOCKET)
+		if (Socket.Socket == INVALID_SOCKET) {
 			continue;
+		}
 
-		if (strcmp(Socket.Events->GetClassName(), Class) == 0)
+		if (strcmp(Socket.Events->GetClassName(), Class) == 0) {
 			a++;
+		}
 
-		if (a - 1 == Index)
+		if (a - 1 == Index) {
 			return &m_OtherSockets[i];
+		}
 	}
 
 	return NULL;
@@ -1203,10 +1227,11 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
 	CConnection *Ptr = (CConnection *)SSL_get_ex_data(ssl, g_SSLCustomIndex);
 
-	if (Ptr != NULL)
+	if (Ptr != NULL) {
 		return Ptr->SSLVerify(preverify_ok, x509ctx);
-	else
+	} else {
 		return 0;
+	}
 }
 #endif
 
@@ -1237,10 +1262,11 @@ const char *CCore::DebugImpulse(int impulse) {
 
 			User->SetServer("217.112.85.191");
 
-			if ((rand() + 1) % 2 == 0)
+			if ((rand() + 1) % 2 == 0) {
 				User->SetPort(6667);
-			else
+			} else {
 				User->SetPort(6668);
+			}
 
 			User->SetLeanMode(2);
 
@@ -1321,16 +1347,18 @@ bool CCore::Freeze(CAssocArray *Box) {
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
 		CClientConnection *Client = User->Value->GetClientConnection();
 
-		if (IRC) {
+		if (IRC != NULL) {
+			/* TODO: use FreezeObject<> */
 			CAssocArray *IrcBox = Box->Create();
 
-			if (IRC->Freeze(IrcBox))
+			if (IRC->Freeze(IrcBox)) {
 				Box->AddBox(Username, IrcBox);
-			else
+			} else {
 				IrcBox->Destroy();
+			}
 		}
 
-		if (Client) {
+		if (Client != NULL) {
 			CAssocArray *ClientBox;
 			CAssocArray *ClientsBox = Box->ReadBox("~clients");
 
@@ -1341,10 +1369,11 @@ bool CCore::Freeze(CAssocArray *Box) {
 
 			ClientBox = Box->Create();
 			
-			if (Client->Freeze(ClientBox))
+			if (Client->Freeze(ClientBox)) {
 				ClientsBox->AddBox(Username, ClientBox);
-			else
+			} else {
 				ClientBox->Destroy();
+			}
 		}
 
 		free(Username);
@@ -1395,7 +1424,7 @@ bool CCore::Thaw(CAssocArray *Box) {
 				User->Value->SetClientConnection(Client);
 
 				if (User->Value->IsAdmin()) {
-					User->Value->Notice("shroudBNC was reloaded.");
+					User->Value->Privmsg("shroudBNC was reloaded.");
 				}
 			}
 		}

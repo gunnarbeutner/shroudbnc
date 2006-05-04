@@ -31,7 +31,7 @@ int g_TimerStats = 0;
  * @param Function the timer's function
  * @param Cookie a timer-specific cookie
  */
-CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void* Cookie) {
+CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) {
 	m_Interval = Interval; 
 	m_Repeat = Repeat;
 	m_Proc = Function;

@@ -84,15 +84,17 @@ bool CConfig::ParseConfig(void) {
 	while (feof(ConfigFile) == 0) {
 		fgets(Line, LineLength, ConfigFile);
 
-		if (Line[strlen(Line) - 1] == '\n')
+		if (Line[strlen(Line) - 1] == '\n') {
 			Line[strlen(Line) - 1] = '\0';
+		}
 
-		if (Line[strlen(Line) - 1] == '\r')
+		if (Line[strlen(Line) - 1] == '\r') {
 			Line[strlen(Line) - 1] = '\0';
+		}
 
-		char* Eq = strstr(Line, "=");
+		char *Eq = strstr(Line, "=");
 
-		if (Eq) {
+		if (Eq != NULL) {
 			*Eq = '\0';
 
 			dupEq = strdup(++Eq);
@@ -240,7 +242,7 @@ RESULT<bool> CConfig::Persist(void) const {
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
 	int i = 0;
-	while (hash_t<char*>* SettingHash = m_Settings.Iterate(i++)) {
+	while (hash_t<char *> *SettingHash = m_Settings.Iterate(i++)) {
 		if (SettingHash->Name != NULL && SettingHash->Value != NULL) {
 			fprintf(ConfigFile, "%s=%s\n", SettingHash->Name, SettingHash->Value);
 		}

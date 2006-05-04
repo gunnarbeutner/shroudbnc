@@ -34,7 +34,7 @@ extern "C" {
  * @param Data the string
  */
 const char *ArgTokenize(const char *Data) {
-	char* Copy;
+	char *Copy;
 	size_t LengthData;
 
 	if (Data == NULL) {
@@ -332,7 +332,7 @@ unsigned int ArgCount2(const tokendata_t& Tokens) {
  * @param Port the port
  * @param BindIp the ip address/hostname which should be used for binding the socket
  */
-SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindIp) {
+SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp) {
 	unsigned long lTrue = 1;
 	sockaddr_in sin, sloc;
 	SOCKET Socket;
@@ -340,8 +340,9 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	unsigned long addr;
 	int code;
 
-	if (!Host || !Port)
+	if (Host == NULL || Port == 0) {
 		return INVALID_SOCKET;
+	}
 
 	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -358,7 +359,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 		hent = gethostbyname(BindIp);
 
 		if (hent) {
-			in_addr* peer = (in_addr*)hent->h_addr_list[0];
+			in_addr *peer = (in_addr *)hent->h_addr_list[0];
 
 			sloc.sin_addr.s_addr = peer->s_addr;
 		} else {
@@ -376,7 +377,7 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
 	hent = gethostbyname(Host);
 
 	if (hent) {
-		in_addr* peer = (in_addr*)hent->h_addr_list[0];
+		in_addr *peer = (in_addr *)hent->h_addr_list[0];
 
 		sin.sin_addr.s_addr = peer->s_addr;
 	} else {
@@ -408,14 +409,15 @@ SOCKET SocketAndConnect(const char* Host, unsigned short Port, const char* BindI
  * @param Host the host's ip address
  * @param BindIp the ip address which should be used for binding the socket
  */
-SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp) {
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	unsigned long lTrue = 1;
 	int Code, Size;
 
 	SOCKET Socket = socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
 
-	if (Socket == INVALID_SOCKET)
+	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
+	}
 
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
@@ -497,7 +499,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 	const int optTrue = 1;
 	bool Bound = false;
 	SOCKET Listener;
-	hostent* hent;
+	hostent *hent;
 
 	Listener = socket(Family, SOCK_STREAM, IPPROTO_TCP);
 
@@ -702,10 +704,11 @@ int CmpCommandT(const void *pA, const void *pB) {
 
 	int CmpCat = strcasecmp(a->Value->Category, b->Value->Category);
 
-	if (CmpCat == 0)
+	if (CmpCat == 0) {
 		return strcasecmp(a->Name, b->Name);
-	else
+	} else {
 		return CmpCat;
+	}
 }
 
 /**

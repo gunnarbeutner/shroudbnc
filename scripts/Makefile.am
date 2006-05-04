@@ -23,6 +23,7 @@ usys.tcl \
 variables.tcl \
 version.tcl \
 vhost.tcl \
-virtual.tcl
+virtual.tcl \
+telnetclient.tcl
 
 EXTRA_DIST=${scripts_DATA}

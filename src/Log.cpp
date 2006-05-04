@@ -68,7 +68,7 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
 		char Line[500];
 		while (!feof(LogFile)) {
-			char* LinePtr = fgets(Line, sizeof(Line), LogFile);
+			char *LinePtr = fgets(Line, sizeof(Line), LogFile);
 
 			if (LinePtr == NULL) {
 				continue;
@@ -77,7 +77,7 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 			if (Type == Log_Notice) {
 				User->RealNotice(Line);
 			} else if (Type == Log_Message) {
-				User->Notice(Line);
+				User->Privmsg(Line);
 			} else if (Type == Log_Motd) {
 				if (IRC != NULL) {
 					Nick = IRC->GetCurrentNick();
@@ -161,7 +161,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
  * @param Format the format string
  * @param ... parameters used in the format string
  */
-void CLog::WriteLine(const char *Timestamp, const char* Format, ...) {
+void CLog::WriteLine(const char *Timestamp, const char *Format, ...) {
 	char *Out;
 	va_list marker;
 

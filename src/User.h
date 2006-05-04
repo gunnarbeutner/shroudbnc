@@ -135,7 +135,7 @@ public:
 	virtual bool ShouldReconnect(void) const;
 	virtual void ScheduleReconnect(int Delay = 10);
 
-	virtual void Notice(const char *Text);
+	virtual void Privmsg(const char *Text);
 	virtual void RealNotice(const char *Text);
 
 	virtual unsigned int GetIRCUptime(void) const;

@@ -133,7 +133,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 
 
 	if (Peek) {
-		RETURN(char *, const_cast<char*>((const char *)PeekItem));
+		RETURN(char *, const_cast<char *>((const char *)PeekItem));
 	}
 
 	RESULT<char *> Item = ThatQueue->Queue->DequeueItem();

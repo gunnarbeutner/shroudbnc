@@ -163,7 +163,7 @@ public:
 			THROW(bool, Generic_OutOfMemory, "strdup() failed.");
 		}
 
-		newKeys = (char **)realloc(List->Keys, (List->Count + 1) * sizeof(char*));
+		newKeys = (char **)realloc(List->Keys, (List->Count + 1) * sizeof(char *));
 
 		if (newKeys == NULL) {
 			free(dupKey);
@@ -372,7 +372,7 @@ public:
 		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
-			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char*));
+			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char *));
 
 			for (unsigned int a = 0; a < m_Items[i].Count; a++) {
 				Keys[Count + a] = m_Items[i].Keys[a];
@@ -383,7 +383,7 @@ public:
 
 		qsort(Keys, Count, sizeof(char *), CmpString);
 
-		Keys = (char **)realloc(Keys, ++Count * sizeof(char*));
+		Keys = (char **)realloc(Keys, ++Count * sizeof(char *));
 
 		Keys[Count - 1] = NULL;
 

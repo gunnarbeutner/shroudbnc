@@ -335,7 +335,7 @@ void CConnection::Write(void) {
 
 #ifdef USESSL
 		if (IsSSL()) {
-			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size /*> SENDSIZE ? SENDSIZE : Size*/);
+			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size);
 
 			if (WriteResult == -1) {
 				switch (SSL_get_error(m_SSL, WriteResult)) {
@@ -348,8 +348,7 @@ void CConnection::Write(void) {
 			}
 		} else {
 #endif
-			// TODO: remove comment?
-			WriteResult = send(m_Socket, m_SendQ->Peek(), Size /*> SENDSIZE ? SENDSIZE : Size*/, 0);
+			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
 #ifdef USESSL
 		}
 #endif
@@ -385,8 +384,7 @@ void CConnection::Write(void) {
  * Processes the data which is in the recvq.
  */
 void CConnection::ProcessBuffer(void) {
-	char *RecvQ;
-	char *Line;
+	char *RecvQ, *Line;
 	size_t Size;
 	
 	if (m_RecvQ == NULL) {
@@ -424,10 +422,10 @@ void CConnection::ProcessBuffer(void) {
  *
  * @param Out points to the line
  */
-bool CConnection::ReadLine(char** Out) {
-	char* old_recvq;
+bool CConnection::ReadLine(char **Out) {
+	char *old_recvq;
 	size_t Size;
-	char* Pos = NULL;
+	char *Pos = NULL;
 	bool advance = false;
 
 	if (m_RecvQ == NULL) {
@@ -437,8 +435,9 @@ bool CConnection::ReadLine(char** Out) {
 
 	old_recvq = m_RecvQ->Peek();
 
-	if (!old_recvq)
+	if (old_recvq == NULL) {
 		return false;
+	}
 
 	Size = m_RecvQ->GetSize();
 
@@ -455,7 +454,7 @@ bool CConnection::ReadLine(char** Out) {
 
 	if (Pos) {
 		*Pos = '\0';
-		char* NewPtr = Pos + 1 + (advance ? 1 : 0);
+		char *NewPtr = Pos + 1 + (advance ? 1 : 0);
 
 		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(NewPtr - old_recvq + 1);
 		strcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq));

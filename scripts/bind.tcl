@@ -171,7 +171,7 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "need" - $opt "$opt register" $opt "register"
 		}
 		"invite" {
-			if {[lsearch -exact [string tolower [channels]] [string tolower $opt]] != -1} {
+			if {[lsearch -exact [string tolower [channels]] [string tolower $opt]] != -1 && ![channel get $opt autochan] && ![channel get $opt inactive]} {
 				puthelp "JOIN $opt"
 			}
 		}

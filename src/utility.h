@@ -92,7 +92,7 @@ const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg);
 unsigned int ArgCount2(const tokendata_t& Tokens);
 
 SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
-SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr* BindIp);
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp);
 
 SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
 

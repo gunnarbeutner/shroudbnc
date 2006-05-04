@@ -168,8 +168,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 	m_LastResponse = g_CurrentTime;
 
-	if (argc < 2)
+	if (argc < 2) {
 		return true;
+	}
 
 	const char *Reply = argv[0];
 	const char *Raw = argv[1];
@@ -678,10 +679,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		const char *Server = argv[6];
 		const char *Nick = argv[7];
 		const char *Realname = argv[9];
+		char *Mask;
 
-		char *Mask = (char *)malloc(strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1);
-
-		snprintf(Mask, strlen(Nick) + 1 + strlen(Ident) + 1 + strlen(Host) + 1, "%s!%s@%s", Nick, Ident, Host);
+		asprintf(&Mask, "%s!%s@%s", Nick, Ident, Host);
 
 		UpdateHostHelper(Mask);
 		UpdateWhoHelper(Nick, Realname, Server);
@@ -762,8 +762,9 @@ void CIRCConnection::ParseLine(const char *Line) {
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 
-			if (m_State != State_Connected)
+			if (m_State != State_Connected) {
 				m_State = State_Pong;
+			}
 		} else {
 			CUser *User = GetOwner();
 
@@ -861,8 +862,9 @@ bool CIRCConnection::HasQueuedData(void) const {
 void CIRCConnection::Write(void) {
 	char *Line = m_FloodControl->DequeueItem();
 
-	if (Line != NULL)
+	if (Line != NULL) {
 		CConnection::WriteUnformattedLine(Line);
+	}
 
 	CConnection::Write();
 
@@ -911,15 +913,18 @@ bool CIRCConnection::IsNickPrefix(char Char) const {
 	const char *Prefixes = GetISupport("PREFIX");
 	bool flip = false;
 
-	if (Prefixes == NULL)
+	if (Prefixes == NULL) {
 		return false;
+	}
 
 	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
 		if (flip) {
-			if (Prefixes[i] == Char)
+			if (Prefixes[i] == Char) {
 				return true;
-		} else if (Prefixes[i] == ')')
+			}
+		} else if (Prefixes[i] == ')') {
 			flip = true;
+		}
 	}
 
 	return false;
@@ -928,32 +933,36 @@ bool CIRCConnection::IsNickPrefix(char Char) const {
 bool CIRCConnection::IsNickMode(char Char) const {
 	const char *Prefixes = GetISupport("PREFIX");
 
-	while (*Prefixes != '\0' && *Prefixes != ')')
-		if (*Prefixes == Char && *Prefixes != '(')
+	while (*Prefixes != '\0' && *Prefixes != ')') {
+		if (*Prefixes == Char && *Prefixes != '(') {
 			return true;
-		else
+		} else {
 			Prefixes++;
+		}
+	}
 
 	return false;
 }
 
 char CIRCConnection::PrefixForChanMode(char Mode) const {
 	const char *Prefixes = GetISupport("PREFIX");
-	const char *pref = strstr(Prefixes, ")");
+	const char *ActualPrefixes = strstr(Prefixes, ")");
 
 	Prefixes++;
 
-	if (pref)
-		pref++;
-	else
+	if (ActualPrefixes != NULL) {
+		ActualPrefixes++;
+	} else {
 		return '\0';
+	}
 
-	while (*pref) {
-		if (*Prefixes == Mode)
-			return *pref;
+	while (*ActualPrefixes != '\0') {
+		if (*Prefixes == Mode) {
+			return *ActualPrefixes;
+		}
 
 		Prefixes++;
-		pref++;
+		ActualPrefixes++;
 	}
 
 	return '\0';
@@ -979,10 +988,11 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 	}
 
 	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(a++)) {
-		if (!Chan->Value->HasNames())
+		if (!Chan->Value->HasNames()) {
 			return;
+		}
 
-		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
+		CNick *NickObj = Chan->Value->GetNames()->Get(Nick);
 
 		if (NickObj) {
 			NickObj->SetRealname(Realname);
@@ -1002,8 +1012,9 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 
 	NickEnd = strstr(Host, "!");
 
-	if (NickEnd == NULL)
+	if (NickEnd == NULL) {
 		return;
+	}
 
 	Offset = NickEnd - Host;
 
@@ -1040,13 +1051,15 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	int i = 0;
 
 	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(i++)) {
-		if (!Chan->Value->HasNames())
+		if (!Chan->Value->HasNames()) {
 			continue;
+		}
 
-		CNick* NickObj = Chan->Value->GetNames()->Get(Nick);
+		CNick *NickObj = Chan->Value->GetNames()->Get(Nick);
 
-		if (NickObj && NickObj->GetSite() == NULL)
+		if (NickObj && NickObj->GetSite() == NULL) {
 			NickObj->SetSite(Site);
+		}
 	}
 
 	free(Copy);
@@ -1057,19 +1070,20 @@ CFloodControl *CIRCConnection::GetFloodControl(void) {
 }
 
 void CIRCConnection::WriteUnformattedLine(const char *In) {
-	if (!m_Locked)
+	if (!m_Locked) {
 		m_QueueMiddle->QueueItem(In);
+	}
 }
 
-CQueue* CIRCConnection::GetQueueHigh(void) {
+CQueue *CIRCConnection::GetQueueHigh(void) {
 	return m_QueueHigh;
 }
 
-CQueue* CIRCConnection::GetQueueMiddle(void) {
+CQueue *CIRCConnection::GetQueueMiddle(void) {
 	return m_QueueMiddle;
 }
 
-CQueue* CIRCConnection::GetQueueLow(void) {
+CQueue *CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
 
@@ -1083,7 +1097,7 @@ void CIRCConnection::JoinChannels(void) {
 
 	if (Chans && *Chans) {
 		char *dup, *newChanList, *tok, *ChanList = NULL;
-		CKeyring* Keyring;
+		CKeyring *Keyring;
 
 		dup = strdup(Chans);
 
@@ -1100,9 +1114,9 @@ void CIRCConnection::JoinChannels(void) {
 		while (tok) {
 			const char *Key = Keyring->GetKey(tok);
 
-			if (Key)
+			if (Key != NULL) {
 				WriteLine("JOIN %s %s", tok, Key);
-			else {
+			} else {
 				if (ChanList == NULL || strlen(ChanList) > 400) {
 					if (ChanList != NULL) {
 						WriteLine("JOIN %s", ChanList);
@@ -1153,14 +1167,14 @@ bool CIRCConnection::Read(void) {
 	return Ret;
 }
 
-bool DelayJoinTimer(time_t Now, void* IRCConnection) {
+bool DelayJoinTimer(time_t Now, void *IRCConnection) {
 	((CIRCConnection*)IRCConnection)->m_DelayJoinTimer = NULL;
 	((CIRCConnection*)IRCConnection)->JoinChannels();
 
 	return false;
 }
 
-bool IRCPingTimer(time_t Now, void* IRCConnection) {
+bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
 
 	if (IRC->GetSocket() == INVALID_SOCKET) {
@@ -1186,9 +1200,9 @@ const char *CIRCConnection::GetSite(void) const {
 	return m_Site;
 }
 
-int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX* Context) const {
+int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef USESSL
-	m_Owner->Notice(Context->cert->name);
+	m_Owner->Privmsg(Context->cert->name);
 #endif
 
 	return 1;
@@ -1223,8 +1237,10 @@ void CIRCConnection::Destroy(void) {
 // TODO: persist version and other stuff
 bool CIRCConnection::Freeze(CAssocArray *Box) {
 	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox;
-	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL())
+
+	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
 		return false;
+	}
 
 	Box->AddString("~irc.nick", m_CurrentNick);
 	Box->AddString("~irc.server", m_Server);
@@ -1414,10 +1430,10 @@ void CIRCConnection::Error(void) {
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {
 			g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
-			GetOwner()->Notice("An error occured while connecting to a server.");
+			GetOwner()->Privmsg("An error occured while connecting to a server.");
 		} else {
 			g_Bouncer->Log("An error occured while processing a connection for user %s", GetOwner()->GetUsername());
-			GetOwner()->Notice("An error occured while processing a connection.");
+			GetOwner()->Privmsg("An error occured while processing a connection.");
 		}
 	}
 }

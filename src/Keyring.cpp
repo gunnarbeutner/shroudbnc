@@ -68,7 +68,7 @@ bool CKeyring::SetKey(const char *Channel, const char *Key) {
  *
  * @param Channel the channel for which the key should be retrieved
  */
-const char *CKeyring::GetKey(const char* Channel) {
+const char *CKeyring::GetKey(const char *Channel) {
 	char *Setting = (char *)malloc(5 + strlen(Channel));
 
 	if (Setting == NULL) {

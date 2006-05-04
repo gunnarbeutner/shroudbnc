@@ -79,7 +79,7 @@ bool CModule::InternalLoad(const char *Filename) {
 #ifdef _WIN32
 		char *ErrorMsg, *p;
 
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char*)&ErrorMsg, 0, NULL);
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char *)&ErrorMsg, 0, NULL);
 
 		p = strchr(ErrorMsg, '\r');
 
