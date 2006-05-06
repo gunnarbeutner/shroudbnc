@@ -183,8 +183,6 @@ public:
 
 	virtual CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const;
 
-	virtual int GetTimerStats(void) const;
-
 	virtual bool Match(const char *Pattern, const char *String) const;
 
 	virtual size_t GetSendqSize(void) const;

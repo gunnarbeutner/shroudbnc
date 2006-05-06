@@ -1802,10 +1802,6 @@ char *internaltimers(void) {
 	return Out;
 }
 
-int timerstats(void) {
-	return g_Bouncer->GetTimerStats();
-}
-
 const char* getcurrentnick(void) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 

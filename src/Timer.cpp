@@ -19,8 +19,6 @@
 
 #include "StdAfx.h"
 
-int g_TimerStats = 0;
-
 /**
  * CTimer
  *
@@ -70,10 +68,6 @@ void CTimer::Destroy(void) {
 bool CTimer::Call(time_t Now) {
 	time_t ThisCall;
 	bool ReturnValue;
-
-#ifdef _DEBUG
-	g_TimerStats++;
-#endif
 
 	if (m_Interval != 0) {
 		ThisCall = m_Next;

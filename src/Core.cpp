@@ -23,28 +23,28 @@
 #include <openssl/err.h>
 #endif
 
-extern loaderparams_s *g_LoaderParameters;
+extern loaderparams_s *g_LoaderParameters; /**< loader parameters */
 
-const char *g_ErrorFile;
-unsigned int g_ErrorLine;
-time_t g_CurrentTime;
-
-CHashtable<command_t, false, 16> *g_Commands = NULL;
+const char *g_ErrorFile; /**< name of the file where the last error occured */
+unsigned int g_ErrorLine; /**< line where the last error occurred */
+time_t g_CurrentTime; /**< current time (updated in main loop) */
 
 #ifdef USESSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
-int g_SSLCustomIndex;
+int g_SSLCustomIndex; /**< custom SSL index */
 #endif
 
-time_t g_LastReconnect = 0;
-#ifdef _DEBUG
-extern int g_TimerStats;
-#endif
+time_t g_LastReconnect = 0; /**< time of the last reconnect */
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CCore
+ *
+ * Creates a new shroudBNC application object.
+ *
+ * @param Config the main config object
+ * @param argc argument counts
+ * @param argv program arguments
+ */
 CCore::CCore(CConfig *Config, int argc, char **argv) {
 	int i;
 	char *Out;
@@ -144,7 +144,12 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_LoadingListeners = false;
 }
 
-CCore::~CCore() {
+/**
+ * ~CCore
+ *
+ * Destructs a CCore object.
+ */
+CCore::~CCore(void) {
 	int a;
 	unsigned int i;
 
@@ -185,6 +190,11 @@ CCore::~CCore() {
 	}
 }
 
+/**
+ * StartMainLoop
+ *
+ * Executes shroudBNC's main loop.
+ */
 void CCore::StartMainLoop(void) {
 	unsigned int i;
 	bool b_DontDetach = false;
@@ -446,10 +456,6 @@ void CCore::StartMainLoop(void) {
 
 		for (i = 0; i < m_OtherSockets.GetLength(); i++) {
 			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
-//				if (m_OtherSockets[i].Socket > nfds) {
-//					nfds = m_OtherSockets[i].Socket;
-//				}
-
 				SFD_SET(m_OtherSockets[i].Socket, &FDRead);
 				SFD_SET(m_OtherSockets[i].Socket, &FDError);
 
@@ -626,6 +632,14 @@ void CCore::StartMainLoop(void) {
 #endif
 }
 
+/**
+ * GetUser
+ *
+ * Returns a user object for the specified username (or NULL
+ * if there's no such user).
+ *
+ * @param Name the username
+ */
 CUser *CCore::GetUser(const char *Name) {
 	if (Name == NULL) {
 		return NULL;
@@ -634,6 +648,14 @@ CUser *CCore::GetUser(const char *Name) {
 	}
 }
 
+/**
+ * GlobalNotice
+ *
+ * Sends a message to all bouncer users who are currently
+ * logged in.
+ *
+ * @param Text the text of the message
+ */
 void CCore::GlobalNotice(const char *Text) {
 	unsigned int i = 0;
 
@@ -642,16 +664,34 @@ void CCore::GlobalNotice(const char *Text) {
 	}
 }
 
+/**
+ * GetUsers
+ *
+ * Returns a hashtable which contains all bouncer users.
+ */
 CHashtable<CUser *, false, 512> *CCore::GetUsers(void) {
 	return &m_Users;
 }
 
+/**
+ * SetIdent
+ *
+ * Sets the ident which is returned for the next ident request.
+ *
+ * @param Ident the ident
+ */
 void CCore::SetIdent(const char *Ident) {
 	if (m_Ident != NULL) {
 		m_Ident->SetIdent(Ident);
 	}
 }
 
+/**
+ * GetIdent
+ *
+ * Returns the ident which is to be returned for the next ident
+ * request.
+ */
 const char *CCore::GetIdent(void) const {
 	if (m_Ident != NULL) {
 		return m_Ident->GetIdent();
@@ -660,10 +700,22 @@ const char *CCore::GetIdent(void) const {
 	}
 }
 
+/**
+ * GetModules
+ *
+ * Returns a list of currently loaded modules.
+ */
 const CVector<CModule *> *CCore::GetModules(void) const {
 	return &m_Modules;
 }
 
+/**
+ * LoadModule
+ *
+ * Attempts to load a bouncer module.
+ *
+ * @param Filename the module's filename
+ */
 RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 	RESULT<bool> Result;
 
@@ -718,6 +770,13 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 	THROW(CModule *, Generic_Unknown, NULL);
 }
 
+/**
+ * UnloadModule
+ *
+ * Unloads a module.
+ *
+ * @param Module the module
+ */
 bool CCore::UnloadModule(CModule *Module) {
 	if (m_Modules.Remove(Module)) {
 		Log("Unloaded module: %s", Module->GetFilename());
@@ -732,6 +791,11 @@ bool CCore::UnloadModule(CModule *Module) {
 	}
 }
 
+/**
+ * UpdateModuleConfig
+ *
+ * Updates the module list in the main config.
+ */
 void CCore::UpdateModuleConfig(void) {
 	char *Out;
 	int a = 0;
@@ -759,6 +823,14 @@ void CCore::UpdateModuleConfig(void) {
 	free(Out);
 }
 
+/**
+ * RegisterSocket
+ *
+ * Registers an event interface for a socket.
+ *
+ * @param Socket the socket
+ * @param EventInterface the event interface for the socket
+ */
 void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	socket_s s = { Socket, EventInterface };
 
@@ -772,7 +844,13 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	}
 }
 
-
+/**
+ * UnregisterSocket
+ *
+ * Unregisters a socket and the associated event interface.
+ *
+ * @param Socket the socket
+ */
 void CCore::UnregisterSocket(SOCKET Socket) {
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		if (m_OtherSockets[i].Socket == Socket) {
@@ -783,10 +861,27 @@ void CCore::UnregisterSocket(SOCKET Socket) {
 	}
 }
 
+/**
+ * CreateListener
+ *
+ * Creates a socket listener.
+ *
+ * @param Port the port for the listener
+ * @param BindIp bind address (or NULL)
+ * @param Family socket family (AF_INET or AF_INET6)
+ */
 SOCKET CCore::CreateListener(unsigned short Port, const char *BindIp, int Family) const {
 	return ::CreateListener(Port, BindIp, Family);
 }
 
+/**
+ * Log
+ *
+ * Logs something in the bouncer's main log.
+ *
+ * @param Format a format string
+ * @param ... additional parameters which are used by the format string
+ */
 void CCore::Log(const char *Format, ...) {
 	char *Out;
 	int Ret;
@@ -813,6 +908,14 @@ void CCore::Log(const char *Format, ...) {
 	free(Out);
 }
 
+/**
+ * InternalLogError
+ *
+ * Logs an internal error.
+ *
+ * @param Format format string
+ * @param ... additional parameters which are used in the format string
+ */
 void CCore::InternalLogError(const char *Format, ...) {
 	char Format2[512];
 	char Out[512];
@@ -834,25 +937,57 @@ void CCore::InternalLogError(const char *Format, ...) {
 	m_Log->WriteUnformattedLine(NULL, Out);
 }
 
+/**
+ * InternalSetFileAndLine
+ *
+ * Used for keeping track of the current file/line in the source code.
+ *
+ * @param Filename the filename
+ * @param Line the line
+ */
 void CCore::InternalSetFileAndLine(const char *Filename, unsigned int Line) {
 	g_ErrorFile = Filename;
 	g_ErrorLine = Line;
 }
 
+/**
+ * GetConfig
+ *
+ * Returns the bouncer's main config object.
+ */
 CConfig *CCore::GetConfig(void) {
 	return m_Config;
 }
 
+/**
+ * GetLog
+ *
+ * Returns the bouncer's main log object.
+ */
 CLog *CCore::GetLog(void) {
 	return m_Log;
 }
 
+/**
+ * Shutdown
+ *
+ * Shuts down the bouncer.
+ */
 void CCore::Shutdown(void) {
 	g_Bouncer->Log("Shutdown requested.");
 
 	SetStatus(STATUS_SHUTDOWN);
 }
 
+/**
+ * CreateUser
+ *
+ * Creates a new user. If the specified username is already
+ * in use that user's password will be re-set instead.
+ *
+ * @param Username name of the new account
+ * @param Password the new user's password
+ */
 RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 	CUser *User;
 	RESULT<bool> Result;
@@ -898,6 +1033,14 @@ RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 	RETURN(CUser *, User);
 }
 
+/**
+ * RemoveUser
+ *
+ * Removes a bouncer user.
+ *
+ * @param Username the name of the user
+ * @param RemoveConfig whether the user's config file should be deleted
+ */
 RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 	RESULT<bool> Result;
 	CUser *User;
@@ -940,6 +1083,13 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 	RETURN(bool, true);
 }
 
+/**
+ * IsValidUsername
+ *
+ * Checks whether the specified username is (theoretically) valid.
+ *
+ * @param Username the username
+ */
 bool CCore::IsValidUsername(const char *Username) const {
 	for (unsigned int i = 0; i < strlen(Username); i++) {
 		if (!isalnum(Username[i]) || (i == 0 && isdigit(Username[i]))) {
@@ -954,6 +1104,11 @@ bool CCore::IsValidUsername(const char *Username) const {
 	}
 }
 
+/**
+ * UpdateUserConfig
+ *
+ * Updates the user list in the main config file.
+ */
 void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
 	size_t Size;
@@ -998,10 +1153,20 @@ void CCore::UpdateUserConfig(void) {
 	free(Out);
 }
 
+/**
+ * GetStartup
+ *
+ * Returns the TS when the bouncer was started.
+ */
 time_t CCore::GetStartup(void) const {
 	return m_Startup;
 }
 
+/**
+ * Daemonize
+ *
+ * Daemonizes the bouncer.
+ */
 bool CCore::Daemonize(void) {
 #ifndef _WIN32
 	pid_t pid;
@@ -1060,13 +1225,17 @@ bool CCore::Daemonize(void) {
 	return true;
 }
 
+/**
+ * WritePidFile
+ *
+ * Updates the pid-file for the current bouncer instance.
+ */
 void CCore::WritePidFile(void) const {
 #ifndef _WIN32
 	pid_t pid = getpid();
 #else
 	DWORD pid = GetCurrentProcessId();
 #endif
-
 
 	if (pid) {
 		FILE *pidFile;
@@ -1082,19 +1251,44 @@ void CCore::WritePidFile(void) const {
 	}
 }
 
+/**
+ * MD5
+ *
+ * Calculates the MD5 hash for a string.
+ *
+ * @param String the string
+ */
 const char *CCore::MD5(const char *String) const {
 	return UtilMd5(String);
 }
 
-
+/**
+ * GetArgC
+ *
+ * Returns the argc parameter which was passed to main().
+ */
 int CCore::GetArgC(void) const {
 	return m_Args.GetLength();
 }
 
+/**
+ * GetArgV
+ *
+ * Returns the argv parameter which was passed to main().
+ */
 const char *const *CCore::GetArgV(void) const {
 	return m_Args.GetList();
 }
 
+/**
+ * WrapSocket
+ *
+ * Creates a wrapper object for a socket.
+ *
+ * @param Socket the socket
+ * @param SSL whether the wrapper should use SSL
+ * @param Role the role of the socket
+ */
 CConnection *CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) const {
 	CConnection *Wrapper = new CConnection(Socket, SSL, Role);
 
@@ -1103,10 +1297,24 @@ CConnection *CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) 
 	return Wrapper;
 }
 
+/**
+ * DeleteWrapper
+ *
+ * Deletes a socket wrapper.
+ *
+ * @param Wrapper the wrapper object
+ */
 void CCore::DeleteWrapper(CConnection *Wrapper) const {
 	delete Wrapper;
 }
 
+/**
+ * IsRegisteredSocket
+ *
+ * Checks whether an event interface is registered in the socket list.
+ *
+ * @param Events the event interface
+ */
 bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
 	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
 		if (m_OtherSockets[i].Events == Events) {
@@ -1117,10 +1325,27 @@ bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
 	return false;
 }
 
+/**
+ * SocketAndConnect
+ *
+ * Creates a socket and connects to a remote host. This function might block.
+ *
+ * @param Host the hostname
+ * @param Port the port
+ * @param BindIp bind address (or NULL)
+ */
 SOCKET CCore::SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp) {
 	return ::SocketAndConnect(Host, Port, BindIp);
 }
 
+/**
+ * GetSocketByClass
+ *
+ * Returns a socket object which belongs to a specific class.
+ *
+ * @param Class class name
+ * @param Index index
+ */
 const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	int a = 0;
 
@@ -1143,38 +1368,81 @@ const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	return NULL;
 }
 
+/**
+ * CreateTimer
+ *
+ * Creates a timer.
+ *
+ * @param Interval the interval for the timer
+ * @param Repeat whether the timer should repeat itself periodically
+ * @param Function the timer function
+ * @param Cookie a timer-specific cookie
+ */
 CTimer *CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const {
 	return new CTimer(Interval, Repeat, Function, Cookie);
 }
 
+/**
+ * RegisterTimer
+ *
+ * Registers a timer object.
+ *
+ * @param Timer the timer
+ */
 void CCore::RegisterTimer(CTimer *Timer) {
 	m_Timers.Insert(Timer);
 }
 
+/**
+ * UnregisterTimer
+ *
+ * Unregisters a timer.
+ *
+ * @param Timer the timer
+ */
 void CCore::UnregisterTimer(CTimer *Timer) {
 	m_Timers.Remove(Timer);
 }
 
+/**
+ * RegisterDnsQuery
+ *
+ * Registers a DNS query.
+ *
+ * @param DnsQuery the DNS query
+ */
 void CCore::RegisterDnsQuery(CDnsQuery *DnsQuery) {
 	m_DnsQueries.Insert(DnsQuery);
 }
 
+/**
+ * UnregisterDnsQuery
+ *
+ * Unregisters a DNS query.
+ *
+ * @param DnsQuery the DNS query
+ */
 void CCore::UnregisterDnsQuery(CDnsQuery *DnsQuery) {
 	m_DnsQueries.Remove(DnsQuery);
 }
 
-int CCore::GetTimerStats(void) const {
-#ifdef _DEBUG
-	return g_TimerStats;
-#else
-	return 0;
-#endif
-}
-
+/**
+ * Match
+ *
+ * Matches a string against a pattern.
+ *
+ * @param Pattern the pattern
+ * @param String the string
+ */
 bool CCore::Match(const char *Pattern, const char *String) const {
 	return (match(Pattern, String) == 0);
 }
 
+/**
+ * GetSendqSize
+ *
+ * Returns the sendq size for non-admins.
+ */
 size_t CCore::GetSendqSize(void) const {
 	int Size;
 
@@ -1191,33 +1459,72 @@ size_t CCore::GetSendqSize(void) const {
 	}
 }
 
+/**
+ * SetSendqSize
+ *
+ * Sets the sendq size.
+ *
+ * @param NewSize new size of the send queue
+ */
 void CCore::SetSendqSize(size_t NewSize) {
 	m_Config->WriteInteger("system.sendq", NewSize);
 	m_SendqSizeCache = NewSize;
 }
 
+/**
+ * GetMotd
+ *
+ * Returns the bouncer's motd (or NULL if there isn't any).
+ */
 const char *CCore::GetMotd(void) const {
 	return m_Config->ReadString("system.motd");
 }
 
+/**
+ * SetMotd
+ *
+ * Sets the bouncer's motd.
+ *
+ * @param Motd the new motd
+ */
 void CCore::SetMotd(const char *Motd) {
 	m_Config->WriteString("system.motd", Motd);
 }
 
+/**
+ * Fatal
+ *
+ * Logs a fatal error and terminates the bouncer.
+ */
 void CCore::Fatal(void) {
 	Log("Fatal error occured.");
 
 	exit(EXIT_FAILURE);
 }
 
+/**
+ * GetSSLContext
+ *
+ * Returns the SSL context for bouncer clients.
+ */
 SSL_CTX *CCore::GetSSLContext(void) {
 	return m_SSLContext;
 }
 
+/**
+ * GetSSLClientContext
+ *
+ * Returns the SSL context for IRC connections.
+ */
 SSL_CTX *CCore::GetSSLClientContext(void) {
 	return m_SSLClientContext;
 }
 
+/**
+ * GetSSLCustomIndex
+ *
+ * Returns the custom index for SSL.
+ */
 int CCore::GetSSLCustomIndex(void) const {
 #ifdef USESSL
 	return g_SSLCustomIndex;
@@ -1227,6 +1534,14 @@ int CCore::GetSSLCustomIndex(void) const {
 }
 
 #ifdef USESSL
+/**
+ * SSLVerifyCertificate
+ *
+ * Checks whether an SSL certificate is valid.
+ *
+ * @param preverify_ok was the preverification of the certificate successful
+ * @param x509ctx X509 context
+ */
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 	SSL *ssl = (SSL *)X509_STORE_CTX_get_ex_data(x509ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
 	CConnection *Ptr = (CConnection *)SSL_get_ex_data(ssl, g_SSLCustomIndex);
@@ -1239,6 +1554,13 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
 }
 #endif
 
+/**
+ * DebugImpulse
+ *
+ * Executes a debug command.
+ *
+ * @param impulse the command
+ */
 const char *CCore::DebugImpulse(int impulse) {
 	if (impulse == 5) {
 		InitializeFreeze();
@@ -1339,6 +1661,13 @@ const char *CCore::DebugImpulse(int impulse) {
 	return NULL;
 }
 
+/**
+ * Freeze
+ *
+ * Persists the main bouncer object.
+ *
+ * @param Box the box
+ */
 bool CCore::Freeze(CAssocArray *Box) {
 	FreezeObject<CClientListener>(Box, "~listener", m_Listener);
 	FreezeObject<CClientListener>(Box, "~ssllistener", m_SSLListener);
@@ -1388,6 +1717,13 @@ bool CCore::Freeze(CAssocArray *Box) {
 	return true;
 }
 
+/**
+ * Thaw
+ *
+ * Depersists the main bouncer object.
+ *
+ * @param Box the box
+ */
 bool CCore::Thaw(CAssocArray *Box) {
 	CAssocArray *ClientsBox;
 
@@ -1437,6 +1773,11 @@ bool CCore::Thaw(CAssocArray *Box) {
 	return true;
 }
 
+/**
+ * InitializeFreeze
+ *
+ * Prepares the bouncer for reloading itself.
+ */
 bool CCore::InitializeFreeze(void) {
 	if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE) {
 		return false;
@@ -1447,6 +1788,11 @@ bool CCore::InitializeFreeze(void) {
 	return true;
 }
 
+/**
+ * GetLoaderParameters
+ *
+ * Returns the loader parameters which were passed to the bouncer.
+ */
 const loaderparams_s *CCore::GetLoaderParameters(void) const {
 	return g_LoaderParameters;
 }
@@ -1483,6 +1829,11 @@ const utility_t *CCore::GetUtilities(void) {
 	return Utils;
 }
 
+/**
+ * MakeConfig
+ *
+ * Creates a simple configuration file (in case the user doesn't have one yet).
+ */
 bool CCore::MakeConfig(void) {
 	int Port;
 	char User[81], Password[81], PasswordConfirm[81];
@@ -1639,6 +1990,13 @@ bool CCore::MakeConfig(void) {
 	return true;
 }
 
+/**
+ * GetTagString
+ *
+ * Returns the value of a global tag (as a string).
+ *
+ * @param Tag name of the tag
+ */
 const char *CCore::GetTagString(const char *Tag) const {
 	const char *Value;
 	char *Setting;
@@ -1662,6 +2020,13 @@ const char *CCore::GetTagString(const char *Tag) const {
 	return Value;
 }
 
+/**
+ * GetTagInteger
+ *
+ * Returns the value of a global tag (as an integer).
+ *
+ * @param Tag name of the tag
+ */
 int CCore::GetTagInteger(const char *Tag) const {
 	const char *Value = GetTagString(Tag);
 
@@ -1672,6 +2037,14 @@ int CCore::GetTagInteger(const char *Tag) const {
 	}
 }
 
+/**
+ * SetTagString
+ *
+ * Sets the value of a global tag (as a string).
+ *
+ * @param Tag the name of the tag
+ * @param Value the new value
+ */
 bool CCore::SetTagString(const char *Tag, const char *Value) {
 	bool ReturnValue;
 	char *Setting;
@@ -1699,6 +2072,14 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 	return ReturnValue;
 }
 
+/**
+ * SetTagInteger
+ *
+ * Sets the value of a global tag (as an integer).
+ *
+ * @param Tag the name of the tag
+ * @param Value the new value
+ */
 bool CCore::SetTagInteger(const char *Tag, int Value) {
 	bool ReturnValue;
 	char *StringValue;
@@ -1718,6 +2099,13 @@ bool CCore::SetTagInteger(const char *Tag, int Value) {
 	return ReturnValue;
 }
 
+/**
+ * GetTagName
+ *
+ * Returns the names of current global tags.
+ *
+ * @param Index the index of the tag which is to be returned
+ */
 const char *CCore::GetTagName(int Index) const {
 	int Skip = 0;
 	int Count = m_Config->GetLength();
@@ -1737,34 +2125,82 @@ const char *CCore::GetTagName(int Index) const {
 	return NULL;
 }
 
+/**
+ * GetBasePath
+ *
+ * Returns the bouncer's pathname.
+ */
 const char *CCore::GetBasePath(void) const {
 	return g_LoaderParameters->basepath;
 }
 
+/**
+ * BuildPath
+ *
+ * Builds a path which is relative to BasePath or the bouncer's path if
+ * BasePath is NULL.
+ *
+ * @param Filename the filename
+ * @param BasePath base path
+ */
 const char *CCore::BuildPath(const char *Filename, const char *BasePath) const {
 	return g_LoaderParameters->BuildPath(Filename, BasePath);
 }
 
+/**
+ * GetBouncerVersion
+ *
+ * Returns the bouncer's version.
+ */
 const char *CCore::GetBouncerVersion(void) const {
 	return BNCVERSION;
 }
 
+/**
+ * SetStatus
+ *
+ * Sets the bouncer's status code.
+ *
+ * @param NewStatus the new status code
+ */
 void CCore::SetStatus(int NewStatus) {
 	m_Status = NewStatus;
 }
 
+/**
+ * GetStatus
+ *
+ * Returns the bouncer's status code.
+ */
 int CCore::GetStatus(void) const {
 	return m_Status;
 }
 
+/**
+ * RegisterZone
+ *
+ * Registers a memory zone.
+ *
+ * @param ZoneInformation zone information object
+ */
 void CCore::RegisterZone(CZoneInformation *ZoneInformation) {
 	m_Zones.Insert(ZoneInformation);
 }
 
+/**
+ * GetZones
+ *
+ * Returns the list of currently used memory allocation zones.
+ */
 const CVector<CZoneInformation *> *CCore::GetZones(void) const {
 	return &m_Zones;
 }
 
+/**
+ * GetAllocationInformation
+ *
+ * Returns a list containing information about current memory allocations.
+ */
 const CVector<file_t> *CCore::GetAllocationInformation(void) const {
 #ifndef _DEBUG
 	return NULL;
@@ -1807,10 +2243,22 @@ const CVector<file_t> *CCore::GetAllocationInformation(void) const {
 #endif
 }
 
+/**
+ * CreateFakeClient
+ *
+ * Creates a fake client connection object.
+ */
 CFakeClient *CCore::CreateFakeClient(void) const {
 	return new CFakeClient();
 }
 
+/** 
+ * DeleteFakeClient
+ *
+ * Deletes a fake client object.
+ *
+ * @param FakeClient the object
+ */
 void CCore::DeleteFakeClient(CFakeClient *FakeClient) const {
 	delete FakeClient;
 }
@@ -1980,6 +2428,15 @@ CVector<CUser *> *CCore::GetAdminUsers(void) {
 	return &m_AdminUsers;
 }
 
+/**
+ * AddAdditionalListener
+ *
+ * Creates an additional socket listener.
+ *
+ * @param Port the port for the listener
+ * @param BindAddress bind address (can be NULL)
+ * @param SSL whether to use SSL
+ */
 RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindAddress, bool SSL) {
 	additionallistener_t AdditionalListener;
 	CClientListener *Listener, *ListenerV6;
@@ -2036,6 +2493,13 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 	RETURN(bool, true);
 }
 
+/**
+ * RemoveAdditionalListener
+ *
+ * Removes a listener.
+ *
+ * @param Port the port of the listener
+ */
 RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
 	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Port == Port) {
@@ -2063,10 +2527,20 @@ RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
 	RETURN(bool, false);
 }
 
+/**
+ * GetAdditionalListeners
+ *
+ * Returns a list of additional listeners.
+ */
 CVector<additionallistener_t> *CCore::GetAdditionalListeners(void) {
 	return &m_AdditionalListeners;
 }
 
+/**
+ * InitializeAdditionalListeners
+ *
+ * Initialized the additional listeners.
+ */
 void CCore::InitializeAdditionalListeners(void) {
 	unsigned short Port;
 	bool SSL;
@@ -2116,6 +2590,11 @@ void CCore::InitializeAdditionalListeners(void) {
 	m_LoadingListeners = false;
 }
 
+/**
+ * UninitializeAdditionalListeners
+ *
+ * Uninitialize the additional listeners.
+ */
 void CCore::UninitializeAdditionalListeners(void) {
 	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Listener != NULL) {
@@ -2132,6 +2611,12 @@ void CCore::UninitializeAdditionalListeners(void) {
 	m_AdditionalListeners.Clear();
 }
 
+/**
+ * UpdateAdditionalListeners
+ *
+ * Updates the list of additional listeners in the bouncer's
+ * main config file.
+ */
 void CCore::UpdateAdditionalListeners(void) {
 	char *Out, *Value;
 	int a = 0;
@@ -2173,18 +2658,38 @@ void CCore::UpdateAdditionalListeners(void) {
 	free(Out);
 }
 
+/**
+ * GetMainListener
+ *
+ * Returns the main IPv4 listener.
+ */
 CClientListener *CCore::GetMainListener(void) const {
 	return m_Listener;
 }
 
+/**
+ * GetMainListenerV6
+ *
+ * Returns the main IPv6 listener.
+ */
 CClientListener *CCore::GetMainListenerV6(void) const {
 	return m_ListenerV6;
 }
 
+/**
+ * GetMainSSLListener
+ *
+ * Returns the main IPv4+SSL listener.
+ */
 CClientListener *CCore::GetMainSSLListener(void) const {
 	return m_SSLListener;
 }
 
+/**
+ * GetMainSSLListenerV6
+ *
+ * Returns the main IPv6+SSL listener.
+ */
 CClientListener *CCore::GetMainSSLListenerV6(void) const {
 	return m_SSLListenerV6;
 }
