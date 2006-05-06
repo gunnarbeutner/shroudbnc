@@ -171,6 +171,8 @@ const char *getallocinfo(void);
 
 int hijacksocket(void);
 
+void putmainlog(const char *Text);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

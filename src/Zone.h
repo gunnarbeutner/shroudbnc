@@ -125,7 +125,7 @@ public:
 		m_Count = 0;
 	}
 
-	~CZone(void) {
+	virtual ~CZone(void) {
 		for (unsigned int i = 0; i < m_Count; i++) {
 			free(m_Hunks[i]);
 		}

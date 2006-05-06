@@ -71,10 +71,10 @@ inline int CmpString(const void *pA, const void *pB) {
  */
 inline unsigned long Hash(const char *String) {
 	unsigned long HashValue = 5381;
-	int c;
+	int Character;
 
-	while (c = *String++) {
-		HashValue = ((HashValue << 5) + HashValue) + c; /* hash * 33 + c */
+	while ((Character = *(String++)) != '\0') {
+		HashValue = ((HashValue << 5) + HashValue) + Character; /* HashValue * 33 + Character */
 	}
 
 	return HashValue;
@@ -105,7 +105,7 @@ public:
 	 *
 	 * Destructs a hashtable
 	 */
-	~CHashtable(void) {
+	virtual ~CHashtable(void) {
 		Clear();
 	}
 #endif

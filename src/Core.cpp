@@ -956,6 +956,7 @@ bool CCore::IsValidUsername(const char *Username) const {
 
 void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
+	size_t Size;
 	int i;
 	char *Out = NULL;
 	size_t Blocks = 0, NewBlocks = 1, Length = 1;
@@ -969,7 +970,8 @@ void CCore::UpdateUserConfig(void) {
 		Length -= (Length / MEMORYBLOCKSIZE) * MEMORYBLOCKSIZE;
 
 		if (NewBlocks > Blocks) {
-			Out = (char *)realloc(Out, (NewBlocks + 1) * MEMORYBLOCKSIZE);
+			Size = (NewBlocks + 1) * MEMORYBLOCKSIZE;
+			Out = (char *)realloc(Out, Size);
 		}
 
 		Blocks = NewBlocks;
@@ -981,10 +983,10 @@ void CCore::UpdateUserConfig(void) {
 		}
 
 		if (!WasNull) {
-			strcat(Out, " ");
-			strcat(Out, User->Name);
+			strlcat(Out, " ", Size);
+			strlcat(Out, User->Name, Size);
 		} else {
-			strcpy(Out, User->Name);
+			strlcpy(Out, User->Name, Size);
 			WasNull = false;
 		}
 	}

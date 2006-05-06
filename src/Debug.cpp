@@ -138,15 +138,17 @@ void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File) {
  * @param File the file where the call to this function comes from
  */
 char *DebugStrDup(const char *String, const char *File) {
+	size_t Size;
 	char *Copy;
 
-	Copy = (char *)DebugMalloc(strlen(String) + 1, File);
+	Size = strlen(String) + 1;
+	Copy = (char*)DebugMalloc(Size, File);
 
 	if (Copy == NULL) {
 		return NULL;
 	}
 
-	strcpy(Copy, String);
+	strlcpy(Copy, String, Size);
 
 	return Copy;
 }

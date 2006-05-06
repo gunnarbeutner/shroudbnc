@@ -46,7 +46,7 @@ class CChannel : public COwnedObject<CIRCConnection>, public CZoneObject<CChanne
 	time_t m_Creation; /**< the time when the channel was created */
 
 	chanmode_t *m_Modes; /**< the channel modes */
-	int m_ModeCount; /**< the number of channel modes */
+	unsigned int m_ModeCount; /**< the number of channel modes */
 	bool m_ModesValid; /**< indicates whether the channelmodes are known */
 	char *m_TempModes; /**< string-representation of the channel modes, used
 							by GetChannelModes() */
@@ -68,10 +68,8 @@ class CChannel : public COwnedObject<CIRCConnection>, public CZoneObject<CChanne
 public:
 #ifndef SWIG
 	CChannel(const char *Name, CIRCConnection *Owner);
-#endif
 	virtual ~CChannel(void);
 
-#ifndef SWIG
 	RESULT<bool> Freeze(CAssocArray *Box);
 	static RESULT<CChannel *> Thaw(CAssocArray *Box);
 #endif

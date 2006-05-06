@@ -300,3 +300,8 @@ bncgetglobaltags
 
   Description: Returns a list of global tags.
   Returns: A list.
+
+putmainlog <Text>
+
+  Description: Logs something in the main log.
+  Returns: Nothing.

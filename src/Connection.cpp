@@ -452,12 +452,14 @@ bool CConnection::ReadLine(char **Out) {
 		}
 	}
 
-	if (Pos) {
+	if (Pos != NULL) {
+		size_t Size;
 		*Pos = '\0';
 		char *NewPtr = Pos + 1 + (advance ? 1 : 0);
 
-		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(NewPtr - old_recvq + 1);
-		strcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq));
+		Size = NewPtr - old_recvq + 1;
+		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
+		strlcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
 
 		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;

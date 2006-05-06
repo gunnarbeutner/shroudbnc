@@ -107,7 +107,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.2 $Revision: 503 $"
+#define BNCVERSION "1.2 $Revision$"
 #define INTERFACEVERSION 24
 
 extern const char *g_ErrorFile;
@@ -116,6 +116,9 @@ extern unsigned int g_ErrorLine;
 #define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
 
 void StrTrim(char *String);
+
+char *strlcpy(char *Destination, const char *Source, size_t Size);
+char *strlcat(char *Destination, const char *Source, size_t Size);
 
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))

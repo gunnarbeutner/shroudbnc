@@ -55,7 +55,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 /**
  * ~CChannel
  *
- * Desctructs a channel object.
+ * Destructs a channel object.
  */
 CChannel::~CChannel() {
 	free(m_Name);
@@ -107,7 +107,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	strcpy(m_TempModes, "+");
+	strlcpy(m_TempModes, "+", Size);
 
 	for (i = 0; i < m_ModeCount; i++) {
 		ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
@@ -116,7 +116,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 			ModeString[0] = m_Modes[i].Mode;
 			ModeString[1] = '\0';
 
-			strcat(m_TempModes, ModeString);
+			strlcat(m_TempModes, ModeString, Size);
 		}
 	}
 
@@ -124,7 +124,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
-			strcat(m_TempModes, " ");
+			strlcat(m_TempModes, " ", Size);
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
@@ -139,7 +139,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 				m_TempModes = NewTempModes;
 			}
 
-			strcat(m_TempModes, m_Modes[i].Parameter);
+			strlcat(m_TempModes, m_Modes[i].Parameter, Size);
 		}
 	}
 
@@ -282,7 +282,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 chanmode_t *CChannel::AllocSlot(void) {
 	chanmode_t *Modes;
 
-	for (int i = 0; i < m_ModeCount; i++) {
+	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode == '\0') {
 			return &m_Modes[i];
 		}
@@ -307,7 +307,7 @@ chanmode_t *CChannel::AllocSlot(void) {
  * @param Mode the mode
  */
 chanmode_t *CChannel::FindSlot(char Mode) {
-	for (int i = 0; i < m_ModeCount; i++) {
+	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode == Mode) {
 			return &m_Modes[i];
 		}
@@ -529,7 +529,7 @@ const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
  * Clears all modes for the channel.
  */
 void CChannel::ClearModes(void) {
-	for (int i = 0; i < m_ModeCount; i++) {
+	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
 			int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
 

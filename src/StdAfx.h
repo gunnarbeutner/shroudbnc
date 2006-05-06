@@ -23,6 +23,7 @@
 #pragma warning ( disable : 4996 )
 
 #define _CRT_SECURE_NO_DEPRECATE
+#undef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
 #define _USE_32BIT_TIME_T
 #endif
@@ -118,17 +119,29 @@ char *DebugStrDup(const char *String, const char *File);
 #endif
 
 #ifdef LEAKLEAK
-#define GC_DEBUG
-#include "gc.h"
-#define malloc(n) GC_MALLOC(n)
-#define calloc(m,n) GC_MALLOC((m)*(n))
-#define free(p) GC_FREE(p)
-#define realloc(p,n) GC_REALLOC((p),(n))
-#define CHECK_LEAKS() GC_gcollect()
+#	define GC_DEBUG
+#	include "gc.h"
+#	define malloc(n) GC_MALLOC(n)
+#	define calloc(m,n) GC_MALLOC((m)*(n))
+#	define free(p) GC_FREE(p)
+#	define realloc(p,n) GC_REALLOC((p),(n))
+#	define CHECK_LEAKS() GC_gcollect()
 #endif
 
-// Do NOT use sprintf.
-#define sprintf __evil_function
+#ifdef SBNC
+#	define EXTRA_SECURITY
+
+#	ifdef EXTRA_SECURITY
+#		define strcpy(dest, src) __undefined_function
+#		define strcat(dest, src) __undefined_function
+#		define fscanf __undefined_function
+#		define sprintf __undefined_function
+#	endif
+#endif
+
+#ifndef _WIN32
+#	define DebugBreak()
+#endif
 
 #include "sbncloader/AssocArray.h"
 

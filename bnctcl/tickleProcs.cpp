@@ -1402,6 +1402,11 @@ void putlog(const char *Text) {
 	}
 }
 
+void putmainlog(const char *Text) {
+	g_Bouncer->Log("%s", Text);
+}
+
+
 int trafficstats(const char* User, const char* ConnectionType, const char* Type) {
 	CUser* Context = g_Bouncer->GetUser(User);
 

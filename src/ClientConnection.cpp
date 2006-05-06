@@ -1638,6 +1638,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						int a = 0;
 
 						while (hash_t<CNick *> *NickHash = H->Iterate(a++)) {
+							size_t Size;
 							CNick *NickObj = NickHash->Value;
 
 							const char *Prefix = NickObj->GetPrefixes();
@@ -1660,7 +1661,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 								continue;
 							}
 
-							Nicks = (char *)realloc(Nicks, (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2);
+							Size = (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2;
+							Nicks = (char *)realloc(Nicks, Size);
 
 							if (Nicks == NULL) {
 								Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
@@ -1669,11 +1671,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 							}
 
 							if (Nicks[0] != '\0') {
-								strcat(Nicks, " ");
+								strlcat(Nicks, " ", Size);
 							}
 
-							strcat(Nicks, outPref);
-							strcat(Nicks, Nick);
+							strlcat(Nicks, outPref, Size);
+							strlcat(Nicks, Nick, Size);
 
 							if (strlen(Nicks) > 400) {
 								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
@@ -1730,10 +1732,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					int a = 0, i = 0;
 
 					while (hash_t<char *> *Feat = IRC->GetISupportAll()->Iterate(i++)) {
+						size_t Size;
 						char *Name = Feat->Name;
 						char *Value = Feat->Value;
 
-						Feats = (char *)realloc(Feats, (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2);
+						Size = (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2;
+						Feats = (char *)realloc(Feats, Size);
 
 						if (Feats == NULL) {
 							Kill("CClientConnection::ParseLineArgV: realloc() failed. Please reconnect.");
@@ -1743,14 +1747,14 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 
 						if (Feats[0] != '\0') {
-							strcat(Feats, " ");
+							strlcat(Feats, " ", Size);
 						}
 
-						strcat(Feats, Name);
+						strlcat(Feats, Name, Size);
 
 						if (Value != NULL && Value[0] != '\0') {
-							strcat(Feats, "=");
-							strcat(Feats, Value);
+							strlcat(Feats, "=", Size);
+							strlcat(Feats, Value, Size);
 						}
 
 						if (++a == 11) {

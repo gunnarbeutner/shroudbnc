@@ -227,14 +227,6 @@ proc tclient:line {idx line} {
 		}
 	}
 
-	# TODO: remove
-	if {$sessionobj == ""} {
-		setctx fnords
-		bncreply "unknown line: $line"
-
-		return
-	}
-
 	if {$line == ""} {
 		tclient:disconnect [lindex $sessionobj 0]
 

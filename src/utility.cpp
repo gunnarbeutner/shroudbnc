@@ -35,7 +35,7 @@ extern "C" {
  */
 const char *ArgTokenize(const char *Data) {
 	char *Copy;
-	size_t LengthData;
+	size_t LengthData, Size;
 
 	if (Data == NULL) {
 		return NULL;
@@ -43,7 +43,8 @@ const char *ArgTokenize(const char *Data) {
 
 	LengthData = strlen(Data);
 
-	Copy = (char *)malloc(LengthData + 2);
+	Size = LengthData + 2;
+	Copy = (char *)malloc(Size);
 
 	if (Copy == NULL) {
 		LOGERROR("malloc() failed. Could not tokenize string (%s).", Data);
@@ -51,7 +52,7 @@ const char *ArgTokenize(const char *Data) {
 		return NULL;
 	}
 
-	strcpy(Copy, Data);
+	strlcpy(Copy, Data, Size);
 	Copy[LengthData + 1] = '\0';
 
 	for (unsigned int i = 0; i < LengthData; i++) {
@@ -1020,3 +1021,54 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
 }
 #endif /* !HAVE_POLL */
 //#endif /* !_WIN32 */
+
+/**
+ * strlcpy
+ *
+ * Behaves like strncpy. However this function guarantees that Destination
+ * will always be zero-terminated (unless Size is 0).
+ *
+ * @param Destination destination string
+ * @param Source source string
+ * @param Size size of the Destination buffer
+ */
+char *strlcpy(char *Destination, const char *Source, size_t Size) {
+	size_t CopyLength = min(strlen(Source), Size - 1);
+
+#ifdef _DEBUG
+	if (CopyLength != strlen(Source)) {
+		DebugBreak();
+	}
+#endif
+
+	memcpy(Destination, Source, CopyLength);
+	Destination[CopyLength] = '\0';
+
+	return Destination;
+}
+
+/**
+ * strlcat
+ *
+ * Behaves like strncat. However this function guarantees that Destination
+ * will always be zero-terminated (unless Size is 0).
+ *
+ * @param Destination destination string
+ * @param Source source string
+ * @param Size size of the Destination buffer
+ */
+char *strlcat(char *Destination, const char *Source, size_t Size) {
+	size_t Offset = strlen(Destination);
+	size_t CopyLength = min(strlen(Source), Size - Offset - 1);
+
+#ifdef _DEBUG
+	if (CopyLength != strlen(Source)) {
+		DebugBreak();
+	}
+#endif
+
+	memcpy(Destination + Offset, Source, CopyLength);
+	Destination[Offset + CopyLength] = '\0';
+
+	return Destination;
+}

@@ -819,6 +819,7 @@ const char *CIRCConnection::GetServer(void) const {
 }
 
 void CIRCConnection::UpdateChannelConfig(void) {
+	size_t Size;
 	char *Out = NULL;
 
 	int a = 0;
@@ -826,7 +827,8 @@ void CIRCConnection::UpdateChannelConfig(void) {
 	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(a++)) {
 		bool WasNull = (Out == NULL);
 
-		Out = (char *)realloc(Out, (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2);
+		Size = (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2;
+		Out = (char *)realloc(Out, Size);
 
 		if (Out == NULL) {
 			LOGERROR("realloc() failed. Channel config file might be out of date.");
@@ -835,12 +837,12 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		}
 
 		if (!WasNull) {
-			strcat(Out, ",");
+			strlcat(Out, ",", Size);
 		} else {
 			Out[0] = '\0';
 		}
 
-		strcat(Out, Chan->Name);
+		strlcat(Out, Chan->Name, Size);
 	}
 
 	/* m_Owner can be NULL if the last channel was not created successfully */
@@ -1088,34 +1090,35 @@ CQueue *CIRCConnection::GetQueueLow(void) {
 }
 
 void CIRCConnection::JoinChannels(void) {
+	size_t Size;
+	const char *Channels;
+
 	if (m_DelayJoinTimer) {
 		m_DelayJoinTimer->Destroy();
 		m_DelayJoinTimer = NULL;
 	}
 
-	const char *Chans = GetOwner()->GetConfigChannels();
+	Channels = GetOwner()->GetConfigChannels();
 
-	if (Chans && *Chans) {
-		char *dup, *newChanList, *tok, *ChanList = NULL;
+	if (Channels != NULL && Channels[0] != '\0') {
+		char *DupChannels, *newChanList, *Channel, *ChanList = NULL;
 		CKeyring *Keyring;
 
-		dup = strdup(Chans);
+		DupChannels = strdup(Channels);
 
-		if (dup == NULL) {
-			LOGERROR("strdup() failed. could not join channels (user %s)", m_Owner->GetUsername());
-
+		CHECK_ALLOC_RESULT(DupChannels, strdup) {
 			return;
-		}
+		} CHECK_ALLOC_RESULT_END;
 
-		tok = strtok(dup, ",");
+		Channel = strtok(DupChannels, ",");
 
 		Keyring = m_Owner->GetKeyring();
 
-		while (tok) {
-			const char *Key = Keyring->GetKey(tok);
+		while (Channel != NULL && Channel[0] != '\0') {
+			const char *Key = Keyring->GetKey(Channel);
 
 			if (Key != NULL) {
-				WriteLine("JOIN %s %s", tok, Key);
+				WriteLine("JOIN %s %s", Channel, Key);
 			} else {
 				if (ChanList == NULL || strlen(ChanList) > 400) {
 					if (ChanList != NULL) {
@@ -1123,10 +1126,12 @@ void CIRCConnection::JoinChannels(void) {
 						free(ChanList);
 					}
 
-					ChanList = (char *)malloc(strlen(tok) + 1);
-					strcpy(ChanList, tok);
+					Size = strlen(Channel) + 1;
+					ChanList = (char *)malloc(Size);
+					strlcpy(ChanList, Channel, Size);
 				} else {
-					newChanList = (char *)realloc(ChanList, strlen(ChanList) + 1 + strlen(tok) + 2);
+					Size = strlen(ChanList) + 1 + strlen(Channel) + 2;
+					newChanList = (char *)realloc(ChanList, Size);
 
 					if (newChanList == NULL) {
 						LOGERROR("realloc() failed. Could not join channel.");
@@ -1136,20 +1141,20 @@ void CIRCConnection::JoinChannels(void) {
 
 					ChanList = newChanList;
 
-					strcat(ChanList, ",");
-					strcat(ChanList, tok);
+					strlcat(ChanList, ",", Size);
+					strlcat(ChanList, Channel, Size);
 				}
 			}
 
-			tok = strtok(NULL, ",");
+			Channel = strtok(NULL, ",");
 		}
 
-		if (ChanList) {
+		if (ChanList != NULL) {
 			WriteLine("JOIN %s", ChanList);
 			free(ChanList);
 		}
 
-		free(dup);
+		free(DupChannels);
 	}
 }
 

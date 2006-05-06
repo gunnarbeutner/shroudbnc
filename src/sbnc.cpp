@@ -129,6 +129,7 @@ const char *debugGetModulePath(void) {
 }
 
 const char *debugBuildPath(const char *Filename, const char *Base) {
+	size_t Size;
 	static char *Path = NULL;
 
 	if (Filename[0] == '/') {
@@ -141,10 +142,11 @@ const char *debugBuildPath(const char *Filename, const char *Base) {
 
 	free(Path);
 
-	Path = (char *)malloc(strlen(Filename) + strlen(Base) + 2);
-	strcpy(Path, Base);
-	strcat(Path, "/");
-	strcat(Path, Filename);
+	Size = strlen(Filename) + strlen(Base) + 2;
+	Path = (char *)malloc(Size);
+	strlcpy(Path, Base, Size);
+	strlcat(Path, "/", Size);
+	strlcat(Path, Filename, Size);
 
 	return Path;
 }
