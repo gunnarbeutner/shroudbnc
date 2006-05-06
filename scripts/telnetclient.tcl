@@ -153,6 +153,8 @@ proc tclient:checksessions {} {
 proc tclient:replyas {session text} {
 	global botnick
 
+	set text [string map [list "\033\[1m" "" "\033\[0m" ""] $text
+
 	putclient ":-$session!telnet@session PRIVMSG $botnick :$text"
 }
 

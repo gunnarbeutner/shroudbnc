@@ -124,11 +124,11 @@ extern "C" EXPORT bool sbncSetStatus(int Status) {
 }
 
 /* for debugging */
-const char *debugGetModulePath(void) {
+const char *DebugGetModulePath(void) {
 	return "./lib-0/";
 }
 
-const char *debugBuildPath(const char *Filename, const char *Base) {
+const char *DebugBuildPath(const char *Filename, const char *Base) {
 	size_t Size;
 	static char *Path = NULL;
 
@@ -151,7 +151,7 @@ const char *debugBuildPath(const char *Filename, const char *Base) {
 	return Path;
 }
 
-void debugSigEnable(void) {}
+void DebugSigEnable(void) {}
 
 int main(int argc, char **argv) {
 	loaderparams_s p;
@@ -160,9 +160,9 @@ int main(int argc, char **argv) {
 	p.argc = argc;
 	p.argv = argv;
 	p.basepath = ".";
-	p.BuildPath = debugBuildPath;
-	p.GetModulePath = debugGetModulePath;
-	p.SigEnable = debugSigEnable;
+	p.BuildPath = DebugBuildPath;
+	p.GetModulePath = DebugGetModulePath;
+	p.SigEnable = DebugSigEnable;
 	p.Box = NULL;
 
 	sbncLoad(&p);
