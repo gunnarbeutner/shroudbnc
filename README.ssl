@@ -1,45 +1,38 @@
 Secure Socket Layer (SSL)
 -------------------------
 
-Using the OpenSSL library shroudBNC supports encrypted client connections. Additionally client certificates can be used for authenticating users.
+Using the OpenSSL library shroudBNC supports encrypted client connections. Additionally client
+certificates can be used for authenticating users.
 
 Why?
 ----
 
-IRC is often used over insecure/unencrypted connections. While the problem of monitoring networks using packet sniffers might not be so obvious for (wired) LAN/WAN connections it becomes apparent when considering wireless connections, e.g. on a campus, where every other WLAN user can tap into your data transfers.
+IRC is often used over insecure/unencrypted connections. While the problem of monitoring networks
+using packet sniffers might not be so obvious for (wired) LAN/WAN connections it becomes apparent
+when considering wireless connections, e.g. on a campus, where every other WLAN user can tap into
+your data transfers.
 
 Compiling sBNC with support for SSL
 -----------------------------------
 
-The "configure" script provides an option for enabling SSL: --enable-ssl, it can be used like this:
-
-shroud@temple:~/build/sbnc$ ./configure --enable-ssl
-checking for g++... g++
-checking for C++ compiler default output file name... a.out
-checking whether the C++ compiler works... yes
-<snip>
-config.status: creating config.h
-config.status: config.h is unchanged
-shroud@temple:~/build/sbnc$
-
-Once you've done that you just have to run "make".
-
-After compiling and linking some files you should have an SSL-enabled "sbnc" binary:
-
-shroud@temple:~/build/sbnc$ ls -l sbnc
--rwxr-xr-x  1 shroud shroud 2148313 2005-11-24 21:30 sbnc
+The "configure" script detects whether you have the necessary openssl libraries/headers and
+enables SSL support if possible.
 
 How to set up sBNC for SSL
 --------------------------
 
-sBNC supports two kinds of listeners: unencrypted and encrypted ones. During startup two configuration settings are read to determine whether the user wants unencrypted, encrypted listeners or both:
+sBNC supports two kinds of listeners: unencrypted and encrypted ones. During startup two
+configuration settings are read to determine whether the user wants unencrypted, encrypted
+listeners or both:
 
 system.port - sets the port for the unencrypted listener
 system.sslport - sets the port for the ssl-enabled listener
 
-If neither of those settings are used, sBNC falls back to creating an unencrypted listener on port 9000.
+If neither of those settings are used, sBNC falls back to creating an unencrypted listener on
+port 9000.
 
-You can remove the "system.port" setting from your configuration file if you just want an encrypted listener.
+You can remove the "system.port" setting from your configuration file if you just want an
+encrypted listener.
 
 These settings can be set in the bouncer's main configuration file: sbnc.conf
 
@@ -53,17 +46,27 @@ The "openssl" utility can be used to create certificates.
 Client Certificates
 -------------------
 
-Clients like irssi or mIRC which support client certificates can use such certificates for authentication.
+Clients like irssi or mIRC which support client certificates can use such certificates for
+authentication.
 
-When you want to set the public key you are going to use for your bouncer account you have to log in using your client certificate AND your password (obviously because the bouncer doesn't know your public key yet).
+When you want to set the public key you are going to use for your bouncer account you have
+to log in using your client certificate AND your password (obviously because the bouncer
+doesn't know your public key yet).
 
-Once you're logged in you can use /sbnc savecert to tell sBNC that the client certificate you are currently using is to be trusted for public key authentication.
+Once you're logged in you can use /sbnc savecert to tell sBNC that the client certificate you
+are currently using is to be trusted for public key authentication.
 
-Use /sbnc showcert to check that the certificate was saved correctly. You should now be able to log in using this client certificate.
+Use /sbnc showcert to check that the certificate was saved correctly. You should now be able to
+log in using this client certificate.
 
-(You can also set your public key by putting a x509 certificate into your users/ directory. The file's name should be <username>.crt, where <username> is your username. However this requires a restart as sBNC only reads the certificate files during startup.)
+(You can also set your public key by putting a x509 certificate into your users/ directory. The
+file's name should be <username>.crt, where <username> is your username. However this requires
+a restart as sBNC only reads the certificate files during startup.)
 
 SSL and "make update"
 ---------------------
 
-Please keep in mind that you will not be able to use "make update" or /sbnc reload to update your bouncer if you're using a server certificate which is protected with a passphrase. During the reload phase of shroudBNC openssl would try to prompt the user for the certificate's passphrase which effectively freezes/crashes shroudBNC. A solution for this problem might be implemented later.
+Please keep in mind that you will not be able to use "make update" or /sbnc reload to update your
+bouncer if you're using a server certificate which is protected with a passphrase. During the
+reload phase of shroudBNC openssl would try to prompt the user for the certificate's passphrase
+which effectively freezes/crashes shroudBNC. A solution for this problem might be implemented later.
