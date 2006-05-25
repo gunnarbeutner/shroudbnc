@@ -242,7 +242,7 @@
  */
 #define NEED_ASPRINTF
 /* #define NEED_ASNPRINTF  */
-/* #define NEED_VASPRINTF  */
+#define NEED_VASPRINTF
 /* #define NEED_VASNPRINTF */
 
 #if defined(_WIN32) && defined(_MSC_VER)

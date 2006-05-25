@@ -918,7 +918,7 @@ void CCore::Log(const char *Format, ...) {
  */
 void CCore::InternalLogError(const char *Format, ...) {
 	char Format2[512];
-	char Out[512];
+	char *Out;
 	const char *P = g_ErrorFile;
 	va_list marker;
 
@@ -931,10 +931,16 @@ void CCore::InternalLogError(const char *Format, ...) {
 	snprintf(Format2, sizeof(Format2), "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
 
 	va_start(marker, Format);
-	vsnprintf(Out, sizeof(Out), Format2, marker);
+	vasprintf(&Out, Format2, marker);
 	va_end(marker);
 
+	CHECK_ALLOC_RESULT(Out, vasnprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
 	m_Log->WriteUnformattedLine(NULL, Out);
+
+	free(Out);
 }
 
 /**
