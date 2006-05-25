@@ -137,7 +137,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="kernel32.lib ws2_32.lib advapi32.lib shlwapi.lib"
-				OutputFile="..\bin\$(ProjectName).exe"
+				OutputFile="..\..\bin\$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateManifest="true"
 				GenerateDebugInformation="true"

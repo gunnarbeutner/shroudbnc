@@ -240,7 +240,7 @@
  * with "ap2 = ap", in this case you must not call va_end(ap2) !
  *   #define va_copy(ap2,ap) ap2 = ap
  */
-/* #define NEED_ASPRINTF   */
+#define NEED_ASPRINTF
 /* #define NEED_ASNPRINTF  */
 /* #define NEED_VASPRINTF  */
 /* #define NEED_VASNPRINTF */
