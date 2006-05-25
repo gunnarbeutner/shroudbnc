@@ -41,8 +41,8 @@ public:
  */
 template<typename Type>
 struct hunkobject_s {
-	bool Valid;
-	char Data[sizeof(Type)];
+	bool Valid; /**< specifies whether this object is in use */
+	char Data[sizeof(Type)]; /**< the object's data */
 };
 
 /**
@@ -55,13 +55,18 @@ class CZone : public CZoneInformation {
 
 	template<typename HunkType, int HunkObjectSize>
 	struct hunk_s {
-		hunkobject_s<HunkType> HunkObjects[HunkObjectSize];
+		hunkobject_s<HunkType> HunkObjects[HunkObjectSize]; /**< the objects in this hunk */
 	};
 
 	hunk_s<Type, HunkSize> **m_Hunks;
 	unsigned int m_Count;
 	bool m_Registered;
 
+	/**
+	 * AddHunk
+	 *
+	 * Creates a new hunk of memory in this zone.
+	 */
 	hunk_s<Type, HunkSize> *AddHunk(void) {
 		hunk_s<Type, HunkSize> **NewHunks;
 		hunk_s<Type, HunkSize> *NewHunk;
@@ -92,6 +97,11 @@ class CZone : public CZoneInformation {
 		return NewHunk;
 	}
 
+	/**
+	 * Optimize
+	 *
+	 * Optimizes the zone by removing unused hunks.
+	 */
 	void Optimize(void) {
 		bool UnusedHunk;
 
@@ -120,11 +130,22 @@ class CZone : public CZoneInformation {
 	}
 
 public:
+	/**
+	 * CZone
+	 *
+	 * Constructs a new memory zone which can be used for
+	 * allocating fixed-sized memory blocks.
+	 */
 	CZone(void) {
 		m_Hunks = NULL;
 		m_Count = 0;
 	}
 
+	/**
+	 * ~CZone
+	 *
+	 * Destructs a memory zone.
+	 */
 	virtual ~CZone(void) {
 		for (unsigned int i = 0; i < m_Count; i++) {
 			free(m_Hunks[i]);
@@ -133,10 +154,20 @@ public:
 		free(m_Hunks);
 	}
 
+	/**
+	 * Register
+	 *
+	 * Registers a zone.
+	 */
 	bool Register(void) {
 		return RegisterZone(this);
 	}
 
+	/**
+	 * Allocate
+	 *
+	 * Allocates a new object from the memory zone.
+	 */
 	Type *Allocate(void) {
 		hunk_s<Type, HunkSize> *Hunk;
 
@@ -167,6 +198,11 @@ public:
 		return (Type *)Hunk->HunkObjects[0].Data;
 	}
 
+	/**
+	 * Delete
+	 *
+	 * Marks an object as unused.
+	 */
 	void Delete(Type *Object) {
 		for (unsigned int i = 0; i < m_Count; i++) {
 			for (unsigned int h = 0; h < HunkSize; h++) {
@@ -189,7 +225,12 @@ public:
 		Optimize();
 	}
 
-
+	/**
+	 * PerformLeakCheck
+	 *
+	 * Checks the zone for leaked objects. This function should be called
+	 * when there _should_ be no more active objects in this zone.
+	 */
 	virtual void PerformLeakCheck(void) const {
 #ifdef _DEBUG
 		int Count = GetCount();
@@ -200,6 +241,11 @@ public:
 #endif
 	}
 
+	/**
+	 * GetCount
+	 *
+	 * Returns the number of active objects in the memory zone.
+	 */
 	virtual unsigned int GetCount(void) const {
 		unsigned int Count = 0;
 
@@ -216,19 +262,42 @@ public:
 		return Count;
 	}
 
+	/**
+	 * GetCapacity
+	 *
+	 * Returns the number of objects which can be active in this zone
+	 * without having to allocate new hunks.
+	 */
 	virtual unsigned int GetCapacity(void) const {
 		return HunkSize * m_Count;
 	}
 
+	/**
+	 * GetTypeName
+	 *
+	 * Returns the typename of the objects which can be allocated
+	 * using the zone object.
+	 */
 	virtual const char *GetTypeName(void) const {
 		return typeid(Type).name();
 	}
 
+	/**
+	 * GetTypeSize
+	 *
+	 * Returns the size of the objects which can be allocated
+	 * using the zone object.
+	 */
 	virtual size_t GetTypeSize(void) const {
 		return sizeof(Type);
 	}
 };
 
+/**
+ * ZoneLeakCheck<>
+ *
+ * Performs a leakcheck on a zone object.
+ */
 template<typename Type, int HunkSize>
 void ZoneLeakCheck(void *Zone) {
 	CZone<Type, HunkSize> *ZoneObject = (CZone<Type, HunkSize> *)Zone;
@@ -245,6 +314,13 @@ template<typename InheritedClass, int HunkSize = 512>
 class CZoneObject {
 	static CZone<InheritedClass, HunkSize> m_Zone; /**< the zone for objects of this class */
 public:
+	/**
+	 * operator new
+	 *
+	 * Overrides the operator "new" for classes which inherit from this class.
+	 *
+	 * @param Size the requested size of the new memory block
+	 */
 	void *operator new(size_t Size) {
 		assert(Size <= sizeof(InheritedClass));
 
@@ -255,6 +331,13 @@ public:
 #endif
 	}
 
+	/**
+	 * operator delete
+	 *
+	 * Overrides the operator "delete" for classes which inherit from this class.
+	 *
+	 * @param Object the object whics is to be deleted
+	 */
 	void operator delete(void *Object) {
 #ifdef LEAKLEAK
 		free(Object);

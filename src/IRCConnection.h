@@ -111,8 +111,8 @@ public:
 	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 
-	bool Freeze(CAssocArray *Box);
-	static CIRCConnection *Thaw(CAssocArray *Box, CUser *Owner);
+	RESULT<bool> Freeze(CAssocArray *Box);
+	static RESULT<CIRCConnection *> Thaw(CAssocArray *Box);
 #endif
 
 	virtual CChannel *GetChannel(const char *Name);

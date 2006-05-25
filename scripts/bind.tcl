@@ -133,9 +133,11 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "part" $flags $targ "$targ $source" $nick $site $hand $targ $opt
 		}
 		"quit" {
-			foreach c [internalchannels] {
-				if {[onchan $nick $c]} {
-					sbnc:callbinds "sign" $flags $c "$c $source" $nick $site $hand $c $targ
+			if {![regexp {^\S+\.\S+ \S+\.\S+$} $targ]} {
+				foreach c [internalchannels] {
+					if {[onchan $nick $c]} {
+						sbnc:callbinds "sign" $flags $c "$c $source" $nick $site $hand $c $targ
+					}
 				}
 			}
 		}
@@ -171,7 +173,7 @@ proc sbnc:rawserver {client parameters} {
 			sbnc:callbinds "need" - $opt "$opt register" $opt "register"
 		}
 		"invite" {
-			if {[lsearch -exact [string tolower [channels]] [string tolower $opt]] != -1 && ![channel get $opt autochan] && ![channel get $opt inactive]} {
+			if {[lsearch -exact [string tolower [channels]] [string tolower $opt]] != -1} {
 				puthelp "JOIN $opt"
 			}
 		}
@@ -198,7 +200,9 @@ proc sbnc:callbinds {type flags chan mask args} {
 	upvar [getns]::binds binds
 	setctx $old
 
-	set allbinds [concat $allbinds $binds]
+	foreach bind $binds {
+		lappend allbinds $bind
+	}
 
 	set count 0
 
@@ -284,6 +288,18 @@ proc unbind {type flags mask procname} {
 	}
 
 	upvar [getns]::binds binds
+
+	if {$procname == ""} {
+		set list ""
+
+		foreach bind $binds {
+			if {[lindex $bind 0]} {
+				lappend list $bind
+			}
+		}
+
+		return $list
+	}
 
 	set newbinds ""
 

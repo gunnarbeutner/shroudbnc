@@ -39,12 +39,12 @@ typedef struct _types_sfd_set {
 #define sfd_set _types_sfd_set
 
 #undef SFD_ZERO
-#define SFD_ZERO(set)  \
-  do {                                                                        \
-    unsigned int __i;                                                         \
-    sfd_set *__arr = (set);                                                   \
-    for (__i = 0; __i < sizeof (sfd_set) / sizeof (sfd_mask); ++__i)          \
-      SFDS_BITS (__arr)[__i] = 0;                                             \
+#define SFD_ZERO(set) \
+  do { \
+    unsigned int __i; \
+    sfd_set *__arr = (set); \
+    for (__i = 0; __i < sizeof (sfd_set) / sizeof (sfd_mask); ++__i) \
+      SFDS_BITS (__arr)[__i] = 0; \
   } while (0)
 
 #define     SFDELT(d)      ((d) / SNFDBITS)

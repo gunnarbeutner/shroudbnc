@@ -21,10 +21,14 @@
 
 IMPL_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient)
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CClientConnection
+ *
+ * Constructs a new client connection object.
+ *
+ * @param Client the client socket
+ * @param SSL whether to use SSL
+ */
 CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Client, SSL, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
@@ -63,6 +67,12 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
 }
 
+/**
+ * CClientConnection
+ *
+ * Constructs a new client connection object. This constructor should
+ * only be used by ThawObject().
+ */
 CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
@@ -75,6 +85,11 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_NamesXSupport = false;
 }
 
+/**
+ * ~CClientConnection
+ *
+ * Destructs a client connection object.
+ */
 CClientConnection::~CClientConnection() {
 	free(m_Nick);
 	free(m_Password);
@@ -86,6 +101,16 @@ CClientConnection::~CClientConnection() {
 	delete m_AuthTimer;
 }
 
+/**
+ * ProcessBncCommand
+ *
+ * Processes a bouncer command (i.e. /sbnc <command> or /msg -sBNC <command>).
+ *
+ * @param Subcommand the command's name
+ * @param argc number of parameters for the command
+ * @param argv arguments for the command
+ * @param NoticeUser whether to send replies as notices
+ */
 bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
 	char *Out;
 	CUser *targUser = m_Owner;
@@ -94,6 +119,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 	Modules = g_Bouncer->GetModules();
 
+/**
+ * SENDUSER
+ *
+ * Sends the specified text to the user.
+ *
+ * @param Text the text
+ */
 #define SENDUSER(Text) \
 	do { \
 		if (NoticeUser) { \
@@ -1405,6 +1437,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 	return false;
 }
 
+/**
+ * ParseLineArgV
+ *
+ * Parses and processes a line which was sent by the user.
+ *
+ * @param argc number of tokens in the line
+ * @param argv tokenized line
+ */
 bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 	char *Out;
 
@@ -1809,6 +1849,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 	return true;
 }
 
+/**
+ * ParseLine
+ *
+ * Tokenizes, parses and processes a line which was sent by the user.
+ *
+ * @param Line the line
+ */
 void CClientConnection::ParseLine(const char *Line) {
 	if (strlen(Line) > 512) {
 		return; // protocol violation
@@ -1852,6 +1899,11 @@ void CClientConnection::ParseLine(const char *Line) {
 	}
 }
 
+/**
+ * ValidateUser
+ *
+ * Logs in a user.
+ */
 bool CClientConnection::ValidateUser(void) {
 	bool Force = false;
 	CUser *User;
@@ -1937,10 +1989,20 @@ bool CClientConnection::ValidateUser(void) {
 	return true;
 }
 
+/**
+ * GetNick
+ *
+ * Returns the current nick of the user.
+ */
 const char *CClientConnection::GetNick(void) const {
 	return m_Nick;
 }
 
+/**
+ * Destroy
+ *
+ * Destroys the client connection object.
+ */
 void CClientConnection::Destroy(void) {
 	if (m_Owner != NULL) {
 		m_Owner->SetClientConnection(NULL);
@@ -1949,6 +2011,15 @@ void CClientConnection::Destroy(void) {
 	delete this;
 }
 
+/**
+ * SetPeerName
+ *
+ * Sets the hostname of the peer.
+ *
+ * @param PeerName the peer's name
+ * @param LookupFailure whether an error occurred while looking
+ *						up the remote user's hostname
+ */
 void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	sockaddr *Remote;
 
@@ -1973,10 +2044,23 @@ void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	ProcessBuffer();
 }
 
+/**
+ * GetPeerName
+ *
+ * Returns the peer's hostname.
+ */
 const char *CClientConnection::GetPeerName(void) const {
 	return m_PeerName;
 }
 
+/**
+ * AsyncDnsFinishedClient
+ *
+ * Called by the CDnsQuery class when the DNS query for the client's
+ * hostname has finished.
+ *
+ * @param Reponse the response from the DNS server
+ */
 void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 	int i = 0;
 	sockaddr *Remote;
@@ -2027,8 +2111,6 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 
 					WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
 
-					// TODO: destroy query
-
 					return;
 				}
 
@@ -2052,10 +2134,22 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 	}
 }
 
+/**
+ * GetClassName
+ *
+ * Returns the classname.
+ */
 const char *CClientConnection::GetClassName(void) const {
 	return "CClientConnection";
 }
 
+/**
+ * Read
+ *
+ * Called when data can be read for this connection.
+ *
+ * @param DontProcess whether to process the data
+ */
 bool CClientConnection::Read(bool DontProcess) {
 	bool Ret;
 
@@ -2072,6 +2166,13 @@ bool CClientConnection::Read(bool DontProcess) {
 	return Ret;
 }
 
+/**
+ * WriteUnformattedLine
+ *
+ * Sends a line to the client.
+ *
+ * @param Line the line
+ */
 void CClientConnection::WriteUnformattedLine(const char *Line) {
 	CConnection::WriteUnformattedLine(Line);
 
@@ -2082,6 +2183,13 @@ void CClientConnection::WriteUnformattedLine(const char *Line) {
 	}
 }
 
+/**
+ * Freeze
+ *
+ * Persists this client connection object.
+ *
+ * @param Box the box which should be used for storing the persisted data
+ */
 RESULT<bool> CClientConnection::Freeze(CAssocArray *Box) {
 	// too bad we can't preserve ssl encrypted connections
 	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL() || m_Nick == NULL) {
@@ -2101,6 +2209,13 @@ RESULT<bool> CClientConnection::Freeze(CAssocArray *Box) {
 	RETURN(bool, true);
 }
 
+/**
+ * Thaw
+ *
+ * Depersists a client connection object.
+ *
+ * @param Box the box which was used for storing the connection object
+ */
 RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box) {
 	SOCKET Socket;
 	CClientConnection *Client;
@@ -2141,6 +2256,13 @@ RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box) {
 	RETURN(CClientConnection *, Client);
 }
 
+/**
+ * Kill
+ *
+ * Sends an error message to the client and closes the connection.
+ *
+ * @param Error the error message
+ */
 void CClientConnection::Kill(const char *Error) {
 	if (m_Owner != NULL) {
 		m_Owner->SetClientConnection(NULL);
@@ -2152,20 +2274,41 @@ void CClientConnection::Kill(const char *Error) {
 	CConnection::Kill(Error);
 }
 
+/**
+ * GetCommandList
+ *
+ * Returns a list of commands (used by the "help" command).
+ */
 commandlist_t *CClientConnection::GetCommandList(void) {
 	return &m_CommandList;
 }
 
-
+/**
+ * SetPreviousNick
+ *
+ * Sets the nick which was previously used for an IRC connection.
+ *
+ * @param Nick the nick
+ */
 void CClientConnection::SetPreviousNick(const char *Nick) {
 	free(m_PreviousNick);
 	m_PreviousNick = strdup(Nick);
 }
 
+/**
+ * GetPreviousNick
+ *
+ * Returns the previous nick.
+ */
 const char *CClientConnection::GetPreviousNick(void) const {
 	return m_PreviousNick;
 }
 
+/**
+ * Hijack
+ *
+ * Detaches the socket from this connection object and returns it.
+ */
 SOCKET CClientConnection::Hijack(void) {
 	SOCKET Socket;
 
@@ -2178,6 +2321,15 @@ SOCKET CClientConnection::Hijack(void) {
 	return Socket;
 }
 
+/**
+ * ClientAuthTimer
+ *
+ * Closes client connections which have timed out (due to the client
+ * not sending a username/password).
+ *
+ * @param Now the current time
+ * @param Client the client connection object
+ */
 bool ClientAuthTimer(time_t Now, void *Client) {
 	CClientConnection *ClientConnection = (CClientConnection *)Client;
 

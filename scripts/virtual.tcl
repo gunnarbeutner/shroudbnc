@@ -643,6 +643,14 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 	registerifacecmd "virtual" "getgroup" "iface-virtual:getgroup"
 }
 
+proc iface-virtual:getmygroup {} {
+	return [virtual:getgroup [getctx]]
+}
+
+if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+	registerifacecmd "virtual" "getmygroup" "iface-virtual:getmygroup"
+}
+
 proc iface-virtual:isvadmin {username} {
 	virtual:canmodify $username
 
@@ -673,7 +681,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 	registerifacecmd "virtual" "getgroupusers" "iface-virtual:getgroupusers" "access:vadmin"
 }
 
-proc iface-virtual:adduser {username password} {
+proc iface-virtual:vadduser {username password} {
 	if {[getbncuser [getctx] admin]} {
 		set checklimits 0
 	} else {
@@ -684,17 +692,17 @@ proc iface-virtual:adduser {username password} {
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
-	registerifacecmd "virtual" "adduser" "iface-virtual:adduser" "access:vadmin"
+	registerifacecmd "virtual" "vadduser" "iface-virtual:vadduser" "access:vadmin"
 }
 
-proc iface-virtual:deluser {username} {
+proc iface-virtual:vdeluser {username} {
 	virtual:canmodify $username
 
 	return [virtual:vdeluser [getctx] $username]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
-	registerifacecmd "virtual" "deluser" "iface-virtual:deluser" "access:vadmin"
+	registerifacecmd "virtual" "vdeluser" "iface-virtual:vdeluser" "access:vadmin"
 }
 
 proc iface-virtual:vresetpass {username password} {
@@ -766,7 +774,7 @@ proc iface-virtual:getgroups {} {
 		}
 	}
 
-	return [iface:list $groups]
+	return [iface:list [sbnc:uniq $groups]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {

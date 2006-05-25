@@ -21,18 +21,44 @@
 
 extern time_t g_LastReconnect;
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * CIRCConnection
+ *
+ * Constructs a new IRC connection object. This constructor should only be used
+ * by ThawObject().
+ *
+ * @param Socket the IRC socket
+ * @param Owner the owner of this connection
+ * @param SSL whether to use SSL
+ */
 CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL) : CConnection(Socket, SSL) {
-	InitIrcConnection(Owner);
+	InitIrcConnection(Owner, true);
 }
 
+/**
+ * CIRCConnection
+ *
+ * Constructs a new IRC connection object.
+ *
+ * @param Host the server's host name
+ * @param Port the server's port
+ * @param Owner the owner of the IRC connection
+ * @param BindIp bind address (or NULL)
+ * @param SSL whether to use SSL
+ * @param Family socket family (either AF_INET or AF_INET6)
+ */
 CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
 	InitIrcConnection(Owner);
 }
 
+/**
+ * InitIrcConnection
+ *
+ * Initializes the connection object.
+ *
+ * @param Owner the owner of the connection object
+ * @param Unfreezing whether the object is being de-persisted
+ */
 void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	const char *Ident;
 
@@ -134,7 +160,12 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_Usermodes = NULL;
 }
 
-CIRCConnection::~CIRCConnection() {
+/**
+ * ~CIRCConnection
+ *
+ * Destructs a connection object.
+ */
+CIRCConnection::~CIRCConnection(void) {
 	free(m_CurrentNick);
 	free(m_Site);
 	free(m_Usermodes);
@@ -161,7 +192,14 @@ CIRCConnection::~CIRCConnection() {
 	}
 }
 
-/* TODO: move variable declaration (Nick, Channel, Client, etc.) */
+/**
+ * ParseLineArgV
+ *
+ * Parses and processes a line which was sent by the server.
+ *
+ * @param argc number of tokens
+ * @param argv the tokens
+ */
 bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	CChannel *Channel;
 	CClientConnection *Client;
@@ -717,6 +755,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	}
 }
 
+/**
+ * ModuleEvent
+ *
+ * Lets the currently loaded modules process an IRC line.
+ *
+ * @param argc number of tokens
+ * @param argv the tokens
+ */
 bool CIRCConnection::ModuleEvent(int argc, const char **argv) {
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
@@ -729,6 +775,13 @@ bool CIRCConnection::ModuleEvent(int argc, const char **argv) {
 	return true;
 }
 
+/**
+ * ParseLine
+ *
+ * Tokenizes, parses and processes a line which was sent by the IRC server.
+ *
+ * @param Line the line
+ */
 void CIRCConnection::ParseLine(const char *Line) {
 	const char *RealLine = Line;
 	char *Out;
@@ -788,10 +841,23 @@ void CIRCConnection::ParseLine(const char *Line) {
 	ArgFreeArray(argv);
 }
 
+/**
+ * GetCurrentNick
+ *
+ * Returns the current nick of the IRC user.
+ */
 const char *CIRCConnection::GetCurrentNick(void) const {
 	return m_CurrentNick;
 }
 
+/**
+ * AddChannel
+ *
+ * Adds a channel for this IRC connection. This does not actually
+ * send a JOIN command to the IRC server.
+ *
+ * @param Channel the channel's name
+ */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CChannel *ChannelObj = new CChannel(Channel, this);
 
@@ -808,16 +874,33 @@ CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	return ChannelObj;
 }
 
+/**
+ * RemoveChannel
+ *
+ * Removes a channel.
+ *
+ * @param Channel the channel's name
+ */
 void CIRCConnection::RemoveChannel(const char *Channel) {
 	m_Channels->Remove(Channel);
 
 	UpdateChannelConfig();
 }
 
+/**
+ * GetServer
+ *
+ * Returns the server's name as reported by the server.
+ */
 const char *CIRCConnection::GetServer(void) const {
 	return m_Server;
 }
 
+/**
+ * UpdateChannelConfig
+ *
+ * Updates the list of channels in the user's config file.
+ */
 void CIRCConnection::UpdateChannelConfig(void) {
 	size_t Size;
 	char *Out = NULL;
@@ -853,6 +936,11 @@ void CIRCConnection::UpdateChannelConfig(void) {
 	free(Out);
 }
 
+/**
+ * HasQueuedData
+ *
+ * Checks whether there is data which can be sent to the IRC server.
+ */
 bool CIRCConnection::HasQueuedData(void) const {
 	if (m_FloodControl->GetQueueSize() > 0) {
 		return true;
@@ -861,6 +949,11 @@ bool CIRCConnection::HasQueuedData(void) const {
 	}
 }
 
+/**
+ * Write
+ *
+ * Writes data for the socket.
+ */
 void CIRCConnection::Write(void) {
 	char *Line = m_FloodControl->DequeueItem();
 
@@ -873,20 +966,49 @@ void CIRCConnection::Write(void) {
 	free(Line);
 }
 
+/**
+ * GetISupport
+ *
+ * Returns a feature's value.
+ *
+ * @param Feature the name of the feature
+ */
 const char *CIRCConnection::GetISupport(const char *Feature) const {
 	return m_ISupport->ReadString(Feature);
 }
 
+/**
+ * SetISupport
+ *
+ * Sets a feature's value.
+ *
+ * @param Feature name of the feature
+ * @param Value new value for the feature
+ */
 void CIRCConnection::SetISupport(const char *Feature, const char *Value) {
 	m_ISupport->WriteString(Feature, Value);
 }
 
+/**
+ * IsChanMode
+ *
+ * Checks whether something is a valid channel mode.
+ *
+ * @param Mode the mode character
+ */
 bool CIRCConnection::IsChanMode(char Mode) const {
 	const char *Modes = GetISupport("CHANMODES");
 
 	return strchr(Modes, Mode) != NULL;
 }
 
+/**
+ * RequiresParameter
+ *
+ * Checks whether a channel mode requires a parameter.
+ *
+ * @param Mode the channel mode
+ */
 int CIRCConnection::RequiresParameter(char Mode) const {
 	int ReturnValue = 3;
 	const char *Modes = GetISupport("CHANMODES");
@@ -907,10 +1029,24 @@ int CIRCConnection::RequiresParameter(char Mode) const {
 	return ReturnValue;
 }
 
+/**
+ * GetChannel
+ *
+ * Returns the channel object for the specified channel name.
+ *
+ * @param Name the name of the channel
+ */
 CChannel *CIRCConnection::GetChannel(const char *Name) {
 	return m_Channels->Get(Name);
 }
 
+/**
+ * IsNickPrefix
+ *
+ * Checks whether something is a valid nick prefix.
+ *
+ * @param Char the nick prefix
+ */
 bool CIRCConnection::IsNickPrefix(char Char) const {
 	const char *Prefixes = GetISupport("PREFIX");
 	bool flip = false;
@@ -932,6 +1068,14 @@ bool CIRCConnection::IsNickPrefix(char Char) const {
 	return false;
 }
 
+/**
+ * IsNickMode
+ *
+ * Checks whether something is a channel mode which can be applied
+ * to nicks.
+ *
+ * @param Char the channelmode
+ */
 bool CIRCConnection::IsNickMode(char Char) const {
 	const char *Prefixes = GetISupport("PREFIX");
 
@@ -946,6 +1090,13 @@ bool CIRCConnection::IsNickMode(char Char) const {
 	return false;
 }
 
+/**
+ * PrefixForChanMode
+ *
+ * Returns the prefix character for a mode.
+ *
+ * @param Mode the mode character
+ */
 char CIRCConnection::PrefixForChanMode(char Mode) const {
 	const char *Prefixes = GetISupport("PREFIX");
 	const char *ActualPrefixes = strstr(Prefixes, ")");
@@ -970,18 +1121,42 @@ char CIRCConnection::PrefixForChanMode(char Mode) const {
 	return '\0';
 }
 
+/**
+ * GetServerVersion
+ *
+ * Returns the server's version (as reported by the server).
+ */
 const char *CIRCConnection::GetServerVersion(void) const {
 	return m_ServerVersion;
 }
 
+/**
+ * GetServerFeat
+ *
+ * Returns the server's features (as reported by the server).
+ */
 const char *CIRCConnection::GetServerFeat(void) const {
 	return m_ServerFeat;
 }
 
+/**
+ * GetISupportAll
+ *
+ * Returns a configuration object which contains all 005 replies.
+ */
 const CConfig *CIRCConnection::GetISupportAll(void) const {
 	return m_ISupport;
 }
 
+/**
+ * UpdateWhoHelper
+ *
+ * Updates the realname/servername for a nick.
+ *
+ * @param Nick the nick
+ * @param Realname the realname fot the user
+ * @param Server the servername for the user
+ */
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
 	int a = 0, i = 0;
 
@@ -1003,6 +1178,13 @@ void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, con
 	}
 }
 
+/**
+ * UpdateHostHelper
+ *
+ * Updates the host for a user.
+ *
+ * @param Host the host (nick!ident\@host)
+ */
 void CIRCConnection::UpdateHostHelper(const char *Host) {
 	const char *NickEnd;
 	size_t Offset;
@@ -1067,28 +1249,61 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	free(Copy);
 }
 
+/**
+ * GetFloodControl
+ *
+ * Returns the flood control object for the IRC connection.
+ */
 CFloodControl *CIRCConnection::GetFloodControl(void) {
 	return m_FloodControl;
 }
 
+/**
+ * WriteUnformattedLine
+ *
+ * Sends a line to the IRC server.
+ *
+ * @param In the line
+ */
 void CIRCConnection::WriteUnformattedLine(const char *In) {
 	if (!m_Locked) {
 		m_QueueMiddle->QueueItem(In);
 	}
 }
 
+/**
+ * GetQueueHigh
+ *
+ * Returns the high priority queue for the connection.
+ */
 CQueue *CIRCConnection::GetQueueHigh(void) {
 	return m_QueueHigh;
 }
 
+/**
+ * GetQueueMiddle
+ *
+ * Returns the medium priority queue for the connection.
+ */
 CQueue *CIRCConnection::GetQueueMiddle(void) {
 	return m_QueueMiddle;
 }
 
+/**
+ * GetQueueLow
+ *
+ * Returns the low priority queue for the connection.
+ */
 CQueue *CIRCConnection::GetQueueLow(void) {
 	return m_QueueLow;
 }
 
+/**
+ * JoinChannels
+ *
+ * Joins the channels which the user should be in (according to
+ * the configuration file).
+ */
 void CIRCConnection::JoinChannels(void) {
 	size_t Size;
 	const char *Channels;
@@ -1158,6 +1373,11 @@ void CIRCConnection::JoinChannels(void) {
 	}
 }
 
+/**
+ * GetClassName
+ *
+ * Returns the classname.
+ */
 const char *CIRCConnection::GetClassName(void) const {
 	return "CIRCConnection";
 }
@@ -1172,6 +1392,14 @@ bool CIRCConnection::Read(void) {
 	return Ret;
 }
 
+/**
+ * DelayJoinTimer
+ *
+ * Timer function which is used for delayed joining of channels.
+ *
+ * @param Now the current time
+ * @param IRCConnection an CIRCConnection object
+ */
 bool DelayJoinTimer(time_t Now, void *IRCConnection) {
 	((CIRCConnection*)IRCConnection)->m_DelayJoinTimer = NULL;
 	((CIRCConnection*)IRCConnection)->JoinChannels();
@@ -1179,6 +1407,14 @@ bool DelayJoinTimer(time_t Now, void *IRCConnection) {
 	return false;
 }
 
+/**
+ * IRCPingTimer
+ *
+ * Checks the IRC connection for timeouts.
+ *
+ * @param Now the current time
+ * @param IRCConnection the CIRCConnection object
+ */
 bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
 
@@ -1197,14 +1433,32 @@ bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	return true;
 }
 
+/**
+ * GetChannels
+ *
+ * Returns a hashtable containing all channels which the user is currently in.
+ */
 CHashtable<CChannel *, false, 16> *CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }
 
+/**
+ * GetSite
+ *
+ * Returns the site (ident\@host) for the IRC connection.
+ */
 const char *CIRCConnection::GetSite(void) const {
 	return m_Site;
 }
 
+/**
+ * SSLVerify
+ *
+ * Verifies that the IRC server's SSL certificate is valid.
+ *
+ * @param PreVerifyOk whether the pre-verification succeeded
+ * @param Context the X509 context
+ */
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef USESSL
 	m_Owner->Privmsg(Context->cert->name);
@@ -1213,6 +1467,13 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 	return 1;
 }
 
+/**
+ * AsyncDnsFinished
+ *
+ * Called when the DNS query for the IRC server host is finished.
+ *
+ * @param Response the response from the DNS server
+ */
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL) {
 		m_Owner->Log("DNS request failed: No such hostname (NXDOMAIN).");
@@ -1222,6 +1483,13 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	CConnection::AsyncDnsFinished(Response);
 }
 
+/**
+ * AsyncBindIpDnsFinished
+ *
+ * Called when the DNS query for the bind address is finished.
+ *
+ * @param Response the reponse from the DNS server
+ */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response == NULL) {
 		m_Owner->Log("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
@@ -1231,6 +1499,11 @@ void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	CConnection::AsyncBindIpDnsFinished(Response);
 }
 
+/**
+ * Destroy
+ *
+ * Destroys the IRC connection object.
+ */
 void CIRCConnection::Destroy(void) {
 	if (m_Owner != NULL) {
 		m_Owner->SetIRCConnection(NULL);
@@ -1239,12 +1512,19 @@ void CIRCConnection::Destroy(void) {
 	delete this;
 }
 
-// TODO: persist version and other stuff
-bool CIRCConnection::Freeze(CAssocArray *Box) {
+/* TODO: persist version and other stuff */
+/**
+ * Freeze
+ *
+ * Persists an IRC connection object.
+ *
+ * @param Box the box which should be used
+ */
+RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
 	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox;
 
 	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
-		return false;
+		THROW(bool, Generic_Unknown, "Current Nick/Server/Sock invalid or connection is using SSL.");
 	}
 
 	Box->AddString("~irc.nick", m_CurrentNick);
@@ -1294,10 +1574,18 @@ bool CIRCConnection::Freeze(CAssocArray *Box) {
 
 	Destroy();
 
-	return true;
+	RETURN(bool, true);
 }
 
-CIRCConnection *CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
+/**
+ * Thaw
+ *
+ * De-persists an IRC connection object.
+ *
+ * @param Box the box
+ * @param Owner the owner of the IRC connection
+ */
+RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	CAssocArray *TempBox;
@@ -1305,13 +1593,13 @@ CIRCConnection *CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 	const char *Temp;
 	unsigned int Count;
 
-	if (Box == NULL || Owner == NULL) {
-		return NULL;
+	if (Box == NULL) {
+		THROW(CIRCConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
 	Socket = Box->ReadInteger("~irc.fd");
 
-	Connection = new CIRCConnection(Socket, Owner, false);
+	Connection = new CIRCConnection(Socket, NULL, false);
 
 	Connection->m_CurrentNick = strdup(Box->ReadString("~irc.nick"));
 	Connection->m_Server = strdup(Box->ReadString("~irc.server"));
@@ -1389,9 +1677,16 @@ CIRCConnection *CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 
 	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);
 
-	return Connection;
+	RETURN(CIRCConnection *, Connection);
 }
 
+/**
+ * Kill
+ *
+ * Disconnects from the IRC server and destroys the connection object.
+ *
+ * @param Error error message
+ */
 void CIRCConnection::Kill(const char *Error) {
 	if (m_Owner) {
 		m_Owner->SetIRCConnection(NULL);
@@ -1406,6 +1701,14 @@ void CIRCConnection::Kill(const char *Error) {
 	CConnection::Kill(Error);
 }
 
+/**
+ * GetHighestUserFlag
+ *
+ * Returns the "highest" user prefix.
+ *
+ * @param Modes the prefixes (e.g. @+)
+ */
+/* TODO: check comment */
 char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 	bool Flip = false;
 	const char *Prefixes = GetISupport("PREFIX");
@@ -1423,7 +1726,7 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 			continue;
 		}
 
-		if (strchr(Modes, Prefixes[i])) {
+		if (strchr(Modes, Prefixes[i]) != NULL) {
 			return Prefixes[i];
 		}
 	}
@@ -1431,6 +1734,11 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 	return '\0';
 }
 
+/**
+ * Error
+ *
+ * Called when an error occurred for the connection.
+ */
 void CIRCConnection::Error(void) {
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {
@@ -1443,6 +1751,11 @@ void CIRCConnection::Error(void) {
 	}
 }
 
+/**
+ * GetUsermodes
+ *
+ * Returns the usermodes for the IRC connection.
+ */
 const char *CIRCConnection::GetUsermodes(void) {
 	if (m_Usermodes != NULL && strlen(m_Usermodes) > 0) {
 		return m_Usermodes;

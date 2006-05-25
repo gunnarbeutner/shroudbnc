@@ -32,7 +32,7 @@ proc sbnc:pminternalflush {} {
 }
 
 proc sbnc:uniq {list} {
-	set out ""
+	set out [list]
 
 	foreach item $list {
 		if {[lsearch -exact $out $item] == -1} {

@@ -1674,39 +1674,27 @@ bool CCore::Freeze(CAssocArray *Box) {
 	FreezeObject<CClientListener>(Box, "~listenerv6", m_ListenerV6);
 	FreezeObject<CClientListener>(Box, "~ssllistenerv6", m_SSLListenerV6);
 
+	CAssocArray *IRCBox, *ClientsBox;
+
+	IRCBox = Box->Create();
+	Box->AddBox("~irc", IRCBox);
+
+	ClientsBox = Box->Create();
+	Box->AddBox("~clients", ClientsBox);
+
 	int i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		char *Username = strdup(User->Name);
+
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
 		CClientConnection *Client = User->Value->GetClientConnection();
 
 		if (IRC != NULL) {
-			/* TODO: use FreezeObject<> */
-			CAssocArray *IrcBox = Box->Create();
-
-			if (IRC->Freeze(IrcBox)) {
-				Box->AddBox(Username, IrcBox);
-			} else {
-				IrcBox->Destroy();
-			}
+			FreezeObject<CIRCConnection>(IRCBox, Username, IRC);
 		}
 
 		if (Client != NULL) {
-			CAssocArray *ClientBox;
-			CAssocArray *ClientsBox = Box->ReadBox("~clients");
-
-			if (ClientsBox == NULL) {
-				ClientsBox = Box->Create();
-				Box->AddBox("~clients", ClientsBox);
-			}
-
-			ClientBox = Box->Create();
-			
-			if (Client->Freeze(ClientBox)) {
-				ClientsBox->AddBox(Username, ClientBox);
-			} else {
-				ClientBox->Destroy();
-			}
+			FreezeObject<CClientConnection>(ClientsBox, Username, Client);
 		}
 
 		free(Username);
@@ -1725,7 +1713,7 @@ bool CCore::Freeze(CAssocArray *Box) {
  * @param Box the box
  */
 bool CCore::Thaw(CAssocArray *Box) {
-	CAssocArray *ClientsBox;
+	CAssocArray *IRCBox, *ClientsBox;
 
 	m_Listener = ThawObject<CClientListener>(Box, "~listener");
 	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6");
@@ -1740,32 +1728,29 @@ bool CCore::Thaw(CAssocArray *Box) {
 		m_SSLListenerV6->SetSSL(true);
 	}
 
+	IRCBox = Box->ReadBox("~irc");
 	ClientsBox = Box->ReadBox("~clients");
 
 	int i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		CIRCConnection *IRC;
+		CClientConnection* Client;
 
-		CAssocArray *IrcBox = Box->ReadBox(User->Name);
+		IRC = ThawObject<CIRCConnection>(IRCBox, User->Name);
 
-		if (IrcBox) {
-			IRC = CIRCConnection::Thaw(IrcBox, User->Value);
-
+		if (IRC != NULL) {
+			IRC->SetOwner(User->Value);
 			User->Value->SetIRCConnection(IRC);
 		}
 
-		if (ClientsBox != NULL) {
-			CClientConnection *Client;
+		Client = ThawObject<CClientConnection>(ClientsBox, User->Name);
 
-			Client = ThawObject<CClientConnection>(ClientsBox, User->Name);
+		if (Client != NULL) {
+			Client->SetOwner(User->Value);
+			User->Value->SetClientConnection(Client);
 
-			if (Client != NULL) {
-				Client->SetOwner(User->Value);
-				User->Value->SetClientConnection(Client);
-
-				if (User->Value->IsAdmin()) {
-					User->Value->Privmsg("shroudBNC was reloaded.");
-				}
+			if (User->Value->IsAdmin()) {
+				User->Value->Privmsg("shroudBNC was reloaded.");
 			}
 		}
 	}

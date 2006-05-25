@@ -91,7 +91,7 @@ proc channel {option chan args} {
 		add {
 			set channels($chan) [join $args]
 
-			if {![channel get $chan autochan]} {
+			if {![channel get $chan autochan] && ![channel get $chan inactive]} {
 				simul [getctx] "JOIN $chan"
 			}
 

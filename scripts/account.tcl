@@ -67,8 +67,6 @@ proc auth:join {nick host hand chan} {
 		set account [getchanlogin $nick]
 
 		if {$account == ""} {
-			bncsettag $chan $nick accunknown 1
-
 			if {$accounttimer != 0} {
 				incr accountwait
 
@@ -83,7 +81,6 @@ proc auth:join {nick host hand chan} {
 			set accounttimer 1
 		} else {
 			bncsettag $chan $nick account $account
-			bncsettag $chan $nick accunknown 0
 
 			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
 		}
@@ -110,7 +107,7 @@ proc auth:enqueuewho {names} {
 
 	set allowedchans [split [string tolower [getbncuser [getctx] tag whochans]] ","]
 
-	foreach name $names {
+	foreach name [split $names ","] {
 		set name [string tolower $name]
 
 		if {[llength $allowedchans] == 0 || ([string first [string index $name 0] [getisupport CHANTYPES]] == -1 || [lsearch -exact $allowedchans $name] != -1)} {
@@ -144,10 +141,10 @@ proc auth:dequeuewho {} {
 
 	set result [list]
 
-	foreach item [split $chan ","] {
+	foreach item [split $chan] {
 		set account [getchanlogin $item]
 
-		if {$account == "" || $account == 0} {
+		if {$account != "" && $account != 0} {
 			lappend result $item
 		}
 	}
@@ -220,14 +217,13 @@ proc auth:jointimer {context} {
 	set nicks ""
 	foreach chan [internalchannels] {
 		foreach nick [internalchanlist $chan] {
-			if {[bncgettag $chan $nick account] == "" && [bncgettag $chan $nick accunknown] == 1} {
+			if {[bncgettag $chan $nick account] == ""} {
 				lappend nicks $nick
-				bncsettag $chan $nick accunknown 0
 			}
 
 			set l [join [sbnc:uniq $nicks] ","]
 
-			if {[string length $l] > 450} {
+			if {[string length $l] > 350} {
 				auth:enqueuewho $l
 				set nicks [list]
 
@@ -236,7 +232,7 @@ proc auth:jointimer {context} {
 	}
 
 	if {$nicks != ""} {
-		auth:enqueuewho [sbnc:uniq $nicks]
+		auth:enqueuewho [join [sbnc:uniq $nicks] ","]
 	}
 }
 
@@ -277,14 +273,12 @@ proc auth:pulse {reason} {
 
 			foreach nick [internalchanlist $chan] {
 				set account [bncgettag $chan $nick account]
-				set unknown [bncgettag $chan $nick accunknown]
 
-				if {$unknown == 1 || ($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
+				if {($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
 					lappend nicks $nick
-					bncsettag $chan $nick accunknown 0
 				}
 
-				if {[string length [join [sbnc:uniq $nicks] ","]] > 450} {
+				if {[string length [join [sbnc:uniq $nicks] ","]] > 350} {
 					auth:enqueuewho [join [sbnc:uniq $nicks] ","]
 					set nicks [list]
 				}
