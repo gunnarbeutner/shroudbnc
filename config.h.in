@@ -1,8 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the `poll' function. */
-#undef HAVE_POLL
-
 /* Define to 1 if you have AF_INET6. */
 #undef HAVE_AF_INET6
 
@@ -139,9 +136,6 @@
 /* Define to 1 if you have the `advapi32' library (-ladvapi32). */
 #undef HAVE_LIBADVAPI32
 
-/* Define to 1 if you have the `c' library (-lc). */
-#undef HAVE_LIBC
-
 /* Define if you have the libdl library or equivalent. */
 #undef HAVE_LIBDL
 
@@ -211,6 +205,9 @@
 
 /* Define to 1 if you have PF_INET6. */
 #undef HAVE_PF_INET6
+
+/* Define to 1 if you have the `poll' function. */
+#undef HAVE_POLL
 
 /* Define if libtool can extract symbol lists from object files. */
 #undef HAVE_PRELOADED_SYMBOLS
