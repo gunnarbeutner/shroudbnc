@@ -284,7 +284,7 @@ proc iface:setglobaltag {tag value} {
 registerifacecmd "core" "setglobaltag" "iface:setglobaltag" "access:admin"
 
 proc iface:getglobaltags {} {
-	return [bncgetglobaltags]
+	return [iface:list [bncgetglobaltags]]
 }
 
 registerifacecmd "core" "getglobaltags" "iface:getglobaltags" "access:admin"
