@@ -60,12 +60,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="kernel32.lib ws2_32.lib"
-				OutputFile="bin\$(ProjectName).exe"
+				AdditionalDependencies="kernel32.lib ws2_32.lib advapi32.lib shlwapi.lib"
+				OutputFile="Debug\$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
+				AllowIsolation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -135,14 +136,19 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="kernel32.lib ws2_32.lib"
+				AdditionalDependencies="kernel32.lib ws2_32.lib advapi32.lib shlwapi.lib"
 				OutputFile="..\bin\$(ProjectName).exe"
 				LinkIncremental="1"
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				LinkTimeCodeGeneration="1"
+				SetChecksum="true"
 				TargetMachine="1"
+				AllowIsolation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -187,7 +193,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\snprintf.c"
+				RelativePath=".\Service.cpp"
 				>
 			</File>
 		</Filter>
@@ -201,7 +207,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\StdAfx.h"
+				RelativePath=".\Service.h"
 				>
 			</File>
 		</Filter>
