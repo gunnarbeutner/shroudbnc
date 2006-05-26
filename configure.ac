@@ -53,7 +53,7 @@ AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset 
 AC_LIB_LTDL
 
 AC_CHECK_LIB(iphlpapi, main)
-AC_CHECK_LIB(ws2_32, main, [ IDENTD_MODULE=identd32 ], [ IDENTD_MODULE="" ])
+AC_CHECK_LIB(ws2_32, main, [ IDENTD_MODULE=identd32; LIBS += -lws2_32 ], [ IDENTD_MODULE="" ])
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
 
