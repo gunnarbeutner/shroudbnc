@@ -53,7 +53,7 @@ AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset 
 AC_LIB_LTDL
 
 AC_CHECK_LIB(iphlpapi, main)
-AC_CHECK_LIB(ws2_32, main, [ COMPILE_IDENTD=yes ], [ COMPILE_IDENTD=no ])
+AC_CHECK_LIB(ws2_32, main, [ IDENTD_MODULE=identd32 ], [ IDENTD_MODULE="" ])
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
 
@@ -106,8 +106,8 @@ if test ${USESSL} = yes; then
 	fi
 fi
 
-if test $(OVERRIDE_COMPILE_IDENTD) != ""; then
-	COMPILE_IDENTD=$(OVERRIDE_COMPILE_IDENTD)
+if test "x${OVERRIDE_COMPILE_IDENTD}" != "x"; then
+	IDENTD_MODULE="identd32"
 fi
 
 AC_SUBST(TCL_INCLUDE_SPEC)
