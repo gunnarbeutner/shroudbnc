@@ -117,8 +117,8 @@ extern unsigned int g_ErrorLine;
 
 void StrTrim(char *String);
 
-char *strlcpy(char *Destination, const char *Source, size_t Size);
-char *strlcat(char *Destination, const char *Source, size_t Size);
+char *strmcpy(char *Destination, const char *Source, size_t Size);
+char *strmcat(char *Destination, const char *Source, size_t Size);
 
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))

@@ -1144,10 +1144,10 @@ void CCore::UpdateUserConfig(void) {
 		}
 
 		if (!WasNull) {
-			strlcat(Out, " ", Size);
-			strlcat(Out, User->Name, Size);
+			strmcat(Out, " ", Size);
+			strmcat(Out, User->Name, Size);
 		} else {
-			strlcpy(Out, User->Name, Size);
+			strmcpy(Out, User->Name, Size);
 			WasNull = false;
 		}
 	}
@@ -2056,6 +2056,10 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 		m_Modules[i]->TagModified(Tag, Value);
 	}
 
+	if (Value != NULL && Value[0] == '\0') {
+		Value = NULL;
+	}
+
 	ReturnValue = m_Config->WriteString(Setting, Value);
 
 	free(Setting);
@@ -2075,12 +2079,16 @@ bool CCore::SetTagInteger(const char *Tag, int Value) {
 	bool ReturnValue;
 	char *StringValue;
 
-	asprintf(&StringValue, "%d", Value);
+	if (Value == 0) {
+		StringValue = NULL;
+	} else {
+		asprintf(&StringValue, "%d", Value);
 
-	if (StringValue == NULL) {
-		LOGERROR("asprintf() failed. Could not store global tag.");
+		if (StringValue == NULL) {
+			LOGERROR("asprintf() failed. Could not store global tag.");
 
-		return false;
+			return false;
+		}
 	}
 
 	ReturnValue = SetTagString(Tag, StringValue);

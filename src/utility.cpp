@@ -52,7 +52,7 @@ const char *ArgTokenize(const char *Data) {
 		return NULL;
 	}
 
-	strlcpy(Copy, Data, Size);
+	strmcpy(Copy, Data, Size);
 	Copy[LengthData + 1] = '\0';
 
 	for (unsigned int i = 0; i < LengthData; i++) {
@@ -1023,7 +1023,7 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
 //#endif /* !_WIN32 */
 
 /**
- * strlcpy
+ * strmcpy
  *
  * Behaves like strncpy. However this function guarantees that Destination
  * will always be zero-terminated (unless Size is 0).
@@ -1032,7 +1032,7 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
  * @param Source source string
  * @param Size size of the Destination buffer
  */
-char *strlcpy(char *Destination, const char *Source, size_t Size) {
+char *strmcpy(char *Destination, const char *Source, size_t Size) {
 	size_t CopyLength = min(strlen(Source), Size - 1);
 
 #ifdef _DEBUG
@@ -1048,7 +1048,7 @@ char *strlcpy(char *Destination, const char *Source, size_t Size) {
 }
 
 /**
- * strlcat
+ * strmcat
  *
  * Behaves like strncat. However this function guarantees that Destination
  * will always be zero-terminated (unless Size is 0).
@@ -1057,7 +1057,7 @@ char *strlcpy(char *Destination, const char *Source, size_t Size) {
  * @param Source source string
  * @param Size size of the Destination buffer
  */
-char *strlcat(char *Destination, const char *Source, size_t Size) {
+char *strmcat(char *Destination, const char *Source, size_t Size) {
 	size_t Offset = strlen(Destination);
 	size_t CopyLength = min(strlen(Source), Size - Offset - 1);
 

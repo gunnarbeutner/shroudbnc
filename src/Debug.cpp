@@ -148,7 +148,7 @@ char *DebugStrDup(const char *String, const char *File) {
 		return NULL;
 	}
 
-	strlcpy(Copy, String, Size);
+	strmcpy(Copy, String, Size);
 
 	return Copy;
 }

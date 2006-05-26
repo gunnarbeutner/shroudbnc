@@ -920,12 +920,12 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		}
 
 		if (!WasNull) {
-			strlcat(Out, ",", Size);
+			strmcat(Out, ",", Size);
 		} else {
 			Out[0] = '\0';
 		}
 
-		strlcat(Out, Chan->Name, Size);
+		strmcat(Out, Chan->Name, Size);
 	}
 
 	/* m_Owner can be NULL if the last channel was not created successfully */
@@ -1343,7 +1343,7 @@ void CIRCConnection::JoinChannels(void) {
 
 					Size = strlen(Channel) + 1;
 					ChanList = (char *)malloc(Size);
-					strlcpy(ChanList, Channel, Size);
+					strmcpy(ChanList, Channel, Size);
 				} else {
 					Size = strlen(ChanList) + 1 + strlen(Channel) + 2;
 					newChanList = (char *)realloc(ChanList, Size);
@@ -1356,8 +1356,8 @@ void CIRCConnection::JoinChannels(void) {
 
 					ChanList = newChanList;
 
-					strlcat(ChanList, ",", Size);
-					strlcat(ChanList, Channel, Size);
+					strmcat(ChanList, ",", Size);
+					strmcat(ChanList, Channel, Size);
 				}
 			}
 

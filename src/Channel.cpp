@@ -107,7 +107,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	strlcpy(m_TempModes, "+", Size);
+	strmcpy(m_TempModes, "+", Size);
 
 	for (i = 0; i < m_ModeCount; i++) {
 		ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
@@ -116,7 +116,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 			ModeString[0] = m_Modes[i].Mode;
 			ModeString[1] = '\0';
 
-			strlcat(m_TempModes, ModeString, Size);
+			strmcat(m_TempModes, ModeString, Size);
 		}
 	}
 
@@ -124,7 +124,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
-			strlcat(m_TempModes, " ", Size);
+			strmcat(m_TempModes, " ", Size);
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
@@ -139,7 +139,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 				m_TempModes = NewTempModes;
 			}
 
-			strlcat(m_TempModes, m_Modes[i].Parameter, Size);
+			strmcat(m_TempModes, m_Modes[i].Parameter, Size);
 		}
 	}
 

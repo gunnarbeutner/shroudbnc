@@ -1711,11 +1711,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 							}
 
 							if (Nicks[0] != '\0') {
-								strlcat(Nicks, " ", Size);
+								strmcat(Nicks, " ", Size);
 							}
 
-							strlcat(Nicks, outPref, Size);
-							strlcat(Nicks, Nick, Size);
+							strmcat(Nicks, outPref, Size);
+							strmcat(Nicks, Nick, Size);
 
 							if (strlen(Nicks) > 400) {
 								WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
@@ -1787,14 +1787,14 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 
 						if (Feats[0] != '\0') {
-							strlcat(Feats, " ", Size);
+							strmcat(Feats, " ", Size);
 						}
 
-						strlcat(Feats, Name, Size);
+						strmcat(Feats, Name, Size);
 
 						if (Value != NULL && Value[0] != '\0') {
-							strlcat(Feats, "=", Size);
-							strlcat(Feats, Value, Size);
+							strmcat(Feats, "=", Size);
+							strmcat(Feats, Value, Size);
 						}
 
 						if (++a == 11) {

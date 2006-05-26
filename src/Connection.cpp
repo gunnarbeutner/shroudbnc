@@ -459,7 +459,7 @@ bool CConnection::ReadLine(char **Out) {
 
 		Size = NewPtr - old_recvq + 1;
 		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
-		strlcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
+		strmcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
 
 		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;

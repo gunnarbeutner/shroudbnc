@@ -144,9 +144,9 @@ const char *DebugBuildPath(const char *Filename, const char *Base) {
 
 	Size = strlen(Filename) + strlen(Base) + 2;
 	Path = (char *)malloc(Size);
-	strlcpy(Path, Base, Size);
-	strlcat(Path, "/", Size);
-	strlcat(Path, Filename, Size);
+	strmcpy(Path, Base, Size);
+	strmcat(Path, "/", Size);
+	strmcat(Path, Filename, Size);
 
 	return Path;
 }
