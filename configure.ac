@@ -53,7 +53,7 @@ AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset 
 AC_LIB_LTDL
 
 AC_CHECK_LIB(iphlpapi, main)
-AC_CHECK_LIB(ws2_32, main)
+AC_CHECK_LIB(ws2_32, main, [ COMPILE_IDENTD=yes ], [ COMPILE_IDENTD=no ])
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
 
@@ -113,6 +113,7 @@ AC_SUBST(BNCTCL_MODULE)
 AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 AC_SUBST(SUBST_MOD_DIR)
+AC_SUBST(COMPILE_IDENTD)
 
 AC_CONFIG_FILES([Makefile \
                  scripts/Makefile \
@@ -121,5 +122,6 @@ AC_CONFIG_FILES([Makefile \
                  bnctcl/Makefile \
                  src/sbncloader/Makefile \
                  src/Makefile \
-                 src/md5/Makefile])
+                 src/md5/Makefile \
+                 identd32/Makefile])
 AC_OUTPUT

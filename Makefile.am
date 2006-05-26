@@ -1,5 +1,10 @@
 export MOD_DIR=@SUBST_MOD_DIR@
 SUBDIRS=src @BNCTCL_MODULE@
+
+if [ $COMPILE_IDENTD = "yes" ]; then
+	SUBDIRS += identd32
+fi
+
 EXTRA_DIST=cares.m4 cares2.m4 aclocal.m4 tcl.m4 sbnc.tcl ca.crt ca.key sbnc.crt sbnc.key README README.ssl README.motd
 UPDATE_MOD_DIR="`cat /tmp/ts.tag`"
 

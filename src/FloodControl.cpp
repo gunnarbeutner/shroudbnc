@@ -245,8 +245,7 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 			return 1;
 		}
 
-		strncpy(Command, Line, Space - Line);
-		Command[Space - Line] = '\0';
+		strmcpy(Command, Line, Space - Line);
 	} else {
 		Command = const_cast<char *>(Line);
 	}
