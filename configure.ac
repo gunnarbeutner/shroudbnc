@@ -106,9 +106,7 @@ if test ${USESSL} = yes; then
 	fi
 fi
 
-if test "x${OVERRIDE_COMPILE_IDENTD}" != "x"; then
-	IDENTD_MODULE="identd32"
-fi
+AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ IDENTD_MODULE="identd32" ])
 
 AC_SUBST(TCL_INCLUDE_SPEC)
 AC_SUBST(TCL_LIBS)
@@ -117,7 +115,7 @@ AC_SUBST(BNCTCL_MODULE)
 AC_SUBST(SSLCFLAGS)
 AC_SUBST(SSLLDFLAGS)
 AC_SUBST(SUBST_MOD_DIR)
-AC_SUBST(COMPILE_IDENTD)
+AC_SUBST(IDENTD_MODULE)
 
 AC_CONFIG_FILES([Makefile \
                  scripts/Makefile \
