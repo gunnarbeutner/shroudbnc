@@ -19,6 +19,13 @@
 
 class CUser;
 
+class CMemoryManager {
+public:
+	virtual bool MemoryAddBytes(size_t Bytes) = 0;
+	virtual void MemoryRemoveBytes(size_t Bytes) = 0;
+	virtual size_t GetManagedMemory(void) = 0;
+};
+
 class CObjectBase {
 	enum ObjectType_e {
 		eUser,
@@ -104,11 +111,13 @@ public:
 
 	virtual void SetOwner(OwnerType *Owner) {
 		CUser *User;
+		CMemoryManager *Manager;
 
 		if (GetOwnerBase() != NULL) {
 			User = GetUser();
 
-			SetOwnerHelper(User, sizeof(ObjectType), false);
+			Manager = dynamic_cast<CMemoryManager *>(User);
+			Manager->MemoryAddBytes(sizeof(ObjectType));
 		}
 
 		if (typeid(Owner) == typeid(CUser *)) {
@@ -121,7 +130,10 @@ public:
 		}
 
 		if (User != NULL) {
-			SetOwnerHelper(User, sizeof(ObjectType), true);
+			Manager = dynamic_cast<CMemoryManager *>(User);
+			Manager->MemoryAddBytes(sizeof(ObjectType));
+
+			Manager->MemoryRemoveBytes(sizeof(ObjectType));
 		}
 	}
 };

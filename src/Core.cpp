@@ -2745,3 +2745,7 @@ void CCore::SetResourceLimit(const char *Resource, unsigned int Limit) {
 
 	m_Config->WriteInteger(Name, Limit);
 }
+
+void CCore::SetOwnerHelper(CUser *User, size_t Bytes, bool Add) {
+	SetOwnerHelper(User, Bytes, Add);
+}

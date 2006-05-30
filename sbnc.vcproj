@@ -430,10 +430,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\OwnedObject.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\Persistable.h"
 				>
 			</File>

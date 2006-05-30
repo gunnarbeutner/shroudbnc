@@ -30,6 +30,7 @@ class CModule;
 class CConnection;
 class CTimer;
 class CAssocArray;
+class CFakeClient;
 struct CSocketEvents;
 struct sockaddr_in;
 
@@ -247,6 +248,8 @@ public:
 
 	virtual unsigned int GetResourceLimit(const char *Resource);
 	virtual void SetResourceLimit(const char *Resource, unsigned int Limit);
+
+	virtual void SetOwnerHelper(CUser *User, size_t Bytes, bool Add);
 };
 
 #ifndef SWIG
