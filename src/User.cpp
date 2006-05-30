@@ -47,7 +47,7 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Config = new CConfig(g_Bouncer->BuildPath(Out));
+	m_Config = new CConfig(g_Bouncer->BuildPath(Out), this);
 
 	free(Out);
 
@@ -77,7 +77,7 @@ CUser::CUser(const char *Name) {
 	m_ClientStats = new CTrafficStats();
 	m_IRCStats = new CTrafficStats();
 
-	m_Keys = new CKeyring(m_Config);
+	m_Keys = new CKeyring(m_Config, this);
 
 	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
 	m_ReconnectTimer = NULL;

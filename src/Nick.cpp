@@ -24,10 +24,10 @@
  *
  * Constructs a new nick object.
  *
- * @param Owner the owning channel of this nick object
  * @param Nick the nickname of the user
+ * @param Owner the owning channel of this nick object
  */
-CNick::CNick(CChannel *Owner, const char *Nick) {
+CNick::CNick(const char *Nick, CChannel *Owner) {
 	assert(Nick != NULL);
 
 	m_Nick = strdup(Nick);
@@ -42,7 +42,7 @@ CNick::CNick(CChannel *Owner, const char *Nick) {
 	m_Creation = g_CurrentTime;
 	m_IdleSince = m_Creation;
 
-	m_Owner = Owner;
+	SetOwner(Owner);
 }
 
 /**
@@ -352,7 +352,7 @@ const char *CNick::InternalGetServer(void) const {
 		return Value; \
 	} \
 \
-	while (hash_t<CChannel *> *Chan = m_Owner->GetOwner()->GetChannels()->Iterate(a++)) { \
+	while (hash_t<CChannel *> *Chan = GetOwner()->GetOwner()->GetChannels()->Iterate(a++)) { \
 		if (!Chan->Value->HasNames()) \
 			continue; \
 \
@@ -523,7 +523,7 @@ RESULT<bool> CNick::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT<CNick *> CNick::Thaw(CAssocArray *Box) {
+RESULT<CNick *> CNick::Thaw(CAssocArray *Box, CChannel *Owner) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;
@@ -534,7 +534,7 @@ RESULT<CNick *> CNick::Thaw(CAssocArray *Box) {
 		THROW(CNick *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
 	}
 
-	Nick = new CNick(NULL, Name);
+	Nick = new CNick(Name, Owner);
 
 	CHECK_ALLOC_RESULT(Nick, new) {
 		THROW(CNick *, Generic_OutOfMemory, "new operator failed");

@@ -17,16 +17,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+class CUser;
+
+class COwnedObjectBase {
+protected:
+	void *m_Owner; /**< the owner of this object */
+
+public:
+	virtual CUser *GetUser(void) { return NULL; };
+};
+
 /**
  * COwnedObject<Type>
  *
  * A class which is owned by another class.
  */
 template <typename Type>
-class COwnedObject {
+class COwnedObject : protected COwnedObjectBase {
 protected:
-	Type *m_Owner; /**< the owner of this object */
-
 	/**
 	 * COwnedObject
 	 *
@@ -53,7 +61,17 @@ public:
 	 *
 	 * Returns the owner of this object.
 	 */
-	virtual Type *GetOwner(void) {
-		return m_Owner;
+	virtual Type *GetOwner(void) const {
+		return (Type *)m_Owner;
+	}
+
+	virtual CUser *GetUser(void) const {
+		if (typeid(Type) == typeid(CUser)) {
+			return (CUser *)m_Owner;
+		} else if (m_Owner != NULL) {
+			return ((COwnedObjectBase *)m_Owner)->GetUser();
+		} else {
+			return NULL;
+		}
 	}
 };

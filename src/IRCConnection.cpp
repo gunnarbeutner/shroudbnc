@@ -136,7 +136,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_ServerVersion = NULL;
 	m_ServerFeat = NULL;
 
-	m_ISupport = new CConfig(NULL);
+	m_ISupport = new CConfig(NULL, GetUser());
 
 	if (m_ISupport == NULL) {
 		LOGERROR("new operator failed. Could not create ISupport object.");
@@ -390,7 +390,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 					return bRet;
 				}
 
-				m_Owner->Simulate(Out);
+				GetOwner()->Simulate(Out);
 
 				free(Out);
 
@@ -468,7 +468,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		return bRet;
 	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
-		int DelayJoin = m_Owner->GetDelayJoin();
+		int DelayJoin = GetOwner()->GetDelayJoin();
 		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
 			const char *Site = GetSite();
 
@@ -489,7 +489,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				(*Modules)[i]->ServerLogon(m_Owner->GetUsername());
+				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
 			}
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
@@ -1160,7 +1160,7 @@ const CConfig *CIRCConnection::GetISupportAll(void) const {
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
 	int a = 0, i = 0;
 
-	if (m_Owner->GetLeanMode() > 0) {
+	if (GetOwner()->GetLeanMode() > 0) {
 		return;
 	}
 
@@ -1190,7 +1190,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	size_t Offset;
 	char *Copy;
 
-	if (m_Owner->GetLeanMode() > 0 && m_Site != NULL) {
+	if (GetOwner()->GetLeanMode() > 0 && m_Site != NULL) {
 		return;
 	}
 
@@ -1226,7 +1226,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 		}
 	}
 
-	if (m_Owner->GetLeanMode() > 0) {
+	if (GetOwner()->GetLeanMode() > 0) {
 		free(Copy);
 
 		return;
@@ -1327,7 +1327,7 @@ void CIRCConnection::JoinChannels(void) {
 
 		Channel = strtok(DupChannels, ",");
 
-		Keyring = m_Owner->GetKeyring();
+		Keyring = GetOwner()->GetKeyring();
 
 		while (Channel != NULL && Channel[0] != '\0') {
 			const char *Key = Keyring->GetKey(Channel);
@@ -1461,7 +1461,7 @@ const char *CIRCConnection::GetSite(void) const {
  */
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef USESSL
-	m_Owner->Privmsg(Context->cert->name);
+	GetOwner()->Privmsg(Context->cert->name);
 #endif
 
 	return 1;
@@ -1476,8 +1476,8 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
  */
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		m_Owner->Log("DNS request failed: No such hostname (NXDOMAIN).");
-		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+		GetOwner()->Log("DNS request failed: No such hostname (NXDOMAIN).");
+		g_Bouncer->Log("DNS request for %s failed. No such hostname (NXDOMAIN).", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncDnsFinished(Response);
@@ -1492,8 +1492,8 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
  */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		m_Owner->Log("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
-		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", m_Owner->GetUsername());
+		GetOwner()->Log("DNS request (vhost) failed: No such hostname (NXDOMAIN).");
+		g_Bouncer->Log("DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncBindIpDnsFinished(Response);
@@ -1505,8 +1505,8 @@ void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
  * Destroys the IRC connection object.
  */
 void CIRCConnection::Destroy(void) {
-	if (m_Owner != NULL) {
-		m_Owner->SetIRCConnection(NULL);
+	if (GetOwner() != NULL) {
+		GetOwner()->SetIRCConnection(NULL);
 	}
 
 	delete this;
@@ -1585,7 +1585,7 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
  * @param Box the box
  * @param Owner the owner of the IRC connection
  */
-RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
+RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	CAssocArray *TempBox;
@@ -1599,7 +1599,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
 
 	Socket = Box->ReadInteger("~irc.fd");
 
-	Connection = new CIRCConnection(Socket, NULL, false);
+	Connection = new CIRCConnection(Socket, Owner, false);
 
 	Connection->m_CurrentNick = strdup(Box->ReadString("~irc.nick"));
 	Connection->m_Server = strdup(Box->ReadString("~irc.server"));
@@ -1620,7 +1620,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
 
 	delete Connection->m_ISupport;
 
-	Connection->m_ISupport = ThawObject<CConfig>(Box, "~irc.isupport");
+	Connection->m_ISupport = ThawObject<CConfig>(Box, "~irc.isupport", Connection->GetUser());
 
 	Count = Box->ReadInteger("~irc.channels");
 
@@ -1635,8 +1635,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
 			g_Bouncer->Fatal();
 		} CHECK_ALLOC_RESULT_END;
 
-		Channel = ThawObject<CChannel>(Box, Out);
-		Channel->SetOwner(Connection);
+		Channel = ThawObject<CChannel>(Box, Out, Connection);
 
 		Connection->m_Channels->Add(Channel->GetName(), Channel);
 
@@ -1688,9 +1687,9 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box) {
  * @param Error error message
  */
 void CIRCConnection::Kill(const char *Error) {
-	if (m_Owner) {
-		m_Owner->SetIRCConnection(NULL);
-		m_Owner = NULL;
+	if (GetOwner() != NULL) {
+		GetOwner()->SetIRCConnection(NULL);
+		SetOwner(NULL);
 	}
 
 	m_FloodControl->Clear();

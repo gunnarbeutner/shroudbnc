@@ -267,17 +267,17 @@ class CTclSupport : public CModuleImplementation {
 
 				while (token != NULL) {
 					if (NoticeUser)
-						User->RealNotice(strResult ? (*token ? token : "empty string.") : "<null>");
+						User->RealNotice(*token ? token : "empty string.");
 					else
-						User->Privmsg(strResult ? (*token ? token : "empty string.") : "<null>");
+						User->Privmsg(*token ? token : "empty string.");
 
 					token = strtok(NULL, "\n");
 				}
 			} else {
 					if (NoticeUser)
-						User->RealNotice("<null>");
+						User->RealNotice("<no error>");
 					else
-						User->Privmsg("<null>");
+						User->Privmsg("<no error>");
 			}
 
 			return true;

@@ -29,7 +29,7 @@
  *
  * @param Filename the filename of the configuration file, can be NULL
  */
-CConfig::CConfig(const char *Filename) {
+CConfig::CConfig(const char *Filename, CUser *Owner) : CObject(Owner) {
 	m_WriteLock = false;
 
 	m_Settings.RegisterValueDestructor(FreeString);
@@ -362,7 +362,7 @@ RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box) {
+RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box, CUser *Owner) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;
@@ -370,7 +370,7 @@ RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box) {
 	char *Index, *dupSetting, *Value;
 	const char *Setting;
 
-	Config = new CConfig(NULL);
+	Config = new CConfig(NULL, Owner);
 
 	CHECK_ALLOC_RESULT(Config, new) {
 		THROW(CConfig *, Generic_OutOfMemory, "new operator failed.");
@@ -437,4 +437,13 @@ RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box) {
 	}
 
 	RETURN(CConfig *, Config);
+}
+
+/**
+ * GetInnerHashtable
+ *
+ * Returns the hashtable which is used for caching the settings.
+ */
+CHashtable<char *, false, 16> *CConfig::GetInnerHashtable(void) {
+	return &m_Settings;
 }

@@ -27,7 +27,7 @@
  *
  * A class for clients of the IRC bouncer.
  */
-class CClientConnection : public CConnection, public COwnedObject<CUser>,
+class CClientConnection : public CConnection, public CObject<CUser>,
 	public CZoneObject<CClientConnection, 16> {
 private:
 	char *m_Nick; /**< the current nick of the user */
@@ -64,7 +64,7 @@ public:
 	virtual ~CClientConnection(void);
 
 	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CClientConnection *> Thaw(CAssocArray *Box);
+	static RESULT<CClientConnection *> Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
 	virtual void ParseLine(const char *Line);

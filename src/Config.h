@@ -27,7 +27,7 @@
  *
  * Represents a shroudBNC configuration file
  */
-class CConfig : public CZoneObject<CConfig, 128> {
+class CConfig : public CZoneObject<CConfig, 128>, public CObject<CUser> {
 	CHashtable<char *, false, 16> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
@@ -38,11 +38,11 @@ class CConfig : public CZoneObject<CConfig, 128> {
 	RESULT<bool> Persist(void) const;
 public:
 #ifndef SWIG
-	CConfig(const char *Filename);
+	CConfig(const char *Filename, CUser *Owner);
 	virtual ~CConfig(void);
 
 	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CConfig *> Thaw(CAssocArray *Box);
+	static RESULT<CConfig *> Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
 	virtual RESULT<int> ReadInteger(const char *Setting) const;
@@ -57,4 +57,6 @@ public:
 
 	virtual void Reload(void);
 	virtual unsigned int GetLength(void) const;
+
+	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void);
 };

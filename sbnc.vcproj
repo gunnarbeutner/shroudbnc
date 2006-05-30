@@ -426,6 +426,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Object.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\OwnedObject.h"
 				>
 			</File>

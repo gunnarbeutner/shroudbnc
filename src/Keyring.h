@@ -24,14 +24,15 @@ class CConfig;
  *
  * A keyring used for storing channel keys.
  */
-class CKeyring : public CZoneObject<CKeyring, 16> {
+class CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CUser> {
 private:
 	CConfig *m_Config; /**< the config object for storing the channel keys */
 public:
 #ifndef SWIG
-	CKeyring(CConfig *Config);
+	CKeyring(CConfig *Config, CUser *Owner);
 #endif
 
-	virtual bool SetKey(const char *Channel, const char *Key = NULL);
-	virtual const char *GetKey(const char *Channel);
+	virtual RESULT<bool> SetKey(const char *Channel, const char *Key = NULL);
+	virtual RESULT<const char *> GetKey(const char *Channel);
+	virtual bool RemoveRedundantKeys(void);
 };

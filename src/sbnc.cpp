@@ -62,7 +62,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	time(&g_CurrentTime);
 
-	Config = new CConfig(Parameters->BuildPath("sbnc.conf", NULL));
+	Config = new CConfig(Parameters->BuildPath("sbnc.conf", NULL), NULL);
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");

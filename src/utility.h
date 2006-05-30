@@ -148,3 +148,18 @@ void FreeString(char *String);
 
 pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount);
 void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError);
+
+typedef struct {
+	size_t Size;
+	CUser *Manager;
+} mblock;
+
+void *umalloc(size_t Size, CUser *Manager);
+void *urealloc(void *Block, size_t NewSize, CUser *Manager);
+char *ustrdup(const char *String, CUser *Manager);
+void ufree(void *Block);
+
+#define GETUSER() ((typeid(*this) == typeid(CUser)) ? this : ((CObjectBase *)this)->GetUser())
+#define umalloc(Size) umalloc(Size, GETUSER())
+#define urealloc(Block, NewSize) urealloc(Block, NewSize, GETUSER())
+#define ustrdup(String) ustrdup(String, GETUSER())

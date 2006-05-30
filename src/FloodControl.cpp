@@ -34,7 +34,7 @@ typedef struct penalty_s {
  *
  * Some pre-defined penalties for various client commands.
  */
-static penalty_t Penalties [] = {
+static penalty_t Penalties[] = {
 	{ "MODE", 2 },
 	{ "KICK", 2 },
 	{ "WHO", 2 },

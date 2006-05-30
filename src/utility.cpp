@@ -1035,12 +1035,6 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
 char *strmcpy(char *Destination, const char *Source, size_t Size) {
 	size_t CopyLength = min(strlen(Source), Size - 1);
 
-#ifdef _DEBUG
-	if (CopyLength != strlen(Source)) {
-		DebugBreak();
-	}
-#endif
-
 	memcpy(Destination, Source, CopyLength);
 	Destination[CopyLength] = '\0';
 
@@ -1071,4 +1065,76 @@ char *strmcat(char *Destination, const char *Source, size_t Size) {
 	Destination[Offset + CopyLength] = '\0';
 
 	return Destination;
+}
+
+#undef umalloc
+void *umalloc(size_t Size, CUser *Owner) {
+	mblock *Block;
+
+	Block = (mblock *)malloc(sizeof(mblock) + Size);
+
+	if (Block == NULL) {
+		return NULL;
+	}
+
+	Block->Size = Size;
+	Block->Manager = Owner;
+
+	return Block + 1;
+}
+
+void ufree(void *Block) {
+	mblock *RealBlock;
+
+	if (Block == NULL) {
+		return;
+	}
+
+	RealBlock = (mblock *)Block - 1;
+
+	free(RealBlock);
+}
+
+#undef urealloc
+void *urealloc(void *Block, size_t NewSize, CUser *Manager) {
+	mblock *RealBlock;
+
+	if (Block == NULL) {
+		return umalloc(NewSize, Manager);
+	}
+
+	RealBlock = (mblock *)Block - 1;
+
+	if (RealBlock->Manager != Manager) {
+		/* ... */
+	}
+
+	RealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
+
+	if (RealBlock == NULL) {
+		return NULL;
+	}
+
+	RealBlock->Size = NewSize;
+	RealBlock->Manager = Manager;
+	
+	return RealBlock + 1;
+}
+
+#undef ustrdup
+char *ustrdup(const char *String, CUser *Manager) {
+	size_t Length;
+	char *Copy;
+
+	Length = strlen(String);
+
+	Copy = (char *)umalloc(Length + 1, Manager);
+
+	if (Copy == NULL) {
+		return NULL;
+	}
+
+	memcpy(Copy, String, Length + 1);
+
+	return Copy;
 }

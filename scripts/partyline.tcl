@@ -105,7 +105,7 @@ proc sbnc:partyline {client parameters} {
 
 	if {[string equal -nocase "mode" $cmd]} {
 		if {[llength $parameters] < 3} {
-			putclient ":$serv 324 $botnick $chan +nt"
+			putclient ":$serv 324 $botnick $chan +n"
 			putclient ":$serv 329 $botnick $chan 0"
 		} elseif {[lindex $parameters 2] == "+b"} {
 			putclient ":$serv 368 $botnick $chan :End of Channel Ban List"

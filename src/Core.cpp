@@ -36,6 +36,15 @@ int g_SSLCustomIndex; /**< custom SSL index */
 
 time_t g_LastReconnect = 0; /**< time of the last reconnect */
 
+static struct reslimit_s {
+	const char *Resource;
+	unsigned int DefaultLimit;
+} g_ResourceLimits[] = {
+		{ "bans", 100 },
+		{ "keys", 50 },
+		{ NULL, 0 }
+	};
+
 /**
  * CCore
  *
@@ -1721,15 +1730,15 @@ bool CCore::Freeze(CAssocArray *Box) {
 bool CCore::Thaw(CAssocArray *Box) {
 	CAssocArray *IRCBox, *ClientsBox;
 
-	m_Listener = ThawObject<CClientListener>(Box, "~listener");
-	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6");
+	m_Listener = ThawObject<CClientListener>(Box, "~listener", this);
+	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6", this);
 
-	m_SSLListener = ThawObject<CClientListener>(Box, "~ssllistener");
+	m_SSLListener = ThawObject<CClientListener>(Box, "~ssllistener", this);
 	if (m_SSLListener != NULL) {
 		m_SSLListener->SetSSL(true);
 	}
 
-	m_SSLListenerV6 = ThawObject<CClientListener>(Box, "~ssllistenerv6");
+	m_SSLListenerV6 = ThawObject<CClientListener>(Box, "~ssllistenerv6", this);
 	if (m_SSLListenerV6 != NULL) {
 		m_SSLListenerV6->SetSSL(true);
 	}
@@ -1742,17 +1751,15 @@ bool CCore::Thaw(CAssocArray *Box) {
 		CIRCConnection *IRC;
 		CClientConnection* Client;
 
-		IRC = ThawObject<CIRCConnection>(IRCBox, User->Name);
+		IRC = ThawObject<CIRCConnection>(IRCBox, User->Name, User->Value);
 
 		if (IRC != NULL) {
-			IRC->SetOwner(User->Value);
 			User->Value->SetIRCConnection(IRC);
 		}
 
-		Client = ThawObject<CClientConnection>(ClientsBox, User->Name);
+		Client = ThawObject<CClientConnection>(ClientsBox, User->Name, User->Value);
 
 		if (Client != NULL) {
-			Client->SetOwner(User->Value);
 			User->Value->SetClientConnection(Client);
 
 			if (User->Value->IsAdmin()) {
@@ -1953,7 +1960,7 @@ bool CCore::MakeConfig(void) {
 	mkdir(BuildPath("users"));
 	SetPermissions(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 
-	MainConfig = new CConfig(BuildPath("sbnc.conf"));
+	MainConfig = new CConfig(BuildPath("sbnc.conf"), NULL);
 
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
@@ -1965,7 +1972,7 @@ bool CCore::MakeConfig(void) {
 
 	printf(" DONE\n");
 
-	UserConfig = new CConfig(BuildPath(File));
+	UserConfig = new CConfig(BuildPath(File), NULL);
 
 	UserConfig->WriteString("user.password", UtilMd5(Password));
 	UserConfig->WriteInteger("user.admin", 1);
@@ -2691,4 +2698,50 @@ CClientListener *CCore::GetMainSSLListener(void) const {
  */
 CClientListener *CCore::GetMainSSLListenerV6(void) const {
 	return m_SSLListenerV6;
+}
+
+unsigned int CCore::GetResourceLimit(const char *Resource) {
+	unsigned int i = 0;
+
+	if (Resource == NULL) {
+		return 0;
+	}
+
+	while (g_ResourceLimits[i].Resource != NULL) {
+		if (strcasecmp(g_ResourceLimits[i].Resource, Resource) == 0) {
+			char *Name;
+
+			asprintf(&Name, "system.max%s", Resource);
+
+			CHECK_ALLOC_RESULT(Name, asprintf) {
+				return 0;
+			} CHECK_ALLOC_RESULT_END;
+
+			int Value = m_Config->ReadInteger(Name);
+
+			if (Value == 0) {
+				return g_ResourceLimits[i].DefaultLimit;
+			} else if (Value == -1) {
+				return UINT_MAX;
+			} else {
+				return Value;
+			}
+		}
+
+		i++;
+	}
+
+	return 0;
+}
+
+void CCore::SetResourceLimit(const char *Resource, unsigned int Limit) {
+	char *Name;
+
+	asprintf(&Name, "system.max%s", Resource);
+
+	CHECK_ALLOC_RESULT(Name, asprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	m_Config->WriteInteger(Name, Limit);
 }

@@ -164,6 +164,7 @@ bool IsError(const CResult<Type> &Result) {
 typedef enum generic_error_e {
 	Generic_OutOfMemory = 5000,
 	Generic_InvalidArgument,
+	Generic_QuotaExceeded,
 	Generic_Unknown
 } generic_error_t;
 

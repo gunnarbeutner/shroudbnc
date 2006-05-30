@@ -60,8 +60,8 @@ RESULT<bool> FreezeObject(CAssocArray *Container, const char *Name, Type *Object
  * @param Container the container of the box
  * @param Name the object's name in that container
  */
-template <typename Type>
-RESULT<Type *> ThawObject(CAssocArray *Container, const char *Name) {
+template <typename Type, typename OwnerType>
+RESULT<Type *> ThawObject(CAssocArray *Container, const char *Name, OwnerType *Owner) {
 	CAssocArray *ObjectBox;
 
 	if (Container == NULL || Name == NULL) {
@@ -74,5 +74,5 @@ RESULT<Type *> ThawObject(CAssocArray *Container, const char *Name) {
 		THROW(Type *, Generic_Unknown, "There is no such box.");
 	}
 
-	return Type::Thaw(ObjectBox);
+	return Type::Thaw(ObjectBox, Owner);
 }

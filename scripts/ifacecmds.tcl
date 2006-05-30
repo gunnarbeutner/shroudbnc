@@ -98,7 +98,7 @@ proc iface:jump {} {
 registerifacecmd "core" "jump" "iface:jump"
 
 proc iface:setvalue {setting value} {
-	set allowedsettings [list server port serverpass realname nick awaynick away awaymessage channels vhost delayjoin password appendts quitasaway automodes dropmodes]
+	set allowedsettings [list server port serverpass realname nick awaynick away awaymessage channels vhost delayjoin password appendts quitasaway automodes dropmodes ssl]
 
 	if {[lsearch -exact $allowedsettings $setting] == -1} {
 		return -code error "You may not modify this setting."
@@ -306,3 +306,15 @@ proc iface:delhost {host} {
 }
 
 registerifacecmd "core" "delhost" "iface:delhost" "access:admin"
+
+proc iface:sendmessage {user message} {
+	setctx $user
+
+	if {[getbncuser $user hasclient]} {
+		bncnotc $user $message
+	} else {
+		putlog $message
+	}
+}
+
+registerifacecmd "core" "sendmessage" "iface:sendmessage" "access:admin"

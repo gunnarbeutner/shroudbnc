@@ -22,7 +22,7 @@
 /**
  * DestroyBan
  *
- * Used by CHashtable to destroy individual bans
+ * Used by CHashtable to destroy individual bans.
  *
  * @param Ban the ban which is going to be destroyed
  */
@@ -34,16 +34,17 @@ void DestroyBan(ban_t *Ban) {
 /**
  * CBanlist
  *
- * Constructs an empty banlist
+ * Constructs an empty banlist.
  */
-CBanlist::CBanlist(void) {
+CBanlist::CBanlist(CChannel *Owner) {
+	SetOwner(Owner);
 	m_Bans.RegisterValueDestructor(DestroyBan);
 }
 
 /**
  * SetBan
  *
- * Creates a new ban
+ * Creates a new ban.
  *
  * @param Mask the banmask
  * @param Nick the nick of the user who set the ban
@@ -51,6 +52,10 @@ CBanlist::CBanlist(void) {
  */
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
+
+	if (m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
+		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
+	}
 
 	Ban = (ban_t *)malloc(sizeof(ban_t));
 
@@ -83,7 +88,7 @@ RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 /**
  * Iterate
  *
- * Iterates through the banlist
+ * Iterates through the banlist.
  *
  * @param Skip the index of the ban which is to be returned
  */
@@ -157,7 +162,7 @@ RESULT<bool> CBanlist::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT<CBanlist *> CBanlist::Thaw(CAssocArray *Box) {
+RESULT<CBanlist *> CBanlist::Thaw(CAssocArray *Box, CChannel *Owner) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;
@@ -168,7 +173,7 @@ RESULT<CBanlist *> CBanlist::Thaw(CAssocArray *Box) {
 		THROW(CBanlist *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	Banlist = new CBanlist();
+	Banlist = new CBanlist(Owner);
 
 	CHECK_ALLOC_RESULT(Banlist, new) {
 		THROW(CBanlist *, Generic_OutOfMemory, "new operator failed.");

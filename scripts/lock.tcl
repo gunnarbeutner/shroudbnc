@@ -72,7 +72,7 @@ proc lock:command {client parameters} {
 		}
 	}
 
-    if {[string equal -nocase $command "set"] && [llength $parameters] > 2} {
+	if {[string equal -nocase $command "set"] && [llength $parameters] > 2} {
 		set setting [lindex $parameters 1]
 		set notlocked [lock:set $client $setting [join [lrange $parameters 2 end]]]
 

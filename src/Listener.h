@@ -23,7 +23,7 @@
  * Implements a generic socket listener.
  */
 template<typename InheritedClass>
-class CListenerBase : public CSocketEvents {
+class CListenerBase : public CSocketEvents, public CObject<CCore> {
 private:
 	SOCKET m_Listener; /**< the listening socket */
 
@@ -124,13 +124,14 @@ public:
 	 *
 	 * @param Box the box which is being used for storing the listener
 	 */
-	static RESULT<InheritedClass *> Thaw(CAssocArray *Box) {
+	static RESULT<InheritedClass *> Thaw(CAssocArray *Box, CCore *Owner) {
 		InheritedClass *Listener = new InheritedClass();
 
 		CHECK_ALLOC_RESULT(Listener, new) {
 			THROW(InheritedClass *, Generic_OutOfMemory, "new operator failed.");
 		} CHECK_ALLOC_RESULT_END;
 
+		Listener->SetOwner(Owner);
 		Listener->Initialize(Box->ReadInteger("~listener.fd"));
 
 		RETURN(InheritedClass *, Listener);

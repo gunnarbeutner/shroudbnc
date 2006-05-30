@@ -49,7 +49,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	m_Banlist = new CBanlist();
+	m_Banlist = new CBanlist(this);
 }
 
 /**
@@ -110,7 +110,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 	strmcpy(m_TempModes, "+", Size);
 
 	for (i = 0; i < m_ModeCount; i++) {
-		ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+		ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && ModeType != 3) {
 			ModeString[0] = m_Modes[i].Mode;
@@ -121,7 +121,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 	}
 
 	for (i = 0; i < m_ModeCount; i++) {
-		int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+		int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
 			strmcat(m_TempModes, " ", Size);
@@ -177,7 +177,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		} else if (Current == '-') {
 			Flip = false;
 			continue;
-		} else if (m_Owner->IsNickMode(Current)) {
+		} else if (GetOwner()->IsNickMode(Current)) {
 			if (p >= pargc) {
 				return; // should not happen
 			}
@@ -186,23 +186,23 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 			if (NickObj != NULL) {
 				if (Flip) {
-					NickObj->AddPrefix(m_Owner->PrefixForChanMode(Current));
+					NickObj->AddPrefix(GetOwner()->PrefixForChanMode(Current));
 				} else {
-					NickObj->RemovePrefix(m_Owner->PrefixForChanMode(Current));
+					NickObj->RemovePrefix(GetOwner()->PrefixForChanMode(Current));
 				}
 			}
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				(*Modules)[i]->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, pargv[p]);
+				(*Modules)[i]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, pargv[p]);
 			}
 
-			if (Flip && Current == 'o' && strcasecmp(pargv[p], m_Owner->GetCurrentNick()) == 0) {
+			if (Flip && Current == 'o' && strcasecmp(pargv[p], GetOwner()->GetCurrentNick()) == 0) {
 				// invalidate channel modes so we can get channel-modes which require +o (e.g. +k)
 				SetModesValid(false);
 
 				// update modes immediatelly if we don't have a client
-				if (m_Owner->GetOwner()->GetClientConnection() == NULL) {
-					m_Owner->WriteLine("MODE %s", m_Name);
+				if (GetOwner()->GetOwner()->GetClientConnection() == NULL) {
+					GetOwner()->WriteLine("MODE %s", m_Name);
 				}
 			}
 
@@ -213,9 +213,10 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 		chanmode_t *Slot = FindSlot(Current);
 
-		int ModeType = m_Owner->RequiresParameter(Current);
+		int ModeType = GetOwner()->RequiresParameter(Current);
 
 		if (Current == 'b' && m_Banlist != NULL && p < pargc) {
+			/* TODO: keep track of whether the banlist is valid */
 			if (Flip) {
 				m_Banlist->SetBan(pargv[p], Source, g_CurrentTime);
 			} else {
@@ -224,7 +225,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		}
 
 		if (Current == 'k' && Flip && p < pargc && strcmp(pargv[p], "*") != 0) {
-			m_Owner->GetOwner()->GetKeyring()->SetKey(m_Name, pargv[p]);
+			GetOwner()->GetOwner()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
@@ -234,7 +235,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				arg = pargv[p];
 			}
 
-			(*Modules)[i]->SingleModeChange(m_Owner, m_Name, Source, Flip, Current, arg);
+			(*Modules)[i]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, arg);
 		}
 
 		if (Flip) {
@@ -444,11 +445,11 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
-	if (m_Owner->GetOwner()->GetLeanMode() > 1) {
+	if (GetOwner()->GetOwner()->GetLeanMode() > 1) {
 		return;
 	}
 
-	NickObj = new CNick(this, Nick);
+	NickObj = new CNick(Nick, this);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
 		return;
@@ -498,7 +499,7 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
  * Check whether the bouncer knows the names for the channel.
  */
 bool CChannel::HasNames(void) const {
-	if (m_Owner->GetOwner()->GetLeanMode() > 1) {
+	if (GetOwner()->GetOwner()->GetLeanMode() > 1) {
 		return false;
 	} else {
 		return m_HasNames;
@@ -531,7 +532,7 @@ const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
 void CChannel::ClearModes(void) {
 	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
-			int ModeType = m_Owner->RequiresParameter(m_Modes[i].Mode);
+			int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 			if (ModeType != 3) {
 				free(m_Modes[i].Parameter);
@@ -602,7 +603,7 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 	char CopyIdent[50];
 	char *Ident, *Host, *Site;
 	const char *Server, *Realname, *SiteTemp;
-	CClientConnection *Client = m_Owner->GetOwner()->GetClientConnection();
+	CClientConnection *Client = GetOwner()->GetOwner()->GetClientConnection();
 
 	if (Client == NULL) {
 		return true;
@@ -648,13 +649,13 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 		}
 
 		if (!Simulate) {
-			Client->WriteLine(":%s 352 %s %s %s %s %s %s H :%s", m_Owner->GetServer(), m_Owner->GetCurrentNick(),
+			Client->WriteLine(":%s 352 %s %s %s %s %s %s H :%s", GetOwner()->GetServer(), GetOwner()->GetCurrentNick(),
 				m_Name, Ident, Host, Server, NickObj->GetNick(), Realname);
 		}
 	}
 
 	if (!Simulate) {
-		Client->WriteLine(":%s 315 %s %s :End of /WHO list.", m_Owner->GetServer(), m_Owner->GetCurrentNick(), m_Name);
+		Client->WriteLine(":%s 315 %s %s :End of /WHO list.", GetOwner()->GetServer(), GetOwner()->GetCurrentNick(), m_Name);
 	}
 
 	return true;
@@ -719,7 +720,7 @@ RESULT<bool> CChannel::Freeze(CAssocArray *Box) {
  *
  * @param Box the box used for storing the channel object
  */
-RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box) {
+RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box, CIRCConnection *Owner) {
 	CAssocArray *NicksBox;
 	RESULT<CBanlist *> Banlist;
 	CChannel *Channel;
@@ -737,7 +738,7 @@ RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box) {
 		THROW(CChannel *, Generic_Unknown, "Persistent data is invalid: Missing channelname.");
 	}
 
-	Channel = new CChannel(Name, NULL);
+	Channel = new CChannel(Name, Owner);
 
 	Channel->m_Creation = Box->ReadInteger("~channel.ts");
 
@@ -757,7 +758,7 @@ RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box) {
 
 	Channel->m_HasTopic = Box->ReadInteger("~channel.hastopic");
 
-	Banlist = ThawObject<CBanlist>(Box, "~channel.banlist");
+	Banlist = ThawObject<CBanlist>(Box, "~channel.banlist", Channel);
 
 	if (!IsError(Banlist)) {
 		delete Channel->m_Banlist;
@@ -774,13 +775,11 @@ RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box) {
 			THROW(CChannel *, Generic_OutOfMemory, "asprintf() failed.");
 		} CHECK_ALLOC_RESULT_END;
 
-		CNick *Nick = ThawObject<CNick>(NicksBox, Index);
+		CNick *Nick = ThawObject<CNick>(NicksBox, Index, Channel);
 
 		if (Nick == NULL) {
 			break;
 		}
-
-		Nick->SetOwner(Channel);
 
 		Channel->m_Nicks.Add(Nick->GetNick(), Nick);
 

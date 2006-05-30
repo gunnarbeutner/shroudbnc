@@ -39,7 +39,7 @@ typedef struct nicktag_s {
  *
  * Represents a user on a single channel.
  */
-class CNick : public COwnedObject<CChannel>, public CZoneObject<CNick, 1024> {
+class CNick : public CObject<CChannel>, public CZoneObject<CNick, 1024> {
 	char *m_Nick; /**< the nickname of the user */
 	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
 	char *m_Site; /**< the ident\@host of the user */
@@ -54,11 +54,11 @@ class CNick : public COwnedObject<CChannel>, public CZoneObject<CNick, 1024> {
 	const char *InternalGetServer(void) const;
 public:
 #ifndef SWIG
-	CNick(CChannel *Owner, const char *Nick);
+	CNick(const char *Nick, CChannel *Owner);
 	virtual ~CNick(void);
 
 	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CNick *> Thaw(CAssocArray *Box);
+	static RESULT<CNick *> Thaw(CAssocArray *Box, CChannel *Owner);
 #endif
 
 	virtual bool SetNick(const char *Nick);

@@ -37,13 +37,16 @@ typedef struct ban_s {
  *
  * a list of bans
  */
-class CBanlist : public CZoneObject<CBanlist, 128> {
+class CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CChannel> {
+private:
+	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
+
 public:
 #ifndef SWIG
-	CBanlist(void);
+	CBanlist(CChannel *Owner);
 
 	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CBanlist *> Thaw(CAssocArray *Box);
+	static RESULT<CBanlist *> Thaw(CAssocArray *Box, CChannel *Owner);
 #endif
 
 	virtual RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);
@@ -51,6 +54,4 @@ public:
 
 	virtual const ban_t *GetBan(const char *Mask) const;
 	virtual const hash_t<ban_t *> *Iterate(int Skip) const;
-private:
-	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 };

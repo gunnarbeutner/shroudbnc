@@ -27,8 +27,9 @@
  * @param Config the configuration object which should be used for storing
  *               the keys
  */
-CKeyring::CKeyring(CConfig *Config) {
+CKeyring::CKeyring(CConfig *Config, CUser *Owner) {
 	m_Config = Config;
+	SetOwner(Owner);
 }
 
 /**
@@ -40,15 +41,18 @@ CKeyring::CKeyring(CConfig *Config) {
  * @param Channel the channel
  * @param Key the key
  */
-bool CKeyring::SetKey(const char *Channel, const char *Key) {
+RESULT<bool> CKeyring::SetKey(const char *Channel, const char *Key) {
 	bool ReturnValue;
-	char *Setting = (char *)malloc(5 + strlen(Channel));
+	char *Setting;
 
-	if (Setting == NULL) {
-		LOGERROR("malloc() failed. Key could not be added (%s, %s).",
-			Channel, Key);
+	asprintf(&Setting, "key.%s", Channel);
 
-		return false;
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
+		THROW(bool, Generic_OutOfMemory, "Out of memory.");
+	} CHECK_ALLOC_RESULT_END;
+
+	if (!RemoveRedundantKeys()) {
+		THROW(bool, Generic_QuotaExceeded, "Too many keys.");
 	}
 
 	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
@@ -57,7 +61,7 @@ bool CKeyring::SetKey(const char *Channel, const char *Key) {
 
 	free(Setting);
 
-	return ReturnValue;
+	RETURN(bool, ReturnValue);
 }
 
 /**
@@ -68,20 +72,61 @@ bool CKeyring::SetKey(const char *Channel, const char *Key) {
  *
  * @param Channel the channel for which the key should be retrieved
  */
-const char *CKeyring::GetKey(const char *Channel) {
-	char *Setting = (char *)malloc(5 + strlen(Channel));
+RESULT<const char *> CKeyring::GetKey(const char *Channel) {
+	char *Setting;
+	const char *ReturnValue;
 
-	if (Setting == NULL) {
-		LOGERROR("malloc() failed. Key could not be retrieved (%s).", Channel);
+	asprintf(&Setting, "key.%s", Channel);
 
-		return NULL;
-	}
+	CHECK_ALLOC_RESULT(Setting, asprintf) {
+		THROW(const char *, Generic_OutOfMemory, "Out of memory.");
+	} CHECK_ALLOC_RESULT_END;
 
-	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
-
-	const char *ReturnValue = m_Config->ReadString(Setting);
+	ReturnValue = m_Config->ReadString(Setting);
 
 	free(Setting);
 
-	return ReturnValue;
+	RETURN(const char *, ReturnValue);
+}
+
+/**
+ * RemoveRedundantKeys
+ *
+ * Removes obsolete keys from a keyring.
+ */
+bool CKeyring::RemoveRedundantKeys(void) {
+	unsigned int i, Count = 0;
+	const char *Channel, *Key;
+	char **Keys;
+
+	Keys = m_Config->GetInnerHashtable()->GetSortedKeys();
+
+	i = 0;
+	while ((Key = Keys[i++]) != NULL) {
+		if (strstr(Key, "key.") == Key) {
+			Count++;
+		}
+	}
+
+	if (Count >= g_Bouncer->GetResourceLimit("keys")) {
+		i = 0;
+		while ((Key = Keys[i++]) != NULL) {
+			if (strstr(Key, "key.") == Key) {
+				Channel = Key + strlen("key.");
+
+				if (GetUser()->GetIRCConnection()->GetChannel(Channel) != NULL) {
+					m_Config->WriteString(Key, NULL);
+					Count--;
+				}
+			}
+		}
+
+		if (Count >= g_Bouncer->GetResourceLimit("keys")) {
+			return false;
+		}
+	}
+
+	free(Keys);
+
+	return true;
 }

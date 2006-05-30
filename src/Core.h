@@ -244,6 +244,9 @@ public:
 	virtual CClientListener *GetMainListenerV6(void) const;
 	virtual CClientListener *GetMainSSLListener(void) const;
 	virtual CClientListener *GetMainSSLListenerV6(void) const;
+
+	virtual unsigned int GetResourceLimit(const char *Resource);
+	virtual void SetResourceLimit(const char *Resource, unsigned int Limit);
 };
 
 #ifndef SWIG
