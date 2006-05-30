@@ -171,3 +171,5 @@ void mfree(void *Block);
 #define urealloc(Block, NewSize) mrealloc(Block, NewSize, GETUSER())
 #define ustrdup(String) mstrdup(String, GETUSER())
 #define ufree(Block) mfree(Block)
+
+void SetOwnerHelper(CUser *User, size_t Bytes, bool Add);

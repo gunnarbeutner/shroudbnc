@@ -108,7 +108,7 @@ public:
 		if (GetOwnerBase() != NULL) {
 			User = GetUser();
 
-			User->MemoryRemoveBytes(sizeof(ObjectType));
+			SetOwnerHelper(User, sizeof(ObjectType), false);
 		}
 
 		if (typeid(Owner) == typeid(CUser *)) {
@@ -121,7 +121,7 @@ public:
 		}
 
 		if (User != NULL) {
-			User->MemoryAddBytes(sizeof(ObjectType));
+			SetOwnerHelper(User, sizeof(ObjectType), true);
 		}
 	}
 };

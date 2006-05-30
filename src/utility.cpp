@@ -1166,3 +1166,11 @@ char *mstrdup(const char *String, CUser *Manager) {
 
 	return Copy;
 }
+
+void SetOwnerHelper(CUser *User, size_t Bytes, bool Add) {
+	if (Add) {
+		User->MemoryAddBytes(Bytes);
+	} else {
+		User->MemoryRemoveBytes(Bytes);
+	}
+}
