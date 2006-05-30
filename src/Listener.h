@@ -23,7 +23,7 @@
  * Implements a generic socket listener.
  */
 template<typename InheritedClass>
-class CListenerBase : public CSocketEvents, public CObject<CCore> {
+class CListenerBase : public CSocketEvents, public CObject<InheritedClass, CCore> {
 private:
 	SOCKET m_Listener; /**< the listening socket */
 

@@ -33,6 +33,8 @@ CUser::CUser(const char *Name) {
 	X509 *Cert;
 	FILE *ClientCert;
 
+	m_ManagedMemory = 0;
+
 	m_Client = NULL;
 	m_IRC = NULL;
 	m_Name = strdup(Name);
@@ -1833,4 +1835,18 @@ unsigned int CUser::GetLeanMode(void) {
 	}
 
 	return m_LeanModeCache;
+}
+
+bool CUser::MemoryAddBytes(size_t Bytes) {
+	m_ManagedMemory += Bytes;
+
+	return true;
+}
+
+void CUser::MemoryRemoveBytes(size_t Bytes) {
+	m_ManagedMemory -= Bytes;
+}
+
+size_t CUser::GetManagedMemory(void) {
+	return m_ManagedMemory;
 }

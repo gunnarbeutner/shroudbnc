@@ -39,7 +39,7 @@ typedef struct nicktag_s {
  *
  * Represents a user on a single channel.
  */
-class CNick : public CObject<CChannel>, public CZoneObject<CNick, 1024> {
+class CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick, 1024> {
 	char *m_Nick; /**< the nickname of the user */
 	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
 	char *m_Site; /**< the ident\@host of the user */

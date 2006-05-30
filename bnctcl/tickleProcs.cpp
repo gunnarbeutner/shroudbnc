@@ -833,8 +833,13 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		g_asprintf(&Buffer, "%d", Context->GetLeanMode());
 
 		return Buffer;
-	} else
-		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean";
+	} else if (strcasecmp(Type, "memory") == 0) {
+		g_asprintf(&Buffer, "%d", Context->GetManagedMemory());
+
+		return Buffer;
+	} else {
+		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory";
+	}
 }
 
 int setbncuser(const char* User, const char* Type, const char* Value, const char* Parameter2) {

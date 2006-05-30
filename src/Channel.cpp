@@ -30,7 +30,7 @@
 CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	SetOwner(Owner);
 
-	m_Name = strdup(Name);
+	m_Name = ustrdup(Name);
 	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
 
 	m_Modes = NULL;
@@ -58,19 +58,19 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
  * Destructs a channel object.
  */
 CChannel::~CChannel() {
-	free(m_Name);
+	ufree(m_Name);
 
-	free(m_Topic);
-	free(m_TopicNick);
-	free(m_TempModes);
+	ufree(m_Topic);
+	ufree(m_TopicNick);
+	ufree(m_TempModes);
 
 	for (unsigned int i = 0; i < m_ModeCount; i++) {
 		if (m_Modes[i].Mode != '\0') {
-			free(m_Modes[i].Parameter);
+			ufree(m_Modes[i].Parameter);
 		}
 	}
 
-	free(m_Modes);
+	ufree(m_Modes);
 
 	delete m_Banlist;
 }
@@ -101,10 +101,10 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 	}
 
 	Size = m_ModeCount + 1024;
-	m_TempModes = (char *)malloc(Size);
+	m_TempModes = (char *)umalloc(Size);
 
-	CHECK_ALLOC_RESULT(m_TempModes, malloc) {
-		THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
+	CHECK_ALLOC_RESULT(m_TempModes, umalloc) {
+		THROW(const char *, Generic_OutOfMemory, "umalloc() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
 	strmcpy(m_TempModes, "+", Size);
@@ -128,12 +128,12 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
-				NewTempModes = (char *)realloc(m_TempModes, Size);
+				NewTempModes = (char *)urealloc(m_TempModes, Size);
 
-				CHECK_ALLOC_RESULT(m_TempModes, malloc) {
-					free(m_TempModes);
+				CHECK_ALLOC_RESULT(m_TempModes, urealloc) {
+					ufree(m_TempModes);
 
-					THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
+					THROW(const char *, Generic_OutOfMemory, "urealloc() failed.");
 				} CHECK_ALLOC_RESULT_END;
 
 				m_TempModes = NewTempModes;
@@ -162,7 +162,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 	/* free any cached chanmodes */
 	if (m_TempModes != NULL) {
-		free(m_TempModes);
+		ufree(m_TempModes);
 		m_TempModes = NULL;
 	}
 
@@ -240,7 +240,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 		if (Flip) {
 			if (Slot != NULL) {
-				free(Slot->Parameter);
+				ufree(Slot->Parameter);
 			} else {
 				Slot = AllocSlot();
 			}
@@ -256,14 +256,14 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			Slot->Mode = Current;
 			
 			if (ModeType != 0 && p < pargc) {
-				Slot->Parameter = strdup(pargv[p++]);
+				Slot->Parameter = ustrdup(pargv[p++]);
 			} else {
 				Slot->Parameter = NULL;
 			}
 		} else {
 			if (Slot != NULL) {
 				Slot->Mode = '\0';
-				free(Slot->Parameter);
+				ufree(Slot->Parameter);
 
 				Slot->Parameter = NULL;
 			}
@@ -289,7 +289,7 @@ chanmode_t *CChannel::AllocSlot(void) {
 		}
 	}
 
-	Modes = (chanmode_t *)realloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
+	Modes = (chanmode_t *)urealloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
 
 	CHECK_ALLOC_RESULT(Modes, realloc) {
 		return NULL;
@@ -354,13 +354,13 @@ const char *CChannel::GetTopic(void) const {
 void CChannel::SetTopic(const char *Topic) {
 	char *NewTopic;
 
-	NewTopic = strdup(Topic);
+	NewTopic = ustrdup(Topic);
 
 	CHECK_ALLOC_RESULT(NewTopic, strdup) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	free(m_Topic);
+	ufree(m_Topic);
 	m_Topic = NewTopic;
 	m_HasTopic = 1;
 }
@@ -384,13 +384,13 @@ const char *CChannel::GetTopicNick(void) const {
 void CChannel::SetTopicNick(const char *Nick) {
 	char *NewTopicNick;
 
-	NewTopicNick = strdup(Nick);
+	NewTopicNick = ustrdup(Nick);
 
 	CHECK_ALLOC_RESULT(NewTopicNick, strdup) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	free(m_TopicNick);
+	ufree(m_TopicNick);
 	m_TopicNick = NewTopicNick;
 	m_HasTopic = 1;
 }
@@ -535,7 +535,7 @@ void CChannel::ClearModes(void) {
 			int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 			if (ModeType != 3) {
-				free(m_Modes[i].Parameter);
+				ufree(m_Modes[i].Parameter);
 
 				m_Modes[i].Mode = '\0';
 				m_Modes[i].Parameter = NULL;
@@ -626,7 +626,7 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 		Host = strchr(Site, '@');
 
 		if (Host == NULL) {
-			free(Site);
+			ufree(Site);
 
 			return false;
 		}
@@ -745,13 +745,13 @@ RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box, CIRCConnection *Owner) {
 	Temp = Box->ReadString("~channel.topic");
 
 	if (Temp != NULL) {
-		Channel->m_Topic = strdup(Temp);
+		Channel->m_Topic = nstrdup(Temp);
 	}
 
 	Temp = Box->ReadString("~channel.topicnick");
 
 	if (Temp != NULL) {
-		Channel->m_TopicNick = strdup(Temp);
+		Channel->m_TopicNick = nstrdup(Temp);
 	}
 
 	Channel->m_TopicStamp = Box->ReadInteger("~channel.topicts");

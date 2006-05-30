@@ -32,10 +32,10 @@
 CConfig::CConfig(const char *Filename, CUser *Owner) : CObject(Owner) {
 	m_WriteLock = false;
 
-	m_Settings.RegisterValueDestructor(FreeString);
+	m_Settings.RegisterValueDestructor(FreeUString);
 
 	if (Filename != NULL) {
-		m_Filename = strdup(Filename);
+		m_Filename = ustrdup(Filename);
 
 		CHECK_ALLOC_RESULT(m_Filename, strdup) {
 			g_Bouncer->Fatal();
@@ -97,7 +97,7 @@ bool CConfig::ParseConfig(void) {
 		if (Eq != NULL) {
 			*Eq = '\0';
 
-			dupEq = strdup(++Eq);
+			dupEq = ustrdup(++Eq);
 
 			CHECK_ALLOC_RESULT(dupEq, strdup) {
 				if (g_Bouncer != NULL) {
@@ -131,7 +131,7 @@ bool CConfig::ParseConfig(void) {
  * Destructs the configuration object.
  */
 CConfig::~CConfig() {
-	free(m_Filename);
+	ufree(m_Filename);
 }
 
 /**
@@ -183,7 +183,7 @@ RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
 	RESULT<bool> ReturnValue;
 
 	if (Value != NULL) {
-		ReturnValue = m_Settings.Add(Setting, strdup(Value));
+		ReturnValue = m_Settings.Add(Setting, ustrdup(Value));
 	} else {
 		ReturnValue = m_Settings.Remove(Setting);
 	}

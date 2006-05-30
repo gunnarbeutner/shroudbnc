@@ -27,9 +27,8 @@
  * @param Config the configuration object which should be used for storing
  *               the keys
  */
-CKeyring::CKeyring(CConfig *Config, CUser *Owner) {
+CKeyring::CKeyring(CConfig *Config, CUser *Owner) : CObject(Owner) {
 	m_Config = Config;
-	SetOwner(Owner);
 }
 
 /**
@@ -45,17 +44,15 @@ RESULT<bool> CKeyring::SetKey(const char *Channel, const char *Key) {
 	bool ReturnValue;
 	char *Setting;
 
+	if (!RemoveRedundantKeys()) {
+		THROW(bool, Generic_QuotaExceeded, "Too many keys.");
+	}
+
 	asprintf(&Setting, "key.%s", Channel);
 
 	CHECK_ALLOC_RESULT(Setting, asprintf) {
 		THROW(bool, Generic_OutOfMemory, "Out of memory.");
 	} CHECK_ALLOC_RESULT_END;
-
-	if (!RemoveRedundantKeys()) {
-		THROW(bool, Generic_QuotaExceeded, "Too many keys.");
-	}
-
-	snprintf(Setting, 5 + strlen(Channel), "key.%s", Channel);
 
 	ReturnValue = m_Config->WriteString(Setting, Key);
 
@@ -108,7 +105,7 @@ bool CKeyring::RemoveRedundantKeys(void) {
 		}
 	}
 
-	if (Count >= g_Bouncer->GetResourceLimit("keys")) {
+	if (!GetUser()->IsAdmin() && Count >= g_Bouncer->GetResourceLimit("keys")) {
 		i = 0;
 		while ((Key = Keys[i++]) != NULL) {
 			if (strstr(Key, "key.") == Key) {

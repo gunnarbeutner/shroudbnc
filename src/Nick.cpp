@@ -27,12 +27,12 @@
  * @param Nick the nickname of the user
  * @param Owner the owning channel of this nick object
  */
-CNick::CNick(const char *Nick, CChannel *Owner) {
+CNick::CNick(const char *Nick, CChannel *Owner) : CObject(Owner) {
 	assert(Nick != NULL);
 
-	m_Nick = strdup(Nick);
+	m_Nick = ustrdup(Nick);
 
-	CHECK_ALLOC_RESULT(m_Nick, strdup) { } CHECK_ALLOC_RESULT_END;
+	CHECK_ALLOC_RESULT(m_Nick, ustrdup) { } CHECK_ALLOC_RESULT_END;
 
 	m_Prefixes = NULL;
 	m_Site = NULL;
@@ -41,8 +41,6 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
 
 	m_Creation = g_CurrentTime;
 	m_IdleSince = m_Creation;
-
-	SetOwner(Owner);
 }
 
 /**
@@ -51,15 +49,15 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
  * Destroys a nick object.
  */
 CNick::~CNick() {
-	free(m_Nick);
-	free(m_Prefixes);
-	free(m_Site);
-	free(m_Realname);
-	free(m_Server);
+	ufree(m_Nick);
+	ufree(m_Prefixes);
+	ufree(m_Site);
+	ufree(m_Realname);
+	ufree(m_Server);
 
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
-		free(m_Tags[i].Name);
-		free(m_Tags[i].Value);
+		ufree(m_Tags[i].Name);
+		ufree(m_Tags[i].Value);
 	}
 }
 
@@ -75,13 +73,13 @@ bool CNick::SetNick(const char *Nick) {
 
 	assert(Nick != NULL);
 
-	NewNick = strdup(Nick);
+	NewNick = ustrdup(Nick);
 
-	CHECK_ALLOC_RESULT(m_Nick, strdup) {
+	CHECK_ALLOC_RESULT(m_Nick, ustrdup) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-	free(m_Nick);
+	ufree(m_Nick);
 	m_Nick = NewNick;
 
 	return true;
@@ -149,7 +147,7 @@ bool CNick::AddPrefix(char Prefix) {
 	char *Prefixes;
 	size_t LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
 
-	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
+	Prefixes = (char *)urealloc(m_Prefixes, LengthPrefixes + 2);
 
 	CHECK_ALLOC_RESULT(Prefixes, realloc) {
 		return false;
@@ -179,9 +177,9 @@ bool CNick::RemovePrefix(char Prefix) {
 
 	LengthPrefixes = strlen(m_Prefixes);
 
-	char *Copy = (char *)malloc(LengthPrefixes + 1);
+	char *Copy = (char *)umalloc(LengthPrefixes + 1);
 
-	CHECK_ALLOC_RESULT(Copy, malloc) {
+	CHECK_ALLOC_RESULT(Copy, umalloc) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
@@ -193,7 +191,7 @@ bool CNick::RemovePrefix(char Prefix) {
 
 	Copy[a] = '\0';
 
-	free(m_Prefixes);
+	ufree(m_Prefixes);
 	m_Prefixes = Copy;
 
 	return true;
@@ -210,16 +208,16 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 	char *dupPrefixes;
 
 	if (Prefixes) {
-		dupPrefixes = strdup(Prefixes);
+		dupPrefixes = ustrdup(Prefixes);
 
-		CHECK_ALLOC_RESULT(dupPrefixes, strdup) {
+		CHECK_ALLOC_RESULT(dupPrefixes, ustrdup) {
 			return false;
 		} CHECK_ALLOC_RESULT_END;
 	} else {
 		dupPrefixes = NULL;
 	}
 
-	free(m_Prefixes);
+	ufree(m_Prefixes);
 	m_Prefixes = dupPrefixes;
 
 	return true;
@@ -251,14 +249,14 @@ const char *CNick::GetPrefixes(void) const {
 		return false; \
 	} \
 \
-	DuplicateValue = strdup(NewValue); \
+	DuplicateValue = ustrdup(NewValue); \
 \
 	if (DuplicateValue == NULL) { \
-		LOGERROR("strdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
+		LOGERROR("ustrdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
 \
 		return false; \
 	} else { \
-		free(Name); \
+		ufree(Name); \
 		Name = DuplicateValue; \
 \
 		return true; \
@@ -458,8 +456,8 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
-			free(m_Tags[i].Name);
-			free(m_Tags[i].Value);
+			ufree(m_Tags[i].Name);
+			ufree(m_Tags[i].Value);
 
 			m_Tags.Remove(i);
 
@@ -471,16 +469,16 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 		return true;
 	}
 
-	NewTag.Name = strdup(Name);
+	NewTag.Name = ustrdup(Name);
 
-	CHECK_ALLOC_RESULT(NewTag.Name, strdup) {
+	CHECK_ALLOC_RESULT(NewTag.Name, ustrdup) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-	NewTag.Value = strdup(Value);
+	NewTag.Value = ustrdup(Value);
 
-	CHECK_ALLOC_RESULT(NewTag.Value, strdup) {
-		free(NewTag.Name);
+	CHECK_ALLOC_RESULT(NewTag.Value, ustrdup) {
+		ufree(NewTag.Name);
 
 		return false;
 	} CHECK_ALLOC_RESULT_END;

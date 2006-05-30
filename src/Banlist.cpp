@@ -27,8 +27,8 @@
  * @param Ban the ban which is going to be destroyed
  */
 void DestroyBan(ban_t *Ban) {
-	free(Ban->Mask);
-	free(Ban->Nick);
+	ufree(Ban->Mask);
+	ufree(Ban->Nick);
 }
 
 /**
@@ -36,8 +36,7 @@ void DestroyBan(ban_t *Ban) {
  *
  * Constructs an empty banlist.
  */
-CBanlist::CBanlist(CChannel *Owner) {
-	SetOwner(Owner);
+CBanlist::CBanlist(CChannel *Owner) : CObject(Owner) {
 	m_Bans.RegisterValueDestructor(DestroyBan);
 }
 
@@ -53,18 +52,18 @@ CBanlist::CBanlist(CChannel *Owner) {
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
-	if (m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
+	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
 	}
 
-	Ban = (ban_t *)malloc(sizeof(ban_t));
+	Ban = (ban_t *)umalloc(sizeof(ban_t));
 
-	CHECK_ALLOC_RESULT(Ban, malloc) {
-		THROW(bool, Generic_OutOfMemory, "malloc() failed.");
+	CHECK_ALLOC_RESULT(Ban, umalloc) {
+		THROW(bool, Generic_OutOfMemory, "umalloc() failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	Ban->Mask = strdup(Mask);
-	Ban->Nick = strdup(Nick);
+	Ban->Mask = ustrdup(Mask);
+	Ban->Nick = ustrdup(Nick);
 	Ban->Timestamp = Timestamp;
 
 	return m_Bans.Add(Mask, Ban);

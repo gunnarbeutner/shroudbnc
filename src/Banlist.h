@@ -37,7 +37,7 @@ typedef struct ban_s {
  *
  * a list of bans
  */
-class CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CChannel> {
+class CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CBanlist, CChannel> {
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 

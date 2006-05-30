@@ -41,7 +41,7 @@ class CIRCConnection;
  *
  * Represents an IRC channel.
  */
-class CChannel : public CObject<CIRCConnection>, public CZoneObject<CChannel, 128> {
+class CChannel : public CObject<CChannel, CIRCConnection>, public CZoneObject<CChannel, 128> {
 	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
 

@@ -145,6 +145,7 @@ int SetPermissions(const char *Filename, int Modes);
 bool RegisterZone(CZoneInformation *ZoneInformation);
 
 void FreeString(char *String);
+void FreeUString(char *String);
 
 pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount);
 void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError);
@@ -154,12 +155,19 @@ typedef struct {
 	CUser *Manager;
 } mblock;
 
-void *umalloc(size_t Size, CUser *Manager);
-void *urealloc(void *Block, size_t NewSize, CUser *Manager);
-char *ustrdup(const char *String, CUser *Manager);
-void ufree(void *Block);
+void *mmalloc(size_t Size, CUser *Manager);
+void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
+char *mstrdup(const char *String, CUser *Manager);
+void mfree(void *Block);
 
-#define GETUSER() ((typeid(*this) == typeid(CUser)) ? this : ((CObjectBase *)this)->GetUser())
-#define umalloc(Size) umalloc(Size, GETUSER())
-#define urealloc(Block, NewSize) urealloc(Block, NewSize, GETUSER())
-#define ustrdup(String) ustrdup(String, GETUSER())
+#define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : static_cast<CObjectBase *>(this)->GetUser())
+
+#define nmalloc(Size) mmalloc(Size, NULL)
+#define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
+#define nstrdup(String) mstrdup(String, NULL)
+#define nfree(Block) mfree(Block)
+
+#define umalloc(Size) mmalloc(Size, GETUSER())
+#define urealloc(Block, NewSize) mrealloc(Block, NewSize, GETUSER())
+#define ustrdup(String) mstrdup(String, GETUSER())
+#define ufree(Block) mfree(Block)

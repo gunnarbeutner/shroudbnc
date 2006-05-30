@@ -24,7 +24,7 @@ class CConfig;
  *
  * A keyring used for storing channel keys.
  */
-class CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CUser> {
+class CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CKeyring, CUser> {
 private:
 	CConfig *m_Config; /**< the config object for storing the channel keys */
 public:

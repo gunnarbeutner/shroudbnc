@@ -31,7 +31,7 @@ CLog::CLog(const char *Filename) {
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
 
-		CHECK_ALLOC_RESULT(m_Filename, strdup) {} CHECK_ALLOC_RESULT_END;
+		CHECK_ALLOC_RESULT(m_Filename, ustrdup) {} CHECK_ALLOC_RESULT_END;
 	} else {
 		m_Filename = NULL;
 	}

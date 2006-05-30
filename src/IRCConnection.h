@@ -52,7 +52,7 @@ bool IRCPingTimer(time_t Now, void *IRCConnection);
  *
  * An IRC connection.
  */
-class CIRCConnection : public CConnection, public CObject<CUser>, public CZoneObject<CIRCConnection, 16> {
+class CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser>, public CZoneObject<CIRCConnection, 16> {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void *IRCConnection);

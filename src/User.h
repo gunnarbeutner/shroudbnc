@@ -104,6 +104,8 @@ class CUser : public CZoneObject<CUser, 1024> {
 
 	int m_LeanModeCache; /**< cache for the "user.lean" setting */
 
+	size_t m_ManagedMemory;
+
 	bool PersistCertificates(void);
 
 	void BadLoginPulse(void);
@@ -235,4 +237,8 @@ public:
 
 	virtual void SetLeanMode(unsigned int Mode);
 	virtual unsigned int GetLeanMode(void);
+
+	virtual bool MemoryAddBytes(size_t Bytes);
+	virtual void MemoryRemoveBytes(size_t Bytes);
+	virtual size_t GetManagedMemory(void);
 };

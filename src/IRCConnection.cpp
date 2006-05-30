@@ -166,15 +166,15 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
  * Destructs a connection object.
  */
 CIRCConnection::~CIRCConnection(void) {
-	free(m_CurrentNick);
-	free(m_Site);
-	free(m_Usermodes);
+	ufree(m_CurrentNick);
+	ufree(m_Site);
+	ufree(m_Usermodes);
 
 	delete m_Channels;
 
-	free(m_Server);
-	free(m_ServerVersion);
-	free(m_ServerFeat);
+	ufree(m_Server);
+	ufree(m_ServerVersion);
+	ufree(m_ServerFeat);
 
 	delete m_ISupport;
 
@@ -433,15 +433,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 		}
 
-		free(m_CurrentNick);
-		m_CurrentNick = strdup(argv[2]);
+		ufree(m_CurrentNick);
+		m_CurrentNick = ustrdup(argv[2]);
 
-		free(m_Server);
-		m_Server = strdup(Reply);
+		ufree(m_Server);
+		m_Server = ustrdup(Reply);
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
-			free(m_CurrentNick);
-			m_CurrentNick = strdup(argv[2]);
+			ufree(m_CurrentNick);
+			m_CurrentNick = ustrdup(argv[2]);
 		}
 
 		Nick = NickFromHostmask(argv[0]);
@@ -542,11 +542,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		g_Bouncer->Log("G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
 		GetOwner()->Log("G/K-line reason: %s", argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
-		free(m_ServerVersion);
-		m_ServerVersion = strdup(argv[3]);
+		ufree(m_ServerVersion);
+		m_ServerVersion = ustrdup(argv[3]);
 
-		free(m_ServerFeat);
-		m_ServerFeat = strdup(argv[5]);
+		ufree(m_ServerFeat);
+		m_ServerFeat = ustrdup(argv[5]);
 	} else if (argc > 3 && iRaw == 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
@@ -738,11 +738,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			Channel->SetHasBans();
 		}
 	} else if (argc > 3 && iRaw == 396) {
-		free(m_Site);
-		m_Site = strdup(argv[3]);
+		ufree(m_Site);
+		m_Site = ustrdup(argv[3]);
 
 		if (m_Site == NULL) {
-			LOGERROR("strdup() failed.");
+			LOGERROR("ustrdup() failed.");
 		}
 	} else if (argc > 3 && hashRaw == hashPong && strcasecmp(argv[3], "sbnc") == 0) {
 		return false;
@@ -1217,12 +1217,11 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	Site++;
 
 	if (m_CurrentNick && strcasecmp(Nick, m_CurrentNick) == 0) {
-		free(m_Site);
-
-		m_Site = strdup(Site);
+		ufree(m_Site);
+		m_Site = ustrdup(Site);
 
 		if (m_Site == NULL) {
-			LOGERROR("strdup() failed.");
+			LOGERROR("ustrdup() failed.");
 		}
 	}
 
@@ -1601,19 +1600,19 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 
 	Connection = new CIRCConnection(Socket, Owner, false);
 
-	Connection->m_CurrentNick = strdup(Box->ReadString("~irc.nick"));
-	Connection->m_Server = strdup(Box->ReadString("~irc.server"));
+	Connection->m_CurrentNick = nstrdup(Box->ReadString("~irc.nick"));
+	Connection->m_Server = nstrdup(Box->ReadString("~irc.server"));
 
 	Temp = Box->ReadString("~irc.serverversion");
 
 	if (Temp != NULL){
-		Connection->m_ServerVersion = strdup(Temp);
+		Connection->m_ServerVersion = nstrdup(Temp);
 	}
 
 	Temp = Box->ReadString("~irc.serverfeat");
 
 	if (Temp != NULL) {
-		Connection->m_ServerFeat = strdup(Temp);
+		Connection->m_ServerFeat = nstrdup(Temp);
 	}
 
 	TempBox = Box->ReadBox("~irc.isupport");

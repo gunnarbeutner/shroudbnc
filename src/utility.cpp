@@ -879,6 +879,17 @@ void FreeString(char *String) {
 	free(String);
 }
 
+/**
+ * FreeUString
+ *
+ * Calls ufree() on a string.
+ *
+ * @param String the string
+ */
+void FreeUString(char *String) {
+	ufree(String);
+}
+
 //#ifndef _WIN32
 /**
  * FdSetToPollFd
@@ -1067,13 +1078,20 @@ char *strmcat(char *Destination, const char *Source, size_t Size) {
 	return Destination;
 }
 
-#undef umalloc
-void *umalloc(size_t Size, CUser *Owner) {
+void *mmalloc(size_t Size, CUser *Owner) {
 	mblock *Block;
+
+	if (Owner != NULL && !Owner->MemoryAddBytes(Size)) {
+		return NULL;
+	}
 
 	Block = (mblock *)malloc(sizeof(mblock) + Size);
 
 	if (Block == NULL) {
+		if (Owner != NULL) {
+			Owner->MemoryRemoveBytes(Size);
+		}
+
 		return NULL;
 	}
 
@@ -1083,7 +1101,7 @@ void *umalloc(size_t Size, CUser *Owner) {
 	return Block + 1;
 }
 
-void ufree(void *Block) {
+void mfree(void *Block) {
 	mblock *RealBlock;
 
 	if (Block == NULL) {
@@ -1092,43 +1110,53 @@ void ufree(void *Block) {
 
 	RealBlock = (mblock *)Block - 1;
 
+	if (RealBlock->Manager != NULL) {
+		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
+	}
+
 	free(RealBlock);
 }
 
-#undef urealloc
-void *urealloc(void *Block, size_t NewSize, CUser *Manager) {
-	mblock *RealBlock;
+void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
+	mblock *RealBlock, *NewRealBlock;
 
 	if (Block == NULL) {
-		return umalloc(NewSize, Manager);
+		return mmalloc(NewSize, Manager);
 	}
 
 	RealBlock = (mblock *)Block - 1;
 
-	if (RealBlock->Manager != Manager) {
-		/* ... */
+	if (RealBlock->Manager != NULL) {
+		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
 	}
 
-	RealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
-
-	if (RealBlock == NULL) {
+	if (Manager != NULL && !Manager->MemoryAddBytes(NewSize)) {
 		return NULL;
 	}
 
-	RealBlock->Size = NewSize;
-	RealBlock->Manager = Manager;
+	NewRealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
+
+	if (NewRealBlock == NULL) {
+		if (Manager != NULL) {
+			Manager->MemoryAddBytes(RealBlock->Size);
+		}
+
+		return NULL;
+	}
+
+	NewRealBlock->Size = NewSize;
+	NewRealBlock->Manager = Manager;
 	
-	return RealBlock + 1;
+	return NewRealBlock + 1;
 }
 
-#undef ustrdup
-char *ustrdup(const char *String, CUser *Manager) {
+char *mstrdup(const char *String, CUser *Manager) {
 	size_t Length;
 	char *Copy;
 
 	Length = strlen(String);
 
-	Copy = (char *)umalloc(Length + 1, Manager);
+	Copy = (char *)mmalloc(Length + 1, Manager);
 
 	if (Copy == NULL) {
 		return NULL;

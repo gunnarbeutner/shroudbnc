@@ -91,11 +91,11 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
  * Destructs a client connection object.
  */
 CClientConnection::~CClientConnection() {
-	free(m_Nick);
-	free(m_Password);
-	free(m_Username);
-	free(m_PeerName);
-	free(m_PreviousNick);
+	ufree(m_Nick);
+	ufree(m_Password);
+	ufree(m_Username);
+	ufree(m_PeerName);
+	ufree(m_PreviousNick);
 
 	delete m_ClientLookup;
 	delete m_AuthTimer;
@@ -1472,8 +1472,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 			}
 
-			free(m_Nick);
-			m_Nick = strdup(Nick);
+			ufree(m_Nick);
+			m_Nick = ustrdup(Nick);
 
 			if (m_Username != NULL && m_Password != NULL) {
 				ValidateUser();
@@ -1484,7 +1484,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (argc < 2) {
 				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
 			} else {
-				m_Password = strdup(argv[1]);
+				m_Password = ustrdup(argv[1]);
 			}
 
 			if (m_Nick != NULL && m_Username != NULL && m_Password != NULL) {
@@ -1501,7 +1501,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				} else {
 					const char *Username = argv[1];
 
-					m_Username = strdup(Username);
+					m_Username = ustrdup(Username);
 				}
 			}
 
@@ -1537,8 +1537,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "nick") == 0) {
 			if (argc >= 2) {
-				free(m_Nick);
-				m_Nick = strdup(argv[1]);
+				ufree(m_Nick);
+				m_Nick = ustrdup(argv[1]);
 				GetOwner()->GetConfig()->WriteString("user.nick", argv[1]);
 			}
 		} else if (argc > 1 && strcasecmp(Command, "join") == 0) {
@@ -1935,8 +1935,8 @@ bool CClientConnection::ValidateUser(void) {
 		X509_free(PeerCert);
 
 		if (AuthUser && Count == 1) { // found a single user who has this public certificate
-			free(m_Username);
-			m_Username = strdup(AuthUser->GetUsername());
+			ufree(m_Username);
+			m_Username = ustrdup(AuthUser->GetUsername());
 			Force = true;
 		} else if (MatchUsername == true && Count > 1) // found more than one user with that certificate
 			Force = true;
@@ -2020,10 +2020,10 @@ void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	sockaddr *Remote;
 
 	if (m_PeerName != NULL) {
-		free(m_PeerName);
+		ufree(m_PeerName);
 	}
 
-	m_PeerName = strdup(PeerName);
+	m_PeerName = ustrdup(PeerName);
 
 	Remote = GetRemoteAddress();
 
@@ -2073,7 +2073,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 		}
 	} else {
 		if (m_PeerNameTemp == NULL) {
-			m_PeerNameTemp = strdup(Response->h_name);
+			m_PeerNameTemp = ustrdup(Response->h_name);
 
 			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS reply received (%s).", Response->h_name);
 			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing forward DNS lookup...");
@@ -2103,7 +2103,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 
 				if (CompareAddress(saddr, Remote) == 0) {
 					SetPeerName(m_PeerNameTemp, false);
-					free(m_PeerNameTemp);
+					ufree(m_PeerNameTemp);
 
 					WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
 
@@ -2236,15 +2236,15 @@ RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box, CUser *Own
 	Temp = Box->ReadString("~client.peername");
 
 	if (Temp != NULL) {
-		Client->m_PeerName = strdup(Temp);
+		Client->m_PeerName = nstrdup(Temp);
 	} else {
-		Client->m_PeerName = strdup(IpToString(Client->GetRemoteAddress()));
+		Client->m_PeerName = nstrdup(IpToString(Client->GetRemoteAddress()));
 	}
 
 	Temp = Box->ReadString("~client.nick");
 
 	if (Temp != NULL) {
-		Client->m_Nick = strdup(Temp);
+		Client->m_Nick = nstrdup(Temp);
 	} else {
 		delete Client;
 
@@ -2289,8 +2289,8 @@ commandlist_t *CClientConnection::GetCommandList(void) {
  * @param Nick the nick
  */
 void CClientConnection::SetPreviousNick(const char *Nick) {
-	free(m_PreviousNick);
-	m_PreviousNick = strdup(Nick);
+	ufree(m_PreviousNick);
+	m_PreviousNick = ustrdup(Nick);
 }
 
 /**
