@@ -49,7 +49,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ModuleFar.h \
 	Module.h \
 	Nick.h \
-	OwnedObject.h \
+	Object.h \
 	Persistable.h \
 	Result.h \
 	Queue.h \
