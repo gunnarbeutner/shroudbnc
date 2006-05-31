@@ -1113,6 +1113,8 @@ void mstacktrace(void) {
 	STACKFRAME64 Frame;
 	DWORD FramePointer;
 
+	return; /* ... */
+
 	__asm mov FramePointer, ebp
 
 	memset(&Frame, 0, sizeof(Frame));
@@ -1151,6 +1153,10 @@ void *mmalloc(size_t Size, CUser *Owner) {
 		return NULL;
 	}
 
+	if (Owner == NULL) {
+		printf("%d unmanaged bytes.\n", Size);
+	}
+
 #ifndef _DEBUG
 	Block = (mblock *)malloc(sizeof(mblock) + Size);
 #else
@@ -1172,7 +1178,7 @@ void *mmalloc(size_t Size, CUser *Owner) {
 #ifdef _DEBUG
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-	printf("%p = mmalloc(%d, %p)\n", Size, Block + 1, Owner);
+	printf("%p = mmalloc(%d, %p)\n", Block + 1, Size, Owner);
 	mstacktrace();
 #endif
 
@@ -1206,7 +1212,7 @@ void mfree(void *Block) {
 #ifndef _DEBUG
 	free(RealBlock);
 #else
-	VirtualFree(RealBlock, 0, MEM_RELEASE);
+//	VirtualFree(RealBlock, 0, MEM_RELEASE);
 
 	printf("mfree(%p)\n", Block);
 	mstacktrace();

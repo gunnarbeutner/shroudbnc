@@ -265,10 +265,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\Debug.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\DnsEvents.cpp"
 				>
 			</File>
@@ -363,10 +359,6 @@
 			</File>
 			<File
 				RelativePath=".\src\Core.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\Debug.h"
 				>
 			</File>
 			<File

@@ -4086,31 +4086,6 @@ _wrap_getzoneinfo(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 
 static int
-_wrap_getallocinfo(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *result;
-    
-    if (SWIG_GetArgs(interp, objc, objv,":getallocinfo ") == TCL_ERROR) SWIG_fail;
-    {
-        try {
-            result = (char *)getallocinfo();
-            
-        } catch (const char *Description) {
-            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
-        }
-    }
-    {
-        Tcl_DString ds_result;
-        
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
-        Tcl_DStringFree(&ds_result);
-    }
-    return TCL_OK;
-    fail:
-    return TCL_ERROR;
-}
-
-
-static int
 _wrap_hijacksocket(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     int result;
     
@@ -5102,7 +5077,6 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncgetglobaltags", (swig_wrapper_func) _wrap_bncgetglobaltags, NULL},
     { SWIG_prefix "getusermodes", (swig_wrapper_func) _wrap_getusermodes, NULL},
     { SWIG_prefix "getzoneinfo", (swig_wrapper_func) _wrap_getzoneinfo, NULL},
-    { SWIG_prefix "getallocinfo", (swig_wrapper_func) _wrap_getallocinfo, NULL},
     { SWIG_prefix "hijacksocket", (swig_wrapper_func) _wrap_hijacksocket, NULL},
     { SWIG_prefix "putmainlog", (swig_wrapper_func) _wrap_putmainlog, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},

@@ -165,7 +165,6 @@ const char *bncgetglobaltags(void);
 const char *getusermodes(void);
 
 const char *getzoneinfo(const char *Zone = 0);
-const char *getallocinfo(void);
 
 int hijacksocket(void);
 

@@ -224,7 +224,6 @@ public:
 	virtual int GetStatus(void) const;
 
 	virtual const CVector<CZoneInformation *> *GetZones(void) const;
-	virtual const CVector<file_t> *GetAllocationInformation(void) const;
 
 	virtual CFakeClient *CreateFakeClient(void) const;
 	virtual void DeleteFakeClient(CFakeClient *FakeClient) const;

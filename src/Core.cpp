@@ -2204,53 +2204,6 @@ const CVector<CZoneInformation *> *CCore::GetZones(void) const {
 }
 
 /**
- * GetAllocationInformation
- *
- * Returns a list containing information about current memory allocations.
- */
-const CVector<file_t> *CCore::GetAllocationInformation(void) const {
-#ifndef _DEBUG
-	return NULL;
-#else
-	unsigned int Count;
-	static CVector<file_t> Summary;
-	bool Found;
-
-	Summary.Clear();
-
-	Count = g_Allocations.GetLength();
-
-	for (unsigned int i = 0; i < Count; i++) {
-		file_t FileInfo;
-
-		Found = false;
-
-		for (unsigned int a = 0; a < Summary.GetLength(); a++) {
-			if (strcasecmp(g_Allocations[i].File, Summary[a].File) == 0) {
-				Summary[a].AllocationCount++;
-				Summary[a].Bytes += g_Allocations[i].Size;
-				Found = true;
-
-				break;
-			}
-		}
-
-		if (Found) {
-			continue;
-		}
-
-		FileInfo.File = g_Allocations[i].File;
-		FileInfo.AllocationCount = 1;
-		FileInfo.Bytes = g_Allocations[i].Size;
-
-		Summary.Insert(FileInfo);
-	}
-
-	return &Summary;
-#endif
-}
-
-/**
  * CreateFakeClient
  *
  * Creates a fake client connection object.

@@ -338,6 +338,8 @@ public:
 			return NULL;
 		}
 
+		Manager->MemoryRemoveBytes(Size);
+
 		return m_Zone.Allocate();
 	}
 

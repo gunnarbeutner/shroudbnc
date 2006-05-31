@@ -121,6 +121,8 @@ public:
 
 			if (Manager != NULL) {
 				Manager->MemoryRemoveBytes(sizeof(ObjectType));
+			} else if (User != NULL) {
+				printf("!?!\n");
 			}
 		}
 
