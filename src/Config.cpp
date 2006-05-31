@@ -29,7 +29,9 @@
  *
  * @param Filename the filename of the configuration file, can be NULL
  */
-CConfig::CConfig(const char *Filename, CUser *Owner) : CObject(Owner) {
+CConfig::CConfig(const char *Filename, CUser *Owner) {
+	SetOwner(Owner);
+
 	m_WriteLock = false;
 
 	m_Settings.RegisterValueDestructor(FreeUString);

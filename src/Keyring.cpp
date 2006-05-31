@@ -27,7 +27,9 @@
  * @param Config the configuration object which should be used for storing
  *               the keys
  */
-CKeyring::CKeyring(CConfig *Config, CUser *Owner) : CObject(Owner) {
+CKeyring::CKeyring(CConfig *Config, CUser *Owner) {
+	SetOwner(Owner);
+
 	m_Config = Config;
 }
 

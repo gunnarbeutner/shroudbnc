@@ -27,8 +27,10 @@
  * @param Nick the nickname of the user
  * @param Owner the owning channel of this nick object
  */
-CNick::CNick(const char *Nick, CChannel *Owner) : CObject(Owner) {
+CNick::CNick(const char *Nick, CChannel *Owner) {
 	assert(Nick != NULL);
+
+	SetOwner(Owner);
 
 	m_Nick = ustrdup(Nick);
 

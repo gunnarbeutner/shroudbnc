@@ -37,7 +37,7 @@ CUser::CUser(const char *Name) {
 
 	m_Client = NULL;
 	m_IRC = NULL;
-	m_Name = strdup(Name);
+	m_Name = ustrdup(Name);
 
 	CHECK_ALLOC_RESULT(m_Name, strdup) {
 		g_Bouncer->Fatal();
@@ -139,7 +139,7 @@ CUser::~CUser(void) {
 
 	delete m_Keys;
 
-	free(m_Name);
+	ufree(m_Name);
 
 	if (m_BadLoginPulse != NULL) {
 		m_BadLoginPulse->Destroy();
@@ -462,7 +462,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 		FakeWasNull = false;
 	}
 
-	CommandDup = strdup(Command);
+	CommandDup = ustrdup(Command);
 
 	CHECK_ALLOC_RESULT(CommandDup, strdup) {
 		return;
@@ -1063,7 +1063,7 @@ void CUser::LogBadLogin(sockaddr *Peer) {
 	}
 
 	BadLogin.Count = 1;
-	BadLogin.Address = (sockaddr *)malloc(SOCKADDR_LEN(Peer->sa_family));
+	BadLogin.Address = (sockaddr *)umalloc(SOCKADDR_LEN(Peer->sa_family));
 	memcpy(BadLogin.Address, Peer, SOCKADDR_LEN(Peer->sa_family));
 
 	m_BadLogins.Insert(BadLogin);
@@ -1101,7 +1101,7 @@ void CUser::BadLoginPulse(void) {
 			m_BadLogins[i].Count--;
 
 			if (m_BadLogins[i].Count <= 0) {
-				free(m_BadLogins[i].Address);
+				ufree(m_BadLogins[i].Address);
 				m_BadLogins.Remove(i);
 			}
 		}
