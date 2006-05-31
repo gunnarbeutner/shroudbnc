@@ -183,7 +183,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib ssleay32.lib libeay32.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib"
+				AdditionalDependencies="dbghelp.lib ws2_32.lib ssleay32.lib libeay32.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib"
 				OutputFile=".\Debug/sbnc.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

@@ -97,6 +97,10 @@ void CFIFOBuffer::Optimize(void) {
 
 	NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
 
+	CHECK_ALLOC_RESULT(NewBuffer, ResizeBuffer) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
 	memcpy(NewBuffer, m_Buffer + m_Offset, m_BufferSize - m_Offset);
 
 	free(m_Buffer);

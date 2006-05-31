@@ -275,6 +275,8 @@ extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
 				printf(#Function " failed."); \
 			} \
 			\
+		} else { \
+			mmark((void *)Variable); \
 		} \
 		if (Variable == NULL)
 

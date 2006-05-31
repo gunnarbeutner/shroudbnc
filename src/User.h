@@ -240,5 +240,6 @@ public:
 
 	virtual bool MemoryAddBytes(size_t Bytes);
 	virtual void MemoryRemoveBytes(size_t Bytes);
-	virtual size_t GetManagedMemory(void);
+	virtual size_t MemoryGetSize(void);
+	virtual size_t MemoryGetLimit(void);
 };

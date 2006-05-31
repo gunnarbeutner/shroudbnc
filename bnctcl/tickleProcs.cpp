@@ -834,11 +834,15 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return Buffer;
 	} else if (strcasecmp(Type, "memory") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetManagedMemory());
+		g_asprintf(&Buffer, "%d", Context->MemoryGetSize());
+
+		return Buffer;
+	} else if (strcasecmp(Type, "memorylimit") == 0) {
+		g_asprintf(&Buffer, "%d", Context->MemoryGetLimit());
 
 		return Buffer;
 	} else {
-		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory";
+		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit";
 	}
 }
 

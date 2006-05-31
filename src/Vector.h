@@ -79,6 +79,8 @@ public:
 			THROW(bool, Generic_OutOfMemory, "Out of memory.");
 		}
 
+		mmark(NewList);
+
 		m_List = NewList;
 		m_List[m_Count - 1] = Item;
 
@@ -104,6 +106,8 @@ public:
 		NewList = (Type *)realloc(m_List, sizeof(Type) * --m_Count);
 
 		if (NewList != NULL || m_Count == 0) {
+			mmark(NewList);
+
 			m_List = NewList;
 		}
 
@@ -182,13 +186,24 @@ public:
 	 *
 	 * Sets a new internal list by copying the items from another list.
 	 */
-	virtual void SetList(Type *List, int Count) {
+	virtual RESULT<bool> SetList(Type *List, int Count) {
 		free(m_List);
 
+		Clear();
+
 		m_List = (Type *)malloc(sizeof(Type) * Count);
+
+		if (m_List == NULL) {
+			THROW(bool, Generic_OutOfMemory, "malloc() failed.");
+		}
+
+		mmark(m_List);
+
 		memcpy(m_List, List, sizeof(Type) * Count);
 		m_Count = Count;
 		m_ReadOnly = false;
+
+		RETURN(bool, true);
 	}
 
 	/**

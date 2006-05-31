@@ -551,11 +551,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
 
-			if (Dup == NULL) {
-				LOGERROR("strdup failed. Could not parse 005 reply.");
-
+			CHECK_ALLOC_RESULT(Dup, strdup) {
 				return false;
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			char *Eq = strstr(Dup, "=");
 
@@ -596,6 +594,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			WasNull = (m_Usermodes != NULL) ? false : true;
 			m_Usermodes = (char *)realloc(m_Usermodes, Length);
+
+			CHECK_ALLOC_RESULT(m_Usermodes, realloc) {
+				return false;
+			} CHECK_ALLOC_RESULT_END;
 
 			if (WasNull) {
 				m_Usermodes[0] = '\0';
@@ -694,8 +696,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				if (nickv[i] != n) {
 					Modes = (char *)malloc(n - nickv[i] + 1);
 
-					strncpy(Modes, nickv[i], n - nickv[i]);
-					Modes[n - nickv[i]] = '\0';
+					CHECK_ALLOC_RESULT(Modes, malloc) {} else {
+						strmcpy(Modes, nickv[i], n - nickv[i]);
+						Modes[n - nickv[i]] = '\0';
+					} CHECK_ALLOC_RESULT_END;
 				}
 
 				Channel->AddUser(n, Modes);
@@ -859,7 +863,7 @@ const char *CIRCConnection::GetCurrentNick(void) const {
  * @param Channel the channel's name
  */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
-	CChannel *ChannelObj = new CChannel(Channel, this);
+	CChannel *ChannelObj = unew CChannel(Channel, this);
 
 	if (ChannelObj == NULL) {
 		LOGERROR("new operator failed. could not add channel.");
@@ -913,11 +917,9 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		Size = (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2;
 		Out = (char *)realloc(Out, Size);
 
-		if (Out == NULL) {
-			LOGERROR("realloc() failed. Channel config file might be out of date.");
-
+		CHECK_ALLOC_RESULT(Out, realloc) {
 			return;
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		if (!WasNull) {
 			strmcat(Out, ",", Size);
@@ -1342,6 +1344,13 @@ void CIRCConnection::JoinChannels(void) {
 
 					Size = strlen(Channel) + 1;
 					ChanList = (char *)malloc(Size);
+
+					CHECK_ALLOC_RESULT(ChanList, malloc) {
+						free(DupChannels);
+
+						return;
+					} CHECK_ALLOC_RESULT_END;
+
 					strmcpy(ChanList, Channel, Size);
 				} else {
 					Size = strlen(ChanList) + 1 + strlen(Channel) + 2;

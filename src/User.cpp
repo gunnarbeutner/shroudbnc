@@ -462,7 +462,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 		FakeWasNull = false;
 	}
 
-	CommandDup = ustrdup(Command);
+	CommandDup = strdup(Command);
 
 	CHECK_ALLOC_RESULT(CommandDup, strdup) {
 		return;
@@ -1838,6 +1838,14 @@ unsigned int CUser::GetLeanMode(void) {
 }
 
 bool CUser::MemoryAddBytes(size_t Bytes) {
+	if (rand() < RAND_MAX / 6) {
+		//return false;
+	}
+
+	if (m_ManagedMemory + Bytes > g_Bouncer->GetResourceLimit("memory")) {
+		return false;
+	}
+
 	m_ManagedMemory += Bytes;
 
 	return true;
@@ -1847,6 +1855,10 @@ void CUser::MemoryRemoveBytes(size_t Bytes) {
 	m_ManagedMemory -= Bytes;
 }
 
-size_t CUser::GetManagedMemory(void) {
+size_t CUser::MemoryGetSize(void) {
 	return m_ManagedMemory;
+}
+
+size_t CUser::MemoryGetLimit(void) {
+	return g_Bouncer->GetResourceLimit("memory");
 }

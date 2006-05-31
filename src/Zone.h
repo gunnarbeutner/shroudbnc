@@ -77,6 +77,8 @@ class CZone : public CZoneInformation {
 			return NULL;
 		}
 
+		mmark(NewHunk);
+
 		NewHunks = (hunk_s<Type, HunkSize> **)realloc(m_Hunks, (m_Count + 1) * sizeof(hunk_s<Type, HunkSize> *));
 
 		if (NewHunks == NULL) {
@@ -84,6 +86,8 @@ class CZone : public CZoneInformation {
 
 			return NULL;
 		}
+
+		mmark(NewHunks);
 
 		for (unsigned int i = 0; i < HunkSize; i++) {
 			NewHunk->HunkObjects[i].Valid = false;
@@ -324,11 +328,17 @@ public:
 	void *operator new(size_t Size) {
 		assert(Size <= sizeof(InheritedClass));
 
-#ifdef LEAKLEAK
-		return malloc(Size);
-#else
 		return m_Zone.Allocate();
-#endif
+	}
+
+	void *operator new(size_t Size, CMemoryManager *Manager) {
+		assert(Size <= sizeof(InheritedClass));
+
+		if (!Manager->MemoryAddBytes(Size)) {
+			return NULL;
+		}
+
+		return m_Zone.Allocate();
 	}
 
 	/**
@@ -339,11 +349,7 @@ public:
 	 * @param Object the object whics is to be deleted
 	 */
 	void operator delete(void *Object) {
-#ifdef LEAKLEAK
-		free(Object);
-#else
 		m_Zone.Delete((InheritedClass *)Object);
-#endif
 	}
 
 	const CZone<InheritedClass, HunkSize> *GetZone(void) {
@@ -353,3 +359,5 @@ public:
 
 template<typename InheritedClass, int HunkSize>
 CZone<InheritedClass, HunkSize> CZoneObject<InheritedClass, HunkSize>::m_Zone;
+
+#define unew new (GETUSER())

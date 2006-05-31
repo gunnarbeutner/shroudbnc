@@ -49,7 +49,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	m_Banlist = new CBanlist(this);
+	m_Banlist = unew CBanlist(this);
 }
 
 /**
@@ -449,7 +449,7 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 		return;
 	}
 
-	NickObj = new CNick(Nick, this);
+	NickObj = unew CNick(Nick, this);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
 		return;
@@ -631,7 +631,7 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 			return false;
 		}
 
-		strncpy(CopyIdent, Site, min(Host - Site - 1, sizeof(CopyIdent)));
+		strmcpy(CopyIdent, Site, min(Host - Site - 1, sizeof(CopyIdent)));
 		CopyIdent[Host - Site] = '\0';
 
 		Ident = CopyIdent;

@@ -50,6 +50,11 @@ typedef struct { char __addr[16]; } sockaddr_in6;
 #define S_IROTH 0
 #endif
 
+#ifdef _DEBUG
+#	include <dbghelp.h>
+#	include <intrin.h>
+#endif
+
 #if !defined(socklen_t)
 typedef int socklen_t;
 #endif

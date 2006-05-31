@@ -837,6 +837,13 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 		}
 
 		m_HostAddr = (in_addr *)malloc(Size);
+
+		CHECK_ALLOC_RESULT(m_HostAddr, malloc) {
+			m_LatchedDestruction = true;
+
+			return;
+		} CHECK_ALLOC_RESULT_END;
+
 		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
 
 		AsyncConnect();

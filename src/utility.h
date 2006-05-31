@@ -153,21 +153,19 @@ void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRe
 typedef struct {
 	size_t Size;
 	CUser *Manager;
+	int Marker;
 } mblock;
+
+#define BLOCKMARKER 0xACAD3326
 
 void *mmalloc(size_t Size, CUser *Manager);
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
 char *mstrdup(const char *String, CUser *Manager);
 void mfree(void *Block);
+#if defined(SBNC) && defined(_DEBUG)
+void mmark(void *Block);
+#endif
 
 #define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 
-#define nmalloc(Size) mmalloc(Size, NULL)
-#define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
-#define nstrdup(String) mstrdup(String, NULL)
-#define nfree(Block) mfree(Block)
-
-#define umalloc(Size) mmalloc(Size, GETUSER())
-#define urealloc(Block, NewSize) mrealloc(Block, NewSize, GETUSER())
-#define ustrdup(String) mstrdup(String, GETUSER())
-#define ufree(Block) mfree(Block)
+LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception);

@@ -46,11 +46,9 @@ const char *ArgTokenize(const char *Data) {
 	Size = LengthData + 2;
 	Copy = (char *)malloc(Size);
 
-	if (Copy == NULL) {
-		LOGERROR("malloc() failed. Could not tokenize string (%s).", Data);
-
+	CHECK_ALLOC_RESULT(Copy, malloc) {
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	strmcpy(Copy, Data, Size);
 	Copy[LengthData + 1] = '\0';
@@ -144,9 +142,9 @@ const char **ArgToArray(const char *Args) {
 
 	const char **ArgArray = (const char **)malloc(Count * sizeof(const char *));
 
-	if (ArgArray == NULL) {
+	CHECK_ALLOC_RESULT(ArgArray, malloc) {
 		return NULL;
-	}
+	} CHECK_ALLOC_RESULT_END;
 
 	for (int i = 0; i < Count; i++) {
 		ArgArray[i] = ArgGet(Args, i + 1);
@@ -246,7 +244,7 @@ tokendata_t ArgTokenize2(const char *String) {
 	register unsigned int a = 1;
 	size_t Len = min(strlen(String), sizeof(tokens.String) - 1);
 
-	strncpy(tokens.String, String, sizeof(tokens.String));
+	strmcpy(tokens.String, String, sizeof(tokens.String));
 	tokens.String[sizeof(tokens.String) - 1] = '\0';
 
 	tokens.Pointers[0] = 0;
@@ -287,6 +285,10 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
 	const char **Pointers;
 	
 	Pointers = (const char **)malloc(sizeof(const char *) * 32);
+
+	CHECK_ALLOC_RESULT(Pointers, malloc) {
+		return NULL;
+	} CHECK_ALLOC_RESULT_END;
 
 	for (unsigned int i = 0; i < min(Tokens.Count, 32); i++) {
 		Pointers[i] = Tokens.Pointers[i] + Tokens.String;
@@ -737,6 +739,10 @@ const char *IpToString(sockaddr *Address) {
 	sockaddr *Copy = (sockaddr *)malloc(SOCKADDR_LEN(Address->sa_family));
 	DWORD BufferLength = sizeof(Buffer);
 
+	CHECK_ALLOC_RESULT(Copy, malloc) {
+		return "<out of memory>";
+	} CHECK_ALLOC_RESULT_END;
+
 	memcpy(Copy, Address, SOCKADDR_LEN(Address->sa_family));
 
 	if (Address->sa_family == AF_INET) {
@@ -991,7 +997,7 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
     FD_ZERO(&ifds);
     FD_ZERO(&ofds);
     FD_ZERO(&efds);
-    for (i = 0, n = -1, op = ip = 0; i < nfds; ++i) {
+    for (i = 0, n = -1, op = ip = 0; i < (int)nfds; ++i) {
 	fds[i].revents = 0;
 	if (fds[i].fd < 0)
 		continue;
@@ -1018,7 +1024,7 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
     if (rc <= 0)
 	return rc;
 
-    for (i = 0, n = 0; i < nfds; ++i) {
+    for (i = 0, n = 0; i < (int)nfds; ++i) {
 	if (fds[i].fd < 0) continue;
 	if (fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fds[i].fd, &ifds))
 		fds[i].revents |= POLLIN;
@@ -1078,14 +1084,78 @@ char *strmcat(char *Destination, const char *Source, size_t Size) {
 	return Destination;
 }
 
+#ifdef _DEBUG
+LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
+	char charSymbol[sizeof(SYMBOL_INFO) + 200];
+	SYMBOL_INFO *Symbol = (SYMBOL_INFO *)charSymbol;
+	IMAGEHLP_LINE64 Line;
+
+	if (Exception->ExceptionRecord->ExceptionCode == STATUS_GUARD_PAGE_VIOLATION) {
+		Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		Symbol->MaxNameLen = sizeof(charSymbol) - sizeof(SYMBOL_INFO);
+		SymFromAddr(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, NULL, Symbol);
+
+		Line.SizeOfStruct = sizeof(Line);
+
+		if (SymGetLineFromAddr64(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, 0, &Line)) {
+			printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
+		} else {
+			printf("Hit guard page at %s.\n", Symbol->Name);
+		}
+
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+#endif
+
+void mstacktrace(void) {
+	STACKFRAME64 Frame;
+	DWORD FramePointer;
+
+	__asm mov FramePointer, ebp
+
+	memset(&Frame, 0, sizeof(Frame));
+
+	Frame.AddrPC.Offset = (DWORD64)_ReturnAddress();
+	Frame.AddrPC.Mode = AddrModeFlat;
+	Frame.AddrFrame.Offset = FramePointer;
+	Frame.AddrFrame.Mode = AddrModeFlat;
+
+	while (StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &Frame, NULL, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
+		char charSymbol[sizeof(SYMBOL_INFO) + 200];
+		SYMBOL_INFO *Symbol = (SYMBOL_INFO *)charSymbol;
+
+		if (Frame.AddrPC.Offset == 0) {
+			break;
+		}
+
+		Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		Symbol->MaxNameLen = sizeof(charSymbol) - sizeof(SYMBOL_INFO);
+		SymFromAddr(GetCurrentProcess(), (DWORD64)Frame.AddrPC.Offset, NULL, Symbol);
+
+		if (g_Bouncer != NULL) {
+			g_Bouncer->Log("Call from %s", Symbol->Name);
+		}
+	}
+}
+
 void *mmalloc(size_t Size, CUser *Owner) {
+#ifdef _DEBUG
+	DWORD Dummy;
+#endif
 	mblock *Block;
 
 	if (Owner != NULL && !Owner->MemoryAddBytes(Size)) {
 		return NULL;
 	}
 
+#ifndef _DEBUG
 	Block = (mblock *)malloc(sizeof(mblock) + Size);
+#else
+	Block = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + Size, MEM_RESERVE |  MEM_COMMIT, PAGE_READWRITE);
+#endif
 
 	if (Block == NULL) {
 		if (Owner != NULL) {
@@ -1097,6 +1167,12 @@ void *mmalloc(size_t Size, CUser *Owner) {
 
 	Block->Size = Size;
 	Block->Manager = Owner;
+	Block->Marker = BLOCKMARKER;
+
+	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
+
+	printf("%p = mmalloc(%d, %p)\n", Size, Block + 1, Owner);
+	mstacktrace();
 
 	return Block + 1;
 }
@@ -1108,16 +1184,37 @@ void mfree(void *Block) {
 		return;
 	}
 
+#ifdef _DEBUG
+	mmark(Block);
+#endif
+
 	RealBlock = (mblock *)Block - 1;
+
+	if (RealBlock->Marker != BLOCKMARKER) {
+#undef free
+		free(Block);
+
+		return;
+	}
 
 	if (RealBlock->Manager != NULL) {
 		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
 	}
 
+#ifndef _DEBUG
 	free(RealBlock);
+#else
+	VirtualFree(RealBlock, 0, MEM_RELEASE);
+#endif
+
+	printf("mfree(%p)\n", Block);
+	mstacktrace();
 }
 
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
+#ifdef _DEBUG
+	DWORD Dummy;
+#endif
 	mblock *RealBlock, *NewRealBlock;
 
 	if (Block == NULL) {
@@ -1125,6 +1222,10 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 	}
 
 	RealBlock = (mblock *)Block - 1;
+
+#ifdef _DEBUG
+	mmark(Block);
+#endif
 
 	if (RealBlock->Manager != NULL) {
 		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
@@ -1134,7 +1235,18 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 		return NULL;
 	}
 
+#ifndef _DEBUG
 	NewRealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
+#else
+	SetUnhandledExceptionFilter(GuardPageHandler);
+
+	NewRealBlock = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + NewSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+	if (NewRealBlock != NULL) {
+		memcpy(NewRealBlock, RealBlock, sizeof(mblock) + RealBlock->Size);
+		mfree(Block);
+	}
+#endif
 
 	if (NewRealBlock == NULL) {
 		if (Manager != NULL) {
@@ -1146,7 +1258,15 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	NewRealBlock->Size = NewSize;
 	NewRealBlock->Manager = Manager;
-	
+	NewRealBlock->Marker = BLOCKMARKER;
+
+#ifdef _DEBUG
+	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
+#endif
+
+	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
+	mstacktrace();
+
 	return NewRealBlock + 1;
 }
 
@@ -1162,7 +1282,29 @@ char *mstrdup(const char *String, CUser *Manager) {
 		return NULL;
 	}
 
+	mmark(Copy);
 	memcpy(Copy, String, Length + 1);
 
 	return Copy;
 }
+
+#ifdef _DEBUG
+void mmark(void *Block) {
+	DWORD Dummy;
+	mblock *RealBlock;
+
+	if (Block == NULL) {
+		return;
+	}
+
+	RealBlock = (mblock *)Block - 1;
+
+	VirtualProtect(RealBlock, sizeof(mblock), PAGE_READWRITE, &Dummy);
+
+	if (RealBlock->Marker != BLOCKMARKER) {
+		return;
+	}
+
+	VirtualProtect(RealBlock, sizeof(mblock) + RealBlock->Size, PAGE_READWRITE, &Dummy);
+}
+#endif

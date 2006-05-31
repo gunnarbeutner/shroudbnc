@@ -23,7 +23,8 @@ class CMemoryManager {
 public:
 	virtual bool MemoryAddBytes(size_t Bytes) = 0;
 	virtual void MemoryRemoveBytes(size_t Bytes) = 0;
-	virtual size_t GetManagedMemory(void) = 0;
+	virtual size_t MemoryGetSize(void) = 0;
+	virtual size_t MemoryGetLimit(void) = 0;
 };
 
 class CObjectBase {
@@ -117,7 +118,10 @@ public:
 			User = GetUser();
 
 			Manager = dynamic_cast<CMemoryManager *>(User);
-			Manager->MemoryAddBytes(sizeof(ObjectType));
+
+			if (Manager != NULL) {
+				Manager->MemoryRemoveBytes(sizeof(ObjectType));
+			}
 		}
 
 		if (typeid(Owner) == typeid(CUser *)) {
@@ -131,9 +135,10 @@ public:
 
 		if (User != NULL) {
 			Manager = dynamic_cast<CMemoryManager *>(User);
-			Manager->MemoryAddBytes(sizeof(ObjectType));
 
-			Manager->MemoryRemoveBytes(sizeof(ObjectType));
+			if (Manager != NULL) {
+				Manager->MemoryAddBytes(sizeof(ObjectType));
+			}
 		}
 	}
 };

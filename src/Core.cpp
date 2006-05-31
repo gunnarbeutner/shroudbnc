@@ -42,6 +42,7 @@ static struct reslimit_s {
 } g_ResourceLimits[] = {
 		{ "bans", 100 },
 		{ "keys", 50 },
+		{ "memory", 10 * 1024 * 1024 },
 		{ NULL, 0 }
 	};
 
@@ -542,10 +543,6 @@ void CCore::StartMainLoop(void) {
 		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
 #else
 		int ready = select(SFD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
-#endif
-
-#ifdef LEAKLEAK
-		CHECK_LEAKS();
 #endif
 
 		time(&g_CurrentTime);
@@ -1796,35 +1793,39 @@ const loaderparams_s *CCore::GetLoaderParameters(void) const {
 }
 
 const utility_t *CCore::GetUtilities(void) {
-	static utility_t *Utils = NULL;
+	static utility_t *Utilities = NULL;
 
-	if (Utils == NULL) {
-		Utils = (utility_t *)malloc(sizeof(utility_t));
+	if (Utilities == NULL) {
+		Utilities = (utility_t *)malloc(sizeof(utility_t));
 
-		Utils->ArgParseServerLine = ArgParseServerLine;
-		Utils->ArgTokenize = ArgTokenize;
-		Utils->ArgToArray = ArgToArray;
-		Utils->ArgRejoinArray = ArgRejoinArray;
-		Utils->ArgDupArray = ArgDupArray;
-		Utils->ArgFree = ArgFree;
-		Utils->ArgFreeArray = ArgFreeArray;
-		Utils->ArgGet = ArgGet;
-		Utils->ArgCount = ArgCount;
+		CHECK_ALLOC_RESULT(Utilities, malloc) {
+			Fatal();
+		} CHECK_ALLOC_RESULT_END;
 
-		Utils->FlushCommands = FlushCommands;
-		Utils->AddCommand = AddCommand;
-		Utils->DeleteCommand = DeleteCommand;
-		Utils->CmpCommandT = CmpCommandT;
+		Utilities->ArgParseServerLine = ArgParseServerLine;
+		Utilities->ArgTokenize = ArgTokenize;
+		Utilities->ArgToArray = ArgToArray;
+		Utilities->ArgRejoinArray = ArgRejoinArray;
+		Utilities->ArgDupArray = ArgDupArray;
+		Utilities->ArgFree = ArgFree;
+		Utilities->ArgFreeArray = ArgFreeArray;
+		Utilities->ArgGet = ArgGet;
+		Utilities->ArgCount = ArgCount;
 
-		Utils->asprintf = asprintf;
+		Utilities->FlushCommands = FlushCommands;
+		Utilities->AddCommand = AddCommand;
+		Utilities->DeleteCommand = DeleteCommand;
+		Utilities->CmpCommandT = CmpCommandT;
 
-		Utils->Alloc = malloc;
-		Utils->Free = free;
+		Utilities->asprintf = asprintf;
 
-		Utils->IpToString = IpToString;
+		Utilities->Alloc = malloc;
+		Utilities->Free = free;
+
+		Utilities->IpToString = IpToString;
 	}
 
-	return Utils;
+	return Utilities;
 }
 
 /**

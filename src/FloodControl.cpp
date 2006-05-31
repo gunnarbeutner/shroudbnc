@@ -239,11 +239,9 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 	if (Space != NULL) {
 		Command = (char *)malloc(Space - Line + 1);
 
-		if (Command == NULL) {
-			LOGERROR("malloc() failed");
-
+		CHECK_ALLOC_RESULT(Command, malloc) {
 			return 1;
-		}
+		} CHECK_ALLOC_RESULT_END;
 
 		strmcpy(Command, Line, Space - Line);
 	} else {

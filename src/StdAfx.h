@@ -105,27 +105,44 @@ typedef lt_dlhandle HMODULE;
 #endif
 
 #ifdef SBNC
-#ifdef _DEBUG
+#	define nmalloc(Size) mmalloc(Size, NULL)
+#	define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
+#	define nstrdup(String) mstrdup(String, NULL)
+#	define nfree(Block) mfree(Block)
+#	define nmark(Block) mmark(Block)
+
+#	define umalloc(Size) mmalloc(Size, GETUSER())
+#	define urealloc(Block, NewSize) mrealloc(Block, NewSize, GETUSER())
+#	define ustrdup(String) mstrdup(String, GETUSER())
+#	define ufree(Block) mfree(Block)
+#	define umark(Block) mmark(Block)
+#else
+#	define mmark(Block)
+#endif
+
+#if defined(_DEBUG) && defined(SBNC)
 void *DebugMalloc(size_t Size, const char *File);
 void DebugFree(void *Pointer, const char *File);
 void *DebugReAlloc(void *Pointer, size_t NewSize, const char *File);
 char *DebugStrDup(const char *String, const char *File);
 
+/*
 #define malloc(Size) DebugMalloc(Size, __FILE__)
 #define free(Pointer) DebugFree(Pointer, __FILE__)
 #define realloc(Pointer, NewSize) DebugReAlloc(Pointer, NewSize, __FILE__)
 #define strdup(String) DebugStrDup(String, __FILE__)
-#endif
-#endif
+*/
 
-#ifdef LEAKLEAK
-#	define GC_DEBUG
-#	include "gc.h"
-#	define malloc(n) GC_MALLOC(n)
-#	define calloc(m,n) GC_MALLOC((m)*(n))
-#	define free(p) GC_FREE(p)
-#	define realloc(p,n) GC_REALLOC((p),(n))
-#	define CHECK_LEAKS() GC_gcollect()
+/*
+#undef malloc
+#define malloc(Size) nmalloc(Size)
+#undef realloc
+#define realloc(Block, NewSize) nrealloc(Block, NewSize)
+#undef strdup
+#define strdup(String) nstrdup(String)
+#undef free
+#define free(Block) nfree(Block)
+*/
 #endif
 
 #ifdef SBNC
@@ -147,10 +164,10 @@ char *DebugStrDup(const char *String, const char *File);
 
 #include "sbnc.h"
 #include "Result.h"
+#include "Object.h"
 #include "Zone.h"
 #include "Vector.h"
 #include "Debug.h"
-#include "Object.h"
 #include "Hashtable.h"
 #include "utility.h"
 #include "SocketEvents.h"
