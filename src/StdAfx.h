@@ -106,6 +106,8 @@ typedef lt_dlhandle HMODULE;
 
 #ifndef _DEBUG
 #	define mmark(Block)
+#elif defined(SBNC)
+void mmark(void *Block);
 #endif
 
 #ifdef SBNC

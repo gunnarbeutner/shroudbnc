@@ -162,9 +162,6 @@ void *mmalloc(size_t Size, CUser *Manager);
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
 char *mstrdup(const char *String, CUser *Manager);
 void mfree(void *Block);
-#if defined(SBNC) && defined(_DEBUG)
-void mmark(void *Block);
-#endif
 
 #define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 

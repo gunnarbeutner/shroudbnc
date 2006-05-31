@@ -325,13 +325,13 @@ public:
 	 *
 	 * @param Size the requested size of the new memory block
 	 */
-	void *operator new(size_t Size) {
+	void *operator new(size_t Size) throw() {
 		assert(Size <= sizeof(InheritedClass));
 
 		return m_Zone.Allocate();
 	}
 
-	void *operator new(size_t Size, CMemoryManager *Manager) {
+	void *operator new(size_t Size, CMemoryManager *Manager) throw() {
 		assert(Size <= sizeof(InheritedClass));
 
 		if (!Manager->MemoryAddBytes(Size)) {
