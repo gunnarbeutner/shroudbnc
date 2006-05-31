@@ -1,4 +1,4 @@
-	/*******************************************************************************
+/*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
  * Copyright (C) 2005 Gunnar Beutner                                           *
  *                                                                             *
@@ -160,7 +160,7 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
 char *mstrdup(const char *String, CUser *Manager);
 void mfree(void *Block);
 
-#define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : static_cast<CObjectBase *>(this)->GetUser())
+#define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 
 #define nmalloc(Size) mmalloc(Size, NULL)
 #define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
