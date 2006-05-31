@@ -168,4 +168,6 @@ void mmark(void *Block);
 
 #define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 
+#ifdef _DEBUG
 LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception);
+#endif

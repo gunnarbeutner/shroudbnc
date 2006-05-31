@@ -1108,7 +1108,6 @@ LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
-#endif
 
 void mstacktrace(void) {
 	STACKFRAME64 Frame;
@@ -1140,6 +1139,7 @@ void mstacktrace(void) {
 		}
 	}
 }
+#endif
 
 void *mmalloc(size_t Size, CUser *Owner) {
 #ifdef _DEBUG
@@ -1169,10 +1169,12 @@ void *mmalloc(size_t Size, CUser *Owner) {
 	Block->Manager = Owner;
 	Block->Marker = BLOCKMARKER;
 
+#ifdef _DEBUG
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
 	printf("%p = mmalloc(%d, %p)\n", Size, Block + 1, Owner);
 	mstacktrace();
+#endif
 
 	return Block + 1;
 }
@@ -1205,10 +1207,10 @@ void mfree(void *Block) {
 	free(RealBlock);
 #else
 	VirtualFree(RealBlock, 0, MEM_RELEASE);
-#endif
 
 	printf("mfree(%p)\n", Block);
 	mstacktrace();
+#endif
 }
 
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
@@ -1262,10 +1264,10 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 #ifdef _DEBUG
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
-#endif
 
 	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
 	mstacktrace();
+#endif
 
 	return NewRealBlock + 1;
 }

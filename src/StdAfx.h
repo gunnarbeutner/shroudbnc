@@ -104,6 +104,10 @@ typedef lt_dlhandle HMODULE;
 #	include "c-ares/ares.h"
 #endif
 
+#ifndef _DEBUG
+#	define mmark(Block)
+#endif
+
 #ifdef SBNC
 #	define nmalloc(Size) mmalloc(Size, NULL)
 #	define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
@@ -116,8 +120,6 @@ typedef lt_dlhandle HMODULE;
 #	define ustrdup(String) mstrdup(String, GETUSER())
 #	define ufree(Block) mfree(Block)
 #	define umark(Block) mmark(Block)
-#else
-#	define mmark(Block)
 #endif
 
 #if defined(_DEBUG) && defined(SBNC)

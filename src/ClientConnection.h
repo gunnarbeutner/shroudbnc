@@ -133,10 +133,11 @@ public:
 
 		m_Data = (char *)malloc(m_Queue.GetSize() + 1);
 
-		CHECK_ALLOC_RESULT(m_Data, malloc) {} else {
+		if (m_Data != NULL) {
+			mmark(m_Data);
 			memcpy(m_Data, m_Queue.Peek(), m_Queue.GetSize());
 			m_Data[m_Queue.GetSize()] = '\0';
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		return m_Data;
 	}

@@ -2720,6 +2720,8 @@ unsigned int CCore::GetResourceLimit(const char *Resource) {
 
 			int Value = m_Config->ReadInteger(Name);
 
+			free(Name);
+
 			if (Value == 0) {
 				return g_ResourceLimits[i].DefaultLimit;
 			} else if (Value == -1) {

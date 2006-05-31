@@ -673,14 +673,22 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		Channel = GetChannel(argv[4]);
 
 		if (Channel != NULL) {
-			const char *nicks = ArgTokenize(argv[5]);
-			const char **nickv = ArgToArray(nicks);
+			const char *nicks;
+			const char **nickv;
 
-			if (nickv == NULL) {
-				LOGERROR("ArgToArray2() failed. could not parse 353 reply for channel %s", argv[4]);
+			nicks = ArgTokenize(argv[5]);
+
+			CHECK_ALLOC_RESULT(nicks, ArgTokenize) {
+				return false;
+			} CHECK_ALLOC_RESULT_END;
+
+			nickv = ArgToArray(nicks);
+
+			CHECK_ALLOC_RESULT(nickv, ArgToArray) {
+				ArgFree(nicks);
 
 				return false;
-			}
+			} CHECK_ALLOC_RESULT_END;
 
 			int nickc = ArgCount(nicks);
 
@@ -708,6 +716,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 
 			ArgFreeArray(nickv);
+			ArgFree(nicks);
 		}
 	} else if (argc > 3 && iRaw == 366) {
 		Channel = GetChannel(argv[3]);
