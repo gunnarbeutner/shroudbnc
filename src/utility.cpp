@@ -1188,7 +1188,9 @@ void *mmalloc(size_t Size, CUser *Owner) {
 
 	Block->Size = Size;
 	Block->Manager = Owner;
+#if defined(_DEBUG) && defined(_WIN32)
 	Block->Marker = BLOCKMARKER;
+#endif
 
 #if defined(_DEBUG) && defined(_WIN32)
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
@@ -1211,12 +1213,13 @@ void mfree(void *Block) {
 
 	RealBlock = (mblock *)Block - 1;
 
+#if defined(_DEBUG) && defined(_WIN32)
 	if (RealBlock->Marker != BLOCKMARKER) {
-#undef free
 		free(Block);
 
 		return;
 	}
+#endif
 
 	if (RealBlock->Manager != NULL) {
 		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
@@ -1275,9 +1278,10 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	NewRealBlock->Size = NewSize;
 	NewRealBlock->Manager = Manager;
-	NewRealBlock->Marker = BLOCKMARKER;
 
 #if defined(_DEBUG) && defined(_WIN32)
+	NewRealBlock->Marker = BLOCKMARKER;
+
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
 /*	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
