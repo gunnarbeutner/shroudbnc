@@ -25,6 +25,14 @@ public:
 	virtual void MemoryRemoveBytes(size_t Bytes) = 0;
 	virtual size_t MemoryGetSize(void) = 0;
 	virtual size_t MemoryGetLimit(void) = 0;
+
+	virtual size_t MemoryIsLimitExceeded(void) {
+		if (MemoryGetSize() > MemoryGetLimit()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 };
 
 class CObjectBase {

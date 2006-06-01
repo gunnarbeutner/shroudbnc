@@ -1084,7 +1084,7 @@ char *strmcat(char *Destination, const char *Source, size_t Size) {
 	return Destination;
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
 	char charSymbol[sizeof(SYMBOL_INFO) + 200];
 	SYMBOL_INFO *Symbol = (SYMBOL_INFO *)charSymbol;
@@ -1141,10 +1141,29 @@ void mstacktrace(void) {
 		}
 	}
 }
+
+void mmark(void *Block) {
+	DWORD Dummy;
+	mblock *RealBlock;
+
+	if (Block == NULL) {
+		return;
+	}
+
+	RealBlock = (mblock *)Block - 1;
+
+	VirtualProtect(RealBlock, sizeof(mblock), PAGE_READWRITE, &Dummy);
+
+	if (RealBlock->Marker != BLOCKMARKER) {
+		return;
+	}
+
+	VirtualProtect(RealBlock, sizeof(mblock) + RealBlock->Size, PAGE_READWRITE, &Dummy);
+}
 #endif
 
 void *mmalloc(size_t Size, CUser *Owner) {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 	DWORD Dummy;
 #endif
 	mblock *Block;
@@ -1153,14 +1172,10 @@ void *mmalloc(size_t Size, CUser *Owner) {
 		return NULL;
 	}
 
-	if (Owner == NULL) {
-		printf("%d unmanaged bytes.\n", Size);
-	}
-
-#ifndef _DEBUG
-	Block = (mblock *)malloc(sizeof(mblock) + Size);
-#else
+#if defined(_DEBUG) && defined(_WIN32)
 	Block = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + Size, MEM_RESERVE |  MEM_COMMIT, PAGE_READWRITE);
+#else
+	Block = (mblock *)malloc(sizeof(mblock) + Size);
 #endif
 
 	if (Block == NULL) {
@@ -1175,11 +1190,11 @@ void *mmalloc(size_t Size, CUser *Owner) {
 	Block->Manager = Owner;
 	Block->Marker = BLOCKMARKER;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-	printf("%p = mmalloc(%d, %p)\n", Block + 1, Size, Owner);
-	mstacktrace();
+/*	printf("%p = mmalloc(%d, %p)\n", Block + 1, Size, Owner);
+	mstacktrace();*/
 #endif
 
 	return Block + 1;
@@ -1192,9 +1207,7 @@ void mfree(void *Block) {
 		return;
 	}
 
-#ifdef _DEBUG
 	mmark(Block);
-#endif
 
 	RealBlock = (mblock *)Block - 1;
 
@@ -1209,18 +1222,18 @@ void mfree(void *Block) {
 		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
 	}
 
-#ifndef _DEBUG
-	free(RealBlock);
-#else
-//	VirtualFree(RealBlock, 0, MEM_RELEASE);
+#if defined(_DEBUG) && defined(_WIN32)
+	VirtualFree(RealBlock, 0, MEM_RELEASE);
 
-	printf("mfree(%p)\n", Block);
-	mstacktrace();
+/*	printf("mfree(%p)\n", Block);
+	mstacktrace();*/
+#else
+	free(RealBlock);
 #endif
 }
 
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 	DWORD Dummy;
 #endif
 	mblock *RealBlock, *NewRealBlock;
@@ -1231,9 +1244,7 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	RealBlock = (mblock *)Block - 1;
 
-#ifdef _DEBUG
 	mmark(Block);
-#endif
 
 	if (RealBlock->Manager != NULL) {
 		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
@@ -1243,17 +1254,15 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 		return NULL;
 	}
 
-#ifndef _DEBUG
-	NewRealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
-#else
-	SetUnhandledExceptionFilter(GuardPageHandler);
-
+#if defined(_DEBUG) && defined(_WIN32)
 	NewRealBlock = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + NewSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 	if (NewRealBlock != NULL) {
 		memcpy(NewRealBlock, RealBlock, sizeof(mblock) + RealBlock->Size);
 		mfree(Block);
 	}
+#else
+	NewRealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
 #endif
 
 	if (NewRealBlock == NULL) {
@@ -1268,11 +1277,11 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 	NewRealBlock->Manager = Manager;
 	NewRealBlock->Marker = BLOCKMARKER;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
-	mstacktrace();
+/*	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
+	mstacktrace();*/
 #endif
 
 	return NewRealBlock + 1;
@@ -1295,24 +1304,3 @@ char *mstrdup(const char *String, CUser *Manager) {
 
 	return Copy;
 }
-
-#ifdef _DEBUG
-void mmark(void *Block) {
-	DWORD Dummy;
-	mblock *RealBlock;
-
-	if (Block == NULL) {
-		return;
-	}
-
-	RealBlock = (mblock *)Block - 1;
-
-	VirtualProtect(RealBlock, sizeof(mblock), PAGE_READWRITE, &Dummy);
-
-	if (RealBlock->Marker != BLOCKMARKER) {
-		return;
-	}
-
-	VirtualProtect(RealBlock, sizeof(mblock) + RealBlock->Size, PAGE_READWRITE, &Dummy);
-}
-#endif

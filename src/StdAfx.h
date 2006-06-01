@@ -118,7 +118,9 @@ typedef lt_dlhandle HMODULE;
 #	define umark(Block) mmark(Block)
 
 void mmark(void *Block);
-#else
+#endif
+
+#if !defined(_DEBUG) || !defined(SBNC)
 #	define mmark(Block)
 #endif
 

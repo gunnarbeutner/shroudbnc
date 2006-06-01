@@ -452,6 +452,8 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	NickObj = unew CNick(Nick, this);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
+		m_HasNames = false;
+
 		return;
 	} CHECK_ALLOC_RESULT_END;
 

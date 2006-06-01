@@ -872,13 +872,18 @@ const char *CIRCConnection::GetCurrentNick(void) const {
  * @param Channel the channel's name
  */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
+	CUser *User;
 	CChannel *ChannelObj = unew CChannel(Channel, this);
 
-	if (ChannelObj == NULL) {
-		LOGERROR("new operator failed. could not add channel.");
+	CHECK_ALLOC_RESULT(ChannelObj, unew) {
+		WriteLine("PART %s", Channel);
 
-		return NULL;
-	}
+		User = GetUser();
+
+		if (User->MemoryIsLimitExceeded()) {
+			User->Log("Memory limit exceeded. Removing channel (%s).", Channel);
+		}
+	} CHECK_ALLOC_RESULT_END;
 
 	m_Channels->Add(Channel, ChannelObj);
 

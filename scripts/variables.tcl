@@ -34,20 +34,20 @@ if {![info exists ::varinitonce]} {
 	set ::varinitonce 1
 }
 
-trace variable botnick rwu sbnc:tracevars-botnick
-trace variable botname rwu sbnc:tracevars-botname
-trace variable server rwu sbnc:tracevars-server
-trace variable serveraddress rwu sbnc:tracevars-serveraddress
-trace variable version rwu sbnc:tracevars-version
-trace variable numversion rwu sbnc:tracevars-numversion
-trace variable uptime rwu sbnc:tracevars-uptime
-trace variable server-online rwu sbnc:tracevars-server-online
-trace variable lastbind rwu sbnc:tracevars-lastbind
-trace variable isjuped rwu sbnc:tracevars-isjuped
-trace variable handlen rwu sbnc:tracevars-handlen
-trace variable config rwu sbnc:tracevars-config
-trace variable userfile rwu sbnc:tracevars-userfile
-trace variable chanfile rwu sbnc:tracevars-chanfile
+trace variable ::botnick rwu sbnc:tracevars-botnick
+trace variable ::botname rwu sbnc:tracevars-botname
+trace variable ::server rwu sbnc:tracevars-server
+trace variable ::serveraddress rwu sbnc:tracevars-serveraddress
+trace variable ::version rwu sbnc:tracevars-version
+trace variable ::numversion rwu sbnc:tracevars-numversion
+trace variable ::uptime rwu sbnc:tracevars-uptime
+trace variable ::server-online rwu sbnc:tracevars-server-online
+trace variable ::lastbind rwu sbnc:tracevars-lastbind
+trace variable ::isjuped rwu sbnc:tracevars-isjuped
+trace variable ::handlen rwu sbnc:tracevars-handlen
+trace variable ::config rwu sbnc:tracevars-config
+trace variable ::userfile rwu sbnc:tracevars-userfile
+trace variable ::chanfile rwu sbnc:tracevars-chanfile
 
 proc sbnc:tracevars-botnick {name item operation} {
 	if {$operation == "r"} {

@@ -153,7 +153,9 @@ void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRe
 typedef struct {
 	size_t Size;
 	CUser *Manager;
+#if defined(_DEBUG) && defined(_WIN32)
 	int Marker;
+#endif
 } mblock;
 
 #define BLOCKMARKER 0xACAD3326
@@ -165,6 +167,6 @@ void mfree(void *Block);
 
 #define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception);
 #endif

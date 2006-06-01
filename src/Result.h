@@ -136,12 +136,6 @@ bool IsError(const CResult<Type> &Result) {
 
 	Code = Result.GetCode();
 
-#ifdef _DEBUG
-	if (Code != 0) {
-		printf("CResult<%s>: Code %d (%s)\n", typeid(Type).name(), Code, Result.GetDescription());
-	}
-#endif
-
 	return (Code != 0);
 }
 
