@@ -593,7 +593,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 
 			WasNull = (m_Usermodes != NULL) ? false : true;
-			m_Usermodes = (char *)realloc(m_Usermodes, Length);
+			m_Usermodes = (char *)urealloc(m_Usermodes, Length);
 
 			CHECK_ALLOC_RESULT(m_Usermodes, realloc) {
 				return false;
@@ -1447,7 +1447,10 @@ bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	if (g_CurrentTime - IRC->m_LastResponse > 300) {
 		IRC->WriteLine("PING :sbnc");
 
-		if (g_CurrentTime - IRC->m_LastResponse > 600) {
+		/* we're using "Now" here, because that's the time when the
+		 * check should've returned a PONG, this might be useful when
+		 * we're in a time warp */
+		if (Now - IRC->m_LastResponse > 600) {
 			IRC->Kill("Server does not respond.");
 		}
 	}

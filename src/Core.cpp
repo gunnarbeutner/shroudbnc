@@ -477,6 +477,12 @@ void CCore::StartMainLoop(void) {
 
 		time(&Now);
 
+		time_t TimeWarp = 0;
+
+		if (g_CurrentTime > Now) {
+			TimeWarp = Now - g_CurrentTime;
+		}
+
 		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
 			CTimer *Timer;
 			time_t NextCall;
@@ -486,11 +492,21 @@ void CCore::StartMainLoop(void) {
 
 			if (Now >= NextCall) {
 				if (Now - 5 > NextCall) {
+#ifdef _DEBUG
 					Log("Timer drift for timer %p: %d seconds", Timer, Now - NextCall);
+#endif
+
+					if (TimeWarp >= 0 && Now - NextCall > TimeWarp) {
+						TimeWarp = Now - NextCall;
+					}
 				}
 
 				Timer->Call(Now);
 			}
+		}
+
+		if (TimeWarp > 5) {
+			Log("Time warp detected: %d seconds", TimeWarp);
 		}
 
 		Best = Now + 60;
