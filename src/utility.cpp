@@ -244,8 +244,8 @@ tokendata_t ArgTokenize2(const char *String) {
 	register unsigned int a = 1;
 	size_t Len = min(strlen(String), sizeof(tokens.String) - 1);
 
+	memset(tokens.String, 0, sizeof(tokens.String));
 	strmcpy(tokens.String, String, sizeof(tokens.String));
-	tokens.String[sizeof(tokens.String) - 1] = '\0';
 
 	tokens.Pointers[0] = 0;
 
@@ -284,7 +284,9 @@ tokendata_t ArgTokenize2(const char *String) {
 const char **ArgToArray2(const tokendata_t& Tokens) {
 	const char **Pointers;
 	
-	Pointers = (const char **)malloc(sizeof(const char *) * 32);
+	Pointers = (const char **)malloc(sizeof(const char *) * 33);
+
+	memset(Pointers, 0, sizeof(const char *) * 33);
 
 	CHECK_ALLOC_RESULT(Pointers, malloc) {
 		return NULL;
