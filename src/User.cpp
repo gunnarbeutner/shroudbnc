@@ -1862,3 +1862,15 @@ size_t CUser::MemoryGetSize(void) {
 size_t CUser::MemoryGetLimit(void) {
 	return g_Bouncer->GetResourceLimit("memory");
 }
+
+const char *CUser::SimulateWithResult(const char *Command) {
+	static CFakeClient *FakeClient = NULL;
+
+	delete FakeClient;
+
+	FakeClient = new CFakeClient();
+
+	Simulate(Command, FakeClient);
+
+	return FakeClient->GetData();
+}

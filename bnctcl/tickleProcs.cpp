@@ -941,7 +941,7 @@ void delbncuser(const char* User) {
 
 const char *simul(const char* User, const char* Command) {
 	CUser* Context;
-	CFakeClient *FakeClient;
+	const char *TempResult;
 	static char *Result = NULL;
 
 	Context = g_Bouncer->GetUser(User);
@@ -950,13 +950,14 @@ const char *simul(const char* User, const char* Command) {
 		return NULL;
 	}
 
-	FakeClient = g_Bouncer->CreateFakeClient();
-	Context->Simulate(Command, FakeClient);
-
 	free(Result);
-	Result = strdup(FakeClient->GetData());
+	TempResult = Context->SimulateWithResult(Command);
 
-	g_Bouncer->DeleteFakeClient(FakeClient);
+	if (TempResult != NULL) {
+		Result = strdup(TempResult);
+	} else {
+		Result = NULL;
+	}
 
 	return Result;
 }

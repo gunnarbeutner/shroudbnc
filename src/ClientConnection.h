@@ -83,7 +83,7 @@ public:
 	virtual SOCKET Hijack(void);
 };
 
-#ifndef SWIG
+#ifdef SBNC
 /**
  * CFakeClient
  *

@@ -10,7 +10,7 @@ Installation
 First of all make sure that you have the following libraries installed:
 
 - openssl (if you're going to use ssl-encrypted connections; README.ssl
-           contains more details about how to enable SSL)
+           contains more details about how to use SSL)
 - tcl     (if you're going to use the tcl module, version 8.4 or later, earlier
            versions have not been tested)
 
@@ -63,7 +63,7 @@ change you make to sbnc.tcl or any other .tcl script which you have loaded:
 Usage
 -----
 
-Just connect to the bnc using your favorite IRC client. You will have to set
+Just connect to the bouncer using your favorite IRC client. You will have to set
 your username (i.e. e-mail address in most clients) to the accountname you've
 chosen for your bnc.
 

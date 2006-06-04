@@ -131,6 +131,7 @@ public:
 	virtual CConfig *GetConfig(void);
 
 	virtual void Simulate(const char *Command, CClientConnection *FakeClient = NULL);
+	virtual const char *SimulateWithResult(const char *Command);
 
 	virtual void Reconnect(void);
 

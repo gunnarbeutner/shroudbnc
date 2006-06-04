@@ -516,23 +516,11 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="users\fnords.conf"
-			>
-		</File>
-		<File
 			RelativePath="GPLHeader.txt"
 			>
 		</File>
 		<File
-			RelativePath=".\quality.txt"
-			>
-		</File>
-		<File
 			RelativePath=".\README"
-			>
-		</File>
-		<File
-			RelativePath="todo.txt"
 			>
 		</File>
 	</Files>
