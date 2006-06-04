@@ -170,6 +170,9 @@ int hijacksocket(void);
 
 void putmainlog(const char *Text);
 
+int bncgetreslimit(const char *Resource, const char *User = 0);
+void bncsetreslimit(const char *Resource, int NewLimit, const char *User = 0);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

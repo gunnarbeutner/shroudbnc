@@ -216,9 +216,10 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		int ModeType = GetOwner()->RequiresParameter(Current);
 
 		if (Current == 'b' && m_Banlist != NULL && p < pargc) {
-			/* TODO: keep track of whether the banlist is valid */
 			if (Flip) {
-				m_Banlist->SetBan(pargv[p], Source, g_CurrentTime);
+				if (IsError(m_Banlist->SetBan(pargv[p], Source, g_CurrentTime))) {
+					m_HasBans = false;
+				}
 			} else {
 				m_Banlist->UnsetBan(pargv[p]);
 			}

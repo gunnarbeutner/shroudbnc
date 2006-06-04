@@ -28,7 +28,6 @@
 #	include <shlwapi.h>
 #	include <direct.h>
 #else
-// TODO: FIX!
 typedef struct { char __addr[16]; } sockaddr_in6;
 #endif
 

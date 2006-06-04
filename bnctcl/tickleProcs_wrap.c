@@ -4140,6 +4140,110 @@ _wrap_putmainlog(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 
 static int
+_wrap_bncgetreslimit(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int result;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_2 ;
+    bool ds_use_2 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"o|o:bncgetreslimit Resource ?User? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    if (objc > 2) {
+        {
+            ds_use_2 = true;
+            arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+        }
+    }
+    {
+        try {
+            result = (int)bncgetreslimit((char const *)arg1,(char const *)arg2);
+            
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+        }
+    }
+    Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
+_wrap_bncsetreslimit(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    char *arg1 = (char *) 0 ;
+    int arg2 ;
+    char *arg3 = (char *) 0 ;
+    Tcl_DString ds_1 ;
+    bool ds_use_1 = false ;
+    Tcl_DString ds_3 ;
+    bool ds_use_3 = false ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"oi|o:bncsetreslimit Resource NewLimit ?User? ",(void *)0,&arg2,(void *)0) == TCL_ERROR) SWIG_fail;
+    {
+        ds_use_1 = true;
+        arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+    }
+    if (objc > 3) {
+        {
+            ds_use_3 = true;
+            arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
+        }
+    }
+    {
+        try {
+            bncsetreslimit((char const *)arg1,arg2,(char const *)arg3);
+            
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+        }
+    }
+    
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    return TCL_OK;
+    fail:
+    {
+        if (ds_use_1)
+        Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_3)
+        Tcl_DStringFree(&ds_3);
+    }
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -5079,6 +5183,8 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "getzoneinfo", (swig_wrapper_func) _wrap_getzoneinfo, NULL},
     { SWIG_prefix "hijacksocket", (swig_wrapper_func) _wrap_hijacksocket, NULL},
     { SWIG_prefix "putmainlog", (swig_wrapper_func) _wrap_putmainlog, NULL},
+    { SWIG_prefix "bncgetreslimit", (swig_wrapper_func) _wrap_bncgetreslimit, NULL},
+    { SWIG_prefix "bncsetreslimit", (swig_wrapper_func) _wrap_bncsetreslimit, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

@@ -245,8 +245,8 @@ public:
 	virtual CClientListener *GetMainSSLListener(void) const;
 	virtual CClientListener *GetMainSSLListenerV6(void) const;
 
-	virtual unsigned int GetResourceLimit(const char *Resource);
-	virtual void SetResourceLimit(const char *Resource, unsigned int Limit);
+	virtual unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
+	virtual void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
 
 	virtual void SetOwnerHelper(CUser *User, size_t Bytes, bool Add);
 };

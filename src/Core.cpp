@@ -43,6 +43,7 @@ static struct reslimit_s {
 		{ "bans", 100 },
 		{ "keys", 50 },
 		{ "memory", 10 * 1024 * 1024 },
+		{ "channels", 50 },
 		{ NULL, 0 }
 	};
 
@@ -540,8 +541,10 @@ void CCore::StartMainLoop(void) {
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
 
-			ares_fds(Channel, &FDRead, &FDWrite);
-			tvp = ares_timeout(Channel, NULL, &tv);
+			if (Channel != NULL) {
+				ares_fds(Channel, &FDRead, &FDWrite);
+				tvp = ares_timeout(Channel, NULL, &tv);
+			}
 		}
 
 		time(&Last);
@@ -2670,21 +2673,35 @@ CClientListener *CCore::GetMainSSLListenerV6(void) const {
 	return m_SSLListenerV6;
 }
 
-unsigned int CCore::GetResourceLimit(const char *Resource) {
+unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 	unsigned int i = 0;
 
-	if (Resource == NULL) {
-		return 0;
+	if (Resource == NULL || (User != NULL && User->IsAdmin())) {
+		return UINT_MAX;
 	}
 
 	while (g_ResourceLimits[i].Resource != NULL) {
 		if (strcasecmp(g_ResourceLimits[i].Resource, Resource) == 0) {
 			char *Name;
 
+			if (User != NULL) {
+				asprintf(&Name, "user.max%s", Resource);
+
+				CHECK_ALLOC_RESULT(Name, asprintf) {} else {
+					CResult<int> UserLimit = User->GetConfig()->ReadInteger(Name);
+
+					if (!IsError(UserLimit)) {
+						return UserLimit;
+					}
+
+					free(Name);
+				} CHECK_ALLOC_RESULT_END;
+			}
+
 			asprintf(&Name, "system.max%s", Resource);
 
 			CHECK_ALLOC_RESULT(Name, asprintf) {
-				return 0;
+				return g_ResourceLimits[i].DefaultLimit;
 			} CHECK_ALLOC_RESULT_END;
 
 			int Value = m_Config->ReadInteger(Name);
@@ -2706,16 +2723,23 @@ unsigned int CCore::GetResourceLimit(const char *Resource) {
 	return 0;
 }
 
-void CCore::SetResourceLimit(const char *Resource, unsigned int Limit) {
+void CCore::SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User) {
 	char *Name;
+	CConfig *Config;
 
-	asprintf(&Name, "system.max%s", Resource);
+	if (User != NULL) {
+		asprintf(&Name, "user.max%s", Resource);
+		Config = User->GetConfig();
+	} else {
+		asprintf(&Name, "system.max%s", Resource);
+		Config = GetConfig();
+	}
 
 	CHECK_ALLOC_RESULT(Name, asprintf) {
 		return;
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Config->WriteInteger(Name, Limit);
+	Config->WriteInteger(Name, Limit);
 }
 
 void CCore::SetOwnerHelper(CUser *User, size_t Bytes, bool Add) {

@@ -2105,3 +2105,35 @@ const char *getusermodes(void) {
 
 	return IRC->GetUsermodes();
 }
+
+int bncgetreslimit(const char *Resource, const char *User) {
+	CUser *UserObj;
+
+	if (User != NULL) {
+		UserObj = g_Bouncer->GetUser(User);
+
+		if (UserObj == NULL) {
+			throw "There is no such user.";
+		}
+	} else {
+		UserObj = NULL;
+	}
+
+	return g_Bouncer->GetResourceLimit(Resource, UserObj);
+}
+
+void bncsetreslimit(const char *Resource, int NewLimit, const char *User) {
+	CUser *UserObj;
+
+	if (User != NULL) {
+		UserObj = g_Bouncer->GetUser(User);
+
+		if (UserObj == NULL) {
+			throw "There is no such user.";
+		}
+	} else {
+		UserObj = NULL;
+	}
+
+	g_Bouncer->SetResourceLimit(Resource, NewLimit, UserObj);
+}

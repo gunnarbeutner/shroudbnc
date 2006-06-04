@@ -305,3 +305,13 @@ putmainlog <Text>
 
   Description: Logs something in the main log.
   Returns: Nothing.
+
+bncgetreslimit <Resource> [<User>]
+
+  Description: Determines the limit for a resource. If no user is specified the global limit is returned.
+  Returns: An integer.
+
+bncsetreslimit <Resource> <NewLimit> [<User>]
+
+  Description: Sets a new limit for a resource. If no user is specified the global limit is set.
+  Returns: Nothing.

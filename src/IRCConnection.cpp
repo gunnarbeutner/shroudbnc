@@ -873,7 +873,14 @@ const char *CIRCConnection::GetCurrentNick(void) const {
  */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CUser *User;
-	CChannel *ChannelObj = unew CChannel(Channel, this);
+	CChannel *ChannelObj;
+	bool LimitExceeded = false;
+
+	if (g_Bouncer->GetResourceLimit("channels") >= m_Channels->GetLength()) {
+		LimitExceeded = true;
+	} else {
+		ChannelObj = unew CChannel(Channel, this);
+	}
 
 	CHECK_ALLOC_RESULT(ChannelObj, unew) {
 		WriteLine("PART %s", Channel);
@@ -881,7 +888,11 @@ CChannel *CIRCConnection::AddChannel(const char *Channel) {
 		User = GetUser();
 
 		if (User->MemoryIsLimitExceeded()) {
-			User->Log("Memory limit exceeded. Removing channel (%s).", Channel);
+			LimitExceeded = true;
+		}
+
+		if (LimitExceeded) {
+			User->Log("Memory/Channel limit exceeded. Removing channel (%s).", Channel);
 		}
 	} CHECK_ALLOC_RESULT_END;
 
