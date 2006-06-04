@@ -876,8 +876,9 @@ CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CChannel *ChannelObj;
 	bool LimitExceeded = false;
 
-	if (g_Bouncer->GetResourceLimit("channels") >= m_Channels->GetLength()) {
+	if (g_Bouncer->GetResourceLimit("channels") < m_Channels->GetLength()) {
 		LimitExceeded = true;
+		ChannelObj = NULL;
 	} else {
 		ChannelObj = unew CChannel(Channel, this);
 	}

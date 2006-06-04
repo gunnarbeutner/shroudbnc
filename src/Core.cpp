@@ -40,10 +40,10 @@ static struct reslimit_s {
 	const char *Resource;
 	unsigned int DefaultLimit;
 } g_ResourceLimits[] = {
-		{ "bans", 100 },
-		{ "keys", 50 },
 		{ "memory", 10 * 1024 * 1024 },
 		{ "channels", 50 },
+		{ "bans", 100 },
+		{ "keys", 50 },
 		{ NULL, 0 }
 	};
 
