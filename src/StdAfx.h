@@ -42,6 +42,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <typeinfo>
+#include <limits.h>
 
 #ifdef _WIN32
 #	include "win32.h"
