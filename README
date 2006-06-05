@@ -81,6 +81,12 @@ TCL
 The tcl module is automatically built and installed if the configure script
 was able to find the appropriate tcl libraries and headers.
 
+If the configure script was unable to find the TCL libraries/headers and you
+are sure that they are installed you might use the --with-tcl parameter to
+specify the location of the tclConfig.sh file manually; e.g.:
+
+./configure --with-tcl=/usr/local/ActiveTcl/tcl8.4
+
 Updating shroudBNC
 ------------------
 
@@ -115,5 +121,5 @@ gb@prco23.org
 In case you encounter problems while compiling and/or using shroudBNC you can
 contact us on IRC:
 
-server: irc.quakenet.org / 6667
-channel: #sbnc
+Server: irc.quakenet.org / 6667
+Channel: #sbnc

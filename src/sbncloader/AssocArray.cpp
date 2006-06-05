@@ -1,4 +1,3 @@
-#define NOADNSLIB
 #include "../StdAfx.h"
 
 CAssocArray::CAssocArray(void) {
@@ -27,6 +26,11 @@ void CAssocArray::AddString(const char *Name, const char *Value) {
 
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
+	if (m_Values == NULL) {
+		printf("realloc() failed in AddString().\n");
+		exit(EXIT_FAILURE);
+	}
+
 	m_Values[m_Count - 1].Name = strdup(Name);
 	m_Values[m_Count - 1].Type = Assoc_String;
 	m_Values[m_Count - 1].ValueString = strdup(Value);
@@ -35,6 +39,11 @@ void CAssocArray::AddString(const char *Name, const char *Value) {
 void CAssocArray::AddInteger(const char *Name, int Value) {
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
 
+	if (m_Values == NULL) {
+		printf("realloc() failed in AddInteger().\n");
+		exit(EXIT_FAILURE);
+	}
+
 	m_Values[m_Count - 1].Name = strdup(Name);
 	m_Values[m_Count - 1].Type = Assoc_Integer;
 	m_Values[m_Count - 1].ValueInt = Value;
@@ -42,6 +51,11 @@ void CAssocArray::AddInteger(const char *Name, int Value) {
 
 void CAssocArray::AddBox(const char *Name, CAssocArray *Value) {
 	m_Values = (assoc_t *)realloc(m_Values, sizeof(assoc_t) * ++m_Count);
+
+	if (m_Values == NULL) {
+		printf("realloc() failed in AddBox().\n");
+		exit(EXIT_FAILURE);
+	}
 
 	m_Values[m_Count - 1].Name = strdup(Name);
 	m_Values[m_Count - 1].Type = Assoc_Box;

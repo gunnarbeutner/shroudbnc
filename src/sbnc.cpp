@@ -38,7 +38,7 @@ const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	CConfig *Config;
 
-	if (Parameters->Version < 201) {
+	if (Parameters->Version != 201) {
 		printf("Incompatible loader version. Expected version 201, got %d.\n", Parameters->Version);
 
 		return 1;
@@ -46,7 +46,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	srand((unsigned int)time(NULL));
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
 	SetUnhandledExceptionFilter(GuardPageHandler);
 
 	SymInitialize(GetCurrentProcess(), NULL, TRUE);
