@@ -1547,6 +1547,72 @@ proc finduser {args} {
 
 }
 
+proc userlist {args} {
+
+	if {[llength [split $args]] > 2} {
+		return -code error "wrong # args: should be \"userlist ?flags ?channel??\""
+	}
+	
+	set flags [lindex [split $args] 0]
+	set glb [lindex [split $flags |&] 0]
+	set chan [lindex [split $flags |&] 1]
+	set channel [lindex [split $args] 1]
+	
+	if {$channel != "" && ![validchan $channel]} {
+		return -code error "Invalid channel: $channel"
+	}
+	
+	namespace eval [getns] {
+		if {![info exists userList]} {
+			return
+		}
+	}
+	
+	upvar [getns]::userList ul
+	
+	if {[llength [split $args]] == 0} {
+		return $ul
+	} else {
+	
+	    foreach user $ul {
+            if {$glb != "" && [matchattr $user $glb]} {
+                set go($user) 1
+            }
+            if {$channel != ""} {
+                if {$chan != "" && [matchattr $user |$chan $channel]} {
+                    set co($user) 1
+                }
+            } else {
+                foreach schan [channels] {
+                    if {[matchattr $user |$chan $schan]} {
+                        set co($user) 1
+                    }
+                }
+            }
+            
+            if {[string first "&" $flags] != -1} {
+                if {(($glb != "" && $chan != "") && ([info exists go($user)] && [info exists co($user)])) || ($glb == "" && [info exists co($user)]) || ($chan == "" && [info exists go($user)])} {
+                    lappend rlist $user
+                }
+            } elseif {[string first "|" $flags] != -1} {
+                if {(($glb != "" && $chan != "") && ([info exists go($user)] || [info exists co($user)])) || ($glb == "" && [info exists co($user)]) || ($chan == "" && [info exists go($user)])} {
+                    lappend rlist $user
+                }
+            } else {
+                if {[info exists go($user)]} {
+                    lappend rlist $user
+                }
+            }
+        }
+        
+        if {[info exists rlist]} {
+            return $rlist
+        } else {
+            return
+        }
+	}
+}
+
 internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
 

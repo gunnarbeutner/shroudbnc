@@ -22,6 +22,10 @@
 %template(CZoneObjectCClientConnection) CZoneObject<class CClientConnection, 16>;
 #endif
 
+#ifndef SWIG
+bool ClientAuthTimer(time_t Now, void *Client);
+#endif
+
 /**
  * CClientConnection
  *
