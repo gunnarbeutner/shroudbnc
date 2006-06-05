@@ -341,13 +341,14 @@ int main(int argc, char **argv) {
 	HMODULE hMod;
 	char *ThisMod;
 	char ExeName[MAX_PATH];
+	char TclLibrary[512];
 
 	g_Arg0 = argv[0];
 
 #ifdef _WIN32
-#ifndef _DEBUG
-	SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
-#endif
+	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
+		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
+	}
 
 	SetCurrentDirectory(sbncBuildPath("."));
 	SetConsoleCtrlHandler(sigint_handler, TRUE);
