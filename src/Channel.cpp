@@ -201,7 +201,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				SetModesValid(false);
 
 				// update modes immediatelly if we don't have a client
-				if (GetOwner()->GetOwner()->GetClientConnection() == NULL) {
+				if (GetUser()->GetClientConnection() == NULL) {
 					GetOwner()->WriteLine("MODE %s", m_Name);
 				}
 			}

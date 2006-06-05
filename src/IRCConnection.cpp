@@ -326,7 +326,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			AddChannel(argv[2]);
 
 			/* GetOwner() can be NULL if AddChannel failed */
-			if (GetOwner() != NULL && Client != NULL) {
+			if (GetOwner() != NULL && Client == NULL) {
 				WriteLine("MODE %s", argv[2]);
 			}
 		}

@@ -378,7 +378,7 @@ public:
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char *));
 
-			if (Keys == NULL) {
+			if (Count > 0 && Keys == NULL) {
 				return NULL;
 			}
 
