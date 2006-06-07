@@ -693,24 +693,23 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			int nickc = ArgCount(nicks);
 
 			for (int i = 0; i < nickc; i++) {
-				const char *n = nickv[i];
+				const char *Nick = nickv[i];
 
-				while (IsNickPrefix(*n)) {
-					++n;
+				while (IsNickPrefix(*Nick)) {
+					Nick++;
 				}
 
 				char *Modes = NULL;
 
-				if (nickv[i] != n) {
-					Modes = (char *)malloc(n - nickv[i] + 1);
+				if (nickv[i] != Nick) {
+					Modes = (char *)malloc(Nick - nickv[i] + 1);
 
 					CHECK_ALLOC_RESULT(Modes, malloc) {} else {
-						strmcpy(Modes, nickv[i], n - nickv[i]);
-						Modes[n - nickv[i]] = '\0';
+						strmcpy(Modes, nickv[i], Nick - nickv[i] + 1);
 					} CHECK_ALLOC_RESULT_END;
 				}
 
-				Channel->AddUser(n, Modes);
+				Channel->AddUser(Nick, Modes);
 
 				free(Modes);
 			}

@@ -87,9 +87,11 @@ void CTclClientSocket::Destroy(void) {
 		Tcl_DecrRefCount(objv[2]);
 		Tcl_DecrRefCount(objv[1]);
 		Tcl_DecrRefCount(objv[0]);
+
+		m_Control = NULL;
 	}
 
-	delete this;
+	m_Wrap->Kill("");
 }
 
 bool CTclClientSocket::Read(bool DontProcess) {

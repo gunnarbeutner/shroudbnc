@@ -336,6 +336,7 @@ void CUser::Attach(CClientConnection *Client) {
 	if (m_IRC == NULL) {
 		if (GetServer() == NULL) {
 			Privmsg("You haven't set an IRC server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+			Privmsg("Use /sbnc help to see a list of available commands.");
 		} else if (m_Config->ReadInteger("user.quitted") == 2) {
 			Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
 		}
