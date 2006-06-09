@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#include "StdAfx.h"
+
 #if defined(_WIN32) && defined(USESSL)
-extern "C" {
 #include <openssl/applink.c>
-}
 #endif

@@ -317,6 +317,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sslhelper.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Timer.cpp"
 				>
 			</File>

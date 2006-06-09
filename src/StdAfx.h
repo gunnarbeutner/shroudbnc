@@ -142,6 +142,7 @@ void mmark(void *Block);
 
 #include "sbncloader/AssocArray.h"
 
+#ifdef __cplusplus
 #include "sbnc.h"
 #include "Result.h"
 #include "Object.h"
@@ -173,3 +174,4 @@ void mmark(void *Block);
 #include "FloodControl.h"
 #include "Listener.h"
 #include "Persistable.h"
+#endif
