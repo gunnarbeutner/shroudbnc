@@ -70,7 +70,7 @@ struct pollfd {
 #define POLLHUP 020
 #define POLLNVAL 040
 
-int poll(pollfd *fds, unsigned long nfds, int timo);
+int poll(struct pollfd *fds, unsigned long nfds, int timo);
 #endif
 
 #ifndef _MSC_VER
