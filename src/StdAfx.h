@@ -41,8 +41,11 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <ctype.h>
-#include <typeinfo>
 #include <limits.h>
+
+#ifdef __cplusplus
+#	include <typeinfo>
+#endif
 
 #ifdef _WIN32
 #	include "win32.h"
@@ -140,38 +143,38 @@ void mmark(void *Block);
 #	define DebugBreak()
 #endif
 
-#include "sbncloader/AssocArray.h"
-
 #ifdef __cplusplus
-#include "sbnc.h"
-#include "Result.h"
-#include "Object.h"
-#include "Zone.h"
-#include "Vector.h"
-#include "Hashtable.h"
-#include "utility.h"
-#include "SocketEvents.h"
-#include "DnsEvents.h"
-#include "Timer.h"
-#include "FIFOBuffer.h"
-#include "Queue.h"
-#include "Connection.h"
-#include "Core.h"
-#include "ClientConnection.h"
-#include "IRCConnection.h"
-#include "User.h"
-#include "Log.h"
-#include "Config.h"
-#include "ModuleFar.h"
-#include "Module.h"
-#include "Banlist.h"
-#include "Channel.h"
-#include "Nick.h"
-#include "Keyring.h"
-#include "IdentSupport.h"
-#include "Match.h"
-#include "TrafficStats.h"
-#include "FloodControl.h"
-#include "Listener.h"
-#include "Persistable.h"
+#	include "sbncloader/AssocArray.h"
+
+#	include "sbnc.h"
+#	include "Result.h"
+#	include "Object.h"
+#	include "Zone.h"
+#	include "Vector.h"
+#	include "Hashtable.h"
+#	include "utility.h"
+#	include "SocketEvents.h"
+#	include "DnsEvents.h"
+#	include "Timer.h"
+#	include "FIFOBuffer.h"
+#	include "Queue.h"
+#	include "Connection.h"
+#	include "Core.h"
+#	include "ClientConnection.h"
+#	include "IRCConnection.h"
+#	include "User.h"
+#	include "Log.h"
+#	include "Config.h"
+#	include "ModuleFar.h"
+#	include "Module.h"
+#	include "Banlist.h"
+#	include "Channel.h"
+#	include "Nick.h"
+#	include "Keyring.h"
+#	include "IdentSupport.h"
+#	include "Match.h"
+#	include "TrafficStats.h"
+#	include "FloodControl.h"
+#	include "Listener.h"
+#	include "Persistable.h"
 #endif
