@@ -24,6 +24,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Queue.cpp \
 	sbnc.cpp \
 	snprintf.c \
+	sslhelper.c \
 	Timer.cpp \
 	TrafficStats.cpp \
 	utility.cpp \

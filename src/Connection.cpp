@@ -19,12 +19,6 @@
 
 #include "StdAfx.h"
 
-#if defined(_WIN32) && defined(USESSL)
-extern "C" {
-#include <openssl/applink.c>
-}
-#endif
-
 #define BLOCKSIZE 4096
 
 IMPL_DNSEVENTPROXY(CConnection, AsyncDnsFinished);
