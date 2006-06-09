@@ -56,6 +56,8 @@ AC_CHECK_LIB(iphlpapi, main)
 AC_CHECK_LIB(ws2_32, main)
 AC_CHECK_LIB(shlwapi, main)
 AC_CHECK_LIB(advapi32, main)
+AC_CHECK_LIB(ssl, SSL_new)
+AC_CHECK_LIB(eay32, X509_NAME_oneline)
 
 sinclude(./tcl.m4)
 sinclude(./src/libltdl/acinclude.m4)
