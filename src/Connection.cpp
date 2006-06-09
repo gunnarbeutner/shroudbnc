@@ -209,15 +209,17 @@ void CConnection::InitSocket(void) {
 			m_SSL = SSL_new(g_Bouncer->GetSSLContext());
 		}
 
-		SSL_set_fd(m_SSL, m_Socket);
+		if (m_SSL != NULL) {
+			SSL_set_fd(m_SSL, m_Socket);
 
-		if (GetRole() == Role_Client) {
-			SSL_set_connect_state(m_SSL);
-		} else {
-			SSL_set_accept_state(m_SSL);
+			if (GetRole() == Role_Client) {
+				SSL_set_connect_state(m_SSL);
+			} else {
+				SSL_set_accept_state(m_SSL);
+			}
+
+			SSL_set_ex_data(m_SSL, g_Bouncer->GetSSLCustomIndex(), this);
 		}
-
-		SSL_set_ex_data(m_SSL, g_Bouncer->GetSSLCustomIndex(), this);
 	} else {
 		m_SSL = NULL;
 	}

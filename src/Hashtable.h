@@ -51,15 +51,15 @@ void DestroyObject(Type *Object) {
 }
 
 /**
- * CmpString
+ * CmpStringCase
  *
  * Compares two strings. This function is intended to be used with qsort().
  *
  * @param pA the first string
  * @param pB the second string
  */
-inline int CmpString(const void *pA, const void *pB) {
-	return strcmp(*(const char **)pA, *(const char **)pB);
+inline int CmpStringCase(const void *pA, const void *pB) {
+	return strcasecmp(*(const char **)pA, *(const char **)pB);
 }
 
 /**
@@ -391,7 +391,7 @@ public:
 			Count += m_Items[i].Count;
 		}
 
-		qsort(Keys, Count, sizeof(char *), CmpString);
+		qsort(Keys, Count, sizeof(char *), CmpStringCase);
 
 		Keys = (char **)realloc(Keys, ++Count * sizeof(char *));
 

@@ -311,7 +311,8 @@ void CCore::StartMainLoop(void) {
 
 	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, BuildPath("sbnc.key"), SSL_FILETYPE_PEM)) {
 		if (SSLPort != 0) {
-			Log("Could not load private key (sbnc.key)."); ERR_print_errors_fp(stdout);
+			Log("Could not load private key (sbnc.key).");
+			ERR_print_errors_fp(stdout);
 			return;
 		} else {
 			SSL_CTX_free(m_SSLContext);
@@ -323,7 +324,8 @@ void CCore::StartMainLoop(void) {
 
 	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPath("sbnc.crt"))) {
 		if (SSLPort != 0) {
-			Log("Could not load public key (sbnc.crt)."); ERR_print_errors_fp(stdout);
+			Log("Could not load public key (sbnc.crt).");
+			ERR_print_errors_fp(stdout);
 			return;
 		} else {
 			SSL_CTX_free(m_SSLContext);
@@ -928,6 +930,50 @@ void CCore::Log(const char *Format, ...) {
 		if (User->GetSystemNotices()) {
 			User->Privmsg(Out);
 		}
+	}
+
+	free(Out);
+}
+
+/**
+ * LogUser
+ *
+ * Logs something in the bouncer's main log and also sends it to a specific user.
+ *
+ * @param User the user
+ * @param Format a format string
+ * @param ... additional parameters which are used by the format string
+ */
+void CCore::LogUser(CUser *User, const char *Format, ...) {
+	char *Out;
+	int Ret;
+	va_list marker;
+	bool DoneUser = false;
+
+	va_start(marker, Format);
+	Ret = vasprintf(&Out, Format, marker);
+	va_end(marker);
+
+	CHECK_ALLOC_RESULT(Out, vasprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	m_Log->WriteLine(NULL, "%s", Out);
+
+	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
+		CUser *ThisUser = m_AdminUsers[i];
+
+		if (ThisUser->GetSystemNotices()) {
+			ThisUser->Privmsg(Out);
+
+			if (ThisUser == User) {
+				DoneUser = true;
+			}
+		}
+	}
+
+	if (!DoneUser) {
+		User->Privmsg(Out);
 	}
 
 	free(Out);

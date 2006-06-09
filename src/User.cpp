@@ -522,17 +522,15 @@ void CUser::Reconnect(void) {
 	Port = GetPort();
 
 	if (Server == NULL || Port == 0) {
-		ScheduleReconnect(120);
+		ScheduleReconnect(30);
 
 		return;
 	}
 
 	if (GetIPv6()) {
-		g_Bouncer->Log("Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
-		Log("Trying to reconnect to [%s]:%d", Server, Port);
+		g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
 	} else {
-		g_Bouncer->Log("Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
-		Log("Trying to reconnect to %s:%d", Server, Port);
+		g_Bouncer->LogUser(this, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
 	}
 
 	m_LastReconnect = g_CurrentTime;
@@ -555,17 +553,17 @@ void CUser::Reconnect(void) {
 
 	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
-	if (Connection == NULL) {
-		g_Bouncer->Log("Internal error: Could not create IRC connection object for %s", GetUsername());
-	} else {
-		SetIRCConnection(Connection);
+	CHECK_ALLOC_RESULT(Connection, new) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
 
-		if (GetClientConnection() != NULL) {
-			GetClientConnection()->SetPreviousNick(GetNick());
-		}
+	SetIRCConnection(Connection);
 
-		g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
+	if (GetClientConnection() != NULL) {
+		GetClientConnection()->SetPreviousNick(GetNick());
 	}
+
+	g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
 }
 
 /**
@@ -762,13 +760,9 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 	if (IRC == NULL && !WasNull) {
 		if (OldIRC->IsConnected()) {
-			Log("You were disconnected from the IRC server.");
-
-			g_Bouncer->Log("%s was disconnected from the server.", GetUsername());
+			g_Bouncer->LogUser(this, "%s was disconnected from the server.", GetUsername());
 		} else {
-			Log("Could not connect to a server.");
-
-			g_Bouncer->Log("An attempt of connecting to a server failed for user %s", GetUsername());
+			g_Bouncer->LogUser(this, "An attempt of connecting to a server failed for user %s", GetUsername());
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {

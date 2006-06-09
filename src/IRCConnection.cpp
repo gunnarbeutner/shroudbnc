@@ -524,23 +524,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			GetOwner()->ScheduleReconnect(5);
 		}
 
-		char *Out;
-
-		asprintf(&Out, "Error received for %s: %s", GetOwner()->GetUsername(), argv[1]);
-
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-
-			return false;
-		}
-
-		g_Bouncer->Log("%s", Out);
-		GetOwner()->Log("%s", Out);
-
-		free(Out);
+		g_Bouncer->LogUser(GetUser(), "Error received for %s: %s", GetOwner()->GetUsername(), argv[1]);
 	} else if (argc > 3 && iRaw == 465) {
-		g_Bouncer->Log("G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
-		GetOwner()->Log("G/K-line reason: %s", argv[3]);
+		g_Bouncer->LogUser(GetUser(), "G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
 		ufree(m_ServerVersion);
 		m_ServerVersion = ustrdup(argv[3]);

@@ -159,6 +159,7 @@ public:
 	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET) const;
 
 	virtual void Log(const char *Format, ...);
+	virtual void LogUser(CUser *User, const char *Format, ...);
 	virtual CLog *GetLog(void);
 
 	virtual void Shutdown(void);

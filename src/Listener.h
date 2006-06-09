@@ -233,8 +233,6 @@ public:
 
 		// destruction is controlled by the main loop
 		ClientObject = new CClientConnection(Client, m_SSL);
-
-		//g_Bouncer->Log("Client connected from %s", IpToString(ClientObject->GetRemoteAddress()));
 	}
 
 	/**

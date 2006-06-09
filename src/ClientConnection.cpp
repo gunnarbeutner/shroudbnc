@@ -1754,12 +1754,16 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			} else if (strcasecmp(argv[1], "version") == 0 && argc == 2) {
 				CIRCConnection *IRC = GetOwner()->GetIRCConnection();
 
-				if (IRC) {
+				if (IRC != NULL) {
 					const char *ServerVersion = IRC->GetServerVersion();
 					const char *ServerFeat = IRC->GetServerFeat();
 
 					if (ServerVersion != NULL && ServerFeat != NULL) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
+					} else {
+						IRC->WriteLine("VERSION");
+
+						return false;
 					}
 
 					char *Feats = (char *)malloc(1);
