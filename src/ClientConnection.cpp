@@ -943,6 +943,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		CIRCConnection *IRC = User->GetIRCConnection();
 
+		User->MarkQuitted(true);
+
 		if (IRC == NULL) {
 			if (User == GetOwner()) {
 				SENDUSER("You are not connected to a server.");
@@ -952,8 +954,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 			return false;
 		}
-
-		User->MarkQuitted(true);
 
 		IRC->Kill("Requested.");
 
