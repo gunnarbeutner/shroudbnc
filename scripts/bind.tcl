@@ -20,6 +20,8 @@ internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect
 internalbind svrlogon sbnc:svrlogon
+internalbind prerehash sbnc:prerehash
+internalbind postrehash sbnc:postrehash
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -39,6 +41,14 @@ proc sbnc:svrdisconnect {client} {
 
 proc sbnc:svrlogon {client} {
 	callevent "init-server"
+}
+
+proc sbnc:prerehash {} {
+	callevent "prerehash"
+}
+
+proc sbnc:postrehash {} {
+	callevent "postrehash"
 }
 
 proc sbnc:bindpulse {} {

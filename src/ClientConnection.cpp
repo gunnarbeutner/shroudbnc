@@ -1153,7 +1153,12 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "listeners") == 0 && GetOwner()->IsAdmin()) {
-		asprintf(&Out, "Main listener: port %d", g_Bouncer->GetMainListener()->GetPort());
+		if (g_Bouncer->GetMainListener() != NULL) {
+			asprintf(&Out, "Main listener: port %d", g_Bouncer->GetMainListener()->GetPort());
+		} else {
+			Out = strdup("Main listener: none");
+		}
+
 		CHECK_ALLOC_RESULT(&Out, asprintf) {} else {
 			SENDUSER(Out);
 			free(Out);
@@ -1163,8 +1168,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		if (g_Bouncer->GetMainSSLListener() != NULL) {
 			asprintf(&Out, "Main SSL listener: port %d", g_Bouncer->GetMainSSLListener()->GetPort());
 		} else {
-			asprintf(&Out, "Main SSL listener: none");
+			Out = strdup("Main SSL listener: none");
 		}
+
 		CHECK_ALLOC_RESULT(&Out, asprintf) {} else {
 			SENDUSER(Out);
 			free(Out);

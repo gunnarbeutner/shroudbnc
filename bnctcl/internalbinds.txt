@@ -8,7 +8,7 @@ pre		{}
 post		{}
 attach		{client}
 detach		{client}
-modec		{client 
+modec		{...}
 unload		{}
 svrconnect	{client}
 svrdisconnect	{client}
@@ -18,3 +18,5 @@ usrcreate	{client}
 usrdelete	{client}
 command		{client parameters}
 settag		{params}
+prerehash	{}
+postrehash	{}

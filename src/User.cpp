@@ -522,7 +522,7 @@ void CUser::Reconnect(void) {
 	Port = GetPort();
 
 	if (Server == NULL || Port == 0) {
-		ScheduleReconnect(30);
+		ScheduleReconnect(60);
 
 		return;
 	}

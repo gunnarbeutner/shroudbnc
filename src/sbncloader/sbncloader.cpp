@@ -359,7 +359,7 @@ int main(int argc, char **argv) {
 
 	printf("shroudBNC loader\n");
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(NOSERVICE)
 	if (argc > 1) {
 		if (strcasecmp(argv[1], "--install") == 0) {
 			GetModuleFileName(NULL, ExeName, sizeof(ExeName));

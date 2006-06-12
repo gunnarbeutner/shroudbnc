@@ -131,7 +131,7 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_HasSSL = SSL;
 	m_SSL = NULL;
 
-	if (GetRole() == Role_Client && g_Bouncer->GetSSLContext() == NULL && SSL) {
+	if (GetRole() == Role_Server && g_Bouncer->GetSSLContext() == NULL && SSL) {
 		m_HasSSL = false;
 
 		LOGERROR("No SSL server certificate available. Falling back to"

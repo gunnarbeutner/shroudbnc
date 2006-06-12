@@ -158,7 +158,7 @@ typedef struct {
 #endif
 } mblock;
 
-#define BLOCKMARKER 0xACAD3326
+#define BLOCKMARKER 0xACAD3327
 
 void *mmalloc(size_t Size, CUser *Manager);
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager);

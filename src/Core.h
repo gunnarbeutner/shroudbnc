@@ -94,7 +94,7 @@ class CCore {
 	bool m_LoadingModules; /**< are we currently loading modules? */
 	bool m_LoadingListeners; /**< are we currently loading listeners */
 
-	CVector<char *>m_Args; /**< program arguments */
+	CVector<char *> m_Args; /**< program arguments */
 
 	CVector<CDnsQuery *> m_DnsQueries; /**< currently active dns queries */
 

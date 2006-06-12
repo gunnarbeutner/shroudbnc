@@ -37,7 +37,9 @@ enum binding_type_e {
 	Type_UsrDelete,
 	Type_Command,
 	Type_SetTag,
-	Type_SetUserTag
+	Type_SetUserTag,
+	Type_PreRehash,
+	Type_PostRehash
 };
 
 typedef struct binding_s {

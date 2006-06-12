@@ -214,6 +214,10 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 		Bind->type = Type_SetTag;
 	else if (strcasecmp(type, "setusertag") == 0)
 		Bind->type = Type_SetUserTag;
+	else if (strcasecmp(type, "prerehash") == 0)
+		Bind->type = Type_PreRehash;
+	else if (strcasecmp(type, "postrehash") == 0)
+		Bind->type = Type_PostRehash;
 	else {
 		Bind->type = Type_Invalid;
 
@@ -273,6 +277,10 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 		bindtype = Type_SetTag;
 	else if (strcasecmp(type, "setusertag") == 0)
 		bindtype = Type_SetUserTag;
+	else if (strcasecmp(type, "prerehash") == 0)
+		bindtype = Type_PreRehash;
+	else if (strcasecmp(type, "postrehash") == 0)
+		bindtype = Type_PostRehash;
 	else
 		return 0;
 

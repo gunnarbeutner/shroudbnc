@@ -212,14 +212,20 @@ class CTclSupport : public CModuleImplementation {
 
 		g_CurrentClient = Client;
 
-		if (strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
+		g_Ret = true;
+
+		CallBinds(Type_Command, Client->GetOwner()->GetUsername(), argc, argv);
+
+		if (g_Ret && strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
 			commandlist_t *Commands = Client->GetCommandList();
 			Utils = g_Bouncer->GetUtilities();
 
 			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: tcl command\nExecutes the specified tcl command.");
+
+			g_Ret = false;
 		}
 
-		if (strcasecmp(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
+		if (g_Ret && strcasecmp(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 			if (argc <= 1) {
 				if (NoticeUser)
 					User->RealNotice("Syntax: tcl :command");
@@ -280,12 +286,8 @@ class CTclSupport : public CModuleImplementation {
 						User->Privmsg("<no error>");
 			}
 
-			return true;
+			g_Ret = false;
 		}
-
-		g_Ret = true;
-
-		CallBinds(Type_Command, Client->GetOwner()->GetUsername(), argc, argv);
 
 		return !g_Ret;
 	}
@@ -307,7 +309,9 @@ class CTclSupport : public CModuleImplementation {
 	}
 public:
 	void RehashInterpreter(void) {
+		CallBinds(Type_PreRehash, NULL, 0, NULL);
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
+		CallBinds(Type_PostRehash, NULL, 0, NULL);
 	}
 };
 
