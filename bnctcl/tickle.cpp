@@ -93,7 +93,7 @@ class CTclSupport : public CModuleImplementation {
 	}
 
 	void Init(CCore* Root) {
-		const char **argv;
+		const char * const*argv;
 
 		CModuleImplementation::Init(Root);
 
