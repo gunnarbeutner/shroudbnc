@@ -93,6 +93,8 @@ class CTclSupport : public CModuleImplementation {
 	}
 
 	void Init(CCore* Root) {
+		const char **argv;
+
 		CModuleImplementation::Init(Root);
 
 		g_Bouncer = Root;
@@ -103,7 +105,9 @@ class CTclSupport : public CModuleImplementation {
 		g_TclListeners = new CHashtable<CTclSocket*, false, 5>;
 		g_TclClientSockets = new CHashtable<CTclClientSocket*, false, 5>;
 
-		Tcl_FindExecutable(Root->GetArgV()[0]);
+		argv = GetCore()->GetArgV();
+
+		Tcl_FindExecutable(argv[0]);
 
 		Tcl_SetSystemEncoding(NULL, "ISO8859-1");
 
