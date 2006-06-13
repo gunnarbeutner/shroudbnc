@@ -1761,15 +1761,44 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
  * Called when an error occurred for the connection.
  */
 void CIRCConnection::Error(void) {
+	int ErrorValue;
+	socklen_t ErrorValueLength = sizeof(ErrorValue);
+#ifdef _WIN32
+	char *ErrorMsg = NULL;
+#else
+	char ErrorMsg[512];
+#endif
+
+	if (getsockopt(GetSocket(), SOL_SOCKET, SO_ERROR, (char *)&ErrorValue, &ErrorValueLength) == 0) {
+#ifdef _WIN32
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
+#else
+		ErrorMsg[0] = '\0';
+		strerror(ErrorValue, ErrorMsg, sizeof(ErrorMsg));
+#endif
+	}
+
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {
-			g_Bouncer->Log("An error occured while connecting for user %s", GetOwner()->GetUsername());
-			GetOwner()->Privmsg("An error occured while connecting to a server.");
+			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
+				g_Bouncer->LogUser(GetOwner(), "An error occured while connecting for user %s.", GetOwner()->GetUsername());
+			} else {
+				g_Bouncer->LogUser(GetOwner(), "An error occured while connecting for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
+			}
 		} else {
-			g_Bouncer->Log("An error occured while processing a connection for user %s", GetOwner()->GetUsername());
-			GetOwner()->Privmsg("An error occured while processing a connection.");
+			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
+				g_Bouncer->LogUser(GetOwner(), "An error occured while processing a connection for user %s.", GetOwner()->GetUsername());
+			} else {
+				g_Bouncer->LogUser(GetOwner(), "An error occured while processing a connection for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
+			}
 		}
 	}
+
+#ifdef _WIN32
+	if (ErrorMsg != NULL) {
+		LocalFree(ErrorMsg);
+	}
+#endif
 }
 
 /**
