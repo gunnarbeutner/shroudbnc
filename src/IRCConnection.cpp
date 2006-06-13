@@ -1763,18 +1763,13 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 void CIRCConnection::Error(void) {
 	int ErrorValue;
 	socklen_t ErrorValueLength = sizeof(ErrorValue);
-#ifdef _WIN32
 	char *ErrorMsg = NULL;
-#else
-	char ErrorMsg[512];
-#endif
 
 	if (getsockopt(GetSocket(), SOL_SOCKET, SO_ERROR, (char *)&ErrorValue, &ErrorValueLength) == 0) {
 #ifdef _WIN32
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
 #else
-		ErrorMsg[0] = '\0';
-		strerror(ErrorValue, ErrorMsg, sizeof(ErrorMsg));
+		ErrorMsg = strerror(ErrorValue);
 #endif
 	}
 
