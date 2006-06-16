@@ -1928,16 +1928,25 @@ bool CClientConnection::ValidateUser(void) {
 	X509 *PeerCert = NULL;
 	CUser *AuthUser = NULL;
 
-	if (IsSSL() && (PeerCert = (X509*)GetPeerCertificate()) != NULL) {
+	if (IsSSL() && (PeerCert = (X509 *)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
-		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-			if (UserHash->Value->FindClientCertificate(PeerCert)) {
-				AuthUser = UserHash->Value;
-				Count++;
+		if (!g_Bouncer->GetConfig()->ReadInteger("system.dontmatchuser")) {
+			CUser *User = g_Bouncer->GetUser(m_Username);
 
-				if (strcasecmp(UserHash->Name, m_Username) == 0) {
-					MatchUsername = true;
+			if (User != NULL && User->FindClientCertificate(PeerCert)) {
+				AuthUser = User;
+				MatchUsername = true;
+			}
+		} else {
+			while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+				if (UserHash->Value->FindClientCertificate(PeerCert)) {
+					AuthUser = UserHash->Value;
+					Count++;
+
+					if (strcasecmp(UserHash->Name, m_Username) == 0) {
+						MatchUsername = true;
+					}
 				}
 			}
 		}

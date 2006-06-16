@@ -53,7 +53,7 @@ public:
 private:
 #endif
 
-	bool ValidateUser();
+	bool ValidateUser(void);
 	void SetPeerName(const char *PeerName, bool LookupFailure);
 	virtual bool Read(bool DontProcess = false);
 	virtual const char *GetClassName(void) const;
