@@ -1745,7 +1745,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						IRC->WriteLine("NAMES %s", argv[2]);
 					}
 				}
-			} else if (strcasecmp(argv[1], "who") == 0) {
+			} else if (strcasecmp(argv[1], "who") == 0 && argc > 2) {
 				CIRCConnection *IRC = GetOwner()->GetIRCConnection();
 
 				if (IRC) {
@@ -1833,9 +1833,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				strcasecmp(Command, "names") == 0 || strcasecmp(Command, "who") == 0) {
 			if (argc == 2 || (strcasecmp(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
 				if (argc == 2) {
-					asprintf(&Out, "SYNTH %s %s", argv[0], argv[1]);
+					asprintf(&Out, "SYNTH %s :%s", argv[0], argv[1]);
 				} else {
-					asprintf(&Out, "SYNTH %s %s %s", argv[0], argv[1], argv[2]);
+					asprintf(&Out, "SYNTH %s %s :%s", argv[0], argv[1], argv[2]);
 				}
 
 			CHECK_ALLOC_RESULT(Out, asprintf) {} else {
