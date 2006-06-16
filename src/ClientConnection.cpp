@@ -2257,7 +2257,11 @@ RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box, CUser *Own
 	if (Temp != NULL) {
 		Client->m_PeerName = nstrdup(Temp);
 	} else {
-		Client->m_PeerName = nstrdup(IpToString(Client->GetRemoteAddress()));
+		if (Client->GetRemoteAddress() != NULL) {
+			Client->m_PeerName = nstrdup(IpToString(Client->GetRemoteAddress()));
+		} else {
+			Client->m_PeerName = nstrdup("<unknown>");
+		}
 	}
 
 	Temp = Box->ReadString("~client.nick");

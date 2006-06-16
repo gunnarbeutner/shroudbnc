@@ -163,7 +163,6 @@ proc reflect:call2 {cmditem user arguments} {
 	set script [concat [list [lindex $cmditem 2]] $arguments]
 
 	setctx $user
-#	puthelp "PRIVMSG #shroudtest2 :[join $cmditem] -  $user - [join $arguments]"
 	set error [catch [list eval $script] result]
 	setctx $oldcontext
 

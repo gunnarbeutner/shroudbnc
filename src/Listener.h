@@ -215,7 +215,9 @@ public:
 	 *
 	 * Default constructor.
 	 */
-	CClientListener(void) { }
+	CClientListener(void) {
+		m_SSL = false;
+	}
 
 	/**
 	 * Accept

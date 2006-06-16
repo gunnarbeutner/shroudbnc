@@ -533,7 +533,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		ufree(m_ServerFeat);
 		m_ServerFeat = ustrdup(argv[5]);
-	} else if (argc > 3 && iRaw == 5) {
+	} else if (argc > 3 && iRaw		) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
 
