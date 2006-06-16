@@ -209,7 +209,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			AddCommand(&m_CommandList, "hostdel", "Admin", "removes a hostmask",
 				"Syntax: hostdel <host>\nRemoves a host from the bouncer's hostlist.");
 			AddCommand(&m_CommandList, "addlistener", "Admin", "creates an additional listener",
-#ifndef USESSL
+#ifdef USESSL
 				"Syntax: addlistener <port> [address] [ssl]\nCreates an additional listener which can be used by clients.");
 #else
 				"Syntax: addlistener <port> [address]\nCreates an additional listener which can be used by clients.");
@@ -917,7 +917,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			return false;
 		} CHECK_ALLOC_RESULT_END;
 
-		if (User && User->GetClientConnection()) {
+		if (User != NULL && User->GetClientConnection() != NULL) {
 			User->GetClientConnection()->Kill(Out);
 			SENDUSER("Done.");
 		} else {
@@ -1055,7 +1055,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				Server = NULL;
 			}
 
-			if (User->GetClientConnection()) {
+			if (User->GetClientConnection() != NULL) {
 				ClientAddr = User->GetClientConnection()->GetPeerName();
 			} else {
 				ClientAddr = NULL;
@@ -1937,6 +1937,7 @@ bool CClientConnection::ValidateUser(void) {
 			if (User != NULL && User->FindClientCertificate(PeerCert)) {
 				AuthUser = User;
 				MatchUsername = true;
+				Count = 1;
 			}
 		} else {
 			while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
