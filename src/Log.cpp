@@ -136,7 +136,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 		Timestamp = strNow;
 	}
 
-	asprintf(&Out, "%s %s\n", Timestamp, Line);
+	asprintf(&Out, "%s: %s\n", Timestamp, Line);
 
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");
