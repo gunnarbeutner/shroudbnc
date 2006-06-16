@@ -28,7 +28,7 @@
 #define SBNC_MODULE "..\\..\\..\\Debug\\sbnc.dll"
 #endif
 #else
-#define SBNC_MODULE "./libsbnc.la"
+#define SBNC_MODULE "./lib-0/libsbnc.la"
 #endif
 
 #ifndef _WIN32

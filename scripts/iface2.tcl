@@ -316,13 +316,13 @@ proc iface:evalline {line} {
 		set ifaceoverride 0
 	} elseif {![getbncuser [lindex $adm 0] admin]} {
 		set ifaceoverride 0
-	} elseif {![bnccheckpassword [lindex $adm 0] [lindex $adm 1]]} {
+	} elseif {[catch [list getbncuser [lindex $adm 0] server]] || ![bnccheckpassword [lindex $adm 0] [lindex $adm 1]]} {
 		set ifaceoverride 0
 	} else {
 		set ifaceoverride 1
 	}
 
-	if {![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride} {
+	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
 		return "RPC_INVALIDUSERPASS"
 	}
 
