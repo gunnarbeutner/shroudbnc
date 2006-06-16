@@ -508,6 +508,10 @@ void CUser::Reconnect(void) {
 	int Port;
 
 	if (m_IRC != NULL) {
+		if (GetClientConnection() != NULL) {
+			GetClientConnection()->SetPreviousNick(m_IRC->GetCurrentNick());
+		}
+
 		m_IRC->Kill("Reconnecting.");
 
 		SetIRCConnection(NULL);
@@ -558,10 +562,6 @@ void CUser::Reconnect(void) {
 	} CHECK_ALLOC_RESULT_END;
 
 	SetIRCConnection(Connection);
-
-	if (GetClientConnection() != NULL) {
-		GetClientConnection()->SetPreviousNick(GetNick());
-	}
 
 	g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
 }
