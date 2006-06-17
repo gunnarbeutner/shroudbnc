@@ -302,7 +302,7 @@ bool CConnection::Read(bool DontProcess) {
 		ERR_print_errors_fp(stdout);
 	} else
 #endif
-		ReadResult = recv(m_Socket, Buffer, sizeof(Buffer), 0);
+		ReadResult = recv(m_Socket, Buffer, BufferSize, 0);
 
 	if (ReadResult > 0) {
 		if (g_CurrentTime - m_InboundTrafficReset > 30) {

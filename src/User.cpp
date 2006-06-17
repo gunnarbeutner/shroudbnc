@@ -124,6 +124,10 @@ CUser::CUser(const char *Name) {
  * Destructs a user object.
  */
 CUser::~CUser(void) {
+	if (m_MemoryManager != NULL) {
+		m_MemoryManager->RealManager = NULL;
+	}
+
 	if (m_Client != NULL) {
 		m_Client->Kill("Removing user.");
 	}

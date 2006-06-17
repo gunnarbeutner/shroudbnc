@@ -1203,8 +1203,14 @@ void *mmalloc(size_t Size, CUser *Owner) {
 	}
 
 	Block->Size = Size;
-	Block->Manager = Owner->MemoryGetManager();
-	mclaimmanager(Block->Manager);
+
+	if (Owner != NULL) {
+		Block->Manager = Owner->MemoryGetManager();
+	 	mclaimmanager(Block->Manager);
+	} else {
+		Block->Manager = NULL;
+	}
+
 #if defined(_DEBUG) && defined(_WIN32)
 	Block->Marker = BLOCKMARKER;
 #endif
@@ -1238,11 +1244,11 @@ void mfree(void *Block) {
 	}
 #endif
 
-	if (RealBlock->Manager->RealManager != NULL) {
+	if (RealBlock->Manager != NULL && RealBlock->Manager->RealManager != NULL) {
 		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
 	}
 
-	mfreemanager(RealBlock->Manager);
+	mreleasemanager(RealBlock->Manager);
 
 #if defined(_DEBUG) && defined(_WIN32)
 	VirtualFree(RealBlock, 0, MEM_RELEASE);
