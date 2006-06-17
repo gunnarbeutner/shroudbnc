@@ -2327,7 +2327,12 @@ commandlist_t *CClientConnection::GetCommandList(void) {
  */
 void CClientConnection::SetPreviousNick(const char *Nick) {
 	ufree(m_PreviousNick);
-	m_PreviousNick = ustrdup(Nick);
+
+	if (Nick != NULL) {
+		m_PreviousNick = ustrdup(Nick);
+	} else {
+		m_PreviousNick = NULL;
+	}
 }
 
 /**
