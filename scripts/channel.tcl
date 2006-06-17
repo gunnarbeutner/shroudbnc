@@ -72,6 +72,9 @@ proc channel {option chan args} {
 		if {![info exists chanoptions]} { array set chanoptions {} }
 	}
 
+	setudef flag inactive
+	setudef flag autochan
+
 	set chan [string tolower $chan]
 
 	upvar [getns]::channels channels
@@ -297,9 +300,6 @@ proc deludef {type name} {
 
 	return
 }
-
-setudef flag inactive
-setudef flag autochan
 
 if {![info exists sbnc:channelinit]} {
 	foreach user [bncuserlist] {

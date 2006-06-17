@@ -1192,11 +1192,13 @@ void CCore::UpdateUserConfig(void) {
 	int i;
 	char *Out = NULL;
 	size_t Blocks = 0, NewBlocks = 1, Length = 1;
+	size_t Offset = 0, NameLength;
 	bool WasNull = true;
 
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		Length += strlen(User->Name) + 1;
+		NameLength = strlen(User->Name);
+		Length += NameLength + 1;
 
 		NewBlocks += Length / MEMORYBLOCKSIZE;
 		Length -= (Length / MEMORYBLOCKSIZE) * MEMORYBLOCKSIZE;
@@ -1214,13 +1216,17 @@ void CCore::UpdateUserConfig(void) {
 			return;
 		}
 
+#undef strcpy
 		if (!WasNull) {
-			strmcat(Out, " ", Size);
-			strmcat(Out, User->Name, Size);
+			Out[Offset] = ' ';
+			Offset++;
+			strcpy(Out + Offset, User->Name);
 		} else {
-			strmcpy(Out, User->Name, Size);
 			WasNull = false;
 		}
+
+		strcpy(Out + Offset, User->Name);
+		Offset += NameLength;
 	}
 
 	if (m_Config != NULL) {
