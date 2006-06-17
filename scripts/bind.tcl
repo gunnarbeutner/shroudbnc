@@ -44,11 +44,17 @@ proc sbnc:svrlogon {client} {
 }
 
 proc sbnc:prerehash {} {
-	callevent "prerehash"
+	foreach user [bncuserlist] {
+		setctx $user
+		callevent "prerehash"
+	}
 }
 
 proc sbnc:postrehash {} {
-	callevent "postrehash"
+	foreach user [bncuserlist] {
+		setctx $user
+		callevent "postrehash"
+	}
 }
 
 proc sbnc:bindpulse {} {

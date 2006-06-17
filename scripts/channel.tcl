@@ -298,6 +298,9 @@ proc deludef {type name} {
 	return
 }
 
+setudef flag inactive
+setudef flag autochan
+
 if {![info exists sbnc:channelinit]} {
 	foreach user [bncuserlist] {
 		setctx $user
@@ -306,6 +309,3 @@ if {![info exists sbnc:channelinit]} {
 
 	set sbnc:channelinit 1
 }
-
-setudef flag inactive
-setudef flag autochan

@@ -2472,6 +2472,10 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 		}
 	}
 
+	if (GetSSLContext() == NULL) {
+		THROW(bool, Generic_Unknown, "Failed to create an SSL listener because there is no SSL server certificate.");
+	}
+
 	Listener = new CClientListener(Port, BindAddress, AF_INET, SSL);
 
 	if (Listener == NULL || !Listener->IsValid()) {

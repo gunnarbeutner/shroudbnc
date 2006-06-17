@@ -339,6 +339,14 @@ const char* internalbinds(void) {
 				Bind[0] = "usrdelete";
 			else if (type == Type_Command)
 				Bind[0] = "command";
+			else if (type == Type_SetTag)
+				Bind[0] = "settag";
+			else if (type == Type_SetUserTag)
+				Bind[0] = "setusertag";
+			else if (type == Type_PreRehash)
+				Bind[0] = "prerehash";
+			else if (type == Type_PostRehash)
+				Bind[0] = "postrehash";
 			else
 				Bind[0] = "invalid";
 
