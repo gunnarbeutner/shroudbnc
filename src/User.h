@@ -105,6 +105,7 @@ class CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 	int m_LeanModeCache; /**< cache for the "user.lean" setting */
 
 	size_t m_ManagedMemory;
+	mmanager_t *m_MemoryManager;
 
 	bool PersistCertificates(void);
 
@@ -243,4 +244,5 @@ public:
 	virtual void MemoryRemoveBytes(size_t Bytes);
 	virtual size_t MemoryGetSize(void);
 	virtual size_t MemoryGetLimit(void);
+	virtual mmanager_t *MemoryGetManager(void);
 };

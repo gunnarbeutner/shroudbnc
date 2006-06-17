@@ -150,9 +150,14 @@ void FreeUString(char *String);
 pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount);
 void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError);
 
+typedef struct mmanager_s {
+	CUser *RealManager;
+	unsigned int ReferenceCount;
+} mmanager_t;
+
 typedef struct {
 	size_t Size;
-	CUser *Manager;
+	mmanager_t *Manager;
 #if defined(_DEBUG) && defined(_WIN32)
 	int Marker;
 #endif

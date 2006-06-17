@@ -1164,6 +1164,20 @@ void mmark(void *Block) {
 }
 #endif
 
+void mclaimmanager(mmanager_t *Manager) {
+	Manager->ReferenceCount++;
+}
+
+void mreleasemanager(mmanager_t *Manager) {
+	if (Manager != NULL) {
+		Manager->ReferenceCount--;
+
+		if (Manager->ReferenceCount == 0) {
+			free(Manager);
+		}
+	}
+}
+
 void *mmalloc(size_t Size, CUser *Owner) {
 #if defined(_DEBUG) && defined(_WIN32)
 	DWORD Dummy;
@@ -1189,7 +1203,8 @@ void *mmalloc(size_t Size, CUser *Owner) {
 	}
 
 	Block->Size = Size;
-	Block->Manager = Owner;
+	Block->Manager = Owner->MemoryGetManager();
+	mclaimmanager(Block->Manager);
 #if defined(_DEBUG) && defined(_WIN32)
 	Block->Marker = BLOCKMARKER;
 #endif
@@ -1223,9 +1238,11 @@ void mfree(void *Block) {
 	}
 #endif
 
-	if (RealBlock->Manager != NULL) {
-		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
+	if (RealBlock->Manager->RealManager != NULL) {
+		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
 	}
+
+	mfreemanager(RealBlock->Manager);
 
 #if defined(_DEBUG) && defined(_WIN32)
 	VirtualFree(RealBlock, 0, MEM_RELEASE);
@@ -1242,6 +1259,7 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 	DWORD Dummy;
 #endif
 	mblock *RealBlock, *NewRealBlock;
+	mmanager_t *NewManager;
 
 	if (Block == NULL) {
 		return mmalloc(NewSize, Manager);
@@ -1251,8 +1269,8 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	mmark(Block);
 
-	if (RealBlock->Manager != NULL) {
-		RealBlock->Manager->MemoryRemoveBytes(RealBlock->Size);
+	if (RealBlock->Manager->RealManager != NULL) {
+		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
 	}
 
 	if (Manager != NULL && !Manager->MemoryAddBytes(NewSize)) {
@@ -1272,14 +1290,19 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	if (NewRealBlock == NULL) {
 		if (Manager != NULL) {
-			Manager->MemoryAddBytes(RealBlock->Size);
+			Manager->MemoryRemoveBytes(RealBlock->Size);
 		}
 
 		return NULL;
 	}
 
 	NewRealBlock->Size = NewSize;
-	NewRealBlock->Manager = Manager;
+
+	NewManager = Manager->MemoryGetManager();
+	mclaimmanager(NewManager);
+
+	mreleasemanager(NewRealBlock->Manager);
+	NewRealBlock->Manager = NewManager;
 
 #if defined(_DEBUG) && defined(_WIN32)
 	NewRealBlock->Marker = BLOCKMARKER;

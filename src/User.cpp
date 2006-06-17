@@ -34,6 +34,7 @@ CUser::CUser(const char *Name) {
 	FILE *ClientCert;
 
 	m_ManagedMemory = 0;
+	m_MemoryManager = NULL;
 
 	m_Client = NULL;
 	m_IRC = NULL;
@@ -1856,6 +1857,17 @@ size_t CUser::MemoryGetSize(void) {
 
 size_t CUser::MemoryGetLimit(void) {
 	return g_Bouncer->GetResourceLimit("memory");
+}
+
+mmanager_t *CUser::MemoryGetManager(void) {
+	if (m_MemoryManager == NULL) {
+		m_MemoryManager = (mmanager_t *)malloc(sizeof(mmanager_t));
+
+		m_MemoryManager->RealManager = this;
+		m_MemoryManager->ReferenceCount = 0;
+	}
+
+	return m_MemoryManager;
 }
 
 const char *CUser::SimulateWithResult(const char *Command) {
