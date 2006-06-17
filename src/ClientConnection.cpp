@@ -967,7 +967,12 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			GetOwner()->SetIRCConnection(NULL);
 		}
 
-		GetOwner()->ScheduleReconnect(5);
+		if (GetOwner()->GetServer() == NULL) {
+			SENDUSER("Cannot reconnect: You haven't set a server yet.");
+		} else {
+			GetOwner()->ScheduleReconnect(5);
+		}
+
 		return false;
 	} else if (strcasecmp(Subcommand, "status") == 0) {
 		asprintf(&Out, "Username: %s", GetOwner()->GetUsername());
@@ -981,6 +986,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			SENDUSER(Out);
 			free(Out);
 		} CHECK_ALLOC_RESULT_END;
+
+		if (GetOwner()->IsAdmin()) {
+			asprintf(&Out, "Using module %s", g_Bouncer->GetLoaderParameters()->GetModulePath());
+			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
+				SENDUSER(Out);
+				free(Out);
+			} CHECK_ALLOC_RESULT_END;
+		}
 
 		asprintf(&Out, "You are %san admin.", GetOwner()->IsAdmin() ? "" : "not ");
 		CHECK_ALLOC_RESULT(Out, asprintf) { } else {

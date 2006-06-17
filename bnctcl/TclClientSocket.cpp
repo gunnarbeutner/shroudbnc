@@ -91,7 +91,11 @@ void CTclClientSocket::Destroy(void) {
 		m_Control = NULL;
 	}
 
-	m_Wrap->Kill("");
+	if (g_Bouncer->GetStatus() != STATUS_RUN) {
+		delete this;
+	} else {
+		m_Wrap->Kill("");
+	}
 }
 
 bool CTclClientSocket::Read(bool DontProcess) {

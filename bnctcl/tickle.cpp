@@ -75,7 +75,7 @@ class CTclSupport : public CModuleImplementation {
 
 		i = 0;
 
-		while (hash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i)) {
+		while (hash_t<CTclClientSocket*>* p = g_TclClientSockets->Iterate(i++)) {
 			p->Value->Destroy();
 		}
 

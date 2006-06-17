@@ -61,7 +61,7 @@ CModule::~CModule() {
 		m_Far->Destroy();
 	}
 
-	if (m_Image) {
+	if (m_Image != NULL) {
 		FreeLibrary(m_Image);
 	}
 

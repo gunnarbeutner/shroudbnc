@@ -89,6 +89,9 @@ private:
 
 	bool m_Connected; /**< is the object connected? */
 
+	time_t m_InboundTrafficReset;
+	size_t m_InboundTraffic;
+
 	void InitConnection(SOCKET Client, bool SSL);
 
 	virtual const char *GetClassName(void) const;
@@ -134,6 +137,8 @@ public:
 	void Destroy(void);
 
 	virtual bool IsConnected(void);
+
+	virtual size_t GetInboundRate(void);
 
 	// should really be "protected"
 	virtual bool Read(bool DontProcess = false);

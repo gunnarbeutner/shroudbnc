@@ -127,6 +127,9 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_LatchedDestruction = false;
 	m_Connected = false;
 
+	m_InboundTrafficReset = g_CurrentTime;
+	m_InboundTraffic = 0;
+
 #ifdef USESSL
 	m_HasSSL = SSL;
 	m_SSL = NULL;
@@ -255,7 +258,10 @@ SOCKET CConnection::GetSocket(void) const {
  */
 bool CConnection::Read(bool DontProcess) {
 	int ReadResult;
-	char Buffer[8192];
+	static char *Buffer;
+	static int BufferSize = 0;
+	int NewBufferSize;
+	socklen_t OptLenght = sizeof(BufferSize);
 
 	m_Connected = true;
 
@@ -263,9 +269,22 @@ bool CConnection::Read(bool DontProcess) {
 		return true;
 	}
 
+	if (getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&NewBufferSize, &OptLenght) != 0) {
+		NewBufferSize = 8192;
+	}
+
+	if (NewBufferSize > BufferSize) {
+		BufferSize = NewBufferSize;
+		Buffer = (char *)realloc(Buffer, BufferSize);
+	}
+
+	CHECK_ALLOC_RESULT(Buffer, malloc) {
+		return false;
+	} CHECK_ALLOC_RESULT_END;
+
 #ifdef USESSL
 	if (IsSSL()) {
-		ReadResult = SSL_read(m_SSL, Buffer, sizeof(Buffer));
+		ReadResult = SSL_read(m_SSL, Buffer, BufferSize);
 
 		if (ReadResult < 0) {
 			switch (SSL_get_error(m_SSL, ReadResult)) {
@@ -286,6 +305,13 @@ bool CConnection::Read(bool DontProcess) {
 		ReadResult = recv(m_Socket, Buffer, sizeof(Buffer), 0);
 
 	if (ReadResult > 0) {
+		if (g_CurrentTime - m_InboundTrafficReset > 30) {
+			m_InboundTrafficReset = g_CurrentTime;
+			m_InboundTraffic = 0;
+		}
+
+		m_InboundTraffic += ReadResult;
+
 		m_RecvQ->Write(Buffer, ReadResult);
 
 		if (m_Traffic) {
@@ -922,4 +948,17 @@ sockaddr *CConnection::GetLocalAddress(void) const {
  */
 bool CConnection::IsConnected(void) {
 	return m_Connected;
+}
+
+/**
+ * GetInboundRate
+ *
+ * Gets the current inbound rate (in bytes per second).
+ */
+size_t CConnection::GetInboundRate(void) {
+	if (g_CurrentTime - m_InboundTrafficReset > 0) {
+		return m_InboundTraffic / (g_CurrentTime - m_InboundTrafficReset);
+	} else {
+		return 0;
+	}
 }
