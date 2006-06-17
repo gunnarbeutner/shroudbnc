@@ -110,7 +110,17 @@ proc vhost:command {client parameters} {
 	if {[string equal -nocase [lindex $parameters 0] "vhosts"]} {
 		foreach vhost $vhosts {
 			if {[lindex $vhost 1] > 0} {
-				bncreply "[lindex $vhost 0] ([lindex $vhost 2]) [vhost:countvhost [lindex $vhost 0]]/[vhost:getlimit [lindex $vhost 0]] connections"
+				if {[getbncuser $client admin]} {
+					bncreply "[lindex $vhost 0] ([lindex $vhost 2]) [vhost:countvhost [lindex $vhost 0]]/[vhost:getlimit [lindex $vhost 0]] connections"
+				} else {
+					if {[vhost:countvhost [lindex $vhost 0]] >= [vhost:getlimit [lindex $vhost 0]]} {
+						set status "full"
+					} else {
+						set status "not full"
+					}
+
+					bncreply "[lindex $vhost 0] ([lindex $vhost 2]) $status"
+				}
 			}
 		}
 
