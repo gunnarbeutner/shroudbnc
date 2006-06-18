@@ -82,7 +82,7 @@ class CCore {
 
 	CHashtable<CUser *, false, 512> m_Users; /**< the bouncer users */
 	CVector<CModule *> m_Modules; /**< currently loaded modules */
-	CVector<socket_t> m_OtherSockets; /**< a list of active sockets */
+	CList<socket_t> m_OtherSockets; /**< a list of active sockets */
 	CVector<CTimer *>m_Timers; /**< a list of active timers */
 
 	time_t m_Startup; /**< TS when the bouncer was started */

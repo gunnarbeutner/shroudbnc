@@ -172,10 +172,14 @@ CCore::~CCore(void) {
 
 	UninitializeAdditionalListeners();
 
-	for (a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
-		if (m_OtherSockets[a].Socket != INVALID_SOCKET) {
-			m_OtherSockets[a].Events->Destroy();
+	link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+	while (Current != NULL) {
+		if (Current->Value.Socket != INVALID_SOCKET) {
+			Current->Value.Events->Destroy();
 		}
+
+		Current = Current->Next;
 	}
 
 	i = 0;
@@ -457,25 +461,25 @@ void CCore::StartMainLoop(void) {
 			ReconnectUser->ScheduleReconnect();
 		}
 
-		for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
-			if (m_OtherSockets[a].Socket != INVALID_SOCKET) {
-				if (m_OtherSockets[a].Events->DoTimeout()) {
-					continue;
-				} else if (m_OtherSockets[a].Events->ShouldDestroy()) {
-					m_OtherSockets[a].Events->Destroy();
+		link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+		while (Current != NULL) {
+			if (Current->Value.Socket != INVALID_SOCKET) {
+				Current->Value.Events->DoTimeout();
+
+				if (Current->Value.Events->ShouldDestroy()) {
+					Current->Value.Events->Destroy();
+				} else {
+					SFD_SET(Current->Value.Socket, &FDRead);
+					SFD_SET(Current->Value.Socket, &FDError);
+
+					if (Current->Value.Events->HasQueuedData()) {
+						SFD_SET(Current->Value.Socket, &FDWrite);
+					}
 				}
 			}
-		}
 
-		for (i = 0; i < m_OtherSockets.GetLength(); i++) {
-			if (m_OtherSockets[i].Socket != INVALID_SOCKET) {
-				SFD_SET(m_OtherSockets[i].Socket, &FDRead);
-				SFD_SET(m_OtherSockets[i].Socket, &FDError);
-
-				if (m_OtherSockets[i].Events->HasQueuedData()) {
-					SFD_SET(m_OtherSockets[i].Socket, &FDWrite);
-				}
-			}
+			Current = Current->Next;
 		}
 
 		time(&Now);
@@ -577,9 +581,13 @@ void CCore::StartMainLoop(void) {
 		if (ready > 0) {
 			//printf("%d socket(s) ready\n", ready);
 
-			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
-				SOCKET Socket = m_OtherSockets[a].Socket;
-				CSocketEvents *Events = m_OtherSockets[a].Events;
+			link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+			while (Current != NULL) {
+				SOCKET Socket = Current->Value.Socket;
+				CSocketEvents *Events = Current->Value.Events;
+
+				Current = Current->Next;
 
 				if (Socket != INVALID_SOCKET) {
 					if (SFD_ISSET(Socket, &FDError)) {
@@ -616,8 +624,13 @@ void CCore::StartMainLoop(void) {
 
 			fd_set set;
 
-			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
-				SOCKET Socket = m_OtherSockets[a].Socket;
+			link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+			while (Current != NULL) {
+				SOCKET Socket = Current->Value.Socket;
+				CSocketEvents *Events = Current->Value.Events;
+
+				Current = Current->Next;
 
 				if (Socket != INVALID_SOCKET) {
 					FD_ZERO(&set);
@@ -627,8 +640,8 @@ void CCore::StartMainLoop(void) {
 					int code = select(SFD_SETSIZE - 1, &set, NULL, NULL, &zero);
 
 					if (code == -1) {
-						m_OtherSockets[a].Events->Error();
-						m_OtherSockets[a].Events->Destroy();
+						Events->Error();
+						Events->Destroy();
 					}
 				}
 			}
@@ -879,12 +892,16 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
  * @param Socket the socket
  */
 void CCore::UnregisterSocket(SOCKET Socket) {
-	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
-		if (m_OtherSockets[i].Socket == Socket) {
-			m_OtherSockets.Remove(i);
+	link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+	while (Current != NULL) {
+		if (Current->Value.Socket == Socket) {
+			m_OtherSockets.Remove(Current);
 
 			return;
 		}
+
+		Current = Current->Next;
 	}
 }
 
@@ -1399,10 +1416,14 @@ void CCore::DeleteWrapper(CConnection *Wrapper) const {
  * @param Events the event interface
  */
 bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
-	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
-		if (m_OtherSockets[i].Events == Events) {
+	link_t<socket_t> *Current = m_OtherSockets.GetHead();
+
+	while (Current != NULL) {
+		if (Current->Value.Events == Events) {
 			return true;
 		}
+
+		Current = Current->Next;
 	}
 
 	return false;
@@ -1431,21 +1452,24 @@ SOCKET CCore::SocketAndConnect(const char *Host, unsigned short Port, const char
  */
 const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	int a = 0;
+	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
-	for (unsigned int i = 0; i < m_OtherSockets.GetLength(); i++) {
-		socket_t Socket = m_OtherSockets[i];
+	while (Current != NULL) {
+		if (Current->Value.Socket == INVALID_SOCKET) {
+			Current = Current->Next;
 
-		if (Socket.Socket == INVALID_SOCKET) {
 			continue;
 		}
 
-		if (strcmp(Socket.Events->GetClassName(), Class) == 0) {
+		if (strcmp(Current->Value.Events->GetClassName(), Class) == 0) {
 			a++;
 		}
 
 		if (a - 1 == Index) {
-			return &m_OtherSockets[i];
+			return &(Current->Value);
 		}
+
+		Current = Current->Next;
 	}
 
 	return NULL;

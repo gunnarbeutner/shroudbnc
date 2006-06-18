@@ -151,6 +151,7 @@ void mmark(void *Block);
 #	include "Object.h"
 #	include "Zone.h"
 #	include "Vector.h"
+#	include "List.h"
 #	include "Hashtable.h"
 #	include "utility.h"
 #	include "SocketEvents.h"

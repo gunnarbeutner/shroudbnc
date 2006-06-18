@@ -398,6 +398,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\List.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Listener.h"
 				>
 			</File>

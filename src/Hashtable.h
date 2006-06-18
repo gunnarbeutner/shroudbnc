@@ -22,7 +22,8 @@
  *
  * Represents a (key, value) pair in a hashtable.
  */
-template <typename Type> struct hash_t {
+template <typename Type>
+struct hash_t {
 	char *Name;
 	Type Value;
 };

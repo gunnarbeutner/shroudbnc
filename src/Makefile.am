@@ -43,6 +43,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	IdentSupport.h \
 	IRCConnection.h \
 	Keyring.h \
+	List.h \
 	Listener.h \
 	Match.h \
 	ModuleFar.h \
