@@ -469,17 +469,27 @@ void CCore::StartMainLoop(void) {
 
 		while (Current != NULL) {
 			if (Current->Value.Socket != INVALID_SOCKET) {
-				Current->Value.Events->DoTimeout();
+				if (Current->Value.Events->DoTimeout()) {
+					Current = Current->Next;
 
-				if (Current->Value.Events->ShouldDestroy()) {
+					continue;
+				} else if (Current->Value.Events->ShouldDestroy()) {
 					Current->Value.Events->Destroy();
-				} else {
-					SFD_SET(Current->Value.Socket, &FDRead);
-					SFD_SET(Current->Value.Socket, &FDError);
+				}
+			}
 
-					if (Current->Value.Events->HasQueuedData()) {
-						SFD_SET(Current->Value.Socket, &FDWrite);
-					}
+			Current = Current->Next;
+		}
+
+		Current = m_OtherSockets.GetHead();
+
+		while (Current != NULL) {
+			if (Current->Value.Socket != INVALID_SOCKET) {
+				SFD_SET(Current->Value.Socket, &FDRead);
+				SFD_SET(Current->Value.Socket, &FDError);
+
+				if (Current->Value.Events->HasQueuedData()) {
+					SFD_SET(Current->Value.Socket, &FDWrite);
 				}
 			}
 
