@@ -37,6 +37,7 @@ private:
 	unsigned int m_Interval; /**< the timer's interval */
 	bool m_Repeat; /**< determines whether the timer is executed repeatedly */
 	time_t m_Next; /**< the next scheduled time of execution */
+	link_t<CTimer *> *m_Link; /**< link in the timer list */
 
 	bool Call(time_t Now);
 public:

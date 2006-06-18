@@ -183,6 +183,13 @@ RESULT<int> CConfig::ReadInteger(const char *Setting) const {
  */
 RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
 	RESULT<bool> ReturnValue;
+	const char *OldValue;
+
+	OldValue = ReadString(Setting);
+
+	if ((Value == NULL && OldValue == NULL) || (Value != NULL && OldValue != NULL && strcmp(Value, OldValue) == 0)) {
+		RETURN(bool, true);
+	}
 
 	if (Value != NULL) {
 		ReturnValue = m_Settings.Add(Setting, ustrdup(Value));
@@ -210,6 +217,10 @@ RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
 RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
 	char *ValueString;
 	RESULT<bool> ReturnValue;
+
+	if (Value == 0 && ReadString(Setting) == NULL) {
+		RETURN(bool, true);
+	}
 
 	asprintf(&ValueString, "%d", Value);
 

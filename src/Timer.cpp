@@ -37,7 +37,7 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Coo
 
 	m_Next = g_CurrentTime + Interval;
 
-	g_Bouncer->RegisterTimer(this);
+	m_Link = g_Bouncer->RegisterTimer(this);
 }
 
 /**
@@ -46,7 +46,7 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Coo
  * Destroys a timer.
  */
 CTimer::~CTimer(void) {
-	g_Bouncer->UnregisterTimer(this);
+	g_Bouncer->UnregisterTimer(m_Link);
 }
 
 /**

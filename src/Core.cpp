@@ -187,8 +187,12 @@ CCore::~CCore(void) {
 		delete User->Value;
 	}
 
-	for (a = m_Timers.GetLength() - 1; a >= 0 ; a--) {
-		delete m_Timers[a];
+	link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
+
+	while (CurrentTimer != NULL) {
+		delete CurrentTimer->Value;
+
+		CurrentTimer = CurrentTimer->Next;
 	}
 
 	delete m_Log;
@@ -490,11 +494,15 @@ void CCore::StartMainLoop(void) {
 			TimeWarp = Now - g_CurrentTime;
 		}
 
-		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
+		link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
+
+		while (CurrentTimer != NULL) {
 			CTimer *Timer;
 			time_t NextCall;
 			
-			Timer = m_Timers[c];
+			Timer = CurrentTimer->Value;
+			CurrentTimer = CurrentTimer->Next;
+
 			NextCall = Timer->GetNextCall();
 
 			if (Now >= NextCall) {
@@ -518,12 +526,16 @@ void CCore::StartMainLoop(void) {
 
 		Best = Now + 60;
 
-		for (int c = m_Timers.GetLength() - 1; c >= 0; c--) {
-			time_t NextCall = m_Timers[c]->GetNextCall();
+		CurrentTimer = m_Timers.GetHead();
+
+		while (CurrentTimer != NULL) {
+			time_t NextCall = CurrentTimer->Value->GetNextCall();
 
 			if (NextCall < Best) {
 				Best = NextCall;
 			}
+
+			CurrentTimer = CurrentTimer->Next;
 		}
 
 		SleepInterval = Best - Now;
@@ -620,10 +632,6 @@ void CCore::StartMainLoop(void) {
 				continue;
 			}
 
-#if !defined(HAVE_POLL) && defined(_WIN32)
-
-			fd_set set;
-
 			link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 			while (Current != NULL) {
@@ -633,36 +641,28 @@ void CCore::StartMainLoop(void) {
 				Current = Current->Next;
 
 				if (Socket != INVALID_SOCKET) {
+#if !defined(HAVE_POLL) && defined(_WIN32)
+					fd_set set;
+
 					FD_ZERO(&set);
 					FD_SET(Socket, &set);
 
 					timeval zero = { 0, 0 };
 					int code = select(SFD_SETSIZE - 1, &set, NULL, NULL, &zero);
+#else
+					pollfd pfd;
+					pfd.fd = Socket;
+					pfd.events = POLLIN;
 
+					int code = poll(&pfd, 1, 0);
+
+#endif
 					if (code == -1) {
 						Events->Error();
 						Events->Destroy();
 					}
 				}
 			}
-#else
-			pollfd pfd;
-
-			for (int a = m_OtherSockets.GetLength() - 1; a >= 0; a--) {
-				SOCKET Socket = m_OtherSockets[a].Socket;
-
-				if (Socket != INVALID_SOCKET) {
-					pfd.fd = Socket;
-
-					int code = poll(&pfd, 1, 0);
-
-					if (code == -1) {
-						m_OtherSockets[a].Events->Error();
-						m_OtherSockets[a].Events->Destroy();
-					}
-				}
-			}
-#endif
 		}
 	}
 
@@ -1496,8 +1496,8 @@ CTimer *CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Functio
  *
  * @param Timer the timer
  */
-void CCore::RegisterTimer(CTimer *Timer) {
-	m_Timers.Insert(Timer);
+link_t<CTimer *> *CCore::RegisterTimer(CTimer *Timer) {
+	return m_Timers.Insert(Timer);
 }
 
 /**
@@ -1507,7 +1507,7 @@ void CCore::RegisterTimer(CTimer *Timer) {
  *
  * @param Timer the timer
  */
-void CCore::UnregisterTimer(CTimer *Timer) {
+void CCore::UnregisterTimer(link_t<CTimer *> *Timer) {
 	m_Timers.Remove(Timer);
 }
 

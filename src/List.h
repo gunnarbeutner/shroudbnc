@@ -69,7 +69,7 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	virtual RESULT<bool> Insert(Type Item) {
+	virtual RESULT<link_t<Type> *> Insert(Type Item) {
 		link_t<Type> *Element;
 
 		Element = (link_t<Type> *)malloc(sizeof(link_t<Type>));
@@ -77,7 +77,7 @@ public:
 		mmark(Element);
 
 		if (Element == NULL) {
-			THROW(bool, Generic_OutOfMemory, "Out of memory.");
+			THROW(link_t<Type> *, Generic_OutOfMemory, "Out of memory.");
 		}
 
 		Element->Next = NULL;
@@ -94,7 +94,7 @@ public:
 
 		Element->Value = Item;
 
-		RETURN(bool, true);
+		RETURN(link_t<Type> *, Element);
 	}
 
 	/**
@@ -127,6 +127,10 @@ public:
 	 * @param Item the item's link_t which is to be removed
 	 */
 	virtual void Remove(link_t<Type> *Item) {
+		if (Item == NULL) {
+			return;
+		}
+
 		if (Item->Next != NULL) {
 			Item->Next->Previous = Item->Previous;
 		}
