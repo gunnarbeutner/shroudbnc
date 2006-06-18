@@ -34,9 +34,11 @@ class CUser;
  */
 class CLog : public CZoneObject<CLog, 16> {
 	char *m_Filename; /**< the filename of the log, can be an empty string */
+	bool m_KeepOpen; /**< should we keep the file open? */
+	mutable FILE *m_File; /**< the file */
 public:
 #ifndef SWIG
-	CLog(const char *Filename);
+	CLog(const char *Filename, bool KeepOpen = false);
 	virtual ~CLog(void);
 #endif
 

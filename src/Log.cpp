@@ -26,8 +26,9 @@
  *
  * @param Filename the filename of the log, can be NULL to indicate that
  *                 any log messages should be discarded
+ * @param KeepOpen whether to keep the file open
  */
-CLog::CLog(const char *Filename) {
+CLog::CLog(const char *Filename, bool KeepOpen) {
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
 
@@ -35,6 +36,9 @@ CLog::CLog(const char *Filename) {
 	} else {
 		m_Filename = NULL;
 	}
+
+	m_KeepOpen = KeepOpen;
+	m_File = NULL;
 }
 
 /**
@@ -44,6 +48,10 @@ CLog::CLog(const char *Filename) {
  */
 CLog::~CLog(void) {
 	free(m_Filename);
+
+	if (m_File != NULL) {
+		fclose(m_File);
+	}
 }
 
 /**
@@ -65,8 +73,11 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 	const char *Nick;
 	const char *Server;
 
-	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
+	LogFile = m_File;
+
+	if (m_Filename != NULL && (m_File != NULL || (LogFile = fopen(m_Filename, "r")) != NULL)) {
 		char Line[500];
+
 		while (!feof(LogFile)) {
 			char *LinePtr = fgets(Line, sizeof(Line), LogFile);
 
@@ -93,7 +104,11 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 			}
 		}
 
-		fclose(LogFile);
+		if (!m_KeepOpen) {
+			fclose(LogFile);
+		} else {
+			m_File = LogFile;
+		}
 	}
 
 	if (Type == Log_Motd && Client != NULL) {
@@ -116,7 +131,9 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 	char strNow[100];
 	FILE *LogFile;
 
-	if (m_Filename == NULL || (LogFile = fopen(m_Filename, "a")) == NULL) {
+	LogFile = m_File;
+
+	if (m_Filename == NULL || (m_File == NULL && (LogFile = fopen(m_Filename, "a")) == NULL)) {
 		return;
 	}
 
@@ -149,7 +166,11 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 
 	free(Out);
 
-	fclose(LogFile);
+	if (!m_KeepOpen) {
+		fclose(LogFile);
+	} else {
+		m_File = LogFile;
+	}
 }
 
 /**
@@ -187,11 +208,19 @@ void CLog::WriteLine(const char *Timestamp, const char *Format, ...) {
  */
 void CLog::Clear(void) {
 	FILE *LogFile;
-	
+
+	if (m_File != NULL) {
+		fclose(m_File);
+	}
+
 	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "w")) != NULL) {
 		SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
-		fclose(LogFile);
+		if (!m_KeepOpen) {
+			fclose(LogFile);
+		} else {
+			m_File = LogFile;
+		}
 	}
 }
 
