@@ -561,6 +561,8 @@ void CUser::Reconnect(void) {
 	SetIRCConnection(Connection);
 
 	g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
+
+	RescheduleReconnectTimer();
 }
 
 /**
