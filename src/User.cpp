@@ -1896,14 +1896,16 @@ void CUser::RescheduleReconnectTimer(void) {
 	time_t ReconnectTime;
 
 	if (g_ReconnectTimer == NULL) {
-		g_ReconnectTimer = new CTimer(60, true, GlobalUserReconnectTimer, NULL);
+		g_ReconnectTimer = new CTimer(20, true, GlobalUserReconnectTimer, NULL);
 	}
 
 	ReconnectTime = g_ReconnectTimer->GetNextCall();
 
 	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-		if (UserHash->Value->m_ReconnectTime > g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
+		if (UserHash->Value->m_ReconnectTime >= g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
 			ReconnectTime = UserHash->Value->m_ReconnectTime;
+		} else if (UserHash->Value->ShouldReconnect()) {
+			UserHash->Value->Reconnect();
 		}
 	}
 

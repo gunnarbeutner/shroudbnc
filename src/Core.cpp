@@ -461,10 +461,10 @@ void CCore::StartMainLoop(void) {
 
 					LastCheck = Now;
 				}*/
-
-				CUser::RescheduleReconnectTimer();
 			}
 		}
+
+		CUser::RescheduleReconnectTimer();
 
 /*		if (ReconnectUser != NULL) {
 			ReconnectUser->ScheduleReconnect();
