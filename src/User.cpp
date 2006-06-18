@@ -573,6 +573,10 @@ void CUser::Reconnect(void) {
 bool CUser::ShouldReconnect(void) const {
 	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
 
+	if (GetServer() == NULL || GetPort() == 0) {
+		return false;
+	}
+
 	if (Interval == 0) {
 		Interval = 15;
 	}
