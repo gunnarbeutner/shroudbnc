@@ -91,7 +91,7 @@ void CTclClientSocket::Destroy(void) {
 		m_Control = NULL;
 	}
 
-	if (g_Bouncer->GetStatus() != STATUS_RUN) {
+	if (g_Bouncer->GetStatus() != STATUS_RUN || m_Wrap->GetSendqSize() == 0) {
 		delete this;
 	} else {
 		m_Wrap->Kill("");

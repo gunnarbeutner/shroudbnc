@@ -188,11 +188,14 @@ CCore::~CCore(void) {
 	}
 
 	link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
+	link_t<CTimer *> *Next;
 
 	while (CurrentTimer != NULL) {
+		Next = CurrentTimer->Next;
+
 		delete CurrentTimer->Value;
 
-		CurrentTimer = CurrentTimer->Next;
+		CurrentTimer = Next;
 	}
 
 	delete m_Log;
@@ -466,34 +469,27 @@ void CCore::StartMainLoop(void) {
 		}
 
 		link_t<socket_t> *Current = m_OtherSockets.GetHead();
+		link_t<socket_t> *Next;
 
 		while (Current != NULL) {
-			if (Current->Value.Socket != INVALID_SOCKET) {
-				if (Current->Value.Events->DoTimeout()) {
-					Current = Current->Next;
+			Next = Current->Next;
 
-					continue;
-				} else if (Current->Value.Events->ShouldDestroy()) {
-					Current->Value.Events->Destroy();
+			if (Current->Value.Socket != INVALID_SOCKET) {
+				if (!Current->Value.Events->DoTimeout()) {
+					if (Current->Value.Events->ShouldDestroy()) {
+						Current->Value.Events->Destroy();
+					} else {
+						SFD_SET(Current->Value.Socket, &FDRead);
+						SFD_SET(Current->Value.Socket, &FDError);
+
+						if (Current->Value.Events->HasQueuedData()) {
+							SFD_SET(Current->Value.Socket, &FDWrite);
+						}
+					}
 				}
 			}
 
-			Current = Current->Next;
-		}
-
-		Current = m_OtherSockets.GetHead();
-
-		while (Current != NULL) {
-			if (Current->Value.Socket != INVALID_SOCKET) {
-				SFD_SET(Current->Value.Socket, &FDRead);
-				SFD_SET(Current->Value.Socket, &FDError);
-
-				if (Current->Value.Events->HasQueuedData()) {
-					SFD_SET(Current->Value.Socket, &FDWrite);
-				}
-			}
-
-			Current = Current->Next;
+			Current = Next;
 		}
 
 		time(&Now);

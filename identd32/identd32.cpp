@@ -138,10 +138,31 @@ public:
 			}
 		}
 
-		// 113 , 3559 : USERID : UNIX : shroud
-		m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
+		FILE *IdentFile = fopen("ident", "r");
 
-		g_Bouncer->Log("Ident-request for unknown user.");
+		if (IdentFile != NULL) {
+			char IdentBuffer[50];
+
+			if (fgets(IdentBuffer, sizeof(IdentBuffer), IdentFile) == NULL) {
+				// TODO: error reply
+			} else {
+				for (int i = strlen(IdentBuffer); i > 0; i--) {
+					if (IdentBuffer[i] == '\r' || IdentBuffer[i] == '\n') {
+						IdentBuffer[i] = '\0';
+					}
+				}
+			}
+
+			m_Wrap->WriteLine("%d, %d : USERID : UNIX : %s", LocalPort, RemotePort, IdentBuffer);
+
+			fclose(IdentFile);
+
+			g_Bouncer->Log("Ident-request for unknown user. Returned ident from \"ident\" file: %s", IdentBuffer);
+		} else {
+			m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
+
+			g_Bouncer->Log("Ident-request for unknown user.");
+		}
 	}
 
 	void Write(void) {

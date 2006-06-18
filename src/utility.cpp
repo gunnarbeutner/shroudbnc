@@ -1115,7 +1115,7 @@ void mstacktrace(void) {
 	STACKFRAME64 Frame;
 	DWORD FramePointer;
 
-	return; /* ... */
+//	return; /* ... */
 
 	__asm mov FramePointer, ebp
 
@@ -1125,6 +1125,10 @@ void mstacktrace(void) {
 	Frame.AddrPC.Mode = AddrModeFlat;
 	Frame.AddrFrame.Offset = FramePointer;
 	Frame.AddrFrame.Mode = AddrModeFlat;
+
+	if (g_Bouncer != NULL) {
+		g_Bouncer->Log("---");
+	}
 
 	while (StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &Frame, NULL, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
 		char charSymbol[sizeof(SYMBOL_INFO) + 200];
@@ -1216,10 +1220,13 @@ void *mmalloc(size_t Size, CUser *Owner) {
 #endif
 
 #if defined(_DEBUG) && defined(_WIN32)
+	if (Block->Manager != NULL && g_Bouncer != NULL) {
+		printf("%p = mmalloc(%d, %p), mgr refcount = %d\n", Block + 1, Size, Owner, Owner->MemoryGetManager()->ReferenceCount);
+	}
+
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-/*	printf("%p = mmalloc(%d, %p)\n", Block + 1, Size, Owner);
-	mstacktrace();*/
+//	mstacktrace();
 #endif
 
 	return Block + 1;
@@ -1227,6 +1234,7 @@ void *mmalloc(size_t Size, CUser *Owner) {
 
 void mfree(void *Block) {
 	mblock *RealBlock;
+	unsigned int DebugRefCount;
 
 	if (Block == NULL) {
 		return;
@@ -1237,6 +1245,10 @@ void mfree(void *Block) {
 	RealBlock = (mblock *)Block - 1;
 
 #if defined(_DEBUG) && defined(_WIN32)
+	if (RealBlock->Marker == 0xaaaaaaaa) {
+		DebugBreak();
+	}
+
 	if (RealBlock->Marker != BLOCKMARKER) {
 		free(Block);
 
@@ -1244,17 +1256,27 @@ void mfree(void *Block) {
 	}
 #endif
 
-	if (RealBlock->Manager != NULL && RealBlock->Manager->RealManager != NULL) {
-		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
+#ifdef _DEBUG
+	RealBlock->Marker = 0xaaaaaaaa;
+#endif
+
+	if (RealBlock->Manager != NULL) {
+		DebugRefCount = RealBlock->Manager->ReferenceCount - 1;
 	}
 
-	mreleasemanager(RealBlock->Manager);
+	if (RealBlock->Manager != NULL && RealBlock->Manager->RealManager != NULL) {
+		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
+
+		mreleasemanager(RealBlock->Manager);
+	}
 
 #if defined(_DEBUG) && defined(_WIN32)
-	VirtualFree(RealBlock, 0, MEM_RELEASE);
+	//VirtualFree(RealBlock, 0, MEM_RELEASE);
 
-/*	printf("mfree(%p)\n", Block);
-	mstacktrace();*/
+	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
+		printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
+	}
+//	mstacktrace();
 #else
 	free(RealBlock);
 #endif
@@ -1315,8 +1337,10 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-/*	printf("%p = mrealloc(%p, %d, %p)\n", NewRealBlock + 1, Block, NewSize, Manager);
-	mstacktrace();*/
+	if (NewManager != NULL && g_Bouncer != NULL) {
+		printf("%p = mrealloc(%p, %d, %p), mgr refcount = %d\n", NewRealBlock + 1, Block, NewSize, Manager, NewManager->ReferenceCount);
+	}
+//	mstacktrace();
 #endif
 
 	return NewRealBlock + 1;
