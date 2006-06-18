@@ -454,19 +454,21 @@ void CCore::StartMainLoop(void) {
 					}
 				}
 
-				if ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE) && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
+/*				if ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE) && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
 					if (ReconnectUser == NULL || (!ReconnectUser->IsAdmin() && UserHash->Value->IsAdmin())) {
 						ReconnectUser = UserHash->Value;
 					}
 
 					LastCheck = Now;
-				}
+				}*/
+
+				CUser::RescheduleReconnectTimer();
 			}
 		}
 
-		if (ReconnectUser != NULL) {
+/*		if (ReconnectUser != NULL) {
 			ReconnectUser->ScheduleReconnect();
-		}
+		}*/
 
 		link_t<socket_t> *Current = m_OtherSockets.GetHead();
 		link_t<socket_t> *Next;
@@ -1700,12 +1702,7 @@ const char *CCore::DebugImpulse(int impulse) {
 			CUser *User = CreateUser(Name, NULL);
 
 			User->SetServer("217.112.85.191");
-
-			if ((rand() + 1) % 2 == 0) {
-				User->SetPort(6667);
-			} else {
-				User->SetPort(6668);
-			}
+			User->SetPort(6667);
 
 			User->SetLeanMode(2);
 
@@ -1717,13 +1714,18 @@ const char *CCore::DebugImpulse(int impulse) {
 
 	if (impulse == 11) {
 		int i = 0;
+		char **Keys = GetUsers()->GetSortedKeys();
 		hash_t<CUser *> *User;
 
-		while ((User = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
+		while (*Keys != NULL) {
 			if (match("test*", User->Name) == 0) {
-				g_Bouncer->RemoveUser(User->Name);
+				RemoveUser(*Keys);
+
+				Keys++;
 			}
 		}
+
+		free(Keys);
 	}
 
 	if (impulse == 12) {

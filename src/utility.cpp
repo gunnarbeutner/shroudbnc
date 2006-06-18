@@ -1271,11 +1271,12 @@ void mfree(void *Block) {
 	}
 
 #if defined(_DEBUG) && defined(_WIN32)
-	//VirtualFree(RealBlock, 0, MEM_RELEASE);
-
 	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
 		printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
 	}
+
+	VirtualFree(RealBlock, 0, MEM_RELEASE);
+
 //	mstacktrace();
 #else
 	free(RealBlock);

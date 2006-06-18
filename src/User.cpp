@@ -21,6 +21,8 @@
 
 extern time_t g_LastReconnect;
 
+CTimer *g_ReconnectTimer = NULL;
+
 /**
  * CUser
  *
@@ -83,7 +85,6 @@ CUser::CUser(const char *Name) {
 	m_Keys = new CKeyring(m_Config, this);
 
 	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
-	m_ReconnectTimer = NULL;
 
 	m_IsAdminCache = -1;
 	m_LeanModeCache = -1;
@@ -155,10 +156,6 @@ CUser::~CUser(void) {
 		X509_free(m_ClientCertificates[i]);
 	}
 #endif
-
-	if (m_ReconnectTimer != NULL) {
-		delete m_ReconnectTimer;
-	}
 
 	g_Bouncer->GetAdminUsers()->Remove(this);
 }
@@ -522,11 +519,6 @@ void CUser::Reconnect(void) {
 		SetIRCConnection(NULL);
 	}
 
-	if (m_ReconnectTimer != NULL) {
-		m_ReconnectTimer->Destroy();
-		m_ReconnectTimer = NULL;
-	}
-
 	Server = GetServer();
 	Port = GetPort();
 
@@ -583,7 +575,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && m_ReconnectTime < g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
+	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && g_CurrentTime - m_LastReconnect > 120 && g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
 		return true;
 	} else {
 		return false;
@@ -622,13 +614,9 @@ void CUser::ScheduleReconnect(int Delay) {
 	}
 
 	if (m_ReconnectTime < g_CurrentTime + MaxDelay) {
-		if (m_ReconnectTimer != NULL) {
-			m_ReconnectTimer->Destroy();
-		}
-
-		m_ReconnectTimer = new CTimer(MaxDelay, false, UserReconnectTimer, this);
-
 		m_ReconnectTime = g_CurrentTime + MaxDelay;
+
+		RescheduleReconnectTimer();
 	}
 
 	if (GetServer() != NULL && GetClientConnection() != NULL) {
@@ -776,11 +764,6 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	} else if (IRC) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerConnect(GetUsername());
-		}
-
-		if (m_ReconnectTimer != NULL) {
-			m_ReconnectTimer->Destroy();
-			m_ReconnectTimer = NULL;
 		}
 
 		m_LastReconnect = g_CurrentTime;
@@ -1160,8 +1143,6 @@ bool BadLoginTimer(time_t Now, void *User) {
 bool UserReconnectTimer(time_t Now, void *User) {
 	int Interval;
 
-	((CUser *)User)->m_ReconnectTimer = NULL;
-
 	if (((CUser *)User)->GetIRCConnection() || !(g_Bouncer->GetStatus() == STATUS_RUN || g_Bouncer->GetStatus() == STATUS_PAUSE)) {
 		return false;
 	}
@@ -1177,6 +1158,8 @@ bool UserReconnectTimer(time_t Now, void *User) {
 	} else {
 		((CUser*)User)->ScheduleReconnect(Interval);
 	}
+
+	((CUser *)User)->m_ReconnectTime = g_CurrentTime;
 
 	return false;
 }
@@ -1884,4 +1867,39 @@ const char *CUser::SimulateWithResult(const char *Command) {
 	Simulate(Command, FakeClient);
 
 	return FakeClient->GetData();
+}
+
+bool GlobalUserReconnectTimer(time_t Now, void *Null) {
+	int i = 0;
+
+	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		if (UserHash->Value->ShouldReconnect()) {
+			UserHash->Value->Reconnect();
+
+			break;
+		}
+	}
+
+	CUser::RescheduleReconnectTimer();
+
+	return true;
+}
+
+void CUser::RescheduleReconnectTimer(void) {
+	int i = 0;
+	time_t ReconnectTime;
+
+	if (g_ReconnectTimer == NULL) {
+		g_ReconnectTimer = new CTimer(60, true, GlobalUserReconnectTimer, NULL);
+	}
+
+	ReconnectTime = g_ReconnectTimer->GetNextCall();
+
+	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		if (UserHash->Value->m_ReconnectTime > g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
+			ReconnectTime = UserHash->Value->m_ReconnectTime;
+		}
+	}
+
+	g_ReconnectTimer->Reschedule(ReconnectTime);
 }

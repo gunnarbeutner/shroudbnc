@@ -1100,6 +1100,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			} CHECK_ALLOC_RESULT_END;
 		}
 
+		free(Keys);
+
 		SENDUSER("End of USERS.");
 
 		return false;

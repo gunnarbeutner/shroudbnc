@@ -96,7 +96,6 @@ class CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 	CKeyring *m_Keys; /**< a list of channel keys */
 
 	CTimer *m_BadLoginPulse; /**< a timer which will remove "bad logins" */
-	CTimer *m_ReconnectTimer; /**< a timer which reconnects the user to an IRC server */
 
 	mutable int m_IsAdminCache; /**< cached value which determines whether the user is an admin */
 
@@ -115,6 +114,8 @@ public:
 	CUser(const char *Name);
 	virtual ~CUser(void);
 #endif
+
+	static void RescheduleReconnectTimer(void);
 
 	virtual CClientConnection *GetClientConnection(void);
 	virtual CIRCConnection *GetIRCConnection(void);
