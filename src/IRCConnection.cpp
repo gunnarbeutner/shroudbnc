@@ -469,6 +469,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		return bRet;
 	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
 		int DelayJoin = GetOwner()->GetDelayJoin();
+		if (m_State != State_Connected) {
+			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
+
+			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
+			}
+
+			GetOwner()->Log("You were successfully connected to an IRC server.");
+			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
+		}
+
 		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
 			const char *Site = GetSite();
 
@@ -483,17 +494,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
 		} else if (DelayJoin == 0) {
 			JoinChannels();
-		}
-
-		if (m_State != State_Connected) {
-			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
-
-			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
-			}
-
-			GetOwner()->Log("You were successfully connected to an IRC server.");
-			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
 		}
 
 		if (Client == NULL) {
@@ -533,7 +533,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		ufree(m_ServerFeat);
 		m_ServerFeat = ustrdup(argv[5]);
-	} else if (argc > 3 && iRaw		) {
+	} else if (argc > 3 && iRaw	== 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
 

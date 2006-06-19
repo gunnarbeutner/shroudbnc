@@ -1715,10 +1715,9 @@ const char *CCore::DebugImpulse(int impulse) {
 	if (impulse == 11) {
 		int i = 0;
 		char **Keys = GetUsers()->GetSortedKeys();
-		hash_t<CUser *> *User;
 
 		while (*Keys != NULL) {
-			if (match("test*", User->Name) == 0) {
+			if (match("test*", *Keys) == 0) {
 				RemoveUser(*Keys);
 
 			}
