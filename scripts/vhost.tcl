@@ -21,6 +21,10 @@ internalbind usrcreate vhost:newuser
 proc vhost:host2ip {host} {
 	set vhosts [bncgetglobaltag vhosts]
 
+	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
+		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+	}
+
 	foreach vhost $vhosts {
 		if {[string equal -nocase [lindex $vhost 2] $host]} {
 			return [lindex $vhost 0]
@@ -49,6 +53,10 @@ proc vhost:countvhost {ip} {
 proc vhost:getlimit {ip} {
 	set vhosts [bncgetglobaltag vhosts]
 	set ip [vhost:host2ip $ip]
+
+	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
+		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+	}
 
 	if {$ip == ""} { set ip [vhost:getdefaultip] }
 
@@ -106,6 +114,10 @@ proc vhost:command {client parameters} {
 	}
 
 	set vhosts [bncgetglobaltag vhosts]
+
+	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
+		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+	}
 
 	if {[string equal -nocase [lindex $parameters 0] "vhosts"]} {
 		foreach vhost $vhosts {
@@ -195,6 +207,10 @@ proc vhost:command {client parameters} {
 
 proc vhost:findip {} {
 	set vhosts [bncgetglobaltag vhosts]
+
+	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
+		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+	}
 
 	set min 9000
 	set minip ""
@@ -306,6 +322,10 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-vhost:getvhosts {} {
 	set vhosts [bncgetglobaltag vhosts]
 	set result [list]
+
+	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
+		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+	}
 
 	foreach vhost $vhosts {
 		lappend result "[lindex $vhost 0] [vhost:countvhost [lindex $vhost 0]] [lindex $vhost 1] [lindex $vhost 2]"

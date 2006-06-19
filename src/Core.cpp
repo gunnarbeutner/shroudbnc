@@ -153,6 +153,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_LoadingModules = false;
 	m_LoadingListeners = false;
+
+	m_SSLContext = NULL;
 }
 
 /**
@@ -172,14 +174,17 @@ CCore::~CCore(void) {
 
 	UninitializeAdditionalListeners();
 
-	link_t<socket_t> *Current = m_OtherSockets.GetHead();
+	link_t<socket_t> *CurrentSocket = m_OtherSockets.GetHead();
+	link_t<socket_t> *NextSocket;
 
-	while (Current != NULL) {
-		if (Current->Value.Socket != INVALID_SOCKET) {
-			Current->Value.Events->Destroy();
+	while (CurrentSocket != NULL) {
+		NextSocket = CurrentSocket->Next;
+
+		if (CurrentSocket->Value.Socket != INVALID_SOCKET) {
+			CurrentSocket->Value.Events->Destroy();
 		}
 
-		Current = Current->Next;
+		CurrentSocket = NextSocket;
 	}
 
 	i = 0;
@@ -188,14 +193,14 @@ CCore::~CCore(void) {
 	}
 
 	link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
-	link_t<CTimer *> *Next;
+	link_t<CTimer *> *NextTimer;
 
 	while (CurrentTimer != NULL) {
-		Next = CurrentTimer->Next;
+		NextTimer = CurrentTimer->Next;
 
 		delete CurrentTimer->Value;
 
-		CurrentTimer = Next;
+		CurrentTimer = NextTimer;
 	}
 
 	delete m_Log;

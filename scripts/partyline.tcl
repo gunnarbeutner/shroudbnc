@@ -23,12 +23,20 @@ internalbind server sbnc:partychantypes 005
 
 set ::partyline [list &partyline &test]
 
-foreach chan $::partyline {
-	if {![info exists ::partytopic($chan)] || ![info exists ::partyts($chan)] || ![info exists ::partywho($chan)]} {
-		set ::partytopic($chan) "shroudBNC Partyline"
-		set ::partyts($chan) [unixtime]
-		set ::partywho($chan) "-sBNC"
+proc sbnc:partyline_add {channel} {
+	if {[lsearch -exact $::partyline $channel] == -1} {
+		lappend ::partyline $channel
 	}
+
+	if {![info exists ::partytopic($channel)] || ![info exists ::partyts($channel)] || ![info exists ::partywho($channel)]} {
+		set ::partytopic($channel) "shroudBNC Partyline"
+		set ::partyts($channel) [unixtime]
+		set ::partywho($channel) "-sBNC"
+	}
+}
+
+foreach chan $::partyline {
+	sbnc:partyline_add $chan
 }
 
 # work around some weird "feature" in mirc, which sends a /part for channels when the channel's prefix isn't in CHANTYPES

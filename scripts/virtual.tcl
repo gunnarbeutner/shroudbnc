@@ -150,7 +150,7 @@ proc virtual:cmd:who {account parameters} {
 			if {[virtual:isadmin $user]} {
 				if {[getbncuser $account admin]} {
 					append out "\$"
-				} else if {![getbncuser $user admin]} {
+				} elseif {![getbncuser $user admin]} {
 					append out "@"
 				}
 			}
