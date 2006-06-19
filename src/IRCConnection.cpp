@@ -1203,7 +1203,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	size_t Offset;
 	char *Copy;
 
-	if (GetOwner()->GetLeanMode() > 0 && m_Site != NULL) {
+	if (GetOwner() != NULL && GetOwner()->GetLeanMode() > 0 && m_Site != NULL) {
 		return;
 	}
 

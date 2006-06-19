@@ -99,7 +99,7 @@ proc qauth:server {client params} {
 	if {![string equal -nocase [lindex $params 1] "PRIVMSG"]} { return }
 
 	if {[string equal -nocase [lindex [split [lindex $params 0] "!"] 0] "Q"]} {
-		if {[string match -nocase "*AUTH'd successfully"] [lindex $params 3]} {
+		if {[string match -nocase "*AUTH'd successfully" [lindex $params 3]} {
 			joinchannels
 
 			if {![getbncuser $client hasclient]} {
