@@ -19,7 +19,7 @@
 
 class CUser;
 
-class CMemoryManager {
+class SBNCAPI CMemoryManager {
 public:
 	virtual bool MemoryAddBytes(size_t Bytes) = 0;
 	virtual void MemoryRemoveBytes(size_t Bytes) = 0;
@@ -35,7 +35,7 @@ public:
 	}
 };
 
-class CObjectBase {
+class SBNCAPI CObjectBase {
 	enum ObjectType_e {
 		eUser,
 		eObject
@@ -85,7 +85,7 @@ public:
 };
 
 template<typename ObjectType, typename OwnerType>
-class CObject : public CObjectBase {
+class SBNCAPI CObject : public CObjectBase {
 protected:
 	CObject(void) {	}
 
@@ -93,7 +93,7 @@ protected:
 		SetOwner(Owner);
 	}
 
-	virtual ~CObject(void) {
+	~CObject(void) {
 		SetOwner(NULL);
 	}
 
@@ -114,11 +114,11 @@ public:
 		}
 	}
 
-	virtual OwnerType *GetOwner(void) const {
+	OwnerType *GetOwner(void) const {
 		return (OwnerType *)GetOwnerBase();
 	}
 
-	virtual void SetOwner(OwnerType *Owner) {
+	void SetOwner(OwnerType *Owner) {
 		CUser *User;
 		CMemoryManager *Manager;
 

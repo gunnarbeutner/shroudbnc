@@ -32,7 +32,7 @@ class CTimer;
  *
  * A class for dns queries.
  */
-class CDnsQuery {
+class SBNCAPI CDnsQuery {
 	friend void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
 	friend bool DestroyDnsChannelTimer(time_t Now, void *Cookie);
 

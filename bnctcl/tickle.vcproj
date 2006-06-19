@@ -77,7 +77,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="tcl84.lib ws2_32.lib"
+				AdditionalDependencies="tcl84.lib ws2_32.lib ..\Debug\sbnc.lib"
 				OutputFile=".\Debug/bnctcl.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -185,7 +185,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/ALIGN:512"
-				AdditionalDependencies="tcl84.lib ws2_32.lib"
+				AdditionalDependencies="tcl84.lib ws2_32.lib ..\Release\sbnc.lib"
 				OutputFile="../bin/bnctcl.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

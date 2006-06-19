@@ -28,7 +28,7 @@ typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
  *
  * A timer.
  */
-class CTimer : public CZoneObject<CTimer, 512> {
+class SBNCAPI CTimer : public CZoneObject<CTimer, 512> {
 private:
 	friend class CCore;
 
@@ -46,11 +46,11 @@ public:
 	virtual ~CTimer(void);
 #endif
 
-	virtual time_t GetNextCall(void) const;
-	virtual int GetInterval(void) const;
-	virtual bool GetRepeat(void) const;
+	time_t GetNextCall(void) const;
+	int GetInterval(void) const;
+	bool GetRepeat(void) const;
 
-	virtual void Reschedule(time_t Next);
+	void Reschedule(time_t Next);
 
-	virtual void Destroy(void);
+	void Destroy(void);
 };

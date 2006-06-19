@@ -63,6 +63,10 @@ typedef struct additionallistener_s {
 %template(CVectorFileT) CVector<file_t>;
 #endif
 
+template class SBNCAPI CVector<CModule *>;
+template class SBNCAPI CVector<char *>;
+template class SBNCAPI CVector<CZoneInformation *>;
+
 /**
  * CCore
  *

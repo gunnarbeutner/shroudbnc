@@ -71,7 +71,7 @@ bool UserReconnectTimer(time_t Now, void *User);
  *
  * A bouncer user.
  */
-class CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
+class SBNCAPI CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
@@ -106,6 +106,9 @@ class CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 	size_t m_ManagedMemory;
 	mmanager_t *m_MemoryManager;
 
+	mutable int m_PortCache;
+	mutable const char *m_ServerCache;
+
 	bool PersistCertificates(void);
 
 	void BadLoginPulse(void);
@@ -117,133 +120,133 @@ public:
 
 	static void RescheduleReconnectTimer(void);
 
-	virtual CClientConnection *GetClientConnection(void);
-	virtual CIRCConnection *GetIRCConnection(void);
+	CClientConnection *GetClientConnection(void);
+	CIRCConnection *GetIRCConnection(void);
 
-	virtual bool CheckPassword(const char *Password) const;
-	virtual void Attach(CClientConnection *Client);
+	bool CheckPassword(const char *Password) const;
+	void Attach(CClientConnection *Client);
 
-	virtual const char *GetNick(void) const;
-	virtual void SetNick(const char *Nick);
+	const char *GetNick(void) const;
+	void SetNick(const char *Nick);
 
-	virtual const char *GetRealname(void) const;
-	virtual void SetRealname(const char *Realname);
+	const char *GetRealname(void) const;
+	void SetRealname(const char *Realname);
 
-	virtual const char *GetUsername(void) const;
-	virtual CConfig *GetConfig(void);
+	const char *GetUsername(void) const;
+	CConfig *GetConfig(void);
 
-	virtual void Simulate(const char *Command, CClientConnection *FakeClient = NULL);
-	virtual const char *SimulateWithResult(const char *Command);
+	void Simulate(const char *Command, CClientConnection *FakeClient = NULL);
+	const char *SimulateWithResult(const char *Command);
 
-	virtual void Reconnect(void);
+	void Reconnect(void);
 
-	virtual bool ShouldReconnect(void) const;
-	virtual void ScheduleReconnect(int Delay = 10);
+	bool ShouldReconnect(void) const;
+	void ScheduleReconnect(int Delay = 10);
 
-	virtual void Privmsg(const char *Text);
-	virtual void RealNotice(const char *Text);
+	void Privmsg(const char *Text);
+	void RealNotice(const char *Text);
 
-	virtual unsigned int GetIRCUptime(void) const;
+	unsigned int GetIRCUptime(void) const;
 
-	virtual CLog *GetLog(void);
-	virtual void Log(const char *Format, ...);
+	CLog *GetLog(void);
+	void Log(const char *Format, ...);
 
-	virtual void Lock(void);
-	virtual void Unlock(void);
-	virtual bool IsLocked(void) const;
+	void Lock(void);
+	void Unlock(void);
+	bool IsLocked(void) const;
 
-	virtual void SetIRCConnection(CIRCConnection *IRC);
-	virtual void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
+	void SetIRCConnection(CIRCConnection *IRC);
+	void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
 
-	virtual void SetAdmin(bool Admin = true);
-	virtual bool IsAdmin(void) const;
+	void SetAdmin(bool Admin = true);
+	bool IsAdmin(void) const;
 
-	virtual void SetPassword(const char *Password);
+	void SetPassword(const char *Password);
 
-	virtual void SetServer(const char *Server);
-	virtual const char *GetServer(void) const;
+	void SetServer(const char *Server);
+	const char *GetServer(void) const;
 
-	virtual void SetPort(int Port);
-	virtual int GetPort(void) const;
+	void SetPort(int Port);
+	int GetPort(void) const;
 
-	virtual void MarkQuitted(bool RequireManualJump = false);
-	virtual int IsQuitted(void) const;
+	void MarkQuitted(bool RequireManualJump = false);
+	int IsQuitted(void) const;
 
-	virtual void LoadEvent(void);
+	void LoadEvent(void);
 
-	virtual void LogBadLogin(sockaddr *Peer);
-	virtual bool IsIpBlocked(sockaddr *Peer) const;
+	void LogBadLogin(sockaddr *Peer);
+	bool IsIpBlocked(sockaddr *Peer) const;
 
-	virtual const CTrafficStats *GetClientStats(void) const;
-	virtual const CTrafficStats *GetIRCStats(void) const;
+	const CTrafficStats *GetClientStats(void) const;
+	const CTrafficStats *GetIRCStats(void) const;
 
-	virtual CKeyring *GetKeyring(void);
+	CKeyring *GetKeyring(void);
 
-	virtual time_t GetLastSeen(void) const;
+	time_t GetLastSeen(void) const;
 
-	virtual const char *GetAwayNick(void) const;
-	virtual void SetAwayNick(const char *Nick);
+	const char *GetAwayNick(void) const;
+	void SetAwayNick(const char *Nick);
 
-	virtual const char *GetAwayText(void) const;
-	virtual void SetAwayText(const char *Reason);
+	const char *GetAwayText(void) const;
+	void SetAwayText(const char *Reason);
 
-	virtual const char *GetVHost(void) const;
-	virtual void SetVHost(const char *VHost);
+	const char *GetVHost(void) const;
+	void SetVHost(const char *VHost);
 
-	virtual int GetDelayJoin(void) const;
-	virtual void SetDelayJoin(int DelayJoin);
+	int GetDelayJoin(void) const;
+	void SetDelayJoin(int DelayJoin);
 
-	virtual const char *GetConfigChannels(void) const;
-	virtual void SetConfigChannels(const char *Channels);
+	const char *GetConfigChannels(void) const;
+	void SetConfigChannels(const char *Channels);
 
-	virtual const char *GetSuspendReason(void) const;
-	virtual void SetSuspendReason(const char *Reason);
+	const char *GetSuspendReason(void) const;
+	void SetSuspendReason(const char *Reason);
 
-	virtual const char *GetServerPassword(void) const;
-	virtual void SetServerPassword(const char *Password);
+	const char *GetServerPassword(void) const;
+	void SetServerPassword(const char *Password);
 
-	virtual const char *GetAutoModes(void) const;
-	virtual void SetAutoModes(const char *AutoModes);
+	const char *GetAutoModes(void) const;
+	void SetAutoModes(const char *AutoModes);
 
-	virtual const char *GetDropModes(void) const;
-	virtual void SetDropModes(const char *DropModes);
+	const char *GetDropModes(void) const;
+	void SetDropModes(const char *DropModes);
 
-	virtual const CVector<X509 *> *GetClientCertificates(void) const;
-	virtual bool AddClientCertificate(const X509 *Certificate);
-	virtual bool RemoveClientCertificate(const X509 *Certificate);
-	virtual bool FindClientCertificate(const X509 *Certificate) const;
+	const CVector<X509 *> *GetClientCertificates(void) const;
+	bool AddClientCertificate(const X509 *Certificate);
+	bool RemoveClientCertificate(const X509 *Certificate);
+	bool FindClientCertificate(const X509 *Certificate) const;
 
-	virtual void SetSSL(bool SSL);
-	virtual bool GetSSL(void) const;
+	void SetSSL(bool SSL);
+	bool GetSSL(void) const;
 
-	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void) const;
+	void SetIdent(const char *Ident);
+	const char *GetIdent(void) const;
 
-	virtual void SetIPv6(bool IPv6);
-	virtual bool GetIPv6(void) const;
+	void SetIPv6(bool IPv6);
+	bool GetIPv6(void) const;
 
-	virtual const char *GetTagString(const char *Tag) const;
-	virtual int GetTagInteger(const char *Tag) const;
-	virtual bool SetTagString(const char *Tag, const char *Value);
-	virtual bool SetTagInteger(const char *Tag, int Value);
-	virtual const char *GetTagName(int Index) const;
+	const char *GetTagString(const char *Tag) const;
+	int GetTagInteger(const char *Tag) const;
+	bool SetTagString(const char *Tag, const char *Value);
+	bool SetTagInteger(const char *Tag, int Value);
+	const char *GetTagName(int Index) const;
 
-	virtual const char *FormatTime(time_t Timestamp) const;
-	virtual void SetGmtOffset(int Offset);
-	virtual int GetGmtOffset(void) const;
+	const char *FormatTime(time_t Timestamp) const;
+	void SetGmtOffset(int Offset);
+	int GetGmtOffset(void) const;
 
-	virtual void SetSystemNotices(bool SystemNotices);
-	virtual bool GetSystemNotices(void) const;
+	void SetSystemNotices(bool SystemNotices);
+	bool GetSystemNotices(void) const;
 
-	virtual void SetAwayMessage(const char *Text);
-	virtual const char *GetAwayMessage(void) const;
+	void SetAwayMessage(const char *Text);
+	const char *GetAwayMessage(void) const;
 
-	virtual void SetLeanMode(unsigned int Mode);
-	virtual unsigned int GetLeanMode(void);
+	void SetLeanMode(unsigned int Mode);
+	unsigned int GetLeanMode(void);
 
-	virtual bool MemoryAddBytes(size_t Bytes);
-	virtual void MemoryRemoveBytes(size_t Bytes);
-	virtual size_t MemoryGetSize(void);
-	virtual size_t MemoryGetLimit(void);
-	virtual mmanager_t *MemoryGetManager(void);
+	bool MemoryAddBytes(size_t Bytes);
+	void MemoryRemoveBytes(size_t Bytes);
+	size_t MemoryGetSize(void);
+	size_t MemoryGetLimit(void);
+	mmanager_t *MemoryGetManager(void);
 };

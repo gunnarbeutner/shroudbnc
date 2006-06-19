@@ -35,7 +35,7 @@ struct link_t {
  * A linked list.
  */
 template <typename Type>
-class CList {
+class SBNCAPI CList {
 private:
 	mutable link_t<Type> *m_Head; /**< first element */
 	mutable link_t<Type> *m_Tail; /**< last element */
@@ -57,7 +57,7 @@ public:
 	 *
 	 * Destroys a list.
 	 */
-	virtual ~CList(void) {
+	~CList(void) {
 		Clear();
 	}
 #endif
@@ -69,7 +69,7 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	virtual RESULT<link_t<Type> *> Insert(Type Item) {
+	RESULT<link_t<Type> *> Insert(Type Item) {
 		link_t<Type> *Element;
 
 		Element = (link_t<Type> *)malloc(sizeof(link_t<Type>));
@@ -104,7 +104,7 @@ public:
 	 *
 	 * @param Item the item which is to be removed
 	 */
-	virtual RESULT<bool> Remove(Type Item) {
+	RESULT<bool> Remove(Type Item) {
 		bool ReturnValue = false;
 		link_t<Type> *Current = m_Head;
 
@@ -126,7 +126,7 @@ public:
 	 *
 	 * @param Item the item's link_t which is to be removed
 	 */
-	virtual void Remove(link_t<Type> *Item) {
+	void Remove(link_t<Type> *Item) {
 		if (Item == NULL) {
 			return;
 		}
@@ -155,7 +155,7 @@ public:
 	 *
 	 * Returns the head of the linked list.
 	 */
-	virtual link_t<Type> *GetHead(void) const {
+	link_t<Type> *GetHead(void) const {
 		return m_Head;
 	}
 
@@ -164,7 +164,7 @@ public:
 	 *
 	 * Removes all items from the list.
 	 */
-	virtual void Clear(void) {
+	void Clear(void) {
 		link_t<Type> *Current = m_Head;
 		link_t<Type> *Next = NULL;
 

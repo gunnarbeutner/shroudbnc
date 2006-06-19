@@ -22,12 +22,14 @@
 %template(HashTCharP) hash_t<char *>;
 #endif
 
+template class SBNCAPI CHashtable<char *, false, 16>;
+
 /**
  * CConfig
  *
  * Represents a shroudBNC configuration file
  */
-class CConfig : public CZoneObject<CConfig, 128>, public CObject<CConfig, CUser> {
+class SBNCAPI CConfig : public CZoneObject<CConfig, 128>, public CObject<CConfig, CUser> {
 	CHashtable<char *, false, 16> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
@@ -45,18 +47,18 @@ public:
 	static RESULT<CConfig *> Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
-	virtual RESULT<int> ReadInteger(const char *Setting) const;
-	virtual RESULT<const char *> ReadString(const char *Setting) const;
+	RESULT<int> ReadInteger(const char *Setting) const;
+	RESULT<const char *> ReadString(const char *Setting) const;
 
-	virtual RESULT<bool> WriteInteger(const char *Setting, const int Value);
-	virtual RESULT<bool> WriteString(const char *Setting, const char *Value);
+	RESULT<bool> WriteInteger(const char *Setting, const int Value);
+	RESULT<bool> WriteString(const char *Setting, const char *Value);
 
-	virtual hash_t<char *> *Iterate(int Index) const;
+	hash_t<char *> *Iterate(int Index) const;
 
-	virtual const char *GetFilename(void) const;
+	const char *GetFilename(void) const;
 
-	virtual void Reload(void);
-	virtual unsigned int GetLength(void) const;
+	void Reload(void);
+	unsigned int GetLength(void) const;
 
-	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void);
+	CHashtable<char *, false, 16> *GetInnerHashtable(void);
 };

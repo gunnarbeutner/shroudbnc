@@ -22,14 +22,14 @@
  *
  * Used for "communicating" with ident daemons.
  */
-class CIdentSupport {
+class SBNCAPI CIdentSupport {
 	char *m_Ident; /**< the ident */
 public:
 #ifndef SWIG
 	CIdentSupport(void);
-	virtual ~CIdentSupport(void);
+	~CIdentSupport(void);
 #endif
 
-	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void) const;
+	void SetIdent(const char *Ident);
+	const char *GetIdent(void) const;
 };

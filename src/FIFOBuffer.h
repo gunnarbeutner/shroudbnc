@@ -24,7 +24,7 @@
  *
  * A fifo buffer.
  */
-class CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
+class SBNCAPI CFIFOBuffer : public CZoneObject<CFIFOBuffer, 32> {
 	char *m_Buffer; /**< the fifo buffer's data */
 	size_t m_BufferSize; /**< the size of the buffer */
 	size_t m_Offset; /**< the number of unused bytes at the
@@ -38,12 +38,12 @@ public:
 	virtual ~CFIFOBuffer();
 #endif
 
-	virtual size_t GetSize(void) const;
+	size_t GetSize(void) const;
 
-	virtual char *Peek(void) const;
-	virtual char *Read(size_t Bytes);
-	virtual void Flush(void);
+	char *Peek(void) const;
+	char *Read(size_t Bytes);
+	void Flush(void);
 
-	virtual RESULT<bool> Write(const char *Data, size_t Size);
-	virtual RESULT<bool> WriteUnformattedLine(const char *Line);
+	RESULT<bool> Write(const char *Data, size_t Size);
+	RESULT<bool> WriteUnformattedLine(const char *Line);
 };

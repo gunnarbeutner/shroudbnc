@@ -31,7 +31,7 @@ bool ClientAuthTimer(time_t Now, void *Client);
  *
  * A class for clients of the IRC bouncer.
  */
-class CClientConnection : public CConnection, public CObject<CClientConnection, CUser>,
+class SBNCAPI CClientConnection : public CConnection, public CObject<CClientConnection, CUser>,
 	public CZoneObject<CClientConnection, 16> {
 private:
 	char *m_Nick; /**< the current nick of the user */
@@ -49,7 +49,7 @@ private:
 	friend bool ClientAuthTimer(time_t Now, void *Client);
 
 public:
-	virtual void AsyncDnsFinishedClient(hostent *response);
+	void AsyncDnsFinishedClient(hostent *response);
 private:
 #endif
 
@@ -57,7 +57,7 @@ private:
 	void SetPeerName(const char *PeerName, bool LookupFailure);
 	virtual bool Read(bool DontProcess = false);
 	virtual const char *GetClassName(void) const;
-	virtual void WriteUnformattedLine(const char *Line);
+	void WriteUnformattedLine(const char *Line);
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
@@ -73,18 +73,18 @@ public:
 
 	virtual void ParseLine(const char *Line);
 
-	virtual const char *GetNick(void) const;
-	virtual const char *GetPeerName(void) const;
+	const char *GetNick(void) const;
+	const char *GetPeerName(void) const;
 
 	virtual void Kill(const char *Error);
 	virtual void Destroy(void);
 
-	virtual commandlist_t *GetCommandList(void);
+	commandlist_t *GetCommandList(void);
 
-	virtual void SetPreviousNick(const char *Nick);
-	virtual const char *GetPreviousNick(void) const;
+	void SetPreviousNick(const char *Nick);
+	const char *GetPreviousNick(void) const;
 
-	virtual SOCKET Hijack(void);
+	SOCKET Hijack(void);
 };
 
 #ifdef SBNC
@@ -93,7 +93,7 @@ public:
  *
  * A fake client connection which is used by CClientConnection::Simulate.
  */
-class CFakeClient : public CClientConnection {
+class SBNCAPI CFakeClient : public CClientConnection {
 	CFIFOBuffer m_Queue; /**< used for storing inbound data */
 	char *m_Data; /**< temporary "static" copy of m_Queue's data */
 
@@ -132,7 +132,7 @@ public:
 	 * Returns a temporary buffer containing the lines which have been
 	 * sent to the client so far.
 	 */
-	virtual const char *GetData(void) {
+	const char *GetData(void) {
 		free(m_Data);
 
 		m_Data = (char *)malloc(m_Queue.GetSize() + 1);

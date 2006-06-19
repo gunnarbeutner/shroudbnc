@@ -25,7 +25,7 @@ typedef int (* FNGETINTERFACEVERSION)() ;
  *
  * A dynamically loaded shroudBNC module.
  */
-class CModule : public CModuleFar {
+class SBNCAPI CModule : public CModuleFar {
 	HMODULE m_Image; /**< the os-specific module handle */
 	char *m_File; /**< the filename of the module */
 	CModuleFar *m_Far; /**< the module's implementation of the CModuleFar class */
@@ -35,37 +35,37 @@ class CModule : public CModuleFar {
 public:
 #ifndef SWIG
 	CModule(const char *Filename);
-	virtual ~CModule(void);
+	~CModule(void);
 #endif
 
-	virtual CModuleFar *GetModule(void);
-	virtual const char *GetFilename(void);
-	virtual HMODULE GetHandle(void);
-	virtual RESULT<bool> GetError(void);
+	CModuleFar *GetModule(void);
+	const char *GetFilename(void);
+	HMODULE GetHandle(void);
+	RESULT<bool> GetError(void);
 
 	// proxy implementation of CModuleFar
-	virtual void Destroy(void);
-	virtual void Init(CCore *Root);
+	void Destroy(void);
+	void Init(CCore *Root);
 
-	virtual bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char  **ArgV);
-	virtual bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV);
-	virtual bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser);
+	bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char  **ArgV);
+	bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV);
+	bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser);
 
-	virtual void AttachClient(const char *Client);
-	virtual void DetachClient(const char *Client) ;
+	void AttachClient(const char *Client);
+	void DetachClient(const char *Client) ;
 
-	virtual void ServerDisconnect(const char *Client);
-	virtual void ServerConnect(const char *Client);
-	virtual void ServerLogon(const char *Client);
+	void ServerDisconnect(const char *Client);
+	void ServerConnect(const char *Client);
+	void ServerLogon(const char *Client);
 
-	virtual void UserLoad(const char *User);
-	virtual void UserCreate(const char *User);
-	virtual void UserDelete(const char *User);
+	void UserLoad(const char *User);
+	void UserCreate(const char *User);
+	void UserDelete(const char *User);
 
-	virtual void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter);
+	void SingleModeChange(CIRCConnection *IRC, const char *Channel, const char *Source, bool Flip, char Mode, const char *Parameter);
 
-	virtual const char *Command(const char *Cmd, const char *Parameters);
+	const char *Command(const char *Cmd, const char *Parameters);
 
-	virtual void TagModified(const char *Tag, const char *Value);
-	virtual void UserTagModified(const char *Tag, const char *Value);
+	void TagModified(const char *Tag, const char *Value);
+	void UserTagModified(const char *Tag, const char *Value);
 };

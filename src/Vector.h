@@ -28,7 +28,7 @@ typedef enum vector_error_e {
  * A generic list.
  */
 template <typename Type>
-class CVector {
+class SBNCAPI CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */
@@ -52,7 +52,7 @@ public:
 	 *
 	 * Destroys a list.
 	 */
-	virtual ~CVector(void) {
+	~CVector(void) {
 		Clear();
 	}
 #endif
@@ -64,7 +64,7 @@ public:
 	 *
 	 * @param Item the item which is to be inserted
 	 */
-	virtual RESULT<bool> Insert(Type Item) {
+	RESULT<bool> Insert(Type Item) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
@@ -94,7 +94,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be removed
 	 */
-	virtual RESULT<bool> Remove(int Index) {
+	RESULT<bool> Remove(int Index) {
 		Type *NewList;
 
 		if (m_ReadOnly) {
@@ -121,7 +121,7 @@ public:
 	 *
 	 * @param Item the item which is to be removed
 	 */
-	virtual RESULT<bool> Remove(Type Item) {
+	RESULT<bool> Remove(Type Item) {
 		bool ReturnValue = false;
 
 		for (int i = m_Count - 1; i >= 0; i--) {
@@ -146,7 +146,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
-	virtual Type& operator[] (int Index) const {
+	Type& operator[] (int Index) const {
 		// check m_Count
 
 		return m_List[Index];
@@ -159,7 +159,7 @@ public:
 	 *
 	 * @param Index the index of the item which is to be returned
 	 */
-	virtual Type& Get(int Index) const {
+	Type& Get(int Index) const {
 		return m_List[Index];
 	}
 
@@ -168,7 +168,7 @@ public:
 	 *
 	 * Returns the number of items.
 	 */
-	virtual unsigned int GetLength(void) const {
+	unsigned int GetLength(void) const {
 		return m_Count;
 	}
 
@@ -177,7 +177,7 @@ public:
 	 *
 	 * Returns the actual list which is used for storing the items.
 	 */
-	virtual Type *GetList(void) const {
+	Type *GetList(void) const {
 		return m_List;
 	}
 
@@ -186,7 +186,7 @@ public:
 	 *
 	 * Sets a new internal list by copying the items from another list.
 	 */
-	virtual RESULT<bool> SetList(Type *List, int Count) {
+	RESULT<bool> SetList(Type *List, int Count) {
 		free(m_List);
 
 		Clear();
@@ -213,7 +213,7 @@ public:
 	 *
 	 * @param Index the index of the item
 	 */
-	virtual Type *GetAddressOf(int Index) const {
+	Type *GetAddressOf(int Index) const {
 		return &(m_List[Index]);
 	}
 
@@ -222,7 +222,7 @@ public:
 	 *
 	 * Removes all items from the list.
 	 */
-	virtual void Clear(void) {
+	void Clear(void) {
 		free(m_List);
 		m_List = NULL;
 		m_Count = 0;

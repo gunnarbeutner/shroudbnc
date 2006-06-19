@@ -32,12 +32,14 @@ typedef struct ban_s {
 %template(CZoneObjectCBanlist) CZoneObject<class CBanlist, 128>;
 #endif
 
+template class SBNCAPI CHashtable<ban_t *, false, 5>;
+
 /**
  * CBanlist
  *
  * a list of bans
  */
-class CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CBanlist, CChannel> {
+class SBNCAPI CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CBanlist, CChannel> {
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 
@@ -49,9 +51,9 @@ public:
 	static RESULT<CBanlist *> Thaw(CAssocArray *Box, CChannel *Owner);
 #endif
 
-	virtual RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);
-	virtual RESULT<bool> UnsetBan(const char *Mask);
+	RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);
+	RESULT<bool> UnsetBan(const char *Mask);
 
-	virtual const ban_t *GetBan(const char *Mask) const;
-	virtual const hash_t<ban_t *> *Iterate(int Skip) const;
+	const ban_t *GetBan(const char *Mask) const;
+	const hash_t<ban_t *> *Iterate(int Skip) const;
 };

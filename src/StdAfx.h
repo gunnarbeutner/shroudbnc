@@ -143,6 +143,20 @@ void mmark(void *Block);
 #	define DebugBreak()
 #endif
 
+#ifdef SBNC
+#	ifdef _WIN32
+#		define SBNCAPI __declspec(dllexport)
+#	else
+#		define SBNCAPI
+#	endif
+#else
+#	ifdef _WIN32
+#		define SBNCAPI __declspec(dllimport)
+#	else
+#		define SBNCAPI
+	#endif
+#endif
+
 #ifdef __cplusplus
 #	include "sbncloader/AssocArray.h"
 

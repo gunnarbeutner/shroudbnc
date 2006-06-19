@@ -33,7 +33,8 @@ struct hash_t {
  *
  * A bucket in a hashtable.
  */
-template <typename HashListType> struct hashlist_t {
+template <typename HashListType>
+struct SBNCAPI hashlist_t {
 	unsigned int Count;
 	char **Keys;
 	HashListType *Values;
@@ -82,7 +83,8 @@ inline unsigned long Hash(const char *String) {
 }
 
 
-template<typename Type, bool CaseSensitive, int Size> class CHashtable {
+template<typename Type, bool CaseSensitive, int Size>
+class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
@@ -106,17 +108,16 @@ public:
 	 *
 	 * Destructs a hashtable
 	 */
-	virtual ~CHashtable(void) {
+	~CHashtable(void) {
 		Clear();
 	}
 #endif
-
 	/**
 	 * Clear
 	 *
 	 * Removes all items from the hashtable.
 	 */
-	virtual void Clear(void) {
+	void Clear(void) {
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
 
@@ -143,7 +144,7 @@ public:
 	 * @param Key the name of the item
 	 * @param Value the item
 	 */
-	virtual RESULT<bool> Add(const char *Key, Type Value) {
+	RESULT<bool> Add(const char *Key, Type Value) {
 		char *dupKey;
 		char **newKeys;
 		Type *newValues;
@@ -206,7 +207,7 @@ public:
 	 *
 	 * @param Key the key
 	 */
-	virtual Type Get(const char *Key) const {
+	Type Get(const char *Key) const {
 		const hashlist_t<Type> *List;
 
 		if (Key == NULL) {
@@ -237,7 +238,7 @@ public:
 	 * @param DontDestroy determines whether the value destructor function
 	 *					  is going to be called for the item
 	 */
-	virtual RESULT<bool> Remove(const char *Key, bool DontDestroy = false) {
+	RESULT<bool> Remove(const char *Key, bool DontDestroy = false) {
 		hashlist_t<Type> *List;
 
 		if (Key == NULL) {
@@ -291,7 +292,7 @@ public:
 	 *
 	 * Returns the number of items in the hashtable.
 	 */
-	virtual unsigned int GetLength(void) const {
+	unsigned int GetLength(void) const {
 /*		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
@@ -310,7 +311,7 @@ public:
 	 *
 	 * @param Func the value destructor
 	 */
-	virtual void RegisterValueDestructor(void (*Func)(Type Object)) {
+	void RegisterValueDestructor(void (*Func)(Type Object)) {
 		m_DestructorFunc = Func;
 	}
 
@@ -321,7 +322,7 @@ public:
 	 *
 	 * @param Index the index
 	 */
-	virtual hash_t<Type> *Iterate(unsigned int Index) const {
+	hash_t<Type> *Iterate(unsigned int Index) const {
 		static void *thisPointer = NULL;
 		static unsigned int cache_Index = 0, cache_i = 0, cache_a = 0;
 		int Skip = 0;
@@ -372,7 +373,7 @@ public:
 	 * Returns a NULL-terminated list of keys for the hashtable. The returned list
 	 * will eventually have to be passed to free().
 	 */
-	virtual char **GetSortedKeys(void) const {
+	char **GetSortedKeys(void) const {
 		char **Keys = NULL;
 		unsigned int Count = 0;
 

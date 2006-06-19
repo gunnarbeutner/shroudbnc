@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib ..\Debug\sbnc.lib"
 				OutputFile="Debug\$(ProjectName).dll"
 				LinkIncremental="2"
 				ModuleDefinitionFile="uptime.def"
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib"
+				AdditionalDependencies="ws2_32.lib ..\Release\sbnc.lib"
 				OutputFile="..\bin\$(ProjectName).dll"
 				LinkIncremental="1"
 				ModuleDefinitionFile="uptime.def"

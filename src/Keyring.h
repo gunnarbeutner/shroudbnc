@@ -24,7 +24,7 @@ class CConfig;
  *
  * A keyring used for storing channel keys.
  */
-class CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CKeyring, CUser> {
+class SBNCAPI CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CKeyring, CUser> {
 private:
 	CConfig *m_Config; /**< the config object for storing the channel keys */
 public:
@@ -32,7 +32,7 @@ public:
 	CKeyring(CConfig *Config, CUser *Owner);
 #endif
 
-	virtual RESULT<bool> SetKey(const char *Channel, const char *Key = NULL);
-	virtual RESULT<const char *> GetKey(const char *Channel);
-	virtual bool RemoveRedundantKeys(void);
+	RESULT<bool> SetKey(const char *Channel, const char *Key = NULL);
+	RESULT<const char *> GetKey(const char *Channel);
+	bool RemoveRedundantKeys(void);
 };

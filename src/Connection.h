@@ -37,7 +37,7 @@ enum connection_role_e {
  *
  * A base class for connections.
  */
-class CConnection : public CSocketEvents {
+class SBNCAPI CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CCore;
 	friend class CUser;
@@ -63,8 +63,8 @@ protected:
 
 	SSL *m_SSL; /**< SSL context for this connection */
 public:
-	virtual void AsyncDnsFinished(hostent *Response);
-	virtual void AsyncBindIpDnsFinished(hostent *Response);
+	void AsyncDnsFinished(hostent *Response);
+	void AsyncBindIpDnsFinished(hostent *Response);
 private:
 	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 
@@ -102,43 +102,42 @@ public:
 	virtual ~CConnection(void);
 #endif
 
-	virtual void SetSocket(SOCKET Socket);
-	virtual SOCKET GetSocket(void) const;
+	void SetSocket(SOCKET Socket);
+	SOCKET GetSocket(void) const;
 
 	virtual void WriteUnformattedLine(const char *Line);
 	virtual void WriteLine(const char *Format, ...);
 	virtual bool ReadLine(char **Out);
 
-	virtual connection_role_e GetRole(void) const;
+	connection_role_e GetRole(void) const;
 
 	virtual void Kill(const char *Error);
 
-	virtual size_t GetSendqSize(void) const;
-	virtual size_t GetRecvqSize(void) const;
+	size_t GetSendqSize(void) const;
+	size_t GetRecvqSize(void) const;
 
-	virtual void Lock(void);
-	virtual bool IsLocked(void) const;
+	void Lock(void);
+	bool IsLocked(void) const;
 
-	virtual void Shutdown(void);
+	void Shutdown(void);
 
-	virtual void SetTrafficStats(CTrafficStats *Stats);
-	virtual const CTrafficStats *GetTrafficStats(void) const;
+	void SetTrafficStats(CTrafficStats *Stats);
+	const CTrafficStats *GetTrafficStats(void) const;
 
-	virtual void FlushSendQ(void);
+	void FlushSendQ(void);
 
-	virtual bool IsSSL(void) const;
-	virtual const X509 *GetPeerCertificate(void) const;
-	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
-	virtual bool ShouldDestroy(void) const;
+	bool IsSSL(void) const;
+	const X509 *GetPeerCertificate(void) const;
+	int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
-	virtual sockaddr *GetRemoteAddress(void) const;
-	virtual sockaddr *GetLocalAddress(void) const;
+	sockaddr *GetRemoteAddress(void) const;
+	sockaddr *GetLocalAddress(void) const;
 
 	void Destroy(void);
 
-	virtual bool IsConnected(void);
+	bool IsConnected(void);
 
-	virtual size_t GetInboundRate(void);
+	size_t GetInboundRate(void);
 
 	// should really be "protected"
 	virtual bool Read(bool DontProcess = false);
@@ -146,4 +145,5 @@ public:
 	virtual bool DoTimeout(void);
 	virtual void Error(void);
 	virtual bool HasQueuedData(void) const;
+	virtual bool ShouldDestroy(void) const;
 };

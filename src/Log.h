@@ -32,7 +32,7 @@ class CUser;
  *
  * A log file.
  */
-class CLog : public CZoneObject<CLog, 16> {
+class SBNCAPI CLog : public CZoneObject<CLog, 16> {
 	char *m_Filename; /**< the filename of the log, can be an empty string */
 	bool m_KeepOpen; /**< should we keep the file open? */
 	mutable FILE *m_File; /**< the file */
@@ -42,10 +42,10 @@ public:
 	virtual ~CLog(void);
 #endif
 
-	virtual void Clear(void);
-	virtual void WriteLine(const char *Timestamp, const char *Format,...);
-	virtual void WriteUnformattedLine(const char *Timestamp, const char *Line);
-	virtual void PlayToUser(CUser *User, int Type) const;
-	virtual bool IsEmpty(void) const;
-	virtual const char *GetFilename(void) const;
+	void Clear(void);
+	void WriteLine(const char *Timestamp, const char *Format,...);
+	void WriteUnformattedLine(const char *Timestamp, const char *Line);
+	void PlayToUser(CUser *User, int Type) const;
+	bool IsEmpty(void) const;
+	const char *GetFilename(void) const;
 };

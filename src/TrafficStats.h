@@ -22,7 +22,7 @@
  *
  * Records traffic statistics for a user.
  */
-class CTrafficStats : public CZoneObject<CTrafficStats, 32> {
+class SBNCAPI CTrafficStats : public CZoneObject<CTrafficStats, 32> {
 private:
 	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
 	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
@@ -34,9 +34,9 @@ public:
 	static RESULT<CTrafficStats *> Thaw(CAssocArray *Box);
 #endif
 
-	virtual void AddInbound(unsigned int Bytes);
-	virtual unsigned int GetInbound(void) const;
+	void AddInbound(unsigned int Bytes);
+	unsigned int GetInbound(void) const;
 
-	virtual void AddOutbound(unsigned int Bytes);
-	virtual unsigned int GetOutbound(void) const;
+	void AddOutbound(unsigned int Bytes);
+	unsigned int GetOutbound(void) const;
 };

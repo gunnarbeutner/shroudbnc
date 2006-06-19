@@ -44,7 +44,7 @@ bool FloodTimer(time_t Now, void *Null);
  *
  * A queue which tries to avoid "Excess Flood" errors.
  */
-class CFloodControl : public CZoneObject<CFloodControl, 16> {
+class SBNCAPI CFloodControl : public CZoneObject<CFloodControl, 16> {
 	CVector<irc_queue_t> m_Queues; /**< a list of queues which have been
 								attached to this object */
 	size_t m_Bytes; /**< the number of bytes which have recently been sent */
@@ -61,12 +61,12 @@ public:
 
 	virtual RESULT<char *> DequeueItem(bool Peek = false);
 	virtual int GetQueueSize(void);
-
-	virtual void AttachInputQueue(CQueue *Queue, int Priority);
 	virtual int GetBytes(void) const;
-	virtual int GetRealLength(void) const;
 	virtual void Clear(void);
 
-	virtual void Enable(void);
-	virtual void Disable(void);
+	void AttachInputQueue(CQueue *Queue, int Priority);
+	int GetRealLength(void) const;
+
+	void Enable(void);
+	void Disable(void);
 };

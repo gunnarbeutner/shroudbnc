@@ -35,6 +35,9 @@ CUser::CUser(const char *Name) {
 	X509 *Cert;
 	FILE *ClientCert;
 
+	m_PortCache = -1;
+	m_ServerCache = NULL;
+
 	m_ManagedMemory = 0;
 	m_MemoryManager = NULL;
 
@@ -935,6 +938,8 @@ void CUser::SetPassword(const char *Password) {
 void CUser::SetServer(const char *Server) {
 	USER_SETFUNCTION(server, Server);
 
+	m_ServerCache = NULL;
+
 	if (Server != NULL && !IsQuitted() && GetIRCConnection() == NULL) {
 		ScheduleReconnect();
 	}
@@ -946,7 +951,11 @@ void CUser::SetServer(const char *Server) {
  * Returns the user's IRC server.
  */
 const char *CUser::GetServer(void) const {
-	return m_Config->ReadString("user.server");
+	if (m_ServerCache == NULL) {
+		m_ServerCache = m_Config->ReadString("user.server");
+	}
+
+	return m_ServerCache;
 }
 
 /**
@@ -957,6 +966,8 @@ const char *CUser::GetServer(void) const {
  * @param Port the port
  */
 void CUser::SetPort(int Port) {
+	m_PortCache = -1;
+
 	m_Config->WriteInteger("user.port", Port);
 }
 
@@ -966,7 +977,13 @@ void CUser::SetPort(int Port) {
  * Returns the port of the user's IRC server.
  */
 int CUser::GetPort(void) const {
-	int Port = m_Config->ReadInteger("user.port");
+	int Port;
+	
+	if (m_PortCache != -1) {
+		Port = m_PortCache;
+	} else {
+		Port = m_Config->ReadInteger("user.port");
+	}
 
 	if (Port == 0) {
 		return 6667;
