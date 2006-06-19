@@ -1617,6 +1617,49 @@ proc userlist {args} {
 	}
 }
 
+proc maskhost {args} {
+
+	if {[llength $args] != 1} {
+		return -code error "wrong # args: should be \"maskhost nick!user@host\""
+	}
+
+	set args [join $args]
+
+	if {[string first "@" $args] == -1} {
+		set host [join $args]
+	} else {
+		set host [join [lrange [split $args @] 1 end] @]
+	}
+
+	if {[string first "!" $args] != -1 && ![string equal $args $host]} {
+		set user [join [lrange [split [lindex [split $args @] 0] !] 1 end] !]
+	} elseif {[string first "!" $args] == -1 && ![string equal $args $host]} {
+		set user [lindex [split $args @] 0]
+	} else {
+		set user "*"
+	}
+
+	if {[string index $user 0] == "~"} {
+		set user "*[string range $user 1 end]"
+	}
+
+	if {[llength [split $host .]] > 2} {
+		regexp {([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)[0-9]{1,3}} $host tmp res
+
+		if {![info exists res]} {
+			regexp {(\..*)} $host tmp res
+			set res "*$res"
+		} else {
+			set res "$res*"
+		}
+	} else {
+		set res $host
+	}
+
+	return [join *!$user@$res]
+
+}
+
 internaltimer 300 1 sbnc:userpulse
 internalbind unload sbnc:userunload
 
