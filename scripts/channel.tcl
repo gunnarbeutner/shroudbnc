@@ -214,8 +214,10 @@ proc channels {} {
 
 	set tmpchans [array names channels]
 
-	foreach chan [internalchannels] {
-		lappend tmpchans $chan
+	if {![catch [list internalchannels] channellist]} {
+		foreach chan $channellist {
+			lappend tmpchans $chan
+		}
 	}
 
 	return [sbnc:uniq $tmpchans]
