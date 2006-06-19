@@ -91,6 +91,7 @@
 				MapFileName="bin/sbnc.map"
 				SubSystem="1"
 				LinkTimeCodeGeneration="1"
+				ImportLibrary="Release\$(TargetName).lib"
 				TargetMachine="1"
 				AllowIsolation="true"
 			/>

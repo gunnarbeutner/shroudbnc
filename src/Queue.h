@@ -35,7 +35,7 @@ typedef struct queue_item_s {
  *
  * A queue which can be used for storing strings.
  */
-class CQueue : public CZoneObject<CQueue, 64> {
+class SBNCAPI CQueue : public CZoneObject<CQueue, 64> {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG
@@ -43,10 +43,10 @@ public:
 	static RESULT<CQueue *> Thaw(CAssocArray *Box);
 #endif
 
-	virtual RESULT<char *> DequeueItem(void);
-	virtual RESULT<const char *> PeekItem(void) const;
-	virtual RESULT<bool> QueueItem(const char *Line);
-	virtual RESULT<bool> QueueItemNext(const char *Line);
-	virtual unsigned int GetLength(void) const;
-	virtual void Clear(void);
+	RESULT<char *> DequeueItem(void);
+	RESULT<const char *> PeekItem(void) const;
+	RESULT<bool> QueueItem(const char *Line);
+	RESULT<bool> QueueItemNext(const char *Line);
+	unsigned int GetLength(void) const;
+	void Clear(void);
 };

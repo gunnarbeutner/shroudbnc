@@ -51,7 +51,7 @@ struct hunkobject_s {
  * A memory zone used for efficiently storing similar objects.
  */
 template<typename Type, int HunkSize>
-class CZone : public CZoneInformation {
+class SBNCAPI CZone : public CZoneInformation {
 
 	template<typename HunkType, int HunkObjectSize>
 	struct hunk_s {
@@ -235,7 +235,7 @@ public:
 	 * Checks the zone for leaked objects. This function should be called
 	 * when there _should_ be no more active objects in this zone.
 	 */
-	virtual void PerformLeakCheck(void) const {
+	void PerformLeakCheck(void) const {
 #ifdef _DEBUG
 		int Count = GetCount();
 
@@ -250,7 +250,7 @@ public:
 	 *
 	 * Returns the number of active objects in the memory zone.
 	 */
-	virtual unsigned int GetCount(void) const {
+	unsigned int GetCount(void) const {
 		unsigned int Count = 0;
 
 		for (unsigned int i = 0; i < m_Count; i++) {
@@ -272,7 +272,7 @@ public:
 	 * Returns the number of objects which can be active in this zone
 	 * without having to allocate new hunks.
 	 */
-	virtual unsigned int GetCapacity(void) const {
+	unsigned int GetCapacity(void) const {
 		return HunkSize * m_Count;
 	}
 
@@ -282,7 +282,7 @@ public:
 	 * Returns the typename of the objects which can be allocated
 	 * using the zone object.
 	 */
-	virtual const char *GetTypeName(void) const {
+	const char *GetTypeName(void) const {
 		return typeid(Type).name();
 	}
 
@@ -292,7 +292,7 @@ public:
 	 * Returns the size of the objects which can be allocated
 	 * using the zone object.
 	 */
-	virtual size_t GetTypeSize(void) const {
+	size_t GetTypeSize(void) const {
 		return sizeof(Type);
 	}
 };

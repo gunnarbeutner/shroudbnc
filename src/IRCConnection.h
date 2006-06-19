@@ -52,7 +52,7 @@ bool IRCPingTimer(time_t Now, void *IRCConnection);
  *
  * An IRC connection.
  */
-class CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser>, public CZoneObject<CIRCConnection, 16> {
+class SBNCAPI CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser>, public CZoneObject<CIRCConnection, 16> {
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void *IRCConnection);
@@ -115,41 +115,41 @@ public:
 	static RESULT<CIRCConnection *> Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
-	virtual CChannel *GetChannel(const char *Name);
-	virtual CHashtable<CChannel *, false, 16> *GetChannels(void);
+	CChannel *GetChannel(const char *Name);
+	CHashtable<CChannel *, false, 16> *GetChannels(void);
 
-	virtual const char *GetCurrentNick(void) const;
-	virtual const char *GetSite(void) const;
-	virtual const char *GetServer(void) const;
+	const char *GetCurrentNick(void) const;
+	const char *GetSite(void) const;
+	const char *GetServer(void) const;
 
-	virtual const char *GetServerVersion(void) const;
-	virtual const char *GetServerFeat(void) const;
+	const char *GetServerVersion(void) const;
+	const char *GetServerFeat(void) const;
 
-	virtual CQueue *GetQueueHigh(void);
-	virtual CQueue *GetQueueMiddle(void);
-	virtual CQueue *GetQueueLow(void);
+	CQueue *GetQueueHigh(void);
+	CQueue *GetQueueMiddle(void);
+	CQueue *GetQueueLow(void);
 
-	virtual CFloodControl *GetFloodControl(void);
+	CFloodControl *GetFloodControl(void);
 
-	virtual const CConfig *GetISupportAll(void) const;
-	virtual const char *GetISupport(const char *Feature) const;
-	virtual void SetISupport(const char *Feature, const char *Value);
-	virtual bool IsChanMode(char Mode) const;
-	virtual int RequiresParameter(char Mode) const;
-	virtual bool IsNickPrefix(char Char) const;
-	virtual bool IsNickMode(char Char) const;
-	virtual char PrefixForChanMode(char Mode) const;
-	virtual char GetHighestUserFlag(const char *Modes) const;
+	const CConfig *GetISupportAll(void) const;
+	const char *GetISupport(const char *Feature) const;
+	void SetISupport(const char *Feature, const char *Value);
+	bool IsChanMode(char Mode) const;
+	int RequiresParameter(char Mode) const;
+	bool IsNickPrefix(char Char) const;
+	bool IsNickMode(char Char) const;
+	char PrefixForChanMode(char Mode) const;
+	char GetHighestUserFlag(const char *Modes) const;
 
-	virtual void ParseLine(const char *Line);
+	void ParseLine(const char *Line);
 
-	virtual void JoinChannels(void);
+	void JoinChannels(void);
 
-	virtual void Destroy(void);
+	void Destroy(void);
 
-	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
+	int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
-	virtual void Kill(const char *Error);
+	void Kill(const char *Error);
 
-	virtual const char *GetUsermodes(void);
+	const char *GetUsermodes(void);
 };

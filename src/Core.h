@@ -66,13 +66,13 @@ typedef struct additionallistener_s {
 template class SBNCAPI CVector<CModule *>;
 template class SBNCAPI CVector<char *>;
 template class SBNCAPI CVector<CZoneInformation *>;
-
+template class SBNCAPI CHashtable<CUser *, false, 512>;
 /**
  * CCore
  *
  * The main application class.
  */
-class CCore {
+class SBNCAPI CCore {
 #ifndef SWIG
 	friend class CTimer;
 	friend class CDnsQuery;
@@ -140,120 +140,118 @@ public:
 	virtual ~CCore(void);
 #endif
 
-	virtual void StartMainLoop(void);
+	void StartMainLoop(void);
 
-	virtual CUser *GetUser(const char *Name);
+	CUser *GetUser(const char *Name);
 
-	virtual void GlobalNotice(const char *Text);
+	void GlobalNotice(const char *Text);
 
-	virtual CHashtable<CUser *, false, 512> *GetUsers(void);
+	CHashtable<CUser *, false, 512> *GetUsers(void);
 
-	virtual RESULT<CModule *> LoadModule(const char *Filename);
-	virtual bool UnloadModule(CModule *Module);
-	virtual const CVector<CModule *> *GetModules(void) const;
+	RESULT<CModule *> LoadModule(const char *Filename);
+	bool UnloadModule(CModule *Module);
+	const CVector<CModule *> *GetModules(void) const;
 
-	virtual void SetIdent(const char *Ident);
-	virtual const char *GetIdent(void) const;
+	void SetIdent(const char *Ident);
+	const char *GetIdent(void) const;
 
-	virtual CConfig *GetConfig(void);
+	CConfig *GetConfig(void);
 
-	virtual void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
-	virtual void UnregisterSocket(SOCKET Socket);
+	void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
+	void UnregisterSocket(SOCKET Socket);
 
-	virtual SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET) const;
+	SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET) const;
 
-	virtual void Log(const char *Format, ...);
-	virtual void LogUser(CUser *User, const char *Format, ...);
-	virtual CLog *GetLog(void);
+	void Log(const char *Format, ...);
+	void LogUser(CUser *User, const char *Format, ...);
+	CLog *GetLog(void);
 
-	virtual void Shutdown(void);
+	void Shutdown(void);
 
-	virtual RESULT<CUser *> CreateUser(const char *Username, const char *Password);
-	virtual RESULT<bool> RemoveUser(const char *Username, bool RemoveConfig = true);
-	virtual bool IsValidUsername(const char *Username) const;
+	RESULT<CUser *> CreateUser(const char *Username, const char *Password);
+	RESULT<bool> RemoveUser(const char *Username, bool RemoveConfig = true);
+	bool IsValidUsername(const char *Username) const;
 
-	virtual time_t GetStartup(void) const;
+	time_t GetStartup(void) const;
 
-	virtual const char *MD5(const char *String) const;
+	const char *MD5(const char *String) const;
 
-	virtual int GetArgC(void) const;
-	virtual const char *const *GetArgV(void) const;
+	int GetArgC(void) const;
+	const char *const *GetArgV(void) const;
 
-	virtual CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server) const;
-	virtual void DeleteWrapper(CConnection *Wrapper) const;
+	CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server) const;
+	void DeleteWrapper(CConnection *Wrapper) const;
 
-	virtual bool IsRegisteredSocket(CSocketEvents *Events) const;
-	virtual SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
+	bool IsRegisteredSocket(CSocketEvents *Events) const;
+	SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
 
-	virtual const socket_t *GetSocketByClass(const char *Class, int Index) const;
+	const socket_t *GetSocketByClass(const char *Class, int Index) const;
 
-	virtual CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const;
+	CTimer *CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const;
 
-	virtual bool Match(const char *Pattern, const char *String) const;
+	bool Match(const char *Pattern, const char *String) const;
 
-	virtual size_t GetSendqSize(void) const;
-	virtual void SetSendqSize(size_t NewSize);
+	size_t GetSendqSize(void) const;
+	void SetSendqSize(size_t NewSize);
 
-	virtual const char *GetMotd(void) const;
-	virtual void SetMotd(const char *Motd);
+	const char *GetMotd(void) const;
+	void SetMotd(const char *Motd);
 
-	virtual void InternalLogError(const char *Format, ...);
-	virtual void InternalSetFileAndLine(const char *Filename, unsigned int Line);
-	virtual void Fatal(void);
+	void InternalLogError(const char *Format, ...);
+	void InternalSetFileAndLine(const char *Filename, unsigned int Line);
+	void Fatal(void);
 
-	virtual SSL_CTX *GetSSLContext(void) ;
-	virtual SSL_CTX *GetSSLClientContext(void);
-	virtual int GetSSLCustomIndex(void) const;
+	SSL_CTX *GetSSLContext(void) ;
+	SSL_CTX *GetSSLClientContext(void);
+	int GetSSLCustomIndex(void) const;
 
-	virtual const char *DebugImpulse(int impulse);
+	const char *DebugImpulse(int impulse);
 
-	virtual bool Freeze(CAssocArray *Box);
-	virtual bool Thaw(CAssocArray *Box);
-	virtual bool InitializeFreeze(void);
-	virtual const loaderparams_s *GetLoaderParameters(void) const;
+	bool Freeze(CAssocArray *Box);
+	bool Thaw(CAssocArray *Box);
+	bool InitializeFreeze(void);
+	const loaderparams_s *GetLoaderParameters(void) const;
 
-	virtual const utility_t *GetUtilities(void);
+	const utility_t *GetUtilities(void);
 
-	virtual const char *GetTagString(const char *Tag) const;
-	virtual int GetTagInteger(const char *Tag) const;
-	virtual bool SetTagString(const char *Tag, const char *Value);
-	virtual bool SetTagInteger(const char *Tag, int Value);
-	virtual const char *GetTagName(int Index) const;
+	const char *GetTagString(const char *Tag) const;
+	int GetTagInteger(const char *Tag) const;
+	bool SetTagString(const char *Tag, const char *Value);
+	bool SetTagInteger(const char *Tag, int Value);
+	const char *GetTagName(int Index) const;
 
-	virtual const char *GetBasePath(void) const;
-	virtual const char *BuildPath(const char *Filename, const char *BasePath = NULL) const;
+	const char *GetBasePath(void) const;
+	const char *BuildPath(const char *Filename, const char *BasePath = NULL) const;
 
-	virtual const char *GetBouncerVersion(void) const;
+	const char *GetBouncerVersion(void) const;
 
-	virtual void SetStatus(int NewStatus);
-	virtual int GetStatus(void) const;
+	void SetStatus(int NewStatus);
+	int GetStatus(void) const;
 
-	virtual const CVector<CZoneInformation *> *GetZones(void) const;
+	const CVector<CZoneInformation *> *GetZones(void) const;
 
-	virtual CFakeClient *CreateFakeClient(void) const;
-	virtual void DeleteFakeClient(CFakeClient *FakeClient) const;
+	CFakeClient *CreateFakeClient(void) const;
+	void DeleteFakeClient(CFakeClient *FakeClient) const;
 
-	virtual RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
-	virtual const CVector<char *> *GetHostAllows(void) const;
-	virtual bool CanHostConnect(const char *Host) const;
-	virtual bool IsValidHostAllow(const char *Mask) const;
+	RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
+	RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
+	const CVector<char *> *GetHostAllows(void) const;
+	bool CanHostConnect(const char *Host) const;
+	bool IsValidHostAllow(const char *Mask) const;
 
-	virtual CVector<CUser *> *GetAdminUsers(void);
+	CVector<CUser *> *GetAdminUsers(void);
 
-	virtual RESULT<bool> AddAdditionalListener(unsigned short Port, const char *BindAddress = NULL, bool SSL = false);
-	virtual RESULT<bool> RemoveAdditionalListener(unsigned short Port);
-	virtual CVector<additionallistener_t> *GetAdditionalListeners(void);
+	RESULT<bool> AddAdditionalListener(unsigned short Port, const char *BindAddress = NULL, bool SSL = false);
+	RESULT<bool> RemoveAdditionalListener(unsigned short Port);
+	CVector<additionallistener_t> *GetAdditionalListeners(void);
 
-	virtual CClientListener *GetMainListener(void) const;
-	virtual CClientListener *GetMainListenerV6(void) const;
-	virtual CClientListener *GetMainSSLListener(void) const;
-	virtual CClientListener *GetMainSSLListenerV6(void) const;
+	CClientListener *GetMainListener(void) const;
+	CClientListener *GetMainListenerV6(void) const;
+	CClientListener *GetMainSSLListener(void) const;
+	CClientListener *GetMainSSLListenerV6(void) const;
 
-	virtual unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
-	virtual void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
-
-	virtual void SetOwnerHelper(CUser *User, size_t Bytes, bool Add);
+	unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
+	void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
 };
 
 #ifndef SWIG

@@ -59,10 +59,10 @@ public:
 	CFloodControl(void);
 #endif
 
-	virtual RESULT<char *> DequeueItem(bool Peek = false);
-	virtual int GetQueueSize(void);
-	virtual int GetBytes(void) const;
-	virtual void Clear(void);
+	RESULT<char *> DequeueItem(bool Peek = false);
+	int GetQueueSize(void);
+	int GetBytes(void) const;
+	void Clear(void);
 
 	void AttachInputQueue(CQueue *Queue, int Priority);
 	int GetRealLength(void) const;

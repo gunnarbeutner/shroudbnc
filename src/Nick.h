@@ -39,7 +39,7 @@ typedef struct nicktag_s {
  *
  * Represents a user on a single channel.
  */
-class CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick, 1024> {
+class SBNCAPI CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick, 1024> {
 	char *m_Nick; /**< the nickname of the user */
 	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
 	char *m_Site; /**< the ident\@host of the user */
@@ -61,33 +61,33 @@ public:
 	static RESULT<CNick *> Thaw(CAssocArray *Box, CChannel *Owner);
 #endif
 
-	virtual bool SetNick(const char *Nick);
-	virtual const char *GetNick(void) const;
+	bool SetNick(const char *Nick);
+	const char *GetNick(void) const;
 
-	virtual bool IsOp(void) const;
-	virtual bool IsVoice(void) const;
-	virtual bool IsHalfop(void) const;
+	bool IsOp(void) const;
+	bool IsVoice(void) const;
+	bool IsHalfop(void) const;
 
-	virtual bool HasPrefix(char Prefix) const;
-	virtual bool AddPrefix(char Prefix);
-	virtual bool RemovePrefix(char Prefix);
-	virtual bool SetPrefixes(const char *Prefixes);
-	virtual const char *GetPrefixes(void) const;
+	bool HasPrefix(char Prefix) const;
+	bool AddPrefix(char Prefix);
+	bool RemovePrefix(char Prefix);
+	bool SetPrefixes(const char *Prefixes);
+	const char *GetPrefixes(void) const;
 
-	virtual bool SetSite(const char *Site);
-	virtual const char *GetSite(void) const;
+	bool SetSite(const char *Site);
+	const char *GetSite(void) const;
 
-	virtual bool SetRealname(const char *Realname);
-	virtual const char *GetRealname(void) const;
+	bool SetRealname(const char *Realname);
+	const char *GetRealname(void) const;
 
-	virtual bool SetServer(const char *Server);
-	virtual const char *GetServer(void) const;
+	bool SetServer(const char *Server);
+	const char *GetServer(void) const;
 
-	virtual time_t GetChanJoin(void) const;
+	time_t GetChanJoin(void) const;
 
-	virtual bool SetIdleSince(time_t Time);
-	virtual time_t GetIdleSince(void) const;
+	bool SetIdleSince(time_t Time);
+	time_t GetIdleSince(void) const;
 	
-	virtual bool SetTag(const char *Name, const char *Value);
-	virtual const char *GetTag(const char *Name) const;
+	bool SetTag(const char *Name, const char *Value);
+	const char *GetTag(const char *Name) const;
 };
