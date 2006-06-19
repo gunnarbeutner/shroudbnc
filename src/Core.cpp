@@ -1719,7 +1719,10 @@ const char *CCore::DebugImpulse(int impulse) {
 
 	if (impulse == 11) {
 		int i = 0;
+		char **BaseKeys;
 		char **Keys = GetUsers()->GetSortedKeys();
+
+		BaseKeys = Keys;
 
 		while (*Keys != NULL) {
 			if (match("test*", *Keys) == 0) {
@@ -1730,7 +1733,7 @@ const char *CCore::DebugImpulse(int impulse) {
 			Keys++;
 		}
 
-		free(Keys);
+		free(BaseKeys);
 	}
 
 	if (impulse == 12) {
