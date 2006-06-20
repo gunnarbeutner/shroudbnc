@@ -226,7 +226,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 		}
 
 		if (Current == 'k' && Flip && p < pargc && strcmp(pargv[p], "*") != 0) {
-			GetOwner()->GetOwner()->GetKeyring()->SetKey(m_Name, pargv[p]);
+			GetUser()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
@@ -446,7 +446,7 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
-	if (GetOwner()->GetOwner()->GetLeanMode() > 1) {
+	if (GetUser()->GetLeanMode() > 1) {
 		return;
 	}
 
@@ -502,7 +502,7 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
  * Check whether the bouncer knows the names for the channel.
  */
 bool CChannel::HasNames(void) const {
-	if (GetOwner()->GetOwner()->GetLeanMode() > 1) {
+	if (GetUser()->GetLeanMode() > 1) {
 		return false;
 	} else {
 		return m_HasNames;
@@ -606,7 +606,7 @@ bool CChannel::SendWhoReply(bool Simulate) const {
 	char CopyIdent[50];
 	char *Ident, *Host, *Site;
 	const char *Server, *Realname, *SiteTemp;
-	CClientConnection *Client = GetOwner()->GetOwner()->GetClientConnection();
+	CClientConnection *Client = GetUser()->GetClientConnection();
 
 	if (Client == NULL) {
 		return true;

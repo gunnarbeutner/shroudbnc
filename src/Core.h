@@ -116,6 +116,8 @@ class SBNCAPI CCore {
 	CVector<CZoneInformation *> m_Zones; /**< currently used allocation zones */
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
+	int m_IntervalCache;
+
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
@@ -252,6 +254,9 @@ public:
 
 	unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
 	void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
+
+	int GetInterval(void);
+	void SetInterval(int Interval);
 };
 
 #ifndef SWIG

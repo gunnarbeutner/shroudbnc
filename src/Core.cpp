@@ -61,6 +61,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
+	m_IntervalCache = -1;
+
 	char *SourcePath = strdup(BuildPath("sbnc.log"));
 	rename(SourcePath, BuildPath("sbnc.log.old"));
 	free(SourcePath);
@@ -2836,4 +2838,19 @@ void CCore::SetResourceLimit(const char *Resource, unsigned int Limit, CUser *Us
 	} CHECK_ALLOC_RESULT_END;
 
 	Config->WriteInteger(Name, Limit);
+}
+
+int CCore::GetInterval(void) {
+	if (m_IntervalCache == -1) {
+		m_IntervalCache = m_Config->ReadInteger("system.interval");
+	}
+
+	return m_IntervalCache;
+}
+
+
+void CCore::SetInterval(int Interval) {
+	m_IntervalCache = Interval;
+
+	m_Config->WriteInteger("system.interval", Interval);
 }

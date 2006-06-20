@@ -1,4 +1,5 @@
 pkglibdir=$(exec_prefix)/${MOD_DIR}
+EXTRA_DIST=commands.txt internalbinds.txt
 
 pkglib_LTLIBRARIES=libbnctcl.la
 libbnctcl_la_SOURCES=TclClientSocket.cpp TclSocket.cpp tickle.cpp tickleProcs.cpp tickleProcs_wrap.c StdAfx.h TclClientSocket.h TclSocket.h tickle.h tickleProcs.h

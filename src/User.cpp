@@ -753,6 +753,8 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		WasNull = true;
 	} else {
 		WasNull = false;
+
+		m_IRC->SetOwner(NULL);
 	}
 
 	OldIRC = m_IRC;
@@ -977,18 +979,14 @@ void CUser::SetPort(int Port) {
  * Returns the port of the user's IRC server.
  */
 int CUser::GetPort(void) const {
-	int Port;
-	
-	if (m_PortCache != -1) {
-		Port = m_PortCache;
-	} else {
-		Port = m_Config->ReadInteger("user.port");
+	if (m_PortCache == -1) {
+		m_PortCache = m_Config->ReadInteger("user.port");
 	}
 
-	if (Port == 0) {
+	if (m_PortCache == 0) {
 		return 6667;
 	} else {
-		return Port;
+		return m_PortCache;
 	}
 }
 
@@ -1070,6 +1068,12 @@ void CUser::LogBadLogin(sockaddr *Peer) {
 
 	BadLogin.Count = 1;
 	BadLogin.Address = (sockaddr *)umalloc(SOCKADDR_LEN(Peer->sa_family));
+
+	CHECK_ALLOC_RESULT(BadLogin.Address, umalloc) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	mmark(BadLogin.Address);
 	memcpy(BadLogin.Address, Peer, SOCKADDR_LEN(Peer->sa_family));
 
 	m_BadLogins.Insert(BadLogin);
