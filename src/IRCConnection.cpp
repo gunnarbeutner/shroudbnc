@@ -1709,6 +1709,14 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 void CIRCConnection::Kill(const char *Error) {
 	if (GetOwner() != NULL) {
 		GetOwner()->SetIRCConnection(NULL);
+
+		if (m_Config != NULL) {
+			m_Config->SetOwner(NULL);
+		}
+
+		if (m_ISupport != NULL) {
+			m_ISupport->SetOwner(NULL);
+		}
 	}
 
 	m_FloodControl->Clear();
