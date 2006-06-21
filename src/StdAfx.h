@@ -53,25 +53,7 @@
 #	include "unix.h"
 #endif
 
-#ifdef HAVE_POLL
-#	include <sys/poll.h>
-#else
-struct pollfd {
-	int fd;
-	short events;
-	short revents;
-};
-
-#define POLLIN 001
-#define POLLPRI 002
-#define POLLOUT 004
-#define POLLNORM POLLIN
-#define POLLERR 010
-#define POLLHUP 020
-#define POLLNVAL 040
-
-int poll(struct pollfd *fds, unsigned long nfds, int timo);
-#endif
+#include "fdhelper.h"
 
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT

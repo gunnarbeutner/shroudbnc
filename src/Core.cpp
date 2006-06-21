@@ -67,6 +67,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	rename(SourcePath, BuildPath("sbnc.log.old"));
 	free(SourcePath);
 
+	m_PollFds.Preallocate(SFD_SETSIZE);
+
 	m_Log = new CLog("sbnc.log");
 
 	if (m_Log == NULL) {
@@ -182,7 +184,7 @@ CCore::~CCore(void) {
 	while (CurrentSocket != NULL) {
 		NextSocket = CurrentSocket->Next;
 
-		if (CurrentSocket->Value.Socket != INVALID_SOCKET) {
+		if (CurrentSocket->Value.PollFd->fd != INVALID_SOCKET) {
 			CurrentSocket->Value.Events->Destroy();
 		}
 
@@ -372,8 +374,6 @@ void CCore::StartMainLoop(void) {
 
 	InitializeAdditionalListeners();
 
-	sfd_set FDRead, FDWrite, FDError;
-
 	Log("Starting main loop.");
 
 	if (!b_DontDetach) {
@@ -437,10 +437,6 @@ void CCore::StartMainLoop(void) {
 
 		time(&Now);
 
-		SFD_ZERO(&FDRead);
-		SFD_ZERO(&FDWrite);
-		SFD_ZERO(&FDError);
-
 		CUser *ReconnectUser = NULL;
 
 		i = 0;
@@ -460,22 +456,10 @@ void CCore::StartMainLoop(void) {
 						IRC->Destroy();
 					}
 				}
-
-/*				if ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE) && LastCheck + 5 < Now && UserHash->Value->ShouldReconnect()) {
-					if (ReconnectUser == NULL || (!ReconnectUser->IsAdmin() && UserHash->Value->IsAdmin())) {
-						ReconnectUser = UserHash->Value;
-					}
-
-					LastCheck = Now;
-				}*/
 			}
 		}
 
 		CUser::RescheduleReconnectTimer();
-
-/*		if (ReconnectUser != NULL) {
-			ReconnectUser->ScheduleReconnect();
-		}*/
 
 		link_t<socket_t> *Current = m_OtherSockets.GetHead();
 		link_t<socket_t> *Next;
@@ -483,16 +467,15 @@ void CCore::StartMainLoop(void) {
 		while (Current != NULL) {
 			Next = Current->Next;
 
-			if (Current->Value.Socket != INVALID_SOCKET) {
+			if (Current->Value.PollFd->fd != INVALID_SOCKET) {
 				if (!Current->Value.Events->DoTimeout()) {
 					if (Current->Value.Events->ShouldDestroy()) {
 						Current->Value.Events->Destroy();
 					} else {
-						SFD_SET(Current->Value.Socket, &FDRead);
-						SFD_SET(Current->Value.Socket, &FDError);
+						Current->Value.PollFd->events = POLLIN | POLLERR;
 
 						if (Current->Value.Events->HasQueuedData()) {
-							SFD_SET(Current->Value.Socket, &FDWrite);
+							Current->Value.PollFd->events |= POLLOUT;
 						}
 					}
 				}
@@ -575,7 +558,7 @@ void CCore::StartMainLoop(void) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
 
 			if (Channel != NULL) {
-				ares_fds(Channel, &FDRead, &FDWrite);
+				ares_fds(Channel);
 				tvp = ares_timeout(Channel, NULL, &tv);
 			}
 		}
@@ -583,48 +566,37 @@ void CCore::StartMainLoop(void) {
 		time(&Last);
 
 #ifdef _DEBUG
-		printf("select/poll: %d seconds\n", SleepInterval);
+		printf("poll: %d seconds\n", SleepInterval);
 #endif
 
-#if defined(HAVE_POLL) || !defined(_WIN32)
-		unsigned int FDCount;
-		pollfd *foo = FdSetToPollFd(&FDRead, &FDWrite, &FDError, &FDCount);
-
-		int ready = poll(foo, FDCount, SleepInterval * 1000);
-
-		PollFdToFdSet(foo, FDCount, &FDRead, &FDWrite, &FDError);
-#else
-		int ready = select(SFD_SETSIZE - 1, &FDRead, &FDWrite, &FDError, &interval);
-#endif
+		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), SleepInterval * 1000);
 
 		time(&g_CurrentTime);
 
 		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
 
-			ares_process(Channel, &FDRead, &FDWrite);
+			ares_process(Channel);
 		}
 
 		if (ready > 0) {
-			//printf("%d socket(s) ready\n", ready);
-
 			link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 			while (Current != NULL) {
-				SOCKET Socket = Current->Value.Socket;
+				pollfd *PollFd = Current->Value.PollFd;
 				CSocketEvents *Events = Current->Value.Events;
 
 				Current = Current->Next;
 
-				if (Socket != INVALID_SOCKET) {
-					if (SFD_ISSET(Socket, &FDError)) {
+				if (PollFd->fd != INVALID_SOCKET) {
+					if (PollFd->revents & (POLLERR|POLLHUP|POLLNVAL)) {
 						Events->Error();
 						Events->Destroy();
 
 						continue;
 					}
 
-					if (SFD_ISSET(Socket, &FDRead)) {
+					if (PollFd->revents & (POLLIN|POLLPRI)) {
 						if (!Events->Read()) {
 							Events->Destroy();
 
@@ -632,7 +604,7 @@ void CCore::StartMainLoop(void) {
 						}
 					}
 
-					if (Events && SFD_ISSET(Socket, &FDWrite)) {
+					if (PollFd->revents & POLLOUT) {
 						Events->Write();
 					}
 
@@ -650,28 +622,18 @@ void CCore::StartMainLoop(void) {
 			link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 			while (Current != NULL) {
-				SOCKET Socket = Current->Value.Socket;
+				SOCKET Socket = Current->Value.PollFd->fd;
 				CSocketEvents *Events = Current->Value.Events;
 
 				Current = Current->Next;
 
 				if (Socket != INVALID_SOCKET) {
-#if !defined(HAVE_POLL) && defined(_WIN32)
-					fd_set set;
-
-					FD_ZERO(&set);
-					FD_SET(Socket, &set);
-
-					timeval zero = { 0, 0 };
-					int code = select(SFD_SETSIZE - 1, &set, NULL, NULL, &zero);
-#else
 					pollfd pfd;
 					pfd.fd = Socket;
 					pfd.events = POLLIN;
 
 					int code = poll(&pfd, 1, 0);
 
-#endif
 					if (code == -1) {
 						Events->Error();
 						Events->Destroy();
@@ -887,13 +849,25 @@ void CCore::UpdateModuleConfig(void) {
  * @param EventInterface the event interface for the socket
  */
 void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
-	socket_s s = { Socket, EventInterface };
+	socket_s SocketStruct;
+	pollfd *PollFd = NULL;
 
 	UnregisterSocket(Socket);
-	
+
+	PollFd = registersocket(Socket);
+
+	if (PollFd == NULL) {
+		LOGERROR("registersocket() failed.");
+
+		Fatal();
+	}
+
+	SocketStruct.PollFd = PollFd;
+	SocketStruct.Events = EventInterface;
+
 	/* TODO: can we safely recover from this situation? return value maybe? */
-	if (!m_OtherSockets.Insert(s)) {
-		LOGERROR("realloc() failed.");
+	if (!m_OtherSockets.Insert(SocketStruct)) {
+		LOGERROR("Insert() failed.");
 
 		Fatal();
 	}
@@ -910,7 +884,9 @@ void CCore::UnregisterSocket(SOCKET Socket) {
 	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 	while (Current != NULL) {
-		if (Current->Value.Socket == Socket) {
+		if (Current->Value.PollFd->fd == Socket) {
+			Current->Value.PollFd->fd = INVALID_SOCKET;
+			Current->Value.PollFd->events = 0;
 			m_OtherSockets.Remove(Current);
 
 			return;
@@ -1470,7 +1446,7 @@ const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 	while (Current != NULL) {
-		if (Current->Value.Socket == INVALID_SOCKET) {
+		if (Current->Value.PollFd->fd == INVALID_SOCKET) {
 			Current = Current->Next;
 
 			continue;

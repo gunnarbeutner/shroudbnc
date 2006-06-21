@@ -66,13 +66,9 @@
 #define HAVE_IOCTLSOCKET
 #endif
 
-#define fd_set sfd_set
-
-static void write_tcp_data(ares_channel channel, fd_set *write_fds,
-                           time_t now);
-static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now);
-static void read_udp_packets(ares_channel channel, fd_set *read_fds,
-                             time_t now);
+static void write_tcp_data(ares_channel channel, time_t now);
+static void read_tcp_data(ares_channel channel, time_t now);
+static void read_udp_packets(ares_channel channel, time_t now);
 static void process_timeouts(ares_channel channel, time_t now);
 static void process_answer(ares_channel channel, unsigned char *abuf,
                            int alen, int whichserver, int tcp, int now);
@@ -88,14 +84,14 @@ static struct query *end_query(ares_channel channel, struct query *query, int st
 /* Something interesting happened on the wire, or there was a timeout.
  * See what's up and respond accordingly.
  */
-void ares_process(ares_channel channel, fd_set *read_fds, fd_set *write_fds)
+void ares_process(ares_channel channel)
 {
   time_t now;
 
   time(&now);
-  write_tcp_data(channel, write_fds, now);
-  read_tcp_data(channel, read_fds, now);
-  read_udp_packets(channel, read_fds, now);
+  write_tcp_data(channel, now);
+  read_tcp_data(channel, now);
+  read_udp_packets(channel, now);
   process_timeouts(channel, now);
 }
 
@@ -117,7 +113,7 @@ static void write_tcp_data(ares_channel channel, fd_set *write_fds, time_t now)
       /* Make sure server has data to send and is selected in write_fds. */
       server = &channel->servers[i];
       if (!server->qhead || server->tcp_socket == ARES_SOCKET_BAD
-          || !SFD_ISSET(server->tcp_socket, write_fds))
+          || !(server->tcp_pollfd->revents & POLLOUT))
         continue;
 
       /* Count the number of send queue items. */
@@ -209,7 +205,7 @@ static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now)
       /* Make sure the server has a socket and is selected in read_fds. */
       server = &channel->servers[i];
       if (server->tcp_socket == ARES_SOCKET_BAD ||
-          !SFD_ISSET(server->tcp_socket, read_fds))
+          !(server->tcp_pollfd->revents & (POLLIN|POLLPRI)))
         continue;
 
       if (server->tcp_lenbuf_pos != 2)
@@ -283,7 +279,7 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
       server = &channel->servers[i];
 
       if (server->udp_socket == ARES_SOCKET_BAD ||
-          !SFD_ISSET(server->udp_socket, read_fds))
+          !(server->udp_pollfd->revents & (POLLIN|POLLPRI)))
         continue;
 
       count = recv(server->udp_socket, buf, sizeof(buf), 0);
@@ -578,6 +574,8 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
     }
   }
 
+  server->tcp_pollfd = registersocket(s);
+
   server->tcp_buffer_pos = 0;
   server->tcp_socket = s;
   return 0;
@@ -606,6 +604,8 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
       closesocket(s);
       return -1;
     }
+
+  server->udp_pollfd = registersocket(s);
 
   server->udp_socket = s;
   return 0;

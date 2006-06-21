@@ -1,4 +1,4 @@
-/**
+/*
  * Based on code from the GNU C library
  */
 
@@ -26,48 +26,35 @@
 #undef SFD_SETSIZE
 #define SFD_SETSIZE 16384
 
-#ifndef _WIN32
-typedef long sfd_mask;
-#undef SNFDBITS
-#define SNFDBITS (8 * sizeof (sfd_mask)) /* bits per mask */
-typedef struct _types_sfd_set {
-        sfd_mask sfds_bits[SFD_SETSIZE / SNFDBITS];
-} _types_sfd_set;
+#ifdef HAVE_POLL
+#	include <sys/poll.h>
+#else
+struct pollfd {
+	int fd;
+	short events;
+	short revents;
+};
 
-#define SFDS_BITS(set) ((set)->sfds_bits)
+#define POLLIN 001
+#define POLLPRI 002
+#define POLLOUT 004
+#define POLLNORM POLLIN
+#define POLLERR 010
+#define POLLHUP 020
+#define POLLNVAL 040
 
-#define sfd_set _types_sfd_set
+int poll(struct pollfd *fds, unsigned long nfds, int timo);
+#endif
 
-#undef SFD_ZERO
-#define SFD_ZERO(set) \
-  do { \
-    unsigned int __i; \
-    sfd_set *__arr = (set); \
-    for (__i = 0; __i < sizeof (sfd_set) / sizeof (sfd_mask); ++__i) \
-      SFDS_BITS (__arr)[__i] = 0; \
-  } while (0)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define     SFDELT(d)      ((d) / SNFDBITS)
-#define     SFDMASK(d)     ((sfd_mask) 1 << ((d) % SNFDBITS))
+struct pollfd *registersocket(int Socket);
+void unregistersocket(int Socket);
 
-#undef SFD_SET
-#define SFD_SET(d, set)    (SFDS_BITS (set)[SFDELT (d)] |= SFDMASK (d))
-
-#undef SFD_CLR
-#define SFD_CLR(d, set)    (SFDS_BITS (set)[SFDELT (d)] &= ~SFDMASK (d))
-
-#undef SFD_ISSET
-#define SFD_ISSET(d, set)  (SFDS_BITS (set)[SFDELT (d)] & SFDMASK (d))
-
-#else /* !_WIN32 */
-#undef FD_SETSIZE
-#define FD_SETSIZE SFD_SETSIZE
-
-#define sfd_set fd_set
-#define SFD_ZERO FD_ZERO
-#define SFD_SET FD_SET
-#define SFD_CLR FD_CLR
-#define SFD_ISSET FD_ISSET
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _FDHELPER_H */

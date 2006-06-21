@@ -23,7 +23,7 @@
 #include "ares.h"
 #include "ares_private.h"
 
-int ares_fds(ares_channel channel, sfd_set *read_fds, sfd_set *write_fds)
+int ares_fds(ares_channel channel)
 {
   struct server_state *server;
   ares_socket_t nfds;
@@ -39,15 +39,16 @@ int ares_fds(ares_channel channel, sfd_set *read_fds, sfd_set *write_fds)
       server = &channel->servers[i];
       if (server->udp_socket != ARES_SOCKET_BAD)
         {
-          SFD_SET(server->udp_socket, read_fds);
-          if (server->udp_socket >= nfds)
+          server->udp_pollfd->events = POLLIN;
+
+		  if (server->udp_socket >= nfds)
             nfds = server->udp_socket + 1;
         }
       if (server->tcp_socket != ARES_SOCKET_BAD)
         {
-          SFD_SET(server->tcp_socket, read_fds);
+          server->tcp_pollfd->events = POLLIN;
           if (server->qhead)
-            SFD_SET(server->tcp_socket, write_fds);
+            server->tcp_pollfd->events |= POLLOUT;
           if (server->tcp_socket >= nfds)
             nfds = server->tcp_socket + 1;
         }

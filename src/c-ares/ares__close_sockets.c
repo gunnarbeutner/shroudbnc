@@ -46,11 +46,13 @@ void ares__close_sockets(struct server_state *server)
   /* Close the TCP and UDP sockets. */
   if (server->tcp_socket != ARES_SOCKET_BAD)
     {
+      unregistersocket(server->tcp_socket);
       closesocket(server->tcp_socket);
       server->tcp_socket = ARES_SOCKET_BAD;
     }
   if (server->udp_socket != ARES_SOCKET_BAD)
     {
+      unregistersocket(server->udp_socket);
       closesocket(server->udp_socket);
       server->udp_socket = ARES_SOCKET_BAD;
     }

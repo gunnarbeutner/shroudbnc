@@ -154,10 +154,10 @@ void ares_gethostbyaddr(ares_channel channel, const void *addr, int addrlen,
 void ares_getnameinfo(ares_channel channel, const struct sockaddr *sa,
                       socklen_t salen, int flags, ares_nameinfo_callback callback,
                       void *arg);
-int ares_fds(ares_channel channel, sfd_set *read_fds, sfd_set *write_fds);
+int ares_fds(ares_channel channel);
 struct timeval *ares_timeout(ares_channel channel, struct timeval *maxtv,
                              struct timeval *tv);
-void ares_process(ares_channel channel, sfd_set *read_fds, sfd_set *write_fds);
+void ares_process(ares_channel channel);
 
 int ares_mkquery(const char *name, int dnsclass, int type, unsigned short id,
                  int rd, unsigned char **buf, int *buflen);

@@ -89,6 +89,9 @@ struct server_state {
   ares_socket_t udp_socket;
   ares_socket_t tcp_socket;
 
+  struct pollfd *udp_pollfd;
+  struct pollfd *tcp_pollfd;
+
   /* Mini-buffer for reading the length word */
   unsigned char tcp_lenbuf[2];
   int tcp_lenbuf_pos;

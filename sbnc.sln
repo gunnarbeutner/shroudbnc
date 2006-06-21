@@ -9,6 +9,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sbncloader", "src\sbncloade
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sbnc", "sbnc.vcproj", "{D5505A5E-A22F-4F1A-AE56-FFB46B0E6A85}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B06482E5-1D1B-4444-8BEA-015B162D56C1} = {B06482E5-1D1B-4444-8BEA-015B162D56C1}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bnctcl", "bnctcl\tickle.vcproj", "{0D38A9A5-5699-4B9D-9447-1FE1C1E5EBC8}"
 	ProjectSection(ProjectDependencies) = postProject

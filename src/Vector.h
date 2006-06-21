@@ -19,6 +19,7 @@
 
 typedef enum vector_error_e {
 	Vector_ReadOnly,
+	Vector_PreAllocated,
 	Vector_ItemNotFound
 } vector_error_t;
 
@@ -33,6 +34,7 @@ private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */
 	unsigned int m_Count; /**< the number of items in the list */
+	unsigned int m_AllocCount; /**< the number of allocated items */
 
 public:
 #ifndef SWIG
@@ -44,7 +46,18 @@ public:
 	CVector(void) {
 		m_List = NULL;
 		m_Count = 0;
+		m_AllocCount = 0;
 		m_ReadOnly = false;
+	}
+
+	/**
+	 * CVector
+	 *
+	 * Constructs an empty pre-allocated list.
+	 */
+	CVector(unsigned int AllocCount) {
+		CVector();
+		Preallocate(AllocCount);
 	}
 
 	/**
@@ -56,6 +69,20 @@ public:
 		Clear();
 	}
 #endif
+
+	/**
+	 * Preallocate
+	 *
+	 * Preallocates memory for the list.
+	 *
+	 * @param AllocCount number of items
+	 */
+	void Preallocate(unsigned int AllocCount) {
+		Clear();
+
+		m_AllocCount = AllocCount;
+		m_List = (Type *)malloc(sizeof(Type) * AllocCount);
+	}
 
 	/**
 	 * Insert
@@ -71,17 +98,26 @@ public:
 			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
 		}
 
-		NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
+		if (m_AllocCount == 0) {
+			NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
 
-		if (NewList == NULL) {
-			m_Count--;
+			if (NewList == NULL) {
+				m_Count--;
 
-			THROW(bool, Generic_OutOfMemory, "Out of memory.");
+				THROW(bool, Generic_OutOfMemory, "Out of memory.");
+			}
+
+			mmark(NewList);
+
+			m_List = NewList;
+		} else {
+			if (m_AllocCount > m_Count) {
+				m_Count++;
+			} else {
+				THROW(bool, Generic_OutOfMemory, "Out of memory.");
+			}
 		}
 
-		mmark(NewList);
-
-		m_List = NewList;
 		m_List[m_Count - 1] = Item;
 
 		RETURN(bool, true);
@@ -99,6 +135,10 @@ public:
 
 		if (m_ReadOnly) {
 			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
+		}
+
+		if (m_AllocCount != 0) {
+			THROW(bool, Vector_PreAllocated, "Vector is pre-allocated.");
 		}
 
 		m_List[Index] = m_List[m_Count - 1];
@@ -226,5 +266,6 @@ public:
 		free(m_List);
 		m_List = NULL;
 		m_Count = 0;
+		m_AllocCount = 0;
 	}
 };

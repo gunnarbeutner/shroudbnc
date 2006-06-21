@@ -40,7 +40,7 @@ struct sockaddr_in;
  * A registered socket.
  */
 typedef struct socket_s {
-	SOCKET Socket; /**< the underlying socket object */
+	pollfd *PollFd	; /**< the underlying socket object */
 	CSocketEvents *Events; /**< the event interface for this socket */
 } socket_t;
 
@@ -77,6 +77,9 @@ class SBNCAPI CCore {
 	friend class CTimer;
 	friend class CDnsQuery;
 	friend bool RegisterZone(CZoneInformation *ZoneInformation);
+
+	friend pollfd * registersocket(int Socket);
+	friend void unregistersocket(int Socket);
 #endif
 
 	CConfig *m_Config; /**< sbnc.conf object */
@@ -115,6 +118,8 @@ class SBNCAPI CCore {
 
 	CVector<CZoneInformation *> m_Zones; /**< currently used allocation zones */
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
+
+	CVector<pollfd> m_PollFds; /**< pollfd structures */
 
 	int m_IntervalCache;
 

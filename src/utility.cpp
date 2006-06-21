@@ -1364,3 +1364,55 @@ char *mstrdup(const char *String, CUser *Manager) {
 
 	return Copy;
 }
+
+extern "C" struct pollfd *registersocket(int Socket) {
+	pollfd *PollFd = NULL;
+	pollfd NewPollFd;
+	bool NewStruct = true;
+	CVector<pollfd> *PollFds;
+
+	unregistersocket(Socket);
+
+	PollFds = &(g_Bouncer->m_PollFds);
+
+	for (unsigned int i = 0; i < PollFds->GetLength(); i++) {
+		if (PollFds->Get(i).fd == INVALID_SOCKET) {
+			PollFd = PollFds->GetAddressOf(i);
+			NewStruct = false;
+
+			break;
+		}
+	}
+
+	if (NewStruct) {
+		PollFd = &NewPollFd;
+	}
+
+	PollFd->fd = Socket;
+	PollFd->events = 0;
+
+	if (NewStruct) {
+		if (!PollFds->Insert(*PollFd)) {
+			return NULL;
+		}
+
+		PollFd = PollFds->GetAddressOf(PollFds->GetLength() - 1);
+	}
+
+	return PollFd;
+}
+
+extern "C" void unregistersocket(int Socket) {
+	CVector<pollfd> *PollFds;
+
+	PollFds = &(g_Bouncer->m_PollFds);
+
+	for (unsigned int i = 0; i < PollFds->GetLength(); i++) {
+		pollfd *PFd = PollFds->GetAddressOf(i);
+
+		if (PFd->fd == Socket) {
+			PFd->fd = INVALID_SOCKET;
+			PFd->events = 0;
+		}
+	}
+}
