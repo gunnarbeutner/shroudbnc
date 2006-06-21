@@ -98,7 +98,7 @@ void ares_process(ares_channel channel)
 /* If any TCP sockets select true for writing, write out queued data
  * we have for them.
  */
-static void write_tcp_data(ares_channel channel, fd_set *write_fds, time_t now)
+static void write_tcp_data(ares_channel channel, time_t now)
 {
   struct server_state *server;
   struct send_request *sendreq;
@@ -195,7 +195,7 @@ static void write_tcp_data(ares_channel channel, fd_set *write_fds, time_t now)
  * allocate a buffer if we finish reading the length word, and process
  * a packet if we finish reading one.
  */
-static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now)
+static void read_tcp_data(ares_channel channel, time_t now)
 {
   struct server_state *server;
   int i, count;
@@ -266,8 +266,7 @@ static void read_tcp_data(ares_channel channel, fd_set *read_fds, time_t now)
 }
 
 /* If any UDP sockets select true for reading, process them. */
-static void read_udp_packets(ares_channel channel, fd_set *read_fds,
-                             time_t now)
+static void read_udp_packets(ares_channel channel, time_t now)
 {
   struct server_state *server;
   int i, count;
