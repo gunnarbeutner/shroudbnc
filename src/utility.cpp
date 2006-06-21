@@ -898,84 +898,6 @@ void FreeUString(char *String) {
 	ufree(String);
 }
 
-//#ifndef _WIN32
-/**
- * FdSetToPollFd
- *
- * Converts an fd_set to a (staticly allocated) array of pollfd structs.
- *
- * @param FDRead an fd_set
- * @param FDWrite an fd_set
- * @param FDError an fd_set
- * @param PollFdCount the number of pollfd structs
- */
-pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount) {
-	static CVector<pollfd> PollFds;
-
-	PollFds.Clear();
-
-	for (unsigned int i = 0; i < SFD_SETSIZE; i++) {
-		pollfd pfd;
-
-		pfd.events = 0;
-		pfd.revents = 0;
-
-		if (SFD_ISSET(i, FDRead)) {
-			pfd.events |= POLLIN;
-		}
-
-		if (SFD_ISSET(i, FDWrite)) {
-			pfd.events |= POLLOUT;
-		}
-
-		if (SFD_ISSET(i, FDError)) {
-			pfd.events |= POLLERR;
-		}
-
-		if (pfd.events != 0) {
-			pfd.fd = i;
-			PollFds.Insert(pfd);
-		}
-	}
-
-	if (PollFdCount != NULL) {
-		*PollFdCount = PollFds.GetLength();
-	}
-
-	return PollFds.GetList();
-}
-
-/**
- * FdSetToPollFd
- *
- * Converts an pollfd array to (three) fd_set structures.
- *
- * @param PollFd the pollfd array
- * @param PollFdCount the number of pollfd structs
- * @param FDRead an fd_set
- * @param FDWrite an fd_set
- * @param FDError an fd_set
- */
-void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError) {
-	SFD_ZERO(FDRead);
-	SFD_ZERO(FDWrite);
-	SFD_ZERO(FDError);
-
-	for (unsigned int i = 0; i < PollFdCount; i++) {
-		if (PollFd[i].revents & (POLLIN|POLLPRI)) {
-			SFD_SET(PollFd[i].fd, FDRead);
-		}
-
-		if (PollFd[i].revents & POLLOUT) {
-			SFD_SET(PollFd[i].fd, FDWrite);
-		}
-
-		if (PollFd[i].revents & (POLLERR|POLLHUP|POLLNVAL)) {
-			SFD_SET(PollFd[i].fd, FDError);
-		}
-	}
-}
-
 #ifndef HAVE_POLL
 /*
  *  prt
@@ -1039,7 +961,6 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
     return rc;
 }
 #endif /* !HAVE_POLL */
-//#endif /* !_WIN32 */
 
 /**
  * strmcpy

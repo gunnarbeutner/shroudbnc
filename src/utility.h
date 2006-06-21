@@ -147,9 +147,6 @@ bool RegisterZone(CZoneInformation *ZoneInformation);
 void FreeString(char *String);
 void FreeUString(char *String);
 
-pollfd *FdSetToPollFd(const sfd_set *FDRead, const sfd_set *FDWrite, const sfd_set *FDError, unsigned int *PollFdCount);
-void PollFdToFdSet(const pollfd *PollFd, unsigned int PollFdCount, sfd_set *FDRead, sfd_set *FDWrite, sfd_set *FDError);
-
 typedef struct mmanager_s {
 	CUser *RealManager;
 	unsigned int ReferenceCount;
