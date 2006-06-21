@@ -334,7 +334,7 @@ void RehashInterpreter(void) {
 
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
 	Tcl_Obj** listv;
-	CUser *User;
+	CUser *User = NULL;
 
 	int objc = 3;
 	int idx = 1;
@@ -408,7 +408,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 				Tcl_IncrRefCount(objv[0]);
 
-				if (User = NULL) {
+				if (User == NULL) {
 					User = g_Bouncer->GetUser(user);
 				}
 
