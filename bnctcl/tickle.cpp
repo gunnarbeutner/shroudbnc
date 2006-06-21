@@ -334,11 +334,7 @@ void RehashInterpreter(void) {
 
 void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
 	Tcl_Obj** listv;
-
-	CUser* User = g_Bouncer->GetUser(user);
-
-	if (User)
-		setctx(user);
+	CUser *User;
 
 	int objc = 3;
 	int idx = 1;
@@ -359,7 +355,8 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 			if (!Match) {
 				for (int a = 0; a < argc; a++) {
-					if (g_Bouncer->Match(g_Binds[i].pattern, argv[a])) {
+					if (strcasecmp(g_Binds[i].pattern, argv[a]) == 0) {
+					//if (g_Bouncer->Match(g_Binds[i].pattern, argv[a])) {
 						Match = true;
 
 						break;
@@ -410,6 +407,14 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 				Tcl_DStringFree(&dsProc);
 
 				Tcl_IncrRefCount(objv[0]);
+
+				if (User = NULL) {
+					User = g_Bouncer->GetUser(user);
+				}
+
+				if (User != NULL) {
+					setctx(user);
+				}
 
 				Tcl_EvalObjv(g_Interp, idx, objv, TCL_EVAL_GLOBAL);
 

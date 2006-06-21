@@ -126,7 +126,7 @@ internalclosesocket <idx>
   Description:  Do not use this. Use killdcc instead. See tcl-commands.doc for more details.
   Returns: Nothing.
 
-internalbind <Type> <Proc> [<Pattern>] [<User>]
+internalbind <Type> <Proc> [<MatchText>] [<User>]
 
   Description:
   Returns:
