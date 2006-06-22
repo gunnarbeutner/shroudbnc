@@ -33,7 +33,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
-	m_PreviousNick = NULL;
+//	m_PreviousNick = NULL;
 	m_PeerName = NULL;
 	m_PeerNameTemp = NULL;
 	m_ClientLookup = NULL;
@@ -78,7 +78,7 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_Password = NULL;
 	m_Username = NULL;
 	m_PeerName = NULL;
-	m_PreviousNick = NULL;
+//	m_PreviousNick = NULL;
 	m_ClientLookup = NULL;
 	m_AuthTimer = NULL;
 	m_CommandList = NULL;
@@ -95,7 +95,7 @@ CClientConnection::~CClientConnection() {
 	ufree(m_Password);
 	ufree(m_Username);
 	ufree(m_PeerName);
-	ufree(m_PreviousNick);
+//	ufree(m_PreviousNick);
 
 	delete m_ClientLookup;
 	delete m_AuthTimer;
