@@ -2326,7 +2326,7 @@ commandlist_t *CClientConnection::GetCommandList(void) {
  *
  * @param Nick the nick
  */
-void CClientConnection::SetPreviousNick(const char *Nick) {
+/*void CClientConnection::SetPreviousNick(const char *Nick) {
 	ufree(m_PreviousNick);
 
 	if (Nick != NULL) {
@@ -2334,7 +2334,7 @@ void CClientConnection::SetPreviousNick(const char *Nick) {
 	} else {
 		m_PreviousNick = NULL;
 	}
-}
+}*/
 
 /**
  * GetPreviousNick
@@ -2378,4 +2378,28 @@ bool ClientAuthTimer(time_t Now, void *Client) {
 	ClientConnection->m_AuthTimer = NULL;
 
 	return false;
+}
+
+void CClientConnection::ChangeNick(const char *NewNick) {
+	CIRCConnection *IRC;
+	const char *Site;
+
+	IRC = GetOwner()->GetIRCConnection();
+
+	if (IRC != NULL) {
+		Site = IRC->GetSite();
+	}
+
+	if (IRC == NULL || Site == NULL) {
+		Site = "unknown@host";
+	}
+
+	WriteLine(":%s!%s NICK %s", m_Nick, Site, NewNick);
+
+	SetNick(NewNick);
+}
+
+void CClientConnection::SetNick(const char *NewNick) {
+	ufree(m_Nick);
+	m_Nick = ustrdup(NewNick);
 }

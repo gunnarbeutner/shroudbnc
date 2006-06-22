@@ -513,10 +513,6 @@ void CUser::Reconnect(void) {
 	int Port;
 
 	if (m_IRC != NULL) {
-		if (GetClientConnection() != NULL) {
-			GetClientConnection()->SetPreviousNick(m_IRC->GetCurrentNick());
-		}
-
 		m_IRC->Kill("Reconnecting.");
 
 		SetIRCConnection(NULL);
@@ -749,6 +745,11 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	CIRCConnection *OldIRC;
 	bool WasNull;
 
+	if (GetClientConnection() != NULL && m_IRC != NULL) {
+//		GetClientConnection()->SetPreviousNick(m_IRC->GetCurrentNick());
+		GetClientConnection()->SetNick(m_IRC->GetCurrentNick());
+	}
+
 	if (m_IRC == NULL) {
 		WasNull = true;
 	} else {
@@ -835,10 +836,11 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 
 		m_Config->WriteInteger("user.seen", g_CurrentTime);
 
-		AwayMessage = m_Config->ReadString("user.awaymessage");
+		AwayMessage = GetAwayMessage();
 
 		if (AwayMessage != NULL && m_IRC != NULL) {
 			i = 0;
+
 			while ((Channel = m_IRC->GetChannels()->Iterate(i++)) != NULL) {
 				m_IRC->WriteLine("PRIVMSG %s :\001ACTION is now away: %s\001", Channel->Name, AwayMessage);
 			}

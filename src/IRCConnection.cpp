@@ -246,7 +246,24 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		}
 
 		if (ReturnValue) {
-			WriteLine("NICK :%s_", argv[3]);
+			char *Out;
+			CClientConnection *Client;
+
+			asprintf(&Out, "%s_", argv[3]);
+
+			CHECK_ALLOC_RESULT(Out, asprintf) {
+				return false;
+			} CHECK_ALLOC_RESULT_END;
+
+			WriteLine("NICK :%s", Out);
+
+			Client = GetOwner()->GetClientConnection();
+
+			if (Client != NULL) {
+				Client->ChangeNick(Out);
+			}
+
+			free(Out);
 		}
 
 		return ReturnValue;
@@ -480,7 +497,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
 		}
 
-		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
+/*		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
 			const char *Site = GetSite();
 
 			if (Site == NULL) {
@@ -488,7 +505,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 
 			Client->WriteLine(":%s!%s NICK %s", Client->GetPreviousNick(), Site, m_CurrentNick);
-		}
+		}*/
 
 		if (DelayJoin == 1) {
 			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);

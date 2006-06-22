@@ -81,10 +81,13 @@ public:
 
 	commandlist_t *GetCommandList(void);
 
-	void SetPreviousNick(const char *Nick);
-	const char *GetPreviousNick(void) const;
+//	void SetPreviousNick(const char *Nick);
+//	const char *GetPreviousNick(void) const;
 
 	SOCKET Hijack(void);
+
+	void ChangeNick(const char *NewNick);
+	void SetNick(const char *NewNick);
 };
 
 #ifdef SBNC
