@@ -2400,6 +2400,8 @@ void CClientConnection::ChangeNick(const char *NewNick) {
 }
 
 void CClientConnection::SetNick(const char *NewNick) {
-	ufree(m_Nick);
-	m_Nick = ustrdup(NewNick);
+	if (NewNick != NULL) {
+		ufree(m_Nick);
+		m_Nick = ustrdup(NewNick);
+	}
 }
