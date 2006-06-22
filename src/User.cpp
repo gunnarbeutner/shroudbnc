@@ -580,7 +580,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && /*g_CurrentTime - m_LastReconnect > 120 &&*/ g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
+	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && (IsAdmin() || g_CurrentTime - m_LastReconnect > 120) && g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
 		return true;
 	} else {
 		return false;
@@ -764,12 +764,6 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	Modules = g_Bouncer->GetModules();
 
 	if (IRC == NULL && !WasNull) {
-		if (OldIRC->IsConnected()) {
-			g_Bouncer->LogUser(this, "%s was disconnected from the server.", GetUsername());
-		} else {
-			g_Bouncer->LogUser(this, "An attempt of connecting to a server failed for user %s.", GetUsername());
-		}
-
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerDisconnect(GetUsername());
 		}

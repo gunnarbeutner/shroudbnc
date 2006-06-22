@@ -63,8 +63,8 @@ protected:
 
 	SSL *m_SSL; /**< SSL context for this connection */
 public:
-	void AsyncDnsFinished(hostent *Response);
-	void AsyncBindIpDnsFinished(hostent *Response);
+	virtual void AsyncDnsFinished(hostent *Response);
+	virtual void AsyncBindIpDnsFinished(hostent *Response);
 private:
 	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 

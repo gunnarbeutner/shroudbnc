@@ -1515,7 +1515,7 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
  */
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		g_Bouncer->LogUser(GetOwner(), "DNS request for %s failed. No such hostname (NXDOMAIN).", GetOwner()->GetUsername());
+		g_Bouncer->LogUser(GetOwner(), "DNS request for %s failed.", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncDnsFinished(Response);
@@ -1530,7 +1530,7 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
  */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response == NULL) {
-		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for %s failed. No such hostname (NXDOMAIN).", GetOwner()->GetUsername());
+		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for %s failed.", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncBindIpDnsFinished(Response);
