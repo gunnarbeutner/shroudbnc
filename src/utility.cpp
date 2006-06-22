@@ -590,7 +590,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
  * @param String the string which should be hashed
  */
 const char *UtilMd5(const char *String) {
-	MD5_CTX context;
+	sMD5_CTX context;
 	static char Result[33];
 	unsigned char digest[16];
 

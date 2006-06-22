@@ -99,7 +99,7 @@ Rotation is separate from addition to prevent recomputation.
 /* MD5 initialization. Begins an MD5 operation, writing a new context.
  */
 void MD5Init (context)
-MD5_CTX *context;                                        /* context */
+sMD5_CTX *context;                                        /* context */
 {
   context->count[0] = context->count[1] = 0;
   /* Load magic initialization constants.
@@ -115,7 +115,7 @@ MD5_CTX *context;                                        /* context */
   context.
  */
 void MD5Update (context, input, inputLen)
-MD5_CTX *context;                                        /* context */
+sMD5_CTX *context;                                        /* context */
 unsigned char *input;                                /* input block */
 unsigned int inputLen;                     /* length of input block */
 {
@@ -158,7 +158,7 @@ unsigned int inputLen;                     /* length of input block */
  */
 void MD5Final (digest, context)
 unsigned char digest[16];                         /* message digest */
-MD5_CTX *context;                                       /* context */
+sMD5_CTX *context;                                       /* context */
 {
   unsigned char bits[8];
   unsigned int index, padLen;
