@@ -1770,7 +1770,9 @@ void CIRCConnection::Error(void) {
 #ifdef _WIN32
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
 #else
-		ErrorMsg = strerror(ErrorValue);
+		if (ErrorValue != 0) {
+			ErrorMsg = strerror(ErrorValue);
+		}
 #endif
 	}
 

@@ -1141,9 +1141,9 @@ void *mmalloc(size_t Size, CUser *Owner) {
 #endif
 
 #if defined(_DEBUG) && defined(_WIN32)
-	if (Block->Manager != NULL && g_Bouncer != NULL) {
+/*	if (Block->Manager != NULL && g_Bouncer != NULL) {
 		printf("%p = mmalloc(%d, %p), mgr refcount = %d\n", Block + 1, Size, Owner, Owner->MemoryGetManager()->ReferenceCount);
-	}
+	}*/
 
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
@@ -1192,9 +1192,9 @@ void mfree(void *Block) {
 	}
 
 #if defined(_DEBUG) && defined(_WIN32)
-	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
+/*	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
 		printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
-	}
+	}*/
 
 	VirtualFree(RealBlock, 0, MEM_RELEASE);
 
@@ -1259,9 +1259,9 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
-	if (NewManager != NULL && g_Bouncer != NULL) {
+/*	if (NewManager != NULL && g_Bouncer != NULL) {
 		printf("%p = mrealloc(%p, %d, %p), mgr refcount = %d\n", NewRealBlock + 1, Block, NewSize, Manager, NewManager->ReferenceCount);
-	}
+	}*/
 //	mstacktrace();
 #endif
 

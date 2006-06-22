@@ -47,7 +47,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	}
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** shroudBNC %s - Copyright (C) 2005 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright (C) 2005 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
@@ -59,7 +59,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 			return;
 		}
 
-		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing reverse DNS lookup on %s...", IpToString(Remote));
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** Doing reverse DNS lookup on %s...", IpToString(Remote));
 
 		m_ClientLookup->GetHostByAddr(Remote);
 	}
@@ -1499,7 +1499,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (m_Username != NULL && m_Password != NULL) {
 				ValidateUser();
 			} else if (m_Username != NULL) {
-				WriteUnformattedLine(":Notice!notice@shroudbnc.info NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 			}
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
@@ -1534,7 +1534,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				if (m_Password == NULL && !ValidSSLCert) {
-					WriteUnformattedLine(":Notice!notice@shroudbnc.info NOTICE * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 				}
 			}
 
@@ -1993,7 +1993,6 @@ bool CClientConnection::ValidateUser(void) {
 
 	if ((m_Password || Force) && User && !Blocked && Valid) {
 		User->Attach(this);
-		//WriteLine(":Notice!notice@shroudbnc.info NOTICE * :Welcome to the wonderful world of IRC");
 	} else {
 		if (User != NULL) {
 			if (!Blocked) {
@@ -2099,7 +2098,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 	Remote = GetRemoteAddress();
 
 	if (Response == NULL) {
-		WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS query failed. Using IP address as your hostname.");
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** Reverse DNS query failed. Using IP address as your hostname.");
 
 		if (Remote != NULL) {
 			SetPeerName(IpToString(Remote), true);
@@ -2110,8 +2109,8 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 		if (m_PeerNameTemp == NULL) {
 			m_PeerNameTemp = ustrdup(Response->h_name);
 
-			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Reverse DNS reply received (%s).", Response->h_name);
-			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Doing forward DNS lookup...");
+			WriteLine(":shroudbnc.info NOTICE AUTH :*** Reverse DNS reply received (%s).", Response->h_name);
+			WriteLine(":shroudbnc.info NOTICE AUTH :*** Doing forward DNS lookup...");
 			m_ClientLookup->GetHostByName(Response->h_name, Response->h_addrtype);
 		} else {
 			sockaddr *saddr = NULL;
@@ -2140,7 +2139,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 					SetPeerName(m_PeerNameTemp, false);
 					ufree(m_PeerNameTemp);
 
-					WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", m_PeerName);
+					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", m_PeerName);
 
 					return;
 				}
@@ -2149,12 +2148,12 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 			}
 
 			if (saddr != NULL) {
-				WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received. (%s)", IpToString(saddr));
+				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", IpToString(saddr));
 			} else {
-				WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward DNS reply received.");
+				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received.");
 			}
 
-			WriteLine(":Notice!notice@shroudbnc.info NOTICE * :*** Forward and reverse DNS replies do not match. Using IP address instead.");
+			WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward and reverse DNS replies do not match. Using IP address instead.");
 
 			if (Remote != NULL) {
 				SetPeerName(IpToString(Remote), true);
@@ -2306,7 +2305,7 @@ void CClientConnection::Kill(const char *Error) {
 		SetOwner(NULL);
 	}
 
-	WriteLine(":Notice!notice@shroudbnc.info NOTICE * :%s", Error);
+	WriteLine(":shroudbnc.info NOTICE AUTH :%s", Error);
 
 	CConnection::Kill(Error);
 }
