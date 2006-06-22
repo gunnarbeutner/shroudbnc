@@ -1514,7 +1514,7 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
  * @param Response the response from the DNS server
  */
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
-	if (Response == NULL) {
+	if (Response == NULL && GetOwner() != NULL) {
 		g_Bouncer->LogUser(GetOwner(), "DNS request for %s failed.", GetOwner()->GetUsername());
 	}
 
@@ -1529,7 +1529,7 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
  * @param Response the reponse from the DNS server
  */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
-	if (Response == NULL) {
+	if (Response == NULL && GetOwner() != NULL) {
 		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for %s failed.", GetOwner()->GetUsername());
 	}
 

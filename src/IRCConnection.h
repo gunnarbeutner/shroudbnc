@@ -147,7 +147,7 @@ public:
 
 	void Destroy(void);
 
-	int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
 	void Kill(const char *Error);
 

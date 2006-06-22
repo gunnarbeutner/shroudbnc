@@ -128,7 +128,7 @@ public:
 
 	bool IsSSL(void) const;
 	const X509 *GetPeerCertificate(void) const;
-	int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const;
 
 	sockaddr *GetRemoteAddress(void) const;
 	sockaddr *GetLocalAddress(void) const;
