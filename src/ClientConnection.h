@@ -35,7 +35,7 @@ class SBNCAPI CClientConnection : public CConnection, public CObject<CClientConn
 	public CZoneObject<CClientConnection, 16> {
 private:
 	char *m_Nick; /**< the current nick of the user */
-	char *m_PreviousNick; /**< the previous nick of the user */
+//	char *m_PreviousNick; /**< the previous nick of the user */
 	char *m_Password; /**< the password which was supplied by the user */
 	char *m_Username; /**< the username the user supplied */
 	char *m_PeerName; /**< the hostname of the user */

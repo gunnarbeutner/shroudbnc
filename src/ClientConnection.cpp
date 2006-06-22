@@ -2341,9 +2341,9 @@ commandlist_t *CClientConnection::GetCommandList(void) {
  *
  * Returns the previous nick.
  */
-const char *CClientConnection::GetPreviousNick(void) const {
+/*const char *CClientConnection::GetPreviousNick(void) const {
 	return m_PreviousNick;
-}
+}*/
 
 /**
  * Hijack
