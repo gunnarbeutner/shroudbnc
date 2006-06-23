@@ -18,8 +18,10 @@ update:
 	echo "Reloading any running instances of shroudBNC..."; \
 	echo ./$${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc;
 	@if [ -f ${exec_prefix}/sbnc.pid ]; then \
-		echo "Sending USR1 signal to shroudBNC instance in ${exec_prefix} (PID `cat ${exec_prefix}/sbnc.pid`)"; \
-		kill -USR1 `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1; \
+		@if $(kill -CHLD `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1); then \
+			echo "Sending USR1 signal to shroudBNC instance in ${exec_prefix} (PID `cat ${exec_prefix}/sbnc.pid`)"; \
+			kill -USR1 `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1; \
+		fi; \
 	fi;
 	@echo "********************************************"
 	@echo "* shroudBNC has successfully been updated. *"
