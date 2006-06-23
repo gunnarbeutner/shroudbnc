@@ -159,12 +159,12 @@ void CTclClientSocket::Write(void) {
 	m_Wrap->Write();
 }
 
-void CTclClientSocket::Error(void) {
+void CTclClientSocket::Error(int ErrorCode) {
 	if (m_Wrap == NULL) {
 		return;
 	}
 
-	m_Wrap->Error();
+	m_Wrap->Error(ErrorCode);
 }
 
 bool CTclClientSocket::HasQueuedData(void) const {

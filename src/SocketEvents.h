@@ -52,8 +52,10 @@ public:
 	 * Error
 	 *
 	 * Called when an error occured on the socket.
+	 *
+	 * @param ErrorCode the error code (errno or winsock error code)
 	 */
-	virtual void Error(void) = 0;
+	virtual void Error(int ErrorCode) = 0;
 
 	/**
 	 * HasQueuedData

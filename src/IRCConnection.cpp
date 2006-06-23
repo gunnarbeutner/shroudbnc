@@ -1777,21 +1777,19 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
  * Error
  *
  * Called when an error occurred for the connection.
+ *
+ * @param ErrorCode error code
  */
-void CIRCConnection::Error(void) {
-	int ErrorValue;
-	socklen_t ErrorValueLength = sizeof(ErrorValue);
+void CIRCConnection::Error(int ErrorValue) {
 	char *ErrorMsg = NULL;
 
-	if (getsockopt(GetSocket(), SOL_SOCKET, SO_ERROR, (char *)&ErrorValue, &ErrorValueLength) == 0) {
 #ifdef _WIN32
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
 #else
-		if (ErrorValue != 0) {
-			ErrorMsg = strerror(ErrorValue);
-		}
-#endif
+	if (ErrorValue != 0) {
+		ErrorMsg = strerror(ErrorValue);
 	}
+#endif
 
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {

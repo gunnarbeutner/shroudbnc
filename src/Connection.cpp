@@ -635,8 +635,10 @@ size_t CConnection::GetRecvqSize(void) const {
  * Error
  *
  * Called when an error occured for the socket.
+ *
+ * @param ErrorCode the error code
  */
-void CConnection::Error(void) {
+void CConnection::Error(int ErrorCode) {
 }
 
 /**

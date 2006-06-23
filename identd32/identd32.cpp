@@ -169,8 +169,8 @@ public:
 		m_Wrap->Write();
 	}
 
-	void Error(void) {
-		m_Wrap->Error();
+	void Error(int ErrorCode) {
+		m_Wrap->Error(ErrorCode);
 	}
 
 	bool HasQueuedData(void) const {

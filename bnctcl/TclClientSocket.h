@@ -33,7 +33,7 @@ public:
 
 	virtual bool Read(bool DontProcess);
 	virtual void Write(void);
-	virtual void Error(void);
+	virtual void Error(int ErrorCode);
 	virtual bool HasQueuedData(void) const;
 	virtual bool DoTimeout(void);
 	virtual bool ShouldDestroy(void) const;

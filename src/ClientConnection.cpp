@@ -1534,7 +1534,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				if (m_Password == NULL && !ValidSSLCert) {
-					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH * :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
 				}
 			}
 

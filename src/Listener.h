@@ -42,7 +42,7 @@ private:
 	}
 
 	virtual void Write(void) { }
-	virtual void Error(void) { }
+	virtual void Error(int ErrorCode) { }
 	virtual bool HasQueuedData(void) const { return false; }
 	virtual bool DoTimeout(void) { return false; }
 	virtual bool ShouldDestroy(void) const { return false; }

@@ -73,9 +73,11 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 	const char *Nick;
 	const char *Server;
 
-	LogFile = m_File;
+	if (m_File != NULL) {
+		fclose(m_File);
+	}
 
-	if (m_Filename != NULL && (m_File != NULL || (LogFile = fopen(m_Filename, "r")) != NULL)) {
+	if (m_Filename != NULL && (LogFile = fopen(m_Filename, "r")) != NULL) {
 		char Line[500];
 
 		while (!feof(LogFile)) {
@@ -104,11 +106,8 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 			}
 		}
 
-		if (!m_KeepOpen) {
-			fclose(LogFile);
-		} else {
-			m_File = LogFile;
-		}
+		fclose(LogFile);
+		m_File = NULL;
 	}
 
 	if (Type == Log_Motd && Client != NULL) {
@@ -170,6 +169,8 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 		fclose(LogFile);
 	} else {
 		m_File = LogFile;
+
+		fflush(m_File);
 	}
 }
 

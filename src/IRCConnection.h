@@ -96,7 +96,7 @@ class SBNCAPI CIRCConnection : public CConnection, public CObject<CIRCConnection
 	void WriteUnformattedLine(const char *Line);
 
 	virtual bool Read(void);
-	virtual void Error(void);
+	virtual void Error(int ErrorValue);
 	virtual void Write(void);
 	virtual bool HasQueuedData(void) const;
 	virtual const char *GetClassName(void) const;
