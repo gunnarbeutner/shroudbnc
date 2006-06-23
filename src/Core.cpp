@@ -593,13 +593,18 @@ void CCore::StartMainLoop(void) {
 						int ErrorCode;
 						socklen_t ErrorCodeLength = sizeof(ErrorCode);
 
+						ErrorCode = 0;
+
 						if (getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
 							if (ErrorCode != 0) {
 								Events->Error(ErrorCode);
 							}
 						}
 
-						Events->Error(ErrorCode);
+						if (ErrorCode == 0) {
+							Events->Error(-1);
+						}
+
 						Events->Destroy();
 
 						continue;

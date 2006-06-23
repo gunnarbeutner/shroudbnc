@@ -58,7 +58,7 @@ proc virtual:commandiface {client parameters} {
 			append help "\$ user is a virtual admin"
 			bncaddcommand "who" "Admin" "shows users" $help
 		} else {
-			bncaddcommand "adduser" "Admin" "creates a new user" "Syntax: adduser <username> <password>\nCreates a new user."
+			bncaddcommand "adduser" "Admin" "creates a new user" "Syntax: adduser <username> <password> \[<group>\]\nCreates a new user."
 			bncaddcommand "deluser" "Admin" "removes a user" "Syntax: deluser <username>\nDeletes a user."
 
 			bncaddcommand "resetpass" "Admin" "sets a user's password" "Syntax: resetpass <user> <password>\nResets another user's password."
@@ -187,11 +187,11 @@ proc virtual:cmd:who {account parameters} {
 			append out " :[getbncuser $user realname]"
 
 			setctx $account
-			bncnotc $out
+			bncreply $out
 		}
 	}
 
-	bncnotc "End of USERS."
+	bncreply "End of USERS."
 
 	haltoutput
 }

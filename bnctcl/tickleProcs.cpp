@@ -1595,10 +1595,9 @@ void bncdisconnect(const char* Reason) {
 
 	CIRCConnection* Irc = Context->GetIRCConnection();
 
-	if (!Irc)
-		return;
-
-	Irc->Kill(Reason);
+	if (Irc) {
+		Irc->Kill(Reason);
+	}
 
 	Context->MarkQuitted();
 }
