@@ -39,14 +39,14 @@ public:
 		g_Bouncer->DeleteWrapper(m_Wrap);
 	}
 
-	bool Read(bool DontProcess) {
+	int Read(bool DontProcess) {
 		char *Line;
-		bool ReturnValue = m_Wrap->Read();
+		int ReturnValue = m_Wrap->Read();
 
-		if (ReturnValue == false) {
-			return false;
+		if (ReturnValue != 0) {
+			return ReturnValue;
 		} else if (DontProcess) {
-			return true;
+			return 0;
 		}
 
 		while (m_Wrap->ReadLine(&Line) == true) {
@@ -55,7 +55,7 @@ public:
 			g_Bouncer->GetUtilities()->Free(Line);
 		}
 
-		return true;
+		return 0;
 	}
 
 	void ParseLine(const char* Line) {
@@ -165,8 +165,8 @@ public:
 		}
 	}
 
-	void Write(void) {
-		m_Wrap->Write();
+	int Write(void) {
+		return m_Wrap->Write();
 	}
 
 	void Error(int ErrorCode) {

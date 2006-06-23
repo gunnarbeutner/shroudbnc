@@ -27,7 +27,7 @@ class CListenerBase : public CSocketEvents/*, public CObject<InheritedClass, CCo
 private:
 	SOCKET m_Listener; /**< the listening socket */
 
-	virtual bool Read(bool DontProcess) {
+	virtual int Read(bool DontProcess) {
 		char PeerAddress[MAX_SOCKADDR_LEN];
 		socklen_t PeerSize = sizeof(PeerAddress);
 		SOCKET Client;
@@ -38,10 +38,10 @@ private:
 			Accept(Client, (sockaddr *)PeerAddress);
 		}
 
-		return true;
+		return 0;
 	}
 
-	virtual void Write(void) { }
+	virtual int Write(void) { return 0; }
 	virtual void Error(int ErrorCode) { }
 	virtual bool HasQueuedData(void) const { return false; }
 	virtual bool DoTimeout(void) { return false; }

@@ -984,16 +984,18 @@ bool CIRCConnection::HasQueuedData(void) const {
  *
  * Writes data for the socket.
  */
-void CIRCConnection::Write(void) {
+int CIRCConnection::Write(void) {
 	char *Line = m_FloodControl->DequeueItem();
 
 	if (Line != NULL) {
 		CConnection::WriteUnformattedLine(Line);
 	}
 
-	CConnection::Write();
+	int ReturnValue = CConnection::Write();
 
 	free(Line);
+
+	return ReturnValue;
 }
 
 /**
@@ -1418,14 +1420,14 @@ const char *CIRCConnection::GetClassName(void) const {
 	return "CIRCConnection";
 }
 
-bool CIRCConnection::Read(void) {
-	bool Ret = CConnection::Read();
+int CIRCConnection::Read(void) {
+	int ReturnValue = CConnection::Read();
 
-	if (Ret && GetRecvqSize() > 5120) {
+	if (ReturnValue == 0 && GetRecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 
-	return Ret;
+	return ReturnValue;
 }
 
 /**
@@ -1783,13 +1785,15 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 void CIRCConnection::Error(int ErrorValue) {
 	char *ErrorMsg = NULL;
 
+	if (ErrorValue != -1) {
 #ifdef _WIN32
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorValue, 0, (char *)&ErrorMsg, 0, NULL);
 #else
-	if (ErrorValue != 0) {
-		ErrorMsg = strerror(ErrorValue);
-	}
+		if (ErrorValue != 0) {
+			ErrorMsg = strerror(ErrorValue);
+		}
 #endif
+	}
 
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {

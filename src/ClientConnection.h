@@ -55,7 +55,7 @@ private:
 
 	bool ValidateUser(void);
 	void SetPeerName(const char *PeerName, bool LookupFailure);
-	virtual bool Read(bool DontProcess = false);
+	virtual int Read(bool DontProcess = false);
 	virtual const char *GetClassName(void) const;
 	void WriteUnformattedLine(const char *Line);
 	bool ParseLineArgV(int argc, const char **argv);

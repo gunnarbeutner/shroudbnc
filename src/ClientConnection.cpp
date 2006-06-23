@@ -2180,20 +2180,20 @@ const char *CClientConnection::GetClassName(void) const {
  *
  * @param DontProcess whether to process the data
  */
-bool CClientConnection::Read(bool DontProcess) {
-	bool Ret;
+int CClientConnection::Read(bool DontProcess) {
+	int ReturnValue;
 
 	if (m_PeerName != NULL) {
-		Ret = CConnection::Read(false);
+		ReturnValue = CConnection::Read(false);
 	} else {
 		return CConnection::Read(true);
 	}
 
-	if (Ret && GetRecvqSize() > 5120) {
+	if (ReturnValue == 0 && GetRecvqSize() > 5120) {
 		Kill("RecvQ exceeded.");
 	}
 
-	return Ret;
+	return ReturnValue;
 }
 
 /**

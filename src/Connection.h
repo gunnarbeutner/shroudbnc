@@ -140,8 +140,8 @@ public:
 	size_t GetInboundRate(void);
 
 	// should really be "protected"
-	virtual bool Read(bool DontProcess = false);
-	virtual void Write(void);
+	virtual int Read(bool DontProcess = false);
+	virtual int Write(void);
 	virtual bool DoTimeout(void);
 	virtual void Error(int ErrorCode);
 	virtual bool HasQueuedData(void) const;

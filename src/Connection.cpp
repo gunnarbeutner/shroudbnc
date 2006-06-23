@@ -256,7 +256,7 @@ SOCKET CConnection::GetSocket(void) const {
  *
  * @param DontProcess determines whether to process the data
  */
-bool CConnection::Read(bool DontProcess) {
+int CConnection::Read(bool DontProcess) {
 	int ReadResult;
 	static char *Buffer;
 	static int BufferSize = 0;
@@ -266,7 +266,7 @@ bool CConnection::Read(bool DontProcess) {
 	m_Connected = true;
 
 	if (m_Shutdown) {
-		return true;
+		return 0;
 	}
 
 	if (getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&NewBufferSize, &OptLenght) != 0) {
@@ -279,7 +279,7 @@ bool CConnection::Read(bool DontProcess) {
 	}
 
 	CHECK_ALLOC_RESULT(Buffer, malloc) {
-		return false;
+		return -1;
 	} CHECK_ALLOC_RESULT_END;
 
 #ifdef USESSL
@@ -295,7 +295,7 @@ bool CConnection::Read(bool DontProcess) {
 
 					return true;
 				default:
-					return false;
+					return -1;
 			}
 		}
 
@@ -318,13 +318,29 @@ bool CConnection::Read(bool DontProcess) {
 			m_Traffic->AddInbound(ReadResult);
 		}
 	} else {
+		int ErrorCode;
+
+#ifdef _WIN32
+		ErrorCode = WSAGetLastError();
+
+		if (ErrorCode == WSAEWOULDBLOCK) {
+			return 0;
+		}
+#else
+		ErrorCode = errno;
+
+		if (ErrorCode == EAGAIN) {
+			return 0;
+		}
+#endif
+
 #ifdef USESSL
 		if (IsSSL()) {
 			SSL_shutdown(m_SSL);
 		}
 #endif
 
-		return false;
+		return ErrorCode;
 	}
 
 	if (m_Wrapper) {
@@ -343,8 +359,9 @@ bool CConnection::Read(bool DontProcess) {
  *
  * Called when data can be written for the socket.
  */
-void CConnection::Write(void) {
+int CConnection::Write(void) {
 	size_t Size;
+	int ReturnValue;
 
 	if (m_SendQ) {
 		Size = m_SendQ->GetSize();
@@ -363,7 +380,7 @@ void CConnection::Write(void) {
 				switch (SSL_get_error(m_SSL, WriteResult)) {
 					case SSL_ERROR_WANT_WRITE:
 					case SSL_ERROR_WANT_READ:
-						return;
+						return 0;
 					default:
 						break;
 				}
@@ -375,6 +392,12 @@ void CConnection::Write(void) {
 		}
 #endif
 
+#ifdef _WIN32
+			ReturnValue = WSAGetLastError();
+#else
+			ReturnValue = errno;
+#endif
+			
 		if (WriteResult > 0) {
 			if (m_Traffic) {
 				m_Traffic->AddOutbound(WriteResult);
@@ -398,6 +421,8 @@ void CConnection::Write(void) {
 			closesocket(m_Socket);
 		}
 	}
+
+	return ReturnValue;
 }
 
 /**

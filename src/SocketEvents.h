@@ -39,14 +39,14 @@ public:
 	 * @param DontProcess determines whether the function should
 	 *					  process the data
 	 */
-	virtual bool Read(bool DontProcess = false) = 0;
+	virtual int Read(bool DontProcess = false) = 0;
 
 	/**
 	 * Write
 	 *
 	 * Called when the socket is ready for writing.
 	 */
-	virtual void Write(void) = 0;
+	virtual int Write(void) = 0;
 
 	/**
 	 * Error

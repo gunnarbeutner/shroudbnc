@@ -606,16 +606,9 @@ void CCore::StartMainLoop(void) {
 					}
 
 					if (PollFd->revents & (POLLIN|POLLPRI)) {
-						if (!Events->Read()) {
-							int ErrorCode;
-							socklen_t ErrorCodeLength = sizeof(ErrorCode);
-
-							if (getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
-								if (ErrorCode != 0) {
-									Events->Error(ErrorCode);
-								}
-							}
-
+						int Code;
+						if ((Code = Events->Read()) != 0) {
+							Events->Error(Code);
 							Events->Destroy();
 
 							continue;
@@ -653,12 +646,7 @@ void CCore::StartMainLoop(void) {
 					int code = poll(&pfd, 1, 0);
 
 					if (code == -1) {
-						int ErrorCode = 0;
-						socklen_t ErrorCodeLength = sizeof(ErrorCode);
-
-						getsockopt(Socket, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength);
-
-						Events->Error(ErrorCode);
+						Events->Error(-1);
 						Events->Destroy();
 					}
 				}

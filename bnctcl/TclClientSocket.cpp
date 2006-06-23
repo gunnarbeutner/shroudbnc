@@ -98,11 +98,11 @@ void CTclClientSocket::Destroy(void) {
 	}
 }
 
-bool CTclClientSocket::Read(bool DontProcess) {
-	bool Ret = m_Wrap->Read();
+int CTclClientSocket::Read(bool DontProcess) {
+	int Ret = m_Wrap->Read();
 
 	if (DontProcess)
-		return true;
+		return 0;
 
 	char* Line;
 
@@ -146,17 +146,17 @@ bool CTclClientSocket::Read(bool DontProcess) {
 	}
 
 	if (m_Destroy)
-		return false;
+		return -1;
 	else
 		return Ret;
 }
 
-void CTclClientSocket::Write(void) {
+int CTclClientSocket::Write(void) {
 	if (m_Wrap == NULL) {
-		return;
+		return 0;
 	}
 
-	m_Wrap->Write();
+	return m_Wrap->Write();
 }
 
 void CTclClientSocket::Error(int ErrorCode) {
