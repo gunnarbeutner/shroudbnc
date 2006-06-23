@@ -293,7 +293,7 @@ int CConnection::Read(bool DontProcess) {
 				case SSL_ERROR_NONE:
 				case SSL_ERROR_ZERO_RETURN:
 
-					return true;
+					return 0;
 				default:
 					return -1;
 			}
@@ -344,14 +344,14 @@ int CConnection::Read(bool DontProcess) {
 	}
 
 	if (m_Wrapper) {
-		return true;
+		return 0;
 	}
 
 	if (!DontProcess) {
 		ProcessBuffer();
 	}
 
-	return true;
+	return 0;
 }
 
 /**
