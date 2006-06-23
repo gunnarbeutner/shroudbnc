@@ -39,14 +39,14 @@ int ares_fds(ares_channel channel)
       server = &channel->servers[i];
       if (server->udp_socket != ARES_SOCKET_BAD)
         {
-          server->udp_pollfd->events = POLLIN;
+          server->udp_pollfd->events = POLLIN | POLLPRI;
 
 		  if (server->udp_socket >= nfds)
             nfds = server->udp_socket + 1;
         }
       if (server->tcp_socket != ARES_SOCKET_BAD)
         {
-          server->tcp_pollfd->events = POLLIN;
+          server->tcp_pollfd->events = POLLIN | POLLPRI;
           if (server->qhead)
             server->tcp_pollfd->events |= POLLOUT;
           if (server->tcp_socket >= nfds)

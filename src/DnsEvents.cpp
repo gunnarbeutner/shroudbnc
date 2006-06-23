@@ -88,8 +88,6 @@ void CDnsQuery::InitChannel(void) {
 	if (m_Channel == NULL) {
 		ares_options Options;
 
-		ares_init(&m_Channel);
-
 		Options.timeout = m_Timeout;
 		ares_init_options(&m_Channel, &Options, ARES_OPT_TIMEOUT);
 

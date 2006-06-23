@@ -69,7 +69,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_PollFds.Preallocate(SFD_SETSIZE);
 
-	m_Log = new CLog("sbnc.log");
+	m_Log = new CLog("sbnc.log", true);
 
 	if (m_Log == NULL) {
 		printf("Log system could not be initialized. Shutting down.");

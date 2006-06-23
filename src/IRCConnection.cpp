@@ -1796,15 +1796,15 @@ void CIRCConnection::Error(void) {
 	if (m_State == State_Connecting && GetOwner() != NULL) {
 		if (!IsConnected()) {
 			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-				g_Bouncer->LogUser(GetOwner(), "An error occured while connecting for user %s.", GetOwner()->GetUsername());
+				g_Bouncer->LogUser(GetOwner(), "An error occurred while connecting for user %s.", GetOwner()->GetUsername());
 			} else {
-				g_Bouncer->LogUser(GetOwner(), "An error occured while connecting for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
+				g_Bouncer->LogUser(GetOwner(), "An error occurred while connecting for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
 			}
 		} else {
 			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-				g_Bouncer->LogUser(GetOwner(), "An error occured while processing a connection for user %s.", GetOwner()->GetUsername());
+				g_Bouncer->LogUser(GetOwner(), "An error occurred while processing a connection for user %s.", GetOwner()->GetUsername());
 			} else {
-				g_Bouncer->LogUser(GetOwner(), "An error occured while processing a connection for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
+				g_Bouncer->LogUser(GetOwner(), "An error occurred while processing a connection for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
 			}
 		}
 	}

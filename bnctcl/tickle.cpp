@@ -350,7 +350,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 
 			bool Match = false;
 
-			if (g_Binds[i].pattern == NULL)
+			if (g_Binds[i].pattern == NULL || strcmp(g_Binds[i].pattern, "*") == 0)
 				Match = true;
 
 			if (!Match) {
