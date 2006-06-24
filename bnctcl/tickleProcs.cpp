@@ -154,6 +154,14 @@ void rehash(void) {
 }
 
 int internalbind(const char* type, const char* proc, const char* pattern, const char* user) {
+	if (pattern == NULL) {
+		pattern = "*";
+	}
+
+	if (user == NULL) {
+		user = "*";
+	}
+
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && strcmp(g_Binds[i].proc, proc) == 0
 			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
@@ -227,15 +235,8 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 	Bind->proc = strdup(proc);
 	Bind->valid = true;
 
-	if (pattern)
-		Bind->pattern = strdup(pattern);
-	else
-		Bind->pattern = strdup("*");
-
-	if (user)
-		Bind->user = strdup(user);
-	else
-		Bind->user = strdup("*");
+	Bind->pattern = strdup(pattern);
+	Bind->user = strdup(user);
 
 	return 1;
 }
