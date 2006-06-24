@@ -859,7 +859,25 @@ void CConnection::AsyncConnect(void) {
 		free(m_HostAddr);
 		m_HostAddr = NULL;
 
-		InitSocket();
+		if (m_Socket == INVALID_SOCKET) {
+			int ErrorCode;
+
+#ifdef _WIN32
+			ErrorCode = WSAGetLastError();
+#else
+			ErrorCode = errno;
+
+			if (ErrorCode == 0) {
+				ErrorCode = -1;
+			}
+#endif
+
+			Error(ErrorCode);
+
+			m_LatchedDestruction = true;
+		} else {
+			InitSocket();
+		}
 	}
 }
 

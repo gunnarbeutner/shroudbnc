@@ -246,24 +246,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		}
 
 		if (ReturnValue) {
-			char *Out;
-			CClientConnection *Client;
-
-			asprintf(&Out, "%s_", argv[3]);
-
-			CHECK_ALLOC_RESULT(Out, asprintf) {
-				return false;
-			} CHECK_ALLOC_RESULT_END;
-
-			WriteLine("NICK :%s", Out);
-
-			Client = GetOwner()->GetClientConnection();
-
-			if (Client != NULL) {
-				Client->ChangeNick(Out);
-			}
-
-			free(Out);
+			WriteLine("NICK :%s_", argv[3]);
 		}
 
 		return ReturnValue;
@@ -491,6 +474,19 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
+			}
+
+			CClientConnection *Client;
+			const char *ClientNick;
+
+			Client = GetOwner()->GetClientConnection();
+
+			if (Client != NULL) {
+				ClientNick = Client->GetNick();
+
+				if (strcmp(m_CurrentNick, ClientNick) != 0) {
+					Client->ChangeNick(m_CurrentNick);
+				}
 			}
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
