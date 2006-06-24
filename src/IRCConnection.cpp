@@ -19,9 +19,6 @@
 
 #include "StdAfx.h"
 
-bool DelayJoinTimer(time_t Now, void *IRCConnection);
-bool IRCPingTimer(time_t Now, void *IRCConnection);
-
 extern time_t g_LastReconnect;
 
 /**
