@@ -28,9 +28,6 @@
 #define _USE_32BIT_TIME_T
 #endif
 
-#undef FD_SETSIZE
-#define FD_SETSIZE 16384
-
 #include "fdhelper.h"
 
 #include <stdlib.h>
@@ -119,24 +116,6 @@ void mmark(void *Block);
 #		define fscanf __undefined_function
 #		define sprintf __undefined_function
 #	endif
-#endif
-
-#ifndef _WIN32
-#	define DebugBreak()
-#endif
-
-#ifdef SBNC
-#	ifdef _WIN32
-#		define SBNCAPI __declspec(dllexport)
-#	else
-#		define SBNCAPI
-#	endif
-#else
-#	ifdef _WIN32
-#		define SBNCAPI __declspec(dllimport)
-#	else
-#		define SBNCAPI
-	#endif
 #endif
 
 #ifdef __cplusplus

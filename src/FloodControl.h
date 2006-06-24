@@ -25,15 +25,9 @@
  * A queue which has been attached to a CFloodControl object.
  */
 typedef struct queue_s {
-	int Priority;
-	CQueue *Queue;
+	int Priority; /**< the priority of the queue (0 = highest) */
+	CQueue *Queue; /**< the queue object */
 } irc_queue_t;
-
-class CTimer;
-
-#ifndef SWIG
-bool FloodTimer(time_t Now, void *Null);
-#endif
 
 #ifdef SWIGINTERFACE
 %template(CZoneObjectCFloodControl) CZoneObject<class CFloodControl, 16>;
@@ -50,8 +44,6 @@ class SBNCAPI CFloodControl : public CZoneObject<CFloodControl, 16> {
 	size_t m_Bytes; /**< the number of bytes which have recently been sent */
 	bool m_Control; /**< determines whether this object is delaying the output */
 	time_t m_LastCommand; /**< a TS when the last command was sent */
-
-	bool Pulse(time_t Time);
 
 	static int CalculatePenaltyAmplifier(const char *Line);
 public:

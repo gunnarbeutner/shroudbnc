@@ -17,8 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-typedef CModuleFar *(* FNGETOBJECT)() ;
-typedef int (* FNGETINTERFACEVERSION)() ;
+/**< used for getting the module's main object */
+typedef CModuleFar *(* FNGETOBJECT)();
+
+/**< used for getting the module's interface version */
+typedef int (* FNGETINTERFACEVERSION)();
 
 /**
  * CModule

@@ -23,6 +23,7 @@ internalbind modec sbnc:ban:op +o
 internalbind modec sbnc:ban:op +h
 internalbind modec sbnc:ban:unban -b
 internaltimer 60 1 sbnc:checkBans
+internalbind usrdelete sbnc:userfiledelete
 
 proc adduser {handle {hostmask ""}} {
 
@@ -422,6 +423,10 @@ proc setuser {args} {
 		comment {
 			set ui(comment:$hand) "{$setting}"
 		}
+		pass {
+			set ui(pass:$hand) [md5 $setting]
+			return
+		}
 		xtra {
 			set name [lindex [split $setting] 0]
 			set arg [lrange [split $setting] 1 end]
@@ -504,6 +509,15 @@ proc getuser {args} {
 		comment {
 			if {[info exists ui(comment:$hand)]} {
 				return [join $ui(comment:$hand)]
+			} else {
+				return
+			}
+		}
+		pass {
+			if {[info exists ui(pass:$hand)]} {
+				return [join $ui(pass:$hand)]
+			} else {
+				return
 			}
 		}
 		xtra {
@@ -591,7 +605,7 @@ proc save { } {
 			}
 		}
 
-		foreach type "hosts laston info comment xtra" {
+		foreach type "hosts laston info comment pass xtra" {
 
 			if {[info exists ui($type:$hand)]} {
 
@@ -677,6 +691,14 @@ proc save { } {
 	}
 
 	close $file
+
+	set file [open $userfile "RDONLY CREAT"]
+	set info [read $file]
+	close $file
+
+	if {[llength [split $info \n]] <= 2} {
+		file delete $userfile
+	}
 
 }
 
@@ -1658,6 +1680,20 @@ proc maskhost {args} {
 
 	return [join *!$user@$res]
 
+}
+
+proc passwdok {handle passwd} {
+
+	if {$passwd == "-"} {
+		set passwd ""
+	}
+
+	return [string equal [md5 $passwd] [getuser $handle pass]]
+
+}
+
+proc sbnc:userfiledelete {client} {
+	file delete "users/$client.user"
 }
 
 internaltimer 300 1 sbnc:userpulse

@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 
-extern loaderparams_s *g_LoaderParameters;
+// TODO: Write comments.
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -33,7 +33,7 @@ CModule::CModule(const char *Filename) {
 	m_Image = NULL;
 	m_File = strdup(Filename);
 
-	CorePath = strdup(g_LoaderParameters->GetModulePath());
+	CorePath = strdup(g_Bouncer->GetLoaderParameters()->GetModulePath());
 
 	if (CorePath != NULL) {
 		for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {

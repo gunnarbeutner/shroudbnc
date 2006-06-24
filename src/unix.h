@@ -62,3 +62,7 @@ typedef int BOOL;
 #define MAXPATHLEN PATH_MAX
 
 #define mkdir(X) mkdir(X, 0700)
+
+#define DebugBreak()
+
+#define SBNCAPI

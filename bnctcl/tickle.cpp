@@ -345,7 +345,7 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 		if (g_Binds[i].valid && g_Binds[i].type == type) {
 			Tcl_DString dsProc;
 
-			if (g_Binds[i].user && user && strcasecmp(g_Binds[i].user, user) != 0)
+			if (user && strcasecmp(g_Binds[i].user, user) != 0 && !strcasecmp(g_Binds[i].user, "*") == 0)
 				continue;
 
 			bool Match = false;

@@ -18,7 +18,7 @@
  *******************************************************************************/
 
 /**
- * FreezeObject<Type>
+ * FreezeObject
  *
  * Persists an object and stores the persisted data in a box.
  *
@@ -53,7 +53,7 @@ RESULT<bool> FreezeObject(CAssocArray *Container, const char *Name, Type *Object
 }
 
 /**
- * ThawObject<Type>
+ * ThawObject
  *
  * Depersists an object which is stored in a box.
  *

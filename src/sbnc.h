@@ -24,19 +24,22 @@ typedef struct loaderparams_s {
 	char **argv; /**< the arguments for the shroudBNC module */
 	const char *basepath; /**< the path of shroudBNC */
 
-	CAssocArray *Box;
+	CAssocArray *Box; /**< the box which is used for storing persisted data */
 
-	GetBoxProc GetBox;
-	SigEnableProc SigEnable;
+	GetBoxProc GetBox; /**< used for getting the root box from the loader */
+	SigEnableProc SigEnable; /**< used for re-enabling signals */
 
-	SetModuleProc SetModulePath;
-	GetModuleProc GetModulePath;
+	SetModuleProc SetModulePath; /**< sets the module path */
+	GetModuleProc GetModulePath; /**< gets the module path */
 
 	BuildPathProc BuildPath;
 } loaderparams_t;
 
 #ifndef SBNC
+/**< main function of the shroudBNC shared object */
 typedef int (*sbncLoad)(loaderparams_s *Parameters);
+
+/**< modifies the status code */
 typedef bool (*sbncSetStatus)(int Status);
 
 extern sbncSetStatus g_SetStatusFunc;

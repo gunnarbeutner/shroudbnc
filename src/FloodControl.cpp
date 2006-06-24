@@ -19,6 +19,8 @@
 
 #include "StdAfx.h"
 
+bool FloodTimer(time_t Now, void *Null);
+
 /**
  * penalty_t
  *

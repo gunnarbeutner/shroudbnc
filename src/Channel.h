@@ -43,11 +43,12 @@ template class SBNCAPI CHashtable<CNick *, false, 64>;
  * Represents an IRC channel.
  */
 class SBNCAPI CChannel : public CObject<CChannel, CIRCConnection>, public CZoneObject<CChannel, 128> {
+private:
 	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
 
-	chanmode_t *m_Modes; /**< the channel modes */
-	unsigned int m_ModeCount; /**< the number of channel modes */
+	CVector<chanmode_t> m_Modes; /**< the channel modes */
+//	unsigned int m_ModeCount; /**< the number of channel modes */
 	bool m_ModesValid; /**< indicates whether the channelmodes are known */
 	char *m_TempModes; /**< string-representation of the channel modes, used
 							by GetChannelModes() */

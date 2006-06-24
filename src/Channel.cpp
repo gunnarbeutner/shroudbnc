@@ -33,8 +33,6 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_Name = ustrdup(Name);
 	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
 
-	m_Modes = NULL;
-	m_ModeCount = 0;
 	m_Creation = 0;
 	m_Topic = NULL;
 	m_TopicNick = NULL;
@@ -64,13 +62,9 @@ CChannel::~CChannel() {
 	ufree(m_TopicNick);
 	ufree(m_TempModes);
 
-	for (unsigned int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode != '\0') {
-			ufree(m_Modes[i].Parameter);
-		}
+	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
+		ufree(m_Modes[i].Parameter);
 	}
-
-	ufree(m_Modes);
 
 	delete m_Banlist;
 }
@@ -100,7 +94,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		RETURN(const char *, m_TempModes);
 	}
 
-	Size = m_ModeCount + 1024;
+	Size = m_Modes.GetLength() + 1024;
 	m_TempModes = (char *)umalloc(Size);
 
 	CHECK_ALLOC_RESULT(m_TempModes, umalloc) {
@@ -109,7 +103,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 
 	strmcpy(m_TempModes, "+", Size);
 
-	for (i = 0; i < m_ModeCount; i++) {
+	for (i = 0; i < m_Modes.GetLength(); i++) {
 		ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && ModeType != 3) {
@@ -120,7 +114,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 		}
 	}
 
-	for (i = 0; i < m_ModeCount; i++) {
+	for (i = 0; i < m_Modes.GetLength(); i++) {
 		int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
@@ -243,7 +237,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			if (Slot != NULL) {
 				ufree(Slot->Parameter);
 			} else {
-				Slot = AllocSlot();
+				Slot = m_Modes.GetNew();
 			}
 
 			if (Slot == NULL) {
@@ -255,7 +249,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			}
 
 			Slot->Mode = Current;
-			
+
 			if (ModeType != 0 && p < pargc) {
 				Slot->Parameter = ustrdup(pargv[p++]);
 			} else {
@@ -277,31 +271,6 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 }
 
 /**
- * AllocSlot
- *
- * Allocates a slot for a channelmode.
- */
-chanmode_t *CChannel::AllocSlot(void) {
-	chanmode_t *Modes;
-
-	for (unsigned int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode == '\0') {
-			return &m_Modes[i];
-		}
-	}
-
-	Modes = (chanmode_t *)urealloc(m_Modes, sizeof(chanmode_t) * ++m_ModeCount);
-
-	CHECK_ALLOC_RESULT(Modes, realloc) {
-		return NULL;
-	} CHECK_ALLOC_RESULT_END;
-
-	m_Modes = Modes;
-	m_Modes[m_ModeCount - 1].Parameter = NULL;
-	return &m_Modes[m_ModeCount - 1];
-}
-
-/**
  * FindSlot
  *
  * Returns the slot for a channelmode.
@@ -309,7 +278,7 @@ chanmode_t *CChannel::AllocSlot(void) {
  * @param Mode the mode
  */
 chanmode_t *CChannel::FindSlot(char Mode) {
-	for (unsigned int i = 0; i < m_ModeCount; i++) {
+	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
 		if (m_Modes[i].Mode == Mode) {
 			return &m_Modes[i];
 		}
@@ -533,18 +502,11 @@ const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
  * Clears all modes for the channel.
  */
 void CChannel::ClearModes(void) {
-	for (unsigned int i = 0; i < m_ModeCount; i++) {
-		if (m_Modes[i].Mode != '\0') {
-			int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
-
-			if (ModeType != 3) {
-				ufree(m_Modes[i].Parameter);
-
-				m_Modes[i].Mode = '\0';
-				m_Modes[i].Parameter = NULL;
-			}
-		}
+	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
+		ufree(m_Modes[i].Parameter);
 	}
+
+	m_Modes.Clear();
 }
 
 /**

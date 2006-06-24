@@ -82,3 +82,9 @@ typedef int socklen_t;
 #define HAVE_STRUCT_SOCKADDR_IN6
 
 #define MAXPATHLEN MAX_PATH
+
+#ifdef SBNC
+#	define SBNCAPI __declspec(dllexport)
+#else
+#	define SBNCAPI __declspec(dllimport)
+#endif

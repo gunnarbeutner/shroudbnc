@@ -24,8 +24,8 @@
  */
 template <typename Type>
 struct hash_t {
-	char *Name;
-	Type Value;
+	char *Name; /**< the name of the item */
+	Type Value; /**< the item in the hashtable */
 };
 
 /**

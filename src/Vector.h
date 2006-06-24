@@ -268,4 +268,20 @@ public:
 		m_Count = 0;
 		m_AllocCount = 0;
 	}
+
+	/**
+	 * GetNew
+	 *
+	 * Inserts a new item into the list (memory is set to NULs).
+	 */
+	RESULT<Type *> GetNew(void) {
+		Type Item;
+
+		memset(&Item, 0, sizeof(Item));
+
+		RESULT<bool> Result = Insert(Item);
+
+		THROWIFERROR(Type *, Result);
+		RETURN(Type *, GetAddressOf(GetLength() - 1));
+	}
 };

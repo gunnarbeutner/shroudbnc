@@ -89,8 +89,8 @@ private:
 
 	bool m_Connected; /**< is the object connected? */
 
-	time_t m_InboundTrafficReset;
-	size_t m_InboundTraffic;
+	time_t m_InboundTrafficReset; /**< when the inbound traffic was last reset */
+	size_t m_InboundTraffic; /**< inbound traffic (in bytes) since last reset */
 
 	void InitConnection(SOCKET Client, bool SSL);
 

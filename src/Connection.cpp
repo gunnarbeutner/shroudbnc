@@ -320,6 +320,10 @@ int CConnection::Read(bool DontProcess) {
 	} else {
 		int ErrorCode;
 
+		if (ReadResult == 0) {
+			return -1;
+		}
+
 #ifdef _WIN32
 		ErrorCode = WSAGetLastError();
 

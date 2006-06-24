@@ -78,7 +78,7 @@ class SBNCAPI CCore {
 	friend class CDnsQuery;
 	friend bool RegisterZone(CZoneInformation *ZoneInformation);
 
-	friend pollfd * registersocket(int Socket);
+	friend pollfd *registersocket(int Socket);
 	friend void unregistersocket(int Socket);
 #endif
 

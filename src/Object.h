@@ -26,7 +26,12 @@ public:
 	virtual size_t MemoryGetSize(void) = 0;
 	virtual size_t MemoryGetLimit(void) = 0;
 
-	virtual size_t MemoryIsLimitExceeded(void) {
+	/**
+	 * MemoryIsLimitExceeded
+	 *
+	 * Checks whether the current memory limit is exceeded.
+	 */
+	virtual bool MemoryIsLimitExceeded(void) {
 		if (MemoryGetSize() > MemoryGetLimit()) {
 			return true;
 		} else {
@@ -35,6 +40,11 @@ public:
 	}
 };
 
+/**
+ * CObjectBase
+ *
+ * Base class for CObject.
+ */
 class SBNCAPI CObjectBase {
 	enum ObjectType_e {
 		eUser,
@@ -84,10 +94,15 @@ public:
 	}
 };
 
+/**
+ * CObject
+ *
+ * Base class for all ownable objects.
+ */
 template<typename ObjectType, typename OwnerType>
 class SBNCAPI CObject : public CObjectBase {
 protected:
-	CObject(void) {	}
+	CObject(void) : CObjectBase() {	}
 
 	CObject(OwnerType *Owner) {
 		SetOwner(Owner);
@@ -98,6 +113,12 @@ protected:
 	}
 
 public:
+	/**
+	 * GetUser
+	 *
+	 * Returns the user who is owning the object, or NULL if the object
+	 * is currently unowned.
+	 */
 	virtual CUser *GetUser(void) const {
 		CUser *User;
 
@@ -114,10 +135,23 @@ public:
 		}
 	}
 
+	/**
+	 * GetOwner
+	 *
+	 * Returns the immediate owner of the object, or NULL if the object
+	 * is currently unowned.
+	 */
 	OwnerType *GetOwner(void) const {
 		return (OwnerType *)GetOwnerBase();
 	}
 
+	/**
+	 * SetOwner
+	 *
+	 * Sets the owner for the object.
+	 *
+	 * @param Owner the new owner
+	 */
 	void SetOwner(OwnerType *Owner) {
 		CUser *User;
 		CMemoryManager *Manager;

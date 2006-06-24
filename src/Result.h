@@ -153,7 +153,7 @@ bool IsError(const CResult<Type> &Result) {
 /**
  * generic_error_t
  *
- * Some common errors.
+ * Commonly used error codes.
  */
 typedef enum generic_error_e {
 	Generic_OutOfMemory = 5000,
