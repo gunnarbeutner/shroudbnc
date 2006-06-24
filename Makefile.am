@@ -38,6 +38,6 @@ sslcert:
 
 	@if [ ! -d ${exec_prefix} ]; then \
 		echo "Please install shroudBNC first."; \
-	else; \
-		openssl req -new -x509 -days 365 -nodes -keyout ${exec_prefix}/sbnc.key -out ${exec_prefix}/sbnc.crt -config ssl.conf; \
+	else \
+		openssl req -new -x509 -days 3650 -nodes -keyout ${exec_prefix}/sbnc.key -out ${exec_prefix}/sbnc.crt -config ssl.conf; \
 	fi;
