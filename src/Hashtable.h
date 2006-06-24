@@ -71,11 +71,15 @@ inline int CmpStringCase(const void *pA, const void *pB) {
  *
  * @param String the string
  */
-inline unsigned long Hash(const char *String) {
+inline unsigned long Hash(const char *String, bool CaseSensitive) {
 	unsigned long HashValue = 5381;
 	int Character;
 
 	while ((Character = *(String++)) != '\0') {
+		if (!CaseSensitive) {
+			Character = tolower(Character);
+		}
+
 		HashValue = ((HashValue << 5) + HashValue) + Character; /* HashValue * 33 + Character */
 	}
 
@@ -157,7 +161,7 @@ public:
 		// Remove any existing item which has the same key
 		Remove(Key);
 
-		List = &m_Items[Hash(Key) % Size];
+		List = &m_Items[Hash(Key, CaseSensitive) % Size];
 
 		dupKey = strdup(Key);
 
@@ -214,7 +218,7 @@ public:
 			return NULL;
 		}
 
-		List = &m_Items[Hash(Key) % Size];
+		List = &m_Items[Hash(Key, CaseSensitive) % Size];
 
 		if (List->Count == 0) {
 			return NULL;
@@ -245,7 +249,7 @@ public:
 			THROW(bool, Generic_InvalidArgument, "Key cannot be NULL.");
 		}
 
-		List = &m_Items[Hash(Key) % Size];
+		List = &m_Items[Hash(Key, CaseSensitive) % Size];
 
 		if (List->Count == 0) {
 			RETURN(bool, true);
@@ -429,7 +433,7 @@ public:
 		m_String = String;
 
 		if (String) {
-			m_Hash = Hash(String);
+			m_Hash = Hash(String, false);
 		} else {
 			m_Hash = 0;
 		}
