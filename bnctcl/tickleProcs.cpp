@@ -230,12 +230,12 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 	if (pattern)
 		Bind->pattern = strdup(pattern);
 	else
-		Bind->pattern = NULL;
+		Bind->pattern = strdup("*");
 
 	if (user)
 		Bind->user = strdup(user);
 	else
-		Bind->user = NULL;
+		Bind->user = strdup("*");
 
 	return 1;
 }
