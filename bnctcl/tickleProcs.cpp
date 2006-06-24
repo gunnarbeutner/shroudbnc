@@ -284,10 +284,18 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 	else
 		return 0;
 
+	if (pattern == NULL) {
+		pattern = "*";
+	}
+
+	if (user == NULL) {
+		user = "*";
+	}
+
 	for (int i = 0; i < g_BindCount; i++) {
 		if (g_Binds[i].valid && g_Binds[i].type == bindtype && strcmp(g_Binds[i].proc, proc) == 0
-			&& ((!pattern && g_Binds[i].pattern == NULL) || (pattern && g_Binds[i].pattern && strcmp(pattern, g_Binds[i].pattern) == 0))
-			&& ((!user && g_Binds[i].user == NULL) || (user && g_Binds[i].user && strcasecmp(user, g_Binds[i].user) == 0))) {
+			&& (strcmp(pattern, g_Binds[i].pattern) == 0)
+			&& (strcasecmp(user, g_Binds[i].user) == 0)) {
 
 			free(g_Binds[i].proc);
 			free(g_Binds[i].pattern);
@@ -351,8 +359,8 @@ const char* internalbinds(void) {
 				Bind[0] = "invalid";
 
 			Bind[1] = g_Binds[i].proc;
-			Bind[2] = g_Binds[i].pattern ? g_Binds[i].pattern : "*";
-			Bind[3] = g_Binds[i].user ? g_Binds[i].user : "*";
+			Bind[2] = g_Binds[i].pattern;
+			Bind[3] = g_Binds[i].user;
 
 			char* Item = Tcl_Merge(4, const_cast<char **>(Bind));
 
