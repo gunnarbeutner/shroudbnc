@@ -494,12 +494,18 @@ void CCore::StartMainLoop(void) {
 
 		link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
 
+		m_Timers.Lock();
+
 		while (CurrentTimer != NULL) {
 			CTimer *Timer;
 			time_t NextCall;
-			
+
 			Timer = CurrentTimer->Value;
 			CurrentTimer = CurrentTimer->Next;
+
+			if (!CurrentTimer->Valid) {
+				continue;
+			}
 
 			NextCall = Timer->GetNextCall();
 
@@ -517,6 +523,8 @@ void CCore::StartMainLoop(void) {
 				Timer->Call(Now);
 			}
 		}
+
+		m_Timers.Unlock();
 
 		if (TimeWarp > 5) {
 			Log("Time warp detected: %d seconds", TimeWarp);

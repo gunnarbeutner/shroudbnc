@@ -25,6 +25,7 @@ typedef enum list_error_e {
 template <typename Type>
 struct link_t {
 	Type Value;
+	bool Valid;
 	link_t<Type> *Next;
 	link_t<Type> *Previous;
 };
@@ -39,6 +40,7 @@ class SBNCAPI CList {
 private:
 	mutable link_t<Type> *m_Head; /**< first element */
 	mutable link_t<Type> *m_Tail; /**< last element */
+	bool m_Lock;
 
 public:
 #ifndef SWIG
@@ -50,6 +52,7 @@ public:
 	CList(void) {
 		m_Head = NULL;
 		m_Tail = NULL;
+		m_Lock = false;
 	}
 
 	/**
@@ -93,6 +96,7 @@ public:
 		}
 
 		Element->Value = Item;
+		Element->Valid = true;
 
 		RETURN(link_t<Type> *, Element);
 	}
@@ -131,23 +135,27 @@ public:
 			return;
 		}
 
-		if (Item->Next != NULL) {
-			Item->Next->Previous = Item->Previous;
-		}
+		if (m_Lock) {
+			Item->Valid = false;
+		} else {
+			if (Item->Next != NULL) {
+				Item->Next->Previous = Item->Previous;
+			}
 
-		if (Item->Previous != NULL) {
-			Item->Previous->Next = Item->Next;
-		}
+			if (Item->Previous != NULL) {
+				Item->Previous->Next = Item->Next;
+			}
 
-		if (Item == m_Head) {
-			m_Head = Item->Next;
-		}
+			if (Item == m_Head) {
+				m_Head = Item->Next;
+			}
 
-		if (Item == m_Tail) {
-			m_Tail = Item->Previous;
-		}
+			if (Item == m_Tail) {
+				m_Tail = Item->Previous;
+			}
 
-		free(Item);
+			free(Item);
+		}
 	}
 
 	/**
@@ -176,5 +184,37 @@ public:
 
 		m_Head = NULL;
 		m_Tail = NULL;
+	}
+
+	/**
+	 * Lock
+	 *
+	 * Locks the list so items are delay-deleted.
+	 */
+	void Lock(void) {
+		m_Lock = true;
+	}
+
+	/**
+	 * Unlock
+	 *
+	 * Unlocks the list.
+	 */
+	void Unlock(void) {
+		link_t<Type> *Current, *Next;
+
+		m_Lock = false;
+
+		Current = m_Head;
+
+		while (Current != NULL) {
+			Next = Current->Next;
+
+			if (!Current->Valid) {
+				Remove(Current);
+			}
+
+			Current = Next;
+		}
 	}
 };
