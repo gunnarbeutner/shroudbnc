@@ -1193,6 +1193,10 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
  */
 bool CCore::IsValidUsername(const char *Username) const {
 	for (unsigned int i = 0; i < strlen(Username); i++) {
+		if (i != 0 && (Username[i] == '-' || Username[i] == '_')) {
+			continue;
+		}
+
 		if (!isalnum(Username[i]) || (i == 0 && isdigit(Username[i]))) {
 			return false;
 		}
