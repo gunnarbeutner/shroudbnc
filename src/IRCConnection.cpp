@@ -19,6 +19,9 @@
 
 #include "StdAfx.h"
 
+bool DelayJoinTimer(time_t Now, void *IRCConnection);
+bool IRCPingTimer(time_t Now, void *IRCConnection);
+
 extern time_t g_LastReconnect;
 
 /**
@@ -1434,7 +1437,7 @@ int CIRCConnection::Read(void) {
  * @param Now the current time
  * @param IRCConnection an CIRCConnection object
  */
-static bool DelayJoinTimer(time_t Now, void *IRCConnection) {
+bool DelayJoinTimer(time_t Now, void *IRCConnection) {
 	((CIRCConnection*)IRCConnection)->m_DelayJoinTimer = NULL;
 	((CIRCConnection*)IRCConnection)->JoinChannels();
 
@@ -1449,7 +1452,7 @@ static bool DelayJoinTimer(time_t Now, void *IRCConnection) {
  * @param Now the current time
  * @param IRCConnection the CIRCConnection object
  */
-static bool IRCPingTimer(time_t Now, void *IRCConnection) {
+bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
 
 	if (IRC->GetSocket() == INVALID_SOCKET) {

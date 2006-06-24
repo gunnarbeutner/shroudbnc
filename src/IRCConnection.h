@@ -37,9 +37,6 @@ class CFloodControl;
 class CTimer;
 class CAssocArray;
 
-bool DelayJoinTimer(time_t Now, void *IRCConnection);
-bool IRCPingTimer(time_t Now, void *IRCConnection);
-
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
 %template(CZoneObjectCIRCConnection) CZoneObject<class CIRCConnection, 16>;
