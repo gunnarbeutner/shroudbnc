@@ -28,12 +28,12 @@ update:
 	@echo "********************************************"
 
 sslcert:
-	if [ -f ${exec_prefix}/sbnc.key ]; then
-		cp ${exec_prefix}/sbnc.key ${exec_prefix}/sbnc_old.key
-	fi
+	if [ -f ${exec_prefix}/sbnc.key ]; then \
+		cp ${exec_prefix}/sbnc.key ${exec_prefix}/sbnc_old.key; \
+	fi;
 
-	if [ -f ${exec_prefix}/sbnc.crt ]; then
-		cp ${exec_prefix}/sbnc.crt ${exec_prefix}/sbnc_old.crt
-	fi
+	if [ -f ${exec_prefix}/sbnc.crt ]; then \
+		cp ${exec_prefix}/sbnc.crt ${exec_prefix}/sbnc_old.crt; \
+	fi;
 
 	openssl req -new -x509 -days 365 -nodes -keyout ${exec_prefix}/sbnc.key -out ${exec_prefix}/sbnc.crt -config ssl.conf
