@@ -767,6 +767,8 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerDisconnect(GetUsername());
 		}
+
+		g_Bouncer->LogUser(this, "User %s disconnected from the server.", GetUsername());
 	} else if (IRC) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerConnect(GetUsername());

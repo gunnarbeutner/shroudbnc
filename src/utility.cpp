@@ -1310,6 +1310,7 @@ extern "C" struct pollfd *registersocket(int Socket) {
 
 	PollFd->fd = Socket;
 	PollFd->events = 0;
+	PollFd->revents = 0;
 
 	if (NewStruct) {
 		if (!PollFds->Insert(*PollFd)) {

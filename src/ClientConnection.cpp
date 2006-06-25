@@ -2005,7 +2005,7 @@ bool CClientConnection::ValidateUser(void) {
 				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(Remote));
 			}
 		} else {
-			g_Bouncer->Log("Login attempt for unknown user %s from %s[%s]", m_Username, m_PeerName, IpToString(Remote));
+			g_Bouncer->Log("Login attempt for unknown user %s (Nick: %s) from %s[%s]", m_Username, m_PeerName, IpToString(Remote), m_Nick);
 		}
 
 		Kill("*** Unknown user or wrong password.");

@@ -500,12 +500,14 @@ void CCore::StartMainLoop(void) {
 			CTimer *Timer;
 			time_t NextCall;
 
-			Timer = CurrentTimer->Value;
-			CurrentTimer = CurrentTimer->Next;
-
 			if (!CurrentTimer->Valid) {
+				CurrentTimer = CurrentTimer->Next;
+
 				continue;
 			}
+
+			Timer = CurrentTimer->Value;
+			CurrentTimer = CurrentTimer->Next;
 
 			NextCall = Timer->GetNextCall();
 
