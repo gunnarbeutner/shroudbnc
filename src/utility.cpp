@@ -170,7 +170,7 @@ void ArgRejoinArray(const char **ArgV, int Index) {
 	for (int i = Index + 1; i < Count; i++) {
 		char *Arg = const_cast<char *>(ArgV[i]);
 
-		if (strchr(Arg, ' ') != NULL) {
+		if (strchr(Arg, ' ') != NULL || *(Arg - 1) == ':') {
 			*(Arg - 1) = ':';
 			*(Arg - 2) = ' ';
 		} else {

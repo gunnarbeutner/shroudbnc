@@ -96,7 +96,9 @@ public:
 			g_Bouncer->UnregisterSocket(m_Listener);
 		}
 
-		closesocket(m_Listener);
+		if (m_Listener != INVALID_SOCKET) {
+			closesocket(m_Listener);
+		}
 	}
 
 	/**
