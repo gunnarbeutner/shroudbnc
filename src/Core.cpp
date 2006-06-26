@@ -846,8 +846,6 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	SocketStruct.PollFd = PollFd;
 	SocketStruct.Events = EventInterface;
 
-	Log("%d (%s)", Socket, typeid(*EventInterface).name());
-
 	/* TODO: can we safely recover from this situation? return value maybe? */
 	if (!m_OtherSockets.Insert(SocketStruct)) {
 		LOGERROR("Insert() failed.");
