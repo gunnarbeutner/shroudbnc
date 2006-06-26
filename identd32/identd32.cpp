@@ -232,6 +232,8 @@ class CIdentModule : public CModuleImplementation {
 	}
 
 	~CIdentModule(void) {
+		const socket_t *SocketPv;
+
 		if (m_Listener != NULL) {
 			g_Bouncer->Log("Destroying IPv4 identd-listener.");
 
@@ -242,6 +244,10 @@ class CIdentModule : public CModuleImplementation {
 			m_ListenerV6->Destroy();
 
 			g_Bouncer->Log("Destroying IPv4 identd-listener.");
+		}
+
+		while ((SocketPv = g_Bouncer->GetSocketByClass("CIdentClient", 0)) != NULL) {
+			SocketPv->Events->Destroy();
 		}
 	}
 };
