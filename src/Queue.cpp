@@ -201,6 +201,8 @@ RESULT<CQueue *> CQueue::Thaw(CAssocArray *Box) {
 		Line = Box->ReadString(Index);
 
 		if (Line == NULL) {
+			free(Index);
+
 			break;
 		}
 
