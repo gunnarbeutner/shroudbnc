@@ -142,7 +142,6 @@ public:
 	// should really be "protected"
 	virtual int Read(bool DontProcess = false);
 	virtual int Write(void);
-	virtual bool DoTimeout(void);
 	virtual void Error(int ErrorCode);
 	virtual bool HasQueuedData(void) const;
 	virtual bool ShouldDestroy(void) const;

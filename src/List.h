@@ -30,6 +30,15 @@ struct link_t {
 	link_t<Type> *Previous;
 };
 
+template <typename Type>
+class CList;
+
+template <typename Type>
+class CListCursor;
+
+template <typename Type>
+CListCursor<Type> GetCursorHelper(CList<Type> *List);
+
 /**
  * CList
  *
@@ -38,11 +47,13 @@ struct link_t {
 template <typename Type>
 class SBNCAPI CList {
 private:
-	mutable link_t<Type> *m_Head; /**< first element */
-	mutable link_t<Type> *m_Tail; /**< last element */
-	bool m_Lock;
+	link_t<Type> *m_Head; /**< first element */
+	link_t<Type> *m_Tail; /**< last element */
+	mutable unsigned int m_Locks; /**< number of locks held */
 
 public:
+	typedef class CListCursor<Type> Cursor;
+
 #ifndef SWIG
 	/**
 	 * CList
@@ -52,7 +63,7 @@ public:
 	CList(void) {
 		m_Head = NULL;
 		m_Tail = NULL;
-		m_Lock = false;
+		m_Locks = 0;
 	}
 
 	/**
@@ -135,8 +146,11 @@ public:
 			return;
 		}
 
-		if (m_Lock) {
+		if (m_Locks > 0) {
 			Item->Valid = false;
+#ifdef _DEBUG
+			memset(&(Item->Value), 0, sizeof(Item->Value));
+#endif
 		} else {
 			if (Item->Next != NULL) {
 				Item->Next->Previous = Item->Previous;
@@ -192,7 +206,7 @@ public:
 	 * Locks the list so items are delay-deleted.
 	 */
 	void Lock(void) {
-		m_Lock = true;
+		m_Locks++;
 	}
 
 	/**
@@ -201,20 +215,118 @@ public:
 	 * Unlocks the list.
 	 */
 	void Unlock(void) {
-		link_t<Type> *Current, *Next;
+		assert(m_Locks > 0);
 
-		m_Lock = false;
+		m_Locks--;
 
-		Current = m_Head;
+		if (m_Locks == 0) {
+			link_t<Type> *Current, *Next;
 
-		while (Current != NULL) {
-			Next = Current->Next;
+			Current = m_Head;
 
-			if (!Current->Valid) {
-				Remove(Current);
+			while (Current != NULL) {
+				Next = Current->Next;
+
+				if (!Current->Valid) {
+					Remove(Current);
+				}
+
+				Current = Next;
 			}
-
-			Current = Next;
 		}
+	}
+};
+
+/**
+ * CListCursor
+ *
+ * Used for safely iterating over CList objects.
+ */
+template <typename Type>
+class CListCursor {
+private:
+	link_t<Type> *m_Current; /**< the current item */
+	CList<Type> *m_List; /**< the list */
+
+public:
+	/**
+	 * CListCursor
+	 *
+	 * Initializes a new cursor.
+	 *
+	 * @param List the list object
+	 */
+	CListCursor(CList<Type> *List) {
+		m_List = List;
+
+		List->Lock();
+
+		m_Current = List->GetHead();
+
+		while (m_Current != NULL && !m_Current->Valid) {
+			m_Current = m_Current->Next;
+		}
+	}
+
+	/**
+	 * ~CListCursor
+	 *
+	 * Destroys a cursor.
+	 */
+	~CListCursor(void) {
+		m_List->Unlock();
+	}
+
+	/**
+	 * operator *
+	 *
+	 * Retrieves the current object.
+	 */
+	Type& operator *(void) {
+		return m_Current->Value;
+	}
+
+	/**
+	 * operator ->
+	 *
+	 * Retrieves the current object.
+	 */
+	Type* operator ->(void) {
+		return &(m_Current->Value);
+	}
+
+	/**
+	 * Remove
+	 *
+	 * Removes the current item.
+	 */
+	void Remove(void) {
+		m_List->Remove(m_Current);
+	}
+
+	/**
+	 * Proceed
+	 *
+	 * Proceeds in the linked list.
+	 */
+	void Proceed(void) {
+		if (m_Current == NULL) {
+			return;
+		}
+
+		m_Current = m_Current->Next;
+
+		while (m_Current != NULL && !m_Current->Valid) {
+			m_Current = m_Current->Next;
+		}
+	}
+
+	/**
+	 * IsValid
+	 *
+	 * Checks whether the end of the list has been reached.
+	 */
+	bool IsValid(void) {
+		return (m_Current != NULL);
 	}
 };

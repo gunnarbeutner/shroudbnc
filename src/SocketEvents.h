@@ -66,13 +66,6 @@ public:
 	virtual bool HasQueuedData(void) const = 0;
 
 	/**
-	 * DoTimeout
-	 *
-	 * Called to determine whether the socket is timing out.
-	 */
-	virtual bool DoTimeout(void) = 0;
-
-	/**
 	 * ShouldDestroy
 	 *
 	 * Called to determine whether the event object should be destroyed.

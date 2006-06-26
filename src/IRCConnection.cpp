@@ -540,9 +540,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			GetOwner()->ScheduleReconnect(5);
 		}
 
-		g_Bouncer->LogUser(GetUser(), "Error received for %s: %s", GetOwner()->GetUsername(), argv[1]);
+		g_Bouncer->LogUser(GetUser(), "Error received for user %s: %s", GetOwner()->GetUsername(), argv[1]);
 	} else if (argc > 3 && iRaw == 465) {
-		g_Bouncer->LogUser(GetUser(), "G/K-line reason for %s: %s", GetOwner()->GetUsername(), argv[3]);
+		g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s: %s", GetOwner()->GetUsername(), argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
 		ufree(m_ServerVersion);
 		m_ServerVersion = ustrdup(argv[3]);
@@ -1296,7 +1296,7 @@ CFloodControl *CIRCConnection::GetFloodControl(void) {
  * @param In the line
  */
 void CIRCConnection::WriteUnformattedLine(const char *In) {
-	if (!m_Locked) {
+	if (!m_Locked && strlen(In) < 512) {
 		m_QueueMiddle->QueueItem(In);
 	}
 }
@@ -1516,7 +1516,7 @@ int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
  */
 void CIRCConnection::AsyncDnsFinished(hostent *Response) {
 	if (Response == NULL && GetOwner() != NULL) {
-		g_Bouncer->LogUser(GetOwner(), "DNS request for %s failed.", GetOwner()->GetUsername());
+		g_Bouncer->LogUser(GetOwner(), "DNS request for user %s failed.", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncDnsFinished(Response);
@@ -1531,7 +1531,7 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
  */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response == NULL && GetOwner() != NULL) {
-		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for %s failed.", GetOwner()->GetUsername());
+		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for user %s failed.", GetOwner()->GetUsername());
 	}
 
 	CConnection::AsyncBindIpDnsFinished(Response);

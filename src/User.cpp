@@ -528,9 +528,9 @@ void CUser::Reconnect(void) {
 	}
 
 	if (GetIPv6()) {
-		g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for %s", Server, Port, m_Name);
+		g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for user %s", Server, Port, m_Name);
 	} else {
-		g_Bouncer->LogUser(this, "Trying to reconnect to %s:%d for %s", Server, Port, m_Name);
+		g_Bouncer->LogUser(this, "Trying to reconnect to %s:%d for user %s", Server, Port, m_Name);
 	}
 
 	m_LastReconnect = g_CurrentTime;
@@ -559,7 +559,7 @@ void CUser::Reconnect(void) {
 
 	SetIRCConnection(Connection);
 
-	g_Bouncer->Log("Connection initialized for %s. Waiting for response...", GetUsername());
+	g_Bouncer->Log("Connection initialized for user %s. Waiting for response...", GetUsername());
 
 	RescheduleReconnectTimer();
 }

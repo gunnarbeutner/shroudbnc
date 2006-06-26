@@ -178,17 +178,10 @@ CCore::~CCore(void) {
 
 	UninitializeAdditionalListeners();
 
-	link_t<socket_t> *CurrentSocket = m_OtherSockets.GetHead();
-	link_t<socket_t> *NextSocket;
-
-	while (CurrentSocket != NULL) {
-		NextSocket = CurrentSocket->Next;
-
-		if (CurrentSocket->Value.PollFd->fd != INVALID_SOCKET) {
-			CurrentSocket->Value.Events->Destroy();
+	for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+		if (SocketCursor->PollFd->fd != INVALID_SOCKET) {
+			SocketCursor->Events->Destroy();
 		}
-
-		CurrentSocket = NextSocket;
 	}
 
 	i = 0;
@@ -196,15 +189,8 @@ CCore::~CCore(void) {
 		delete User->Value;
 	}
 
-	link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
-	link_t<CTimer *> *NextTimer;
-
-	while (CurrentTimer != NULL) {
-		NextTimer = CurrentTimer->Next;
-
-		delete CurrentTimer->Value;
-
-		CurrentTimer = NextTimer;
+	for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
+		delete *TimerCursor;
 	}
 
 	delete m_Log;
@@ -446,7 +432,7 @@ void CCore::StartMainLoop(void) {
 			if (UserHash->Value) {
 				if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
 					if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
-						Log("Closing connection for %s", UserHash->Name);
+						Log("Closing connection for user %s", UserHash->Name);
 						IRC->Kill("Shutting down.");
 
 						UserHash->Value->SetIRCConnection(NULL);
@@ -461,27 +447,20 @@ void CCore::StartMainLoop(void) {
 
 		CUser::RescheduleReconnectTimer();
 
-		link_t<socket_t> *Current = m_OtherSockets.GetHead();
-		link_t<socket_t> *Next;
-
-		while (Current != NULL) {
-			Next = Current->Next;
-
-			if (Current->Value.PollFd->fd != INVALID_SOCKET) {
-				if (!Current->Value.Events->DoTimeout()) {
-					if (Current->Value.Events->ShouldDestroy()) {
-						Current->Value.Events->Destroy();
-					} else {
-						Current->Value.PollFd->events = POLLIN | POLLERR;
-
-						if (Current->Value.Events->HasQueuedData()) {
-							Current->Value.PollFd->events |= POLLOUT;
-						}
-					}
-				}
+		for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+			if (SocketCursor->PollFd->fd == INVALID_SOCKET) {
+				continue;
 			}
 
-			Current = Next;
+			if (SocketCursor->Events->ShouldDestroy()) {
+				SocketCursor->Events->Destroy();
+			} else {
+				SocketCursor->PollFd->events = POLLIN | POLLERR;
+
+				if (SocketCursor->Events->HasQueuedData()) {
+					SocketCursor->PollFd->events |= POLLOUT;
+				}
+			}
 		}
 
 		time(&Now);
@@ -492,29 +471,15 @@ void CCore::StartMainLoop(void) {
 			TimeWarp = Now - g_CurrentTime;
 		}
 
-		link_t<CTimer *> *CurrentTimer = m_Timers.GetHead();
-
-		m_Timers.Lock();
-
-		while (CurrentTimer != NULL) {
-			CTimer *Timer;
+		for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
 			time_t NextCall;
 
-			if (!CurrentTimer->Valid) {
-				CurrentTimer = CurrentTimer->Next;
-
-				continue;
-			}
-
-			Timer = CurrentTimer->Value;
-			CurrentTimer = CurrentTimer->Next;
-
-			NextCall = Timer->GetNextCall();
+			NextCall = (*TimerCursor)->GetNextCall();
 
 			if (Now >= NextCall) {
 				if (Now - 5 > NextCall) {
 #ifdef _DEBUG
-					Log("Timer drift for timer %p: %d seconds", Timer, Now - NextCall);
+					Log("Timer drift for timer %p: %d seconds", *TimerCursor, Now - NextCall);
 #endif
 
 					if (TimeWarp >= 0 && Now - NextCall > TimeWarp) {
@@ -522,11 +487,9 @@ void CCore::StartMainLoop(void) {
 					}
 				}
 
-				Timer->Call(Now);
+				(*TimerCursor)->Call(Now);
 			}
 		}
-
-		m_Timers.Unlock();
 
 		if (TimeWarp > 5) {
 			Log("Time warp detected: %d seconds", TimeWarp);
@@ -534,16 +497,14 @@ void CCore::StartMainLoop(void) {
 
 		Best = Now + 60;
 
-		CurrentTimer = m_Timers.GetHead();
+		for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
+			time_t NextCall;
 
-		while (CurrentTimer != NULL) {
-			time_t NextCall = CurrentTimer->Value->GetNextCall();
+			NextCall = (*TimerCursor)->GetNextCall();
 
 			if (NextCall < Best) {
 				Best = NextCall;
 			}
-
-			CurrentTimer = CurrentTimer->Next;
 		}
 
 		SleepInterval = Best - Now;
@@ -590,13 +551,9 @@ void CCore::StartMainLoop(void) {
 		}
 
 		if (ready > 0) {
-			link_t<socket_t> *Current = m_OtherSockets.GetHead();
-
-			while (Current != NULL) {
-				pollfd *PollFd = Current->Value.PollFd;
-				CSocketEvents *Events = Current->Value.Events;
-
-				Current = Current->Next;
+			for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+				pollfd *PollFd = SocketCursor->PollFd;
+				CSocketEvents *Events = SocketCursor->Events;
 
 				if (PollFd->fd != INVALID_SOCKET) {
 					if (PollFd->revents & (POLLERR|POLLHUP|POLLNVAL)) {
@@ -633,7 +590,6 @@ void CCore::StartMainLoop(void) {
 					if (PollFd->revents & POLLOUT) {
 						Events->Write();
 					}
-
 				}
 			}
 		} else if (ready == -1) {
@@ -647,23 +603,22 @@ void CCore::StartMainLoop(void) {
 
 			link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
-			while (Current != NULL) {
-				SOCKET Socket = Current->Value.PollFd->fd;
-				CSocketEvents *Events = Current->Value.Events;
+			m_OtherSockets.Lock();
 
-				Current = Current->Next;
+			for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+				if (SocketCursor->PollFd->fd == INVALID_SOCKET) {
+					continue;
+				}
 
-				if (Socket != INVALID_SOCKET) {
-					pollfd pfd;
-					pfd.fd = Socket;
-					pfd.events = POLLIN;
+				pollfd pfd;
+				pfd.fd = SocketCursor->PollFd->fd;
+				pfd.events = POLLIN;
 
-					int code = poll(&pfd, 1, 0);
+				int code = poll(&pfd, 1, 0);
 
-					if (code == -1) {
-						Events->Error(-1);
-						Events->Destroy();
-					}
+				if (code == -1) {
+					SocketCursor->Events->Error(-1);
+					SocketCursor->Events->Destroy();
 				}
 			}
 		}
@@ -891,6 +846,8 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	SocketStruct.PollFd = PollFd;
 	SocketStruct.Events = EventInterface;
 
+	Log("%d (%s)", Socket, typeid(*EventInterface).name());
+
 	/* TODO: can we safely recover from this situation? return value maybe? */
 	if (!m_OtherSockets.Insert(SocketStruct)) {
 		LOGERROR("Insert() failed.");
@@ -909,16 +866,15 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 void CCore::UnregisterSocket(SOCKET Socket) {
 	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
-	while (Current != NULL) {
-		if (Current->Value.PollFd->fd == Socket) {
-			Current->Value.PollFd->fd = INVALID_SOCKET;
-			Current->Value.PollFd->events = 0;
-			m_OtherSockets.Remove(Current);
+	for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+		if (SocketCursor->PollFd->fd == Socket) {
+			SocketCursor->PollFd->fd = INVALID_SOCKET;
+			SocketCursor->PollFd->events = 0;
+
+			SocketCursor.Remove();
 
 			return;
 		}
-
-		Current = Current->Next;
 	}
 }
 

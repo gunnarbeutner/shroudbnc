@@ -770,7 +770,7 @@ proc iface-virtual:getgroups {} {
 
 	foreach user [bncuserlist] {
 		if {[virtual:getgroup $user] != ""} {
-			lappend groups [virtual:getgroup $user]
+			lappend groups [string tolower [virtual:getgroup $user]]
 		}
 	}
 

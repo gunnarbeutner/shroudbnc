@@ -35,7 +35,6 @@ public:
 	virtual int Write(void);
 	virtual void Error(int ErrorCode);
 	virtual bool HasQueuedData(void) const;
-	virtual bool DoTimeout(void);
 	virtual bool ShouldDestroy(void) const;
 
 	virtual const char* GetClassName(void) const;

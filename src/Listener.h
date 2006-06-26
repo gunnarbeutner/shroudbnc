@@ -44,7 +44,6 @@ private:
 	virtual int Write(void) { return 0; }
 	virtual void Error(int ErrorCode) { }
 	virtual bool HasQueuedData(void) const { return false; }
-	virtual bool DoTimeout(void) { return false; }
 	virtual bool ShouldDestroy(void) const { return false; }
 
 	virtual const char *GetClassName(void) const { return "CListenerBase"; }

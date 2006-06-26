@@ -181,10 +181,6 @@ public:
 		delete this;
 	}
 
-	bool DoTimeout(void) {
-		return m_Wrap->DoTimeout();
-	}
-
 	bool ShouldDestroy(void) const { return false; }
 
 	const char *GetClassName(void) const {

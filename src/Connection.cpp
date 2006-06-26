@@ -718,21 +718,6 @@ void CConnection::Timeout(int TimeLeft) {
 }
 
 /**
- * DoTimeout
- *
- * Checks whether a timeout occured.
- */
-bool CConnection::DoTimeout(void) {
-	if (m_Timeout > 0 && m_Timeout < g_CurrentTime) {
-		Destroy();
-
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/**
  * SetTrafficStats
  *
  * Sets the traffic stats object for the connection.
@@ -955,7 +940,11 @@ void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
  * Called to determine whether this connection object is to be destroyed.
  */
 bool CConnection::ShouldDestroy(void) const {
-	return m_LatchedDestruction;
+	if (m_Timeout > 0 && m_Timeout < g_CurrentTime) {
+		return true;
+	} else {
+		return m_LatchedDestruction;
+	}
 }
 
 /**

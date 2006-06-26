@@ -311,7 +311,7 @@ proc iface:sendmessage {user message} {
 	setctx $user
 
 	if {[getbncuser $user hasclient]} {
-		bncnotc $user $message
+		bncnotc $message
 	} else {
 		putlog $message
 	}

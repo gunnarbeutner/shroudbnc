@@ -2000,7 +2000,7 @@ bool CClientConnection::ValidateUser(void) {
 			}
 
 			if (Blocked) {
-				g_Bouncer->Log("Blocked login attempt from %s[%s] for %s", m_PeerName, IpToString(Remote), m_Username);
+				g_Bouncer->Log("Blocked login attempt from %s[%s] for user %s", m_PeerName, IpToString(Remote), m_Username);
 			} else {
 				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(Remote));
 			}
@@ -2345,6 +2345,12 @@ commandlist_t *CClientConnection::GetCommandList(void) {
 	return m_PreviousNick;
 }*/
 
+bool DestroyClientTimer(time_t Now, void *Client) {
+	delete (CClientConnection *)Client;
+
+	return false;
+}
+
 /**
  * Hijack
  *
@@ -2357,7 +2363,7 @@ SOCKET CClientConnection::Hijack(void) {
 	g_Bouncer->UnregisterSocket(Socket);
 	SetSocket(INVALID_SOCKET);
 
-	Kill("Hijacked!");
+	new CTimer(1, false, DestroyClientTimer, this);
 
 	return Socket;
 }

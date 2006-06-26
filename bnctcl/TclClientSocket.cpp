@@ -175,14 +175,6 @@ bool CTclClientSocket::HasQueuedData(void) const {
 	return m_Wrap->HasQueuedData();
 }
 
-bool CTclClientSocket::DoTimeout(void) {
-	if (m_Wrap == NULL) {
-		return false;
-	}
-
-	return m_Wrap->DoTimeout();
-}
-
 void CTclClientSocket::SetControlProc(const char* Proc) {
 	m_Control = strdup(Proc);
 }
