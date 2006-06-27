@@ -1729,8 +1729,14 @@ const char *CUser::FormatTime(time_t Timestamp) const {
 
 	free(Buffer);
 
-	Timestamp += GetGmtOffset() * 60;
+	Timestamp -= GetGmtOffset() * 60;
 	Time = gmtime(&Timestamp);
+
+	if (Time->tm_isdst <= 0) {
+		Timestamp += 3600;
+		Time = gmtime(&Timestamp);
+	}
+
 	Buffer = strdup(asctime(Time));
 
 	while ((NewLine = strchr(Buffer, '\n')) != NULL) {
@@ -1758,18 +1764,17 @@ void CUser::SetGmtOffset(int Offset) {
  */
 int CUser::GetGmtOffset(void) const {
 	const char *Offset;
-	tm GMTime;
-	tm *CurrentTime;
 
 	Offset = m_Config->ReadString("user.tz");
 
 	if (Offset == NULL) {
-		CurrentTime = gmtime(&g_CurrentTime);
-		memcpy(&GMTime, CurrentTime, sizeof(GMTime));
+		struct tm tm;
+		time_t gmt;
 
-		CurrentTime = localtime(&g_CurrentTime);
+		tm = *gmtime(&g_CurrentTime);
+		gmt = mktime(&tm);
 
-		return (CurrentTime->tm_hour - GMTime.tm_hour) * 60 + (CurrentTime->tm_min - GMTime.tm_min);
+		return -(g_CurrentTime - gmt) / 60;
 	} else {
 		return atoi(Offset);
 	}
