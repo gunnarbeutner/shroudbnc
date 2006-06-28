@@ -1110,6 +1110,7 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 	RESULT<bool> Result;
 	CUser *User;
 	char *UsernameCopy;
+	char *ConfigCopy = NULL, *LogCopy = NULL;
 	
 	User = GetUser(Username);
 
@@ -1121,16 +1122,16 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 		m_Modules[i]->UserDelete(Username);
 	}
 
-	if (RemoveConfig) {
-		unlink(User->GetConfig()->GetFilename());
-		unlink(User->GetLog()->GetFilename());
-	}
-
 	UsernameCopy = strdup(User->GetUsername());
 
+	if (RemoveConfig) {
+		ConfigCopy = strdup(User->GetConfig()->GetFilename());
+		LogCopy = strdup(User->GetLog()->GetFilename());
+	}
+
 	delete User;
-	
-	Result = m_Users.Remove(Username);
+
+	Result = m_Users.Remove(UsernameCopy);
 
 	if (IsError(Result)) {
 		free(UsernameCopy);
@@ -1142,6 +1143,14 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 		Log("User removed: %s", UsernameCopy);
 		free(UsernameCopy);
 	}
+
+	if (RemoveConfig) {
+		unlink(ConfigCopy);
+		unlink(LogCopy);
+	}
+
+	free(ConfigCopy);
+	free(LogCopy);
 
 	UpdateUserConfig();
 
