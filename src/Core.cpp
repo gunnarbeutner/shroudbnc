@@ -515,12 +515,6 @@ void CCore::StartMainLoop(void) {
 
 		timeval interval = { SleepInterval, 0 };
 
-		int nfds = 0;
-		timeval tv;
-		timeval *tvp = &tv;
-
-		memset(tvp, 0, sizeof(timeval));
-
 		if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && SleepInterval > 3) {
 			interval.tv_sec = 3;
 		}
@@ -530,7 +524,7 @@ void CCore::StartMainLoop(void) {
 
 			if (Channel != NULL) {
 				ares_fds(Channel);
-				tvp = ares_timeout(Channel, NULL, &tv);
+				ares_timeout(Channel, NULL, &interval);
 			}
 		}
 
@@ -540,7 +534,7 @@ void CCore::StartMainLoop(void) {
 		printf("poll: %d seconds\n", SleepInterval);
 #endif
 
-		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), SleepInterval * 1000);
+		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
 
 		time(&g_CurrentTime);
 
