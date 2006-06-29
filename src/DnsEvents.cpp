@@ -52,7 +52,7 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 
 	Query->AsyncDnsEvent(Status, HostEntity);
 
-	if (Query->m_ChannelDestructionTimer != NULL) {
+	if (Query->m_ChannelDestructionTimer == NULL) {
 		Query->m_ChannelDestructionTimer = new CTimer(5, false, DestroyDnsChannelTimer, Cookie);
 	}
 }

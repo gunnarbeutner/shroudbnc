@@ -126,7 +126,6 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 	char *Out = NULL;
 	tm Now;
-	time_t CurrentTime;
 	char strNow[100];
 	FILE *LogFile;
 
@@ -139,9 +138,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
 	if (Timestamp == NULL) {
-		time(&CurrentTime);
-
-		Now = *localtime(&CurrentTime);
+		Now = *localtime(&g_CurrentTime);
 
 #ifdef _WIN32
 		strftime(strNow, sizeof(strNow), "%#c" , &Now);

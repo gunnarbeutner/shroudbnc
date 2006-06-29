@@ -258,9 +258,8 @@ SOCKET CConnection::GetSocket(void) const {
  */
 int CConnection::Read(bool DontProcess) {
 	int ReadResult;
-	static char *Buffer;
+	static char *Buffer = NULL;
 	static int BufferSize = 0;
-	int NewBufferSize;
 	socklen_t OptLenght = sizeof(BufferSize);
 
 	m_Connected = true;
@@ -269,13 +268,12 @@ int CConnection::Read(bool DontProcess) {
 		return 0;
 	}
 
-	if (getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&NewBufferSize, &OptLenght) != 0) {
-		NewBufferSize = 8192;
+	if (BufferSize == 0 && getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
+		BufferSize = 8192;
 	}
 
-	if (NewBufferSize > BufferSize) {
-		BufferSize = NewBufferSize;
-		Buffer = (char *)realloc(Buffer, BufferSize);
+	if (Buffer == NULL) {
+		Buffer = (char *)malloc(BufferSize);
 	}
 
 	CHECK_ALLOC_RESULT(Buffer, malloc) {
