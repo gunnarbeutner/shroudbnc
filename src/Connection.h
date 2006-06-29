@@ -68,8 +68,8 @@ public:
 private:
 	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 
-	CFIFOBuffer *m_SendQ; /**< send queue */
-	CFIFOBuffer *m_RecvQ; /**< receive queue */
+	CFIFOBuffer m_SendQ; /**< send queue */
+	CFIFOBuffer m_RecvQ; /**< receive queue */
 
 	CDnsQuery *m_DnsQuery; /**< the dns query for looking up the hostname */
 	CDnsQuery *m_BindDnsQuery; /**< the dns query for looking up the bind address */

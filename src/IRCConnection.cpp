@@ -831,6 +831,10 @@ void CIRCConnection::ParseLine(const char *Line) {
 
 			if (m_State != State_Connected) {
 				m_State = State_Pong;
+
+				if (GetOwner()->GetClientConnection() == NULL) {
+					WriteLine("VERSION");
+				}
 			}
 		} else {
 			CUser *User = GetOwner();

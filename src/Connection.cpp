@@ -106,9 +106,6 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 
 	m_Wrapper = false;
 
-	m_SendQ = new CFIFOBuffer();
-	m_RecvQ = new CFIFOBuffer();
-
 	m_DnsQuery = NULL;
 	m_BindDnsQuery = NULL;
 
@@ -117,12 +114,6 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 
 	m_BindIpCache = NULL;
 	m_PortCache = 0;
-
-	if (m_SendQ == NULL || m_RecvQ == NULL) {
-		LOGERROR("new operator failed. Sendq/recvq could not be created.");
-
-		Kill("Internal error.");
-	}
 
 	m_LatchedDestruction = false;
 	m_Connected = false;
@@ -153,9 +144,6 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
  * Destructs the connection object.
  */
 CConnection::~CConnection(void) {
-	delete m_SendQ;
-	delete m_RecvQ;
-
 	g_Bouncer->UnregisterSocket(m_Socket);
 
 	delete m_DnsQuery;
@@ -310,7 +298,7 @@ int CConnection::Read(bool DontProcess) {
 
 		m_InboundTraffic += ReadResult;
 
-		m_RecvQ->Write(Buffer, ReadResult);
+		m_RecvQ.Write(Buffer, ReadResult);
 
 		if (m_Traffic) {
 			m_Traffic->AddInbound(ReadResult);
@@ -365,18 +353,14 @@ int CConnection::Write(void) {
 	size_t Size;
 	int ReturnValue;
 
-	if (m_SendQ) {
-		Size = m_SendQ->GetSize();
-	} else {
-		Size = 0;
-	}
+	Size = m_SendQ.GetSize();
 
 	if (Size > 0) {
 		int WriteResult;
 
 #ifdef USESSL
 		if (IsSSL()) {
-			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size);
+			WriteResult = SSL_write(m_SSL, m_SendQ.Peek(), Size);
 
 			if (WriteResult == -1) {
 				switch (SSL_get_error(m_SSL, WriteResult)) {
@@ -389,7 +373,7 @@ int CConnection::Write(void) {
 			}
 		} else {
 #endif
-			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
+			WriteResult = send(m_Socket, m_SendQ.Peek(), Size, 0);
 #ifdef USESSL
 		}
 #endif
@@ -405,7 +389,7 @@ int CConnection::Write(void) {
 				m_Traffic->AddOutbound(WriteResult);
 			}
 
-			m_SendQ->Read(WriteResult);
+			m_SendQ.Read(WriteResult);
 		} else if (WriteResult < 0) {
 			Shutdown();
 		}
@@ -436,13 +420,9 @@ void CConnection::ProcessBuffer(void) {
 	char *RecvQ, *Line;
 	size_t Size;
 	
-	if (m_RecvQ == NULL) {
-		return;
-	}
+	Line = RecvQ = m_RecvQ.Peek();
 
-	Line = RecvQ = m_RecvQ->Peek();
-
-	Size = m_RecvQ->GetSize();
+	Size = m_RecvQ.GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
 		if (RecvQ[i] == '\n' || (RecvQ[i] == '\r' && Size > i + 1 && RecvQ[i + 1] == '\n')) {
@@ -460,7 +440,7 @@ void CConnection::ProcessBuffer(void) {
 		}
 	}
 
-	m_RecvQ->Read(Line - RecvQ);
+	m_RecvQ.Read(Line - RecvQ);
 }
 
 /**
@@ -477,18 +457,13 @@ bool CConnection::ReadLine(char **Out) {
 	char *Pos = NULL;
 	bool advance = false;
 
-	if (m_RecvQ == NULL) {
-		*Out = NULL;
-		return false;
-	}
-
-	old_recvq = m_RecvQ->Peek();
+	old_recvq = m_RecvQ.Peek();
 
 	if (old_recvq == NULL) {
 		return false;
 	}
 
-	Size = m_RecvQ->GetSize();
+	Size = m_RecvQ.GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
 		if (old_recvq[i] == '\n' || (Size > i + 1 && old_recvq[i] == '\r' && old_recvq[i + 1] == '\n')) {
@@ -508,7 +483,7 @@ bool CConnection::ReadLine(char **Out) {
 
 		Size = NewPtr - old_recvq + 1;
 		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
-		strmcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
+		strmcpy(*Out, m_RecvQ.Read(NewPtr - old_recvq), Size);
 
 		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;
@@ -529,8 +504,8 @@ bool CConnection::ReadLine(char **Out) {
  * @param Line the line
  */
 void CConnection::WriteUnformattedLine(const char *Line) {
-	if (!m_Locked && m_SendQ != NULL && Line != NULL) {
-		m_SendQ->WriteUnformattedLine(Line);
+	if (!m_Locked && Line != NULL) {
+		m_SendQ.WriteUnformattedLine(Line);
 	}
 }
 
@@ -625,11 +600,7 @@ bool CConnection::HasQueuedData(void) const {
 	}
 #endif
 
-	if (m_SendQ != NULL) {
-		return m_SendQ->GetSize() > 0;
-	} else {
-		return 0;
-	}
+	return m_SendQ.GetSize() > 0;
 }
 
 /**
@@ -638,11 +609,7 @@ bool CConnection::HasQueuedData(void) const {
  * Returns the size of the sendq.
  */
 size_t CConnection::GetSendqSize(void) const {
-	if (m_SendQ) {
-		return m_SendQ->GetSize();
-	} else {
-		return 0;
-	}
+	return m_SendQ.GetSize();
 }
 
 /**
@@ -651,11 +618,7 @@ size_t CConnection::GetSendqSize(void) const {
  * Returns the size of the recvq.
  */
 size_t CConnection::GetRecvqSize(void) const {
-	if (m_RecvQ != NULL) {
-		return m_RecvQ->GetSize();
-	} else {
-		return 0;
-	}
+	return m_RecvQ.GetSize();
 }
 
 /**
@@ -750,9 +713,7 @@ const char *CConnection::GetClassName(void) const {
  * Flushes the sendq.
  */
 void CConnection::FlushSendQ(void) {
-	if (m_SendQ != NULL) {
-		m_SendQ->Flush();
-	}
+	m_SendQ.Flush();
 }
 
 /**

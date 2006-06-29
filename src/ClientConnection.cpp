@@ -1631,7 +1631,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 		} else if (strcasecmp(Command, "synth") == 0) {
 			if (argc < 2) {
 				GetOwner()->Privmsg("Syntax: SYNTH command parameter");
-				GetOwner()->Privmsg("supported commands are: mode, topic, names, version, who");
+				GetOwner()->Privmsg("supported commands are: mode, topic, names, version, version-forcereply, who");
 
 				return false;
 			}
@@ -1772,7 +1772,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
 				}
-			} else if (strcasecmp(argv[1], "version") == 0 && argc == 2) {
+			} else if ((strcasecmp(argv[1], "version") == 0 || strcasecmp(argv[1], "version-forcereply") == 0) && argc >= 2) {
 				CIRCConnection *IRC = GetOwner()->GetIRCConnection();
 
 				if (IRC != NULL) {
@@ -1781,7 +1781,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 					if (ServerVersion != NULL && ServerFeat != NULL) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
-					} else {
+					} else if (strcasecmp(argv[1], "version-forcereply") == 0) {
 						IRC->WriteLine("VERSION");
 
 						return false;
