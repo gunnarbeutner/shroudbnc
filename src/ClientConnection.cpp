@@ -1781,7 +1781,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 					if (ServerVersion != NULL && ServerFeat != NULL) {
 						WriteLine(":%s 351 %s %s %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), ServerVersion, IRC->GetServer(), ServerFeat);
-					} else if (strcasecmp(argv[1], "version-forcereply") == 0) {
+					} else if (strcasecmp(argv[1], "version-forcereply") != 0) {
 						IRC->WriteLine("VERSION");
 
 						return false;
