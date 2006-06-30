@@ -58,7 +58,7 @@ proc sbnc:channeljoin {client params} {
 	if {![isbotnick [lindex [split [lindex $params 0] "!"] 0]]} { return }
 
 	if {[string equal -nocase [lindex $params 1] "JOIN"]} {
-		if {[catch [list channel get [lindex $params 2] inactive] error]} {
+		if {![validchan [lindex $params 2]]} {
 			channel set [lindex $params 2] +autochan
 		}
 

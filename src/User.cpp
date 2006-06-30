@@ -269,7 +269,7 @@ void CUser::Attach(CClientConnection *Client) {
 				Motd->PlayToUser(this, Log_Motd);
 			}
 
-			m_Client->ParseLine("SBNC SYNTH VERSION-FORCEREPLY");
+			m_Client->ParseLine("SYNTH VERSION-FORCEREPLY");
 
 			if (m_IRC->GetUsermodes() != NULL) {
 				m_Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());

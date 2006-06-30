@@ -700,6 +700,10 @@ proc save { } {
 		file delete $userfile
 	}
 
+	if {[lsearch -exact [info procs] "savechannels"] != -1} {
+		savechannels
+	}
+
 }
 
 proc reload { } {
