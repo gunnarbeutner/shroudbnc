@@ -19,8 +19,8 @@
 
 #include "StdAfx.h"
 
-time_t g_NextCall = 0;
-CList<CTimer *> *g_Timers = NULL;
+static time_t g_NextCall = 0;
+static CList<CTimer *> *g_Timers = NULL;
 
 /**
  * CTimer
@@ -82,8 +82,6 @@ bool CTimer::Call(time_t Now) {
 		ThisCall = m_Next;
 		Reschedule(Now + m_Interval);
 	}
-
-	RescheduleTimers();
 
 	if (m_Proc == NULL) {
 		if (m_Interval == 0) {
@@ -159,10 +157,13 @@ void CTimer::DestroyAllTimers(void) {
 }
 
 void CTimer::CallTimers(void) {
+	g_NextCall = 0;
+
 	for (CListCursor<CTimer *> TimerCursor(g_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
 		if (g_CurrentTime >= (*TimerCursor)->m_Next) {
-			g_NextCall = 0;
 			(*TimerCursor)->Call(g_CurrentTime);
+		} else if ((*TimerCursor)->m_Next < g_NextCall) {
+			g_NextCall = (*TimerCursor)->m_Next;
 		}
 	}
 }

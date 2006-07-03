@@ -30,8 +30,6 @@ typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
  */
 class SBNCAPI CTimer : public CZoneObject<CTimer, 512> {
 private:
-	friend class CCore;
-
 	TimerProc m_Proc; /**< the function which should be called for the timer */
 	void *m_Cookie; /**< a user-specific pointer which is passed to the timer's function */
 	unsigned int m_Interval; /**< the timer's interval */

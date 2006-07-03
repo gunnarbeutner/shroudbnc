@@ -329,4 +329,17 @@ public:
 	bool IsValid(void) {
 		return (m_Current != NULL);
 	}
+
+	/**
+	 * IsRemoved
+	 *
+	 * Checks whether the current item has been removed.
+	 */
+	bool IsRemoved(void) {
+		if (m_Current == NULL) {
+			return true;
+		} else {
+			return !m_Current->Valid;
+		}
+	}
 };

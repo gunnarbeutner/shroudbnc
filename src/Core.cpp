@@ -91,7 +91,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	const char *Users;
 	CUser *User;
 
-	while ((Users = CacheGetString(m_ConfigCache, users)) == NULL) {
+	while ((Users = m_Config->ReadString("system.users")) == NULL) {
 		if (!MakeConfig()) {
 			LOGERROR("Configuration file could not be created.");
 
