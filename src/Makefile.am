@@ -5,6 +5,7 @@ bindir=$(exec_prefix)
 
 pkglib_LTLIBRARIES=libsbnc.la
 libsbnc_la_SOURCES=Banlist.cpp \
+	Cache.cpp \
 	Config.cpp \
 	Core.cpp \
 	Log.cpp \
@@ -33,6 +34,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Core.h \
 	Log.h \
 	User.h \
+	Cache.h \
 	Channel.h \
 	ClientConnection.h \
 	Connection.h \

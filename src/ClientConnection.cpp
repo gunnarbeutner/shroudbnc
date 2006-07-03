@@ -486,13 +486,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 
-			asprintf(&Out, "appendtimestamp - %s", Config->ReadInteger("user.ts") ? "On" : "Off");
+			asprintf(&Out, "appendtimestamp - %s", GetOwner()->GetAppendTimestamp() ? "On" : "Off");
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 
-			asprintf(&Out, "usequitasaway - %s", Config->ReadInteger("user.quitaway") ? "On" : "Off");
+			asprintf(&Out, "usequitasaway - %s", GetOwner()->GetUseQuitReason() ? "On" : "Off");
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);
@@ -596,9 +596,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				}
 			} else if (strcasecmp(argv[1], "appendtimestamp") == 0) {
 				if (strcasecmp(argv[2], "on") == 0) {
-					Config->WriteInteger("user.ts", 1);
+					GetOwner()->SetAppendTimestamp(true);
 				} else if (strcasecmp(argv[2], "off") == 0) {
-					Config->WriteInteger("user.ts", 0);
+					GetOwner()->SetAppendTimestamp(false);
 				} else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 
@@ -606,9 +606,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				}
 			} else if (strcasecmp(argv[1], "usequitasaway") == 0) {
 				if (strcasecmp(argv[2], "on") == 0) {
-					Config->WriteInteger("user.quitaway", 1);
+					GetOwner()->SetUseQuitReason(true);
 				} else if (strcasecmp(argv[2], "off") == 0) {
-					Config->WriteInteger("user.quitaway", 0);
+					GetOwner()->SetUseQuitReason(false);
 				} else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 
@@ -844,7 +844,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "gvhost") == 0 && GetOwner()->IsAdmin()) {
 		if (argc < 2) {
-			const char *Ip = g_Bouncer->GetConfig()->ReadString("system.vhost");
+			const char *Ip = g_Bouncer->GetDefaultVHost();
 
 			asprintf(&Out, "Current global VHost: %s", Ip ? Ip : "(none)");
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
@@ -852,7 +852,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				free(Out);
 			} CHECK_ALLOC_RESULT_END;
 		} else {
-			g_Bouncer->GetConfig()->WriteString("system.vhost", argv[1]);
+			g_Bouncer->SetDefaultVHost(argv[1]);
 			SENDUSER("Done.");
 		}
 
@@ -1548,7 +1548,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 	if (GetOwner() != NULL) {
 		if (strcasecmp(Command, "quit") == 0) {
-			bool QuitAsAway = (GetOwner()->GetConfig()->ReadInteger("user.quitaway") != 0);
+			bool QuitAsAway = GetOwner()->GetUseQuitReason();
 
 			if (QuitAsAway && argc > 1 && argv[1][0] != '\0') {
 				GetOwner()->SetAwayText(argv[1]);
@@ -1560,7 +1560,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (argc >= 2) {
 				ufree(m_Nick);
 				m_Nick = ustrdup(argv[1]);
-				GetOwner()->GetConfig()->WriteString("user.nick", argv[1]);
+				GetOwner()->SetNick(argv[1]);
 			}
 		} else if (argc > 1 && strcasecmp(Command, "join") == 0) {
 			CIRCConnection *IRC;
@@ -1946,6 +1946,7 @@ bool CClientConnection::ValidateUser(void) {
 	if (IsSSL() && (PeerCert = (X509 *)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
+		/* TODO: use config cache */
 		if (!g_Bouncer->GetConfig()->ReadInteger("system.dontmatchuser")) {
 			CUser *User = g_Bouncer->GetUser(m_Username);
 
@@ -2005,7 +2006,7 @@ bool CClientConnection::ValidateUser(void) {
 				g_Bouncer->Log("Wrong password for user %s (from %s[%s])", m_Username, m_PeerName, IpToString(Remote));
 			}
 		} else {
-			g_Bouncer->Log("Login attempt for unknown user %s (Nick: %s) from %s[%s]", m_Username, m_PeerName, IpToString(Remote), m_Nick);
+			g_Bouncer->Log("Login attempt for unknown user %s (Nick: %s) from %s[%s]", m_Username, m_Nick, m_PeerName, IpToString(Remote));
 		}
 
 		Kill("*** Unknown user or wrong password.");

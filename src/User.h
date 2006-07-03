@@ -26,6 +26,40 @@ class CKeyring;
 class CTimer;
 
 /**
+ * Cache: User
+ */
+DEFINE_CACHE(User)
+	DEFINE_OPTION_INT(quitted);
+	DEFINE_OPTION_INT(ts);
+	DEFINE_OPTION_INT(admin);
+	DEFINE_OPTION_INT(port);
+	DEFINE_OPTION_INT(lock);
+	DEFINE_OPTION_INT(seen);
+	DEFINE_OPTION_INT(delayjoin);
+	DEFINE_OPTION_INT(ssl);
+	DEFINE_OPTION_INT(ipv6);
+	DEFINE_OPTION_INT(ignsysnotices);
+	DEFINE_OPTION_INT(lean);
+	DEFINE_OPTION_INT(quitaway);
+
+	DEFINE_OPTION_STRING(automodes);
+	DEFINE_OPTION_STRING(dropmodes);
+	DEFINE_OPTION_STRING(password);
+	DEFINE_OPTION_STRING(away);
+	DEFINE_OPTION_STRING(awaynick);
+	DEFINE_OPTION_STRING(nick);
+	DEFINE_OPTION_STRING(realname);
+	DEFINE_OPTION_STRING(server);
+	DEFINE_OPTION_STRING(ip);
+	DEFINE_OPTION_STRING(channels);
+	DEFINE_OPTION_STRING(suspend);
+	DEFINE_OPTION_STRING(spass);
+	DEFINE_OPTION_STRING(ident);
+	DEFINE_OPTION_STRING(tz);
+	DEFINE_OPTION_STRING(awaymessage);
+END_DEFINE_CACHE
+
+/**
  * badlogin_t
  *
  * Describes a failed login attempt.
@@ -61,7 +95,7 @@ bool UserReconnectTimer(time_t Now, void *User);
 		\
 	} \
 	\
-	m_Config->WriteString("user." #Setting, Value); \
+	CacheSetString(m_ConfigCache, Setting, Value); \
 	\
 	free(DupValue); \
 }
@@ -83,6 +117,7 @@ class SBNCAPI CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 	CClientConnection *m_Client; /**< the user's client connection */
 	CIRCConnection *m_IRC; /**< the user's irc connection */
 	CConfig *m_Config; /**< the user's configuration object */
+	mutable CACHE(User) m_ConfigCache; /**< config cache */
 	CLog *m_Log; /**< the user's log file */
 
 	time_t m_ReconnectTime; /**< when the next connect() attempt is going to be made */
@@ -97,17 +132,10 @@ class SBNCAPI CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 
 	CTimer *m_BadLoginPulse; /**< a timer which will remove "bad logins" */
 
-	mutable int m_IsAdminCache; /**< cached value which determines whether the user is an admin */
-
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
-
-	int m_LeanModeCache; /**< cache for the "user.lean" setting */
 
 	size_t m_ManagedMemory;
 	mmanager_t *m_MemoryManager;
-
-	mutable int m_PortCache;
-	mutable const char *m_ServerCache;
 
 	bool PersistCertificates(void);
 
@@ -243,6 +271,12 @@ public:
 
 	void SetLeanMode(unsigned int Mode);
 	unsigned int GetLeanMode(void);
+
+	void SetAppendTimestamp(bool Value);
+	bool GetAppendTimestamp(void);
+
+	void SetUseQuitReason(bool Value);
+	bool GetUseQuitReason(void);
 
 	bool MemoryAddBytes(size_t Bytes);
 	void MemoryRemoveBytes(size_t Bytes);

@@ -237,6 +237,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Cache.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Channel.cpp"
 				>
 			</File>
@@ -344,6 +348,10 @@
 			>
 			<File
 				RelativePath=".\src\Banlist.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Cache.h"
 				>
 			</File>
 			<File

@@ -35,9 +35,6 @@ CUser::CUser(const char *Name) {
 	X509 *Cert;
 	FILE *ClientCert;
 
-	m_PortCache = -1;
-	m_ServerCache = NULL;
-
 	m_ManagedMemory = 0;
 	m_MemoryManager = NULL;
 
@@ -62,6 +59,8 @@ CUser::CUser(const char *Name) {
 	CHECK_ALLOC_RESULT(m_Config, new) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
+
+	CacheInitialize(m_ConfigCache, m_Config, "user.");
 
 	m_IRC = NULL;
 
@@ -89,9 +88,6 @@ CUser::CUser(const char *Name) {
 
 	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
 
-	m_IsAdminCache = -1;
-	m_LeanModeCache = -1;
-
 #ifdef USESSL
 	asprintf(&Out, "users/%s.pem", Name);
 
@@ -113,7 +109,7 @@ CUser::CUser(const char *Name) {
 
 #endif
 
-	if (m_Config->ReadInteger("user.quitted") != 2) {
+	if (IsQuitted() != 2) {
 		ScheduleReconnect();
 	}
 
@@ -246,7 +242,7 @@ void CUser::Attach(CClientConnection *Client) {
 	if (m_IRC != NULL) {
 		m_IRC->WriteLine("AWAY");
 
-		AutoModes = m_Config->ReadString("user.automodes");
+		AutoModes = CacheGetString(m_ConfigCache, automodes);
 
 		if (AutoModes != NULL && m_IRC->GetCurrentNick() != NULL) {
 			m_IRC->WriteLine("MODE %s +%s", m_IRC->GetCurrentNick(), AutoModes);
@@ -313,12 +309,12 @@ void CUser::Attach(CClientConnection *Client) {
 			Motd->PlayToUser(this, Log_Motd);
 		}
 
-		if (m_Config->ReadInteger("user.quitted") != 2) {
+		if (IsQuitted() != 2) {
 			ScheduleReconnect(0);
 		}
 	}
 
-	MotdText = g_Bouncer->GetConfig()->ReadString("system.motd");
+	MotdText = g_Bouncer->GetMotd();
 
 	if (MotdText != NULL) {
 		asprintf(&Out, "Message of the day: %s", MotdText);
@@ -342,7 +338,7 @@ void CUser::Attach(CClientConnection *Client) {
 		if (GetServer() == NULL) {
 			Privmsg("You haven't set an IRC server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
 			Privmsg("Use /sbnc help to see a list of available commands.");
-		} else if (m_Config->ReadInteger("user.quitted") == 2) {
+		} else if (IsQuitted() == 2) {
 			Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
 		}
 	}
@@ -360,13 +356,13 @@ void CUser::Attach(CClientConnection *Client) {
  * @param Password a password
  */
 bool CUser::CheckPassword(const char *Password) const {
-	const char *RealPass = m_Config->ReadString("user.password");
+	const char *RealPass = CacheGetString(m_ConfigCache, password);
 
 	if (RealPass == NULL || Password == NULL || strlen(Password) == 0) {
 		return false;
 	}
 
-	if (g_Bouncer->GetConfig()->ReadInteger("system.md5")) {
+	if (g_Bouncer->GetMD5()) {
 		Password = g_Bouncer->MD5(Password);
 	}
 
@@ -388,13 +384,13 @@ const char *CUser::GetNick(void) const {
 	} else if (m_IRC != NULL && m_IRC->GetCurrentNick() != NULL) {
 		return m_IRC->GetCurrentNick();
 	} else {
-		const char *Nick = m_Config->ReadString("user.awaynick");
+		const char *Nick = CacheGetString(m_ConfigCache, awaynick);
 
 		if (Nick != NULL && Nick[0] != '\0') {
 			return Nick;
 		}
 
-		Nick = m_Config->ReadString("user.nick");
+		Nick = CacheGetString(m_ConfigCache, nick);
 
 		if (Nick != NULL && Nick[0] != '\0') {
 			return Nick;
@@ -419,10 +415,10 @@ const char *CUser::GetUsername(void) const {
  * Returns the user's real name.
  */
 const char *CUser::GetRealname(void) const {
-	const char *Realname = m_Config->ReadString("user.realname");
+	const char *Realname = CacheGetString(m_ConfigCache, realname);
 
 	if (Realname == NULL) {
-		Realname = g_Bouncer->GetConfig()->ReadString("system.realname");
+		Realname = g_Bouncer->GetDefaultRealName();
 
 		if (Realname != NULL) {
 			return Realname;
@@ -538,7 +534,7 @@ void CUser::Reconnect(void) {
 	const char *BindIp = GetVHost();
 
 	if (BindIp == NULL || BindIp[0] == '\0') {
-		BindIp = g_Bouncer->GetConfig()->ReadString("system.vhost");
+		BindIp = g_Bouncer->GetDefaultVHost();
 	}
 
 	if (BindIp != NULL && BindIp[0] == '\0') {
@@ -570,7 +566,7 @@ void CUser::Reconnect(void) {
  * Determines whether this user should reconnect (yet).
  */
 bool CUser::ShouldReconnect(void) const {
-	int Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+	int Interval = g_Bouncer->GetInterval();
 
 	if (GetServer() == NULL || GetPort() == 0) {
 		return false;
@@ -580,7 +576,7 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 15;
 	}
 
-	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && (IsAdmin() || g_CurrentTime - m_LastReconnect > 120) && g_CurrentTime - g_LastReconnect > Interval && m_Config->ReadInteger("user.quitted") == 0) {
+	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && (IsAdmin() || g_CurrentTime - m_LastReconnect > 120) && g_CurrentTime - g_LastReconnect > Interval && IsQuitted() == 0) {
 		return true;
 	} else {
 		return false;
@@ -601,10 +597,10 @@ void CUser::ScheduleReconnect(int Delay) {
 		return;
 	}
 
-	m_Config->WriteInteger("user.quitted", 0);
+	CacheSetInteger(m_ConfigCache, quitted, 0);
 
 	MaxDelay = Delay;
-	Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+	Interval = g_Bouncer->GetInterval();
 
 	if (Interval == 0) {
 		Interval = 15;
@@ -721,7 +717,7 @@ void CUser::Log(const char *Format, ...) {
  * Locks (i.e. suspends) the user.
  */
 void CUser::Lock(void) {
-	m_Config->WriteInteger("user.lock", 1);
+	CacheSetInteger(m_ConfigCache, lock, 1);
 }
 
 /**
@@ -730,7 +726,7 @@ void CUser::Lock(void) {
  * Unlocks (i.e. unsuspends) the user.
  */
 void CUser::Unlock(void) {
-	m_Config->WriteInteger("user.lock", 0);
+	CacheSetInteger(m_ConfigCache, lock, 0);
 }
 
 /**
@@ -807,7 +803,7 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 	if (m_Client == NULL) {
 		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		m_Config->WriteInteger("user.seen", g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 	}
 
 	if (m_Client != NULL && Client != NULL) {
@@ -830,7 +826,7 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 	if (!DontSetAway) {
 		g_Bouncer->Log("User %s logged off.", GetUsername());
 
-		m_Config->WriteInteger("user.seen", g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 
 		AwayMessage = GetAwayMessage();
 
@@ -850,24 +846,22 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 	}
 
 	if (m_IRC != NULL && !DontSetAway) {
-		DropModes = m_Config->ReadString("user.dropmodes");
+		DropModes = CacheGetString(m_ConfigCache, dropmodes);
 
 		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL) {
 			m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
 		}
 
-		AwayNick = m_Config->ReadString("user.awaynick");
+		AwayNick = CacheGetString(m_ConfigCache, awaynick);
 
 		if (AwayNick != NULL) {
 			m_IRC->WriteLine("NICK %s", AwayNick);
 		}
 
-		AwayText = m_Config->ReadString("user.away");
+		AwayText = CacheGetString(m_ConfigCache, away);
 
 		if (AwayText != NULL) {
-			bool AppendTS = (m_Config->ReadInteger("user.ts") != 0);
-
-			if (!AppendTS) {
+			if (!GetAppendTimestamp()) {
 				m_IRC->WriteLine("AWAY :%s", AwayText);
 			} else {
 				Timestamp = FormatTime(g_CurrentTime);
@@ -886,8 +880,7 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
  * @param Admin a boolean flag
  */
 void CUser::SetAdmin(bool Admin) {
-	m_Config->WriteInteger("user.admin", Admin ? 1 : 0);
-	m_IsAdminCache = (int)Admin;
+	CacheSetInteger(m_ConfigCache, admin, Admin ? 1 : 0);
 
 	if (Admin) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
@@ -902,11 +895,7 @@ void CUser::SetAdmin(bool Admin) {
  * Returns whether the user is an admin.
  */
 bool CUser::IsAdmin(void) const {
-	if (m_IsAdminCache == -1) {
-		m_IsAdminCache = m_Config->ReadInteger("user.admin");
-	}
-
-	if (m_IsAdminCache != 0) {
+	if (CacheGetInteger(m_ConfigCache, admin) != 0) {
 		return true;
 	} else {
 		return false;
@@ -921,11 +910,11 @@ bool CUser::IsAdmin(void) const {
  * @param Password the new password
  */
 void CUser::SetPassword(const char *Password) {
-	if (g_Bouncer->GetConfig()->ReadInteger("system.md5") != 0) {
+	if (g_Bouncer->GetMD5()) {
 		Password = g_Bouncer->MD5(Password);
 	}
 
-	m_Config->WriteString("user.password", Password);
+	CacheSetString(m_ConfigCache, password, Password);
 }
 
 /**
@@ -938,8 +927,6 @@ void CUser::SetPassword(const char *Password) {
 void CUser::SetServer(const char *Server) {
 	USER_SETFUNCTION(server, Server);
 
-	m_ServerCache = NULL;
-
 	if (Server != NULL && !IsQuitted() && GetIRCConnection() == NULL) {
 		ScheduleReconnect();
 	}
@@ -951,11 +938,7 @@ void CUser::SetServer(const char *Server) {
  * Returns the user's IRC server.
  */
 const char *CUser::GetServer(void) const {
-	if (m_ServerCache == NULL) {
-		m_ServerCache = m_Config->ReadString("user.server");
-	}
-
-	return m_ServerCache;
+	return CacheGetString(m_ConfigCache, server);
 }
 
 /**
@@ -966,9 +949,7 @@ const char *CUser::GetServer(void) const {
  * @param Port the port
  */
 void CUser::SetPort(int Port) {
-	m_PortCache = -1;
-
-	m_Config->WriteInteger("user.port", Port);
+	CacheSetInteger(m_ConfigCache, port, Port);
 }
 
 /**
@@ -977,14 +958,12 @@ void CUser::SetPort(int Port) {
  * Returns the port of the user's IRC server.
  */
 int CUser::GetPort(void) const {
-	if (m_PortCache == -1) {
-		m_PortCache = m_Config->ReadInteger("user.port");
-	}
+	int Port = CacheGetInteger(m_ConfigCache, port);
 
-	if (m_PortCache == 0) {
+	if (Port == 0) {
 		return 6667;
 	} else {
-		return m_PortCache;
+		return Port;
 	}
 }
 
@@ -994,7 +973,7 @@ int CUser::GetPort(void) const {
  * Returns whether the user is locked.
  */
 bool CUser::IsLocked(void) const {
-	if (m_Config->ReadInteger("user.lock") == 0) {
+	if (CacheGetInteger(m_ConfigCache, lock) == 0) {
 		return false;
 	} else {
 		return true;
@@ -1034,7 +1013,7 @@ void CUser::SetRealname(const char *Realname) {
  *							will reconnect when the bouncer is restarted
  */
 void CUser::MarkQuitted(bool RequireManualJump) {
-	m_Config->WriteInteger("user.quitted", RequireManualJump ? 2 : 1);
+	CacheSetInteger(m_ConfigCache, quitted, RequireManualJump ? 2 : 1);
 }
 
 /**
@@ -1043,7 +1022,7 @@ void CUser::MarkQuitted(bool RequireManualJump) {
  * Returns whether the user is marked as quitted.
  */
 int CUser::IsQuitted(void) const {
-	return m_Config->ReadInteger("user.quitted.");
+	return CacheGetInteger(m_ConfigCache, quitted);
 }
 
 /**
@@ -1172,7 +1151,7 @@ bool UserReconnectTimer(time_t Now, void *User) {
 		return false;
 	}
 
-	Interval = g_Bouncer->GetConfig()->ReadInteger("system.interval");
+	Interval = g_Bouncer->GetInterval();
 
 	if (Interval == 0) {
 		Interval = 15;
@@ -1195,7 +1174,7 @@ bool UserReconnectTimer(time_t Now, void *User) {
  * Returns a TS when the user was last seen.
  */
 time_t CUser::GetLastSeen(void) const {
-	return m_Config->ReadInteger("user.seen");
+	return CacheGetInteger(m_ConfigCache, seen);
 }
 
 /**
@@ -1204,7 +1183,7 @@ time_t CUser::GetLastSeen(void) const {
  * Returns the user's away nick.
  */
 const char *CUser::GetAwayNick(void) const {
-	return m_Config->ReadString("user.awaynick");
+	return CacheGetString(m_ConfigCache, awaynick);
 }
 
 /**
@@ -1228,7 +1207,7 @@ void CUser::SetAwayNick(const char *Nick) {
  * Returns the user's away reason.
  */
 const char *CUser::GetAwayText(void) const {
-	return m_Config->ReadString("user.away");
+	return CacheGetString(m_ConfigCache, away);
 }
 
 void CUser::SetAwayText(const char *Reason) {
@@ -1245,7 +1224,7 @@ void CUser::SetAwayText(const char *Reason) {
  * Returns the user's virtual host.
  */
 const char *CUser::GetVHost(void) const {
-	return m_Config->ReadString("user.ip");
+	return CacheGetString(m_ConfigCache, ip);
 }
 
 /**
@@ -1265,7 +1244,7 @@ void CUser::SetVHost(const char *VHost) {
  * Returns whether the user is "delay joined".
  */
 int CUser::GetDelayJoin(void) const {
-	return m_Config->ReadInteger("user.delayjoin");
+	return CacheGetInteger(m_ConfigCache, delayjoin);
 }
 
 /**
@@ -1276,7 +1255,7 @@ int CUser::GetDelayJoin(void) const {
  * @param DelayJoin a boolean flag
  */
 void CUser::SetDelayJoin(int DelayJoin) {
-	m_Config->WriteInteger("user.delayjoin", DelayJoin);
+	CacheSetInteger(m_ConfigCache, delayjoin, DelayJoin);
 }
 
 /**
@@ -1286,7 +1265,7 @@ void CUser::SetDelayJoin(int DelayJoin) {
  * automatically joins when connected to an IRC server.
  */
 const char *CUser::GetConfigChannels(void) const {
-	return m_Config->ReadString("user.channels");
+	return CacheGetString(m_ConfigCache, channels);
 }
 
 /**
@@ -1306,7 +1285,7 @@ void CUser::SetConfigChannels(const char *Channels) {
  * Returns the suspend reason for the user.
  */
 const char *CUser::GetSuspendReason(void) const {
-	return m_Config->ReadString("user.suspend");
+	return CacheGetString(m_ConfigCache, suspend);
 }
 
 /**
@@ -1326,7 +1305,7 @@ void CUser::SetSuspendReason(const char *Reason) {
  * Returns the user's server password.
  */
 const char *CUser::GetServerPassword(void) const {
-	return m_Config->ReadString("user.spass");
+	return CacheGetString(m_ConfigCache, spass);
 }
 
 /**
@@ -1346,7 +1325,7 @@ void CUser::SetServerPassword(const char *Password) {
  * Returns the user's "auto usermodes".
  */
 const char *CUser::GetAutoModes(void) const {
-	return m_Config->ReadString("user.automodes");
+	return CacheGetString(m_ConfigCache, automodes);
 }
 
 /**
@@ -1366,7 +1345,7 @@ void CUser::SetAutoModes(const char *AutoModes) {
  * Returns the user's "drop usermodes".
  */
 const char *CUser::GetDropModes(void) const {
-	return m_Config->ReadString("user.dropmodes");
+	return CacheGetString(m_ConfigCache, dropmodes);
 }
 
 /**
@@ -1512,7 +1491,7 @@ bool CUser::FindClientCertificate(const X509 *Certificate) const {
  */
 bool CUser::GetSSL(void) const {
 #ifdef USESSL
-	if (m_Config->ReadInteger("user.ssl") != 0) {
+	if (CacheGetInteger(m_ConfigCache, ssl) != 0) {
 		return true;
 	} else {
 		return false;
@@ -1532,9 +1511,9 @@ bool CUser::GetSSL(void) const {
 void CUser::SetSSL(bool SSL) {
 #ifdef USESSL
 	if (SSL) {
-		m_Config->WriteInteger("user.ssl", 1);
+		CacheSetInteger(m_ConfigCache, ssl, 1);
 	} else {
-		m_Config->WriteInteger("user.ssl", 0);
+		CacheSetInteger(m_ConfigCache, ssl, 0);
 	}
 #endif
 }
@@ -1545,7 +1524,7 @@ void CUser::SetSSL(bool SSL) {
  * Returns the user's custom ident, or NULL if there is no custom ident.
  */
 const char *CUser::GetIdent(void) const {
-	return m_Config->ReadString("user.ident");
+	return CacheGetString(m_ConfigCache, ident);
 }
 
 /**
@@ -1697,7 +1676,7 @@ const char *CUser::GetTagName(int Index) const {
  * Returns whether the user is using IPv6 for IRC connections.
  */
 bool CUser::GetIPv6(void) const {
-	if (m_Config->ReadInteger("user.ipv6") != 0) {
+	if (CacheGetInteger(m_ConfigCache, ipv6) != 0) {
 		return true;
 	} else {
 		return false;
@@ -1712,7 +1691,7 @@ bool CUser::GetIPv6(void) const {
  * @param IPv6 a boolean flag
  */
 void CUser::SetIPv6(bool IPv6) {
-	m_Config->WriteInteger("user.ipv6", IPv6 ? 1 : 0);
+	CacheSetInteger(m_ConfigCache, ipv6, IPv6 ? 1 : 0);
 }
 
 /**
@@ -1754,7 +1733,17 @@ const char *CUser::FormatTime(time_t Timestamp) const {
  * @param Offset the new offset
  */
 void CUser::SetGmtOffset(int Offset) {
-	m_Config->WriteInteger("user.tz", Offset);
+	char *Value;
+
+	asprintf(&Value, "%d", Offset);
+
+	CHECK_ALLOC_RESULT(Value, asprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	CacheSetString(m_ConfigCache, tz, Value);
+
+	free(Value);
 }
 
 /**
@@ -1765,7 +1754,7 @@ void CUser::SetGmtOffset(int Offset) {
 int CUser::GetGmtOffset(void) const {
 	const char *Offset;
 
-	Offset = m_Config->ReadString("user.tz");
+	Offset = CacheGetString(m_ConfigCache, tz);
 
 	if (Offset == NULL) {
 		struct tm tm;
@@ -1788,7 +1777,7 @@ int CUser::GetGmtOffset(void) const {
  * @param SystemNotices a boolean flag
  */
 void CUser::SetSystemNotices(bool SystemNotices) {
-	m_Config->WriteInteger("user.ignsysnotices", SystemNotices ? 0 : 1);
+	CacheSetInteger(m_ConfigCache, ignsysnotices, SystemNotices ? 0 : 1);
 }
 
 /**
@@ -1797,7 +1786,7 @@ void CUser::SetSystemNotices(bool SystemNotices) {
  * Returns whether the user should receive system notices.
  */
 bool CUser::GetSystemNotices(void) const {
-	if (m_Config->ReadInteger("user.ignsysnotices") == 0) {
+	if (CacheGetInteger(m_ConfigCache, ignsysnotices) == 0) {
 		return true;
 	} else {
 		return false;
@@ -1813,7 +1802,7 @@ bool CUser::GetSystemNotices(void) const {
  * @param Text the new away message
  */
 void CUser::SetAwayMessage(const char *Text) {
-	m_Config->WriteString("user.awaymessage", Text);
+	CacheSetString(m_ConfigCache, awaymessage, Text);
 }
 
 /**
@@ -1822,7 +1811,7 @@ void CUser::SetAwayMessage(const char *Text) {
  * Returns the user's away message or NULL if none is set.
  */
 const char *CUser::GetAwayMessage(void) const {
-	return m_Config->ReadString("user.awaymessage");
+	return CacheGetString(m_ConfigCache, awaymessage);
 }
 
 /**
@@ -1833,8 +1822,7 @@ const char *CUser::GetAwayMessage(void) const {
  * @param Mode the mode (0, 1 or 2)
  */
 void CUser::SetLeanMode(unsigned int Mode) {
-	m_Config->WriteInteger("user.lean", Mode);
-	m_LeanModeCache = Mode;
+	CacheSetInteger(m_ConfigCache, lean, Mode);
 }
 
 /**
@@ -1843,11 +1831,7 @@ void CUser::SetLeanMode(unsigned int Mode) {
  * Returns the state of the "lean" flag.
  */
 unsigned int CUser::GetLeanMode(void) {
-	if (m_LeanModeCache == -1) {
-		m_LeanModeCache = m_Config->ReadInteger("user.lean");
-	}
-
-	return m_LeanModeCache;
+	return CacheGetInteger(m_ConfigCache, lean);
 }
 
 bool CUser::MemoryAddBytes(size_t Bytes) {
@@ -1934,4 +1918,29 @@ void CUser::RescheduleReconnectTimer(void) {
 	}
 
 	g_ReconnectTimer->Reschedule(ReconnectTime);
+}
+
+void CUser::SetAppendTimestamp(bool Value) {
+	CacheSetInteger(m_ConfigCache, ts, Value ? 1 : 0);
+}
+
+bool CUser::GetAppendTimestamp(void) {
+	if (CacheGetInteger(m_ConfigCache, ts)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+void CUser::SetUseQuitReason(bool Value) {
+	CacheSetInteger(m_ConfigCache, quitaway, Value ? 1 : 0);
+}
+
+bool CUser::GetUseQuitReason(void) {
+	if (CacheGetInteger(m_ConfigCache, quitaway)) {
+		return true;
+	} else {
+		return false;
+	}
 }

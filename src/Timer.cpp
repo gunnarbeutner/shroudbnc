@@ -19,6 +19,9 @@
 
 #include "StdAfx.h"
 
+time_t g_NextCall = 0;
+CList<CTimer *> *g_Timers = NULL;
+
 /**
  * CTimer
  *
@@ -35,9 +38,13 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Coo
 	m_Proc = Function;
 	m_Cookie = Cookie;
 
-	m_Next = g_CurrentTime + Interval;
+	Reschedule(g_CurrentTime + Interval);
 
-	m_Link = g_Bouncer->RegisterTimer(this);
+	if (g_Timers == NULL) {
+		g_Timers = new CList<CTimer *>();
+	}
+
+	m_Link = g_Timers->Insert(this);
 }
 
 /**
@@ -46,7 +53,9 @@ CTimer::CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Coo
  * Destroys a timer.
  */
 CTimer::~CTimer(void) {
-	g_Bouncer->UnregisterTimer(m_Link);
+	g_Timers->Remove(m_Link);
+
+	RescheduleTimers();
 }
 
 /**
@@ -71,8 +80,10 @@ bool CTimer::Call(time_t Now) {
 
 	if (m_Interval != 0) {
 		ThisCall = m_Next;
-		m_Next = Now + m_Interval;
+		Reschedule(Now + m_Interval);
 	}
+
+	RescheduleTimers();
 
 	if (m_Proc == NULL) {
 		if (m_Interval == 0) {
@@ -100,8 +111,12 @@ bool CTimer::Call(time_t Now) {
  *
  * Returns the next scheduled time of execution.
  */
-time_t CTimer::GetNextCall(void) const {
-	return m_Next;
+time_t CTimer::GetNextCall(void) {
+	if (g_NextCall == 0) {
+		return g_CurrentTime + 120;
+	} else {
+		return g_NextCall;
+	}
 }
 
 /**
@@ -131,4 +146,37 @@ bool CTimer::GetRepeat(void) const {
  */
 void CTimer::Reschedule(time_t Next) {
 	m_Next = Next;
+
+	if (Next < g_NextCall || g_NextCall == 0) {
+		g_NextCall = Next;
+	}
+}
+
+void CTimer::DestroyAllTimers(void) {
+	for (CListCursor<CTimer *> TimerCursor(g_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
+		delete *TimerCursor;
+	}
+}
+
+void CTimer::CallTimers(void) {
+	for (CListCursor<CTimer *> TimerCursor(g_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
+		if (g_CurrentTime >= (*TimerCursor)->m_Next) {
+			g_NextCall = 0;
+			(*TimerCursor)->Call(g_CurrentTime);
+		}
+	}
+}
+
+void CTimer::RescheduleTimers(void) {
+	time_t Best;
+
+	Best = g_CurrentTime + 120;
+
+	for (CListCursor<CTimer *> TimerCursor(g_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
+		if ((*TimerCursor)->m_Next < Best) {
+			Best = (*TimerCursor)->m_Next;
+		}
+	}
+
+	g_NextCall = Best;
 }

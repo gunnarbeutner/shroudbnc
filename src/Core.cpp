@@ -61,7 +61,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
-	m_IntervalCache = -1;
+	CacheInitialize(m_ConfigCache, Config, "system.");
 
 	char *SourcePath = strdup(BuildPath("sbnc.log"));
 	rename(SourcePath, BuildPath("sbnc.log.old"));
@@ -91,7 +91,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	const char *Users;
 	CUser *User;
 
-	while ((Users = Config->ReadString("system.users")) == NULL) {
+	while ((Users = CacheGetString(m_ConfigCache, users)) == NULL) {
 		if (!MakeConfig()) {
 			LOGERROR("Configuration file could not be created.");
 
@@ -131,8 +131,6 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_SSLListenerV6 = NULL;
 
 	time(&m_Startup);
-
-	m_SendqSizeCache = -1;
 
 	i = 0;
 	while (true) {
@@ -189,9 +187,7 @@ CCore::~CCore(void) {
 		delete User->Value;
 	}
 
-	for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
-		delete *TimerCursor;
-	}
+	CTimer::DestroyAllTimers();
 
 	delete m_Log;
 	delete m_Ident;
@@ -245,9 +241,9 @@ void CCore::StartMainLoop(void) {
 		}
 	}
 
-	int Port = m_Config->ReadInteger("system.port");
+	int Port = CacheGetInteger(m_ConfigCache, port);
 #ifdef USESSL
-	int SSLPort = m_Config->ReadInteger("system.sslport");
+	int SSLPort = CacheGetInteger(m_ConfigCache, sslport);
 
 	if (Port == 0 && SSLPort == 0) {
 #else
@@ -256,7 +252,7 @@ void CCore::StartMainLoop(void) {
 		Port = 9000;
 	}
 
-	const char *BindIp = g_Bouncer->GetConfig()->ReadString("system.ip");
+	const char *BindIp = CacheGetString(m_ConfigCache, ip);
 
 	if (m_Listener == NULL) {
 		if (Port != 0) {
@@ -423,24 +419,20 @@ void CCore::StartMainLoop(void) {
 
 		time(&Now);
 
-		CUser *ReconnectUser = NULL;
-
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection *IRC;
 
-			if (UserHash->Value) {
-				if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
-					if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
-						Log("Closing connection for user %s", UserHash->Name);
-						IRC->Kill("Shutting down.");
+			if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
+				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
+					Log("Closing connection for user %s", UserHash->Name);
+					IRC->Kill("Shutting down.");
 
-						UserHash->Value->SetIRCConnection(NULL);
-					}
+					UserHash->Value->SetIRCConnection(NULL);
+				}
 
-					if (IRC->ShouldDestroy()) {
-						IRC->Destroy();
-					}
+				if (IRC->ShouldDestroy()) {
+					IRC->Destroy();
 				}
 			}
 		}
@@ -465,49 +457,29 @@ void CCore::StartMainLoop(void) {
 
 		time(&Now);
 
-		time_t TimeWarp = 0;
-
-		if (g_CurrentTime > Now) {
-			TimeWarp = Now - g_CurrentTime;
+		if (g_CurrentTime - 5 > Now) {
+			Log("Time warp detected: %d seconds", Now - g_CurrentTime);
 		}
 
-		for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
-			time_t NextCall;
+		g_CurrentTime = Now;
 
-			NextCall = (*TimerCursor)->GetNextCall();
+		Best = CTimer::GetNextCall();
 
-			if (Now >= NextCall) {
-				if (Now - 5 > NextCall) {
+		if (Best <= g_CurrentTime) {
 #ifdef _DEBUG
-					Log("Timer drift for timer %p: %d seconds", *TimerCursor, Now - NextCall);
+			if (g_CurrentTime - 1 > Best) {
+#else
+			if (g_CurrentTime - 5 > Best) {
 #endif
-
-					if (TimeWarp >= 0 && Now - NextCall > TimeWarp) {
-						TimeWarp = Now - NextCall;
-					}
-				}
-
-				(*TimerCursor)->Call(Now);
+				Log("Time warp detected: %d seconds", g_CurrentTime - Best);
 			}
+
+			CTimer::CallTimers();
+
+			Best = CTimer::GetNextCall();
 		}
 
-		if (TimeWarp > 5) {
-			Log("Time warp detected: %d seconds", TimeWarp);
-		}
-
-		Best = Now + 60;
-
-		for (CListCursor<CTimer *> TimerCursor(&m_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
-			time_t NextCall;
-
-			NextCall = (*TimerCursor)->GetNextCall();
-
-			if (NextCall < Best) {
-				Best = NextCall;
-			}
-		}
-
-		SleepInterval = Best - Now;
+		SleepInterval = Best - g_CurrentTime;
 
 		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE)) {
 			SleepInterval = 1;
@@ -1225,7 +1197,7 @@ void CCore::UpdateUserConfig(void) {
 	}
 
 	if (m_Config != NULL) {
-		m_Config->WriteString("system.users", Out);
+		CacheSetString(m_ConfigCache, users, Out);
 	}
 
 	free(Out);
@@ -1468,28 +1440,6 @@ CTimer *CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Functio
 }
 
 /**
- * RegisterTimer
- *
- * Registers a timer object.
- *
- * @param Timer the timer
- */
-link_t<CTimer *> *CCore::RegisterTimer(CTimer *Timer) {
-	return m_Timers.Insert(Timer);
-}
-
-/**
- * UnregisterTimer
- *
- * Unregisters a timer.
- *
- * @param Timer the timer
- */
-void CCore::UnregisterTimer(link_t<CTimer *> *Timer) {
-	m_Timers.Remove(Timer);
-}
-
-/**
  * RegisterDnsQuery
  *
  * Registers a DNS query.
@@ -1529,13 +1479,7 @@ bool CCore::Match(const char *Pattern, const char *String) const {
  * Returns the sendq size for non-admins.
  */
 size_t CCore::GetSendqSize(void) const {
-	int Size;
-
-	if (m_SendqSizeCache != -1) {
-		return m_SendqSizeCache;
-	}
-
-	Size = m_Config->ReadInteger("system.sendq");
+	int Size = CacheGetInteger(m_ConfigCache, sendq);
 
 	if (Size == 0) {
 		return DEFAULT_SENDQ;
@@ -1552,8 +1496,7 @@ size_t CCore::GetSendqSize(void) const {
  * @param NewSize new size of the send queue
  */
 void CCore::SetSendqSize(size_t NewSize) {
-	m_Config->WriteInteger("system.sendq", NewSize);
-	m_SendqSizeCache = NewSize;
+	CacheSetInteger(m_ConfigCache, sendq, NewSize);
 }
 
 /**
@@ -1562,7 +1505,7 @@ void CCore::SetSendqSize(size_t NewSize) {
  * Returns the bouncer's motd (or NULL if there isn't any).
  */
 const char *CCore::GetMotd(void) const {
-	return m_Config->ReadString("system.motd");
+	return CacheGetString(m_ConfigCache, motd);
 }
 
 /**
@@ -1573,7 +1516,7 @@ const char *CCore::GetMotd(void) const {
  * @param Motd the new motd
  */
 void CCore::SetMotd(const char *Motd) {
-	m_Config->WriteString("system.motd", Motd);
+	CacheSetString(m_ConfigCache, motd, Motd);
 }
 
 /**
@@ -2435,7 +2378,7 @@ void CCore::UpdateHosts(void) {
 	int a = 0;
 
 	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
-		asprintf(&Out, "user.hosts.host%d", a++);
+		asprintf(&Out, "system.hosts.host%d", a++);
 
 		CHECK_ALLOC_RESULT(Out, asprintf) {
 			g_Bouncer->Fatal();
@@ -2445,7 +2388,7 @@ void CCore::UpdateHosts(void) {
 		free(Out);
 	}
 
-	asprintf(&Out, "user.hosts.host%d", a);
+	asprintf(&Out, "system.hosts.host%d", a);
 
 	CHECK_ALLOC_RESULT(Out, asprintf) {
 		g_Bouncer->Fatal();
@@ -2803,17 +2746,51 @@ void CCore::SetResourceLimit(const char *Resource, unsigned int Limit, CUser *Us
 	Config->WriteInteger(Name, Limit);
 }
 
-int CCore::GetInterval(void) {
-	if (m_IntervalCache == -1) {
-		m_IntervalCache = m_Config->ReadInteger("system.interval");
-	}
-
-	return m_IntervalCache;
+int CCore::GetInterval(void) const {
+	return CacheGetInteger(m_ConfigCache, interval);
 }
 
 
 void CCore::SetInterval(int Interval) {
-	m_IntervalCache = Interval;
+	CacheSetInteger(m_ConfigCache, interval, Interval);
+}
 
-	m_Config->WriteInteger("system.interval", Interval);
+bool CCore::GetMD5(void) const {
+	if (CacheGetInteger(m_ConfigCache, md5) != 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void CCore::SetMD5(bool MD5) {
+	CacheSetInteger(m_ConfigCache, md5, MD5 ? 1 : 0);
+}
+
+const char *CCore::GetDefaultRealName(void) const {
+	return CacheGetString(m_ConfigCache, realname);
+}
+
+void CCore::SetDefaultRealName(const char *RealName) {
+	CacheSetString(m_ConfigCache, realname, RealName);
+}
+
+const char *CCore::GetDefaultVHost(void) const {
+	return CacheGetString(m_ConfigCache, vhost);
+}
+
+void CCore::SetDefaultVHost(const char *VHost) {
+	CacheSetString(m_ConfigCache, vhost, VHost);
+}
+
+bool CCore::GetDontMatchUser(void) const {
+	if (CacheGetInteger(m_ConfigCache, dontmatchuser)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void CCore::SetDontMatchUser(bool Value) {
+	CacheSetInteger(m_ConfigCache, dontmatchuser, Value ? 1 : 0);
 }

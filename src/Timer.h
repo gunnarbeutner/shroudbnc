@@ -40,13 +40,18 @@ private:
 	link_t<CTimer *> *m_Link; /**< link in the timer list */
 
 	bool Call(time_t Now);
+	static void RescheduleTimers(void);
 public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
 	virtual ~CTimer(void);
 #endif
 
-	time_t GetNextCall(void) const;
+	static time_t GetNextCall(void);
+	static void DestroyAllTimers(void);
+	static void CallTimers(void);
+
+	bool ShouldCall(void) const;
 	int GetInterval(void) const;
 	bool GetRepeat(void) const;
 

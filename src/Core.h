@@ -34,6 +34,22 @@ class CFakeClient;
 struct CSocketEvents;
 struct sockaddr_in;
 
+/* TODO: Use the cache.. */
+DEFINE_CACHE(System)
+	DEFINE_OPTION_INT(dontmatchuser);
+	DEFINE_OPTION_INT(port);
+	DEFINE_OPTION_INT(sslport);
+	DEFINE_OPTION_INT(sendq);
+	DEFINE_OPTION_INT(md5);
+	DEFINE_OPTION_INT(interval);
+
+	DEFINE_OPTION_STRING(vhost);
+	DEFINE_OPTION_STRING(users);
+	DEFINE_OPTION_STRING(ip);
+	DEFINE_OPTION_STRING(motd);
+	DEFINE_OPTION_STRING(realname);
+END_DEFINE_CACHE
+
 /**
  * socket_t
  *
@@ -105,7 +121,7 @@ class SBNCAPI CCore {
 
 	CVector<CDnsQuery *> m_DnsQueries; /**< currently active dns queries */
 
-	int m_SendqSizeCache; /**< cached size of the sendq (or -1 if unknown) */
+	mutable CACHE(System) m_ConfigCache;
 
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
@@ -121,17 +137,12 @@ class SBNCAPI CCore {
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
 
-	int m_IntervalCache;
-
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
 	bool Daemonize(void) ;
 	void WritePidFile(void) const;
 	bool MakeConfig(void);
-
-	link_t<CTimer *> *RegisterTimer(CTimer *Timer);
-	void UnregisterTimer(link_t<CTimer *> *Timer);
 
 	void RegisterDnsQuery(CDnsQuery *DnsQuery);
 	void UnregisterDnsQuery(CDnsQuery *DnsQuery);
@@ -260,8 +271,20 @@ public:
 	unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
 	void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
 
-	int GetInterval(void);
+	int GetInterval(void) const;
 	void SetInterval(int Interval);
+
+	bool GetMD5(void) const;
+	void SetMD5(bool MD5);
+
+	const char *GetDefaultRealName(void) const;
+	void SetDefaultRealName(const char *RealName);
+
+	const char *GetDefaultVHost(void) const;
+	void SetDefaultVHost(const char *VHost);
+
+	bool GetDontMatchUser(void) const;
+	void SetDontMatchUser(bool Value);
 };
 
 #ifndef SWIG
