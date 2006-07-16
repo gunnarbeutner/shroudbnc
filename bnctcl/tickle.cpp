@@ -144,6 +144,8 @@ class CTclSupport : public CModuleImplementation {
 		CUser* User = Client->GetOwner();
 
 		CallBinds(Type_PreScript, NULL, 0, NULL);
+
+		g_CurrentClient = Client;
 		CallBinds(Type_Client, User ? User->GetUsername() : "", argc, argv);
 		CallBinds(Type_PostScript, NULL, 0, NULL);
 

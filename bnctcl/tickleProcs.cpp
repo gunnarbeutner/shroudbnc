@@ -775,6 +775,10 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 			return NULL;
 		else
 			return Client->GetPeerName();
+	} else if (strcasecmp(Type, "clientcount") == 0) {
+		g_asprintf(&Buffer, "%d", Context->GetClientConnections()->GetLength());
+
+		return Buffer;
 	} else if (strcasecmp(Type, "tag") == 0) {
 		if (!Parameter2)
 			return NULL;
@@ -869,7 +873,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return Buffer;
 	} else {
-		throw "Type should be one of: server port serverpass client realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit";
+		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit";
 	}
 }
 

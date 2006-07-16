@@ -39,6 +39,8 @@ public:
 	virtual void Privmsg(const char *Text);
 	virtual void RealNotice(const char *Text);
 
+	virtual void WriteUnformattedLine(const char *Line);
+
 	/**
 	 * operator new
 	 *

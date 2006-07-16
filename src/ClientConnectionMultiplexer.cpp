@@ -80,3 +80,11 @@ void CClientConnectionMultiplexer::RealNotice(const char *Text) {
 		(*Clients)[i].Client->RealNotice(Text);
 	}
 }
+
+void CClientConnectionMultiplexer::WriteUnformattedLine(const char *Line) {
+	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
+
+	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+		(*Clients)[i].Client->WriteLine(Line);
+	}
+}

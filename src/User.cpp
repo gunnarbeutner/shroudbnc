@@ -219,7 +219,6 @@ void CUser::Attach(CClientConnection *Client) {
 	CLog *Motd;
 	unsigned int i;
 	char **Keys;
-	const CVector<CModule *> *Modules;
 
 	if (IsLocked()) {
 		Reason = GetSuspendReason();
@@ -338,12 +337,6 @@ void CUser::Attach(CClientConnection *Client) {
 
 			free(Out);
 		}
-	}
-
-	Modules = g_Bouncer->GetModules();
-
-	for (i = 0; i < Modules->GetLength(); i++) {
-		(*Modules)[i]->AttachClient(GetUsername());
 	}
 
 	if (m_IRC == NULL) {
@@ -491,15 +484,15 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 		} CHECK_ALLOC_RESULT_END;
 	}
 
+	OldOwner = FakeClient->GetOwner();
+	FakeClient->SetOwner(this);
+
 	if (!IsRegisteredClientConnection(FakeClient)) {
 		AddClientConnection(FakeClient);
 		FakeWasRegistered = false;
 	} else {
 		FakeWasRegistered = true;
 	}
-
-	OldOwner = FakeClient->GetOwner();
-	FakeClient->SetOwner(this);
 
 	FakeClient->ParseLine(CommandDup);
 
@@ -790,12 +783,21 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 void CUser::AddClientConnection(CClientConnection *Client) {
 	sockaddr *Remote;
 	client_t ClientT;
+	unsigned int i;
+	const CVector<CModule *> *Modules;
+	char *Info;
+	client_t OldestClient;
 
-	if (m_Clients.GetLength() >= g_Bouncer->GetResourceLimit("clients", this)) {
-		/* TODO: kill oldest client instead */
-		Client->Kill("Maximum number of client connections for this user exceeded.");
+	if (m_Clients.GetLength() > 0 && m_Clients.GetLength() >= g_Bouncer->GetResourceLimit("clients", this)) {
+		OldestClient.Creation = g_CurrentTime + 1;
 
-		return;
+		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+			if (m_Clients[i].Creation < OldestClient.Creation) {
+				OldestClient = m_Clients[i];
+			}
+		}
+
+		OldestClient.Client->Kill("Another client logged in. This client has been disconnected because it was the oldest existing client connection.");
 	}
 
 	Client->SetOwner(this);
@@ -818,6 +820,26 @@ void CUser::AddClientConnection(CClientConnection *Client) {
 	m_PrimaryClient = Client;
 
 	Client->SetTrafficStats(m_ClientStats);
+
+	Modules = g_Bouncer->GetModules();
+
+	for (i = 0; i < Modules->GetLength(); i++) {
+		(*Modules)[i]->AttachClient(GetUsername());
+	}
+
+	asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+
+	CHECK_ALLOC_RESULT(Info, asprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+		if (m_Clients[i].Client != Client) {
+			m_Clients[i].Client->Privmsg(Info);
+		}
+	}
+
+	free(Info);
 }
 
 /**
@@ -834,8 +856,10 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 	unsigned int i;
 	int a;
 	client_t *BestClient;
+	sockaddr *Remote;
+	char *InfoPrimary, *Info;
 
-	g_Bouncer->Log("User %s logged off. %d remaining clients.", GetUsername(), m_Clients.GetLength() - 1);
+	g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
 
 	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 
@@ -848,6 +872,14 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 			while ((Channel = m_IRC->GetChannels()->Iterate(i++)) != NULL) {
 				m_IRC->WriteLine("PRIVMSG %s :\001ACTION is now away: %s\001", Channel->Name, AwayMessage);
 			}
+		}
+	}
+
+	for (a = m_Clients.GetLength() - 1; a >= 0 ; a--) {
+		if (m_Clients[a].Client == Client) {
+			m_Clients.Remove(a);
+
+			break;
 		}
 	}
 
@@ -886,12 +918,6 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 	BestClient = NULL;
 
 	for (a = m_Clients.GetLength() - 1; a >= 0 ; a--) {
-		if (m_Clients[a].Client == Client) {
-			m_Clients.Remove(a);
-
-			continue;
-		}
-
 		if (BestClient == NULL || m_Clients[i].Creation > BestClient->Creation) {
 			BestClient = m_Clients.GetAddressOf(a);
 		}
@@ -902,6 +928,33 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 	} else {
 		m_PrimaryClient = NULL;
 	}
+
+	Remote = Client->GetRemoteAddress();
+
+	asprintf(&InfoPrimary, "Another client logged off from %s[%s]. This client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+
+	CHECK_ALLOC_RESULT(InfoPrimary, asprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+
+	CHECK_ALLOC_RESULT(Info, asprintf) {
+		free(Info);
+
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+		if (m_Clients[i].Client == m_PrimaryClient) {
+			m_Clients[i].Client->Privmsg(InfoPrimary);
+		} else {
+			m_Clients[i].Client->Privmsg(Info);
+		}
+	}
+
+	free(Info);
+	free(InfoPrimary);
 }
 
 /**
@@ -912,104 +965,6 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 CVector<client_t> *CUser::GetClientConnections(void) {
 	return &m_Clients;
 }
-
-#if 0
-/**
- * SetClientConnection
- *
- * Sets the client connection object for the user.
- *
- * @param Client the new client object
- * @param DontSetAway determines whether the /away command is
-					  used for setting an away reason
- */
-void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
-	const CVector<CModule *> *Modules;
-	unsigned int i;
-	const char *DropModes, *AwayNick, *AwayText, *Timestamp, *AwayMessage;
-	hash_t<CChannel *> *Channel;
-	sockaddr *Remote;
-
-	if (m_Client == NULL && Client == NULL) {
-		return;
-	}
-
-	if (Client != NULL) {
-		Remote = Client->GetRemoteAddress();
-	}
-
-	if (m_Client == NULL) {
-		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
-
-		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
-	}
-
-	if (m_Client != NULL && Client != NULL) {
-		g_Bouncer->Log("User %s re-attached to an already active session. Old session was closed.", m_Name);
-
-		m_Client->SetOwner(NULL);
-		m_Client->Kill("Another client has connected.");
-
-		SetClientConnection(NULL, true);
-	}
-
-	m_Client = Client;
-
-	if (Client != NULL) {
-		Client->SetTrafficStats(m_ClientStats);
-
-		return;
-	}
-
-	if (!DontSetAway) {
-		g_Bouncer->Log("User %s logged off.", GetUsername());
-
-		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
-
-		AwayMessage = GetAwayMessage();
-
-		if (AwayMessage != NULL && m_IRC != NULL) {
-			i = 0;
-
-			while ((Channel = m_IRC->GetChannels()->Iterate(i++)) != NULL) {
-				m_IRC->WriteLine("PRIVMSG %s :\001ACTION is now away: %s\001", Channel->Name, AwayMessage);
-			}
-		}
-	}
-
-	Modules = g_Bouncer->GetModules();
-
-	for (i = 0; i < Modules->GetLength(); i++) {
-		(*Modules)[i]->DetachClient(GetUsername());
-	}
-
-	if (m_IRC != NULL && !DontSetAway) {
-		DropModes = CacheGetString(m_ConfigCache, dropmodes);
-
-		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL) {
-			m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
-		}
-
-		AwayNick = CacheGetString(m_ConfigCache, awaynick);
-
-		if (AwayNick != NULL) {
-			m_IRC->WriteLine("NICK %s", AwayNick);
-		}
-
-		AwayText = CacheGetString(m_ConfigCache, away);
-
-		if (AwayText != NULL) {
-			if (!GetAppendTimestamp()) {
-				m_IRC->WriteLine("AWAY :%s", AwayText);
-			} else {
-				Timestamp = FormatTime(g_CurrentTime);
-
-				m_IRC->WriteLine("AWAY :%s (Away since %s)", AwayText, Timestamp);
-			}
-		}
-	}
-}
-#endif
 
 /**
  * SetAdmin
@@ -2070,7 +2025,6 @@ bool CUser::GetAppendTimestamp(void) {
 		return false;
 	}
 }
-
 
 void CUser::SetUseQuitReason(bool Value) {
 	CacheSetInteger(m_ConfigCache, quitaway, Value ? 1 : 0);

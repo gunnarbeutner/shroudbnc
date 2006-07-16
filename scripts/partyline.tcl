@@ -189,7 +189,9 @@ proc sbnc:partyattach {client} {
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
 
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc JOIN $chan"
+			if {[getbncuser $client clientcount] == 1} {
+				sbnc:bcpartybutone $client ":\$$client!$client@sbnc JOIN $chan"
+			}
 		}
 	}	
 }
@@ -202,7 +204,7 @@ proc sbnc:partydetach {client} {
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
 	foreach chan $partyline {
-		if {[lsearch $chans $chan] != -1} {
+		if {[lsearch $chans $chan] != -1 && [getbncuser $client clientcount] == 0} {
 			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PART $chan :Leaving"
 		}
 	}

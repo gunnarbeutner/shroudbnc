@@ -114,7 +114,7 @@ public:
 	CHashtable<CChannel *, false, 16> *GetChannels(void);
 
 	const char *GetCurrentNick(void) const;
-	const char *GetSite(void) const;
+	const char *GetSite(void) /* const */;
 	const char *GetServer(void) const;
 
 	const char *GetServerVersion(void) const;

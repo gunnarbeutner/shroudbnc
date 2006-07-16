@@ -1488,7 +1488,29 @@ CHashtable<CChannel *, false, 16> *CIRCConnection::GetChannels(void) {
  *
  * Returns the site (ident\@host) for the IRC connection.
  */
-const char *CIRCConnection::GetSite(void) const {
+const char *CIRCConnection::GetSite(void) {
+	char *Out;
+
+	if (m_Site == NULL) {
+		asprintf(&Out, "%s@unknown.host", GetOwner()->GetUsername());
+
+		CHECK_ALLOC_RESULT(Out, asprintf) {
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+
+		char *Foo = mstrdup("Foo", GETUSER());
+
+		m_Site = ustrdup(Out);
+
+		free(Out);
+
+		CHECK_ALLOC_RESULT(m_Site, ustrdup) {
+			return NULL;
+		} CHECK_ALLOC_RESULT_END;
+
+		mmark(m_Site);
+	}
+
 	return m_Site;
 }
 

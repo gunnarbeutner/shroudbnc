@@ -1597,6 +1597,23 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			ArgFreeArray(Arr);
 
 			return false;
+		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0) {
+			CVector<client_t> *Clients = GetOwner()->GetClientConnections();
+			const char *Site;
+
+			if (GetOwner()->GetIRCConnection() == NULL) {
+				return false;
+			}
+
+			Site = GetOwner()->GetIRCConnection()->GetSite();
+
+			for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+				if ((*Clients)[i].Client != this) {
+					sockaddr *Remote = (*Clients)[i].Client->GetRemoteAddress();
+
+					(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :(-> Your client from %s[%s] replied:) %s", argv[1], GetOwner()->GetNick(), (*Clients)[i].Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown", argv[2]);
+				}
+			}
 		} else if (strcasecmp(Command, "userhost") == 0) {
 			if (argc == 2 && strcasecmp(argv[1], m_Nick) == 0) {
 				const char *Server, *Ident;
