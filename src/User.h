@@ -60,6 +60,16 @@ DEFINE_CACHE(User)
 END_DEFINE_CACHE
 
 /**
+ * client_t
+ *
+ * Internal representation of clients in the client list.
+ */
+typedef struct client_s {
+	time_t Creation;
+	CClientConnection *Client;
+} client_t;
+
+/**
  * badlogin_t
  *
  * Describes a failed login attempt.
@@ -114,7 +124,9 @@ class SBNCAPI CUser : public CZoneObject<CUser, 1024>, public CMemoryManager {
 
 	char *m_Name; /**< the name of the user */
 
-	CClientConnection *m_Client; /**< the user's client connection */
+	CClientConnection *m_PrimaryClient;
+	CClientConnectionMultiplexer *m_ClientMultiplexer;
+	CVector<client_t> m_Clients; /**< the user's client connections */
 	CIRCConnection *m_IRC; /**< the user's irc connection */
 	CConfig *m_Config; /**< the user's configuration object */
 	mutable CACHE(User) m_ConfigCache; /**< config cache */
@@ -148,7 +160,10 @@ public:
 
 	static void RescheduleReconnectTimer(void);
 
-	CClientConnection *GetClientConnection(void);
+	CClientConnection *GetPrimaryClientConnection(void);
+	CClientConnection *GetClientConnectionMultiplexer(void);
+
+//	CClientConnection *GetClientConnection(void);
 	CIRCConnection *GetIRCConnection(void);
 
 	bool CheckPassword(const char *Password) const;
@@ -171,9 +186,6 @@ public:
 	bool ShouldReconnect(void) const;
 	void ScheduleReconnect(int Delay = 10);
 
-	void Privmsg(const char *Text);
-	void RealNotice(const char *Text);
-
 	unsigned int GetIRCUptime(void) const;
 
 	CLog *GetLog(void);
@@ -184,7 +196,12 @@ public:
 	bool IsLocked(void) const;
 
 	void SetIRCConnection(CIRCConnection *IRC);
-	void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
+//	void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
+
+	void AddClientConnection(CClientConnection *Client);
+	void RemoveClientConnection(CClientConnection *Client);
+	bool IsRegisteredClientConnection(CClientConnection *Client);
+	CVector<client_t> *GetClientConnections(void);
 
 	void SetAdmin(bool Admin = true);
 	bool IsAdmin(void) const;

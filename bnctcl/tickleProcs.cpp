@@ -55,6 +55,7 @@ void setctx(const char *ctx) {
 	free(g_Context);
 
 	g_Context = ctx ? strdup(ctx) : NULL;
+	g_CurrentClient = NULL;
 }
 
 const char *getctx(void) {
@@ -405,12 +406,13 @@ int putclient(const char* text) {
 	if (Context == NULL)
 		throw "Invalid user.";
 
-	CClientConnection *Client = Context->GetClientConnection();
+	if (g_CurrentClient == NULL || Context != g_CurrentClient->GetOwner())
+		g_CurrentClient = Context->GetClientConnectionMultiplexer();
 
-	if (!Client)
+	if (!g_CurrentClient)
 		return 0;
 
-	Client->WriteLine("%s", text);
+	g_CurrentClient->WriteLine("%s", text);
 
 	return 1;
 }
@@ -756,7 +758,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "hasserver") == 0)
 		return Context->GetIRCConnection() ? "1" : "0";
 	else if (strcasecmp(Type, "hasclient") == 0)
-		return Context->GetClientConnection() ? "1" : "0";
+		return Context->GetClientConnectionMultiplexer() ? "1" : "0";
 	else if (strcasecmp(Type, "delayjoin") == 0) {
 		int DelayJoin = Context->GetDelayJoin();
 
@@ -767,7 +769,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return "-1";
 	} else if (strcasecmp(Type, "client") == 0) {
-		CClientConnection* Client = Context->GetClientConnection();
+		CClientConnection* Client = Context->GetPrimaryClientConnection();
 
 		if (!Client)
 			return NULL;
@@ -824,7 +826,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcasecmp(Type, "ssl") == 0) {
 		return Context->GetSSL() ? "1" : "0";
 	} else if (strcasecmp(Type, "sslclient") == 0) {
-		CClientConnection* Client = Context->GetClientConnection();
+		CClientConnection* Client = Context->GetPrimaryClientConnection();
 
 		if (!Client)
 			return NULL;
@@ -1617,7 +1619,7 @@ void bnckill(const char* Reason) {
 	if (!Context)
 		throw "Invalid user.";
 
-	CClientConnection* Client = Context->GetClientConnection();
+	CClientConnection* Client = Context->GetClientConnectionMultiplexer();
 
 	if (!Client)
 		return;
@@ -1631,10 +1633,16 @@ void bncreply(const char* Text) {
 	if (!Context)
 		throw "Invalid user.";
 
+	if (g_CurrentClient == NULL || Context != g_CurrentClient->GetOwner())
+		g_CurrentClient = Context->GetClientConnectionMultiplexer();
+
+	if (!g_CurrentClient)
+		return;
+
 	if (g_NoticeUser)
-		Context->RealNotice(Text);
+		g_CurrentClient->RealNotice(Text);
 	else
-		Context->Privmsg(Text);
+		g_CurrentClient->Privmsg(Text);
 }
 
 char* chanbans(const char* Channel) {
@@ -1951,6 +1959,12 @@ bool synthwho(const char *Channel, bool Simulate) {
 	if (Context == NULL)
 		throw "Invalid user.";
 
+	if (g_CurrentClient == NULL || Context != g_CurrentClient->GetOwner())
+		g_CurrentClient = Context->GetClientConnectionMultiplexer();
+
+	if (!g_CurrentClient)
+		return false;
+
 	CIRCConnection* IRC = Context->GetIRCConnection();
 
 	if (IRC == NULL)
@@ -1961,7 +1975,7 @@ bool synthwho(const char *Channel, bool Simulate) {
 	if (ChannelObj == NULL)
 		return false;
 
-	return ChannelObj->SendWhoReply(Simulate);
+	return ChannelObj->SendWhoReply(g_CurrentClient, Simulate);
 }
 
 const char *impulse(int imp) {
@@ -1974,12 +1988,13 @@ void bncaddcommand(const char *Name, const char *Category, const char *Descripti
 	if (Context == NULL)
 		throw "Invalid user.";
 
-	CClientConnection *Client = Context->GetClientConnection();
+	if (g_CurrentClient == NULL || Context != g_CurrentClient->GetOwner())
+		g_CurrentClient = Context->GetClientConnectionMultiplexer();
 
-	if (Client == NULL)
+	if (!g_CurrentClient)
 		return;
 
-	commandlist_t *List = Client->GetCommandList();
+	commandlist_t *List = g_CurrentClient->GetCommandList();
 	const utility_t *Utils = g_Bouncer->GetUtilities();
 
 	Utils->AddCommand(List, Name, Category, Description, HelpText);
@@ -1991,12 +2006,13 @@ void bncdeletecommand(const char *Name) {
 	if (Context == NULL)
 		throw "Invalid user.";
 
-	CClientConnection *Client = Context->GetClientConnection();
+	if (g_CurrentClient == NULL || Context != g_CurrentClient->GetOwner())
+		g_CurrentClient = Context->GetClientConnectionMultiplexer();
 
-	if (Client == NULL)
+	if (!g_CurrentClient)
 		return;
 
-	commandlist_t *List = Client->GetCommandList();
+	commandlist_t *List = g_CurrentClient->GetCommandList();
 	const utility_t *Utils = g_Bouncer->GetUtilities();
 
 	Utils->DeleteCommand(List, Name);

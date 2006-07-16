@@ -249,6 +249,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\ClientConnectionMultiplexer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Config.cpp"
 				>
 				<FileConfiguration
@@ -360,6 +364,10 @@
 			</File>
 			<File
 				RelativePath=".\src\ClientConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ClientConnectionMultiplexer.h"
 				>
 			</File>
 			<File

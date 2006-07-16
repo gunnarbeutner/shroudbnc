@@ -45,7 +45,7 @@ public:
 	void Clear(void);
 	void WriteLine(const char *Timestamp, const char *Format,...);
 	void WriteUnformattedLine(const char *Timestamp, const char *Line);
-	void PlayToUser(CUser *User, int Type) const;
+	void PlayToUser(CClientConnection *Client, int Type) const;
 	bool IsEmpty(void) const;
 	const char *GetFilename(void) const;
 };

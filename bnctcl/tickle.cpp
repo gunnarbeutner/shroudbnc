@@ -232,9 +232,9 @@ class CTclSupport : public CModuleImplementation {
 		if (g_Ret && strcasecmp(Subcommand, "tcl") == 0 && User && User->IsAdmin()) {
 			if (argc <= 1) {
 				if (NoticeUser)
-					User->RealNotice("Syntax: tcl :command");
+					Client->RealNotice("Syntax: tcl :command");
 				else
-					User->Privmsg("Syntax: tcl :command");
+					Client->Privmsg("Syntax: tcl :command");
 
 				return true;
 			}
@@ -261,9 +261,9 @@ class CTclSupport : public CModuleImplementation {
 
 			if (Code == TCL_ERROR) {
 				if (NoticeUser)
-					User->RealNotice("An error occured in the tcl script:");
+					Client->RealNotice("An error occured in the tcl script:");
 				else
-					User->Privmsg("An error occured in the tcl script:");
+					Client->Privmsg("An error occured in the tcl script:");
 			}
 
 			if (strResult && *strResult) {
@@ -277,17 +277,17 @@ class CTclSupport : public CModuleImplementation {
 
 				while (token != NULL) {
 					if (NoticeUser)
-						User->RealNotice(*token ? token : "empty string.");
+						Client->RealNotice(*token ? token : "empty string.");
 					else
-						User->Privmsg(*token ? token : "empty string.");
+						Client->Privmsg(*token ? token : "empty string.");
 
 					token = strtok(NULL, "\n");
 				}
 			} else {
 					if (NoticeUser)
-						User->RealNotice("<no error>");
+						Client->RealNotice("<no error>");
 					else
-						User->Privmsg("<no error>");
+						Client->Privmsg("<no error>");
 			}
 
 			g_Ret = false;

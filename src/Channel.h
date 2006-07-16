@@ -112,5 +112,5 @@ public:
 	void SetHasBans(void);
 	bool HasBans(void) const;
 
-	bool SendWhoReply(bool Simulate) const;
+	bool SendWhoReply(CClientConnection *Client, bool Simulate) const;
 };

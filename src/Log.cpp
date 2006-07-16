@@ -59,17 +59,16 @@ CLog::~CLog(void) {
  *
  * Sends the log to the specified user.
  *
- * @param User the user who should receive the log
+ * @param Client the user who should receive the log
  * @param Type specifies how the log should be sent, can be one of:
  *             Log_Notices - use IRC notices
  *             Log_Messages - use IRC messages
  *             Log_Motd - use IRC motd replies
  */
-void CLog::PlayToUser(CUser *User, int Type) const {
+void CLog::PlayToUser(CClientConnection *Client, int Type) const {
 	FILE *LogFile;
 
-	CIRCConnection *IRC = User->GetIRCConnection();
-	CClientConnection *Client = User->GetClientConnection();
+	CIRCConnection *IRC = Client->GetOwner()->GetIRCConnection();
 	const char *Nick;
 	const char *Server;
 
@@ -88,9 +87,9 @@ void CLog::PlayToUser(CUser *User, int Type) const {
 			}
 
 			if (Type == Log_Notice) {
-				User->RealNotice(Line);
+				Client->RealNotice(Line);
 			} else if (Type == Log_Message) {
-				User->Privmsg(Line);
+				Client->Privmsg(Line);
 			} else if (Type == Log_Motd) {
 				if (IRC != NULL) {
 					Nick = IRC->GetCurrentNick();

@@ -129,9 +129,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 #define SENDUSER(Text) \
 	do { \
 		if (NoticeUser) { \
-			targUser->RealNotice(Text); \
+			RealNotice(Text); \
 		} else { \
-			targUser->Privmsg(Text); \
+			Privmsg(Text); \
 		} \
 	} while (0)
 
@@ -917,8 +917,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			return false;
 		} CHECK_ALLOC_RESULT_END;
 
-		if (User != NULL && User->GetClientConnection() != NULL) {
-			User->GetClientConnection()->Kill(Out);
+		if (User != NULL && User->GetClientConnectionMultiplexer() != NULL) {
+			User->GetClientConnectionMultiplexer()->Kill(Out);
 			SENDUSER("Done.");
 		} else {
 			SENDUSER("There is no such user or that user is not currently logged in.");
@@ -1068,8 +1068,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				Server = NULL;
 			}
 
-			if (User->GetClientConnection() != NULL) {
-				ClientAddr = User->GetClientConnection()->GetPeerName();
+			if (User->GetPrimaryClientConnection() != NULL) {
+				ClientAddr = User->GetPrimaryClientConnection()->GetPeerName();
 			} else {
 				ClientAddr = NULL;
 			}
@@ -1078,7 +1078,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 			if (User->GetLastSeen() == 0) {
 				LastSeen = "Never";
-			} else if (User->GetClientConnection() != NULL) {
+			} else if (User->GetPrimaryClientConnection() != NULL) {
 				LastSeen = "Now";
 			} else {
 				LastSeen = GetOwner()->FormatTime(User->GetLastSeen());
@@ -1225,13 +1225,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "read") == 0) {
-		GetOwner()->GetLog()->PlayToUser(GetOwner(), NoticeUser);
+		GetOwner()->GetLog()->PlayToUser(this, NoticeUser);
 
 		if (!GetOwner()->GetLog()->IsEmpty()) {
 			if (NoticeUser) {
-				GetOwner()->RealNotice("End of LOG. Use '/sbnc erase' to remove this log.");
+				RealNotice("End of LOG. Use '/sbnc erase' to remove this log.");
 			} else {
-				GetOwner()->Privmsg("End of LOG. Use '/msg -sBNC erase' to remove this log.");
+				Privmsg("End of LOG. Use '/msg -sBNC erase' to remove this log.");
 			}
 		} else {
 			SENDUSER("Your personal log is empty.");
@@ -1248,13 +1248,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "playmainlog") == 0 && GetOwner()->IsAdmin()) {
-		g_Bouncer->GetLog()->PlayToUser(GetOwner(), NoticeUser);
+		g_Bouncer->GetLog()->PlayToUser(this, NoticeUser);
 
 		if (!g_Bouncer->GetLog()->IsEmpty()) {
 			if (NoticeUser) {
-				GetOwner()->RealNotice("End of LOG. Use /sbnc erasemainlog to remove this log.");
+				RealNotice("End of LOG. Use /sbnc erasemainlog to remove this log.");
 			} else {
-				GetOwner()->Privmsg("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
+				Privmsg("End of LOG. Use /msg -sBNC erasemainlog to remove this log.");
 			}
 		} else {
 			SENDUSER("The main log is empty.");
@@ -1368,8 +1368,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		if (User) {
 			User->Lock();
 
-			if (User->GetClientConnection() != NULL) {
-				User->GetClientConnection()->Kill("Your account has been suspended.");
+			if (User->GetClientConnectionMultiplexer() != NULL) {
+				User->GetClientConnectionMultiplexer()->Kill("Your account has been suspended.");
 			}
 
 			if (User->GetIRCConnection() != NULL) {
@@ -1450,9 +1450,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 	}
 
 	if (NoticeUser) {
-		GetOwner()->RealNotice("Unknown command. Try /sbnc help");
+		RealNotice("Unknown command. Try /sbnc help");
 	} else {
-		SENDUSER("Unknown command. Try /msg -sBNC help");
+		Privmsg("Unknown command. Try /msg -sBNC help");
 	}
 
 	return false;
@@ -1630,8 +1630,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return ProcessBncCommand(argv[1], argc - 1, &argv[1], true);
 		} else if (strcasecmp(Command, "synth") == 0) {
 			if (argc < 2) {
-				GetOwner()->Privmsg("Syntax: SYNTH command parameter");
-				GetOwner()->Privmsg("supported commands are: mode, topic, names, version, version-forcereply, who");
+				Privmsg("Syntax: SYNTH command parameter");
+				Privmsg("supported commands are: mode, topic, names, version, version-forcereply, who");
 
 				return false;
 			}
@@ -1766,8 +1766,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				if (IRC) {
 					CChannel *Channel = IRC->GetChannel(argv[2]);
 
-					if (Channel && g_CurrentTime - GetOwner()->GetLastSeen() < 300 && Channel->SendWhoReply(true)) {
-						Channel->SendWhoReply(false);
+					if (Channel && g_CurrentTime - GetOwner()->GetLastSeen() < 300 && Channel->SendWhoReply(this, true)) {
+						Channel->SendWhoReply(this, false);
 					} else {
 						IRC->WriteLine("WHO %s", argv[2]);
 					}
@@ -2036,7 +2036,7 @@ const char *CClientConnection::GetNick(void) const {
  */
 void CClientConnection::Destroy(void) {
 	if (GetOwner() != NULL) {
-		GetOwner()->SetClientConnection(NULL);
+		GetOwner()->RemoveClientConnection(this);
 	}
 
 	delete this;
@@ -2302,7 +2302,7 @@ RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box, CUser *Own
  */
 void CClientConnection::Kill(const char *Error) {
 	if (GetOwner() != NULL) {
-		GetOwner()->SetClientConnection(NULL);
+		GetOwner()->RemoveClientConnection(this);
 		SetOwner(NULL);
 	}
 
@@ -2410,5 +2410,21 @@ void CClientConnection::SetNick(const char *NewNick) {
 	if (NewNick != NULL) {
 		ufree(m_Nick);
 		m_Nick = ustrdup(NewNick);
+	}
+}
+
+void CClientConnection::Privmsg(const char *Text) {
+	const char *Nick = GetOwner()->GetNick();
+
+	if (Nick != NULL) {
+		WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :%s", Nick, Text);
+	}
+}
+
+void CClientConnection::RealNotice(const char *Text) {
+	const char *Nick = GetOwner()->GetNick();
+
+	if (Nick != NULL) {
+		WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);
 	}
 }

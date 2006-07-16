@@ -38,7 +38,8 @@ CUser::CUser(const char *Name) {
 	m_ManagedMemory = 0;
 	m_MemoryManager = NULL;
 
-	m_Client = NULL;
+	m_PrimaryClient = NULL;
+	m_ClientMultiplexer = new CClientConnectionMultiplexer(this);
 	m_IRC = NULL;
 	m_Name = ustrdup(Name);
 
@@ -128,9 +129,7 @@ CUser::~CUser(void) {
 		m_MemoryManager->RealManager = NULL;
 	}
 
-	if (m_Client != NULL) {
-		m_Client->Kill("Removing user.");
-	}
+	m_ClientMultiplexer->Kill("Removing user.");
 
 	if (m_IRC != NULL) {
 		m_IRC->Kill("-)(- If you can't see the fnords, they can't eat you.");
@@ -175,13 +174,26 @@ void CUser::LoadEvent(void) {
 }
 
 /**
- * GetClientConnection
+ * GetPrimaryClientConnection
  *
- * Returns the client connection for the user, or NULL
+ * Returns the primary client connection for the user, or NULL
  * if nobody is currently logged in as the user.
  */
-CClientConnection *CUser::GetClientConnection(void) {
-	return m_Client;
+CClientConnection *CUser::GetPrimaryClientConnection(void) {
+	return m_PrimaryClient;
+}
+
+/**
+ * GetClientConnectionMultiplexer
+ *
+ * Returns the client multiplexer for this user.
+ */
+CClientConnection *CUser::GetClientConnectionMultiplexer(void) {
+	if (m_Clients.GetLength() == 0) {
+		return NULL;
+	} else {
+		return m_ClientMultiplexer;
+	}
 }
 
 /**
@@ -235,7 +247,7 @@ void CUser::Attach(CClientConnection *Client) {
 
 	Client->SetOwner(this);
 
-	SetClientConnection(Client, true);
+	AddClientConnection(Client);
 
 	Motd = new CLog("sbnc.motd");
 
@@ -257,34 +269,34 @@ void CUser::Attach(CClientConnection *Client) {
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
 			}
 
-			m_Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
+			Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 
 			if (Motd->IsEmpty()) {
-				m_Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
+				Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
 			} else{
-				Motd->PlayToUser(this, Log_Motd);
+				Motd->PlayToUser(Client, Log_Motd);
 			}
 
-			m_Client->ParseLine("SYNTH VERSION-FORCEREPLY");
+			Client->ParseLine("SYNTH VERSION-FORCEREPLY");
 
 			if (m_IRC->GetUsermodes() != NULL) {
-				m_Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
+				Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
 			}
 
 			Keys = m_IRC->GetChannels()->GetSortedKeys();
 
 			i = 0;
 			while (Keys != NULL && Keys[i] != NULL) {
-				m_Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), m_Client->GetPeerName(), Keys[i]);
+				Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), Client->GetPeerName(), Keys[i]);
 
 				asprintf(&Out, "TOPIC %s", Keys[i]);
 
 				if (Out == NULL) {
 					LOGERROR("asprintf() failed.");
 
-					m_Client->Kill("Internal error.");
+					Client->Kill("Internal error.");
 				} else {
-					m_Client->ParseLine(Out);
+					Client->ParseLine(Out);
 					free(Out);
 				}
 
@@ -293,9 +305,9 @@ void CUser::Attach(CClientConnection *Client) {
 				if (Out == NULL) {
 					LOGERROR("asprintf() failed.");
 
-					m_Client->Kill("Internal error.");
+					Client->Kill("Internal error.");
 				} else {
-					m_Client->ParseLine(Out);
+					Client->ParseLine(Out);
 					free(Out);
 				}
 
@@ -306,7 +318,7 @@ void CUser::Attach(CClientConnection *Client) {
 		}
 	} else {
 		if (!Motd->IsEmpty()) {
-			Motd->PlayToUser(this, Log_Motd);
+			Motd->PlayToUser(Client, Log_Motd);
 		}
 
 		if (IsQuitted() != 2) {
@@ -322,7 +334,7 @@ void CUser::Attach(CClientConnection *Client) {
 		if (Out == NULL) {
 			LOGERROR("asprintf() failed.");
 		} else {
-			Privmsg(Out);
+			Client->Privmsg(Out);
 
 			free(Out);
 		}
@@ -336,15 +348,15 @@ void CUser::Attach(CClientConnection *Client) {
 
 	if (m_IRC == NULL) {
 		if (GetServer() == NULL) {
-			Privmsg("You haven't set an IRC server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
-			Privmsg("Use /sbnc help to see a list of available commands.");
+			Client->Privmsg("You haven't set an IRC server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
+			Client->Privmsg("Use /sbnc help to see a list of available commands.");
 		} else if (IsQuitted() == 2) {
-			Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
+			Client->Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
 		}
 	}
 
 	if (!GetLog()->IsEmpty()) {
-		Privmsg("You have new messages. Use '/msg -sBNC read' to view them.");
+		Client->Privmsg("You have new messages. Use '/msg -sBNC read' to view them.");
 	}
 }
 
@@ -379,8 +391,8 @@ bool CUser::CheckPassword(const char *Password) const {
  * Returns the current nick of the user.
  */
 const char *CUser::GetNick(void) const {
-	if (m_Client != NULL && m_Client->GetNick() != NULL) {
-		return m_Client->GetNick();
+	if (m_PrimaryClient != NULL && m_PrimaryClient->GetNick() != NULL) {
+		return m_PrimaryClient->GetNick();
 	} else if (m_IRC != NULL && m_IRC->GetCurrentNick() != NULL) {
 		return m_IRC->GetCurrentNick();
 	} else {
@@ -449,8 +461,7 @@ CConfig *CUser::GetConfig(void) {
  * @param FakeClient the client which is used for sending replies
  */
 void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
-	bool FakeWasNull;
-	CClientConnection *OldClient;
+	bool FakeWasNull, FakeWasRegistered;
 	char *CommandDup;
 	CUser *OldOwner;
 
@@ -480,8 +491,12 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 		} CHECK_ALLOC_RESULT_END;
 	}
 
-	OldClient = m_Client;
-	m_Client = FakeClient;
+	if (!IsRegisteredClientConnection(FakeClient)) {
+		AddClientConnection(FakeClient);
+		FakeWasRegistered = false;
+	} else {
+		FakeWasRegistered = true;
+	}
 
 	OldOwner = FakeClient->GetOwner();
 	FakeClient->SetOwner(this);
@@ -490,13 +505,32 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 
 	FakeClient->SetOwner(OldOwner);
 
-	m_Client = OldClient;
+	if (!FakeWasRegistered) {
+		RemoveClientConnection(FakeClient);
+	}
 
 	if (FakeWasNull) {
 		FakeClient->Destroy();
 	}
 
 	free(CommandDup);
+}
+
+/**
+ * IsRegisteredClientConnection
+ *
+ * Checks whether the specified client connection is registered for the user.
+ *
+ * @param Client the client connection
+ */
+bool CUser::IsRegisteredClientConnection(CClientConnection *Client) {
+	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+		if (m_Clients[i].Client == Client) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -620,45 +654,15 @@ void CUser::ScheduleReconnect(int Delay) {
 		RescheduleReconnectTimer();
 	}
 
-	if (GetServer() != NULL && GetClientConnection() != NULL) {
+	if (GetServer() != NULL && GetClientConnectionMultiplexer() != NULL) {
 		char *Out;
 		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - g_CurrentTime);
 
 		CHECK_ALLOC_RESULT(Out, asprintf) {} else {
-			Privmsg(Out);
+			GetClientConnectionMultiplexer()->Privmsg(Out);
 
 			free(Out);
 		} CHECK_ALLOC_RESULT_END;
-	}
-}
-
-/**
- * Privmsg
- *
- * Sends a message to the user.
- *
- * @param Text the text
- */
-void CUser::Privmsg(const char *Text) {
-	const char *Nick = GetNick();
-
-	if (m_Client != NULL && Nick != NULL) {
-		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :%s", Nick, Text);
-	}
-}
-
-/**
- * RealNotice
- *
- * Sends a notice to the user.
- *
- * @param Text the text
- */
-void CUser::RealNotice(const char *Text) {
-	const char *Nick = GetNick();
-
-	if (m_Client != NULL && Nick != NULL) {
-		m_Client->WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);
 	}
 }
 
@@ -701,11 +705,11 @@ void CUser::Log(const char *Format, ...) {
 	va_end(marker);
 
 	CHECK_ALLOC_RESULT(Out, vasprintf) {} else {
-		if (GetClientConnection() == NULL) {
+		if (GetClientConnectionMultiplexer() == NULL) {
 			m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
+		} else {
+			GetClientConnectionMultiplexer()->Privmsg(Out);
 		}
-
-		Privmsg(Out);
 
 		free(Out);
 	} CHECK_ALLOC_RESULT_END;
@@ -741,9 +745,9 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	CIRCConnection *OldIRC;
 	bool WasNull;
 
-	if (GetClientConnection() != NULL && m_IRC != NULL) {
+	if (GetClientConnectionMultiplexer() != NULL && m_IRC != NULL) {
 //		GetClientConnection()->SetPreviousNick(m_IRC->GetCurrentNick());
-		GetClientConnection()->SetNick(m_IRC->GetCurrentNick());
+		GetClientConnectionMultiplexer()->SetNick(m_IRC->GetCurrentNick());
 	}
 
 	if (m_IRC == NULL) {
@@ -776,6 +780,140 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	}
 }
 
+/**
+ * AddClientConnection
+ *
+ * Adds a new client connection for this user.
+ *
+ * @param Client the new client
+ */
+void CUser::AddClientConnection(CClientConnection *Client) {
+	sockaddr *Remote;
+	client_t ClientT;
+
+	if (m_Clients.GetLength() >= g_Bouncer->GetResourceLimit("clients", this)) {
+		/* TODO: kill oldest client instead */
+		Client->Kill("Maximum number of client connections for this user exceeded.");
+
+		return;
+	}
+
+	Client->SetOwner(this);
+
+	Remote = Client->GetRemoteAddress();
+
+	g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+
+	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+
+	ClientT.Creation = g_CurrentTime;
+	ClientT.Client = Client;
+
+	if (IsError(m_Clients.Insert(ClientT))) {
+		Client->Kill("An error occured while registering the client.");
+
+		return;
+	}
+
+	m_PrimaryClient = Client;
+
+	Client->SetTrafficStats(m_ClientStats);
+}
+
+/**
+ * RemoveClientConnection
+ *
+ * Removes a client connection for this user.
+ *
+ * @param Client the client which is to be removed.
+ */
+void CUser::RemoveClientConnection(CClientConnection *Client) {
+	const char *AwayMessage, *DropModes, *AwayNick, *AwayText, *Timestamp;
+	hash_t<CChannel *> *Channel;
+	const CVector<CModule *> *Modules;
+	unsigned int i;
+	int a;
+	client_t *BestClient;
+
+	g_Bouncer->Log("User %s logged off. %d remaining clients.", GetUsername(), m_Clients.GetLength() - 1);
+
+	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+
+	if (m_IRC != NULL && m_Clients.GetLength() == 0) {
+		AwayMessage = GetAwayMessage();
+
+		if (AwayMessage != NULL) {
+			i = 0;
+
+			while ((Channel = m_IRC->GetChannels()->Iterate(i++)) != NULL) {
+				m_IRC->WriteLine("PRIVMSG %s :\001ACTION is now away: %s\001", Channel->Name, AwayMessage);
+			}
+		}
+	}
+
+	Modules = g_Bouncer->GetModules();
+
+	for (i = 0; i < Modules->GetLength(); i++) {
+		(*Modules)[i]->DetachClient(GetUsername());
+	}
+
+	if (m_IRC != NULL && m_Clients.GetLength() == 0) {
+		DropModes = CacheGetString(m_ConfigCache, dropmodes);
+
+		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL) {
+			m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
+		}
+
+		AwayNick = CacheGetString(m_ConfigCache, awaynick);
+
+		if (AwayNick != NULL) {
+			m_IRC->WriteLine("NICK %s", AwayNick);
+		}
+
+		AwayText = CacheGetString(m_ConfigCache, away);
+
+		if (AwayText != NULL) {
+			if (!GetAppendTimestamp()) {
+				m_IRC->WriteLine("AWAY :%s", AwayText);
+			} else {
+				Timestamp = FormatTime(g_CurrentTime);
+
+				m_IRC->WriteLine("AWAY :%s (Away since %s)", AwayText, Timestamp);
+			}
+		}
+	}
+
+	BestClient = NULL;
+
+	for (a = m_Clients.GetLength() - 1; a >= 0 ; a--) {
+		if (m_Clients[a].Client == Client) {
+			m_Clients.Remove(a);
+
+			continue;
+		}
+
+		if (BestClient == NULL || m_Clients[i].Creation > BestClient->Creation) {
+			BestClient = m_Clients.GetAddressOf(a);
+		}
+	}
+
+	if (BestClient != NULL) {
+		m_PrimaryClient = BestClient->Client;
+	} else {
+		m_PrimaryClient = NULL;
+	}
+}
+
+/**
+ * GetClientConnections
+ *
+ * Returns the client connections for this user.
+ */
+CVector<client_t> *CUser::GetClientConnections(void) {
+	return &m_Clients;
+}
+
+#if 0
 /**
  * SetClientConnection
  *
@@ -871,6 +1009,7 @@ void CUser::SetClientConnection(CClientConnection *Client, bool DontSetAway) {
 		}
 	}
 }
+#endif
 
 /**
  * SetAdmin
@@ -1196,7 +1335,7 @@ const char *CUser::GetAwayNick(void) const {
 void CUser::SetAwayNick(const char *Nick) {
 	USER_SETFUNCTION(awaynick, Nick);
 
-	if (m_Client == NULL && m_IRC != NULL) {
+	if (m_Clients.GetLength() == 0 && m_IRC != NULL) {
 		m_IRC->WriteLine("NICK :%s", Nick);
 	}
 }
@@ -1213,7 +1352,7 @@ const char *CUser::GetAwayText(void) const {
 void CUser::SetAwayText(const char *Reason) {
 	USER_SETFUNCTION(away, Reason);
 
-	if (m_Client == NULL && m_IRC != NULL) {
+	if (m_Clients.GetLength() == 0 && m_IRC != NULL) {
 		m_IRC->WriteLine("AWAY :%s", Reason);
 	}
 }

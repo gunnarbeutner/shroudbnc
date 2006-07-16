@@ -225,7 +225,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 	free(Nick);
 
-	Client = GetOwner()->GetClientConnection();
+	Client = GetOwner()->GetClientConnectionMultiplexer();
 
 	// HASH values
 	CHashCompare hashRaw(argv[1]);
@@ -479,10 +479,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
 			}
 
-			CClientConnection *Client;
 			const char *ClientNick;
-
-			Client = GetOwner()->GetClientConnection();
 
 			if (Client != NULL) {
 				ClientNick = Client->GetNick();
@@ -832,7 +829,7 @@ void CIRCConnection::ParseLine(const char *Line) {
 			if (m_State != State_Connected) {
 				m_State = State_Pong;
 
-				if (GetOwner()->GetClientConnection() == NULL) {
+				if (GetOwner()->GetClientConnectionMultiplexer() == NULL) {
 					WriteLine("VERSION");
 				}
 			}
@@ -840,7 +837,7 @@ void CIRCConnection::ParseLine(const char *Line) {
 			CUser *User = GetOwner();
 
 			if (User) {
-				CClientConnection *Client = User->GetClientConnection();
+				CClientConnection *Client = User->GetClientConnectionMultiplexer();
 
 				if (Client != NULL) {
 					Client->WriteLine("%s", Line);
@@ -1505,7 +1502,7 @@ const char *CIRCConnection::GetSite(void) const {
  */
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef USESSL
-	GetOwner()->Privmsg(Context->cert->name);
+	GetOwner()->GetClientConnectionMultiplexer()->Privmsg(Context->cert->name);
 #endif
 
 	return 1;

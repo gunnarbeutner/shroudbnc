@@ -73,21 +73,21 @@ public:
 
 	virtual void ParseLine(const char *Line);
 
-	const char *GetNick(void) const;
-	const char *GetPeerName(void) const;
+	virtual const char *GetNick(void) const;
+	virtual const char *GetPeerName(void) const;
 
 	virtual void Kill(const char *Error);
 	virtual void Destroy(void);
 
-	commandlist_t *GetCommandList(void);
+	virtual commandlist_t *GetCommandList(void);
 
-//	void SetPreviousNick(const char *Nick);
-//	const char *GetPreviousNick(void) const;
+	virtual SOCKET Hijack(void);
 
-	SOCKET Hijack(void);
+	virtual void ChangeNick(const char *NewNick);
+	virtual void SetNick(const char *NewNick);
 
-	void ChangeNick(const char *NewNick);
-	void SetNick(const char *NewNick);
+	virtual void Privmsg(const char *Text);
+	virtual void RealNotice(const char *Text);
 };
 
 #ifdef SBNC

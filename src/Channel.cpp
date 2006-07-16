@@ -195,7 +195,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				SetModesValid(false);
 
 				// update modes immediatelly if we don't have a client
-				if (GetUser()->GetClientConnection() == NULL) {
+				if (GetUser()->GetClientConnectionMultiplexer() == NULL) {
 					GetOwner()->WriteLine("MODE %s", m_Name);
 				}
 			}
@@ -562,13 +562,13 @@ bool CChannel::HasBans(void) const {
  * Sends a /who reply from the cache. The client connection is left in an
  * undetermined state if Simulate is false and false is returned by the function.
  *
+ * @param Client the client
  * @param Simulate determines whether to simulate the operation
  */
-bool CChannel::SendWhoReply(bool Simulate) const {
+bool CChannel::SendWhoReply(CClientConnection *Client, bool Simulate) const {
 	char CopyIdent[50];
 	char *Ident, *Host, *Site;
 	const char *Server, *Realname, *SiteTemp;
-	CClientConnection *Client = GetUser()->GetClientConnection();
 
 	if (Client == NULL) {
 		return true;

@@ -44,6 +44,7 @@ static struct reslimit_s {
 		{ "channels", 50 },
 		{ "bans", 100 },
 		{ "keys", 50 },
+		{ "clients", 5 },
 		{ NULL, 0 }
 	};
 
@@ -624,7 +625,7 @@ void CCore::GlobalNotice(const char *Text) {
 	unsigned int i = 0;
 
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		User->Value->Privmsg(Text);
+		User->Value->GetClientConnectionMultiplexer()->Privmsg(Text);
 	}
 }
 
@@ -881,8 +882,8 @@ void CCore::Log(const char *Format, ...) {
 	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *User = m_AdminUsers.Get(i);
 
-		if (User->GetSystemNotices()) {
-			User->Privmsg(Out);
+		if (User->GetSystemNotices() && User->GetClientConnectionMultiplexer() != NULL) {
+			User->GetClientConnectionMultiplexer()->Privmsg(Out);
 		}
 	}
 
@@ -917,8 +918,8 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
 	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *ThisUser = m_AdminUsers[i];
 
-		if (ThisUser->GetSystemNotices()) {
-			ThisUser->Privmsg(Out);
+		if (ThisUser->GetSystemNotices() && ThisUser->GetClientConnectionMultiplexer()) {
+			ThisUser->GetClientConnectionMultiplexer()->Privmsg(Out);
 
 			if (ThisUser == User) {
 				DoneUser = true;
@@ -926,8 +927,8 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
 		}
 	}
 
-	if (!DoneUser) {
-		User->Privmsg(Out);
+	if (!DoneUser && User->GetClientConnectionMultiplexer() != NULL) {
+		User->GetClientConnectionMultiplexer()->Privmsg(Out);
 	}
 
 	free(Out);
@@ -1651,7 +1652,7 @@ const char *CCore::DebugImpulse(int impulse) {
 		unsigned int diff;
 
 		while ((User = g_Bouncer->GetUsers()->Iterate(i++)) != NULL) {
-			if (User->Value->GetClientConnection() == NULL && User->Value->GetIRCConnection() != NULL) {
+			if (User->Value->GetClientConnectionMultiplexer() == NULL && User->Value->GetIRCConnection() != NULL) {
 				CIRCConnection *IRC = User->Value->GetIRCConnection();
 
 #ifndef _WIN32
@@ -1718,7 +1719,7 @@ bool CCore::Freeze(CAssocArray *Box) {
 		char *Username = strdup(User->Name);
 
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
-		CClientConnection *Client = User->Value->GetClientConnection();
+		CClientConnection *Client = User->Value->GetClientConnectionMultiplexer();
 
 		if (IRC != NULL) {
 			FreezeObject<CIRCConnection>(IRCBox, Username, IRC);
@@ -1776,10 +1777,10 @@ bool CCore::Thaw(CAssocArray *Box) {
 		Client = ThawObject<CClientConnection>(ClientsBox, User->Name, User->Value);
 
 		if (Client != NULL) {
-			User->Value->SetClientConnection(Client);
+			User->Value->AddClientConnection(Client);
 
 			if (User->Value->IsAdmin()) {
-				User->Value->Privmsg("shroudBNC was reloaded.");
+				User->Value->GetClientConnectionMultiplexer()->Privmsg("shroudBNC was reloaded.");
 			}
 		}
 	}
