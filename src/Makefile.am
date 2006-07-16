@@ -12,6 +12,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	User.cpp \
 	Channel.cpp \
 	ClientConnection.cpp \
+	ClientConnectionMultiplexer.cpp \
 	Connection.cpp \
 	DnsEvents.cpp \
 	FIFOBuffer.cpp \
@@ -37,6 +38,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Cache.h \
 	Channel.h \
 	ClientConnection.h \
+	ClientConnectionMultiplexer.h \
 	Connection.h \
 	DnsEvents.h \
 	FIFOBuffer.h \
