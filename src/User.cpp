@@ -789,6 +789,7 @@ void CUser::AddClientConnection(CClientConnection *Client) {
 	client_t OldestClient;
 
 	if (m_Clients.GetLength() > 0 && m_Clients.GetLength() >= g_Bouncer->GetResourceLimit("clients", this)) {
+		/* TODO: got to cheat here if another client has the same TS */
 		OldestClient.Creation = g_CurrentTime + 1;
 
 		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {

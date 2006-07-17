@@ -251,6 +251,7 @@ class CTclSupport : public CModuleImplementation {
 			argvdup = Utils->ArgDupArray(argv);
 			Utils->ArgRejoinArray(argvdup, 1);
 
+			g_CurrentClient = Client;
 			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argvdup[1], -1, &dsScript), -1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
 
 			Utils->ArgFreeArray(argvdup);

@@ -52,14 +52,87 @@ void die(void) {
 }
 
 void setctx(const char *ctx) {
+	char *Suffix;
+	CUser *User;
+	unsigned int i;
+	time_t TS;
+	char *CtxDup;
+
 	free(g_Context);
 
-	g_Context = ctx ? strdup(ctx) : NULL;
 	g_CurrentClient = NULL;
+
+	if (ctx != NULL) {
+		CtxDup = strdup(ctx);
+
+		Suffix = strchr(CtxDup, '<');
+
+		if (Suffix != NULL) {
+			*Suffix = '\0';
+			Suffix++;
+
+			User = g_Bouncer->GetUser(CtxDup);
+
+			if (User != NULL) {
+				if (*Suffix == '*') {
+					g_CurrentClient = User->GetClientConnectionMultiplexer();
+				} else if (*Suffix == '0') {
+					g_CurrentClient = User->GetPrimaryClientConnection();
+				} else {
+					TS = atoi(Suffix);
+
+					g_CurrentClient = NULL;
+
+					for (i = 0; i < User->GetClientConnections()->GetLength(); i++) {
+						if (User->GetClientConnections()->Get(i).Creation == TS) {
+							g_CurrentClient = User->GetClientConnections()->Get(i).Client;
+
+							break;
+						}
+					}
+				}
+			}
+
+			g_Context = strdup(CtxDup);
+		} else {
+			g_Context = NULL;
+		}
+
+		free(CtxDup);
+	}
 }
 
 const char *getctx(void) {
-	return g_Context;
+	static char *Context = NULL;
+	unsigned int i;
+	CUser *User;
+	time_t TS;
+
+	g_free(Context);
+
+	if (g_CurrentClient != NULL) {
+		User = g_CurrentClient->GetOwner();
+
+		if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {
+			g_asprintf(&Context, "%s<*", g_Context);
+		} else {
+			TS = 0;
+
+			for (i = 0; i < User->GetClientConnections()->GetLength(); i++) {
+				if (User->GetClientConnections()->Get(i).Client == g_CurrentClient) {
+					TS = User->GetClientConnections()->Get(i).Creation;
+
+					break;
+				}
+			}
+
+			g_asprintf(&Context, "%s<%d", g_Context, TS);
+		}
+	} else {
+		g_asprintf(&Context, "%s", g_Context);
+	}
+
+	return Context;
 }
 
 const char *bncuserlist(void) {

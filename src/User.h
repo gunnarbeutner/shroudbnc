@@ -69,6 +69,8 @@ typedef struct client_s {
 	CClientConnection *Client;
 } client_t;
 
+template class SBNCAPI CVector<client_t>;
+
 /**
  * badlogin_t
  *

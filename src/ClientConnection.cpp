@@ -1607,12 +1607,32 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 			Site = GetOwner()->GetIRCConnection()->GetSite();
 
+			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
+				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(), Site, GetOwner()->GetNick(), argv[2]);
+
+				return false;
+			}
+
 			for (unsigned int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
 					sockaddr *Remote = (*Clients)[i].Client->GetRemoteAddress();
 
 					(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :(-> Your client from %s[%s] replied:) %s", argv[1], GetOwner()->GetNick(), (*Clients)[i].Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown", argv[2]);
 				}
+			}
+		} else if (argc > 2 && strcasecmp(Command, "notice") == 0) {
+			const char *Site;
+
+			if (GetOwner()->GetIRCConnection() == NULL) {
+				return false;
+			}
+
+			Site = GetOwner()->GetIRCConnection()->GetSite();
+
+			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
+				WriteLine(":%s!%s NOTICE %s :%s", GetOwner()->GetNick(), Site, GetOwner()->GetNick(), argv[2]);
+
+				return false;
 			}
 		} else if (strcasecmp(Command, "userhost") == 0) {
 			if (argc == 2 && strcasecmp(argv[1], m_Nick) == 0) {
