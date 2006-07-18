@@ -39,6 +39,7 @@ private:
 
 	bool Call(time_t Now);
 	static void RescheduleTimers(void);
+
 public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);

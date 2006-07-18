@@ -17,7 +17,7 @@
 
 set ::userport 7080
 
-catch [list listen $::userport script sbnc:telnet]
+catch [list listen $::userport script sbnc:telnet] error
 
 proc sbnc:telnet {socket} {
 	sbnc:telnetbanner $socket

@@ -18,7 +18,9 @@
 internalbind command qauth:commands
 internalbind svrlogon qauth:logon
 
-proc qauth:replyset {quser qpass qx} {
+proc qauth:replyset {ctx quser qpass qx} {
+	setctx $ctx
+
 	bncreply "quser - $quser"
 	bncreply "qpass - $qpass"
 	bncreply "qx - $qx"
@@ -45,7 +47,7 @@ proc qauth:commands {client params} {
 				set qx "Off"
 			}
 
-			utimer 0 [list qauth:replyset $quser $qpass $qx]
+			utimer 0 [list qauth:replyset [getctx 1] $quser $qpass $qx]
 
 			return
 		}

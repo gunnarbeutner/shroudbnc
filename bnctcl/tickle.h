@@ -72,5 +72,5 @@ extern CClientConnection *g_CurrentClient;
 
 void RestartInterpreter(void);
 void RehashInterpreter(void);
-void CallBinds(binding_type_e type, const char* user, int argc, const char** argv);
+void CallBinds(binding_type_e type, const char* user, CClientConnection* client, int argc, const char** argv);
 void SetLatchedReturnValue(bool Ret);

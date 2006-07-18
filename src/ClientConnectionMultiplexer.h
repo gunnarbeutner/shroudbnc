@@ -39,24 +39,7 @@ public:
 	virtual void Privmsg(const char *Text);
 	virtual void RealNotice(const char *Text);
 
+	virtual void Shutdown(void);
+
 	virtual void WriteUnformattedLine(const char *Line);
-
-	/**
-	 * operator new
-	 *
-	 * Overrides the base class new operator. CClientConnection's would not work
-	 * because CFakeClient objects are larger than CClientConnection objects.
-	 */
-	void *operator new (size_t Size) {
-		return malloc(Size);
-	}
-
-	/**
-	 * operator delete
-	 *
-	 * Overrides the base class new operator.
-	 */
-	void operator delete(void *Object) {
-		free(Object);
-	}
 };

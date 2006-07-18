@@ -1643,12 +1643,13 @@ _wrap_setctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 static int
 _wrap_getctx(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 = (int) 0 ;
     char *result;
     
-    if (SWIG_GetArgs(interp, objc, objv,":getctx ") == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"|i:getctx ?ts? ",&arg1) == TCL_ERROR) SWIG_fail;
     {
         try {
-            result = (char *)getctx();
+            result = (char *)getctx(arg1);
             
         } catch (const char *Description) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));

@@ -53,7 +53,7 @@ int Tcl_AppInit(Tcl_Interp *interp) {
 
 class CTclSupport : public CModuleImplementation {
 	void Destroy(void) {
-		CallBinds(Type_Unload, NULL, 0, NULL);
+		CallBinds(Type_Unload, NULL, NULL, 0, NULL);
 
 		Tcl_FreeEncoding(g_Encoding);
 
@@ -129,9 +129,9 @@ class CTclSupport : public CModuleImplementation {
 	bool InterceptIRCMessage(CIRCConnection* IRC, int argc, const char** argv) {
 		g_Ret = true;
 
-		CallBinds(Type_PreScript, NULL, 0, NULL);
-		CallBinds(Type_Server, IRC->GetOwner()->GetUsername(), argc, argv);
-		CallBinds(Type_PostScript, NULL, 0, NULL);
+		CallBinds(Type_PreScript, NULL, NULL, 0, NULL);
+		CallBinds(Type_Server, IRC->GetOwner()->GetUsername(), NULL, argc, argv);
+		CallBinds(Type_PostScript, NULL, NULL, 0, NULL);
 
 		return g_Ret;
 	}
@@ -139,49 +139,47 @@ class CTclSupport : public CModuleImplementation {
 	bool InterceptClientMessage(CClientConnection* Client, int argc, const char** argv) {
 		g_Ret = true;
 
-		g_CurrentClient = Client;
-
 		CUser* User = Client->GetOwner();
 
-		CallBinds(Type_PreScript, NULL, 0, NULL);
+		CallBinds(Type_PreScript, NULL, NULL, 0, NULL);
 
 		g_CurrentClient = Client;
-		CallBinds(Type_Client, User ? User->GetUsername() : "", argc, argv);
-		CallBinds(Type_PostScript, NULL, 0, NULL);
+		CallBinds(Type_Client, User ? User->GetUsername() : "", Client, argc, argv);
+		CallBinds(Type_PostScript, NULL, NULL, 0, NULL);
 
 		return g_Ret;
 	}
 
 	void AttachClient(const char* Client) {
-		CallBinds(Type_Attach, Client, 0, NULL);
+		CallBinds(Type_Attach, Client, NULL, 0, NULL);
 	}
 
 	void DetachClient(const char* Client) {
-		CallBinds(Type_Detach, Client, 0, NULL);
+		CallBinds(Type_Detach, Client, NULL, 0, NULL);
 	}
 
 	void ServerDisconnect(const char* Client) {
-		CallBinds(Type_SvrDisconnect, Client, 0, NULL);
+		CallBinds(Type_SvrDisconnect, Client, NULL, 0, NULL);
 	}
 
 	void ServerConnect(const char* Client) {
-		CallBinds(Type_SvrConnect, Client, 0, NULL);
+		CallBinds(Type_SvrConnect, Client, NULL, 0, NULL);
 	}
 
 	void ServerLogon(const char* Client) {
-		CallBinds(Type_SvrLogon, Client, 0, NULL);
+		CallBinds(Type_SvrLogon, Client, NULL, 0, NULL);
 	}
 
 	void UserLoad(const char* User) {
-		CallBinds(Type_UsrLoad, User, 0, NULL);
+		CallBinds(Type_UsrLoad, User, NULL, 0, NULL);
 	}
 
 	void UserCreate(const char* User) {
-		CallBinds(Type_UsrCreate, User, 0, NULL);
+		CallBinds(Type_UsrCreate, User, NULL, 0, NULL);
 	}
 
 	void UserDelete(const char* User) {
-		CallBinds(Type_UsrDelete, User, 0, NULL);
+		CallBinds(Type_UsrDelete, User, NULL, 0, NULL);
 	}
 
 	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
@@ -193,7 +191,7 @@ class CTclSupport : public CModuleImplementation {
 
 		const char* argv[4] = { Source, Channel, ModeC, Parameter };
 
-		CallBinds(Type_SingleMode, IRC->GetOwner()->GetUsername(), Parameter ? 4 : 3, argv);
+		CallBinds(Type_SingleMode, IRC->GetOwner()->GetUsername(), NULL, Parameter ? 4 : 3, argv);
 	}
 
 	const char* Command(const char* Cmd, const char* Parameters) {
@@ -220,7 +218,7 @@ class CTclSupport : public CModuleImplementation {
 
 		g_Ret = true;
 
-		CallBinds(Type_Command, Client->GetOwner()->GetUsername(), argc, argv);
+		CallBinds(Type_Command, Client->GetOwner()->GetUsername(), Client, argc, argv);
 
 		if (g_Ret && strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
 			commandlist_t *Commands = Client->GetCommandList();
@@ -304,7 +302,7 @@ class CTclSupport : public CModuleImplementation {
 
 		argv[0] = Tag;
 		argv[1] = Value;
-		CallBinds(Type_SetTag, NULL, 2, argv);
+		CallBinds(Type_SetTag, NULL, NULL, 2, argv);
 	}
 
 	void UserTagModified(const char *Tag, const char *Value) {
@@ -312,13 +310,13 @@ class CTclSupport : public CModuleImplementation {
 
 		argv[0] = Tag;
 		argv[1] = Value;
-		CallBinds(Type_SetUserTag, NULL, 2, argv);
+		CallBinds(Type_SetUserTag, NULL, NULL, 2, argv);
 	}
 public:
 	void RehashInterpreter(void) {
-		CallBinds(Type_PreRehash, NULL, 0, NULL);
+		CallBinds(Type_PreRehash, NULL, NULL, 0, NULL);
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
-		CallBinds(Type_PostRehash, NULL, 0, NULL);
+		CallBinds(Type_PostRehash, NULL, NULL, 0, NULL);
 	}
 };
 
@@ -335,7 +333,7 @@ void RehashInterpreter(void) {
 	g_Tcl->RehashInterpreter();
 }
 
-void CallBinds(binding_type_e type, const char* user, int argc, const char** argv) {
+void CallBinds(binding_type_e type, const char* user, CClientConnection *client, int argc, const char** argv) {
 	Tcl_Obj** listv;
 	CUser *User = NULL;
 
@@ -418,6 +416,8 @@ void CallBinds(binding_type_e type, const char* user, int argc, const char** arg
 				if (User != NULL) {
 					setctx(user);
 				}
+
+				g_CurrentClient = client;
 
 				Tcl_EvalObjv(g_Interp, idx, objv, TCL_EVAL_GLOBAL);
 

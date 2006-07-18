@@ -41,12 +41,14 @@ private:
 	char *m_PeerName; /**< the hostname of the user */
 	char *m_PeerNameTemp; /**< a temporary variable for the hostname */
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
-	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
 	bool m_NamesXSupport; /**< does this client support NAMESX? */
 	CDnsQuery *m_ClientLookup; /**< dns query for looking up the user's hostname */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
+
+protected:
+	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
 
 public:
 	void AsyncDnsFinishedClient(hostent *response);

@@ -20,6 +20,10 @@
 
 CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET) {
 	SetOwner(User);
+
+	if (m_AuthTimer != NULL) {
+		delete m_AuthTimer;
+	}
 }
 
 void CClientConnectionMultiplexer::ParseLine(const char *Line) {
@@ -34,7 +38,11 @@ const char *CClientConnectionMultiplexer::GetPeerName(void) const {
 }
 
 void CClientConnectionMultiplexer::Kill(const char *Error) {
+	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
+	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+		(*Clients)[i].Client->Kill(Error);
+	}
 }
 
 void CClientConnectionMultiplexer::Destroy(void) {
@@ -87,4 +95,8 @@ void CClientConnectionMultiplexer::WriteUnformattedLine(const char *Line) {
 	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
 		(*Clients)[i].Client->WriteLine(Line);
 	}
+}
+
+void CClientConnectionMultiplexer::Shutdown(void) {
+
 }

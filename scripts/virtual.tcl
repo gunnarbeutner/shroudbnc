@@ -131,6 +131,8 @@ proc virtual:getmaxbncs {group} {
 }
 
 proc virtual:cmd:who {account parameters} {
+	set accts [getctx 1]
+
 	if {[getbncuser $account admin]} {
 		set group [lindex $parameters 1]
 	} else {
@@ -186,7 +188,7 @@ proc virtual:cmd:who {account parameters} {
 
 			append out " :[getbncuser $user realname]"
 
-			setctx $account
+			setctx $accts
 			bncreply $out
 		}
 	}

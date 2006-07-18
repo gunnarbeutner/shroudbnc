@@ -74,7 +74,7 @@ int internalbind(const char* type, const char* proc, const char* pattern = 0, co
 int internalunbind(const char* type, const char* proc, const char* pattern = 0, const char* user = 0);
 
 void setctx(const char* ctx);
-const char* getctx(void);
+const char* getctx(int ts = 0);
 
 const char* bncuserlist(void);
 const char* getbncuser(const char* User, const char* Type, const char* Parameter2 = 0);

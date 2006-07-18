@@ -62,6 +62,10 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
+	m_SSLContext = NULL;
+
+	m_Status = STATUS_RUN;
+
 	CacheInitialize(m_ConfigCache, Config, "system.");
 
 	char *SourcePath = strdup(BuildPath("sbnc.log"));
@@ -152,12 +156,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 		}
 	}
 
-	m_Status = STATUS_RUN;
-
 	m_LoadingModules = false;
 	m_LoadingListeners = false;
-
-	m_SSLContext = NULL;
 }
 
 /**

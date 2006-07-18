@@ -229,6 +229,12 @@ proc tclient:line {idx line} {
 		}
 	}
 
+	if {$sessionobj == ""} {
+		return
+	}
+
+	setctx "$user<*"
+
 	if {$line == ""} {
 		tclient:disconnect [lindex $sessionobj 0]
 

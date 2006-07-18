@@ -95,14 +95,14 @@ void setctx(const char *ctx) {
 
 			g_Context = strdup(CtxDup);
 		} else {
-			g_Context = NULL;
+			g_Context = strdup(ctx);
 		}
 
 		free(CtxDup);
 	}
 }
 
-const char *getctx(void) {
+const char *getctx(int ts) {
 	static char *Context = NULL;
 	unsigned int i;
 	CUser *User;
@@ -110,7 +110,7 @@ const char *getctx(void) {
 
 	g_free(Context);
 
-	if (g_CurrentClient != NULL) {
+	if (g_CurrentClient != NULL && ts) {
 		User = g_CurrentClient->GetOwner();
 
 		if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {

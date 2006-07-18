@@ -80,7 +80,10 @@ bool CTimer::Call(time_t Now) {
 
 	if (m_Interval != 0) {
 		ThisCall = m_Next;
-		Reschedule(Now + m_Interval);
+
+		if (m_Repeat) {
+			Reschedule(Now + m_Interval);
+		}
 	}
 
 	if (m_Proc == NULL) {
@@ -95,7 +98,7 @@ bool CTimer::Call(time_t Now) {
 
 	ReturnValue = m_Proc(ThisCall, m_Cookie);
 
-	if (ReturnValue == false || m_Repeat == false) {
+	if (!ReturnValue || !m_Repeat) {
 		Destroy();
 
 		return false;
@@ -162,7 +165,7 @@ void CTimer::CallTimers(void) {
 	for (CListCursor<CTimer *> TimerCursor(g_Timers); TimerCursor.IsValid(); TimerCursor.Proceed()) {
 		if (g_CurrentTime >= (*TimerCursor)->m_Next) {
 			(*TimerCursor)->Call(g_CurrentTime);
-		} else if ((*TimerCursor)->m_Next < g_NextCall) {
+		} else if ((*TimerCursor)->m_Next < g_NextCall || g_NextCall == 0) {
 			g_NextCall = (*TimerCursor)->m_Next;
 		}
 	}
