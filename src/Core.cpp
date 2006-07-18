@@ -1405,22 +1405,18 @@ const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	int a = 0;
 	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
-	while (Current != NULL) {
-		if (Current->Value.PollFd->fd == INVALID_SOCKET) {
-			Current = Current->Next;
-
+	for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+		if ((*SocketCursor).PollFd->fd == INVALID_SOCKET) {
 			continue;
 		}
 
-		if (strcmp(Current->Value.Events->GetClassName(), Class) == 0) {
+		if (strcmp((*SocketCursor).Events->GetClassName(), Class) == 0) {
 			a++;
 		}
 
 		if (a - 1 == Index) {
-			return &(Current->Value);
+			return &(*SocketCursor);
 		}
-
-		Current = Current->Next;
 	}
 
 	return NULL;
