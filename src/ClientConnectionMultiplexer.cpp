@@ -93,7 +93,7 @@ void CClientConnectionMultiplexer::WriteUnformattedLine(const char *Line) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
 	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
-		(*Clients)[i].Client->WriteUnformattedLine(Line);
+		(*Clients)[i].Client->WriteLine("%s", Line);
 	}
 }
 
