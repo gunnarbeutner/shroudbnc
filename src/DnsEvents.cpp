@@ -50,11 +50,11 @@ bool DestroyDnsChannelTimer(time_t Now, void *Cookie) {
 void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
-	Query->AsyncDnsEvent(Status, HostEntity);
-
 	if (Query->m_ChannelDestructionTimer == NULL) {
 		Query->m_ChannelDestructionTimer = new CTimer(5, false, DestroyDnsChannelTimer, Cookie);
 	}
+
+	Query->AsyncDnsEvent(Status, HostEntity);
 }
 
 /**
