@@ -24,6 +24,7 @@ variables.tcl \
 version.tcl \
 vhost.tcl \
 virtual.tcl \
+telnet.tcl \
 telnetclient.tcl \
 iface.tcl
 

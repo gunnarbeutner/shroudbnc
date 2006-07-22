@@ -496,11 +496,11 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 
 	FakeClient->ParseLine(CommandDup);
 
-	FakeClient->SetOwner(OldOwner);
-
 	if (!FakeWasRegistered) {
 		RemoveClientConnection(FakeClient);
 	}
+
+	FakeClient->SetOwner(OldOwner);
 
 	if (FakeWasNull) {
 		FakeClient->Destroy();
