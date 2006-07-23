@@ -200,8 +200,8 @@ public:
 	void SetIRCConnection(CIRCConnection *IRC);
 //	void SetClientConnection(CClientConnection *Client, bool DontSetAway = false);
 
-	void AddClientConnection(CClientConnection *Client);
-	void RemoveClientConnection(CClientConnection *Client);
+	void AddClientConnection(CClientConnection *Client, bool Silent = false);
+	void RemoveClientConnection(CClientConnection *Client, bool Silent = false);
 	bool IsRegisteredClientConnection(CClientConnection *Client);
 	CVector<client_t> *GetClientConnections(void);
 

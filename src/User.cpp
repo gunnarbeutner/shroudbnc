@@ -488,7 +488,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	FakeClient->SetOwner(this);
 
 	if (!IsRegisteredClientConnection(FakeClient)) {
-		AddClientConnection(FakeClient);
+		AddClientConnection(FakeClient, true);
 		FakeWasRegistered = false;
 	} else {
 		FakeWasRegistered = true;
@@ -497,7 +497,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	FakeClient->ParseLine(CommandDup);
 
 	if (!FakeWasRegistered) {
-		RemoveClientConnection(FakeClient);
+		RemoveClientConnection(FakeClient, true);
 	}
 
 	FakeClient->SetOwner(OldOwner);
@@ -779,8 +779,9 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
  * Adds a new client connection for this user.
  *
  * @param Client the new client
+ * @param Silent whether to silently add the new client
  */
-void CUser::AddClientConnection(CClientConnection *Client) {
+void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	sockaddr *Remote;
 	client_t ClientT;
 	unsigned int i;
@@ -805,7 +806,9 @@ void CUser::AddClientConnection(CClientConnection *Client) {
 
 	Remote = Client->GetRemoteAddress();
 
-	g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+	if (!Silent) {
+		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+	}
 
 	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 
@@ -822,10 +825,12 @@ void CUser::AddClientConnection(CClientConnection *Client) {
 
 	Client->SetTrafficStats(m_ClientStats);
 
-	Modules = g_Bouncer->GetModules();
+	if (!Silent) {
+		Modules = g_Bouncer->GetModules();
 
-	for (i = 0; i < Modules->GetLength(); i++) {
-		(*Modules)[i]->AttachClient(GetUsername());
+		for (i = 0; i < Modules->GetLength(); i++) {
+			(*Modules)[i]->AttachClient(GetUsername());
+		}
 	}
 
 	asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
@@ -849,8 +854,9 @@ void CUser::AddClientConnection(CClientConnection *Client) {
  * Removes a client connection for this user.
  *
  * @param Client the client which is to be removed.
+ * @param Silent whether to silently remove the client
  */
-void CUser::RemoveClientConnection(CClientConnection *Client) {
+void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	const char *AwayMessage, *DropModes, *AwayNick, *AwayText, *Timestamp;
 	hash_t<CChannel *> *Channel;
 	const CVector<CModule *> *Modules;
@@ -860,7 +866,9 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 	sockaddr *Remote;
 	char *InfoPrimary, *Info;
 
-	g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
+	if (!Silent) {
+		g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
+	}
 
 	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 
@@ -884,10 +892,12 @@ void CUser::RemoveClientConnection(CClientConnection *Client) {
 		}
 	}
 
-	Modules = g_Bouncer->GetModules();
+	if (!Silent) {
+		Modules = g_Bouncer->GetModules();
 
-	for (i = 0; i < Modules->GetLength(); i++) {
-		(*Modules)[i]->DetachClient(GetUsername());
+		for (i = 0; i < Modules->GetLength(); i++) {
+			(*Modules)[i]->DetachClient(GetUsername());
+		}
 	}
 
 	if (m_IRC != NULL && m_Clients.GetLength() == 0) {

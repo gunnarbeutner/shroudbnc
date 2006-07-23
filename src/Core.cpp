@@ -440,22 +440,6 @@ void CCore::StartMainLoop(void) {
 
 		CUser::RescheduleReconnectTimer();
 
-		for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
-			if (SocketCursor->PollFd->fd == INVALID_SOCKET) {
-				continue;
-			}
-
-			if (SocketCursor->Events->ShouldDestroy()) {
-				SocketCursor->Events->Destroy();
-			} else {
-				SocketCursor->PollFd->events = POLLIN | POLLERR;
-
-				if (SocketCursor->Events->HasQueuedData()) {
-					SocketCursor->PollFd->events |= POLLOUT;
-				}
-			}
-		}
-
 		time(&Now);
 
 		if (g_CurrentTime - 5 > Now) {
@@ -481,6 +465,22 @@ void CCore::StartMainLoop(void) {
 		}
 
 		SleepInterval = Best - g_CurrentTime;
+
+		for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
+			if (SocketCursor->PollFd->fd == INVALID_SOCKET) {
+				continue;
+			}
+
+			if (SocketCursor->Events->ShouldDestroy()) {
+				SocketCursor->Events->Destroy();
+			} else {
+				SocketCursor->PollFd->events = POLLIN | POLLERR;
+
+				if (SocketCursor->Events->HasQueuedData()) {
+					SocketCursor->PollFd->events |= POLLOUT;
+				}
+			}
+		}
 
 		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE)) {
 			SleepInterval = 1;
@@ -1715,7 +1715,7 @@ bool CCore::Freeze(CAssocArray *Box) {
 		char *Username = strdup(User->Name);
 
 		CIRCConnection *IRC = User->Value->GetIRCConnection();
-		CClientConnection *Client = User->Value->GetClientConnectionMultiplexer();
+		CClientConnection *Client = User->Value->GetPrimaryClientConnection();
 
 		if (IRC != NULL) {
 			FreezeObject<CIRCConnection>(IRCBox, Username, IRC);
@@ -1776,7 +1776,7 @@ bool CCore::Thaw(CAssocArray *Box) {
 			User->Value->AddClientConnection(Client);
 
 			if (User->Value->IsAdmin()) {
-				User->Value->GetClientConnectionMultiplexer()->Privmsg("shroudBNC was reloaded.");
+				Client->Privmsg("shroudBNC was reloaded.");
 			}
 		}
 	}

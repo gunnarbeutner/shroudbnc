@@ -20,24 +20,6 @@
 #include "StdAfx.h"
 
 /**
- * DestroyDnsChannelTimer
- *
- * Asynchronously destroys an ARES channel.
- *
- * @param Now the current time
- * @param Cookie the CDnsQuery object
- */
-bool DestroyDnsChannelTimer(time_t Now, void *Cookie) {
-	CDnsQuery *Query = (CDnsQuery *)Cookie;
-
-	Query->DestroyChannel();
-
-	Query->m_ChannelDestructionTimer = NULL;
-
-	return false;
-}
-
-/**
  * GenericDnsQueryCallback
  *
  * Used as a thunk between c-ares' C-style callbacks and shroudBNC's
@@ -50,11 +32,13 @@ bool DestroyDnsChannelTimer(time_t Now, void *Cookie) {
 void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 	CDnsQuery *Query = (CDnsQuery *)Cookie;
 
-	if (Query->m_ChannelDestructionTimer == NULL) {
-		Query->m_ChannelDestructionTimer = new CTimer(5, false, DestroyDnsChannelTimer, Cookie);
-	}
-
 	Query->AsyncDnsEvent(Status, HostEntity);
+
+	Query->m_PendingQueries--;
+
+	if (Query->m_PendingQueries == 0) {
+		Query->DestroyChannel();
+	}
 }
 
 /**
@@ -74,9 +58,9 @@ CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int T
 	m_Timeout = Timeout;
 	m_EventObject = EventInterface;
 	m_EventFunction = EventFunction;
-	m_ChannelDestructionTimer = NULL;
 
 	m_Channel = NULL;
+	m_PendingQueries = 0;
 }
 
 /**
@@ -115,8 +99,6 @@ void CDnsQuery::DestroyChannel(void) {
  * Destructs a DNS query object.
  */
 CDnsQuery::~CDnsQuery(void) {
-	delete m_ChannelDestructionTimer;
-
 	DestroyChannel();
 }
 
@@ -131,6 +113,7 @@ CDnsQuery::~CDnsQuery(void) {
  */
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
 	InitChannel();
+	m_PendingQueries++;
 	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, this);
 }
 
@@ -156,6 +139,7 @@ void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 #endif
 
 	InitChannel();
+	m_PendingQueries++;
 	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
 }
 

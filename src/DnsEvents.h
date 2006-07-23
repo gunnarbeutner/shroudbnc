@@ -40,7 +40,7 @@ class SBNCAPI CDnsQuery {
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
 	ares_channel m_Channel; /**< the ares channel object */
 	time_t m_Timeout; /**< timeout for the dns query (in seconds) */
-	CTimer *m_ChannelDestructionTimer; /**< timer which is used for destroying the channel */
+	unsigned int m_PendingQueries; /**< number of pending queries */
 
 	void InitChannel(void);
 	void DestroyChannel(void);
