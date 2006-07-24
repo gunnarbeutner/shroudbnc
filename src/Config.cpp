@@ -86,6 +86,10 @@ bool CConfig::ParseConfig(void) {
 	while (feof(ConfigFile) == 0) {
 		fgets(Line, LineLength, ConfigFile);
 
+		if (strlen(Line) == 0) {
+			continue;
+		}
+
 		if (Line[strlen(Line) - 1] == '\n') {
 			Line[strlen(Line) - 1] = '\0';
 		}
@@ -94,7 +98,7 @@ bool CConfig::ParseConfig(void) {
 			Line[strlen(Line) - 1] = '\0';
 		}
 
-		char *Eq = strstr(Line, "=");
+		char *Eq = strchr(Line, '=');
 
 		if (Eq != NULL) {
 			*Eq = '\0';

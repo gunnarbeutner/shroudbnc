@@ -81,11 +81,19 @@ void CDnsQuery::InitChannel(void) {
  * Destroys the ARES channel.
  */
 void CDnsQuery::DestroyChannel(void) {
+	DnsEventFunction Function;
+
 	if (m_Channel != NULL) {
+		Function = m_EventFunction;
+		m_EventFunction = NULL;
 		ares_destroy(m_Channel);
+		m_EventFunction = Function;
+
 		m_Channel = NULL;
 
 		g_Bouncer->UnregisterDnsQuery(this);
+
+		m_PendingQueries = 0;
 	}
 }
 
@@ -158,7 +166,9 @@ ares_channel CDnsQuery::GetChannel(void) {
  * @param Response the response for the dns query
  */
 void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
-	(*m_EventFunction)(m_EventObject, Response);
+	if (m_EventFunction != NULL) {
+		(*m_EventFunction)(m_EventObject, Response);
+	}
 }
 
 /**
