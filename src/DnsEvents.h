@@ -51,6 +51,7 @@ public:
 	void GetHostByName(const char *Host, int Family = AF_INET);
 	void GetHostByAddr(sockaddr *Address);
 	ares_channel GetChannel(void);
+	void Cleanup(void);
 };
 
 /**

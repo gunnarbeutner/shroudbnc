@@ -515,6 +515,8 @@ void CCore::StartMainLoop(void) {
 			ares_channel Channel = m_DnsQueries[i]->GetChannel();
 
 			ares_process(Channel);
+
+			m_DnsQueries[i]->Cleanup();
 		}
 
 		if (ready > 0) {

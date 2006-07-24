@@ -35,10 +35,6 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 	Query->AsyncDnsEvent(Status, HostEntity);
 
 	Query->m_PendingQueries--;
-
-	if (Query->m_PendingQueries == 0) {
-		Query->DestroyChannel();
-	}
 }
 
 /**
@@ -163,4 +159,15 @@ ares_channel CDnsQuery::GetChannel(void) {
  */
 void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
 	(*m_EventFunction)(m_EventObject, Response);
+}
+
+/**
+ * Cleanup
+ *
+ * Cleans up unused channels.
+ */
+void CDnsQuery::Cleanup(void) {
+	if (m_PendingQueries == 0 && m_Channel != NULL) {
+		DestroyChannel();
+	}
 }
