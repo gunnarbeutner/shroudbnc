@@ -109,12 +109,18 @@ proc iface:setvalue {setting value} {
 
 registerifacecmd "core" "setvalue" "iface:setvalue"
 
-proc iface:getlog {} {
+proc iface:getlog {from to} {
 	set file [open "users/[getctx].log" r]
 	set stuff [read $file]
 	close $file
 
-	return [iface:list [split $stuff \n]]
+	set lines [split $stuff \n]
+
+	if {$from == -1 && $to == -1} {
+		return [iface:list [lrange $lines $from $to]
+	} else {
+		return [iface:list $lines]
+	}
 }
 
 registerifacecmd "core" "getlog" "iface:getlog"
@@ -178,12 +184,18 @@ proc iface:getuserlist {} {
 
 registerifacecmd "core" "getuserlist" "iface:getuserlist" "access:admin"
 
-proc iface:getmainlog {} {
+proc iface:getmainlog {from to} {
 	set file [open sbnc.log r]
 	set stuff [read $file]
 	close $file
 
-	return [iface:list [split $stuff \n]]
+	set lines [split $stuff \n]
+
+	if {$from == -1 && $to == -1} {
+		return [iface:list $lines]
+	} else {
+		return [iface:list [lrange $lines $from $to]]
+	}
 }
 
 registerifacecmd "core" "getmainlog" "iface:getmainlog" "access:admin"

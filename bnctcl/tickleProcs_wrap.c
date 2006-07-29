@@ -2588,18 +2588,27 @@ _wrap_bnccommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 static int
 _wrap_md5(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) NULL ;
     char *result;
     Tcl_DString ds_1 ;
     bool ds_use_1 = false ;
+    Tcl_DString ds_2 ;
+    bool ds_use_2 = false ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"o:md5 String ",(void *)0) == TCL_ERROR) SWIG_fail;
+    if (SWIG_GetArgs(interp, objc, objv,"o|o:md5 String ?Salt? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
     {
         ds_use_1 = true;
         arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
     }
+    if (objc > 2) {
+        {
+            ds_use_2 = true;
+            arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+        }
+    }
     {
         try {
-            result = (char *)md5((char const *)arg1);
+            result = (char *)md5((char const *)arg1,(char const *)arg2);
             
         } catch (const char *Description) {
             SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
@@ -2615,11 +2624,19 @@ _wrap_md5(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         if (ds_use_1)
         Tcl_DStringFree(&ds_1);
     }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
+    }
     return TCL_OK;
     fail:
     {
         if (ds_use_1)
         Tcl_DStringFree(&ds_1);
+    }
+    {
+        if (ds_use_2)
+        Tcl_DStringFree(&ds_2);
     }
     return TCL_ERROR;
 }

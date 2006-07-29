@@ -15,7 +15,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#internalbind server sbnc:rawserver
 internalbind modec sbnc:modechange
 internalbind svrconnect sbnc:svrconnect
 internalbind svrdisconnect sbnc:svrdisconnect

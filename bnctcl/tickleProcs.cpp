@@ -1490,9 +1490,9 @@ const char* bnccommand(const char* Cmd, const char* Parameters) {
 	return NULL;
 }
 
-const char* md5(const char* String) {
+const char* md5(const char* String, const char *Salt) {
 	if (String)
-		return g_Bouncer->MD5(String);
+		return g_Bouncer->MD5(String, Salt);
 	else
 		return NULL;
 }

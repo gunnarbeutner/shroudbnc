@@ -175,7 +175,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			AddCommand(&m_CommandList, "insmod", "Admin", "loads a module",
 				"Syntax: insmod <filename>\nLoads a module.");
 			AddCommand(&m_CommandList, "rmmod", "Admin", "unloads a module",
-				"Syntax: rmmod <index>\nUnloads a module. Use the \"lsmod\" command to list all modules.");
+				"Syntax: rmmod <index>\nUnloads a module. Use the \"lsmod\" command to view a list of loaded modules.");
 			AddCommand(&m_CommandList, "simul", "Admin", "simulates a command on another user's connection",
 				"Syntax: simul <username> <command>\nExecutes a command in another user's context.");
 			AddCommand(&m_CommandList, "global", "Admin", "sends a global notice to all bouncer users",
@@ -354,7 +354,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && GetOwner()->IsAdmin()) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			asprintf(&Out, "%d: %x %s", i + 1, (*Modules)[i]->GetHandle(), (*Modules)[i]->GetFilename());
+			asprintf(&Out, "%d: %s", i + 1, (*Modules)[i]->GetFilename());
 
 			CHECK_ALLOC_RESULT(Out, asprintf) {
 				return false;

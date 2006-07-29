@@ -582,28 +582,92 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 }
 
 /**
- * UtilMd5
+ * UtilSaltedMd5
  *
  * Computes the MD5 hash of a given string and returns
  * a string representation of the hash.
  *
  * @param String the string which should be hashed
  */
-const char *UtilMd5(const char *String) {
+const char *UtilMd5(const char *String, const char *Salt) {
 	sMD5_CTX context;
-	static char Result[33];
 	unsigned char digest[16];
+	char *StringAndSalt, *StringPtr;
+	static char *SaltAndResult = NULL;
+
+	free(SaltAndResult);
+
+	if (Salt != NULL) {
+		asprintf(&StringAndSalt, "%s%s", String, Salt);
+	} else {
+		asprintf(&StringAndSalt, "%s", String);
+	}
 
 	MD5Init(&context);
-	MD5Update(&context, (unsigned char *)String, strlen(String));
+	MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
 	MD5Final(digest, &context);
+
+	free(StringAndSalt);
+
+	if (Salt != NULL) {
+		SaltAndResult = (char *)malloc(strlen(Salt) + 50);
+		strmcpy(SaltAndResult, Salt, strlen(Salt) + 50);
+		strmcat(SaltAndResult, "$", strlen(Salt) + 50);
+		StringPtr = SaltAndResult + strlen(SaltAndResult);
+	} else {
+		StringPtr = SaltAndResult = (char *)malloc(50);
+	}
 
 	for (int i = 0; i < 16; i++) {
 #undef sprintf
-		sprintf(Result + i * 2, "%02x", digest[i]);
+		sprintf(StringPtr + i * 2, "%02x", digest[i]);
 	}
 
-	return Result;
+	return SaltAndResult;
+}
+
+/**
+ * GenerateSalt
+ *
+ * Generates a salt value which is suitable for use with UtilMd5().
+ */
+const char *GenerateSalt(void) {
+	static char Salt[33];
+
+	for (unsigned int i = 0; i < sizeof(Salt) - 1; i++) {
+		do {
+			Salt[i] = 0x21 + rand() % (0xFF - 0x21);
+		} while (Salt[i] == '$');
+	}
+
+	Salt[sizeof(Salt) - 1] = '\0';
+
+	return Salt;
+}
+
+/**
+ * SaltFromHash
+ *
+ * Returns the salt value for a hash (or NULL if there is none).
+ *
+ * @param Hash the hash value
+ */
+const char *SaltFromHash(const char *Hash) {
+	static char *Salt = NULL;
+	const char *HashSign;
+
+	HashSign = strchr(Hash, '$');
+
+	if (HashSign == NULL) {
+		return NULL;
+	}
+
+	free(Salt);
+
+	Salt = (char *)malloc(HashSign - Hash + 1);
+	strmcpy(Salt, Hash, HashSign - Hash + 1);
+
+	return Salt;
 }
 
 /**

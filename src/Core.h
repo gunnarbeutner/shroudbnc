@@ -192,7 +192,7 @@ public:
 
 	time_t GetStartup(void) const;
 
-	const char *MD5(const char *String) const;
+	const char *MD5(const char *String, const char *Salt) const;
 
 	int GetArgC(void) const;
 	const char *const *GetArgV(void) const;

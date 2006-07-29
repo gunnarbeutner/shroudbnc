@@ -98,7 +98,9 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family
 
 char *NickFromHostmask(const char *Hostmask);
 
-const char *UtilMd5(const char *String);
+const char *UtilMd5(const char *String, const char *Salt);
+const char *GenerateSalt(void);
+const char *SaltFromHash(const char *Hash);
 
 void DestroyString(char *String);
 

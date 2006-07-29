@@ -106,7 +106,7 @@ void haltoutput(void);
 
 const char* bnccommand(const char* Cmd, const char* Parameters);
 
-const char* md5(const char* String);
+const char* md5(const char* String, const char *Salt = NULL);
 
 void debugout(const char* String);
 

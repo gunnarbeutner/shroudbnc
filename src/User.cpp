@@ -368,7 +368,7 @@ bool CUser::CheckPassword(const char *Password) const {
 	}
 
 	if (g_Bouncer->GetMD5()) {
-		Password = g_Bouncer->MD5(Password);
+		Password = UtilMd5(Password, SaltFromHash(RealPass));
 	}
 
 	if (strcmp(RealPass, Password) == 0) {
@@ -1016,7 +1016,7 @@ bool CUser::IsAdmin(void) const {
  */
 void CUser::SetPassword(const char *Password) {
 	if (g_Bouncer->GetMD5()) {
-		Password = g_Bouncer->MD5(Password);
+		Password = UtilMd5(Password, GenerateSalt());
 	}
 
 	CacheSetString(m_ConfigCache, password, Password);

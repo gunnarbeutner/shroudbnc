@@ -177,7 +177,7 @@ void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
  * Cleans up unused channels.
  */
 void CDnsQuery::Cleanup(void) {
-	if (m_PendingQueries == 0 && m_Channel != NULL) {
+	if (m_PendingQueries == 0) {
 		DestroyChannel();
 	}
 }

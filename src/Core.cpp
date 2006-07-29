@@ -418,6 +418,10 @@ void CCore::StartMainLoop(void) {
 	while ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) && GetStatus() != STATUS_FREEZE) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
+#if defined(_WIN32) && defined(_DEBUG)
+		DWORD TickCount = GetTickCount();
+#endif
+
 		time(&Now);
 
 		i = 0;
@@ -507,7 +511,15 @@ void CCore::StartMainLoop(void) {
 		printf("poll: %d seconds\n", SleepInterval);
 #endif
 
+#if defined(_WIN32) && defined(_DEBUG)
+		DWORD TimeDiff = GetTickCount();
+#endif
+
 		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
+
+#if defined(_WIN32) && defined(_DEBUG)
+		TickCount += GetTickCount() - TimeDiff;
+#endif
 
 		time(&g_CurrentTime);
 
@@ -591,6 +603,10 @@ void CCore::StartMainLoop(void) {
 				}
 			}
 		}
+
+#if defined(_WIN32) && defined(_DEBUG)
+		printf("Spent %d msec in the main loop.\n", GetTickCount() - TickCount);
+#endif
 	}
 
 #ifdef USESSL
@@ -1311,8 +1327,8 @@ void CCore::WritePidFile(void) const {
  *
  * @param String the string
  */
-const char *CCore::MD5(const char *String) const {
-	return UtilMd5(String);
+const char *CCore::MD5(const char *String, const char *Salt) const {
+	return UtilMd5(String, Salt);
 }
 
 /**
@@ -1993,7 +2009,7 @@ bool CCore::MakeConfig(void) {
 
 	UserConfig = new CConfig(BuildPath(File), NULL);
 
-	UserConfig->WriteString("user.password", UtilMd5(Password));
+	UserConfig->WriteString("user.password", UtilMd5(Password, GenerateSalt()));
 	UserConfig->WriteInteger("user.admin", 1);
 
 	printf("Writing first user's configuration file...");
