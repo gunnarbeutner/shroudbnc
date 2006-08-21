@@ -831,21 +831,21 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 		for (i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->AttachClient(GetUsername());
 		}
-	}
 
-	asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-	CHECK_ALLOC_RESULT(Info, asprintf) {
-		return;
-	} CHECK_ALLOC_RESULT_END;
+		CHECK_ALLOC_RESULT(Info, asprintf) {
+			return;
+		} CHECK_ALLOC_RESULT_END;
 
-	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
-		if (m_Clients[i].Client != Client) {
-			m_Clients[i].Client->Privmsg(Info);
+		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+			if (m_Clients[i].Client != Client) {
+				m_Clients[i].Client->Privmsg(Info);
+			}
 		}
-	}
 
-	free(Info);
+		free(Info);
+	}
 }
 
 /**
@@ -942,30 +942,32 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 
 	Remote = Client->GetRemoteAddress();
 
-	asprintf(&InfoPrimary, "Another client logged off from %s[%s]. This client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+	if (!Silent) {
+		asprintf(&InfoPrimary, "Another client logged off from %s[%s]. This client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-	CHECK_ALLOC_RESULT(InfoPrimary, asprintf) {
-		return;
-	} CHECK_ALLOC_RESULT_END;
+		CHECK_ALLOC_RESULT(InfoPrimary, asprintf) {
+			return;
+		} CHECK_ALLOC_RESULT_END;
 
-	asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-	CHECK_ALLOC_RESULT(Info, asprintf) {
-		free(Info);
+		CHECK_ALLOC_RESULT(Info, asprintf) {
+			free(Info);
 
-		return;
-	} CHECK_ALLOC_RESULT_END;
+			return;
+		} CHECK_ALLOC_RESULT_END;
 
-	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
-		if (m_Clients[i].Client == m_PrimaryClient) {
-			m_Clients[i].Client->Privmsg(InfoPrimary);
-		} else {
-			m_Clients[i].Client->Privmsg(Info);
+		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+			if (m_Clients[i].Client == m_PrimaryClient) {
+				m_Clients[i].Client->Privmsg(InfoPrimary);
+			} else {
+				m_Clients[i].Client->Privmsg(Info);
+			}
 		}
-	}
 
-	free(Info);
-	free(InfoPrimary);
+		free(Info);
+		free(InfoPrimary);
+	}
 }
 
 /**
@@ -1992,7 +1994,7 @@ bool GlobalUserReconnectTimer(time_t Now, void *Null) {
 	int i = 0;
 
 	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-		if (UserHash->Value->ShouldReconnect()) {
+		if (UserHash->Value->ShouldReconnect() && g_Bouncer->GetStatus() == STATUS_RUN) {
 			UserHash->Value->Reconnect();
 
 			break;

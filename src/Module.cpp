@@ -35,7 +35,7 @@ CModule::CModule(const char *Filename) {
 
 	CorePath = strdup(g_Bouncer->GetLoaderParameters()->GetModulePath());
 
-	if (CorePath != NULL) {
+	if (CorePath != NULL && *CorePath != '\0') {
 		for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
 			if (CorePath[i] == '/' || CorePath[i] == '\\') {
 				CorePath[i] = '\0';

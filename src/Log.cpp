@@ -69,8 +69,8 @@ void CLog::PlayToUser(CClientConnection *Client, int Type) const {
 	FILE *LogFile;
 
 	CIRCConnection *IRC = Client->GetOwner()->GetIRCConnection();
-	const char *Nick;
-	const char *Server;
+	const char *Nick = NULL;
+	const char *Server = NULL;
 
 	if (m_File != NULL) {
 		fclose(m_File);
@@ -109,7 +109,7 @@ void CLog::PlayToUser(CClientConnection *Client, int Type) const {
 		m_File = NULL;
 	}
 
-	if (Type == Log_Motd && Client != NULL) {
+	if (Type == Log_Motd && Client != NULL && Nick != NULL && Server != NULL) {
 		Client->WriteLine(":%s 376 %s :End of /MOTD command.", Server, Nick);
 	}
 }

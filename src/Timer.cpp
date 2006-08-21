@@ -78,12 +78,10 @@ bool CTimer::Call(time_t Now) {
 	time_t ThisCall;
 	bool ReturnValue;
 
-	if (m_Interval != 0) {
-		ThisCall = m_Next;
+	ThisCall = m_Next;
 
-		if (m_Repeat) {
-			Reschedule(Now + m_Interval);
-		}
+	if (m_Interval != 0 && m_Repeat) {
+		Reschedule(Now + m_Interval);
 	}
 
 	if (m_Proc == NULL) {

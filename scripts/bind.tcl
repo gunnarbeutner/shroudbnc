@@ -118,7 +118,7 @@ proc sbnc:rawserver {client parameters} {
 	set hand [finduser $source]
 	set flags $hand
 
-	sbnc:callbinds "raw" - "" $verb $source $verb [join [lrange $parameters 2 end]]
+	sbnc:callbinds "raw" - "" $verb $source $verb "[join [lrange $parameters 0 end-1]] :[lindex $parameters end]"
 
 	switch $verb {
 		"privmsg" {

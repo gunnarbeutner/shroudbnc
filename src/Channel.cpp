@@ -124,8 +124,9 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
 				NewTempModes = (char *)urealloc(m_TempModes, Size);
 
-				CHECK_ALLOC_RESULT(m_TempModes, urealloc) {
+				CHECK_ALLOC_RESULT(NewTempModes, urealloc) {
 					ufree(m_TempModes);
+					m_TempModes = NULL;
 
 					THROW(const char *, Generic_OutOfMemory, "urealloc() failed.");
 				} CHECK_ALLOC_RESULT_END;

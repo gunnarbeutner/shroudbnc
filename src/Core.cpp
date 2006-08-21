@@ -643,7 +643,9 @@ void CCore::GlobalNotice(const char *Text) {
 	unsigned int i = 0;
 
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		User->Value->GetClientConnectionMultiplexer()->Privmsg(Text);
+		if (User->Value->GetClientConnectionMultiplexer() != NULL) {
+			User->Value->GetClientConnectionMultiplexer()->Privmsg(Text);
+		}
 	}
 }
 
