@@ -1524,7 +1524,9 @@ const char *CIRCConnection::GetSite(void) {
  */
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef USESSL
-	GetOwner()->GetClientConnectionMultiplexer()->Privmsg(Context->cert->name);
+	if (GetOwner()->GetClientConnectionMultiplexer() != NULL) {
+		GetOwner()->GetClientConnectionMultiplexer()->Privmsg(Context->cert->name);
+	}
 #endif
 
 	return 1;
