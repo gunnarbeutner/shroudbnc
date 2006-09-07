@@ -35,6 +35,7 @@
 #include <sys/resource.h>
 #include <limits.h>
 #include <termios.h>
+#include <strings.h>
 
 typedef int SOCKET;
 

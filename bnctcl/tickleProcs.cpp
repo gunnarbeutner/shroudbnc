@@ -759,7 +759,7 @@ const char* getchanprefix(const char* Channel, const char* Nick) {
 	if (!IRC)
 		return NULL;
 
-	CChannel* Chan = IRC->GetChannel(Nick);
+	CChannel* Chan = IRC->GetChannel(Channel);
 
 	if (!Chan)
 		return NULL;

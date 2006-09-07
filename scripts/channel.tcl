@@ -220,7 +220,7 @@ proc channels {} {
 		}
 	}
 
-	return [sbnc:uniq $tmpchans]
+	return [sbnc:uniq [string tolower $tmpchans]]
 }
 
 proc validchan {channel} {
