@@ -18,12 +18,13 @@
 internalbind command qauth:commands
 internalbind svrlogon qauth:logon
 
-proc qauth:replyset {ctx quser qpass qx} {
-	setctx $ctx
+proc qauth:replyset {params} {
+	# params: [list ctx quser qpass qx]
+	setctx [lindex $params 0]
 
-	bncreply "quser - $quser"
-	bncreply "qpass - $qpass"
-	bncreply "qx - $qx"
+	bncreply "quser - [lindex $params 1]"
+	bncreply "qpass - [lindex $params 2]"
+	bncreply "qx - [lindex $params 3]"
 }
 
 proc qauth:commands {client params} {
@@ -47,7 +48,7 @@ proc qauth:commands {client params} {
 				set qx "Off"
 			}
 
-			utimer 0 [list qauth:replyset [getctx 1] $quser $qpass $qx]
+			internaltimer 0 0 qauth:replyset [list [getctx 1] $quser $qpass $qx]
 
 			return
 		}
@@ -126,7 +127,7 @@ proc iface-qauth:qsetpass {password} {
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
-	registerifacecmd "qauth" "qsetpass" "iface-qauth:qsetuser"
+	registerifacecmd "qauth" "qsetpass" "iface-qauth:qsetpass"
 }
 
 proc iface-qauth:qsetx {value} {

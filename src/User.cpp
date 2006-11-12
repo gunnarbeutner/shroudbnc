@@ -867,7 +867,11 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	char *InfoPrimary, *Info;
 
 	if (!Silent) {
-		g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
+		if (Client->GetQuitReason() != NULL) {
+			g_Bouncer->Log("User %s logged off. %d remaining clients for this user. (%s)", GetUsername(), m_Clients.GetLength() - 1, Client->GetQuitReason());
+		} else {
+			g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
+		}
 	}
 
 	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
@@ -1842,7 +1846,7 @@ const char *CUser::FormatTime(time_t Timestamp) const {
 void CUser::SetGmtOffset(int Offset) {
 	char *Value;
 
-	asprintf(&Value, "%d", Offset);
+	asprintf(&Value, "%d", Offset % (60 * 24));
 
 	CHECK_ALLOC_RESULT(Value, asprintf) {
 		return;

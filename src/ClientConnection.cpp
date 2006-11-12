@@ -38,6 +38,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_ClientLookup = NULL;
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
+	m_QuitReason = NULL;
 
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
 		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
@@ -1547,11 +1548,24 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 	if (GetOwner() != NULL) {
 		if (strcasecmp(Command, "quit") == 0) {
+			char *QuitReason;
 			bool QuitAsAway = GetOwner()->GetUseQuitReason();
 
-			if (QuitAsAway && argc > 1 && argv[1][0] != '\0') {
-				GetOwner()->SetAwayText(argv[1]);
+			if (argc > 1 && argv[1][0] != '\0') {
+				if (QuitAsAway) {
+					GetOwner()->SetAwayText(argv[1]);
+				}
+
+				asprintf(&QuitReason, "Quit: %s", argv[1]);
+			} else {
+				asprintf(&QuitReason, "Quit");
 			}
+
+			CHECK_ALLOC_RESULT(QuitReason, asprintf) { } else {
+				SetQuitReason(QuitReason);
+
+				free(QuitReason);
+			} CHECK_ALLOC_RESULT_END;
 
 			Kill("*** Thanks for flying with shroudBNC :P");
 			return false;
@@ -2463,4 +2477,48 @@ void CClientConnection::RealNotice(const char *Text) {
 	if (Nick != NULL) {
 		WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);
 	}
+}
+
+void CClientConnection::SetQuitReason(const char *Reason) {
+	ufree(m_QuitReason);
+
+	if (Reason != NULL) {
+		m_QuitReason = ustrdup(Reason);
+
+		CHECK_ALLOC_RESULT(m_QuitReason, ustrdup) {
+			return;
+		} CHECK_ALLOC_RESULT_END;
+
+		mmark(m_QuitReason);
+	} else {
+		m_QuitReason = NULL;
+	}
+}
+
+const char *CClientConnection::GetQuitReason(void) {
+	return m_QuitReason;
+}
+
+void CClientConnection::Error(int ErrorCode) {
+	char *ErrorMsg = NULL;
+
+	if (ErrorCode == -1) {
+		return;
+	}
+
+#ifdef _WIN32
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, ErrorCode, 0, (char *)&ErrorMsg, 0, NULL);
+#else
+	if (ErrorCode != 0) {
+		ErrorMsg = strerror(ErrorCode);
+	}
+#endif
+
+	SetQuitReason(ErrorMsg);
+
+#ifdef _WIN32
+	if (ErrorMsg != NULL) {
+		LocalFree(ErrorMsg);
+	}
+#endif
 }

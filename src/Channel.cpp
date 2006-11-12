@@ -597,8 +597,7 @@ bool CChannel::SendWhoReply(CClientConnection *Client, bool Simulate) const {
 			return false;
 		}
 
-		strmcpy(CopyIdent, Site, min(Host - Site - 1, sizeof(CopyIdent)));
-		CopyIdent[Host - Site] = '\0';
+		strmcpy(CopyIdent, Site, min(Host - Site + 1, sizeof(CopyIdent)));
 
 		Ident = CopyIdent;
 

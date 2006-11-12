@@ -125,6 +125,16 @@ proc iface:getlog {from to} {
 
 registerifacecmd "core" "getlog" "iface:getlog"
 
+proc iface:getloglines {} {
+	set file [open "users/[getctx].log" r]
+	set stuff [read $file]
+	close $file
+
+	return [llength [split $stuff \n]]
+}
+
+registerifacecmd "core" "getloglines" "iface:getloglines"
+
 proc iface:eraselog {} {
 	set file [open users/[getctx].log w+]
 	close $file
@@ -199,6 +209,16 @@ proc iface:getmainlog {from to} {
 }
 
 registerifacecmd "core" "getmainlog" "iface:getmainlog" "access:admin"
+
+proc iface:getmainloglines {} {
+	set file [open sbnc.log r]
+	set stuff [read $file]
+	close $file
+
+	return [llength [split $stuff \n]]
+}
+
+registerifacecmd "core" "getmainloglines" "iface:getmainloglines" "access:admin"
 
 proc iface:erasemainlog {} {
 	set file [open sbnc.log w+]

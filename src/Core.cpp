@@ -575,7 +575,7 @@ void CCore::StartMainLoop(void) {
 			}
 		} else if (ready == -1) {
 #ifndef _WIN32
-			if (errno != EBADF) {
+			if (errno != EBADF && errno != 0) {
 #else
 			if (WSAGetLastError() != WSAENOTSOCK) {
 #endif

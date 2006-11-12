@@ -43,6 +43,7 @@ private:
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
 	bool m_NamesXSupport; /**< does this client support NAMESX? */
 	CDnsQuery *m_ClientLookup; /**< dns query for looking up the user's hostname */
+	char *m_QuitReason; /* reason why the client was removed */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
@@ -80,6 +81,7 @@ public:
 
 	virtual void Kill(const char *Error);
 	virtual void Destroy(void);
+	virtual void Error(int ErrorCode);
 
 	virtual commandlist_t *GetCommandList(void);
 
@@ -90,6 +92,9 @@ public:
 
 	virtual void Privmsg(const char *Text);
 	virtual void RealNotice(const char *Text);
+
+	virtual void SetQuitReason(const char *Reason);
+	virtual const char *GetQuitReason(void);
 };
 
 #ifdef SBNC

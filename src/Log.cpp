@@ -123,10 +123,16 @@ void CLog::PlayToUser(CClientConnection *Client, int Type) const {
  * @param Line the log entry
  */
 void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
-	char *Out = NULL;
+	char *Out = NULL, *dupLine;
+	size_t StringLength;
+	unsigned int a;
 	tm Now;
 	char strNow[100];
 	FILE *LogFile;
+
+	if (Line == NULL) {
+		return;
+	}
 
 	LogFile = m_File;
 
@@ -148,7 +154,28 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 		Timestamp = strNow;
 	}
 
-	asprintf(&Out, "%s: %s\n", Timestamp, Line);
+	dupLine = strdup(Line);
+
+	CHECK_ALLOC_RESULT(dupLine, strdup) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
+
+	StringLength = strlen(dupLine);
+
+	a = 0;
+
+	for (unsigned int i = 0; i <= StringLength; i++) {
+		if (dupLine[i] == '\r' || dupLine[i] == '\n') {
+			continue;
+		}
+
+		dupLine[a] = dupLine[i];
+		a++;
+	}
+
+	asprintf(&Out, "%s: %s\n", Timestamp, dupLine);
+
+	free(dupLine);
 
 	if (Out == NULL) {
 		LOGERROR("asprintf() failed.");

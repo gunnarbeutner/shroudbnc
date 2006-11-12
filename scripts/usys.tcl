@@ -1,5 +1,5 @@
 # usys.tcl (c)2006 Alex Sajzew
-# Written for shroudBNC
+# Written for shroudIRC
 
 set max:handLength 9
 
@@ -569,7 +569,7 @@ proc save { } {
 
 		namespace eval [getns] {
 			set hand [uplevel 1 {set hand}]
-			if {![info exists userInfo(:$hand)]} {
+			if {![info exists userInfo(:[string tolower $hand])]} {
 				continue
 			}
 		}
