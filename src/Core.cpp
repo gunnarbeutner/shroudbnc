@@ -593,7 +593,7 @@ void CCore::StartMainLoop(void) {
 
 				pollfd pfd;
 				pfd.fd = SocketCursor->PollFd->fd;
-				pfd.events = POLLIN;
+				pfd.events = POLLIN | POLLOUT | POLLERR;
 
 				int code = poll(&pfd, 1, 0);
 
@@ -2810,4 +2810,8 @@ bool CCore::GetDontMatchUser(void) const {
 
 void CCore::SetDontMatchUser(bool Value) {
 	CacheSetInteger(m_ConfigCache, dontmatchuser, Value ? 1 : 0);
+}
+
+CACHE(System) *CCore::GetConfigCache(void) {
+	return &m_ConfigCache;
 }

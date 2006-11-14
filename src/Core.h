@@ -285,6 +285,8 @@ public:
 
 	bool GetDontMatchUser(void) const;
 	void SetDontMatchUser(bool Value);
+
+	CACHE(System) *GetConfigCache(void);
 };
 
 #ifndef SWIG

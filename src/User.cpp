@@ -262,11 +262,11 @@ void CUser::Attach(CClientConnection *Client) {
 		IrcNick = m_IRC->GetCurrentNick();
 
 		if (IrcNick != NULL) {
-			Client->WriteLine(":%s!%s@%s NICK :%s", Client->GetNick(), GetUsername(), Client->GetPeerName(), IrcNick);
-
 			if (Client->GetNick() != NULL && strcmp(Client->GetNick(), IrcNick) != 0) {
 				m_IRC->WriteLine("NICK :%s", Client->GetNick());
 			}
+
+			Client->ChangeNick(IrcNick);
 
 			Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
 

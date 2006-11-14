@@ -1626,11 +1626,17 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				return false;
 			}
 
+			CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
+
 			for (unsigned int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
 					sockaddr *Remote = (*Clients)[i].Client->GetRemoteAddress();
 
-					(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :(-> Your client from %s[%s] replied:) %s", argv[1], GetOwner()->GetNick(), (*Clients)[i].Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown", argv[2]);
+					if (Channel == NULL) {
+						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :-> %s", argv[1], GetOwner()->GetNick(), argv[2]);
+					} else {
+						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :-> %s", GetOwner()->GetNick(), argv[1], argv[2]);
+					}
 				}
 			}
 		} else if (argc > 2 && strcasecmp(Command, "notice") == 0) {
@@ -1996,8 +2002,7 @@ bool CClientConnection::ValidateUser(void) {
 	if (IsSSL() && (PeerCert = (X509 *)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
-		/* TODO: use config cache */
-		if (!g_Bouncer->GetConfig()->ReadInteger("system.dontmatchuser")) {
+		if (!CacheGetInteger(*g_Bouncer->GetConfigCache(), dontmatchuser)) {
 			CUser *User = g_Bouncer->GetUser(m_Username);
 
 			if (User != NULL && User->FindClientCertificate(PeerCert)) {

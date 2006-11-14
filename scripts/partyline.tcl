@@ -49,7 +49,7 @@ proc sbnc:partychantypes {client params} {
 	while {$i < [llength $toks]} {
 		set tok [split [lindex $toks $i] "="]
 		if {[string equal -nocase [lindex $tok 0] "CHANTYPES"]} {
-			if {[string first [lindex $tok 1] "&"] == -1} {
+			if {[string first "&" [lindex $tok 1]] == -1} {
 				set chantypes "[lindex $tok 1]&"
 				setisupport CHANTYPES $chantypes
 				putclient ":[join [lrange $params 0 2]] [join [lrange [lreplace $params $i $i "CHANTYPES=$chantypes"] 3 end-1]] :[lindex $params end]"
