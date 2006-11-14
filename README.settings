@@ -1,7 +1,8 @@
 shroudBNC Configuration
 -----------------------
 
-This document is supposed to give some insight into the available configuration options (i.e. sbnc.conf and the users' configuration files). You should usually not edit these files manually unless you know what you are doing.
+This document is supposed to give some insight into the available configuration options (i.e. sbnc.conf and the
+users' configuration files). You should usually not edit these files manually unless you know what you are doing.
 
 sbnc.conf
 ---------
@@ -44,7 +45,7 @@ user.lean			| 0			| lean mode (see README.lean for details)
 user.quitaway			| 0			| whether to use the user's /quit reason as the away reason
 user.automodes			| <empty>		| automodes
 user.dropmodes			| <empty>		| dropmodes
-user.away			| <empty>		| away reason
+user.away			| <empty>		| away reason (/away)
 user.awaynick			| <empty>		| away nick
 user.nick			| <empty>		| the user's nick
 user.realname			| <empty>		| the user's realname
@@ -54,5 +55,5 @@ user.channels			| <empty>		| comma-seperated list of channels
 user.suspend			| <empty>		| suspend reason for the user
 user.spass			| <empty>		| irc server password
 user.ident			| the user's username	| ident for the user
-user.tz				| 0			| timezone
-user.awaymessage		| <empty>		| the user's away message
+user.tz				| 0			| gmt offset
+user.awaymessage		| <empty>		| the user's away message (spammed to all chans, /ame style)
