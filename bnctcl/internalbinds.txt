@@ -1,22 +1,22 @@
-internalbind <type> <proc>
+internalbind <type> <proc> ?pattern? ?user?
 
-type		proc
------------------------------------
-client		{client parameters}
-server		{client parameters}
-pre		{}
-post		{}
-attach		{client}
-detach		{client}
-modec		{...}
-unload		{}
-svrconnect	{client}
-svrdisconnect	{client}
-svrlogon	{client}
-usrload		{client}
-usrcreate	{client}
-usrdelete	{client}
-command		{client parameters}
-settag		{params}
-prerehash	{}
-postrehash	{}
+Type		| Parameters for the TCL procedure 	| Interpretation of Pattern/User
+-----------------------------------------------------------------------------------
+client		| {client parameters}			| if single token matches Pattern, user matched against context
+server		| {client parameters}			| if single token matches Pattern, user matched against context
+pre		| {}					| pattern ignored, user ignored
+post		| {}					| pattern ignored, user ignored
+attach		| {client}				| pattern ignored
+detach		| {client}				| pattern ignored
+modec		| {source channel mode parameter}	| pattern ignored
+unload		| {}					| pattern ignored, user ignored
+svrconnect	| {client}				| pattern ignored
+svrdisconnect	| {client}				| pattern ignored
+svrlogon	| {client}				| pattern ignored
+usrload		| {client}				| pattern ignored
+usrcreate	| {client}				| pattern ignored
+usrdelete	| {client}				| pattern ignored
+command		| {client parameters}			| if pattern matches user-specified command
+settag		| {params}				| pattern ignored, user ignored
+prerehash	| {}					| pattern ignored, user ignored
+postrehash	| {}					| pattern ignored, user ignored
