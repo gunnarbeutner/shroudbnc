@@ -2,8 +2,8 @@ internalbind <type> <proc> ?pattern? ?user?
 
 Type		| Parameters for the TCL procedure 	| Interpretation of Pattern/User
 -----------------------------------------------------------------------------------
-client		| {client parameters}			| if single token matches Pattern, user matched against context
-server		| {client parameters}			| if single token matches Pattern, user matched against context
+client		| {client parameters}			| if single token matches Pattern
+server		| {client parameters}			| if single token matches Pattern
 pre		| {}					| pattern ignored, user ignored
 post		| {}					| pattern ignored, user ignored
 attach		| {client}				| pattern ignored
@@ -16,7 +16,7 @@ svrlogon	| {client}				| pattern ignored
 usrload		| {client}				| pattern ignored
 usrcreate	| {client}				| pattern ignored
 usrdelete	| {client}				| pattern ignored
-command		| {client parameters}			| if pattern matches user-specified command
+command		| {client parameters}			| if single token matches Pattern
 settag		| {params}				| pattern ignored, user ignored
 prerehash	| {}					| pattern ignored, user ignored
 postrehash	| {}					| pattern ignored, user ignored
