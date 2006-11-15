@@ -57,6 +57,7 @@ DEFINE_CACHE(User)
 	DEFINE_OPTION_STRING(ident);
 	DEFINE_OPTION_STRING(tz);
 	DEFINE_OPTION_STRING(awaymessage);
+	DEFINE_OPTION_STRING(channelsort);
 END_DEFINE_CACHE
 
 /**
@@ -296,6 +297,9 @@ public:
 
 	void SetUseQuitReason(bool Value);
 	bool GetUseQuitReason(void);
+
+	void SetChannelSortMode(const char *Mode);
+	const char *GetChannelSortMode(void) const;
 
 	bool MemoryAddBytes(size_t Bytes);
 	void MemoryRemoveBytes(size_t Bytes);

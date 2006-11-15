@@ -21,6 +21,9 @@ internalbind svrdisconnect sbnc:svrdisconnect
 internalbind svrlogon sbnc:svrlogon
 internalbind prerehash sbnc:prerehash
 internalbind postrehash sbnc:postrehash
+internalbind channelsort sbnc:channelsort
+
+set ::channelsorthandler ""
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -384,4 +387,16 @@ proc bindsall {{pattern ""}} {
 
 proc callevent {event} {
 	sbnc:callbinds "evnt" - {} $event $event
+}
+
+proc sbnc:channelsort {client params} {
+	setchannelsortvalue [$::channelsorthandler $client [lindex $params 0] [lindex $params 1]]
+}
+
+proc setchannelsorthandler {handler} {
+	set ::channelsorthandler $handler
+}
+
+proc getchannelsorthandler {} {
+	return $::channelsorthandler
 }

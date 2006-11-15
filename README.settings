@@ -57,3 +57,4 @@ user.spass			| <empty>		| irc server password
 user.ident			| the user's username	| ident for the user
 user.tz				| 0			| gmt offset
 user.awaymessage		| <empty>		| the user's away message (spammed to all chans, /ame style)
+user.channelsort		| cts			| how to order channels, options: cts (client ts), alpha (alphabetical), custom (using sort module handler)

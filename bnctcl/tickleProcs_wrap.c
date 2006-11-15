@@ -4262,6 +4262,26 @@ _wrap_bncsetreslimit(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 
 static int
+_wrap_setchannelsortvalue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    int arg1 ;
+    
+    if (SWIG_GetArgs(interp, objc, objv,"i:setchannelsortvalue Value ",&arg1) == TCL_ERROR) SWIG_fail;
+    {
+        try {
+            setchannelsortvalue(arg1);
+            
+        } catch (const char *Description) {
+            SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+        }
+    }
+    
+    return TCL_OK;
+    fail:
+    return TCL_ERROR;
+}
+
+
+static int
 _wrap_onchan(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -5203,6 +5223,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "putmainlog", (swig_wrapper_func) _wrap_putmainlog, NULL},
     { SWIG_prefix "bncgetreslimit", (swig_wrapper_func) _wrap_bncgetreslimit, NULL},
     { SWIG_prefix "bncsetreslimit", (swig_wrapper_func) _wrap_bncsetreslimit, NULL},
+    { SWIG_prefix "setchannelsortvalue", (swig_wrapper_func) _wrap_setchannelsortvalue, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

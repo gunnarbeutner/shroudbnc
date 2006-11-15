@@ -36,6 +36,9 @@ class CIRCConnection;
 %template(CHashtableCNick) CHashtable<class CNick *, false, 64>;
 #endif
 
+int ChannelTSCompare(const void *p1, const void *p2);
+int ChannelNameCompare(const void *p1, const void *p2);
+
 template class SBNCAPI CHashtable<CNick *, false, 64>;
 /**
  * CChannel
@@ -46,6 +49,7 @@ class SBNCAPI CChannel : public CObject<CChannel, CIRCConnection>, public CZoneO
 private:
 	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
+	time_t m_Timestamp; /**< when the user joined the channel */
 
 	CVector<chanmode_t> m_Modes; /**< the channel modes */
 //	unsigned int m_ModeCount; /**< the number of channel modes */
@@ -113,4 +117,6 @@ public:
 	bool HasBans(void) const;
 
 	bool SendWhoReply(CClientConnection *Client, bool Simulate) const;
+
+	time_t GetJoinTimestamp(void) const;
 };

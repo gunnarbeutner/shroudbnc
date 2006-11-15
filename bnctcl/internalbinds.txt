@@ -8,7 +8,7 @@ pre		| {}					| pattern ignored, user ignored
 post		| {}					| pattern ignored, user ignored
 attach		| {client}				| pattern ignored
 detach		| {client}				| pattern ignored
-modec		| {source channel mode parameter}	| pattern ignored
+modec		| {source params}			| pattern ignored
 unload		| {}					| pattern ignored, user ignored
 svrconnect	| {client}				| pattern ignored
 svrdisconnect	| {client}				| pattern ignored
@@ -20,3 +20,4 @@ command		| {client parameters}			| if single token matches Pattern
 settag		| {params}				| pattern ignored, user ignored
 prerehash	| {}					| pattern ignored, user ignored
 postrehash	| {}					| pattern ignored, user ignored
+channelsort	| {client params}			| pattern ignored

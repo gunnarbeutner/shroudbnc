@@ -2500,7 +2500,7 @@ void CClientConnection::SetQuitReason(const char *Reason) {
 	}
 }
 
-const char *CClientConnection::GetQuitReason(void) {
+const char *CClientConnection::GetQuitReason(void) const {
 	return m_QuitReason;
 }
 

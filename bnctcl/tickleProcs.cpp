@@ -300,6 +300,8 @@ int internalbind(const char* type, const char* proc, const char* pattern, const 
 		Bind->type = Type_PreRehash;
 	else if (strcasecmp(type, "postrehash") == 0)
 		Bind->type = Type_PostRehash;
+	else if (strcasecmp(type, "channelsort") == 0)
+		Bind->type = Type_ChannelSort;
 	else {
 		Bind->type = Type_Invalid;
 
@@ -356,6 +358,8 @@ int internalunbind(const char* type, const char* proc, const char* pattern, cons
 		bindtype = Type_PreRehash;
 	else if (strcasecmp(type, "postrehash") == 0)
 		bindtype = Type_PostRehash;
+	else if (strcasecmp(type, "channelsort") == 0)
+		bindtype = Type_ChannelSort;
 	else
 		return 0;
 
@@ -430,6 +434,8 @@ const char* internalbinds(void) {
 				Bind[0] = "prerehash";
 			else if (type == Type_PostRehash)
 				Bind[0] = "postrehash";
+			else if (type == Type_ChannelSort)
+				Bind[0] = "channelsort";
 			else
 				Bind[0] = "invalid";
 
@@ -945,6 +951,8 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		g_asprintf(&Buffer, "%d", Context->MemoryGetLimit());
 
 		return Buffer;
+	} else if (strcasecmp(Type, "channelsort") == 0) {
+		return Context->GetChannelSortMode();
 	} else {
 		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit";
 	}
@@ -1009,8 +1017,10 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetGmtOffset(atoi(Value));
 	else if (strcmp(Type, "lean") == 0)
 		Context->SetLeanMode(atoi(Value));
+	else if (strcmp(Type, "channelsort") == 0)
+		Context->SetChannelSortMode(Value);
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean";
+		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean channelsort";
 
 	return 1;
 }
@@ -2254,4 +2264,8 @@ void bncsetreslimit(const char *Resource, int NewLimit, const char *User) {
 	}
 
 	g_Bouncer->SetResourceLimit(Resource, NewLimit, UserObj);
+}
+
+void setchannelsortvalue(int Value) {
+	g_ChannelSortValue = Value;
 }

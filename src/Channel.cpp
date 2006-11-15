@@ -33,6 +33,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_Name = ustrdup(Name);
 	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
 
+	m_Timestamp = g_CurrentTime;
 	m_Creation = 0;
 	m_Topic = NULL;
 	m_TopicNick = NULL;
@@ -627,6 +628,15 @@ bool CChannel::SendWhoReply(CClientConnection *Client, bool Simulate) const {
 }
 
 /**
+ * GetJoinTimestamp
+ *
+ * Returns a timestamp which describes when the user has joined this channel.
+ */
+time_t CChannel::GetJoinTimestamp(void) const {
+	return m_Timestamp;
+}
+
+/**
  * Freeze
  *
  * Persists the channel in a box.
@@ -754,4 +764,38 @@ RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box, CIRCConnection *Owner) {
 	}
 
 	RETURN(CChannel *, Channel);
+}
+
+/**
+ * ChannelTSCompare
+ *
+ * Compares two channel objects using GetJoinTimestamp()
+ *
+ * @param p1 first channel
+ * @param p2 second channel
+ */
+int ChannelTSCompare(const void *p1, const void *p2) {
+	const CChannel *Channel1 = *(const CChannel **)p1, *Channel2 = *(const CChannel **)p2;
+
+	if (Channel1->GetJoinTimestamp() > Channel2->GetJoinTimestamp()) {
+		return 1;
+	} else if (Channel1->GetJoinTimestamp() == Channel2->GetJoinTimestamp()) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+/**
+ * ChannelNameCompare
+ *
+ * Compares two channel objects using GetName()
+ *
+ * @param p1 first channel
+ * @param p2 second channel
+ */
+int ChannelNameCompare(const void *p1, const void *p2) {
+	const CChannel *Channel1 = *(const CChannel **)p1, *Channel2 = *(const CChannel **)p2;
+
+	return strcasecmp(Channel1->GetName(), Channel2->GetName());
 }

@@ -218,7 +218,6 @@ void CUser::Attach(CClientConnection *Client) {
 	const char *Reason, *AutoModes, *IrcNick, *MotdText;
 	CLog *Motd;
 	unsigned int i;
-	char **Keys;
 
 	if (IsLocked()) {
 		Reason = GetSuspendReason();
@@ -282,38 +281,75 @@ void CUser::Attach(CClientConnection *Client) {
 				Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
 			}
 
-			Keys = m_IRC->GetChannels()->GetSortedKeys();
+			CChannel **Channels;
+
+			Channels = (CChannel **)malloc(sizeof(CChannel *) * m_IRC->GetChannels()->GetLength());
+
+			CHECK_ALLOC_RESULT(Channels, malloc) {
+				return;
+			} CHECK_ALLOC_RESULT_END;
+
+			mmark(Channels);
 
 			i = 0;
-			while (Keys != NULL && Keys[i] != NULL) {
-				Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), Client->GetPeerName(), Keys[i]);
-
-				asprintf(&Out, "TOPIC %s", Keys[i]);
-
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-
-					Client->Kill("Internal error.");
-				} else {
-					Client->ParseLine(Out);
-					free(Out);
-				}
-
-				asprintf(&Out, "NAMES %s", Keys[i]);
-
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-
-					Client->Kill("Internal error.");
-				} else {
-					Client->ParseLine(Out);
-					free(Out);
-				}
-
-				i++;
+			while (hash_t<CChannel *> *ChannelHash = m_IRC->GetChannels()->Iterate(i++)) {
+				Channels[i - 1] = ChannelHash->Value;
 			}
 
-			free(Keys);
+			int (*SortFunction)(const void *p1, const void *p2) = NULL;
+
+			const char *SortMode = CacheGetString(m_ConfigCache, channelsort);
+
+			if (SortMode == NULL || strcasecmp(SortMode, "cts") == 0 || strcasecmp(SortMode, "") == 0) {
+				SortFunction = ChannelTSCompare;
+			} else if (strcasecmp(SortMode, "alpha") == 0) {
+				SortFunction = ChannelNameCompare;
+			} else if (strcasecmp(SortMode, "custom") == 0) {
+				const CVector<CModule *> *Modules = g_Bouncer->GetModules();
+
+				for (i = 0; i < Modules->GetLength(); i++) {
+					SortFunction = (int (*)(const void *p1, const void *p2))(*Modules)[i]->Command("sorthandler", GetUsername());
+
+					if (SortFunction != NULL) {
+						break;
+					}
+				}
+			}
+
+			if (SortFunction == NULL) {
+				SortFunction = ChannelTSCompare;
+			}
+
+			qsort(Channels, m_IRC->GetChannels()->GetLength(), sizeof(CChannel *), SortFunction);
+
+			i = 0;
+			for (i = 0; i < m_IRC->GetChannels()->GetLength(); i++) {
+				Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), Client->GetPeerName(), Channels[i]->GetName());
+
+				asprintf(&Out, "TOPIC %s", Channels[i]->GetName());
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+
+					Client->Kill("Internal error.");
+				} else {
+					Client->ParseLine(Out);
+					free(Out);
+				}
+
+				asprintf(&Out, "NAMES %s", Channels[i]->GetName());
+
+				if (Out == NULL) {
+					LOGERROR("asprintf() failed.");
+
+					Client->Kill("Internal error.");
+				} else {
+					Client->ParseLine(Out);
+					free(Out);
+				}
+			}
+
+			free(Channels);
 		}
 	} else {
 		if (!Motd->IsEmpty()) {
@@ -2053,4 +2089,12 @@ bool CUser::GetUseQuitReason(void) {
 	} else {
 		return false;
 	}
+}
+
+void CUser::SetChannelSortMode(const char *Mode) {
+	CacheSetString(m_ConfigCache, channelsort, Mode);
+}
+
+const char *CUser::GetChannelSortMode(void) const {
+	return CacheGetString(m_ConfigCache, channelsort);
 }

@@ -39,7 +39,8 @@ enum binding_type_e {
 	Type_SetTag,
 	Type_SetUserTag,
 	Type_PreRehash,
-	Type_PostRehash
+	Type_PostRehash,
+	Type_ChannelSort
 };
 
 typedef struct binding_s {
@@ -69,8 +70,10 @@ extern CHashtable<CTclClientSocket*, false, 5>* g_TclClientSockets;
 extern int g_SocketIdx;
 
 extern CClientConnection *g_CurrentClient;
+extern int g_ChannelSortValue;
 
 void RestartInterpreter(void);
 void RehashInterpreter(void);
 void CallBinds(binding_type_e type, const char* user, CClientConnection* client, int argc, const char** argv);
 void SetLatchedReturnValue(bool Ret);
+int TclChannelSortHandler(const void *p1, const void *p2);

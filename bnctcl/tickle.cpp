@@ -37,6 +37,7 @@ bool g_NoticeUser;
 Tcl_Encoding g_Encoding;
 asprintf_func g_asprintf;
 free_func g_free;
+int g_ChannelSortValue;
 
 extern tcltimer_t** g_Timers;
 extern int g_TimerCount;
@@ -203,6 +204,10 @@ class CTclSupport : public CModuleImplementation {
 			const char* strResult = Tcl_GetString(Result);
 
 			return strResult;
+		}
+
+		if (strcasecmp(Cmd, "sorthandler") == 0) {
+			return (const char *)TclChannelSortHandler;
 		}
 
 		return NULL;
@@ -436,4 +441,17 @@ void CallBinds(binding_type_e type, const char* user, CClientConnection *client,
 
 void SetLatchedReturnValue(bool Ret) {
 	g_Ret = Ret;
+}
+
+int TclChannelSortHandler(const void *p1, const void *p2) {
+	const char *Channels[2];
+
+	g_ChannelSortValue = 0;
+
+	Channels[0] = (*(const CChannel **)p1)->GetName();
+	Channels[1] = (*(const CChannel **)p2)->GetName();
+
+	CallBinds(Type_ChannelSort, (*(const CChannel **)p1)->GetOwner()->GetOwner()->GetUsername(), (*(const CChannel **)p1)->GetOwner()->GetOwner()->GetPrimaryClientConnection(), 2, Channels);
+
+	return g_ChannelSortValue;
 }

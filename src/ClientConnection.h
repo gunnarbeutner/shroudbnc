@@ -94,7 +94,7 @@ public:
 	virtual void RealNotice(const char *Text);
 
 	virtual void SetQuitReason(const char *Reason);
-	virtual const char *GetQuitReason(void);
+	virtual const char *GetQuitReason(void) const;
 };
 
 #ifdef SBNC
