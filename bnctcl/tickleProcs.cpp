@@ -2167,12 +2167,11 @@ const char *getzoneinfo(const char *Zone) {
 			CZoneInformation *ThisZone = Zones->Get(i);
 
 			if (strcmp(ThisZone->GetTypeName(), Zone) == 0) {
-				argv = (char **)malloc(3 * sizeof(char *));
+				argv = (char **)malloc(2 * sizeof(char *));
 				g_asprintf(&(argv[0]), "%d", ThisZone->GetTypeSize());
 				g_asprintf(&(argv[1]), "%d", ThisZone->GetCount());
-				g_asprintf(&(argv[2]), "%d", ThisZone->GetCapacity());
 
-				List = Tcl_Merge(3, const_cast<char **>(argv));
+				List = Tcl_Merge(2, const_cast<char **>(argv));
 
 				g_free(argv[2]);
 				g_free(argv[1]);

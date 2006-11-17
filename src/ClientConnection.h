@@ -35,7 +35,6 @@ class SBNCAPI CClientConnection : public CConnection, public CObject<CClientConn
 	public CZoneObject<CClientConnection, 16> {
 private:
 	char *m_Nick; /**< the current nick of the user */
-//	char *m_PreviousNick; /**< the previous nick of the user */
 	char *m_Password; /**< the password which was supplied by the user */
 	char *m_Username; /**< the username the user supplied */
 	char *m_PeerName; /**< the hostname of the user */
@@ -43,10 +42,13 @@ private:
 	commandlist_t m_CommandList; /**< a list of commands used by the "help" command */
 	bool m_NamesXSupport; /**< does this client support NAMESX? */
 	CDnsQuery *m_ClientLookup; /**< dns query for looking up the user's hostname */
-	char *m_QuitReason; /* reason why the client was removed */
+	char *m_QuitReason; /**< reason why the client was removed */
+	CTimer* m_PingTimer; /**< timer for sending regular PINGs to the client */
+	time_t m_LastResponse; /**< last response from the client */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
+	friend bool ClientPingTimer(time_t Now, void *ClientConnection);
 
 protected:
 	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */

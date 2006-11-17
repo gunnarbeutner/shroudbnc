@@ -605,7 +605,11 @@ void CCore::StartMainLoop(void) {
 		}
 
 #if defined(_WIN32) && defined(_DEBUG)
-		printf("Spent %d msec in the main loop.\n", GetTickCount() - TickCount);
+		DWORD Ticks = GetTickCount() - TickCount;
+
+		if (Ticks > 50) {
+			printf("Spent %d msec in the main loop.\n", Ticks);
+		}
 #endif
 	}
 

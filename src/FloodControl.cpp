@@ -78,9 +78,9 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 }
 
 #define ScheduleCommand() \
-	int Bytes = CurrentBytes - (FLOODBYTES - 100); \
+	int Bytes = CurrentBytes - FLOODBYTES; \
 	if (Bytes > 0) { \
-		Delay = (Bytes / 75) + 1; \
+		Delay = (Bytes / FLOODFADEOUT) + 1; \
 	} else { \
 		Delay = 0; \
 	} \
@@ -89,8 +89,9 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	if (g_FloodTimer != NULL) { \
 		NextCommand = g_FloodTimer->GetNextCall(); \
 	} \
-	if (Delay > 0 && (g_CurrentTime + Delay < NextCommand || NextCommand < g_CurrentTime) && GetRealLength() > 0) { \
+	if (Delay > 0 && /*(g_CurrentTime + Delay < NextCommand || NextCommand < g_CurrentTime) &&*/ GetRealLength() > 0) { \
 		g_FloodTimer->Reschedule(g_CurrentTime + Delay); \
+		printf("Resched: %d\n", Delay); \
 	}
 
 /**
@@ -108,7 +109,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 
 	CurrentBytes = GetBytes();
 
-	if (m_Control && (CurrentBytes > FLOODBYTES - 100)) {
+	if (m_Control && (CurrentBytes > FLOODBYTES)) {
 		ScheduleCommand();
 
 		RETURN(char *, NULL);
@@ -143,8 +144,10 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	THROWIFERROR(char *, Item);
 
 	if (m_Control) {
-		CurrentBytes += strlen(Item) * CalculatePenaltyAmplifier(Item);
+		CurrentBytes += max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
 		m_Bytes = CurrentBytes;
+
+		printf("BY: %d\n", m_Bytes);
 
 		ScheduleCommand();
 	}
@@ -174,10 +177,10 @@ int CFloodControl::GetQueueSize(void) {
  * Returns the number of bytes which have been recently sent.
  */
 int CFloodControl::GetBytes(void) const {
-	if ((g_CurrentTime - m_LastCommand) * 75 > m_Bytes) {
+	if ((g_CurrentTime - m_LastCommand) * FLOODFADEOUT > m_Bytes) {
 		return 0;
 	} else {
-		return m_Bytes - (g_CurrentTime - m_LastCommand) * 75;
+		return m_Bytes - (g_CurrentTime - m_LastCommand) * FLOODFADEOUT;
 	}
 }
 

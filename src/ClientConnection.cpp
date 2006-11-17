@@ -65,6 +65,9 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	}
 
 	m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
+	m_PingTimer = new CTimer(45, true, ClientPingTimer, this);
+
+	m_LastResponse = g_CurrentTime;
 }
 
 /**
@@ -83,6 +86,8 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_AuthTimer = NULL;
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
+	m_QuitReason = NULL;
+	m_PingTimer = new CTimer(45, true, ClientPingTimer, this); 
 }
 
 /**
@@ -99,6 +104,7 @@ CClientConnection::~CClientConnection() {
 
 	delete m_ClientLookup;
 	delete m_AuthTimer;
+	delete m_PingTimer;
 }
 
 /**
@@ -1473,6 +1479,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 		return false;
 	}
 
+	m_LastResponse = g_CurrentTime;
+
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
 	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
@@ -1633,23 +1641,19 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					sockaddr *Remote = (*Clients)[i].Client->GetRemoteAddress();
 
 					if (Channel == NULL) {
-						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :-> %s", argv[1], GetOwner()->GetNick(), argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :%s", argv[1], Site, GetOwner()->GetNick(), argv[2]);
 					} else {
 						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :-> %s", GetOwner()->GetNick(), argv[1], argv[2]);
 					}
 				}
 			}
 		} else if (argc > 2 && strcasecmp(Command, "notice") == 0) {
-			const char *Site;
-
 			if (GetOwner()->GetIRCConnection() == NULL) {
 				return false;
 			}
 
-			Site = GetOwner()->GetIRCConnection()->GetSite();
-
 			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
-				WriteLine(":%s!%s NOTICE %s :%s", GetOwner()->GetNick(), Site, GetOwner()->GetNick(), argv[2]);
+				WriteLine(":%s!%s NOTICE %s :%s", GetOwner()->GetNick(), GetOwner()->GetIRCConnection()->GetSite(), GetOwner()->GetNick(), argv[2]);
 
 				return false;
 			}
@@ -1919,6 +1923,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 		} else if (strcasecmp(Command, "version") == 0) {
 			ParseLine("SYNTH VERSION");
 
+			return false;
+		} else if (strcasecmp(Command, "pong") == 0 && argc > 1 && strcasecmp(argv[1], "sbnc") == 0) {
 			return false;
 		}
 	}
@@ -2526,4 +2532,37 @@ void CClientConnection::Error(int ErrorCode) {
 		LocalFree(ErrorMsg);
 	}
 #endif
+}
+
+/**
+ * ClientPingTimer
+ *
+ * Checks the client connection for timeouts.
+ *
+ * @param Now the current time
+ * @param ClientConnection the CClientConnection object
+ */
+bool ClientPingTimer(time_t Now, void *ClientConnection) {
+	CClientConnection *Client = (CClientConnection *)ClientConnection;
+
+	if (Client->m_AuthTimer != NULL) {
+		return true;
+	}
+
+	if (Client->GetSocket() == INVALID_SOCKET) {
+		return true;
+	}
+
+	if (g_CurrentTime - Client->m_LastResponse > 90) {
+		Client->WriteLine("PING :sbnc");
+
+		/* we're using "Now" here, because that's the time when the
+		 * check should've returned a PONG, this might be useful when
+		 * we're in a time warp */
+		if (Now - Client->m_LastResponse > 180) {
+			Client->Kill("Ping timeout.");
+		}
+	}
+
+	return true;
 }

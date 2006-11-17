@@ -912,7 +912,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 
 	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 
-	if (m_IRC != NULL && m_Clients.GetLength() == 0) {
+	if (!Silent && m_IRC != NULL && m_Clients.GetLength() == 1) {
 		AwayMessage = GetAwayMessage();
 
 		if (AwayMessage != NULL) {
@@ -1982,9 +1982,9 @@ unsigned int CUser::GetLeanMode(void) {
 }
 
 bool CUser::MemoryAddBytes(size_t Bytes) {
-	if (rand() < RAND_MAX / 6) {
-		//return false;
-	}
+/*	if (rand() < RAND_MAX / 6) {
+		return false;
+	}*/
 
 	if (m_ManagedMemory + Bytes > g_Bouncer->GetResourceLimit("memory")) {
 		return false;
@@ -2056,11 +2056,13 @@ void CUser::RescheduleReconnectTimer(void) {
 
 	ReconnectTime = g_ReconnectTimer->GetNextCall();
 
-	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-		if (UserHash->Value->m_ReconnectTime >= g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
-			ReconnectTime = UserHash->Value->m_ReconnectTime;
-		} else if (UserHash->Value->ShouldReconnect()) {
-			UserHash->Value->Reconnect();
+	if (g_Bouncer->GetStatus() == STATUS_RUN) {
+		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+			if (UserHash->Value->m_ReconnectTime >= g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
+				ReconnectTime = UserHash->Value->m_ReconnectTime;
+			} else if (UserHash->Value->ShouldReconnect()) {
+				UserHash->Value->Reconnect();
+			}
 		}
 	}
 

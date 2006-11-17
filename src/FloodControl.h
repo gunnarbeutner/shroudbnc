@@ -17,7 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define FLOODBYTES 400
+#define FLOODBYTES 450
+#define FLOODFADEOUT 65
 
 /**
  * irc_queue_t

@@ -48,6 +48,7 @@ class CAssocArray;
  * An IRC connection.
  */
 class SBNCAPI CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser>, public CZoneObject<CIRCConnection, 16> {
+private:
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void *IRCConnection);

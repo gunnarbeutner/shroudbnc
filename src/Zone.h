@@ -28,7 +28,6 @@ void ZoneLeakCheck(void *Zone);
 struct CZoneInformation {
 public:
 	virtual unsigned int GetCount(void) const = 0;
-	virtual unsigned int GetCapacity(void) const = 0;
 	virtual const char *GetTypeName(void) const = 0;
 	virtual size_t GetTypeSize(void) const = 0;
 	virtual void PerformLeakCheck(void) const = 0;
@@ -55,10 +54,14 @@ class SBNCAPI CZone : public CZoneInformation {
 
 	template<typename HunkType, int HunkObjectSize>
 	struct hunk_s {
+		bool Full;
+		hunk_s<HunkType, HunkObjectSize> *NextHunk;
 		hunkobject_s<HunkType> HunkObjects[HunkObjectSize]; /**< the objects in this hunk */
 	};
 
-	hunk_s<Type, HunkSize> **m_Hunks;
+	hunk_s<Type, HunkSize> *m_FirstHunk;
+
+	unsigned int m_DeletedItems;
 	unsigned int m_Count;
 	bool m_Registered;
 
@@ -68,8 +71,9 @@ class SBNCAPI CZone : public CZoneInformation {
 	 * Creates a new hunk of memory in this zone.
 	 */
 	hunk_s<Type, HunkSize> *AddHunk(void) {
-		hunk_s<Type, HunkSize> **NewHunks;
 		hunk_s<Type, HunkSize> *NewHunk;
+
+		printf("AH(%s)\n", GetTypeName());
 
 		NewHunk = (hunk_s<Type, HunkSize> *)malloc(sizeof(hunk_s<Type, HunkSize>));
 
@@ -79,24 +83,14 @@ class SBNCAPI CZone : public CZoneInformation {
 
 		mmark(NewHunk);
 
-		NewHunks = (hunk_s<Type, HunkSize> **)realloc(m_Hunks, (m_Count + 1) * sizeof(hunk_s<Type, HunkSize> *));
+		NewHunk->NextHunk = m_FirstHunk;
+		m_FirstHunk = NewHunk;
 
-		if (NewHunks == NULL) {
-			free(NewHunk);
-
-			return NULL;
-		}
-
-		mmark(NewHunks);
+		NewHunk->Full = false;
 
 		for (unsigned int i = 0; i < HunkSize; i++) {
 			NewHunk->HunkObjects[i].Valid = false;
 		}
-
-		m_Hunks = NewHunks;
-		m_Count++;
-
-		m_Hunks[m_Count - 1] = NewHunk;
 
 		return NewHunk;
 	}
@@ -108,27 +102,36 @@ class SBNCAPI CZone : public CZoneInformation {
 	 */
 	void Optimize(void) {
 		bool UnusedHunk;
+		hunk_s<Type, HunkSize> *PreviousHunk = m_FirstHunk;
+		hunk_s<Type, HunkSize> *Hunk = m_FirstHunk->NextHunk;
 
-		for (unsigned int i = 0; i < m_Count; i++) {
-			hunk_s<Type, HunkSize> *Hunk = m_Hunks[i];
-
+		while (Hunk != NULL) {
 			UnusedHunk = true;
 
-			for (unsigned int h = 0; h < HunkSize; h++) {
-				hunkobject_s<Type> *HunkObject = &(Hunk->HunkObjects[h]);
+			if (!Hunk->Full) {
+				for (unsigned int h = 0; h < HunkSize; h++) {
+					hunkobject_s<Type> *HunkObject = &(Hunk->HunkObjects[h]);
 
-				if (HunkObject->Valid) {
-					UnusedHunk = false;
+					if (HunkObject->Valid) {
+						UnusedHunk = false;
 
-					break;
+						break;
+					}
 				}
+			} else {
+				UnusedHunk = false;
 			}
 
 			if (UnusedHunk) {
-				m_Hunks[i] = m_Hunks[m_Count - 1];
-				m_Count--;
+				PreviousHunk->NextHunk = Hunk->NextHunk;
 
 				free(Hunk);
+
+				Hunk = PreviousHunk->NextHunk;
+			} else {
+				PreviousHunk = Hunk;
+
+				Hunk = Hunk->NextHunk;
 			}
 		}
 	}
@@ -141,8 +144,9 @@ public:
 	 * allocating fixed-sized memory blocks.
 	 */
 	CZone(void) {
-		m_Hunks = NULL;
 		m_Count = 0;
+		m_DeletedItems = 0;
+		m_FirstHunk = NULL;
 	}
 
 	/**
@@ -151,11 +155,17 @@ public:
 	 * Destructs a memory zone.
 	 */
 	virtual ~CZone(void) {
-		for (unsigned int i = 0; i < m_Count; i++) {
-			free(m_Hunks[i]);
-		}
+		hunk_s<Type, HunkSize> *Hunk;
 
-		free(m_Hunks);
+		if (m_FirstHunk != NULL) {
+			Hunk = m_FirstHunk->NextHunk;
+
+			while (Hunk != NULL) {
+				free(Hunk);
+
+				Hunk = Hunk->NextHunk;
+			}
+		}
 	}
 
 	/**
@@ -179,23 +189,43 @@ public:
 			m_Registered = Register();
 		}
 
-		for (unsigned int i = 0; i < m_Count; i++) {
-			for (unsigned int h = 0; h < HunkSize; h++) {
-				hunkobject_s<Type> *HunkObject = &(m_Hunks[i]->HunkObjects[h]);
+		Hunk = m_FirstHunk;
 
-				if (!HunkObject->Valid) {
-					HunkObject->Valid = true;
+		unsigned int x = 0;
 
-					return (Type *)HunkObject->Data;
+		while (Hunk != NULL) {
+			if (!Hunk->Full) {
+				for (unsigned int h = 0; h < HunkSize; h++) {
+					hunkobject_s<Type> *HunkObject = &(Hunk->HunkObjects[h]);
+
+					if (!HunkObject->Valid) {
+						HunkObject->Valid = true;
+
+						m_Count++;
+
+						printf("ZI(%s, +): %d\n", GetTypeName(), x);
+
+						return (Type *)HunkObject->Data;
+					}
+
+					x++;
 				}
+
+				Hunk->Full = true;
 			}
+
+			Hunk = Hunk->NextHunk;
 		}
+
+		printf("ZI(%s, -): %d\n", GetTypeName(), x);
 
 		Hunk = AddHunk();
 
 		if (Hunk == NULL) {
 			return NULL;
 		}
+
+		m_Count++;
 
 		Hunk->HunkObjects[0].Valid = true;
 
@@ -208,25 +238,43 @@ public:
 	 * Marks an object as unused.
 	 */
 	void Delete(Type *Object) {
-		for (unsigned int i = 0; i < m_Count; i++) {
-			for (unsigned int h = 0; h < HunkSize; h++) {
-				hunkobject_s<Type> *HunkObject = &(m_Hunks[i]->HunkObjects[h]);
+		hunk_s<Type, HunkSize> *Hunk = m_FirstHunk;
+		hunkobject_s<Type> *HunkObject = NULL;
+		hunk_s<Type, HunkSize> *OwningHunk;
 
-				if ((Type *)HunkObject->Data == Object) {
-#ifdef _DEBUG
-					if (!HunkObject->Valid) {
-						printf("Double free for zone object %p", Object);
-					}
-#endif
+		HunkObject = (hunkobject_s<Type> *)((char *)Object - ((char *)HunkObject->Data - (char *)HunkObject));
 
-					HunkObject->Valid = false;
+		if (!HunkObject->Valid) {
+			printf("Double free for zone object %p", Object);
+		} else {
+			m_Count--;
+
+			OwningHunk = NULL;
+
+			while (Hunk != NULL) {
+				if (HunkObject >= Hunk->HunkObjects && HunkObject < &(Hunk->HunkObjects[HunkSize])) {
+					OwningHunk = Hunk;
 
 					break;
 				}
+
+				Hunk = Hunk->NextHunk;
+			}
+
+			if (OwningHunk != NULL) {
+				OwningHunk->Full = false;
+			} else {
+				printf("CZone::Delete(): Couldn't find hunk for an object.\n");
 			}
 		}
 
-		Optimize();
+		HunkObject->Valid = false;
+
+		m_DeletedItems++;
+
+		if ((m_DeletedItems % 10) == 0) {
+			Optimize();
+		}
 	}
 
 	/**
@@ -251,29 +299,7 @@ public:
 	 * Returns the number of active objects in the memory zone.
 	 */
 	unsigned int GetCount(void) const {
-		unsigned int Count = 0;
-
-		for (unsigned int i = 0; i < m_Count; i++) {
-			for (unsigned int h = 0; h < HunkSize; h++) {
-				hunkobject_s<Type> *HunkObject = &(m_Hunks[i]->HunkObjects[h]);
-
-				if ((Type *)HunkObject->Valid) {
-					Count++;
-				}
-			}
-		}
-
-		return Count;
-	}
-
-	/**
-	 * GetCapacity
-	 *
-	 * Returns the number of objects which can be active in this zone
-	 * without having to allocate new hunks.
-	 */
-	unsigned int GetCapacity(void) const {
-		return HunkSize * m_Count;
+		return m_Count;
 	}
 
 	/**
