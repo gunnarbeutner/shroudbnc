@@ -17,7 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CClientConnectionMultiplexer : public CClientConnection {
+/**
+ * CClientConnectionMultiplexer
+ *
+ * A class which manages several client objects.
+ */
+class SBNCAPI CClientConnectionMultiplexer : public CClientConnection {
 public:
 	CClientConnectionMultiplexer(CUser *User);
 

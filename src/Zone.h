@@ -73,8 +73,6 @@ class SBNCAPI CZone : public CZoneInformation {
 	hunk_s<Type, HunkSize> *AddHunk(void) {
 		hunk_s<Type, HunkSize> *NewHunk;
 
-		printf("AH(%s)\n", GetTypeName());
-
 		NewHunk = (hunk_s<Type, HunkSize> *)malloc(sizeof(hunk_s<Type, HunkSize>));
 
 		if (NewHunk == NULL) {
@@ -191,8 +189,6 @@ public:
 
 		Hunk = m_FirstHunk;
 
-		unsigned int x = 0;
-
 		while (Hunk != NULL) {
 			if (!Hunk->Full) {
 				for (unsigned int h = 0; h < HunkSize; h++) {
@@ -203,12 +199,8 @@ public:
 
 						m_Count++;
 
-						printf("ZI(%s, +): %d\n", GetTypeName(), x);
-
 						return (Type *)HunkObject->Data;
 					}
-
-					x++;
 				}
 
 				Hunk->Full = true;
@@ -216,8 +208,6 @@ public:
 
 			Hunk = Hunk->NextHunk;
 		}
-
-		printf("ZI(%s, -): %d\n", GetTypeName(), x);
 
 		Hunk = AddHunk();
 

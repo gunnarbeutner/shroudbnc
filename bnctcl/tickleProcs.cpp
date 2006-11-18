@@ -954,7 +954,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	} else if (strcasecmp(Type, "channelsort") == 0) {
 		return Context->GetChannelSortMode();
 	} else {
-		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit";
+		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort";
 	}
 }
 

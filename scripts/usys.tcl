@@ -1,5 +1,5 @@
 # usys.tcl (c)2006 Alex Sajzew
-# Written for shroudIRC
+# Written for shroudBNC
 
 set max:handLength 9
 

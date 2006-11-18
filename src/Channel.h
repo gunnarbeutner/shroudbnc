@@ -40,6 +40,7 @@ int ChannelTSCompare(const void *p1, const void *p2);
 int ChannelNameCompare(const void *p1, const void *p2);
 
 template class SBNCAPI CHashtable<CNick *, false, 64>;
+
 /**
  * CChannel
  *
@@ -52,7 +53,6 @@ private:
 	time_t m_Timestamp; /**< when the user joined the channel */
 
 	CVector<chanmode_t> m_Modes; /**< the channel modes */
-//	unsigned int m_ModeCount; /**< the number of channel modes */
 	bool m_ModesValid; /**< indicates whether the channelmodes are known */
 	char *m_TempModes; /**< string-representation of the channel modes, used
 							by GetChannelModes() */

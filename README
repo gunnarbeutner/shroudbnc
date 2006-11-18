@@ -21,6 +21,8 @@ script which is included in the distribution of sbnc:
 make
 make install
 
+(You need to use the GNU make utility on FreeBSD; i.e. use 'gmake' rather than 'make'.)
+
 "make install" will install shroudBNC in a directory named "sbnc" in your home
 directory.
 
