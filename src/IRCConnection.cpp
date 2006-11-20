@@ -158,6 +158,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 
 	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
 	m_DelayJoinTimer = NULL;
+	m_NickCatchTimer = NULL;
 
 	m_Site = NULL;
 	m_Usermodes = NULL;
@@ -244,12 +245,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	if (argc > 3 && iRaw == 433) {
 		bool ReturnValue = ModuleEvent(argc, argv);
 
-		if (GetCurrentNick() != NULL && Client != NULL) {
-			return true;
-		}
-
 		if (ReturnValue) {
-			WriteLine("NICK :%s_", argv[3]);
+			if (GetCurrentNick() == NULL) {
+				WriteLine("NICK :%s_", argv[3]);
+			}
+
+			if (m_NickCatchTimer == NULL) {
+				m_NickCatchTimer = new CTimer(30, false, NickCatchTimer, this);
+			}
 		}
 
 		return ReturnValue;
@@ -450,6 +453,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		Nick = NickFromHostmask(argv[0]);
 
 		int i = 0;
+
+		if (!b_Me && GetOwner()->GetClientConnectionMultiplexer() == NULL) {
+			const char *AwayNick = GetOwner()->GetAwayNick();
+
+			if (AwayNick != NULL && strcasecmp(AwayNick, Nick) == 0) {
+				WriteLine("NICK %s", AwayNick);
+			}
+		}
 
 		while (hash_t<CChannel *> *ChannelHash = m_Channels->Iterate(i++)) {
 			ChannelHash->Value->RenameUser(Nick, argv[2]);
@@ -1853,4 +1864,21 @@ const char *CIRCConnection::GetUsermodes(void) {
 	} else {
 		return NULL;
 	}
+}
+
+bool NickCatchTimer(time_t Now, void *IRCConnection) {
+	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
+	const char *AwayNick = IRC->GetOwner()->GetAwayNick();
+
+	if (IRC->GetOwner()->GetClientConnectionMultiplexer() != NULL) {
+		return false;
+	}
+
+	if (IRC->GetCurrentNick() != NULL && AwayNick != NULL && strcmp(IRC->GetCurrentNick(), AwayNick) != 0) {
+		IRC->WriteLine("NICK %s", AwayNick);
+	}
+
+	IRC->m_NickCatchTimer = NULL;
+
+	return false;
 }

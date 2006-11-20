@@ -65,7 +65,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 		SetPermissions(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
-		if (identConfig) {
+		if (identConfig != NULL) {
 			char *Buf = (char *)malloc(strlen(Ident) + 50);
 
 			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);

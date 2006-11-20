@@ -24,6 +24,7 @@
 
 #ifndef SWIG
 bool ClientAuthTimer(time_t Now, void *Client);
+bool ClientPingTimer(time_t Now, void *ClientConnection);
 #endif
 
 /**

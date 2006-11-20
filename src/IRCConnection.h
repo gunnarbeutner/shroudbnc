@@ -42,6 +42,12 @@ class CAssocArray;
 %template(CZoneObjectCIRCConnection) CZoneObject<class CIRCConnection, 16>;
 #endif
 
+#ifndef SWIG
+bool DelayJoinTimer(time_t Now, void *IRCConnection);
+bool IRCPingTimer(time_t Now, void *IRCConnection);
+bool NickCatchTimer(time_t Now, void *IRCConnection);
+#endif
+
 /**
  * CIRCConnection
  *
@@ -52,6 +58,7 @@ private:
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void *IRCConnection);
+	friend bool NickCatchTimer(time_t Now, void *IRCConnection);
 #endif
 
 	connection_state_e m_State; /**< the current status of the IRC connection */
@@ -70,6 +77,7 @@ private:
 	
 	CTimer *m_DelayJoinTimer; /**< timer for delay-joining channels */
 	CTimer *m_PingTimer; /**< timer for sending regular PINGs to the server */
+	CTimer *m_NickCatchTimer; /**< used for regaining a user's away nick */
 
 	CQueue *m_QueueLow; /**< low-priority queue */
 	CQueue *m_QueueMiddle; /**< middle-priority queue */

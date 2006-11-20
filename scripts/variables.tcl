@@ -30,6 +30,7 @@ if {![info exists ::varinitonce]} {
 	set config "fish"
 	set userfile "fish"
 	set chanfile "fish"
+	set botnet-nick "fish"
 
 	set ::varinitonce 1
 }
@@ -48,6 +49,7 @@ trace variable ::handlen rwu sbnc:tracevars-handlen
 trace variable ::config rwu sbnc:tracevars-config
 trace variable ::userfile rwu sbnc:tracevars-userfile
 trace variable ::chanfile rwu sbnc:tracevars-chanfile
+trace variable ::botnet-nick rwu sbnc:tracevars-botnet-nick
 
 proc sbnc:tracevars-botnick {name item operation} {
 	if {$operation == "r"} {
@@ -174,6 +176,14 @@ proc sbnc:tracevars-userfile {name item operation} {
 proc sbnc:tracevars-chanfile {name item operation} {
 	if {$operation == "r"} {
 		set ::chanfile "users/[getctx].chan"
+	} else {
+		return -code error "variable is read-only"
+	}
+}
+
+proc sbnc:tracevars-botnet-nick {name item operation} {
+	if {$operation == "r"} {
+		set ::botnet-nick [getctx]
 	} else {
 		return -code error "variable is read-only"
 	}

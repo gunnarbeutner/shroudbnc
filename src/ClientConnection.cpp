@@ -2475,7 +2475,13 @@ void CClientConnection::SetNick(const char *NewNick) {
 }
 
 void CClientConnection::Privmsg(const char *Text) {
-	const char *Nick = GetOwner()->GetNick();
+	const char *Nick;
+
+	if (GetOwner() == NULL) {
+		return;
+	}
+
+	Nick = GetOwner()->GetNick();
 
 	if (Nick != NULL) {
 		WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :%s", Nick, Text);
@@ -2483,7 +2489,13 @@ void CClientConnection::Privmsg(const char *Text) {
 }
 
 void CClientConnection::RealNotice(const char *Text) {
-	const char *Nick = GetOwner()->GetNick();
+	const char *Nick;
+
+	if (GetOwner() == NULL) {
+		return;
+	}
+
+	Nick = GetOwner()->GetNick();
 
 	if (Nick != NULL) {
 		WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);

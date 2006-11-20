@@ -91,7 +91,6 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	} \
 	if (Delay > 0 && /*(g_CurrentTime + Delay < NextCommand || NextCommand < g_CurrentTime) &&*/ GetRealLength() > 0) { \
 		g_FloodTimer->Reschedule(g_CurrentTime + Delay); \
-		printf("Resched: %d\n", Delay); \
 	}
 
 /**
@@ -146,8 +145,6 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	if (m_Control) {
 		CurrentBytes += max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
 		m_Bytes = CurrentBytes;
-
-		printf("BY: %d\n", m_Bytes);
 
 		ScheduleCommand();
 	}
