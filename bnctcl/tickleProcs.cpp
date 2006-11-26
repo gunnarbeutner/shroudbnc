@@ -2192,29 +2192,29 @@ const char *getzoneinfo(const char *Zone) {
 }
 
 int hijacksocket(void) {
-	SOCKET Socket;
+	clientdata_t ClientData;
 	CTclClientSocket *TclSocket;
 
 	if (g_CurrentClient == NULL) {
 		throw "No client object available.";
 	}
 
-	if (g_CurrentClient->IsSSL()) {
-		throw "SSL client objects cannot be hijacked.";
-	}
-
-	Socket = g_CurrentClient->Hijack();
+	ClientData = g_CurrentClient->Hijack();
 	g_CurrentClient = NULL;
 
-	if (Socket == INVALID_SOCKET) {
+	if (ClientData.Socket == INVALID_SOCKET) {
 		throw "Invalid client object.";
 	}
 
-	TclSocket = new CTclClientSocket(Socket);
+	TclSocket = new CTclClientSocket(ClientData.Socket);
 
 	if (TclSocket == NULL) {
 		throw "TclSocket could not be instantiated.";
 	}
+
+	TclSocket->SetSendQ(ClientData.SendQ);
+	TclSocket->SetRecvQ(ClientData.RecvQ);
+	TclSocket->SetSSLObject(ClientData.SSLObject);
 
 	return TclSocket->GetIdx();
 }

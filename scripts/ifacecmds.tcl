@@ -20,79 +20,83 @@
 # User commands
 
 proc iface:null {} {
-	return 1
+	return [itype_string 1]
 }
 
 registerifacecmd "core" "null" "iface:null"
 
 proc iface:raw {text} {
 	puthelp $text
+
+	return ""
 }
 
 registerifacecmd "core" "raw" "iface:raw"
 
 proc iface:getnick {} {
-	return $::botnick
+	return [itype_string $::botnick]
 }
 
 registerifacecmd "core" "getnick" "iface:getnick"
 
 proc iface:getvalue {setting} {
-	return [getbncuser [getctx] $setting]
+	return [itype_string [getbncuser [getctx] $setting]]
 }
 
 registerifacecmd "core" "getvalue" "iface:getvalue"
 
 proc iface:gettag {tag} {
-	return [getbncuser [getctx] tag $tag]
+	return [itype_string [getbncuser [getctx] tag $tag]]
 }
 
 registerifacecmd "core" "gettag" "iface:gettag"
 
 proc iface:getnetwork {} {
-	return [getisupport NETWORK]
+	return [itype_string [getisupport NETWORK]]
 }
 
 registerifacecmd "core" "getnetwork" "iface:getnetwork"
 
 proc iface:getchannels {} {
-	return [iface:list [internalchannels]]
+	return [itype_list_strings [internalchannels]]
 }
 
 registerifacecmd "core" "getchannels" "iface:getchannels"
 
 proc iface:getuptimehr {} {
-	return [duration [getbncuser [getctx] uptime]]
+	return [itype_string [duration [getbncuser [getctx] uptime]]]
 }
 
 registerifacecmd "core" "getuptimehr" "iface:getuptimehr"
 
 proc iface:gettraffic {} {
-	return [iface:list [list [trafficstats [getctx] server in] [trafficstats [getctx] server out] [trafficstats [getctx] client in] [trafficstats [getctx] client out]]]
+	return [itype_list_strings_args [trafficstats [getctx] server in] [trafficstats [getctx] server out] [trafficstats [getctx] client in] [trafficstats [getctx] client out]]
 }
 
 registerifacecmd "core" "gettraffic" "iface:gettraffic"
 
 proc iface:getchanmodes {channel} {
-	return [getchanmode $channel]
+	return [itype_string [getchanmode $channel]]
 }
 
 registerifacecmd "core" "getchanmodes" "iface:getchanmodes"
 
 proc iface:gettopic {channel} {
-	return [topic $channel]
+	return [itype_string [topic $channel]]
 }
 
 registerifacecmd "core" "gettopic" "iface:gettopic"
 
 proc iface:getchanlist {channel} {
-	return [iface:list [internalchanlist $channel]]
+	return [itype_list_strings [internalchanlist $channel]]
 }
 
 registerifacecmd "core" "getchanlist" "iface:getchanlist"
 
 proc iface:jump {} {
 	jump
+
+	return ""
 }
 
 registerifacecmd "core" "jump" "iface:jump"
@@ -104,6 +108,8 @@ proc iface:setvalue {setting value} {
 		return -code error "You may not modify this setting."
 	} else {
 		setbncuser [getctx] $setting $value
+
+		return ""
 	}
 }
 
@@ -117,9 +123,9 @@ proc iface:getlog {from to} {
 	set lines [split $stuff \n]
 
 	if {$from == -1 && $to == -1} {
-		return [iface:list [lrange $lines $from $to]
+		return [itype_list_strings $lines]
 	} else {
-		return [iface:list $lines]
+		return [itype_list_strings [lrange $lines $from $to]]
 	}
 }
 
@@ -130,7 +136,7 @@ proc iface:getloglines {} {
 	set stuff [read $file]
 	close $file
 
-	return [llength [split $stuff \n]]
+	return [itype_string [llength [split $stuff \n]]]
 }
 
 registerifacecmd "core" "getloglines" "iface:getloglines"
@@ -138,21 +144,23 @@ registerifacecmd "core" "getloglines" "iface:getloglines"
 proc iface:eraselog {} {
 	set file [open users/[getctx].log w+]
 	close $file
+
+	return ""
 }
 
 registerifacecmd "core" "eraselog" "iface:eraselog"
 
 proc iface:simul {command} {
-	return [iface:list [split [simul [getctx] $command] \n]]
+	return [itype_list_strings [split [simul [getctx] $command] \n]]
 }
 
 registerifacecmd "core" "simul" "iface:simul"
 
 proc iface:hasmodule {module} {
 	if {[lsearch -exact [iface-reflect:modules] $module] != -1} {
-		return 1
+		return [itype_string 1]
 	} else {
-		return 0
+		return [itype_string 0]
 	}
 }
 
@@ -160,9 +168,9 @@ registerifacecmd "core" "hasmodule" "iface:hasmodule"
 
 proc iface:hascommand {command} {
 	if {[lsearch -exact [iface-reflect:commands] $command] != -1} {
-		return 1
+		return [itype_string 1]
 	} else {
-		return 0
+		return [itype_string 0]
 	}
 }
 
@@ -170,12 +178,14 @@ registerifacecmd "core" "hascommand" "iface:hascommand"
 
 proc iface:setlanguage {language} {
 	setbncuser [getctx] tag lang $language
+
+	return ""
 }
 
 registerifacecmd "core" "setlanguage" "iface:setlanguage"
 
 proc iface:getversion {} {
-	return [bncversion]
+	return [itype_string [bncversion]]
 }
 
 registerifacecmd "core" "getversion" "iface:getversion"
@@ -183,13 +193,13 @@ registerifacecmd "core" "getversion" "iface:getversion"
 # Admin commands
 
 proc iface:tcl {command} {
-	return [eval $command]
+	return [itype_string [eval $command]]
 }
 
 registerifacecmd "core" "tcl" "iface:tcl" "access:admin"
 
 proc iface:getuserlist {} {
-	return [iface:list [bncuserlist]]
+	return [itype_list_strings [bncuserlist]]
 }
 
 registerifacecmd "core" "getuserlist" "iface:getuserlist" "access:admin"
@@ -202,9 +212,9 @@ proc iface:getmainlog {from to} {
 	set lines [split $stuff \n]
 
 	if {$from == -1 && $to == -1} {
-		return [iface:list $lines]
+		return [itype_list_strings $lines]
 	} else {
-		return [iface:list [lrange $lines $from $to]]
+		return [itype_list_strings [lrange $lines $from $to]]
 	}
 }
 
@@ -215,7 +225,7 @@ proc iface:getmainloglines {} {
 	set stuff [read $file]
 	close $file
 
-	return [llength [split $stuff \n]]
+	return [itype_string [llength [split $stuff \n]]]
 }
 
 registerifacecmd "core" "getmainloglines" "iface:getmainloglines" "access:admin"
@@ -223,36 +233,48 @@ registerifacecmd "core" "getmainloglines" "iface:getmainloglines" "access:admin"
 proc iface:erasemainlog {} {
 	set file [open sbnc.log w+]
 	close $file
+
+	return ""
 }
 
 registerifacecmd "core" "erasemainlog" "iface:erasemainlog" "access:admin"
 
 proc iface:adduser {username password} {
 	addbncuser $username $password
+
+	return ""
 }
 
 registerifacecmd "core" "adduser" "iface:adduser" "access:admin"
 
 proc iface:deluser {username} {
 	delbncuser $username
+
+	return ""
 }
 
 registerifacecmd "core" "deluser" "iface:deluser" "access:admin"
 
 proc iface:admin {username} {
-	setbncuser $username admin 1
+	setbncuser $username admin 1]
+
+	return ""
 }
 
 registerifacecmd "core" "admin" "iface:admin" "access:admin"
 
 proc iface:unadmin {username} {
-	setbncuser $username admin 0
+	setbncuser $username admin 0]
+
+	return ""
 }
 
 registerifacecmd "core" "unadmin" "iface:unadmin" "access:admin"
 
 proc iface:setident {username ident} {
-	setbncuser $username ident $ident
+	setbncuser $username ident $ident]
+
+	return ""
 }
 
 registerifacecmd "core" "setident" "iface:setident" "access:admin"
@@ -263,6 +285,8 @@ proc iface:suspend {username reason} {
 
 	setctx $username
 	bncdisconnect "Suspended: $reason"
+
+	return ""
 }
 
 registerifacecmd "core" "suspend" "iface:suspend" "access:admin"
@@ -270,6 +294,8 @@ registerifacecmd "core" "suspend" "iface:suspend" "access:admin"
 proc iface:unsuspend {username} {
 	setbncuser $username lock 0
 	setbncuser $username suspendreason ""
+
+	return ""
 }
 
 registerifacecmd "core" "unsuspend" "iface:unsuspend" "access:admin"
@@ -279,6 +305,8 @@ proc iface:global {text} {
 		setctx $user
 		bncnotc $text
 	}
+
+	return ""
 }
 
 registerifacecmd "core" "global" "iface:global" "access:admin"
@@ -286,6 +314,8 @@ registerifacecmd "core" "global" "iface:global" "access:admin"
 proc iface:killuser {username reason} {
 	setctx $username
 	bnckill $reason
+
+	return ""
 }
 
 registerifacecmd "core" "killuser" "iface:killuser" "access:admin"
@@ -293,48 +323,58 @@ registerifacecmd "core" "killuser" "iface:killuser" "access:admin"
 proc iface:disconnectuser {username reason} {
 	setctx $username
 	bncdisconnect $reason
+
+	return ""
 }
 
 registerifacecmd "core" "disconnectuser" "iface:disconnectuser" "access:admin"
 
 proc iface:rehash {} {
 	rehash
+
+	return ""
 }
 
 registerifacecmd "core" "rehash" "iface:rehash" "access:admin"
 
 proc iface:getglobaltag {tag} {
-	return [bncgetglobaltag $tag]
+	return [itype_string [bncgetglobaltag $tag]]
 }
 
 registerifacecmd "core" "getglobaltag" "iface:getglobaltag" "access:admin"
 
 proc iface:setglobaltag {tag value} {
 	bncsetglobaltag $tag $value
+
+	return ""
 }
 
 registerifacecmd "core" "setglobaltag" "iface:setglobaltag" "access:admin"
 
 proc iface:getglobaltags {} {
-	return [iface:list [bncgetglobaltags]]
+	return [itype_list_strings [bncgetglobaltags]]
 }
 
 registerifacecmd "core" "getglobaltags" "iface:getglobaltags" "access:admin"
 
 proc iface:gethosts {} {
-	return [iface:list [getbnchosts]]
+	return [itype_list_strings [getbnchosts]]
 }
 
 registerifacecmd "core" "gethosts" "iface:gethosts" "access:admin"
 
 proc iface:addhost {host} {
 	addbnchost $host
+
+	return ""
 }
 
 registerifacecmd "core" "addhost" "iface:addhost" "access:admin"
 
 proc iface:delhost {host} {
 	delbnchost $host
+
+	return ""
 }
 
 registerifacecmd "core" "delhost" "iface:delhost" "access:admin"
@@ -347,6 +387,8 @@ proc iface:sendmessage {user message} {
 	} else {
 		putlog $message
 	}
+
+	return ""
 }
 
 registerifacecmd "core" "sendmessage" "iface:sendmessage" "access:admin"

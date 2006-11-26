@@ -26,7 +26,6 @@ proc iface:hijackclient {client params} {
 	if {$client == "" && [string equal -nocase [lindex $params 0] "RPC_IFACE"]} {
 		set idx [hijacksocket]
 		control $idx iface:line
-		putdcc $idx RPC_IFACE_OK
 	}
 }
 
@@ -167,11 +166,11 @@ proc reflect:call2 {cmditem user arguments} {
 	setctx $oldcontext
 
 	if {$error} {
-		return "RPC_ERROR $result"
+		return [itype_exception "RPC_ERROR $result"]
 	} elseif {$result == ""} {
-		return "RPC_NORESULT"
+		return [itype_exception "RPC_NORESULT"]
 	} else {
-		return "RPC_OK $result"
+		return $result
 	}
 }
 
@@ -179,7 +178,7 @@ proc reflect:call {command user arguments} {
 	global ifacecmds
 
 	if {![reflect:cancall $command $user]} {
-		return "RPC_UNKNOWN_FUNCTION"
+		return [itype_exception "RPC_UNKNOWN_FUNCTION"]
 	}
 
 	if {[llength [reflect:params $command]] != [llength $arguments]} {
@@ -221,93 +220,33 @@ proc access:anyone {user} {
 	return 1
 }
 
-proc iface:list {line} {
-	return "\n[join $line \n]"
-}
-
-proc iface:splitline {line} {
-	set toks [list]
-	set tok ""
-	# 0 = at beginning of new parameter, 1 = reading "enclosed" parameter, 2 reading word
-	set state 0
-
-	set i 0
-	while {$i < [string length $line]} {
-		if {$i > 0} {
-			set prev [string index $line [expr $i - 1]]
-		} else {
-			set prev ""
-		}
-
-		if {[expr $i + 1] < [string length $line]} {
-			set next [string index $line [expr $i + 1]]
-		} else {
-			set next ""
-		}
-
-		set char [string index $line $i]
-
-		if {$state == 0} {
-			if {$char == {"}} {
-				set state 1
-				incr i
-				continue
-			}
-
-			set state 2
-		}
-
-		if {$state == 1 && $char == {"} && $prev != "\\"} {
-			set state 0
-			incr i 2
-
-			lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
-			set tok ""
-
-			if {$next != " " && $next != ""} {
-				return -code error "Invalid input."
-			}
-
-			continue
-		}
-
-		if {$state == 2 && $char == " "} {
-			set state 0
-			incr i
-
-			lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
-			set tok ""
-
-			continue
-		}
-
-		append tok $char
-		incr i
-	}
-
-	if {$state == 1} {
-		return -code error "Invalid input."
-	}
-
-	if {$tok != ""} {
-		lappend toks [string map [list "\\\"" "\"" "\6" "\n"] $tok]
-	}
-
-	return $toks
-}
-
 proc iface:evalline {line} {
 	global ifaceoverride
 
-	if {[catch [list iface:splitline $line] error]} {
-		return "RPC_PARSEERROR $error"
-	} else {
-		set toks $error
+	if {[string equal -nocase $line "RPC_IFACE"]} {
+		return "RPC_IFACE_OK"
 	}
 
-	if {[llength $toks] < 3} {
-		return "RPC_INVALIDLINE"
+	set parsedtoks [itype_parse $line]
+
+	set validparameters 0
+
+	if {[lindex $parsedtoks 0] == "list"} {
+		set listitems [lindex $parsedtoks 1]
+
+		if {[llength $listitems] >= 4} {
+			if {[lindex [lindex $listitems 0] 0] == "string" && [lindex [lindex $listitems 1] 0] == "string"
+			  && [lindex [lindex $listitems 2] 0] == "string" && [lindex [lindex $listitems 3] 0] == "list"} {
+				set validparameters 1
+			}
+		}
 	}
+
+	if {!$validparameters} {
+		return [itype_exception "RPC_INVALIDLINE"]
+	}
+
+	set toks [itype_flat $parsedtoks]
 
 	set adm [split [lindex $toks 1] ":"]
 
@@ -322,10 +261,10 @@ proc iface:evalline {line} {
 	}
 
 	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
-		return "RPC_INVALIDUSERPASS"
+		return [itype_exception "RPC_INVALIDUSERPASS"]
 	}
 
-	return [string map [list "\n" "\6"] [reflect:call [lindex $toks 2] [lindex $toks 0] [lrange $toks 3 end]]]
+	return [reflect:call [lindex $toks 2] [lindex $toks 0] [lindex $toks 3]]
 }
 
 proc iface:isoverride {} {
@@ -335,6 +274,10 @@ proc iface:isoverride {} {
 }
 
 proc iface:line {idx line} {
+	if {$line == ""} {
+		return
+	}
+
 	putdcc $idx [iface:evalline $line]
 }
 
@@ -342,22 +285,24 @@ proc iface:line {idx line} {
 
 proc iface-reflect:commands {} {
 	set commands [reflect:commands]
-	set result [list]
+	set result [itype_list_create]
 
 	foreach command $commands {
 		if {[reflect:cancall $command [getctx]]} {
-			lappend result $command
+			itype_list_insert result [itype_string $command]
 		}
 	}
 
-	return [iface:list $result]
+	itype_list_end result
+
+	return $result
 }
 
 registerifacecmd "reflect" "commands" "iface-reflect:commands"
 
 proc iface-reflect:params {command} {
 	if {[reflect:cancall $command [getctx]]} {
-		return [iface:list [reflect:params $command]]
+		return [itype_list_strings [reflect:params $command]]
 	}
 
 	return -code error "Unknown command."
@@ -367,7 +312,16 @@ registerifacecmd "reflect" "params" "iface-reflect:params"
 
 proc iface-reflect:overrides {command} {
 	if {[reflect:cancall $command [getctx]]} {
-		return [iface:list [reflect:overrides $command]]
+		set result [itype_list_create]
+		set overrides [reflect:overrides $command]
+
+		foreach override $overrides {
+			itype_list_insert result [itype_list_strings $override]
+		}
+
+		itype_list_end result
+
+		return $result
 	}
 
 	return -code error "Unknown command."
@@ -378,15 +332,34 @@ registerifacecmd "reflect" "overrides" "iface-reflect:overrides"
 proc iface-reflect:modules {} {
 	global ifacecmds
 
-	set modules [list]
+	set modules [itype_list_create]
 
 	foreach cmd $ifacecmds {
 		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
-			lappend modules [lindex $cmd 0]
+			itype_list_insert modules [itype_string [lindex $cmd 0]]
 		}
 	}
 
-	return [iface:list $modules]
+	itype_list_end modules
+
+	return $modules
 }
 
 registerifacecmd "reflect" "modules" "iface-reflect:modules"
+
+proc iface-reflect:multicall {calls} {
+	set results [itype_list_create]
+
+	set ctx [getctx]
+
+	foreach call $calls {
+		setctx $ctx
+		itype_list_insert results [reflect:call [lindex $call 0] [getctx] [lindex $call 1]]
+	}
+
+	itype_list_end results
+
+	return $results
+}
+
+registerifacecmd "reflect" "multicall" "iface-reflect:multicall"

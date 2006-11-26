@@ -136,6 +136,9 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	if (Client != INVALID_SOCKET) {
 		InitSocket();
 	}
+
+	m_SendQ = new CFIFOBuffer();
+	m_RecvQ = new CFIFOBuffer();
 }
 
 /**
@@ -158,6 +161,9 @@ CConnection::~CConnection(void) {
 	
 	free(m_HostAddr);
 	free(m_BindAddr);
+
+	delete m_SendQ;
+	delete m_RecvQ;
 
 #ifdef USESSL
 	if (IsSSL() && m_SSL != NULL) {
@@ -298,7 +304,7 @@ int CConnection::Read(bool DontProcess) {
 
 		m_InboundTraffic += ReadResult;
 
-		m_RecvQ.Write(Buffer, ReadResult);
+		m_RecvQ->Write(Buffer, ReadResult);
 
 		if (m_Traffic) {
 			m_Traffic->AddInbound(ReadResult);
@@ -353,14 +359,14 @@ int CConnection::Write(void) {
 	size_t Size;
 	int ReturnValue;
 
-	Size = m_SendQ.GetSize();
+	Size = m_SendQ->GetSize();
 
 	if (Size > 0) {
 		int WriteResult;
 
 #ifdef USESSL
 		if (IsSSL()) {
-			WriteResult = SSL_write(m_SSL, m_SendQ.Peek(), Size);
+			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size);
 
 			if (WriteResult == -1) {
 				switch (SSL_get_error(m_SSL, WriteResult)) {
@@ -373,7 +379,7 @@ int CConnection::Write(void) {
 			}
 		} else {
 #endif
-			WriteResult = send(m_Socket, m_SendQ.Peek(), Size, 0);
+			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
 #ifdef USESSL
 		}
 #endif
@@ -389,7 +395,7 @@ int CConnection::Write(void) {
 				m_Traffic->AddOutbound(WriteResult);
 			}
 
-			m_SendQ.Read(WriteResult);
+			m_SendQ->Read(WriteResult);
 		} else if (WriteResult < 0) {
 			Shutdown();
 		}
@@ -420,27 +426,31 @@ void CConnection::ProcessBuffer(void) {
 	char *RecvQ, *Line;
 	size_t Size;
 	
-	Line = RecvQ = m_RecvQ.Peek();
+	Line = RecvQ = m_RecvQ->Peek();
 
-	Size = m_RecvQ.GetSize();
+	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
 		if (RecvQ[i] == '\n' || (RecvQ[i] == '\r' && Size > i + 1 && RecvQ[i + 1] == '\n')) {
-			RecvQ[i] = '\0';
+			char *dupLine = (char *)malloc(&(RecvQ[i]) - Line + 1);
+
+			CHECK_ALLOC_RESULT(dupLine, malloc) {
+				return;
+			} CHECK_ALLOC_RESULT_END;
+
+			strmcpy(dupLine, Line, &(RecvQ[i]) - Line + 1);
 
 			if (Line[0] != '\0') {
-				ParseLine(Line);
+				ParseLine(dupLine);
 			}
 
-			if (RecvQ[i] == '\r') {
-				i++;
-			}
+			free(dupLine);
 
 			Line = &RecvQ[i + 1];
 		}
 	}
 
-	m_RecvQ.Read(Line - RecvQ);
+	m_RecvQ->Read(Line - RecvQ);
 }
 
 /**
@@ -457,13 +467,13 @@ bool CConnection::ReadLine(char **Out) {
 	char *Pos = NULL;
 	bool advance = false;
 
-	old_recvq = m_RecvQ.Peek();
+	old_recvq = m_RecvQ->Peek();
 
 	if (old_recvq == NULL) {
 		return false;
 	}
 
-	Size = m_RecvQ.GetSize();
+	Size = m_RecvQ->GetSize();
 
 	for (unsigned int i = 0; i < Size; i++) {
 		if (old_recvq[i] == '\n' || (Size > i + 1 && old_recvq[i] == '\r' && old_recvq[i + 1] == '\n')) {
@@ -483,7 +493,7 @@ bool CConnection::ReadLine(char **Out) {
 
 		Size = NewPtr - old_recvq + 1;
 		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
-		strmcpy(*Out, m_RecvQ.Read(NewPtr - old_recvq), Size);
+		strmcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
 
 		CHECK_ALLOC_RESULT(*Out, strdup) {
 			return false;
@@ -505,7 +515,7 @@ bool CConnection::ReadLine(char **Out) {
  */
 void CConnection::WriteUnformattedLine(const char *Line) {
 	if (!m_Locked && Line != NULL) {
-		m_SendQ.WriteUnformattedLine(Line);
+		m_SendQ->WriteUnformattedLine(Line);
 	}
 }
 
@@ -600,7 +610,7 @@ bool CConnection::HasQueuedData(void) const {
 	}
 #endif
 
-	return m_SendQ.GetSize() > 0;
+	return m_SendQ->GetSize() > 0;
 }
 
 /**
@@ -609,7 +619,7 @@ bool CConnection::HasQueuedData(void) const {
  * Returns the size of the sendq.
  */
 size_t CConnection::GetSendqSize(void) const {
-	return m_SendQ.GetSize();
+	return m_SendQ->GetSize();
 }
 
 /**
@@ -618,7 +628,7 @@ size_t CConnection::GetSendqSize(void) const {
  * Returns the size of the recvq.
  */
 size_t CConnection::GetRecvqSize(void) const {
-	return m_RecvQ.GetSize();
+	return m_RecvQ->GetSize();
 }
 
 /**
@@ -713,7 +723,7 @@ const char *CConnection::GetClassName(void) const {
  * Flushes the sendq.
  */
 void CConnection::FlushSendQ(void) {
-	m_SendQ.Flush();
+	m_SendQ->Flush();
 }
 
 /**
@@ -958,4 +968,65 @@ size_t CConnection::GetInboundRate(void) {
 	} else {
 		return 0;
 	}
+}
+
+/**
+ * SetSendQ
+ *
+ * Deletes the current send queue and sets a new queue.
+ *
+ * @param Buffer the new queue
+ */
+void CConnection::SetSendQ(CFIFOBuffer *Buffer) {
+	if (m_SendQ != NULL) {
+		delete m_SendQ;
+	}
+
+	m_SendQ = Buffer;
+
+	if (m_SendQ == NULL) {
+		m_SendQ = new CFIFOBuffer();
+	}
+}
+
+/**
+ * SetRecvQ
+ *
+ * Deletes the current receive queue and sets a new queue.
+ *
+ * @param Buffer the new queue
+ */
+void CConnection::SetRecvQ(CFIFOBuffer *Buffer) {
+	if (m_RecvQ != NULL) {
+		delete m_RecvQ;
+	}
+
+	m_RecvQ = Buffer;
+
+	if (m_RecvQ == NULL) {
+		m_RecvQ = new CFIFOBuffer();
+	}
+}
+
+/**
+ * SetSSL
+ *
+ * Sets the SSL object for the connection.
+ *
+ * @param SSLObject ssl object
+ */
+void CConnection::SetSSLObject(void *SSLObject) {
+#ifdef USESSL
+	if (SSLObject == NULL) {
+		m_HasSSL = false;
+	} else {
+		m_HasSSL = true;
+	}
+
+	if (m_SSL != NULL) {
+		SSL_free(m_SSL);
+	}
+
+	m_SSL = (SSL *)SSLObject;
+#endif
 }

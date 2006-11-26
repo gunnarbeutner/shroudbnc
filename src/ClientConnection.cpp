@@ -2418,16 +2418,29 @@ bool DestroyClientTimer(time_t Now, void *Client) {
  *
  * Detaches the socket from this connection object and returns it.
  */
-SOCKET CClientConnection::Hijack(void) {
-	SOCKET Socket;
+clientdata_t CClientConnection::Hijack(void) {
+	clientdata_t ClientData;
 
-	Socket = GetSocket();
-	g_Bouncer->UnregisterSocket(Socket);
+	ClientData.Socket = GetSocket();
+	g_Bouncer->UnregisterSocket(ClientData.Socket);
 	SetSocket(INVALID_SOCKET);
+
+	ClientData.RecvQ = m_RecvQ;
+	ClientData.SendQ = m_SendQ;
+
+	m_RecvQ = new CFIFOBuffer();
+	m_SendQ = new CFIFOBuffer();
+
+	if (IsSSL()) {
+		ClientData.SSLObject = m_SSL;
+		m_SSL = NULL;
+	} else {
+		ClientData.SSLObject = NULL;
+	}
 
 	new CTimer(1, false, DestroyClientTimer, this);
 
-	return Socket;
+	return ClientData;
 }
 
 /**

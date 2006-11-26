@@ -220,7 +220,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	int iRaw = atoi(Raw);
 
 	bool b_Me = false;
-	if (m_CurrentNick && Nick && strcasecmp(Nick, m_CurrentNick) == 0) {
+	if (m_CurrentNick != NULL && Nick != NULL && strcasecmp(Nick, m_CurrentNick) == 0) {
 		b_Me = true;
 	}
 
@@ -277,7 +277,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		}
 
 		/* don't log ctcp requests */
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL && Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			char *Dup;
 			char *Delim;
 
@@ -320,7 +320,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		Nick = ::NickFromHostmask(Reply);
 
 		/* don't log ctcp replies */
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest && Nick && m_CurrentNick && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL && Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
 			GetOwner()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 

@@ -176,7 +176,15 @@ bool CTclClientSocket::HasQueuedData(void) const {
 }
 
 void CTclClientSocket::SetControlProc(const char* Proc) {
+	if (m_Control != NULL) {
+		free(m_Control);
+	}
+
 	m_Control = strdup(Proc);
+
+	if (m_Wrap->GetRecvqSize() > 0) {
+		Read(false);
+	}
 }
 
 const char* CTclClientSocket::GetControlProc(void) const {
@@ -205,4 +213,16 @@ void CTclClientSocket::DestroyLater(void) {
 
 bool CTclClientSocket::ShouldDestroy(void) const {
 	return false; 
+}
+
+void CTclClientSocket::SetSendQ(CFIFOBuffer *Buffer) {
+	m_Wrap->SetSendQ(Buffer);
+}
+
+void CTclClientSocket::SetRecvQ(CFIFOBuffer *Buffer) {
+	m_Wrap->SetRecvQ(Buffer);
+}
+
+void CTclClientSocket::SetSSLObject(SSL *SSLObject) {
+	m_Wrap->SetSSLObject(SSLObject);
 }

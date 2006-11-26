@@ -53,8 +53,10 @@ commandlist_t *CClientConnectionMultiplexer::GetCommandList(void) {
 	return NULL;
 }
 
-SOCKET CClientConnectionMultiplexer::Hijack(void) {
-	return INVALID_SOCKET;
+clientdata_t CClientConnectionMultiplexer::Hijack(void) {
+	clientdata_t InvalidClientData = { INVALID_SOCKET };
+
+	return InvalidClientData;
 }
 
 void CClientConnectionMultiplexer::ChangeNick(const char *NewNick) {

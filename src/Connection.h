@@ -61,16 +61,17 @@ protected:
 
 	bool m_Wrapper; /**< was this object created as a wrapper for another socket? */
 
+	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 	SSL *m_SSL; /**< SSL context for this connection */
+
+	CFIFOBuffer *m_SendQ; /**< send queue */
+	CFIFOBuffer *m_RecvQ; /**< receive queue */
+
 public:
 	virtual void AsyncDnsFinished(hostent *Response);
 	virtual void AsyncBindIpDnsFinished(hostent *Response);
+
 private:
-	bool m_HasSSL; /**< is this an ssl-enabled connection? */
-
-	CFIFOBuffer m_SendQ; /**< send queue */
-	CFIFOBuffer m_RecvQ; /**< receive queue */
-
 	CDnsQuery *m_DnsQuery; /**< the dns query for looking up the hostname */
 	CDnsQuery *m_BindDnsQuery; /**< the dns query for looking up the bind address */
 	unsigned short m_PortCache; /**< the port or -1 if the cache is invalided */
@@ -138,6 +139,10 @@ public:
 	bool IsConnected(void);
 
 	size_t GetInboundRate(void);
+
+	void SetSendQ(CFIFOBuffer *Buffer);
+	void SetRecvQ(CFIFOBuffer *Buffer);
+	void SetSSLObject(void *SSLObject);
 
 	// should really be "protected"
 	virtual int Read(bool DontProcess = false);

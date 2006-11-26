@@ -36,7 +36,7 @@ public:
 
 	virtual commandlist_t *GetCommandList(void);
 
-	virtual SOCKET Hijack(void);
+	virtual clientdata_t Hijack(void);
 
 	virtual void ChangeNick(const char *NewNick);
 	virtual void SetNick(const char *NewNick);

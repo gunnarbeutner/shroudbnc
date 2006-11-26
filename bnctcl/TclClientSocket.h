@@ -47,10 +47,15 @@ public:
 
 	virtual bool MayNotEnterDestroy(void);
 	virtual void DestroyLater(void);
+
+	void SetSendQ(CFIFOBuffer *Buffer);
+	void SetRecvQ(CFIFOBuffer *Buffer);
+	void SetSSLObject(SSL *SSLObject);
+
 private:
 	SOCKET m_Socket;
 	CConnection* m_Wrap;
-	const char* m_Control;
+	char* m_Control;
 	int m_Idx;
 	bool m_InTcl;
 	bool m_Destroy;

@@ -74,7 +74,7 @@ getusermodes
 hijacksocket
 
   Description: Converts a client object into a tcl socket idx. The socket is then owned by the tcl script. This function
-  can only be used in a "client" internalbind.
+  can only be used in a "client" internalbind. The line which the "client" bind was triggered for will be copied to the new socket   buffer.
   Returns: A socket idx.
 
 ** Context management ***

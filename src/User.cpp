@@ -631,7 +631,7 @@ void CUser::Reconnect(void) {
 bool CUser::ShouldReconnect(void) const {
 	int Interval = g_Bouncer->GetInterval();
 
-	if (GetServer() == NULL || GetPort() == 0) {
+	if (GetServer() == NULL) {
 		return false;
 	}
 

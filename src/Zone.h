@@ -159,9 +159,11 @@ public:
 			Hunk = m_FirstHunk->NextHunk;
 
 			while (Hunk != NULL) {
+				hunk_s<Type, HunkSize> *NextHunk = Hunk->NextHunk;
+
 				free(Hunk);
 
-				Hunk = Hunk->NextHunk;
+				Hunk = NextHunk;
 			}
 		}
 	}

@@ -3,5 +3,6 @@
 # will NOT work with iface2. You WILL have to use the web interface
 # for iface2 instead.
 
+source "scripts/itype.tcl"
 source "scripts/iface2.tcl"
 source "scripts/ifacecmds.tcl"

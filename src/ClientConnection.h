@@ -28,6 +28,18 @@ bool ClientPingTimer(time_t Now, void *ClientConnection);
 #endif
 
 /**
+ * clientdata_t
+ *
+ * Contains a connection's socket, queues and SSL context.
+ */
+typedef struct clientdata_s {
+	SOCKET Socket;
+	CFIFOBuffer *SendQ;
+	CFIFOBuffer *RecvQ;
+	SSL *SSLObject;
+} clientdata_t;
+
+/**
  * CClientConnection
  *
  * A class for clients of the IRC bouncer.
@@ -88,7 +100,7 @@ public:
 
 	virtual commandlist_t *GetCommandList(void);
 
-	virtual SOCKET Hijack(void);
+	virtual clientdata_t Hijack(void);
 
 	virtual void ChangeNick(const char *NewNick);
 	virtual void SetNick(const char *NewNick);
