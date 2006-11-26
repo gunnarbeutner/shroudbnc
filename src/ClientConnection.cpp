@@ -1641,9 +1641,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					sockaddr *Remote = (*Clients)[i].Client->GetRemoteAddress();
 
 					if (Channel == NULL) {
-						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :%s", argv[1], Site, GetOwner()->GetNick(), argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1], Site, GetOwner()->GetNick(), argv[2]);
 					} else {
-						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :-> %s", GetOwner()->GetNick(), argv[1], argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :%s", GetOwner()->GetNick(), argv[1], argv[2]);
 					}
 				}
 			}

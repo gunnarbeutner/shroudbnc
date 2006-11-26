@@ -20,6 +20,8 @@
 # There are no configurable options. The RPC interface (Version 2) uses
 # the same port like shroudBNC.
 
+source "scripts/itype.tcl"
+
 internalbind client iface:hijackclient RPC_IFACE
 
 proc iface:hijackclient {client params} {

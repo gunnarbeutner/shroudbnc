@@ -178,10 +178,7 @@ bool CTclClientSocket::HasQueuedData(void) const {
 }
 
 void CTclClientSocket::SetControlProc(const char* Proc) {
-	if (m_Control != NULL) {
-		free(m_Control);
-	}
-
+	free(m_Control);
 	m_Control = strdup(Proc);
 
 	if (m_Wrap->GetRecvqSize() > 0) {

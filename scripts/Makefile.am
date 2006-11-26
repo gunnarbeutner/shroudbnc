@@ -26,6 +26,7 @@ vhost.tcl \
 virtual.tcl \
 telnet.tcl \
 telnetclient.tcl \
-iface.tcl
+iface.tcl \
+itype.tcl
 
 EXTRA_DIST=${scripts_DATA}
