@@ -60,6 +60,8 @@ CTclClientSocket::~CTclClientSocket() {
 
 	g_TclClientSockets->Remove(Buf);
 	g_free(Buf);
+
+	free(m_Control);
 }
 
 void CTclClientSocket::Destroy(void) {

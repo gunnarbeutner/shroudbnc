@@ -835,7 +835,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 			}
 		}
 
-		OldestClient.Client->Kill("Another client logged in. This client has been disconnected because it was the oldest existing client connection.");
+		OldestClient.Client->Kill("Another client logged in. Your client has been disconnected because it was the oldest existing client connection.");
 	}
 
 	Client->SetOwner(this);
@@ -983,7 +983,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	Remote = Client->GetRemoteAddress();
 
 	if (!Silent) {
-		asprintf(&InfoPrimary, "Another client logged off from %s[%s]. This client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		CHECK_ALLOC_RESULT(InfoPrimary, asprintf) {
 			return;
