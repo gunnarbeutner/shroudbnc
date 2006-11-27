@@ -129,5 +129,6 @@ AC_CONFIG_FILES([Makefile \
                  src/sbncloader/Makefile \
                  src/Makefile \
                  src/md5/Makefile \
-                 identd32/Makefile])
+                 identd32/Makefile \
+                 php/Makefile])
 AC_OUTPUT
