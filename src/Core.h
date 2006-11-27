@@ -83,6 +83,7 @@ template class SBNCAPI CVector<CModule *>;
 template class SBNCAPI CVector<char *>;
 template class SBNCAPI CVector<CZoneInformation *>;
 template class SBNCAPI CHashtable<CUser *, false, 512>;
+
 /**
  * CCore
  *

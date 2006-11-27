@@ -440,7 +440,7 @@ void CConnection::ProcessBuffer(void) {
 
 			strmcpy(dupLine, Line, &(RecvQ[i]) - Line + 1);
 
-			if (Line[0] != '\0') {
+			if (dupLine[0] != '\0') {
 				ParseLine(dupLine);
 			}
 

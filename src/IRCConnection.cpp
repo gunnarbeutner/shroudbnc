@@ -194,6 +194,10 @@ CIRCConnection::~CIRCConnection(void) {
 	if (m_PingTimer != NULL) {
 		m_PingTimer->Destroy();
 	}
+
+	if (m_NickCatchTimer != NULL) {
+		m_NickCatchTimer->Destroy();
+	}
 }
 
 /**
@@ -1866,9 +1870,23 @@ const char *CIRCConnection::GetUsermodes(void) {
 	}
 }
 
+/**
+ * NickCatchTimer
+ *
+ * Used to regain a user's nickname
+ *
+ * @param Now current time
+ * @param IRCConnection irc connection
+ */
 bool NickCatchTimer(time_t Now, void *IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
-	const char *AwayNick = IRC->GetOwner()->GetAwayNick();
+	const char *AwayNick;
+
+	if (IRC->GetOwner() != NULL) {
+		AwayNick = IRC->GetOwner()->GetAwayNick();
+	} else {
+		AwayNick = NULL;
+	}
 
 	if (IRC->GetOwner()->GetClientConnectionMultiplexer() != NULL) {
 		return false;

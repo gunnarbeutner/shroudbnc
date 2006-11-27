@@ -21,7 +21,7 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 
-#ifndef RUBY
+#ifndef SWIG
 #	include <windows.h>
 #	include <winsock2.h>
 #	include <ws2tcpip.h>

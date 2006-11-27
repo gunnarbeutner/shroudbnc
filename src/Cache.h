@@ -33,6 +33,7 @@
 	(Cache).BgPrefix = Prefix; \
 	}
 
+#ifndef SWIG
 int CacheGetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, const char *Prefix);
 const char *CacheGetStringReal(CConfig *Config, const char **CacheValue, const char *Option, const char *Prefix);
 
@@ -44,3 +45,4 @@ void CacheSetStringReal(CConfig *Config, const char **CacheValue, const char *Op
 
 #define CacheSetInteger(Cache, Option, Value) CacheSetIntegerReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)
 #define CacheSetString(Cache, Option, Value) CacheSetStringReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)
+#endif

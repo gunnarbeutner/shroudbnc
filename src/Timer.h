@@ -50,7 +50,6 @@ public:
 	static void DestroyAllTimers(void);
 	static void CallTimers(void);
 
-	bool ShouldCall(void) const;
 	int GetInterval(void) const;
 	bool GetRepeat(void) const;
 
