@@ -43,9 +43,7 @@ public:
 #endif
 
 	void Clear(void);
-#ifndef SWIG
 	void WriteLine(const char *Timestamp, const char *Format,...);
-#endif
 	void WriteUnformattedLine(const char *Timestamp, const char *Line);
 	void PlayToUser(CClientConnection *Client, int Type) const;
 	bool IsEmpty(void) const;
