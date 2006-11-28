@@ -438,7 +438,10 @@ void CConnection::ProcessBuffer(void) {
 				return;
 			} CHECK_ALLOC_RESULT_END;
 
-			strmcpy(dupLine, Line, &(RecvQ[i]) - Line + 1);
+			mmark(dupLine);
+
+			memcpy(dupLine, Line, &(RecvQ[i]) - Line);
+			dupLine[&(RecvQ[i]) - Line] = '\0';
 
 			if (dupLine[0] != '\0') {
 				ParseLine(dupLine);
