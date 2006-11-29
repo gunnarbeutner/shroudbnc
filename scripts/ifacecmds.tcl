@@ -300,7 +300,7 @@ proc iface:unsuspend {username} {
 
 registerifacecmd "core" "unsuspend" "iface:unsuspend" "access:admin"
 
-proc iface:global {text} {
+proc iface:globalmsg {text} {
 	foreach user [bncuserlist] {
 		setctx $user
 		bncnotc $text
@@ -309,7 +309,7 @@ proc iface:global {text} {
 	return ""
 }
 
-registerifacecmd "core" "global" "iface:global" "access:admin"
+registerifacecmd "core" "globalmsg" "iface:globalmsg" "access:admin"
 
 proc iface:killuser {username reason} {
 	setctx $username

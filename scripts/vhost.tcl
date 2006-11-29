@@ -288,7 +288,7 @@ proc vhost:delvhost {ip} {
 # delvhost ip
 
 proc iface-vhost:getfreeip {} {
-	return [vhost:findip]
+	return [itype_string [vhost:findip]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -296,10 +296,10 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-vhost:setvalue {setting value} {
-	if {[iface:isoverride]} { return }
+	if {[iface:isoverride]} { return "" }
 
 	if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return }
+		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return "" }
 	}
 
 	if {![getbncuser [getctx] admin] && [string equal -nocase $setting "vhost"]} {
@@ -310,9 +310,9 @@ proc iface-vhost:setvalue {setting value} {
 		if {$count >= $limit} { return -code error "Sorry, the virtual host $ip is already being used by $count users. Please use another virtual host." }
 
 		setbncuser [getctx] vhost $value
-
-		return "1"
 	}
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -320,18 +320,27 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-vhost:getvhosts {} {
-	set vhosts [bncgetglobaltag vhosts]
-	set result [list]
+	set result [itype_list_create]
 
 	if {[lsearch -exact [info procs] "vhost_hack:getadditionalvhosts"] != -1} {
 		set vhosts [concat $vhosts [vhost_hack:getadditionalvhosts]]
+
+		foreach vhost $vhosts {
+			set vhost_itype [itype_list_strings $vhost]
+			itype_list_insert result $vhost_itype
+		}
 	}
+
+	set vhosts [bncgetglobaltag vhosts]
 
 	foreach vhost $vhosts {
-		lappend result "[lindex $vhost 0] [vhost:countvhost [lindex $vhost 0]] [lindex $vhost 1] [lindex $vhost 2]"
+		set vhost_itype [itype_list_strings_args [lindex $vhost 0] [vhost:countvhost [lindex $vhost 0]] [lindex $vhost 1] [lindex $vhost 2]]
+		itype_list_insert result $vhost_itype
 	}
 
-	return [iface:list $result]
+	itype_list_end $result
+
+	return $result
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -340,6 +349,8 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-vhost:addvhost {ip limit host} {
 	vhost:addvhost $ip $limit $host
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -348,6 +359,8 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-vhost:delvhost {ip} {
 	vhost:delvhost $ip
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {

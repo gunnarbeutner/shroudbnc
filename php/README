@@ -1,0 +1,41 @@
+shroudBNC PHP scripts
+---------------------
+
+These scripts provide a way of communicating with the iface2 component of shroudBNC 1.2
+
+Included files:
+
+-index.php - simple web interface which lists all available commands and allows execution of them
+-sbnc.php - SBNC class, used for executing iface2 commands
+-itype.php - itype parser/generator, used internally to convert php strings/arrays to itype values
+-classbuilder.php - generates wrapper classes for sbnc connections
+
+classbuilder.php
+----------------
+
+Usually you would call iface2 functions like this:
+
+$sbnc->Call('setvalue', array('server', 'irc.quakenet.org'));
+
+Using classbuilder.php you can generate wrapper classes, so that you can call iface2 functions like this:
+
+$wrapper->setvalue('server', 'irc.quakenet.org');
+
+Here's an example of how to use classbuilder.php
+
+<?php
+
+include_once('sbnc.php');
+include_once('classbuilder.php');
+
+$sbnc = new SBNC(...);
+
+if (!buildSbncClass('MySbncClass', $sbnc)) {
+	die();
+}
+
+$wrapper = new MySbncClass($sbnc);
+
+print_r($wrapper->getlog(-1, -1));
+
+?>

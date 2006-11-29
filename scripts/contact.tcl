@@ -49,6 +49,8 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-contact:setcontactusers {users} {
 	bncsetglobaltag contactusers [split $users]
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -56,7 +58,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-contact:getcontactusers {} {
-	return [iface:list [split [bncgetglobaltag contactusers]]]
+	return [itype_list_strings [split [bncgetglobaltag contactusers]]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {

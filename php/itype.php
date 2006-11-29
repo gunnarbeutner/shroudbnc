@@ -209,6 +209,8 @@ function itype_flat($value) {
 		}
 
 		return $listItems;
+	} else if ($type == 'empty') {
+		return new itype_exception("Invalid itype string encountered.");
 	} else {
 		if (is_a($value[1], 'itype_exception')) {
 			return $value[1];

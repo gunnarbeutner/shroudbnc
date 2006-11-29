@@ -116,6 +116,8 @@ proc qauth:server {client params} {
 
 proc iface-qauth:qsetuser {username} {
 	setbncuser [getctx] tag quser $username
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -124,6 +126,8 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-qauth:qsetpass {password} {
 	setbncuser [getctx] tag qpass $password
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -138,6 +142,8 @@ proc iface-qauth:qsetx {value} {
 	}
 
 	setbncuser [getctx] tag qx $qx
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -145,7 +151,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-qauth:qgetuser {} {
-	return [getbncuser [getctx] tag quser]
+	return [itype_string [getbncuser [getctx] tag quser]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -154,9 +160,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-qauth:qhaspass {} {
 	if {[getbncuser [getctx] tag qpass] == ""} {
-		return 0
+		return [itype_string "0"]
 	} else {
-		return 1
+		return [itype_string "1"]
 	}
 }
 
@@ -166,9 +172,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-qauth:qgetx {} {
 	if {[string equal -nocase [getbncuser [getctx] tag qx] "on"]} {
-		return 1
+		return [itype_string "1"]
 	} else {
-		return 0
+		return [itype_string "0"]
 	}
 }
 

@@ -638,7 +638,7 @@ proc virtual:canmodifygroup {group} {
 proc iface-virtual:getgroup {username} {
 	virtual:canmodify $username
 
-	return [virtual:getgroup $username]
+	return [itype_string [virtual:getgroup $username]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -646,7 +646,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:getmygroup {} {
-	return [virtual:getgroup [getctx]]
+	return [itype_string [virtual:getgroup [getctx]]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -656,7 +656,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:isvadmin {username} {
 	virtual:canmodify $username
 
-	return [access:vadmin $username]
+	return [itype_string [access:vadmin $username]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -666,7 +666,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:getgrouplimit {group} {
 	virtual:canmodifygroup $group
 
-	return [virtual:getmaxbncs $group]
+	return [itype_string [virtual:getmaxbncs $group]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -676,7 +676,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:getgroupusers {group} {
 	virtual:canmodifygroup $group
 
-	return [iface:list [virtual:vgroupusers $group]]
+	return [itype_list_strings [virtual:vgroupusers $group]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -690,7 +690,9 @@ proc iface-virtual:vadduser {username password} {
 		set checklimits 1
 	}
 
-	return [virtual:vadduser $username $password [virtual:getgroup [getctx]] $checklimits]
+	virtual:vadduser $username $password [virtual:getgroup [getctx]] $checklimits
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -700,7 +702,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:vdeluser {username} {
 	virtual:canmodify $username
 
-	return [virtual:vdeluser [getctx] $username]
+	virtual:vdeluser [getctx] $username
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -711,6 +715,8 @@ proc iface-virtual:vresetpass {username password} {
 	virtual:canmodify $username
 
 	setbncuser $username password $password
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -720,7 +726,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:vgetuptimehr {username} {
 	virtual:canmodify $username
 
-	return [duration [getbncuser $username uptime]]
+	return [itype_string [duration [getbncuser $username uptime]]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -731,7 +737,7 @@ proc iface-virtual:vgetchannels {username} {
 	virtual:canmodify $username
 
 	setctx $username
-	return [iface:list [internalchannels]]
+	return [itype_list_strings [internalchannels]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -741,7 +747,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 proc iface-virtual:vissuspended {username} {
 	virtual:canmodify $username
 
-	return [getbncuser $username lock]
+	return [itype_string [getbncuser $username lock]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -752,7 +758,7 @@ proc iface-virtual:vgetclient {username} {
 	virtual:canmodify $username
 
 	setctx $username
-	return [getbncuser $username client]
+	return [itype_string [getbncuser $username client]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -760,7 +766,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:setgrouplimit {group limit} {
-	return [virtual:vsetlimit $group $limit]
+	virtual:vsetlimit $group $limit
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -776,7 +784,7 @@ proc iface-virtual:getgroups {} {
 		}
 	}
 
-	return [iface:list [sbnc:uniq $groups]]
+	return [itype_list_strings [sbnc:uniq $groups]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -784,7 +792,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:getgroup {username} {
-	return [virtual:getgroup $username]
+	return [itype_string [virtual:getgroup $username]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -793,6 +801,8 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 
 proc iface-virtual:setgroup {username group} {
 	virtual:setgroup $username $group
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -800,7 +810,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:vadmin {username} {
-	return [virtual:vadmin $username]
+	virtual:vadmin $username
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -808,7 +820,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:vunadmin {username} {
-	return [virtual:vunadmin $username]
+	virtual:vunadmin $username]
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -816,7 +830,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:addgroup {group limit} {
-	return [virtual:vaddgroup $group $limit]
+	virtual:vaddgroup $group $limit
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -824,7 +840,9 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:delgroup {group} {
-	return [virtual:vdelgroup $group]
+	virtual:vdelgroup $group
+
+	return ""
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
@@ -832,7 +850,7 @@ if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
 }
 
 proc iface-virtual:getgroupadmin {group} {
-	return [virtual:getadmin $group]
+	return [itype_string [virtual:getadmin $group]]
 }
 
 if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {

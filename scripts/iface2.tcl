@@ -20,8 +20,6 @@
 # There are no configurable options. The RPC interface (Version 2) uses
 # the same port like shroudBNC.
 
-source "scripts/itype.tcl"
-
 internalbind client iface:hijackclient RPC_IFACE
 
 proc iface:hijackclient {client params} {
@@ -170,7 +168,7 @@ proc reflect:call2 {cmditem user arguments} {
 	if {$error} {
 		return [itype_exception "RPC_ERROR $result"]
 	} elseif {$result == ""} {
-		return [itype_exception "RPC_NORESULT"]
+		return [itype_string ""]
 	} else {
 		return $result
 	}
