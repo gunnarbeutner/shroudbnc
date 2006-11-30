@@ -1889,6 +1889,8 @@ bool NickCatchTimer(time_t Now, void *IRCConnection) {
 	}
 
 	if (IRC->GetOwner()->GetClientConnectionMultiplexer() != NULL) {
+		IRC->m_NickCatchTimer = NULL;
+
 		return false;
 	}
 
