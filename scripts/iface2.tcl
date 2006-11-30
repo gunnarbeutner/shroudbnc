@@ -31,7 +31,7 @@ proc iface:hijackclient {client params} {
 
 set ::ifacecmds [list]
 
-proc registerifacecmd {module command proc {accessproc "access:validuser"} {paramcount -1}} {
+proc registerifacecmd {module command proc {accessproc "access:anyone"} {paramcount -1}} {
 	global ifacecmds
 
 	if {[catch [list info args $proc]] && $paramcount < 0} {
@@ -213,31 +213,17 @@ proc reflect:call {command user arguments} {
 }
 
 proc access:admin {username} {
-	set error [catch [list getbncuser $username admin] admin]
-
-	if {$error} {
-		return 0
-	} else {
-		return $admin
-	}
+	return [getbncuser $username admin]
 }
 
-proc access:validuser {username} {
-	set error [catch [list getbncuser $username server] validuser]
-
-	if {$error} {
-		return 0
-	} else {
-		return 1
-	}
-}
-
-proc access:unverified {username} {
+proc access:anyone {username} {
 	return 1
 }
 
-proc iface:evalline {line} {
+proc iface:evalline {line disconnectVar} {
 	global ifaceoverride
+
+	upvar $disconnectVar disconnect
 
 	if {[string equal -nocase $line "RPC_IFACE"]} {
 		return "RPC_IFACE_OK"
@@ -276,28 +262,11 @@ proc iface:evalline {line} {
 		set ifaceoverride 1
 	}
 
-	# :unverified is an "anonymous" user (just like for ftp) who has access to _no_ commands by default
-	# just make sure that there's no real user using that name (shouldn't be possible unless you manually edit your config files)
-	if {[lindex $toks 0] == ":unverified" && ![catch [list getbncuser ":unverified" server]]} {
-		set anonymous 1
-		set ifaceoverride 0
-	} else {
-		set anonymous 0
-	}
+	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
+		set disconnect 1
 
-	if {[catch [list getbncuser [lindex $toks 0] server]] || ![bnccheckpassword [lindex $toks 0] [lindex $toks 1]]} {
-		set validpass 0
-	} else {
-		set validpass 1
+		return [itype_exception "RPC_INVALIDUSERPASS"]
 	}
-
-	if {$anonymous || $validpass} {
-		return [itype_exception "PRC_INVALIDUSERPASS"]
-	}
-
-#	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
-#		return [itype_exception "RPC_INVALIDUSERPASS"]
-#	}
 
 	return [reflect:call [lindex $toks 2] [lindex $toks 0] [lindex $toks 3]]
 }
@@ -313,7 +282,12 @@ proc iface:line {idx line} {
 		return
 	}
 
-	putdcc $idx [iface:evalline $line]
+	set disconnect 0
+	putdcc $idx [iface:evalline $line disconnect]
+
+	if {$disconnect} {
+		internaltimer 1 0 "killdcc" $idx
+	}
 }
 
 # core interface commands
@@ -333,7 +307,7 @@ proc iface-reflect:commands {} {
 	return $result
 }
 
-registerifacecmd "reflect" "commands" "iface-reflect:commands" "access:unverified"
+registerifacecmd "reflect" "commands" "iface-reflect:commands"
 
 proc iface-reflect:params {command} {
 	if {[reflect:cancall $command [getctx]]} {
@@ -343,7 +317,7 @@ proc iface-reflect:params {command} {
 	return -code error "Unknown command."
 }
 
-registerifacecmd "reflect" "params" "iface-reflect:params" "access:unverified"
+registerifacecmd "reflect" "params" "iface-reflect:params"
 
 proc iface-reflect:overrides {command} {
 	if {[reflect:cancall $command [getctx]]} {
@@ -362,25 +336,25 @@ proc iface-reflect:overrides {command} {
 	return -code error "Unknown command."
 }
 
-registerifacecmd "reflect" "overrides" "iface-reflect:overrides" "access:unverified"
+registerifacecmd "reflect" "overrides" "iface-reflect:overrides"
 
 proc iface-reflect:modules {} {
 	global ifacecmds
 
-	set modules [list]
+	set modules [itype_list_create]
 
 	foreach cmd $ifacecmds {
 		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
-			lappend modules [itype_string [lindex $cmd 0]]
+			itype_list_insert modules [itype_string [lindex $cmd 0]]
 		}
 	}
 
-	return [itype_list_strings $modules]
+	itype_list_end modules
 
-	return $result
+	return $modules
 }
 
-registerifacecmd "reflect" "modules" "iface-reflect:modules" "access:unverified"
+registerifacecmd "reflect" "modules" "iface-reflect:modules"
 
 proc iface-reflect:multicall {calls} {
 	set results [itype_list_create]
