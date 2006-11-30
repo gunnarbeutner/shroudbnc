@@ -62,13 +62,17 @@ class SBNC {
 
 		$line = fgets($this->socket);
 
+		if ($line === false) {
+			die('Transport layer error occured in the RPC system: fgets() failed.');
+		}
+
 		$response = itype_tophp($line);
 
 		if (IsError($response)) {
 			$code = GetCode($response);
 
-			if ($code != 'RPC_NORESULT' && $code != 'RPC_ERROR') {
-				die('Runtime error occured in the RPC system: ' . GetResult($response));
+			if ($code != 'RPC_ERROR') {
+				die('Runtime error occured in the RPC system: [' . $code . '] ' . GetResult($response));
 			}
 		}
 

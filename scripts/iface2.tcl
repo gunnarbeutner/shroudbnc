@@ -31,7 +31,7 @@ proc iface:hijackclient {client params} {
 
 set ::ifacecmds [list]
 
-proc registerifacecmd {module command proc {accessproc "access:anyone"} {paramcount -1}} {
+proc registerifacecmd {module command proc {accessproc "access:validuser"} {paramcount -1}} {
 	global ifacecmds
 
 	if {[catch [list info args $proc]] && $paramcount < 0} {
@@ -212,11 +212,27 @@ proc reflect:call {command user arguments} {
 	return "RPC_OK"
 }
 
-proc access:admin {user} {
-	return [getbncuser $user admin]
+proc access:admin {username} {
+	set error [catch [list getbncuser $username admin] admin]
+
+	if {$error} {
+		return 0
+	} else {
+		return $admin
+	}
 }
 
-proc access:anyone {user} {
+proc access:validuser {username} {
+	set error [catch [list getbncuser $username server] validuser]
+
+	if {$error} {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+proc access:unverified {username} {
 	return 1
 }
 
@@ -260,9 +276,28 @@ proc iface:evalline {line} {
 		set ifaceoverride 1
 	}
 
-	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
-		return [itype_exception "RPC_INVALIDUSERPASS"]
+	# :unverified is an "anonymous" user (just like for ftp) who has access to _no_ commands by default
+	# just make sure that there's no real user using that name (shouldn't be possible unless you manually edit your config files)
+	if {[lindex $toks 0] == ":unverified" && ![catch [list getbncuser ":unverified" server]]} {
+		set anonymous 1
+		set ifaceoverride 0
+	} else {
+		set anonymous 0
 	}
+
+	if {[catch [list getbncuser [lindex $toks 0] server]] || ![bnccheckpassword [lindex $toks 0] [lindex $toks 1]]} {
+		set validpass 0
+	} else {
+		set validpass 1
+	}
+
+	if {$anonymous || $validpass} {
+		return [itype_exception "PRC_INVALIDUSERPASS"]
+	}
+
+#	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
+#		return [itype_exception "RPC_INVALIDUSERPASS"]
+#	}
 
 	return [reflect:call [lindex $toks 2] [lindex $toks 0] [lindex $toks 3]]
 }
@@ -298,7 +333,7 @@ proc iface-reflect:commands {} {
 	return $result
 }
 
-registerifacecmd "reflect" "commands" "iface-reflect:commands"
+registerifacecmd "reflect" "commands" "iface-reflect:commands" "access:unverified"
 
 proc iface-reflect:params {command} {
 	if {[reflect:cancall $command [getctx]]} {
@@ -308,7 +343,7 @@ proc iface-reflect:params {command} {
 	return -code error "Unknown command."
 }
 
-registerifacecmd "reflect" "params" "iface-reflect:params"
+registerifacecmd "reflect" "params" "iface-reflect:params" "access:unverified"
 
 proc iface-reflect:overrides {command} {
 	if {[reflect:cancall $command [getctx]]} {
@@ -327,25 +362,25 @@ proc iface-reflect:overrides {command} {
 	return -code error "Unknown command."
 }
 
-registerifacecmd "reflect" "overrides" "iface-reflect:overrides"
+registerifacecmd "reflect" "overrides" "iface-reflect:overrides" "access:unverified"
 
 proc iface-reflect:modules {} {
 	global ifacecmds
 
-	set modules [itype_list_create]
+	set modules [list]
 
 	foreach cmd $ifacecmds {
 		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
-			itype_list_insert modules [itype_string [lindex $cmd 0]]
+			lappend modules [itype_string [lindex $cmd 0]]
 		}
 	}
 
-	itype_list_end modules
+	return [itype_list_strings $modules]
 
-	return $modules
+	return $result
 }
 
-registerifacecmd "reflect" "modules" "iface-reflect:modules"
+registerifacecmd "reflect" "modules" "iface-reflect:modules" "access:unverified"
 
 proc iface-reflect:multicall {calls} {
 	set results [itype_list_create]
