@@ -162,7 +162,12 @@ function itype_parse($value) {
 				default:
 					$controlCode = false;
 			}
-		}
+		} else {
+			if ($char == 'n') {
+				$char = "\n";
+			} else if ($char == 'r') {
+				$char = "\r";
+			}
 
 		if ($type != '') {
 			$data .= $char;

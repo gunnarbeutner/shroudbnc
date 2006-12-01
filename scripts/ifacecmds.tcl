@@ -116,7 +116,16 @@ proc iface:setvalue {setting value} {
 registerifacecmd "core" "setvalue" "iface:setvalue"
 
 proc iface:getlog {from to} {
-	set file [open "users/[getctx].log" r]
+	set users [bncuserlist]
+	set index [lindex -exact [string tolower ] [getctx]]
+
+	if {$index == -1} {
+		return -code error "Invalid user."
+	}
+
+	set username [lindex $users $index]
+
+	set file [open "users/$username.log" r]
 	set stuff [read $file]
 	close $file
 

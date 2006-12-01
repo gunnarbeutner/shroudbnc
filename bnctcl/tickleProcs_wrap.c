@@ -3261,6 +3261,33 @@ fail:
 
 
 SWIGINTERN int
+_wrap_internalgetipforsocket(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  int arg1 ;
+  char *result = 0 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  
+  if (SWIG_GetArgs(interp, objc, objv,"o:internalgetipforsocket Socket ",(void *)0) == TCL_ERROR) SWIG_fail;
+  ecode1 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[1], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "internalgetipforsocket" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = (int)(val1);
+  {
+    try {
+      result = (char *)internalgetipforsocket(arg1);
+    } catch (const char *Description) {
+      SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+    }
+  }
+  Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  return TCL_OK;
+fail:
+  return TCL_ERROR;
+}
+
+
+SWIGINTERN int
 _wrap_internalclosesocket(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int arg1 ;
   int val1 ;
@@ -3713,6 +3740,35 @@ fail:
 
 
 SWIGINTERN int
+_wrap_bnclogbadlogin(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  char *arg1 = (char *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  
+  if (SWIG_GetArgs(interp, objc, objv,"o:bnclogbadlogin Ip ",(void *)0) == TCL_ERROR) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnclogbadlogin" "', argument " "1"" of type '" "char const *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      bnclogbadlogin((char const *)arg1);
+    } catch (const char *Description) {
+      SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+    }
+  }
+  
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return TCL_OK;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return TCL_ERROR;
+}
+
+
+SWIGINTERN int
 _wrap_bnccanhostconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   bool result;
@@ -3759,6 +3815,36 @@ _wrap_bncvalidusername(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
   {
     try {
       result = (bool)bncvalidusername((char const *)arg1);
+    } catch (const char *Description) {
+      SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+    }
+  }
+  Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return TCL_OK;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return TCL_ERROR;
+}
+
+
+SWIGINTERN int
+_wrap_bncvaliduser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  char *arg1 = (char *) 0 ;
+  bool result;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  
+  if (SWIG_GetArgs(interp, objc, objv,"o:bncvaliduser Name ",(void *)0) == TCL_ERROR) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncvaliduser" "', argument " "1"" of type '" "char const *""'");
+  }
+  arg1 = (char *)(buf1);
+  {
+    try {
+      result = (bool)bncvaliduser((char const *)arg1);
     } catch (const char *Description) {
       SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
     }
@@ -5109,6 +5195,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "internallisten", (swig_wrapper_func) _wrap_internallisten, NULL},
     { SWIG_prefix "internalsocketwriteln", (swig_wrapper_func) _wrap_internalsocketwriteln, NULL},
     { SWIG_prefix "internalconnect", (swig_wrapper_func) _wrap_internalconnect, NULL},
+    { SWIG_prefix "internalgetipforsocket", (swig_wrapper_func) _wrap_internalgetipforsocket, NULL},
     { SWIG_prefix "internalclosesocket", (swig_wrapper_func) _wrap_internalclosesocket, NULL},
     { SWIG_prefix "internaltimer", (swig_wrapper_func) _wrap_internaltimer, NULL},
     { SWIG_prefix "internalkilltimer", (swig_wrapper_func) _wrap_internalkilltimer, NULL},
@@ -5125,8 +5212,10 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "delbnchost", (swig_wrapper_func) _wrap_delbnchost, NULL},
     { SWIG_prefix "addbnchost", (swig_wrapper_func) _wrap_addbnchost, NULL},
     { SWIG_prefix "bncisipblocked", (swig_wrapper_func) _wrap_bncisipblocked, NULL},
+    { SWIG_prefix "bnclogbadlogin", (swig_wrapper_func) _wrap_bnclogbadlogin, NULL},
     { SWIG_prefix "bnccanhostconnect", (swig_wrapper_func) _wrap_bnccanhostconnect, NULL},
     { SWIG_prefix "bncvalidusername", (swig_wrapper_func) _wrap_bncvalidusername, NULL},
+    { SWIG_prefix "bncvaliduser", (swig_wrapper_func) _wrap_bncvaliduser, NULL},
     { SWIG_prefix "bncgetsendq", (swig_wrapper_func) _wrap_bncgetsendq, NULL},
     { SWIG_prefix "bncsetsendq", (swig_wrapper_func) _wrap_bncsetsendq, NULL},
     { SWIG_prefix "bncaddcommand", (swig_wrapper_func) _wrap_bncaddcommand, NULL},

@@ -120,7 +120,7 @@ proc iface-qauth:qsetuser {username} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qsetuser" "iface-qauth:qsetuser"
 }
 
@@ -130,7 +130,7 @@ proc iface-qauth:qsetpass {password} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qsetpass" "iface-qauth:qsetpass"
 }
 
@@ -146,7 +146,7 @@ proc iface-qauth:qsetx {value} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qsetx" "iface-qauth:qsetx"
 }
 
@@ -154,7 +154,7 @@ proc iface-qauth:qgetuser {} {
 	return [itype_string [getbncuser [getctx] tag quser]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qgetuser" "iface-qauth:qgetuser"
 }
 
@@ -166,7 +166,7 @@ proc iface-qauth:qhaspass {} {
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qhaspass" "iface-qauth:qhaspass"
 }
 
@@ -178,6 +178,6 @@ proc iface-qauth:qgetx {} {
 	}
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "qauth" "qgetx" "iface-qauth:qgetx"
 }

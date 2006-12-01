@@ -1659,6 +1659,28 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 	return Wrapper->GetIdx();
 }
 
+const char *internalgetipforsocket(int Socket) {
+	char *Buf;
+	g_asprintf(&Buf, "%d", Socket);
+	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
+	g_free(Buf);
+
+	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
+		throw "Invalid socket pointer.";
+
+	sockaddr *RemoteAddr = SockPtr->GetRemoteAddress();
+
+	if (RemoteAddr == NULL) {
+		return NULL;
+	} else {
+		const utility_t *Utilities;
+
+		Utilities = g_Bouncer->GetUtilities();
+
+		return Utilities->IpToString(RemoteAddr);
+	}
+}
+
 void internalclosesocket(int Socket) {
 	char *Buf;
 	g_asprintf(&Buf, "%d", Socket);
@@ -2024,12 +2046,37 @@ bool bncisipblocked(const char* Ip) {
 	return Context->IsIpBlocked((sockaddr *)&Peer);
 }
 
+void bnclogbadlogin(const char* Ip) {
+	CUser* Context = g_Bouncer->GetUser(g_Context);
+
+	if (Context == NULL)
+		throw "Invalid user.";
+
+	sockaddr_in Peer;
+
+	Peer.sin_family = AF_INET;
+
+	unsigned long addr = inet_addr(Ip);
+
+#ifdef _WIN32
+	Peer.sin_addr.S_un.S_addr = addr;
+#else
+	Peer.sin_addr.s_addr = addr;
+#endif
+
+	return Context->LogBadLogin((sockaddr *)&Peer);
+}
+
 bool bnccanhostconnect(const char* Host) {
 	return g_Bouncer->CanHostConnect(Host);
 }
 
 bool bncvalidusername(const char* Name) {
 	return g_Bouncer->IsValidUsername(Name);
+}
+
+bool bncvaliduser(const char* Name) {
+	return (g_Bouncer->GetUser(Name) != NULL);
 }
 
 int bncgetsendq(void) {

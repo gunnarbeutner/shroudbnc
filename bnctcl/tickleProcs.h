@@ -121,6 +121,7 @@ int internalvalidsocket(int Socket);
 int internallisten(unsigned short Port, const char* Type, const char* Options = 0, const char* Flag = 0, bool SSL = false, const char *BindIp = NULL);
 void internalsocketwriteln(int Socket, const char* Line);
 int internalconnect(const char* Host, unsigned short Port, bool SSL = false);
+const char *internalgetipforsocket(int Socket);
 void internalclosesocket(int Socket);
 
 int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Parameter = 0);
@@ -143,9 +144,11 @@ const char* getbnchosts(void);
 void delbnchost(const char* Host);
 int addbnchost(const char* Host);
 bool bncisipblocked(const char* Ip);
+void bnclogbadlogin(const char* Ip);
 bool bnccanhostconnect(const char* Host);
 
-bool bncvalidusername(const char* Name);
+bool bncvalidusername(const char *Name);
+bool bncvaliduser(const char *Name);
 
 int bncgetsendq(void);
 void bncsetsendq(int NewSize);

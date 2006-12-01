@@ -641,7 +641,7 @@ proc iface-virtual:getgroup {username} {
 	return [itype_string [virtual:getgroup $username]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroup" "iface-virtual:getgroup"
 }
 
@@ -649,7 +649,7 @@ proc iface-virtual:getmygroup {} {
 	return [itype_string [virtual:getgroup [getctx]]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getmygroup" "iface-virtual:getmygroup"
 }
 
@@ -659,7 +659,7 @@ proc iface-virtual:isvadmin {username} {
 	return [itype_string [access:vadmin $username]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "isvadmin" "iface-virtual:isvadmin"
 }
 
@@ -669,7 +669,7 @@ proc iface-virtual:getgrouplimit {group} {
 	return [itype_string [virtual:getmaxbncs $group]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgrouplimit" "iface-virtual:getgrouplimit" "access:vadmin"
 }
 
@@ -679,7 +679,7 @@ proc iface-virtual:getgroupusers {group} {
 	return [itype_list_strings [virtual:vgroupusers $group]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroupusers" "iface-virtual:getgroupusers" "access:vadmin"
 }
 
@@ -695,7 +695,7 @@ proc iface-virtual:vadduser {username password} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vadduser" "iface-virtual:vadduser" "access:vadmin"
 }
 
@@ -707,7 +707,7 @@ proc iface-virtual:vdeluser {username} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vdeluser" "iface-virtual:vdeluser" "access:vadmin"
 }
 
@@ -719,7 +719,7 @@ proc iface-virtual:vresetpass {username password} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vresetpass" "iface-virtual:vresetpass" "access:vadmin"
 }
 
@@ -729,7 +729,7 @@ proc iface-virtual:vgetuptimehr {username} {
 	return [itype_string [duration [getbncuser $username uptime]]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vgetuptimehr" "iface-virtual:vgetuptimehr" "access:vadmin"
 }
 
@@ -740,7 +740,7 @@ proc iface-virtual:vgetchannels {username} {
 	return [itype_list_strings [internalchannels]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vgetchannels" "iface-virtual:vgetchannels" "access:vadmin"
 }
 
@@ -750,7 +750,7 @@ proc iface-virtual:vissuspended {username} {
 	return [itype_string [getbncuser $username lock]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vissuspended" "iface-virtual:vissuspended" "access:vadmin"
 }
 
@@ -761,7 +761,7 @@ proc iface-virtual:vgetclient {username} {
 	return [itype_string [getbncuser $username client]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vgetclient" "iface-virtual:vgetclient" "access:vadmin"
 }
 
@@ -771,7 +771,7 @@ proc iface-virtual:setgrouplimit {group limit} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "setgrouplimit" "iface-virtual:setgrouplimit" "access:admin"
 }
 
@@ -787,7 +787,7 @@ proc iface-virtual:getgroups {} {
 	return [itype_list_strings [sbnc:uniq $groups]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroups" "iface-virtual:getgroups" "access:admin"
 }
 
@@ -795,7 +795,7 @@ proc iface-virtual:getgroup {username} {
 	return [itype_string [virtual:getgroup $username]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroup" "iface-virtual:getgroup" "access:admin"
 }
 
@@ -805,7 +805,7 @@ proc iface-virtual:setgroup {username group} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "setgroup" "iface-virtual:setgroup" "access:admin"
 }
 
@@ -815,7 +815,7 @@ proc iface-virtual:vadmin {username} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vadmin" "iface-virtual:vadmin" "access:admin"
 }
 
@@ -825,7 +825,7 @@ proc iface-virtual:vunadmin {username} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "vunadmin" "iface-virtual:vunadmin" "access:admin"
 }
 
@@ -835,7 +835,7 @@ proc iface-virtual:addgroup {group limit} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "addgroup" "iface-virtual:addgroup" "access:admin"
 }
 
@@ -845,7 +845,7 @@ proc iface-virtual:delgroup {group} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "delgroup" "iface-virtual:delgroup" "access:admin"
 }
 
@@ -853,6 +853,6 @@ proc iface-virtual:getgroupadmin {group} {
 	return [itype_string [virtual:getadmin $group]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroupadmin" "iface-virtual:getgroupadmin" "access:admin"
 }

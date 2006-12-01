@@ -161,7 +161,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		if (GetOwner()->IsAdmin()) {
 			AddCommand(&m_CommandList, "adduser", "Admin", "creates a new user",
-				"Syntax: adduser <username> <password>\nCreates a new user.");
+				"Syntax: adduser <username> [password]\nCreates a new user.");
 			AddCommand(&m_CommandList, "deluser", "Admin", "removes a user",
 				"Syntax: deluser <username>\nDeletes a user.");
 			AddCommand(&m_CommandList, "resetpass", "Admin", "sets a user's password",
@@ -777,22 +777,55 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "adduser") == 0 && GetOwner()->IsAdmin()) {
-		if (argc < 3) {
-			SENDUSER("Syntax: ADDUSER username password");
+		const char *Password;
+
+		if (argc < 2) {
+			SENDUSER("Syntax: ADDUSER username [password]");
+			return false;
+		} else if (argc < 3) {
+			char RandomPassword[10];
+			const char RandomPasswordChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+			RandomPassword[9] = '\0';
+
+			for (unsigned int i = 0; i < 9; i++) {
+				RandomPassword[i] = RandomPasswordChars[rand() % (sizeof(RandomPasswordChars) - 1)];
+			}
+
+			Password = RandomPassword;
+		} else {
+			Password = argv[2];
+		}
+
+		if (g_Bouncer->GetUser(argv[1]) != NULL) {
+			SENDUSER("The specified username is already in use.");
+
 			return false;
 		}
 
 		if (!g_Bouncer->IsValidUsername(argv[1])) {
 			SENDUSER("Could not create user: The username must be alpha-numeric.");
+
 			return false;
 		}
 
-		g_Bouncer->CreateUser(argv[1], argv[2]);
+		g_Bouncer->CreateUser(argv[1], Password);
+
+		if (argc < 3) {
+			asprintf(&Out, "The new user's password is \"%s\".", Password);
+
+			CHECK_ALLOC_RESULT(Out, asprintf) {
+				return false;
+			} CHECK_ALLOC_RESULT_END;
+
+			SENDUSER(Out);
+
+			free(Out);
+		}
 
 		SENDUSER("Done.");
 
 		return false;
-
 	} else if (strcasecmp(Subcommand, "deluser") == 0 && GetOwner()->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: DELUSER username");

@@ -52,6 +52,8 @@ public:
 	void SetRecvQ(CFIFOBuffer *Buffer);
 	void SetSSLObject(SSL *SSLObject);
 
+	sockaddr *GetRemoteAddress(void) const;
+
 private:
 	SOCKET m_Socket;
 	CConnection* m_Wrap;

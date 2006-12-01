@@ -264,6 +264,10 @@ bncvalidusername <Username>
   Description: Checks whether something is a valid username.
   Returns: 1 if the username is valid, 0 otherwise.
 
+bncvaliduser <Username>
+
+  Description: Checks whether the specified user exists.
+  Returns: Boolean value.
 synthwho <Channel> <Simulate>
 
   Description: Synthesizes a /who reply for the given channel.
@@ -314,4 +318,14 @@ bncgetreslimit <Resource> [<User>]
 bncsetreslimit <Resource> <NewLimit> [<User>]
 
   Description: Sets a new limit for a resource. If no user is specified the global limit is set.
+  Returns: Nothing.
+
+bncisipblocked <Ip>
+
+  Description: Checks whether an IP address is temporarily blocked (i.e. can't be used to login).
+  Returns: Boolean value.
+
+bnclogbadlogin <Ip>
+
+  Description: Logs a bad login attempt for the specified IP address.
   Returns: Nothing.

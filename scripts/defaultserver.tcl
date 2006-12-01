@@ -30,16 +30,18 @@ proc sbnc:setdefaultserver {username} {
 proc iface-defaultserver:setdefaultserver {server port} {
 	bncsetglobaltag defaultserver $server
 	bncsetglobaltag defaultport $port
+
+	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != "} {
 	registerifacecmd "defaultserver" "setdefaultserver" "iface-defaultserver:setdefaultserver" "access:admin"
 }
 
 proc iface-defaultserver:getdefaultserver {} {
-	return [iface:list [list [bncgetglobaltag defaultserver] [bncgetglobaltag defaultport]]]
+	return [itype_list_strings_args [bncgetglobaltag defaultserver] [bncgetglobaltag defaultport]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != "} {
 	registerifacecmd "defaultserver" "getdefaultserver" "iface-defaultserver:getdefaultserver" "access:admin"
 }

@@ -43,7 +43,7 @@ if {[bncgetglobaltag contactusers] == ""} {
 	bncsetglobaltag contactusers "all"
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "contact" "sendmessage" "iface-contact:sendmessage"
 }
 
@@ -53,7 +53,7 @@ proc iface-contact:setcontactusers {users} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "contact" "setcontactusers" "iface-contact:setcontactusers" "access:admin"
 }
 
@@ -61,6 +61,6 @@ proc iface-contact:getcontactusers {} {
 	return [itype_list_strings [split [bncgetglobaltag contactusers]]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "contact" "getcontactusers" "iface-contact:getcontactusers" "access:admin"
 }

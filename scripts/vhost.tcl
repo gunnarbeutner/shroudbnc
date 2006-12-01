@@ -291,7 +291,7 @@ proc iface-vhost:getfreeip {} {
 	return [itype_string [vhost:findip]]
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "vhost" "getfreeip" "iface-vhost:getfreeip"
 }
 
@@ -315,7 +315,7 @@ proc iface-vhost:setvalue {setting value} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "vhost" "setvalue" "iface-vhost:setvalue"
 }
 
@@ -343,7 +343,7 @@ proc iface-vhost:getvhosts {} {
 	return $result
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "vhost" "getvhosts" "iface-vhost:getvhosts"
 }
 
@@ -353,7 +353,7 @@ proc iface-vhost:addvhost {ip limit host} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "vhost" "addvhost" "iface-vhost:addvhost" "access:admin"
 }
 
@@ -363,6 +363,6 @@ proc iface-vhost:delvhost {ip} {
 	return ""
 }
 
-if {[lsearch -exact [info commands] "registerifacecmd"] != -1} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "vhost" "delvhost" "iface-vhost:delvhost" "access:admin"
 }

@@ -37,9 +37,11 @@ proc putallbots {message} {
 }
 
 proc bots {} {
-	set i [lsearch -exact [bncuserlist] [getctx]]
+	set users [bncuserlist]
 
-	return [lreplace [bncuserlist] $i $i]
+	set i [lsearch -exact [string tolower $users] [string tolower [getctx]]]
+
+	return [lreplace $users $i $i]
 }
 
 proc botlist {} {
@@ -55,7 +57,7 @@ proc botlist {} {
 }
 
 proc islinked {bot} {
-	if {[lsearch -exact [bncuserlist] $bot] != -1} {
+	if {[bncvaliduser $bot]} {
 		return 1
 	} else {
 		return 0

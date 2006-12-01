@@ -40,6 +40,10 @@ class SBNC {
 			if (strstr($line, "RPC_IFACE_OK") != FALSE) {
 				break;
 			}
+
+			if (strstr($line, "[RPC_BLOCK]") != FALSE) {
+				die('Runtime error occured in the RPC system: This IP address is blocked.');
+			}
 		}
 	}
 
@@ -52,7 +56,7 @@ class SBNC {
 		if ($user == FALSE) {
 			$cmd = array($this->user, $this->pass);
 		} else {
-			$cmd = array($user, $this->user . ': ' . $this->pass);
+			$cmd = array($user, $this->user . ':' . $this->pass);
 		}
 
 		array_push($cmd, $command);
@@ -66,7 +70,16 @@ class SBNC {
 			die('Transport layer error occured in the RPC system: fgets() failed.');
 		}
 
-		$response = itype_tophp($line);
+
+		$line = str_replace(array("\r", "\n"), array("", ""), $line);
+
+		$parsedResponse = itype_parse($line);
+
+		if ($parsedResponse[0] == 'empty') {
+			die('IType parsing error occured in RPC system when parsing the string "' . $line . '"');
+		}
+
+		$response = itype_flat($parsedResponse);
 
 		if (IsError($response)) {
 			$code = GetCode($response);

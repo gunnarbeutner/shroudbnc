@@ -225,3 +225,7 @@ void CTclClientSocket::SetRecvQ(CFIFOBuffer *Buffer) {
 void CTclClientSocket::SetSSLObject(SSL *SSLObject) {
 	m_Wrap->SetSSLObject(SSLObject);
 }
+
+sockaddr *CTclClientSocket::GetRemoteAddress(void) const {
+	return m_Wrap->GetRemoteAddress();
+}

@@ -90,6 +90,12 @@ proc itype_parse {value} {
 					set controlCode 0
 				}
 			}
+		} else {
+			if {$char == "n"} {
+				set char "\n"
+			} elseif {$char == "r"} {
+				set char "\r"
+			}
 		}
 
 		if {$type != ""} {

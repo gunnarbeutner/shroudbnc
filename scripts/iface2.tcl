@@ -21,6 +21,7 @@
 # the same port like shroudBNC.
 
 internalbind client iface:hijackclient RPC_IFACE
+internaltimer 600 1 iface:expireblocks
 
 proc iface:hijackclient {client params} {
 	if {$client == "" && [string equal -nocase [lindex $params 0] "RPC_IFACE"]} {
@@ -30,6 +31,7 @@ proc iface:hijackclient {client params} {
 }
 
 set ::ifacecmds [list]
+set ::ifaceblocks [list]
 
 proc registerifacecmd {module command proc {accessproc "access:anyone"} {paramcount -1}} {
 	global ifacecmds
@@ -220,10 +222,11 @@ proc access:anyone {username} {
 	return 1
 }
 
-proc iface:evalline {line disconnectVar} {
+proc iface:evalline {line disconnectVar blockVar} {
 	global ifaceoverride
 
 	upvar $disconnectVar disconnect
+	upvar $blockVar block
 
 	if {[string equal -nocase $line "RPC_IFACE"]} {
 		return "RPC_IFACE_OK"
@@ -245,6 +248,8 @@ proc iface:evalline {line disconnectVar} {
 	}
 
 	if {!$validparameters} {
+		set disconnect 1
+
 		return [itype_exception "RPC_INVALIDLINE"]
 	}
 
@@ -252,7 +257,7 @@ proc iface:evalline {line disconnectVar} {
 
 	set adm [split [lindex $toks 1] ":"]
 
-	if {[llength $adm] < 2 || [lsearch -exact [bncuserlist] [lindex $adm 0]] == -1} {
+	if {[llength $adm] < 2 || ![bncvaliduser [lindex $adm 0]] == -1} {
 		set ifaceoverride 0
 	} elseif {![getbncuser [lindex $adm 0] admin]} {
 		set ifaceoverride 0
@@ -264,6 +269,7 @@ proc iface:evalline {line disconnectVar} {
 
 	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
 		set disconnect 1
+		set block 1
 
 		return [itype_exception "RPC_INVALIDUSERPASS"]
 	}
@@ -277,13 +283,55 @@ proc iface:isoverride {} {
 	return $ifaceoverride
 }
 
+proc iface:isipblocked {ip} {
+	global ifaceblocks
+	set count 0
+
+	foreach block $ifaceblocks {
+		if {[string equal -nocase $ip $block]} {
+			incr count
+
+			if {$count >= 3} {
+				return 1
+			}
+		}
+	}
+
+	return 0
+}
+
+proc iface:logbadlogin {ip} {
+	global ifaceblocks
+
+	lappend ifaceblocks $ip
+}
+
+proc iface:expireblocks {} {
+	global ifaceblocks
+
+	set ifaceblocks [list]
+}
+
 proc iface:line {idx line} {
 	if {$line == ""} {
 		return
 	}
 
 	set disconnect 0
-	putdcc $idx [iface:evalline $line disconnect]
+	set block 0
+
+	set ip [internalgetipforsocket $idx]
+
+	if {[iface:isipblocked $ip] && ![iface:istrustedip $ip]} {
+		putdcc $idx [itype_exception "RPC_BLOCK"]
+		set disconnect 1
+	} else {
+		putdcc $idx [iface:evalline $line disconnect block]
+	}
+
+	if {$block && ![iface:istrustedip $ip]} {
+		iface:logbadlogin $ip
+	}
 
 	if {$disconnect} {
 		internaltimer 1 0 "killdcc" $idx
@@ -372,3 +420,59 @@ proc iface-reflect:multicall {calls} {
 }
 
 registerifacecmd "reflect" "multicall" "iface-reflect:multicall"
+
+proc iface-trust:addtrustedip {ip} {
+	set ips [bncgetglobaltag iface2_trustedips]
+
+	catch [list iface-trust:removetrustedip $ip]
+
+	lappend ips $ip
+
+	bncsetglobaltag iface2_trustedips $ips
+
+	return ""
+}
+
+registerifacecmd "trust" "addtrustedip" "iface-trust:addtrustedip" "access:admin"
+
+proc iface-trust:removetrustedip {ip} {
+	set ips [bncgetglobaltag iface2_trustedips]
+
+	set index [lsearch -exact [string tolower $ips] $ip]
+
+	if {$index == -1} {
+		return -code error "IP address not found."
+	}
+
+	set ips [lreplace $ips $index $index]
+
+	bncsetglobaltag iface2_trustedips $ips
+
+	return ""
+}
+
+registerifacecmd "trust" "removetrustedip" "iface-trust:removetrustedip" "access:admin"
+
+proc iface-trust:gettrustedips {} {
+	return [itype_list_strings [bncgetglobaltag iface2_trustedips]]
+}
+
+registerifacecmd "trust" "gettrustedips" "iface-trust:gettrustedips"  "access:admin"
+
+proc iface:istrustedip {ip} {
+	set ips [bncgetglobaltag iface2_trustedips]
+
+	set index [lsearch -exact [string tolower $ips] $ip]
+
+	if {$index == -1} {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+proc iface-trust:istrustedip {ip} {
+	return [itype_string [iface:istrustedip $ip]]
+}
+
+registerifacecmd "trust" "istrustedip" "iface-trust:istrustedip" "access:admin"
