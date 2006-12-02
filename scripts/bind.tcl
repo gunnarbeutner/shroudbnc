@@ -23,7 +23,9 @@ internalbind prerehash sbnc:prerehash
 internalbind postrehash sbnc:postrehash
 internalbind channelsort sbnc:channelsort
 
-set ::channelsorthandler ""
+if {![info exists ::channelsorthandler]} {
+	set ::channelsorthandler "stricmp"
+}
 
 proc sbnc:nickfromhost {host} {
 	return [lindex [split $host "!"] 0]
@@ -121,7 +123,13 @@ proc sbnc:rawserver {client parameters} {
 	set hand [finduser $source]
 	set flags $hand
 
-	sbnc:callbinds "raw" - "" $verb $source $verb "[join [lrange $parameters 0 end-1]] :[lindex $parameters end]"
+	if {[llength [split [lindex $parameters end]]] > 1} {
+		set last ":[lindex $parameters end]"
+	} else {
+		set last [lindex $parameters end]
+	}
+
+	sbnc:callbinds "raw" - "" $verb $source $verb "[join [lrange $parameters 2 end-1]] $last"
 
 	switch $verb {
 		"privmsg" {
@@ -390,7 +398,7 @@ proc callevent {event} {
 }
 
 proc sbnc:channelsort {client params} {
-	setchannelsortvalue [$::channelsorthandler $client [lindex $params 0] [lindex $params 1]]
+	setchannelsortvalue [$::channelsorthandler [lindex $params 0] [lindex $params 1]]
 }
 
 proc setchannelsorthandler {handler} {
