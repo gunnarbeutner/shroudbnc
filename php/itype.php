@@ -54,8 +54,8 @@ function itype_fromphp($value) {
 		$ret .= '}';
 	} else {
 		$value = str_replace(
-				array("\\",	"{",	"}",	"[",	"]",	"(",	")"),
-				array("\\\\",	"\\{",	"\\}",	"\\[",	"\\]",	"\\(", "\\)"),
+				array("\r",	"\n",	"\\",	"{",	"}",	"[",	"]",	"(",	")"),
+				array("\\\r",	"\\n",	"\\\\",	"\\{",	"\\}",	"\\[",	"\\]",	"\\(", "\\)"),
 					$value);
 
 		$ret = "({$value})";
@@ -168,8 +168,9 @@ function itype_parse($value) {
 			} else if ($char == 'r') {
 				$char = "\r";
 			}
+		}
 
-		if ($type != '') {
+		if ($type != '' && !$escape) {
 			$data .= $char;
 		}
 
@@ -221,8 +222,8 @@ function itype_flat($value) {
 			return $value[1];
 		} else {
 			return str_replace(
-					array("\\{",	"\\}",	"\\[",	"\\]",	"\\(", "\\)",	"\\\\"),
-					array("{",	"}",	"[",	"]",	"(",	")",	"\\",),
+					array("\r",	"\n",	"\\{",	"\\}",	"\\[",	"\\]",	"\\(", "\\)",	"\\\\"),
+					array("\\r",	"\\n",	"{",	"}",	"[",	"]",	"(",	")",	"\\",),
 						$value[1]);
 		}
 	}

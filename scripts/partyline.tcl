@@ -64,6 +64,8 @@ proc sbnc:partychantypes {client params} {
 proc sbnc:partyline {client parameters} {
 	global botnick botname server partyline partytopic partyts partywho
 
+	set thisctx [getctx 1]
+
 	if {[lsearch -exact [string tolower $partyline] [string tolower [lindex $parameters 1]]] == -1} { return }
 
 	haltoutput
@@ -78,11 +80,15 @@ proc sbnc:partyline {client parameters} {
 			lappend chans $chan
 			setbncuser $client tag partyline [join $chans ","]
 
+			set oldctx [getctx 1]
+			setctx [getctx]
 			putclient ":$botname JOIN $chan"
+			setctx $oldctx
+
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
 
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc JOIN $chan"
+			sbnc:bcpartybutone $thisctx ":\$client!$client@sbnc JOIN $chan"
 		}
 	}
 
@@ -92,8 +98,12 @@ proc sbnc:partyline {client parameters} {
 		if {$idx != -1} {
 			setbncuser $client tag partyline [join [lreplace $chans $idx $idx] ","]
 
+			set oldctx [getctx]
+			setctx [getctx 0]
 			putclient ":$botname PART $chan"
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PART $chan"
+			setctx $oldctx
+
+			sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc PART $chan"
 		}
 	}
 
@@ -144,7 +154,7 @@ proc sbnc:partyline {client parameters} {
 		if {[llength $parameters] < 3} {
 			putclient ":$serv 461 $botnick PRIVMSG :Not enough parameters"
 		} else {
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PRIVMSG $chan :[lindex $parameters 2]"
+			sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc PRIVMSG $chan :[lindex $parameters 2]"
 		}
 	}
 }
@@ -162,13 +172,27 @@ proc sbnc:bcparty {text} {
 	}
 }
 
-proc sbnc:bcpartybutone {client text} {
+proc sbnc:bcpartybutone {clientctx text} {
 	set chan [string tolower [lindex [split $text] 2]]
+
+	setctx $clientctx
+	set clientname [getctx]
 
 	foreach user [bncuserlist] {
 		set chans [split [string tolower [getbncuser $user tag partyline]] ","]
 
-		if {[lsearch $chans $chan] != -1 && ![string equal -nocase $client $user]} {
+		if {[lsearch $chans $chan] == -1} {
+			continue
+		}
+
+		if {[string equal -nocase $clientname $user]} {
+			foreach session [getbncuser $clientname sessions] {
+				if {![string equal -nocase $clientctx $session]} {
+					setctx $session
+					putclient $text
+				}
+			}
+		} else {
 			setctx $user
 			putclient "$text"
 		}
@@ -180,30 +204,32 @@ proc sbnc:partyattach {client} {
 
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
+	set thisctx [getctx 1]
+
 	foreach chan $partyline {
 		if {[lsearch $chans [string tolower $chan]] != -1} {
-			setctx $client
+			setctx $thisctx
 			putclient ":$botname JOIN $chan"
-			sbnc:partyline $client "NAMES $chan"
-			sbnc:partyline $client "TOPIC $chan"
+			sbnc:partyline $thisctx "NAMES $chan"
+			sbnc:partyline $thisctx "TOPIC $chan"
 
 			if {[getbncuser $client clientcount] == 1} {
-				sbnc:bcpartybutone $client ":\$$client!$client@sbnc JOIN $chan"
+				sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc JOIN $chan"
 			}
 		}
 	}	
 }
 
 proc sbnc:partydetach {client} {
-	setctx $client
-
 	global partyline
 
 	set chans [split [string tolower [getbncuser $client tag partyline]] ","]
 
+	set thisctx [getctx 1]
+
 	foreach chan $partyline {
 		if {[lsearch $chans $chan] != -1 && [getbncuser $client clientcount] == 0} {
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PART $chan :Leaving"
+			sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc PART $chan :Leaving"
 		}
 	}
 }
@@ -215,7 +241,7 @@ proc sbnc:partysync {client} {
 
 	foreach chan $partyline {
 		if {[lsearch $chans [string tolower $chan]] != -1} {
-			sbnc:bcpartybutone $client ":\$$client!$client@sbnc PART $chan :Removing user"
+			sbnc:bcparty ":\$$client!$client@sbnc PART $chan :Removing user"
 		}
 	}
 }

@@ -151,12 +151,12 @@ class CTclSupport : public CModuleImplementation {
 		return g_Ret;
 	}
 
-	void AttachClient(const char* Client) {
-		CallBinds(Type_Attach, Client, NULL, 0, NULL);
+	void AttachClient(CClientConnection *Client) {
+		CallBinds(Type_Attach, Client ? Client->GetUser()->GetUsername() : NULL, Client, 0, NULL);
 	}
 
-	void DetachClient(const char* Client) {
-		CallBinds(Type_Detach, Client, NULL, 0, NULL);
+	void DetachClient(CClientConnection *Client) {
+		CallBinds(Type_Detach, Client ? Client->GetUser()->GetUsername() : NULL, NULL, 0, NULL);
 	}
 
 	void ServerDisconnect(const char* Client) {

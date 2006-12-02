@@ -824,13 +824,21 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	const CVector<CModule *> *Modules;
 	char *Info;
 	client_t OldestClient;
+	time_t ThisTimestamp;
+
+	ThisTimestamp = g_CurrentTime;
+
+	for (i = 0; i < m_Clients.GetLength(); i++) {
+		if (m_Clients[i].Creation >= ThisTimestamp) {
+			ThisTimestamp = m_Clients[i].Creation + 1;
+		}
+	}
 
 	if (m_Clients.GetLength() > 0 && m_Clients.GetLength() >= g_Bouncer->GetResourceLimit("clients", this)) {
-		/* TODO: got to cheat here if another client has the same TS */
 		OldestClient.Creation = g_CurrentTime + 1;
 
-		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
-			if (m_Clients[i].Creation < OldestClient.Creation) {
+		for (i = 0; i < m_Clients.GetLength(); i++) {
+			if (m_Clients[i].Creation < OldestClient.Creation && m_Clients[i].Client != Client) {
 				OldestClient = m_Clients[i];
 			}
 		}
@@ -865,7 +873,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 		Modules = g_Bouncer->GetModules();
 
 		for (i = 0; i < Modules->GetLength(); i++) {
-			(*Modules)[i]->AttachClient(GetUsername());
+			(*Modules)[i]->AttachClient(Client);
 		}
 
 		asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
@@ -936,7 +944,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 		Modules = g_Bouncer->GetModules();
 
 		for (i = 0; i < Modules->GetLength(); i++) {
-			(*Modules)[i]->DetachClient(GetUsername());
+			(*Modules)[i]->DetachClient(Client);
 		}
 	}
 

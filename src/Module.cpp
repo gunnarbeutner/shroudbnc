@@ -205,11 +205,11 @@ bool CModule::InterceptClientMessage(CClientConnection *Connection, int argc, co
 	return m_Far->InterceptClientMessage(Connection, argc, argv);
 }
 
-void CModule::AttachClient(const char *Client) {
+void CModule::AttachClient(CClientConnection *Client) {
 	m_Far->AttachClient(Client);
 }
 
-void CModule::DetachClient(const char *Client) {
+void CModule::DetachClient(CClientConnection *Client) {
 	m_Far->DetachClient(Client);
 }
 

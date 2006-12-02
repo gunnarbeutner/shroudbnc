@@ -165,8 +165,8 @@ public:
 
 	CClientConnection *GetPrimaryClientConnection(void);
 	CClientConnection *GetClientConnectionMultiplexer(void);
+	CVector<client_t> *GetClientConnections(void);
 
-//	CClientConnection *GetClientConnection(void);
 	CIRCConnection *GetIRCConnection(void);
 
 	bool CheckPassword(const char *Password) const;
@@ -204,7 +204,6 @@ public:
 	void AddClientConnection(CClientConnection *Client, bool Silent = false);
 	void RemoveClientConnection(CClientConnection *Client, bool Silent = false);
 	bool IsRegisteredClientConnection(CClientConnection *Client);
-	CVector<client_t> *GetClientConnections(void);
 
 	void SetAdmin(bool Admin = true);
 	bool IsAdmin(void) const;

@@ -98,7 +98,7 @@ proc itype_parse {value} {
 			}
 		}
 
-		if {$type != ""} {
+		if {$type != "" && !$escape} {
 			lappend data $char
 		}
 
@@ -158,6 +158,9 @@ proc itype_escape {value} {
 
 	set output [string map [list "\\" "\\\\"] $output]
 
+	set output [string map [list "\r" "\\r"] $output]
+	set output [string map [list "\n" "\\n"] $output]
+
 	set output [string map [list "\{" "\\\{"] $output]
 	set output [string map [list "\}" "\\\}"] $output]
 
@@ -172,6 +175,9 @@ proc itype_escape {value} {
 
 proc itype_unescape {value} {
 	set output $value
+
+	set output [string map [list "\\r" "\r"] $output]
+	set output [string map [list "\\n" "\n"] $output]
 
 	set output [string map [list "\\\{" "\{"] $output]
 	set output [string map [list "\\\}" "\}"] $output]

@@ -113,6 +113,12 @@ const char *getctx(int ts) {
 	if (g_CurrentClient != NULL && ts) {
 		User = g_CurrentClient->GetOwner();
 
+		if (User == NULL) {
+			g_asprintf(&Context, "");
+
+			return Context;
+		}
+
 		if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {
 			g_asprintf(&Context, "%s<*", g_Context);
 		} else {
@@ -887,7 +893,6 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		free(argv);
 
 		return List;
-
 	} else if (strcasecmp(Type, "seen") == 0) {
 		g_asprintf(&Buffer, "%d", Context->GetLastSeen());
 
@@ -953,8 +958,36 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Buffer;
 	} else if (strcasecmp(Type, "channelsort") == 0) {
 		return Context->GetChannelSortMode();
+	} else if (strcasecmp(Type, "sessions") == 0) {
+		CVector<client_t> *Clients = Context->GetClientConnections();
+		int Count = Clients->GetLength();
+		char *Item;
+
+		char** argv = (char**)malloc(Count * sizeof(const char*));
+
+		for (unsigned int i = 0; i < Count; i++) {
+			g_asprintf(&Item, "%s<%d", Context->GetUsername(), (*Clients)[i].Creation);
+
+			argv[i] = Item;
+		}
+
+		static char* List = NULL;
+
+		if (List != NULL) {
+			Tcl_Free(List);
+		}
+
+		List = Tcl_Merge(Count, const_cast<char **>(argv));
+
+		for (unsigned int i = 0; i < Count; i++) {
+			g_free(argv[i]);
+		}
+
+		free(argv);
+
+		return List;
 	} else {
-		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort";
+		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort sessions";
 	}
 }
 

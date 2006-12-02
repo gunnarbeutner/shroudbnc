@@ -86,18 +86,18 @@ struct CModuleFar {
 	 *
 	 * Called when a user logs in.
 	 *
-	 * @param Client the name of the user
+	 * @param Client the client
 	 */
-	virtual void AttachClient(const char *Client) = 0;
+	virtual void AttachClient(CClientConnection *Client) = 0;
 
 	/**
 	 * DetachClient
 	 *
 	 * Called when a user logs out.
 	 *
-	 * @param Client the name of the user
+	 * @param Client the client
 	 */
-	virtual void DetachClient(const char *Client) = 0;
+	virtual void DetachClient(CClientConnection *Client) = 0;
 
 	/**
 	 * ServerDisconnect
@@ -231,9 +231,8 @@ protected:
 		return false;
 	}
 
-	virtual void AttachClient(const char *Client) {	}
-
-	virtual void DetachClient(const char *Client) { }
+	virtual void AttachClient(CClientConnection *Client) { }
+	virtual void DetachClient(CClientConnection *Client) { }
 
 	virtual void ServerDisconnect(const char *Client) { }
 	virtual void ServerConnect(const char *Client) { }

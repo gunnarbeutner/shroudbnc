@@ -54,8 +54,8 @@ public:
 	bool InterceptClientMessage(CClientConnection *Connection, int ArgC, const char **ArgV);
 	bool InterceptClientCommand(CClientConnection *Connection, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser);
 
-	void AttachClient(const char *Client);
-	void DetachClient(const char *Client) ;
+	void AttachClient(CClientConnection *Client);
+	void DetachClient(CClientConnection *Client) ;
 
 	void ServerDisconnect(const char *Client);
 	void ServerConnect(const char *Client);
