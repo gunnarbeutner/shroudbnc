@@ -164,6 +164,11 @@ typedef struct {
 
 #define BLOCKMARKER 0xDC3D3AB8
 
+void *mmalloc(size_t Size, CUser *Manager);
+void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
+char *mstrdup(const char *String, CUser *Manager);
+void mfree(void *Block);
+
 #define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
 
 #if defined(_DEBUG) && defined(_WIN32)
