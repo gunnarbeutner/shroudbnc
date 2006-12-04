@@ -130,5 +130,6 @@ AC_CONFIG_FILES([Makefile \
                  src/Makefile \
                  src/md5/Makefile \
                  identd32/Makefile \
-                 php/Makefile])
+                 php/Makefile \
+                 bncmysql/Makefile])
 AC_OUTPUT
