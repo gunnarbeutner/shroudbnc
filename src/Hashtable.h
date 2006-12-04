@@ -87,14 +87,12 @@ inline unsigned long Hash(const char *String, bool CaseSensitive) {
 }
 
 template<typename Type, bool CaseSensitive, int Size>
-class CHashtable {
+class SBNCAPI CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
 
 public:
-	typedef CHashtable<Type, CaseSensitive, Size> ThisType;
-
 #ifndef SWIG
 	/**
 	 * CHashtable
@@ -412,42 +410,6 @@ public:
 		Keys[Count - 1] = NULL;
 
 		return Keys;
-	}
-
-	RESULT<bool> Freeze(CAssocArray *Box) {
-		if (!(typeid(Type) == typeid(char *) && (void *)m_DestructorFunc == (void *)FreeUString)) {
-			THROW(bool, Generic_Unknown, "Can't freeze this type.");
-		}
-
-		unsigned int i = 0;
-
-		while (hash_t<Type> *Bucket = Iterate(i++)) {
-			Box->AddString(Bucket->Name, (char *)Bucket->Value);
-		}
-
-		delete this;
-
-		RETURN(bool, true);
-	}
-
-	static RESULT<ThisType *> Thaw(CAssocArray *Box, CUser *Owner) {
-		ThisType *Hashtable = new ThisType();
-
-		if (!(typeid(Type) == typeid(char *))) {
-			THROW(ThisType *, Generic_Unknown, "Can't thaw this type.");
-		}
-
-		Hashtable->m_DestructorFunc = (void (*)(Type))FreeUString;
-
-		unsigned int i = 0;
-
-		while (assoc_t *AssocT = Box->Iterate(i++)) {
-			assert(AssocT->Type == Assoc_String);
-
-			Hashtable->Add(AssocT->Name, (Type)nstrdup(AssocT->ValueString));
-		}
-
-		RETURN(ThisType *, Hashtable);
 	}
 };
 

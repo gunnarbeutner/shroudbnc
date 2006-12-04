@@ -1586,7 +1586,7 @@ void CIRCConnection::Destroy(void) {
  * @param Box the box which should be used
  */
 RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
-	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox;
+	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox, *ISupportBox;
 
 	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
 		THROW(bool, Generic_Unknown, "Current Nick/Server/Sock invalid or connection is using SSL.");
@@ -1599,8 +1599,20 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
 	Box->AddString("~irc.serverversion", m_ServerVersion);
 	Box->AddString("~irc.serverfeat", m_ServerFeat);
 
-	FreezeObject<m_ISupport::ThisType>(Box, "~irc.isupport", m_ISupport);
-	m_ISupport = NULL;
+	ISupportBox = Box->Create();
+
+	if (m_ISupport != NULL && ISupportBox != NULL) {
+		hash_t<char *> *Bucket;
+		unsigned int i = 0;
+
+		while ((Bucket = m_ISupport->Iterate(i++)) != NULL) {
+			ISupportBox->AddString(Bucket->Name, Bucket->Value);
+		}
+	} else if (ISupportBox != NULL) {
+		ISupportBox->Destroy();
+	}
+
+	delete m_ISupport;
 
 	Box->AddInteger("~irc.channels", m_Channels->GetLength());
 
@@ -1685,7 +1697,20 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 
 	delete Connection->m_ISupport;
 
-	Connection->m_ISupport = ThawObject<m_ISupport::ThisType>(Box, "~irc.isupport", Connection->GetUser());
+	Connection->m_ISupport = new CHashtable<char *, false, 32>();
+
+	CAssocArray *ISupportBox = Box->ReadBox("~irc.isupport");
+
+	if (ISupportBox != NULL) {
+		assoc_t *AssocT;
+		unsigned int i = 0;
+
+		while ((AssocT = ISupportBox->Iterate(i++)) != NULL) {
+			assert(AssocT->Type == Assoc_String);
+
+			Connection->m_ISupport->Add(AssocT->Name, mstrdup(AssocT->ValueString, Owner));
+		}
+	}
 
 	Count = Box->ReadInteger("~irc.channels");
 

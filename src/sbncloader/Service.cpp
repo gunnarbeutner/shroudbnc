@@ -45,7 +45,7 @@ bool InstallService(const char *ExeName) {
 		ExeNameArgs, NULL, NULL, NULL,
 		NULL, NULL);
 
-	if (hService == NULL && GetLastError() != ERROR_DUPLICATE_SERVICE_NAME) {
+	if (hService == NULL && (GetLastError() != ERROR_DUPLICATE_SERVICE_NAME || GetLastError() == ERROR_SERVICE_EXISTS)) {
 		CloseServiceHandle(hSCM);
 
 		return false;
