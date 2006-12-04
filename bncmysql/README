@@ -9,3 +9,48 @@ apart from when it's started, e.g. the userlist).
 
 You can compile the module using:
 
+	g++ -shared -g -o bncmysql.so bncmysql.cpp -I/usr/include/mysql -L/usr/lib -lmysqlclient
+
+(You need to use the correct include/library directory for your mysql installation.)
+
+Once you've successfully compiled your mysql module you need to copy it into your
+shroudBNC directory:
+
+	cp bncmysql.so ~/sbnc
+
+You will also have to create a new bootstrap config (which will be used by the module
+to "find" the real config source: your mysql database):
+
+Filename: sbnc.conf
+Content:
+
+system.configmodule=./bncmysql.so
+mysql.host=localhost
+mysql.port=3306
+mysql.user=your_mysql_user
+mysql.password=your_mysql_pass
+mysql.database=your_mysql_database
+
+You may also specify the following options, however they are optional:
+
+mysql.table - name of the mysql table (default: sbnc_config)
+mysql.updateinterval - default update interval (sbnc re-fetches the config every once
+			in a while; default: 300 seconds)
+
+You need to create the database before launching shroudBNC. The table will be automatically
+created for you on demand.
+
+Once you've created the config file and database you can start shroudBNC:
+
+test@temple:~/sbnc$ ./sbnc
+shroudBNC loader
+Loading shroudBNC from ./lib-0/libsbnc.la
+Mon Dec  4 19:42:09 2006: Log system initialized.
+Mon Dec  4 19:42:09 2006: Connected to MySQL server at kerberos:3306
+shroudBNC 1.2 $Revision: 872 $ - an object-oriented IRC bouncer
+Mon Dec  4 19:42:10 2006: Created main listener.
+Mon Dec  4 19:42:10 2006: Starting main loop.
+Daemonizing... DONE
+test@temple:~/sbnc$
+
+That wasn't too difficult, was it? :)

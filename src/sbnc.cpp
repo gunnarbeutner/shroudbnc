@@ -36,7 +36,7 @@ const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
  * Used by "sbncloader" to start shroudBNC
  */
 extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
-	CConfig *Config;
+	CConfigFile *Config;
 
 	if (Parameters->Version != 202) {
 		printf("Incompatible loader version. Expected version 202, got %d.\n", Parameters->Version);

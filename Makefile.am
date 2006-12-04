@@ -1,5 +1,5 @@
 export MOD_DIR=@SUBST_MOD_DIR@
-SUBDIRS=src @BNCTCL_MODULE@ @IDENTD_MODULE@ php
+SUBDIRS=src @BNCTCL_MODULE@ @IDENTD_MODULE@ php bncmysql
 EXTRA_DIST=cares.m4 cares2.m4 aclocal.m4 tcl.m4 sbnc.tcl ssl.conf LICENSE README README.ssl README.motd README.lean README.service README.settings README.iface2
 
 install:

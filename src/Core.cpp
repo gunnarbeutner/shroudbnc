@@ -62,6 +62,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
+	m_OriginalConfig = Config;
+
 	m_SSLContext = NULL;
 
 	m_Status = STATUS_RUN;
@@ -203,6 +205,10 @@ CCore::~CCore(void) {
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		delete User->Value;
+	}
+
+	if (m_OriginalConfig != m_Config) {
+		m_Config->Destroy();
 	}
 
 	delete m_ConfigModule;

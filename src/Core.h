@@ -89,7 +89,8 @@ class SBNCAPI CCore {
 	friend void unregistersocket(int Socket);
 #endif
 
-	CConfig *m_Config; /**< sbnc.conf object */
+	CConfig *m_OriginalConfig; /** sbnc.conf object */
+	CConfig *m_Config; /**< config object (== m_OriginalConfig unless there is a config module) */
 
 	CClientListener *m_Listener, *m_ListenerV6; /**< the main unencrypted listeners */
 	CClientListener *m_SSLListener, *m_SSLListenerV6; /**< the main ssl listeners */

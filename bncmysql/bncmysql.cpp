@@ -7,7 +7,6 @@ CMysqlConfigModule *g_MysqlMod;
 CCore *g_Bouncer;
 time_t g_NextConnect;
 
-
 MYSQL *MysqlModConnect(void);
 MYSQL *MysqlModGetConnection(void);
 
@@ -248,6 +247,8 @@ public:
 	}
 
 	virtual void Reload(void) {
+		m_LastFetch = 0;
+
 		InternalReload();
 	}
 
