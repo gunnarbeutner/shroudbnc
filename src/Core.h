@@ -74,17 +74,6 @@ typedef struct additionallistener_s {
 	CSocketEvents *ListenerV6; /**< IPv6 listener object */
 } additionallistener_t;
 
-#ifdef SWIGINTERFACE
-%template(CVectorCModule) CVector<class CModule *>;
-%template(CVectorCZoneInformation) CVector<struct CZoneInformation *>;
-%template(CVectorFileT) CVector<file_t>;
-#endif
-
-template class SBNCAPI CVector<CModule *>;
-template class SBNCAPI CVector<char *>;
-template class SBNCAPI CVector<CZoneInformation *>;
-template class SBNCAPI CHashtable<CUser *, false, 512>;
-
 /**
  * CCore
  *

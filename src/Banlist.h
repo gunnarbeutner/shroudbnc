@@ -28,12 +28,6 @@ typedef struct ban_s {
 	time_t Timestamp;
 } ban_t;
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCBanlist) CZoneObject<class CBanlist, 128>;
-#endif
-
-template class SBNCAPI CHashtable<ban_t *, false, 5>;
-
 /**
  * CBanlist
  *

@@ -32,16 +32,10 @@ class CNick;
 class CBanlist;
 class CIRCConnection;
 
-#ifdef SWIGINTERFACE
-%template(CHashtableCNick) CHashtable<class CNick *, false, 64>;
-#endif
-
 #ifndef SWIG
 int ChannelTSCompare(const void *p1, const void *p2);
 int ChannelNameCompare(const void *p1, const void *p2);
 #endif
-
-template class SBNCAPI CHashtable<CNick *, false, 64>;
 
 /**
  * CChannel

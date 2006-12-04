@@ -17,13 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCConfig) CZoneObject<class CConfig, 128>;
-%template(HashTCharP) hash_t<char *>;
-#endif
-
-template class SBNCAPI CHashtable<char *, false, 16>;
-
 /**
  * CConfig
  *

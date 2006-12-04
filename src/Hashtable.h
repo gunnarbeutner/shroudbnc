@@ -91,7 +91,10 @@ class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
+
 public:
+	typedef CHashtable<Type, CaseSensitive, Size> ThisType;
+
 #ifndef SWIG
 	/**
 	 * CHashtable
@@ -427,13 +430,11 @@ public:
 		RETURN(bool, true);
 	}
 
-	typedef CHashtable<Type, CaseSensitive, Size> ThisHashtableType;
-
-	static RESULT<ThisHashtableType *> Thaw(CAssocArray *Box, CUser *Owner) {
-		ThisHashtableType *Hashtable = new ThisHashtableType();
+	static RESULT<ThisType *> Thaw(CAssocArray *Box, CUser *Owner) {
+		ThisType *Hashtable = new ThisType();
 
 		if (!(typeid(Type) == typeid(char *))) {
-			THROW(ThisHashtableType *, Generic_Unknown, "Can't thaw this type.");
+			THROW(ThisType *, Generic_Unknown, "Can't thaw this type.");
 		}
 
 		Hashtable->m_DestructorFunc = (void (*)(Type))FreeUString;
@@ -446,7 +447,7 @@ public:
 			Hashtable->Add(AssocT->Name, (Type)nstrdup(AssocT->ValueString));
 		}
 
-		RETURN(ThisHashtableType *, Hashtable);
+		RETURN(ThisType *, Hashtable);
 	}
 };
 

@@ -1599,7 +1599,7 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
 	Box->AddString("~irc.serverversion", m_ServerVersion);
 	Box->AddString("~irc.serverfeat", m_ServerFeat);
 
-	FreezeObject<CHashtable<char *, false, 32>>(Box, "~irc.isupport", m_ISupport);
+	FreezeObject<m_ISupport::ThisType>(Box, "~irc.isupport", m_ISupport);
 	m_ISupport = NULL;
 
 	Box->AddInteger("~irc.channels", m_Channels->GetLength());
@@ -1685,7 +1685,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 
 	delete Connection->m_ISupport;
 
-	Connection->m_ISupport = ThawObject<CHashtable<char *, false, 32>>(Box, "~irc.isupport", Connection->GetUser());
+	Connection->m_ISupport = ThawObject<m_ISupport::ThisType>(Box, "~irc.isupport", Connection->GetUser());
 
 	Count = Box->ReadInteger("~irc.channels");
 

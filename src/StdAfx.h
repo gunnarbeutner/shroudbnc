@@ -87,6 +87,14 @@ typedef lt_dlhandle HMODULE;
 #endif
 
 #ifdef SBNC
+class CUser;
+
+void *mmalloc(size_t Size, CUser *Manager);
+void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
+char *mstrdup(const char *String, CUser *Manager);
+void mfree(void *Block);
+void mmark(void *Block);
+
 #	define nmalloc(Size) mmalloc(Size, NULL)
 #	define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
 #	define nstrdup(String) mstrdup(String, NULL)
@@ -99,7 +107,6 @@ typedef lt_dlhandle HMODULE;
 #	define ufree(Block) mfree(Block)
 #	define umark(Block) mmark(Block)
 
-void mmark(void *Block);
 #endif
 
 #if !defined(_DEBUG) || !defined(SBNC)
