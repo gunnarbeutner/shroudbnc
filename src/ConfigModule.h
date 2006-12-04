@@ -70,7 +70,5 @@ public:
 		// nothing to do here
 	}
 
-	CConfig *CreateConfigObject(const char *Name, CUser *Owner) {
-		return new CConfigFile(g_Bouncer->BuildPath(Name), Owner);
-	}
+	CConfig *CreateConfigObject(const char *Name, CUser *Owner);
 };

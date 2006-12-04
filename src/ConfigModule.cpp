@@ -186,3 +186,7 @@ RESULT<bool> CConfigModule::GetError(void) {
 		RETURN(bool, true);
 	}
 }
+
+CConfig *CDefaultConfigModule::CreateConfigObject(const char *Name, CUser *Owner) {
+	return new CConfigFile(g_Bouncer->BuildPath(Name), Owner);
+}
