@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CConfig;
+struct CConfig;
 
 /**
  * CKeyring
@@ -27,6 +27,7 @@ class CConfig;
 class SBNCAPI CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CKeyring, CUser> {
 private:
 	CConfig *m_Config; /**< the config object for storing the channel keys */
+
 public:
 #ifndef SWIG
 	CKeyring(CConfig *Config, CUser *Owner);

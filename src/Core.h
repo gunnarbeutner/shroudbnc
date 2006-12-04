@@ -19,7 +19,7 @@
 
 #define DEFAULT_SENDQ (10 * 1024)
 
-class CConfig;
+struct CConfig;
 class CUser;
 class CLog;
 class CClientListener;
@@ -31,6 +31,7 @@ class CConnection;
 class CTimer;
 class CAssocArray;
 class CFakeClient;
+class CConfigModule;
 struct CSocketEvents;
 struct sockaddr_in;
 
@@ -137,6 +138,8 @@ class SBNCAPI CCore {
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
+
+	CConfigModule *m_ConfigModule; /**< config module loader */
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -288,6 +291,8 @@ public:
 	void SetDontMatchUser(bool Value);
 
 	CACHE(System) *GetConfigCache(void);
+
+	CConfig *CreateConfigObject(const char *Filename, CUser *User);
 };
 
 #ifndef SWIG

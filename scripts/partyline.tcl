@@ -88,7 +88,7 @@ proc sbnc:partyline {client parameters} {
 			sbnc:partyline $client "NAMES $chan"
 			sbnc:partyline $client "TOPIC $chan"
 
-			sbnc:bcpartybutone $thisctx ":\$client!$client@sbnc JOIN $chan"
+			sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc JOIN $chan"
 		}
 	}
 
@@ -210,8 +210,8 @@ proc sbnc:partyattach {client} {
 		if {[lsearch $chans [string tolower $chan]] != -1} {
 			setctx $thisctx
 			putclient ":$botname JOIN $chan"
-			sbnc:partyline $thisctx "NAMES $chan"
-			sbnc:partyline $thisctx "TOPIC $chan"
+			sbnc:partyline $client "NAMES $chan"
+			sbnc:partyline $client "TOPIC $chan"
 
 			if {[getbncuser $client clientcount] == 1} {
 				sbnc:bcpartybutone $thisctx ":\$$client!$client@sbnc JOIN $chan"

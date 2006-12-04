@@ -73,6 +73,7 @@ private:
 
 	chanmode_t *AllocSlot(void);
 	chanmode_t *FindSlot(char Mode);
+
 public:
 #ifndef SWIG
 	CChannel(const char *Name, CIRCConnection *Owner);

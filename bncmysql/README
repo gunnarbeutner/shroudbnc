@@ -1,0 +1,7 @@
+shroudBNC MySQL Config Module
+-----------------------------
+
+Using the MySQL Config Module you can store shroudBNC users and setting
+in a MySQL database. You can even modify the tables directly (shroudBNC
+will reload the settings from the database after a configurable interval).
+

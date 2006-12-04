@@ -47,6 +47,8 @@ public:
 	virtual int ReadInteger(const char *Name);
 	virtual CAssocArray *ReadBox(const char *Name);
 
+	virtual assoc_t *Iterate(unsigned int Index);
+
 	virtual CAssocArray *Create(void);
 	virtual void Destroy(void);
 };

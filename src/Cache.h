@@ -40,8 +40,8 @@ const char *CacheGetStringReal(CConfig *Config, const char **CacheValue, const c
 void CacheSetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, int Value, const char *Prefix);
 void CacheSetStringReal(CConfig *Config, const char **CacheValue, const char *Option, const char *Value, const char *Prefix);
 
-#define CacheGetInteger(Cache, Option) ((Cache).Option == -1 ? CacheGetIntegerReal((Cache).BgConfig, &((Cache).Option), #Option, (Cache).BgPrefix) : (Cache).Option)
-#define CacheGetString(Cache, Option) ((Cache).Option == (char *)-1 ? CacheGetStringReal((Cache).BgConfig, &((Cache).Option), #Option, (Cache).BgPrefix) : (Cache).Option)
+#define CacheGetInteger(Cache, Option) (((Cache).Option == -1 || !(Cache).BgConfig->CanUseCache()) ? CacheGetIntegerReal((Cache).BgConfig, &((Cache).Option), #Option, (Cache).BgPrefix) : (Cache).Option)
+#define CacheGetString(Cache, Option) (((Cache).Option == (char *)-1 || !(Cache).BgConfig->CanUseCache())? CacheGetStringReal((Cache).BgConfig, &((Cache).Option), #Option, (Cache).BgPrefix) : (Cache).Option)
 
 #define CacheSetInteger(Cache, Option, Value) CacheSetIntegerReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)
 #define CacheSetString(Cache, Option, Value) CacheSetStringReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)

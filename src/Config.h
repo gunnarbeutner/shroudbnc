@@ -27,9 +27,36 @@ template class SBNCAPI CHashtable<char *, false, 16>;
 /**
  * CConfig
  *
+ * Base class for configuration classes
+ */
+struct CConfig {
+public:
+	virtual void Destroy(void) = 0;
+
+	virtual RESULT<int> ReadInteger(const char *Setting) const = 0;
+	virtual RESULT<const char *> ReadString(const char *Setting) const = 0;
+
+	virtual RESULT<bool> WriteInteger(const char *Setting, const int Value) = 0;
+	virtual RESULT<bool> WriteString(const char *Setting, const char *Value) = 0;
+
+	virtual const char *GetFilename(void) const = 0;
+
+	virtual void Reload(void) = 0;
+
+	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void) = 0;
+	virtual hash_t<char *> *Iterate(int Index) const = 0;
+	virtual unsigned int GetLength(void) const = 0;
+
+	virtual bool CanUseCache(void) = 0;
+};
+
+/**
+ * CConfig
+ *
  * Represents a shroudBNC configuration file
  */
-class SBNCAPI CConfig : public CZoneObject<CConfig, 128>, public CObject<CConfig, CUser> {
+class SBNCAPI CConfigFile : public CConfig, public CZoneObject<CConfigFile, 128>, public CObject<CConfigFile, CUser> {
+private:
 	CHashtable<char *, false, 16> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
@@ -38,27 +65,31 @@ class SBNCAPI CConfig : public CZoneObject<CConfig, 128>, public CObject<CConfig
 
 	bool ParseConfig(void);
 	RESULT<bool> Persist(void) const;
+
 public:
 #ifndef SWIG
-	CConfig(const char *Filename, CUser *Owner);
-	virtual ~CConfig(void);
+	CConfigFile(const char *Filename, CUser *Owner);
+	virtual ~CConfigFile(void);
 
 	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CConfig *> Thaw(CAssocArray *Box, CUser *Owner);
+	static RESULT<CConfigFile *> Thaw(CAssocArray *Box, CUser *Owner);
 #endif
 
-	RESULT<int> ReadInteger(const char *Setting) const;
-	RESULT<const char *> ReadString(const char *Setting) const;
+	virtual void Destroy(void);
 
-	RESULT<bool> WriteInteger(const char *Setting, const int Value);
-	RESULT<bool> WriteString(const char *Setting, const char *Value);
+	virtual RESULT<int> ReadInteger(const char *Setting) const;
+	virtual RESULT<const char *> ReadString(const char *Setting) const;
 
-	hash_t<char *> *Iterate(int Index) const;
+	virtual RESULT<bool> WriteInteger(const char *Setting, const int Value);
+	virtual RESULT<bool> WriteString(const char *Setting, const char *Value);
 
-	const char *GetFilename(void) const;
+	virtual const char *GetFilename(void) const;
 
-	void Reload(void);
-	unsigned int GetLength(void) const;
+	virtual void Reload(void);
 
-	CHashtable<char *, false, 16> *GetInnerHashtable(void);
+	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void);
+	virtual hash_t<char *> *Iterate(int Index) const;
+	virtual unsigned int GetLength(void) const;
+
+	virtual bool CanUseCache(void);
 };

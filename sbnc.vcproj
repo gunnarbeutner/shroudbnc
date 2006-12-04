@@ -266,6 +266,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\ConfigModule.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Connection.cpp"
 				>
 			</File>
@@ -372,6 +376,10 @@
 			</File>
 			<File
 				RelativePath=".\src\Config.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ConfigModule.h"
 				>
 			</File>
 			<File

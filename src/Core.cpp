@@ -93,6 +93,23 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_Ident = new CIdentSupport();
 
+	const char *ConfigModule = m_Config->ReadString("system.configmodule");
+
+	m_ConfigModule = new CConfigModule(ConfigModule);
+
+	CResult<bool> Error = m_ConfigModule->GetError();
+
+	if (IsError(Error)) {
+		LOGERROR(GETDESCRIPTION(Error));
+
+		Fatal();
+	}
+
+	m_ConfigModule->Init(this);
+
+	m_Config = m_ConfigModule->CreateConfigObject("sbnc.conf", NULL);
+	CacheInitialize(m_ConfigCache, m_Config, "system.");
+
 	const char *Users;
 	CUser *User;
 
@@ -187,6 +204,8 @@ CCore::~CCore(void) {
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		delete User->Value;
 	}
+
+	delete m_ConfigModule;
 
 	CTimer::DestroyAllTimers();
 
@@ -508,7 +527,7 @@ void CCore::StartMainLoop(void) {
 		time(&Last);
 
 #ifdef _DEBUG
-		printf("poll: %d seconds\n", SleepInterval);
+		//printf("poll: %d seconds\n", SleepInterval);
 #endif
 
 #if defined(_WIN32) && defined(_DEBUG)
@@ -1995,13 +2014,10 @@ bool CCore::MakeConfig(void) {
 	asprintf(&File, "users/%s.conf", User);
 
 	// BuildPath is using a static buffer
-	char *SourcePath = strdup(BuildPath("sbnc.conf"));
-	rename(SourcePath, BuildPath("sbnc.conf.old"));
-	free(SourcePath);
 	mkdir(BuildPath("users"));
 	SetPermissions(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 
-	MainConfig = new CConfig(BuildPath("sbnc.conf"), NULL);
+	MainConfig = m_ConfigModule->CreateConfigObject("sbnc.conf", NULL);
 
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
@@ -2009,18 +2025,18 @@ bool CCore::MakeConfig(void) {
 
 	printf("Writing main configuration file...");
 
-	delete MainConfig;
+	MainConfig->Destroy();
 
 	printf(" DONE\n");
 
-	UserConfig = new CConfig(BuildPath(File), NULL);
+	UserConfig = m_ConfigModule->CreateConfigObject(File, NULL);
 
 	UserConfig->WriteString("user.password", UtilMd5(Password, GenerateSalt()));
 	UserConfig->WriteInteger("user.admin", 1);
 
 	printf("Writing first user's configuration file...");
 
-	delete UserConfig;
+	UserConfig->Destroy();
 
 	printf(" DONE\n");
 
@@ -2818,4 +2834,8 @@ void CCore::SetDontMatchUser(bool Value) {
 
 CACHE(System) *CCore::GetConfigCache(void) {
 	return &m_ConfigCache;
+}
+
+CConfig *CCore::CreateConfigObject(const char *Filename, CUser *User) {
+	return m_ConfigModule->CreateConfigObject(Filename, User);
 }

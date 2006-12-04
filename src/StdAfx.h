@@ -137,6 +137,7 @@ void mmark(void *Block);
 #	include "Config.h"
 #	include "Cache.h"
 #	include "Core.h"
+#	include "ConfigModule.h"
 #	include "ClientConnection.h"
 #	include "ClientConnectionMultiplexer.h"
 #	include "IRCConnection.h"

@@ -19,7 +19,7 @@
 
 class CClientConnection;
 class CIRCConnection;
-class CConfig;
+struct CConfig;
 class CLog;
 class CTrafficStats;
 class CKeyring;

@@ -7,6 +7,7 @@ pkglib_LTLIBRARIES=libsbnc.la
 libsbnc_la_SOURCES=Banlist.cpp \
 	Cache.cpp \
 	Config.cpp \
+	ConfigModule.cpp \
 	Core.cpp \
 	Log.cpp \
 	User.cpp \
@@ -32,6 +33,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	utility.cpp \
 	Banlist.h \
 	Config.h \
+	ConfigModule.h \
 	Core.h \
 	Log.h \
 	User.h \

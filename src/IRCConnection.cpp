@@ -139,7 +139,8 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 	m_ServerVersion = NULL;
 	m_ServerFeat = NULL;
 
-	m_ISupport = new CConfig(NULL, GetUser());
+	m_ISupport = new CHashtable<char *, false, 32>();
+	m_ISupport->RegisterValueDestructor(FreeUString);
 
 	if (m_ISupport == NULL) {
 		LOGERROR("new operator failed. Could not create ISupport object.");
@@ -147,10 +148,10 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 		g_Bouncer->Fatal();
 	}
 
-	m_ISupport->WriteString("CHANMODES", "bIe,k,l");
-	m_ISupport->WriteString("CHANTYPES", "#&+");
-	m_ISupport->WriteString("PREFIX", "(ov)@+");
-	m_ISupport->WriteString("NAMESX", "");
+	m_ISupport->Add("CHANMODES", ustrdup("bIe,k,l"));
+	m_ISupport->Add("CHANTYPES", ustrdup("#&+"));
+	m_ISupport->Add("PREFIX", ustrdup("(ov)@+"));
+	m_ISupport->Add("NAMESX", ustrdup(""));
 
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
@@ -390,20 +391,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			RemoveChannel(argv[2]);
 
 			if (Client == NULL) {
-				char *Out;
-
-				asprintf(&Out, "JOIN %s", argv[2]);
-
-				if (Out == NULL) {
- 					LOGERROR("asprintf() failed. Could not rejoin channel.");
-
-					return bRet;
-				}
-
-				GetOwner()->Simulate(Out);
-
-				free(Out);
-
 				char *Dup = strdup(Reply);
 
 				if (Dup == NULL) {
@@ -578,9 +565,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			if (Eq) {
 				*Eq = '\0';
 
-				m_ISupport->WriteString(Dup, ++Eq);
+				m_ISupport->Add(Dup, ustrdup(++Eq));
 			} else
-				m_ISupport->WriteString(Dup, "");
+				m_ISupport->Add(Dup, ustrdup(""));
 
 			free(Dup);
 		}
@@ -1021,7 +1008,7 @@ int CIRCConnection::Write(void) {
  * @param Feature the name of the feature
  */
 const char *CIRCConnection::GetISupport(const char *Feature) const {
-	return m_ISupport->ReadString(Feature);
+	return m_ISupport->Get(Feature);
 }
 
 /**
@@ -1033,7 +1020,7 @@ const char *CIRCConnection::GetISupport(const char *Feature) const {
  * @param Value new value for the feature
  */
 void CIRCConnection::SetISupport(const char *Feature, const char *Value) {
-	m_ISupport->WriteString(Feature, Value);
+	m_ISupport->Add(Feature, ustrdup(Value));
 }
 
 /**
@@ -1189,9 +1176,9 @@ const char *CIRCConnection::GetServerFeat(void) const {
 /**
  * GetISupportAll
  *
- * Returns a configuration object which contains all 005 replies.
+ * Returns a hashtable object which contains all 005 replies.
  */
-const CConfig *CIRCConnection::GetISupportAll(void) const {
+const CHashtable<char *, false, 32> *CIRCConnection::GetISupportAll(void) const {
 	return m_ISupport;
 }
 
@@ -1612,7 +1599,7 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
 	Box->AddString("~irc.serverversion", m_ServerVersion);
 	Box->AddString("~irc.serverfeat", m_ServerFeat);
 
-	FreezeObject<CConfig>(Box, "~irc.isupport", m_ISupport);
+	FreezeObject<CHashtable<char *, false, 32>>(Box, "~irc.isupport", m_ISupport);
 	m_ISupport = NULL;
 
 	Box->AddInteger("~irc.channels", m_Channels->GetLength());
@@ -1698,7 +1685,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 
 	delete Connection->m_ISupport;
 
-	Connection->m_ISupport = ThawObject<CConfig>(Box, "~irc.isupport", Connection->GetUser());
+	Connection->m_ISupport = ThawObject<CHashtable<char *, false, 32>>(Box, "~irc.isupport", Connection->GetUser());
 
 	Count = Box->ReadInteger("~irc.channels");
 
@@ -1767,10 +1754,6 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 void CIRCConnection::Kill(const char *Error) {
 	if (GetOwner() != NULL) {
 		GetOwner()->SetIRCConnection(NULL);
-
-		if (m_ISupport != NULL) {
-			m_ISupport->SetOwner(NULL);
-		}
 	}
 
 	m_FloodControl->Clear();

@@ -426,7 +426,7 @@ int main(int argc, char **argv) {
 
 	loaderparams_s Parameters;
 
-	Parameters.Version = 201;
+	Parameters.Version = 202;
 
 	Parameters.argc = argc;
 	Parameters.argv = argv;

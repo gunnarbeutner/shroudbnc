@@ -38,8 +38,8 @@ const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	CConfig *Config;
 
-	if (Parameters->Version != 201) {
-		printf("Incompatible loader version. Expected version 201, got %d.\n", Parameters->Version);
+	if (Parameters->Version != 202) {
+		printf("Incompatible loader version. Expected version 202, got %d.\n", Parameters->Version);
 
 		return 1;
 	}
@@ -68,7 +68,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	time(&g_CurrentTime);
 
-	Config = new CConfig(Parameters->BuildPath("sbnc.conf", NULL), NULL);
+	Config = new CConfigFile(Parameters->BuildPath("sbnc.conf", NULL), NULL);
 
 	if (Config == NULL) {
 		printf("Fatal: could not create config object.");
@@ -162,7 +162,7 @@ void DebugSigEnable(void) {}
 int main(int argc, char **argv) {
 	loaderparams_s p;
 
-	p.Version = 201;
+	p.Version = 202;
 	p.argc = argc;
 	p.argv = argv;
 	p.basepath = ".";

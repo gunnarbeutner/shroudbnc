@@ -68,6 +68,7 @@ protected:
 
 public:
 	void AsyncDnsFinishedClient(hostent *response);
+
 private:
 #endif
 
@@ -80,6 +81,7 @@ private:
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
 	CClientConnection(void);
+
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, bool SSL = false);

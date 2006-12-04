@@ -104,6 +104,14 @@ CAssocArray *CAssocArray::ReadBox(const char *Name) {
 	return NULL;
 }
 
+assoc_t *CAssocArray::Iterate(unsigned int Index) {
+	if (Index >= m_Count) {
+		return NULL;
+	} else {
+		return &(m_Values[Index]);
+	}
+}
+
 CAssocArray *CAssocArray::Create(void) {
 	return new CAssocArray();
 }

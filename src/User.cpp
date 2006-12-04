@@ -53,7 +53,7 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	m_Config = new CConfig(g_Bouncer->BuildPath(Out), this);
+	m_Config = g_Bouncer->CreateConfigObject(Out, this);
 
 	free(Out);
 
@@ -135,7 +135,7 @@ CUser::~CUser(void) {
 		m_IRC->Kill("-)(- If you can't see the fnords, they can't eat you.");
 	}
 
-	delete m_Config;
+	m_Config->Destroy();
 	delete m_Log;
 
 	delete m_ClientStats;
@@ -218,6 +218,7 @@ void CUser::Attach(CClientConnection *Client) {
 	const char *Reason, *AutoModes, *IrcNick, *MotdText;
 	CLog *Motd;
 	unsigned int i;
+	bool Added = false;
 
 	if (IsLocked()) {
 		Reason = GetSuspendReason();
@@ -244,8 +245,6 @@ void CUser::Attach(CClientConnection *Client) {
 	}
 
 	Client->SetOwner(this);
-
-	AddClientConnection(Client);
 
 	Motd = new CLog("sbnc.motd");
 
@@ -280,6 +279,9 @@ void CUser::Attach(CClientConnection *Client) {
 			if (m_IRC->GetUsermodes() != NULL) {
 				Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
 			}
+
+			AddClientConnection(Client);
+			Added = true;
 
 			CChannel **Channels;
 
@@ -359,6 +361,10 @@ void CUser::Attach(CClientConnection *Client) {
 		if (IsQuitted() != 2) {
 			ScheduleReconnect(0);
 		}
+	}
+
+	if (!Added) {
+		AddClientConnection(Client);
 	}
 
 	MotdText = g_Bouncer->GetMotd();

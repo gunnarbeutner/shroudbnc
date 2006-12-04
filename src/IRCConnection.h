@@ -30,7 +30,7 @@ enum connection_state_e {
 };
 
 class CUser;
-class CConfig;
+struct CConfig;
 class CChannel;
 class CQueue;
 class CFloodControl;
@@ -73,7 +73,7 @@ private:
 	char *m_ServerVersion; /**< the version from the 351 reply */
 	char *m_ServerFeat; /**< the server features from the 351 reply */
 
-	CConfig *m_ISupport; /**< the key/value pairs from the 005 replies */
+	CHashtable<char *, false, 32> *m_ISupport; /**< the key/value pairs from the 005 replies */
 	
 	CTimer *m_DelayJoinTimer; /**< timer for delay-joining channels */
 	CTimer *m_PingTimer; /**< timer for sending regular PINGs to the server */
@@ -135,7 +135,7 @@ public:
 
 	CFloodControl *GetFloodControl(void);
 
-	const CConfig *GetISupportAll(void) const;
+	const CHashtable<char *, false, 32> *GetISupportAll(void) const;
 	const char *GetISupport(const char *Feature) const;
 	void SetISupport(const char *Feature, const char *Value);
 	bool IsChanMode(char Mode) const;

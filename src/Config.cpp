@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 
 /**
- * CConfig
+ * CConfigFile
  *
  * Constructs a new configuration object and loads the given filename
  * if specified. If you specify NULL as the filename, a volatile
@@ -29,7 +29,7 @@
  *
  * @param Filename the filename of the configuration file, can be NULL
  */
-CConfig::CConfig(const char *Filename, CUser *Owner) {
+CConfigFile::CConfigFile(const char *Filename, CUser *Owner) {
 	SetOwner(Owner);
 
 	m_WriteLock = false;
@@ -57,7 +57,7 @@ CConfig::CConfig(const char *Filename, CUser *Owner) {
  *
  * setting=value
  */
-bool CConfig::ParseConfig(void) {
+bool CConfigFile::ParseConfig(void) {
 	const size_t LineLength = 131072;
 	char *Line;
 	char *dupEq;
@@ -136,7 +136,7 @@ bool CConfig::ParseConfig(void) {
  *
  * Destructs the configuration object.
  */
-CConfig::~CConfig() {
+CConfigFile::~CConfigFile() {
 	ufree(m_Filename);
 }
 
@@ -148,7 +148,7 @@ CConfig::~CConfig() {
  *
  * @param Setting the configuration setting
  */
-RESULT<const char *> CConfig::ReadString(const char *Setting) const {
+RESULT<const char *> CConfigFile::ReadString(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
@@ -166,7 +166,7 @@ RESULT<const char *> CConfig::ReadString(const char *Setting) const {
  *
  * @param Setting the configuration setting
  */
-RESULT<int> CConfig::ReadInteger(const char *Setting) const {
+RESULT<int> CConfigFile::ReadInteger(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
@@ -185,7 +185,7 @@ RESULT<int> CConfig::ReadInteger(const char *Setting) const {
  * @param Value the new value for the setting, can be NULL to indicate that
  *              the configuration setting is to be removed
  */
-RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
+RESULT<bool> CConfigFile::WriteString(const char *Setting, const char *Value) {
 	RESULT<bool> ReturnValue;
 	const char *OldValue;
 
@@ -218,7 +218,7 @@ RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
  * @param Setting the configuration setting
  * @param Value the new value for the setting
  */
-RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
+RESULT<bool> CConfigFile::WriteInteger(const char *Setting, const int Value) {
 	char *ValueString;
 	RESULT<bool> ReturnValue;
 
@@ -245,7 +245,7 @@ RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is volatile.
  */
-RESULT<bool> CConfig::Persist(void) const {
+RESULT<bool> CConfigFile::Persist(void) const {
 	if (m_Filename == NULL) {
 		RETURN(bool, false);
 	}
@@ -276,7 +276,7 @@ RESULT<bool> CConfig::Persist(void) const {
  * Returns the filename of the configuration object. The return value will
  * be NULL if the configuration object is volatile.
  */
-const char *CConfig::GetFilename(void) const {
+const char *CConfigFile::GetFilename(void) const {
 	return m_Filename;
 }
 
@@ -287,7 +287,7 @@ const char *CConfig::GetFilename(void) const {
  *
  * @param Index specifies the index of the setting which is to be returned
  */
-hash_t<char *> *CConfig::Iterate(int Index) const {
+hash_t<char *> *CConfigFile::Iterate(int Index) const {
 	return m_Settings.Iterate(Index);
 }
 
@@ -296,7 +296,7 @@ hash_t<char *> *CConfig::Iterate(int Index) const {
  *
  * Reloads all settings from disk.
  */
-void CConfig::Reload(void) {
+void CConfigFile::Reload(void) {
 	m_Settings.Clear();
 
 	if (m_Filename != NULL) {
@@ -309,7 +309,7 @@ void CConfig::Reload(void) {
  *
  * Returns the number of items in the config.
  */
-unsigned int CConfig::GetLength(void) const {
+unsigned int CConfigFile::GetLength(void) const {
 	return m_Settings.GetLength();
 }
 
@@ -320,7 +320,7 @@ unsigned int CConfig::GetLength(void) const {
  *
  * @param Box the box
  */
-RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
+/*RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
 	unsigned int i = 0;
 	hash_t<char *> *Setting;
 	CAssocArray *Settings;
@@ -370,7 +370,7 @@ RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
 	delete this;
 
 	RETURN(bool, true);
-}
+}*/
 
 /**
  * Thaw
@@ -379,7 +379,7 @@ RESULT<bool> CConfig::Freeze(CAssocArray *Box) {
  *
  * @param Box the box
  */
-RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box, CUser *Owner) {
+/*RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box, CUser *Owner) {
 	CConfig *Config;
 	const char *Temp;
 	CAssocArray *Settings;
@@ -387,7 +387,7 @@ RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box, CUser *Owner) {
 	char *Index, *dupSetting, *Value;
 	const char *Setting;
 
-	Config = new CConfig(NULL, Owner);
+	Config = new CConfigFile(NULL, Owner);
 
 	CHECK_ALLOC_RESULT(Config, new) {
 		THROW(CConfig *, Generic_OutOfMemory, "new operator failed.");
@@ -454,13 +454,31 @@ RESULT<CConfig *> CConfig::Thaw(CAssocArray *Box, CUser *Owner) {
 	}
 
 	RETURN(CConfig *, Config);
-}
+}*/
 
 /**
  * GetInnerHashtable
  *
  * Returns the hashtable which is used for caching the settings.
  */
-CHashtable<char *, false, 16> *CConfig::GetInnerHashtable(void) {
+CHashtable<char *, false, 16> *CConfigFile::GetInnerHashtable(void) {
 	return &m_Settings;
+}
+
+/**
+ * CanUseCache
+ *
+ * Checks whether a cached version of this Setting can be used.
+ */
+bool CConfigFile::CanUseCache(void) {
+	return true;
+}
+
+/**
+ * Destroy
+ *
+ * Destroys the config object.
+ */
+void CConfigFile::Destroy(void) {
+	delete this;
 }

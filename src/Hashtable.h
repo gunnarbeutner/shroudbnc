@@ -86,7 +86,6 @@ inline unsigned long Hash(const char *String, bool CaseSensitive) {
 	return HashValue;
 }
 
-
 template<typename Type, bool CaseSensitive, int Size>
 class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
@@ -412,6 +411,43 @@ public:
 		return Keys;
 	}
 
+	RESULT<bool> Freeze(CAssocArray *Box) {
+		if (!(typeid(Type) == typeid(char *) && (void *)m_DestructorFunc == (void *)FreeUString)) {
+			THROW(bool, Generic_Unknown, "Can't freeze this type.");
+		}
+
+		unsigned int i = 0;
+
+		while (hash_t<Type> *Bucket = Iterate(i++)) {
+			Box->AddString(Bucket->Name, (char *)Bucket->Value);
+		}
+
+		delete this;
+
+		RETURN(bool, true);
+	}
+
+	typedef CHashtable<Type, CaseSensitive, Size> ThisHashtableType;
+
+	static RESULT<ThisHashtableType *> Thaw(CAssocArray *Box, CUser *Owner) {
+		ThisHashtableType *Hashtable = new ThisHashtableType();
+
+		if (!(typeid(Type) == typeid(char *))) {
+			THROW(ThisHashtableType *, Generic_Unknown, "Can't thaw this type.");
+		}
+
+		Hashtable->m_DestructorFunc = (void (*)(Type))FreeUString;
+
+		unsigned int i = 0;
+
+		while (assoc_t *AssocT = Box->Iterate(i++)) {
+			assert(AssocT->Type == Assoc_String);
+
+			Hashtable->Add(AssocT->Name, (Type)nstrdup(AssocT->ValueString));
+		}
+
+		RETURN(ThisHashtableType *, Hashtable);
+	}
 };
 
 #ifdef SBNC
