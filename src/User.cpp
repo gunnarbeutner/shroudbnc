@@ -219,6 +219,7 @@ void CUser::Attach(CClientConnection *Client) {
 	CLog *Motd;
 	unsigned int i;
 	bool Added = false;
+	bool FirstClient;
 
 	if (IsLocked()) {
 		Reason = GetSuspendReason();
@@ -244,16 +245,20 @@ void CUser::Attach(CClientConnection *Client) {
 		return;
 	}
 
+	FirstClient = (m_Clients.GetLength() == 0);
+
 	Client->SetOwner(this);
 
 	Motd = new CLog("sbnc.motd");
 
 	if (m_IRC != NULL) {
-		m_IRC->WriteLine("AWAY");
+		if (FirstClient) {
+			m_IRC->WriteLine("AWAY");
+		}
 
 		AutoModes = CacheGetString(m_ConfigCache, automodes);
 
-		if (AutoModes != NULL && m_IRC->GetCurrentNick() != NULL) {
+		if (AutoModes != NULL && m_IRC->GetCurrentNick() != NULL && FirstClient) {
 			m_IRC->WriteLine("MODE %s +%s", m_IRC->GetCurrentNick(), AutoModes);
 		}
 
@@ -915,6 +920,9 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	client_t *BestClient;
 	sockaddr *Remote;
 	char *InfoPrimary, *Info;
+	bool LastClient;
+
+	LastClient = (m_Clients.GetLength() == 1);
 
 	if (!Silent) {
 		if (Client->GetQuitReason() != NULL) {
@@ -957,7 +965,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	if (m_IRC != NULL && m_Clients.GetLength() == 0) {
 		DropModes = CacheGetString(m_ConfigCache, dropmodes);
 
-		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL) {
+		if (DropModes != NULL && m_IRC->GetCurrentNick() != NULL && LastClient) {
 			m_IRC->WriteLine("MODE %s -%s", m_IRC->GetCurrentNick(), DropModes);
 		}
 
@@ -969,7 +977,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 
 		AwayText = CacheGetString(m_ConfigCache, away);
 
-		if (AwayText != NULL) {
+		if (AwayText != NULL && LastClient) {
 			if (!GetAppendTimestamp()) {
 				m_IRC->WriteLine("AWAY :%s", AwayText);
 			} else {
