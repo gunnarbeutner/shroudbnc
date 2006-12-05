@@ -29,7 +29,7 @@ typedef enum vector_error_e {
  * A generic list.
  */
 template <typename Type>
-class SBNCAPI CVector {
+class CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */
@@ -285,3 +285,26 @@ public:
 		RETURN(Type *, GetAddressOf(GetLength() - 1));
 	}
 };
+
+class CModule;
+typedef struct queue_item_s queue_item_t;
+class CDnsQuery;
+typedef struct additionallistener_s additionallistener_t;
+typedef struct badlogin_s badlogin_t;
+typedef struct chanmode_s chanmode_t;
+typedef struct nicktag_s nicktag_t;
+typedef struct queue_s irc_queue_t;
+
+template class SBNCAPI CVector<CModule *>;
+template class SBNCAPI CVector<queue_item_t>;
+template class SBNCAPI CVector<char *>;
+template class SBNCAPI CVector<CDnsQuery *>;
+template class SBNCAPI CVector<additionallistener_t>;
+template class SBNCAPI CVector<CZoneInformation *>;
+template class SBNCAPI CVector<CUser *>;
+template class SBNCAPI CVector<pollfd>;
+template class SBNCAPI CVector<badlogin_t>;
+template class SBNCAPI CVector<X509 *>;
+template class SBNCAPI CVector<chanmode_t>;
+template class SBNCAPI CVector<nicktag_t>;
+template class SBNCAPI CVector<irc_queue_t>;

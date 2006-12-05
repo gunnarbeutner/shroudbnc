@@ -39,7 +39,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	CConfigFile *Config;
 
 	if (Parameters->Version != 202) {
-		printf("Incompatible loader version. Expected version 202, got %d.\n", Parameters->Version);
+		printf("Incompatible loader version. Expected version 202, got %d.\n"
+				"You might want to read the README.issues file for more information about this problem.\n", Parameters->Version);
 
 		return 1;
 	}

@@ -117,7 +117,7 @@ registerifacecmd "core" "setvalue" "iface:setvalue"
 
 proc iface:getlog {from to} {
 	set users [bncuserlist]
-	set index [lindex -exact [string tolower ] [getctx]]
+	set index [lsearch -exact [string tolower $users] [getctx]]
 
 	if {$index == -1} {
 		return -code error "Invalid user."

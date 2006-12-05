@@ -87,7 +87,7 @@ inline unsigned long Hash(const char *String, bool CaseSensitive) {
 }
 
 template<typename Type, bool CaseSensitive, int Size>
-class SBNCAPI CHashtable {
+class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
@@ -452,3 +452,11 @@ public:
 	}
 };
 #endif
+
+typedef struct ban_s ban_t;
+class CNick;
+
+template class SBNCAPI CHashtable<char *, false, 16>;
+template class SBNCAPI CHashtable<CUser *, false, 512>;
+template class SBNCAPI CHashtable<ban_t *, false, 5>;
+template class SBNCAPI CHashtable<CNick *, false, 64>;

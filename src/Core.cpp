@@ -122,7 +122,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 			Fatal();
 		}
 
-		Config->Reload();
+		m_Config->Reload();
 	}
 
 	const char *Args;

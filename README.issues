@@ -1,0 +1,20 @@
+shroudBNC known issues
+----------------------
+
+Error: Incompatible loader version. Expected version <Number>, got <Number>.
+
+shroudBNC consists of two components: the loader and a dynamically shared object which
+actually contains most of the shroudBNC code (and which can be re-loaded while
+shroudBNC is running). Sometimes the shroudBNC loader has to be updated (i.e. in
+order to add new features) and new versions of the shroudBNC shared object
+will require a newer version of the loader. If you use "make update" to update
+shroudBNC this loader application will NOT be updated. Instead you need to issue
+the following commands to update the loader (assuming that your shroudBNC
+sources are in the directory ~/sbnc-1.2):
+
+	cd ~/sbnc-1.2/src/sbncloader
+	make clean
+	make
+	make install
+
+Then just try to restart shroudBNC.
