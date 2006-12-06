@@ -85,6 +85,17 @@ void CLog::PlayToUser(CClientConnection *Client, int Type) const {
 			if (LinePtr == NULL) {
 				continue;
 			}
+			char *TempLinePtr = Line;
+
+			while (*TempLinePtr) {
+				if (*TempLinePtr == '\r' || *TempLinePtr == '\n') {
+					*TempLinePtr = '\0';
+
+					break;
+				}
+
+				TempLinePtr++;
+			}
 
 			if (Type == Log_Notice) {
 				Client->RealNotice(Line);
