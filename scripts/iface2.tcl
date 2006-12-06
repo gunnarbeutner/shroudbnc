@@ -20,6 +20,8 @@
 # Configuration options are availble through iface2 comamnds. The RPC interface
 # (Version 2) uses the same port(s) like shroudBNC.
 
+source "scripts/itype.tcl"
+
 internalbind client iface:hijackclient RPC_IFACE
 internaltimer 600 1 iface:expireblocks
 
