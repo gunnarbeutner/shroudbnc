@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="sbnc"
 	ProjectGUID="{D5505A5E-A22F-4F1A-AE56-FFB46B0E6A85}"
+	RootNamespace="sbnc"
 	>
 	<Platforms>
 		<Platform
@@ -18,7 +19,6 @@
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -82,7 +82,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ALIGN:512"
-				AdditionalDependencies="ws2_32.lib ssleay32.lib libeay32.lib src/c-ares/vc/areslib/Release/areslib.lib advapi32.lib"
+				AdditionalDependencies="ws2_32.lib ssleay32MT.lib libeay32MT.lib src/c-ares/vc/areslib/Release/areslib.lib advapi32.lib"
 				OutputFile="bin/sbnc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -127,7 +127,6 @@
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -184,7 +183,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dbghelp.lib ws2_32.lib ssleay32.lib libeay32.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib"
+				AdditionalDependencies="dbghelp.lib ws2_32.lib ssleay32MTd.lib libeay32MTd.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib"
 				OutputFile=".\Debug/sbnc.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

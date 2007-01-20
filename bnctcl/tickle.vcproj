@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="bnctcl"
 	ProjectGUID="{0D38A9A5-5699-4B9D-9447-1FE1C1E5EBC8}"
+	RootNamespace="bnctcl"
 	>
 	<Platforms>
 		<Platform
@@ -18,7 +19,6 @@
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -121,7 +121,6 @@
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\..\Programme\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -388,7 +387,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="D:\Programme\SWIG\swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						CommandLine="swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
 						Outputs="tickleProcs_wrap.c"
 					/>
 				</FileConfiguration>
@@ -397,7 +396,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="D:\Programme\SWIG\swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						CommandLine="swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
 						Outputs="tickleProcs_wrap.c"
 					/>
 				</FileConfiguration>

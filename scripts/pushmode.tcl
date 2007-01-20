@@ -53,6 +53,10 @@ proc flushmode {channel} {
 	set mc ""
 	set params ""
 
+	if {![info exists pmbuf($channel)] || ![botisop $channel]} {
+		return 0
+	}
+
 	set pmbuf($channel) [sbnc:uniq $pmbuf($channel)]
 
 	if {![info exists pmbuf($channel)] || ![botisop $channel]} {

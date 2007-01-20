@@ -100,6 +100,10 @@ bool CKeyring::RemoveRedundantKeys(void) {
 
 	Keys = m_Config->GetInnerHashtable()->GetSortedKeys();
 
+	if (GetUser()->GetIRCConnection() == NULL) {
+		return false;
+	}
+
 	i = 0;
 	while ((Key = Keys[i++]) != NULL) {
 		if (strstr(Key, "key.") == Key) {

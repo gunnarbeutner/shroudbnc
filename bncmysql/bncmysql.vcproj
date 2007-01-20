@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) &quot;D:\Programme\MySQL\MySQL Server 5.0\lib\debug\mysqlclient.lib&quot; ..\Debug\sbnc.lib"
+				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) mysqlclient.lib ..\Debug\sbnc.lib"
 				OutputFile=".\Debug\bncmysql.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) &quot;D:\Programme\MySQL\MySQL Server 5.0\lib\debug\mysqlclient.lib&quot; ..\Debug\sbnc.lib"
+				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) mysqlclient.lib ..\Debug\sbnc.lib"
 				OutputFile="../bin/bncmysql.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
