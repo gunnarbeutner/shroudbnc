@@ -27,38 +27,13 @@ class CIdentModule;
 
 CCore *g_Bouncer;
 
-class CIdentClient : public CSocketEvents {
+class CIdentClient : public CConnection {
 	CConnection *m_Wrap;
 public:
-	CIdentClient(SOCKET Client) {
-		m_Wrap = g_Bouncer->WrapSocket(Client);
+	CIdentClient(SOCKET Client) : CConnection(Client) {
 	}
 
-	virtual ~CIdentClient(void) {
-		g_Bouncer->UnregisterSocket(m_Wrap->GetSocket());
-		g_Bouncer->DeleteWrapper(m_Wrap);
-	}
-
-	int Read(bool DontProcess) {
-		char *Line;
-		int ReturnValue = m_Wrap->Read();
-
-		if (ReturnValue != 0) {
-			return ReturnValue;
-		} else if (DontProcess) {
-			return 0;
-		}
-
-		while (m_Wrap->ReadLine(&Line) == true) {
-			ParseLine(Line);
-
-			g_Bouncer->GetUtilities()->Free(Line);
-		}
-
-		return 0;
-	}
-
-	void ParseLine(const char* Line) {
+	virtual void ParseLine(const char* Line) {
 		if (Line[0] == '\0') {
 			return;
 		}
@@ -165,19 +140,7 @@ public:
 		}
 	}
 
-	int Write(void) {
-		return m_Wrap->Write();
-	}
-
-	void Error(int ErrorCode) {
-		m_Wrap->Error(ErrorCode);
-	}
-
-	bool HasQueuedData(void) const {
-		return m_Wrap->HasQueuedData();
-	}
-
-	void Destroy(void) {
+	virtual void Destroy(void) {
 		delete this;
 	}
 
@@ -185,6 +148,10 @@ public:
 
 	const char *GetClassName(void) const {
 		return "CIdentClient";
+	}
+
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
+		return 0;
 	}
 };
 

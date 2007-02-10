@@ -17,50 +17,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#if !defined(AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_)
-#define AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-class CTclClientSocket : public CSocketEvents {
+class CTclClientSocket : public CConnection {
 public:
 	CTclClientSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
 	virtual ~CTclClientSocket();
 
-	virtual void Destroy(void);
-
 	virtual int Read(bool DontProcess);
-	virtual int Write(void);
-	virtual void Error(int ErrorCode);
-	virtual bool HasQueuedData(void) const;
+	virtual void Destroy(void);
 	virtual bool ShouldDestroy(void) const;
 
-	virtual const char* GetClassName(void) const;
+	virtual const char *GetClassName(void) const;
 
-	virtual void SetControlProc(const char* Proc);
-	virtual const char* GetControlProc(void) const;
-	virtual void WriteLine(const char* Line);
+	virtual void SetControlProc(const char *Proc);
+	virtual const char *GetControlProc(void) const;
 
 	virtual int GetIdx(void);
 
 	virtual bool MayNotEnterDestroy(void);
 	virtual void DestroyLater(void);
 
-	void SetSendQ(CFIFOBuffer *Buffer);
-	void SetRecvQ(CFIFOBuffer *Buffer);
-	void SetSSLObject(SSL *SSLObject);
+	virtual int SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
+		return true;
+	}
 
-	sockaddr *GetRemoteAddress(void) const;
+	virtual void ParseLine(const char *Line);
 
 private:
 	SOCKET m_Socket;
-	CConnection* m_Wrap;
-	char* m_Control;
+	char *m_Control;
 	int m_Idx;
 	bool m_InTcl;
 	bool m_Destroy;
 };
-
-#endif // !defined(AFX_TCLCLIENTSOCKET_H__95D5FA95_A580_4446_89B8_C5F60A0F9A9F__INCLUDED_)

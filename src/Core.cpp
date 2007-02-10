@@ -1381,34 +1381,6 @@ const char *const *CCore::GetArgV(void) const {
 }
 
 /**
- * WrapSocket
- *
- * Creates a wrapper object for a socket.
- *
- * @param Socket the socket
- * @param SSL whether the wrapper should use SSL
- * @param Role the role of the socket
- */
-CConnection *CCore::WrapSocket(SOCKET Socket, bool SSL, connection_role_e Role) const {
-	CConnection *Wrapper = new CConnection(Socket, SSL, Role);
-
-	Wrapper->m_Wrapper = true;
-
-	return Wrapper;
-}
-
-/**
- * DeleteWrapper
- *
- * Deletes a socket wrapper.
- *
- * @param Wrapper the wrapper object
- */
-void CCore::DeleteWrapper(CConnection *Wrapper) const {
-	delete Wrapper;
-}
-
-/**
  * IsRegisteredSocket
  *
  * Checks whether an event interface is registered in the socket list.

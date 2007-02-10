@@ -59,8 +59,6 @@ protected:
 	bool m_Shutdown; /**< are we about to close this socket? */
 	time_t m_Timeout; /**< timeout for this socket */
 
-	bool m_Wrapper; /**< was this object created as a wrapper for another socket? */
-
 	bool m_HasSSL; /**< is this an ssl-enabled connection? */
 	SSL *m_SSL; /**< SSL context for this connection */
 

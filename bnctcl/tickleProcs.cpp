@@ -1678,7 +1678,7 @@ void internalsocketwriteln(int Socket, const char* Line) {
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
 
-	SockPtr->WriteLine(Line);
+	SockPtr->WriteUnformattedLine(Line);
 }
 
 int internalconnect(const char* Host, unsigned short Port, bool SSL) {
@@ -1687,9 +1687,9 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 	if (Socket == INVALID_SOCKET)
 		throw "Could not connect.";
 
-	CTclClientSocket* Wrapper = new CTclClientSocket(Socket, SSL, Role_Client);
+	CTclClientSocket* Connectiton = new CTclClientSocket(Socket, SSL, Role_Client);
 
-	return Wrapper->GetIdx();
+	return Connectiton->GetIdx();
 }
 
 const char *internalgetipforsocket(int Socket) {

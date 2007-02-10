@@ -104,8 +104,6 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 
 	m_Traffic = NULL;
 
-	m_Wrapper = false;
-
 	m_DnsQuery = NULL;
 	m_BindDnsQuery = NULL;
 
@@ -337,10 +335,6 @@ int CConnection::Read(bool DontProcess) {
 #endif
 
 		return ErrorCode;
-	}
-
-	if (m_Wrapper) {
-		return 0;
 	}
 
 	if (!DontProcess) {

@@ -191,9 +191,6 @@ public:
 	int GetArgC(void) const;
 	const char *const *GetArgV(void) const;
 
-	CConnection *WrapSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server) const;
-	void DeleteWrapper(CConnection *Wrapper) const;
-
 	bool IsRegisteredSocket(CSocketEvents *Events) const;
 	SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
 
