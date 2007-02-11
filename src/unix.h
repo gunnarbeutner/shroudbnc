@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
+#include <pwd.h>
 #include <netdb.h>
 #include <sys/time.h>
 #include <sys/types.h>

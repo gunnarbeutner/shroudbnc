@@ -48,18 +48,38 @@ void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
 
 #ifndef _WIN32
-	char *homedir = getenv("HOME");
+	char *homedir = NULL;
+	passwd *pwd;
+	uid_t uid;
+
+	uid = getuid();
+
+	setpwent();
+
+	while ((pwd = getpwent()) != NULL) {
+		if (uid == pwd->pw_uid) {
+			homedir = strdup(pwd->pw_dir);
+
+			break;
+		}
+	}
+
+	endpwent();
 
 	char *Out = (char *)malloc(strlen(homedir) + 50);
 
 	if (Out == NULL) {
 		LOGERROR("malloc failed. Could not set new ident (%s).", Ident);
 
+		free(homedir);
+
 		return;
 	}
 
 	if (homedir) {
 		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
+
+		free(homedir);
 
 		FILE *identConfig = fopen(Out, "w");
 
