@@ -28,7 +28,6 @@ class CIdentModule;
 CCore *g_Bouncer;
 
 class CIdentClient : public CConnection {
-	CConnection *m_Wrap;
 public:
 	CIdentClient(SOCKET Client) : CConnection(Client) {
 	}
@@ -105,7 +104,7 @@ public:
 				}
 
 				// 113 , 3559 : USERID : UNIX : shroud
-				m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, Ident);
+				WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, Ident);
 
 				g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
 
@@ -120,6 +119,7 @@ public:
 
 			if (fgets(IdentBuffer, sizeof(IdentBuffer), IdentFile) == NULL) {
 				// TODO: error reply
+				IdentBuffer[0] = '\0';
 			} else {
 				for (int i = strlen(IdentBuffer); i > 0; i--) {
 					if (IdentBuffer[i] == '\r' || IdentBuffer[i] == '\n') {
@@ -128,13 +128,13 @@ public:
 				}
 			}
 
-			m_Wrap->WriteLine("%d, %d : USERID : UNIX : %s", LocalPort, RemotePort, IdentBuffer);
+			WriteLine("%d, %d : USERID : UNIX : %s", LocalPort, RemotePort, IdentBuffer);
 
 			fclose(IdentFile);
 
 			g_Bouncer->Log("Ident-request for unknown user. Returned ident from \"ident\" file: %s", IdentBuffer);
 		} else {
-			m_Wrap->WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
+			WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, g_Bouncer->GetIdent());
 
 			g_Bouncer->Log("Ident-request for unknown user.");
 		}

@@ -1608,11 +1608,14 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
 		while ((Bucket = m_ISupport->Iterate(i++)) != NULL) {
 			ISupportBox->AddString(Bucket->Name, Bucket->Value);
 		}
+
+		Box->AddBox("~irc.isupport", ISupportBox);
 	} else if (ISupportBox != NULL) {
 		ISupportBox->Destroy();
 	}
 
 	delete m_ISupport;
+	m_ISupport = NULL;
 
 	Box->AddInteger("~irc.channels", m_Channels->GetLength());
 
@@ -1693,15 +1696,13 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
 		Connection->m_ServerFeat = nstrdup(Temp);
 	}
 
-	TempBox = Box->ReadBox("~irc.isupport");
-
-	delete Connection->m_ISupport;
-
-	Connection->m_ISupport = new CHashtable<char *, false, 32>();
-
 	CAssocArray *ISupportBox = Box->ReadBox("~irc.isupport");
 
 	if (ISupportBox != NULL) {
+		delete Connection->m_ISupport;
+
+		Connection->m_ISupport = new CHashtable<char *, false, 32>();
+
 		assoc_t *AssocT;
 		unsigned int i = 0;
 
