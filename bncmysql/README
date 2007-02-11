@@ -9,7 +9,7 @@ apart from when it's started, e.g. the userlist).
 
 You can compile the module using:
 
-	g++ -shared -g -o bncmysql.so bncmysql.cpp -I/usr/include/mysql -L/usr/lib -lmysqlclient
+	g++ -fPIC -shared -g -o bncmysql.so bncmysql.cpp -I/usr/include/mysql -L/usr/lib -lmysqlclient
 
 (You need to use the correct include/library directory for your mysql installation.)
 

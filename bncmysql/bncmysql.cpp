@@ -359,7 +359,7 @@ public:
 				"CREATE TABLE IF NOT EXISTS `%s` (\n"
 				"  `file` varchar(128) NOT NULL,\n"
 				"  `setting` varchar(128) NOT NULL,\n"
-				"  `value` text NOT NULL,\n"
+				"  `value` blob NOT NULL,\n"
 				"  UNIQUE KEY `id` (`file`,`setting`)\n"
 				")", TableEscaped
 			);
