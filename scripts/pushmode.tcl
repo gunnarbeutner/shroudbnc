@@ -59,10 +59,6 @@ proc flushmode {channel} {
 
 	set pmbuf($channel) [sbnc:uniq $pmbuf($channel)]
 
-	if {![info exists pmbuf($channel)] || ![botisop $channel]} {
-		return 0
-	}
-
 	foreach mode $pmbuf($channel) {
 		if {[string length [lindex $mode 1]] == 0} {
 			set mc "${mc}[lindex $mode 0]"

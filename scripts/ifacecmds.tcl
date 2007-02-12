@@ -265,7 +265,7 @@ proc iface:deluser {username} {
 registerifacecmd "core" "deluser" "iface:deluser" "access:admin"
 
 proc iface:admin {username} {
-	setbncuser $username admin 1]
+	setbncuser $username admin 1
 
 	return ""
 }
@@ -273,7 +273,7 @@ proc iface:admin {username} {
 registerifacecmd "core" "admin" "iface:admin" "access:admin"
 
 proc iface:unadmin {username} {
-	setbncuser $username admin 0]
+	setbncuser $username admin 0
 
 	return ""
 }
@@ -281,7 +281,7 @@ proc iface:unadmin {username} {
 registerifacecmd "core" "unadmin" "iface:unadmin" "access:admin"
 
 proc iface:setident {username ident} {
-	setbncuser $username ident $ident]
+	setbncuser $username ident $ident
 
 	return ""
 }

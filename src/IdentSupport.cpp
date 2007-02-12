@@ -76,7 +76,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 		return;
 	}
 
-	if (homedir) {
+	if (homedir != NULL) {
 		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
 
 		free(homedir);

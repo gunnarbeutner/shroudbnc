@@ -96,18 +96,35 @@ public:
 
 		FileEscaped = (char *)malloc(strlen(m_Filename) * 2 + 1);
 		SettingEscaped = (char *)malloc(strlen(Setting) * 2 + 1);
-		ValueEscaped = (char *)malloc(strlen(Value) * 2 + 1);
+
+		if (Value != NULL) {
+			ValueEscaped = (char *)malloc(strlen(Value) * 2 + 1);
+		} else {
+			ValueEscaped = NULL;
+		}
+
 		TableEscaped = (char *)malloc(strlen(m_Table) * 2 + 1);
 
 		mysql_real_escape_string(Mysql, FileEscaped, m_Filename, strlen(m_Filename));
 		mysql_real_escape_string(Mysql, SettingEscaped, Setting, strlen(Setting));
-		mysql_real_escape_string(Mysql, ValueEscaped, Value, strlen(Value));
+		
+		if (Value != NULL) {
+			mysql_real_escape_string(Mysql, ValueEscaped, Value, strlen(Value));
+		}
+
 		mysql_real_escape_string(Mysql, TableEscaped, m_Table, strlen(m_Table));
 
-		Utils->asprintf(&Query, "REPLACE INTO `%s`\n"
-								"         ( `file`, `setting`, `value` )\n"
-								"  VALUES ( '%s', '%s', '%s' )",
-			TableEscaped, FileEscaped, SettingEscaped, ValueEscaped);
+		if (Value != NULL) {
+			Utils->asprintf(&Query, "REPLACE INTO `%s`\n"
+									"         ( `file`, `setting`, `value` )\n"
+									"  VALUES ( '%s', '%s', '%s' )",
+				TableEscaped, FileEscaped, SettingEscaped, ValueEscaped);
+		} else {
+			Utils->asprintf(&Query, "DELETE FROM `%s`\n"
+									"		WHERE `file`='%s'\n"
+									"		AND `setting`='%s'",
+				TableEscaped, FileEscaped, SettingEscaped);
+		}
 
 		free(FileEscaped);
 		free(SettingEscaped);

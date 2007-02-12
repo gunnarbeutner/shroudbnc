@@ -17,7 +17,7 @@
 
 # Interface 2
 
-# Configuration options are availble through iface2 comamnds. The RPC interface
+# Configuration options are availble through iface2 commands. The RPC interface
 # (Version 2) uses the same port(s) like shroudBNC.
 
 source "scripts/itype.tcl"
