@@ -69,6 +69,7 @@ proc sbnc:channeljoin {client params} {
 proc channel {option chan args} {
 	namespace eval [getns] {
 		if {![info exists channels]} { array set channels {} }
+		if {![info exists channels_dirty]} { set channels_dirty 0 }
 		if {![info exists chanoptions]} { array set chanoptions {} }
 	}
 
@@ -78,6 +79,7 @@ proc channel {option chan args} {
 	set chan [string tolower $chan]
 
 	upvar [getns]::channels channels
+	upvar [getns]::channels_dirty channels_dirty
 	upvar [getns]::chanoptions chanoptions
 
 	if {[botonchan $chan] && ![info exists channels($chan)]} {
@@ -93,6 +95,7 @@ proc channel {option chan args} {
 	switch [string tolower $option] {
 		add {
 			set channels($chan) [join $args]
+			set channels_dirty 1
 
 			if {![channel get $chan autochan] && ![channel get $chan inactive]} {
 				simul [getctx] "JOIN $chan"
@@ -132,6 +135,7 @@ proc channel {option chan args} {
 				return -code error "no such channel record"
 			} else {
 				set channel($option) $value
+				set channels_dirty 1
 			}
 
 			set channels($chan) [array get channel]
@@ -165,6 +169,7 @@ proc channel {option chan args} {
 
 			if {[info exists channels($chan)]} {
 				unset channels($chan)
+				set channels_dirty 1
 			} else {
 				return -code error "no such channel record"
 			}
@@ -177,20 +182,24 @@ proc channel {option chan args} {
 	}
 }
 
-proc savechannels {} {
+proc savechannels {{force_write 0}} {
 	namespace eval [getns] {
 		if {![info exists channels]} { array set channels {} }
+		if {![info exists channels_dirty]} { set channels_dirty 0 }
 	}
 
 	upvar [getns]::channels channels
+	upvar [getns]::channels_dirty channels_dirty
 
-	set file [open $::chanfile "w"]
+	if {$channels_dirty || $force_write} {
+		set file [open $::chanfile "w"]
 
-	foreach channel [array names channels] {
-		puts $file "channel add $channel \{ $channels($channel) \}"
+		foreach channel [array names channels] {
+			puts $file "channel add $channel \{ $channels($channel) \}"
+		}
+
+		close $file
 	}
-
-	close $file
 
 	return 1
 }
