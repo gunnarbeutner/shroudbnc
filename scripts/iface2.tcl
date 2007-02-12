@@ -391,17 +391,15 @@ registerifacecmd "reflect" "overrides" "iface-reflect:overrides"
 proc iface-reflect:modules {} {
 	global ifacecmds
 
-	set modules [itype_list_create]
+	set modules [list]
 
 	foreach cmd $ifacecmds {
 		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
-			itype_list_insert modules [itype_string [lindex $cmd 0]]
+			lappend modules [itype_string [lindex $cmd 0]]
 		}
 	}
 
-	itype_list_end modules
-
-	return $modules
+	return [itype_list_strings $modules]
 }
 
 registerifacecmd "reflect" "modules" "iface-reflect:modules"
