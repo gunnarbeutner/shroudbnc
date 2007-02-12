@@ -395,7 +395,7 @@ proc iface-reflect:modules {} {
 
 	foreach cmd $ifacecmds {
 		if {[lsearch -exact $modules [lindex $cmd 0]] == -1} {
-			lappend modules [itype_string [lindex $cmd 0]]
+			lappend modules [lindex $cmd 0]
 		}
 	}
 
