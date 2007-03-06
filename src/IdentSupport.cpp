@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005 Gunnar Beutner                                           *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                           *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -54,17 +54,11 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 	uid = getuid();
 
-	setpwent();
+	pwd = getpwuid(uid);
 
-	while ((pwd = getpwent()) != NULL) {
-		if (uid == pwd->pw_uid) {
-			homedir = strdup(pwd->pw_dir);
-
-			break;
-		}
+	if (pwd != NULL) {
+		homedir = strdup(pwd->pw_dir)
 	}
-
-	endpwent();
 
 	char *Out = (char *)malloc(strlen(homedir) + 50);
 

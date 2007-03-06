@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005 Gunnar Beutner                                           *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                           *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -47,7 +47,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	}
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright (C) 2005 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright © 2005-2007 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
