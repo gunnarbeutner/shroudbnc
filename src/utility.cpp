@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                           *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -53,7 +53,7 @@ const char *ArgTokenize(const char *Data) {
 	Copy[LengthData + 1] = '\0';
 
 	for (unsigned int i = 0; i < LengthData; i++) {
-		if (Copy[i] == ' ' && Copy[i + 1] != ' ') {
+		if (Copy[i] == ' ' && Copy[i + 1] != ' ' && Copy[i + 1] != '\0') {
 			Copy[i] = '\0';
 
 			if (i > 0 && Copy[i + 1] == ':') {
@@ -249,7 +249,7 @@ tokendata_t ArgTokenize2(const char *String) {
 	tokens.Pointers[0] = 0;
 
 	for (unsigned int i = 0; i < Len; i++) {
-		if (String[i] == ' ' && String[i + 1] != ' ') {
+		if (String[i] == ' ' && String[i + 1] != ' ' && String[i + 1] != '\0') {
 			tokens.Pointers[a] = i + 1;
 			tokens.String[i] = '\0';
 

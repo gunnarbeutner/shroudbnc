@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                           *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -438,7 +438,7 @@ void CConnection::ProcessBuffer(void) {
 			dupLine[&(RecvQ[i]) - Line] = '\0';
 
 			if (dupLine[0] != '\0') {
-				ParseLine(dupLine);
+ 				ParseLine(dupLine);
 			}
 
 			free(dupLine);

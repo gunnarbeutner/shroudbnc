@@ -1832,16 +1832,14 @@ SWIGINTERN int
 _wrap_putclient(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:putclient text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "putclient" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)putclient((char const *)arg1);
@@ -1850,10 +1848,16 @@ _wrap_putclient(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -1863,24 +1867,20 @@ _wrap_simul(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:simul User Command ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "simul" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "simul" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (char *)simul((char const *)arg1,(char const *)arg2);
@@ -1889,12 +1889,24 @@ _wrap_simul(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -1906,43 +1918,35 @@ _wrap_internalbind(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|oo:internalbind type proc ?pattern? ?user? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalbind" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internalbind" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "internalbind" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "internalbind" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   {
     try {
@@ -1952,16 +1956,40 @@ _wrap_internalbind(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -1973,43 +2001,35 @@ _wrap_internalunbind(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|oo:internalunbind type proc ?pattern? ?user? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalunbind" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internalunbind" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "internalunbind" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "internalunbind" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   {
     try {
@@ -2019,16 +2039,40 @@ _wrap_internalunbind(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -2036,16 +2080,14 @@ fail:
 SWIGINTERN int
 _wrap_setctx(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:setctx ctx ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setctx" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       setctx((char const *)arg1);
@@ -2054,10 +2096,16 @@ _wrap_setctx(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2116,33 +2164,27 @@ _wrap_getbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|o:getbncuser User Type ?Parameter2? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getbncuser" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "getbncuser" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "getbncuser" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   {
     try {
@@ -2152,14 +2194,32 @@ _wrap_getbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_ERROR;
 }
 
@@ -2171,43 +2231,35 @@ _wrap_setbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|oo:setbncuser User Type ?Value? ?Parameter2? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setbncuser" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "setbncuser" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "setbncuser" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "setbncuser" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   {
     try {
@@ -2217,16 +2269,40 @@ _wrap_setbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -2235,24 +2311,20 @@ SWIGINTERN int
 _wrap_addbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:addbncuser User Password ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "addbncuser" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "addbncuser" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       addbncuser((char const *)arg1,(char const *)arg2);
@@ -2261,12 +2333,24 @@ _wrap_addbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2274,16 +2358,14 @@ fail:
 SWIGINTERN int
 _wrap_delbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:delbncuser User ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delbncuser" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       delbncuser((char const *)arg1);
@@ -2292,10 +2374,16 @@ _wrap_delbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2305,24 +2393,20 @@ _wrap_bnccheckpassword(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:bnccheckpassword User Password ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnccheckpassword" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bnccheckpassword" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (bool)bnccheckpassword((char const *)arg1,(char const *)arg2);
@@ -2331,12 +2415,24 @@ _wrap_bnccheckpassword(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2345,16 +2441,14 @@ SWIGINTERN int
 _wrap_internalchanlist(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:internalchanlist Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalchanlist" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)internalchanlist((char const *)arg1);
@@ -2363,10 +2457,16 @@ _wrap_internalchanlist(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2432,16 +2532,14 @@ SWIGINTERN int
 _wrap_floodcontrol(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:floodcontrol Function ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "floodcontrol" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)floodcontrol((char const *)arg1);
@@ -2450,10 +2548,16 @@ _wrap_floodcontrol(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2462,16 +2566,14 @@ SWIGINTERN int
 _wrap_getisupport(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:getisupport Feature ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getisupport" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)getisupport((char const *)arg1);
@@ -2480,10 +2582,16 @@ _wrap_getisupport(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2492,24 +2600,20 @@ SWIGINTERN int
 _wrap_setisupport(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:setisupport Feature Value ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setisupport" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "setisupport" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       setisupport((char const *)arg1,(char const *)arg2);
@@ -2518,12 +2622,24 @@ _wrap_setisupport(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2587,24 +2703,20 @@ _wrap_getchanprefix(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:getchanprefix Channel Nick ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getchanprefix" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "getchanprefix" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (char *)getchanprefix((char const *)arg1,(char const *)arg2);
@@ -2613,12 +2725,24 @@ _wrap_getchanprefix(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2668,40 +2792,32 @@ _wrap_bncsettag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oooo:bncsettag channel nick tag value ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncsettag" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bncsettag" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
-  res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bncsettag" "', argument " "3"" of type '" "char const *""'");
+  {
+    ds_use_3 = true;
+    arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
   }
-  arg3 = (char *)(buf3);
-  res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bncsettag" "', argument " "4"" of type '" "char const *""'");
+  {
+    ds_use_4 = true;
+    arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
   }
-  arg4 = (char *)(buf4);
   {
     try {
       result = (int)bncsettag((char const *)arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
@@ -2710,16 +2826,40 @@ _wrap_bncsettag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -2730,32 +2870,26 @@ _wrap_bncgettag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"ooo:bncgettag channel nick tag ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncgettag" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bncgettag" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
-  res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bncgettag" "', argument " "3"" of type '" "char const *""'");
+  {
+    ds_use_3 = true;
+    arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
   }
-  arg3 = (char *)(buf3);
   {
     try {
       result = (char *)bncgettag((char const *)arg1,(char const *)arg2,(char const *)arg3);
@@ -2764,14 +2898,32 @@ _wrap_bncgettag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_ERROR;
 }
 
@@ -2798,24 +2950,20 @@ _wrap_bnccommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:bnccommand Cmd Parameters ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnccommand" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bnccommand" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (char *)bnccommand((char const *)arg1,(char const *)arg2);
@@ -2824,12 +2972,24 @@ _wrap_bnccommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2839,25 +2999,21 @@ _wrap_md5(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) NULL ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:md5 String ?Salt? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "md5" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "md5" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -2867,12 +3023,24 @@ _wrap_md5(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2880,16 +3048,14 @@ fail:
 SWIGINTERN int
 _wrap_debugout(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:debugout String ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "debugout" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       debugout((char const *)arg1);
@@ -2898,10 +3064,16 @@ _wrap_debugout(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2911,24 +3083,20 @@ _wrap_internalgetchanidle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, 
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:internalgetchanidle Nick Channel ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalgetchanidle" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internalgetchanidle" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (int)internalgetchanidle((char const *)arg1,(char const *)arg2);
@@ -2937,12 +3105,24 @@ _wrap_internalgetchanidle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -2950,16 +3130,14 @@ fail:
 SWIGINTERN int
 _wrap_bncreply(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncreply Text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncreply" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncreply((char const *)arg1);
@@ -2968,10 +3146,16 @@ _wrap_bncreply(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -2982,35 +3166,29 @@ _wrap_trafficstats(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
   char *arg2 = (char *) NULL ;
   char *arg3 = (char *) NULL ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|oo:trafficstats User ?ConnectionType? ?Type? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "trafficstats" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "trafficstats" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "trafficstats" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   {
     try {
@@ -3020,14 +3198,32 @@ _wrap_trafficstats(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_ERROR;
 }
 
@@ -3035,16 +3231,14 @@ fail:
 SWIGINTERN int
 _wrap_bncjoinchans(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncjoinchans User ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncjoinchans" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncjoinchans((char const *)arg1);
@@ -3053,10 +3247,16 @@ _wrap_bncjoinchans(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3099,20 +3299,16 @@ _wrap_internallisten(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
   int result;
   unsigned short val1 ;
   int ecode1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   bool val5 ;
   int ecode5 = 0 ;
-  int res6 ;
-  char *buf6 = 0 ;
-  int alloc6 = 0 ;
+  Tcl_DString ds_6 ;
+  bool ds_use_6 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|oooo:internallisten Port Type ?Options? ?Flag? ?SSL? ?BindIp? ",(void *)0,(void *)0,(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
   ecode1 = SWIG_AsVal_unsigned_SS_short SWIG_TCL_CALL_ARGS_2(objv[1], &val1);
@@ -3120,24 +3316,21 @@ _wrap_internallisten(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "internallisten" "', argument " "1"" of type '" "unsigned short""'");
   } 
   arg1 = (unsigned short)(val1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internallisten" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "internallisten" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "internallisten" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   if (objc > 5) {
     ecode5 = SWIG_AsVal_bool SWIG_TCL_CALL_ARGS_2(objv[5], &val5);
@@ -3147,11 +3340,10 @@ _wrap_internallisten(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     arg5 = (bool)(val5);
   }
   if (objc > 6) {
-    res6 = SWIG_AsCharPtrAndSize(objv[6], &buf6, NULL, &alloc6);
-    if (!SWIG_IsOK(res6)) {
-      SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "internallisten" "', argument " "6"" of type '" "char const *""'");
+    {
+      ds_use_6 = true;
+      arg6 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[6]), -1, &ds_6);
     }
-    arg6 = (char *)(buf6);
   }
   {
     try {
@@ -3161,16 +3353,40 @@ _wrap_internallisten(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
-  if (alloc6 == SWIG_NEWOBJ) free((char*)buf6);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
+  {
+    if (ds_use_6)
+    Tcl_DStringFree(&ds_6);
+  }
   return TCL_OK;
 fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
-  if (alloc6 == SWIG_NEWOBJ) free((char*)buf6);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
+  {
+    if (ds_use_6)
+    Tcl_DStringFree(&ds_6);
+  }
   return TCL_ERROR;
 }
 
@@ -3181,9 +3397,8 @@ _wrap_internalsocketwriteln(ClientData clientData SWIGUNUSED, Tcl_Interp *interp
   char *arg2 = (char *) 0 ;
   int val1 ;
   int ecode1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:internalsocketwriteln Socket Line ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
   ecode1 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[1], &val1);
@@ -3191,11 +3406,10 @@ _wrap_internalsocketwriteln(ClientData clientData SWIGUNUSED, Tcl_Interp *interp
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "internalsocketwriteln" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = (int)(val1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internalsocketwriteln" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       internalsocketwriteln(arg1,(char const *)arg2);
@@ -3204,10 +3418,16 @@ _wrap_internalsocketwriteln(ClientData clientData SWIGUNUSED, Tcl_Interp *interp
     }
   }
   
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -3218,20 +3438,18 @@ _wrap_internalconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
   unsigned short arg2 ;
   bool arg3 = (bool) false ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   unsigned short val2 ;
   int ecode2 = 0 ;
   bool val3 ;
   int ecode3 = 0 ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|o:internalconnect Host Port ?SSL? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalconnect" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   ecode2 = SWIG_AsVal_unsigned_SS_short SWIG_TCL_CALL_ARGS_2(objv[2], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "internalconnect" "', argument " "2"" of type '" "unsigned short""'");
@@ -3252,10 +3470,16 @@ _wrap_internalconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3324,12 +3548,10 @@ _wrap_internaltimer(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
   int ecode1 = 0 ;
   bool val2 ;
   int ecode2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"ooo|o:internaltimer Interval Repeat Proc ?Parameter? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
   ecode1 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[1], &val1);
@@ -3342,17 +3564,15 @@ _wrap_internaltimer(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "internaltimer" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = (bool)(val2);
-  res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "internaltimer" "', argument " "3"" of type '" "char const *""'");
+  {
+    ds_use_3 = true;
+    arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
   }
-  arg3 = (char *)(buf3);
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "internaltimer" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   {
     try {
@@ -3362,12 +3582,24 @@ _wrap_internaltimer(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -3377,25 +3609,21 @@ _wrap_internalkilltimer(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, in
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:internalkilltimer Proc ?Parameter? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "internalkilltimer" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "internalkilltimer" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -3405,12 +3633,24 @@ _wrap_internalkilltimer(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, in
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -3442,16 +3682,14 @@ fail:
 SWIGINTERN int
 _wrap_bncdisconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncdisconnect Reason ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncdisconnect" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncdisconnect((char const *)arg1);
@@ -3460,10 +3698,16 @@ _wrap_bncdisconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3471,16 +3715,14 @@ fail:
 SWIGINTERN int
 _wrap_bnckill(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bnckill Reason ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnckill" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bnckill((char const *)arg1);
@@ -3489,10 +3731,16 @@ _wrap_bnckill(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3557,16 +3805,14 @@ fail:
 SWIGINTERN int
 _wrap_bncsetmotd(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncsetmotd Motd ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncsetmotd" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncsetmotd((char const *)arg1);
@@ -3575,10 +3821,16 @@ _wrap_bncsetmotd(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3605,16 +3857,14 @@ fail:
 SWIGINTERN int
 _wrap_bncsetgvhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncsetgvhost GVHost ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncsetgvhost" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncsetgvhost((char const *)arg1);
@@ -3623,10 +3873,16 @@ _wrap_bncsetgvhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3653,16 +3909,14 @@ fail:
 SWIGINTERN int
 _wrap_delbnchost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:delbnchost Host ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delbnchost" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       delbnchost((char const *)arg1);
@@ -3671,10 +3925,16 @@ _wrap_delbnchost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3683,16 +3943,14 @@ SWIGINTERN int
 _wrap_addbnchost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:addbnchost Host ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "addbnchost" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)addbnchost((char const *)arg1);
@@ -3701,10 +3959,16 @@ _wrap_addbnchost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3713,16 +3977,14 @@ SWIGINTERN int
 _wrap_bncisipblocked(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncisipblocked Ip ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncisipblocked" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (bool)bncisipblocked((char const *)arg1);
@@ -3731,10 +3993,16 @@ _wrap_bncisipblocked(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3742,16 +4010,14 @@ fail:
 SWIGINTERN int
 _wrap_bnclogbadlogin(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bnclogbadlogin Ip ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnclogbadlogin" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bnclogbadlogin((char const *)arg1);
@@ -3760,10 +4026,16 @@ _wrap_bnclogbadlogin(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3772,16 +4044,14 @@ SWIGINTERN int
 _wrap_bnccanhostconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bnccanhostconnect Host ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bnccanhostconnect" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (bool)bnccanhostconnect((char const *)arg1);
@@ -3790,10 +4060,16 @@ _wrap_bnccanhostconnect(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, in
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3802,16 +4078,14 @@ SWIGINTERN int
 _wrap_bncvalidusername(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncvalidusername Name ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncvalidusername" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (bool)bncvalidusername((char const *)arg1);
@@ -3820,10 +4094,16 @@ _wrap_bncvalidusername(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3832,16 +4112,14 @@ SWIGINTERN int
 _wrap_bncvaliduser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncvaliduser Name ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncvaliduser" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (bool)bncvaliduser((char const *)arg1);
@@ -3850,10 +4128,16 @@ _wrap_bncvaliduser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -3909,41 +4193,33 @@ _wrap_bncaddcommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   char *arg4 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
-  int res4 ;
-  char *buf4 = 0 ;
-  int alloc4 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
+  Tcl_DString ds_4 ;
+  bool ds_use_4 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"ooo|o:bncaddcommand Name Category Description ?HelpText? ",(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncaddcommand" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bncaddcommand" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
-  res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bncaddcommand" "', argument " "3"" of type '" "char const *""'");
+  {
+    ds_use_3 = true;
+    arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
   }
-  arg3 = (char *)(buf3);
   if (objc > 4) {
-    res4 = SWIG_AsCharPtrAndSize(objv[4], &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "bncaddcommand" "', argument " "4"" of type '" "char const *""'");
+    {
+      ds_use_4 = true;
+      arg4 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[4]), -1, &ds_4);
     }
-    arg4 = (char *)(buf4);
   }
   {
     try {
@@ -3953,16 +4229,40 @@ _wrap_bncaddcommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
-  if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
+  {
+    if (ds_use_4)
+    Tcl_DStringFree(&ds_4);
+  }
   return TCL_ERROR;
 }
 
@@ -3970,16 +4270,14 @@ fail:
 SWIGINTERN int
 _wrap_bncdeletecommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncdeletecommand Name ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncdeletecommand" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       bncdeletecommand((char const *)arg1);
@@ -3988,10 +4286,16 @@ _wrap_bncdeletecommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4001,18 +4305,16 @@ _wrap_synthwho(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
   char *arg1 = (char *) 0 ;
   bool arg2 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   bool val2 ;
   int ecode2 = 0 ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:synthwho Channel Simulate ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "synthwho" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   ecode2 = SWIG_AsVal_bool SWIG_TCL_CALL_ARGS_2(objv[2], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "synthwho" "', argument " "2"" of type '" "bool""'");
@@ -4026,10 +4328,16 @@ _wrap_synthwho(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4039,25 +4347,21 @@ _wrap_getchanrealname(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:getchanrealname Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getchanrealname" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "getchanrealname" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4067,12 +4371,24 @@ _wrap_getchanrealname(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4108,25 +4424,21 @@ SWIGINTERN int
 _wrap_bncsetglobaltag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:bncsetglobaltag Tag ?Value? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncsetglobaltag" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bncsetglobaltag" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4136,12 +4448,24 @@ _wrap_bncsetglobaltag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4150,16 +4474,14 @@ SWIGINTERN int
 _wrap_bncgetglobaltag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:bncgetglobaltag Tag ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncgetglobaltag" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)bncgetglobaltag((char const *)arg1);
@@ -4168,10 +4490,16 @@ _wrap_bncgetglobaltag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4218,17 +4546,15 @@ SWIGINTERN int
 _wrap_getzoneinfo(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"|o:getzoneinfo ?Zone? ",(void *)0) == TCL_ERROR) SWIG_fail;
   if (objc > 1) {
-    res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getzoneinfo" "', argument " "1"" of type '" "char const *""'");
+    {
+      ds_use_1 = true;
+      arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
     }
-    arg1 = (char *)(buf1);
   }
   {
     try {
@@ -4238,10 +4564,16 @@ _wrap_getzoneinfo(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4268,16 +4600,14 @@ fail:
 SWIGINTERN int
 _wrap_putmainlog(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:putmainlog Text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "putmainlog" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       putmainlog((char const *)arg1);
@@ -4286,10 +4616,16 @@ _wrap_putmainlog(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4299,25 +4635,21 @@ _wrap_bncgetreslimit(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:bncgetreslimit Resource ?User? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncgetreslimit" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "bncgetreslimit" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4327,12 +4659,24 @@ _wrap_bncgetreslimit(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4342,32 +4686,28 @@ _wrap_bncsetreslimit(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
   char *arg1 = (char *) 0 ;
   int arg2 ;
   char *arg3 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   int val2 ;
   int ecode2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo|o:bncsetreslimit Resource NewLimit ?User? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "bncsetreslimit" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   ecode2 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[2], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "bncsetreslimit" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = (int)(val2);
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "bncsetreslimit" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   {
     try {
@@ -4377,12 +4717,24 @@ _wrap_bncsetreslimit(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_ERROR;
 }
 
@@ -4418,25 +4770,21 @@ _wrap_onchan(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:onchan Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "onchan" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "onchan" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4446,12 +4794,24 @@ _wrap_onchan(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4460,16 +4820,14 @@ SWIGINTERN int
 _wrap_topic(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:topic Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "topic" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)topic((char const *)arg1);
@@ -4478,10 +4836,16 @@ _wrap_topic(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4490,16 +4854,14 @@ SWIGINTERN int
 _wrap_topicnick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:topicnick Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "topicnick" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)topicnick((char const *)arg1);
@@ -4508,10 +4870,16 @@ _wrap_topicnick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4520,16 +4888,14 @@ SWIGINTERN int
 _wrap_topicstamp(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:topicstamp Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "topicstamp" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)topicstamp((char const *)arg1);
@@ -4538,10 +4904,16 @@ _wrap_topicstamp(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4550,16 +4922,14 @@ SWIGINTERN int
 _wrap_getchanmode(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:getchanmode Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getchanmode" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)getchanmode((char const *)arg1);
@@ -4568,10 +4938,16 @@ _wrap_getchanmode(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4581,25 +4957,21 @@ _wrap_isop(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_O
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:isop Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "isop" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "isop" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4609,12 +4981,24 @@ _wrap_isop(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_O
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4624,25 +5008,21 @@ _wrap_isvoice(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:isvoice Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "isvoice" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "isvoice" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4652,12 +5032,24 @@ _wrap_isvoice(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4667,25 +5059,21 @@ _wrap_ishalfop(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   bool result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:ishalfop Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ishalfop" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ishalfop" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4695,12 +5083,24 @@ _wrap_ishalfop(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_bool((bool)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4710,25 +5110,21 @@ _wrap_getchanhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o|o:getchanhost Nick ?Channel? ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getchanhost" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   if (objc > 2) {
-    res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "getchanhost" "', argument " "2"" of type '" "char const *""'");
+    {
+      ds_use_2 = true;
+      arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
     }
-    arg2 = (char *)(buf2);
   }
   {
     try {
@@ -4738,12 +5134,24 @@ _wrap_getchanhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4753,22 +5161,19 @@ _wrap_jump(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_O
   char *arg1 = (char *) 0 ;
   unsigned int arg2 = (unsigned int) 0 ;
   char *arg3 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   unsigned int val2 ;
   int ecode2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Tcl_DString ds_3 ;
+  bool ds_use_3 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"|ooo:jump ?Server? ?Port? ?Password? ",(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
   if (objc > 1) {
-    res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "jump" "', argument " "1"" of type '" "char const *""'");
+    {
+      ds_use_1 = true;
+      arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
     }
-    arg1 = (char *)(buf1);
   }
   if (objc > 2) {
     ecode2 = SWIG_AsVal_unsigned_SS_int SWIG_TCL_CALL_ARGS_2(objv[2], &val2);
@@ -4778,11 +5183,10 @@ _wrap_jump(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_O
     arg2 = (unsigned int)(val2);
   }
   if (objc > 3) {
-    res3 = SWIG_AsCharPtrAndSize(objv[3], &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "jump" "', argument " "3"" of type '" "char const *""'");
+    {
+      ds_use_3 = true;
+      arg3 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[3]), -1, &ds_3);
     }
-    arg3 = (char *)(buf3);
   }
   {
     try {
@@ -4792,12 +5196,24 @@ _wrap_jump(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_O
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_3)
+    Tcl_DStringFree(&ds_3);
+  }
   return TCL_ERROR;
 }
 
@@ -4840,16 +5256,14 @@ SWIGINTERN int
 _wrap_putserv(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:putserv text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "putserv" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)putserv((char const *)arg1);
@@ -4858,10 +5272,16 @@ _wrap_putserv(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4871,24 +5291,20 @@ _wrap_getchanjoin(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:getchanjoin Nick Channel ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getchanjoin" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "getchanjoin" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       result = (int)getchanjoin((char const *)arg1,(char const *)arg2);
@@ -4897,12 +5313,24 @@ _wrap_getchanjoin(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 
@@ -4938,16 +5366,14 @@ SWIGINTERN int
 _wrap_clearqueue(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:clearqueue Queue ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "clearqueue" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)clearqueue((char const *)arg1);
@@ -4956,10 +5382,16 @@ _wrap_clearqueue(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4968,16 +5400,14 @@ SWIGINTERN int
 _wrap_queuesize(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:queuesize Queue ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "queuesize" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)queuesize((char const *)arg1);
@@ -4986,10 +5416,16 @@ _wrap_queuesize(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -4998,16 +5434,14 @@ SWIGINTERN int
 _wrap_puthelp(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:puthelp text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "puthelp" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)puthelp((char const *)arg1);
@@ -5016,10 +5450,16 @@ _wrap_puthelp(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -5028,16 +5468,14 @@ SWIGINTERN int
 _wrap_putquick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   int result;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:putquick text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "putquick" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (int)putquick((char const *)arg1);
@@ -5046,10 +5484,16 @@ _wrap_putquick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     }
   }
   Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -5057,16 +5501,14 @@ fail:
 SWIGINTERN int
 _wrap_putlog(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:putlog Text ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "putlog" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       putlog((char const *)arg1);
@@ -5075,10 +5517,16 @@ _wrap_putlog(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl
     }
   }
   
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -5087,16 +5535,14 @@ SWIGINTERN int
 _wrap_chanbans(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *result = 0 ;
-  int res1 ;
-  char *buf1 = 0 ;
-  int alloc1 = 0 ;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"o:chanbans Channel ",(void *)0) == TCL_ERROR) SWIG_fail;
-  res1 = SWIG_AsCharPtrAndSize(objv[1], &buf1, NULL, &alloc1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "chanbans" "', argument " "1"" of type '" "char const *""'");
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
   }
-  arg1 = (char *)(buf1);
   {
     try {
       result = (char *)chanbans((char const *)arg1);
@@ -5110,10 +5556,16 @@ _wrap_chanbans(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
     Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
     Tcl_DStringFree(&ds_result);
   }
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_OK;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
   return TCL_ERROR;
 }
 
@@ -5124,9 +5576,8 @@ _wrap_control(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
   char *arg2 = (char *) 0 ;
   int val1 ;
   int ecode1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
   
   if (SWIG_GetArgs(interp, objc, objv,"oo:control Socket Proc ",(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
   ecode1 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[1], &val1);
@@ -5134,11 +5585,10 @@ _wrap_control(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "control" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = (int)(val1);
-  res2 = SWIG_AsCharPtrAndSize(objv[2], &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "control" "', argument " "2"" of type '" "char const *""'");
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
   }
-  arg2 = (char *)(buf2);
   {
     try {
       control(arg1,(char const *)arg2);
@@ -5147,10 +5597,16 @@ _wrap_control(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_OK;
 fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
   return TCL_ERROR;
 }
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                           *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -40,6 +40,16 @@
 }
 
 %typemap(freearg) char * {
+	if (ds_use_$argnum)
+		Tcl_DStringFree(&ds_$argnum);
+}
+
+%typemap(in) const char * (Tcl_DString ds_, bool ds_use_ = false) {
+	ds_use_ = true;
+	$1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString($input), -1, &ds_);
+}
+
+%typemap(freearg) const char * {
 	if (ds_use_$argnum)
 		Tcl_DStringFree(&ds_$argnum);
 }

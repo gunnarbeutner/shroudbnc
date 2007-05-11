@@ -407,6 +407,10 @@ registerifacecmd "reflect" "modules" "iface-reflect:modules"
 proc iface-reflect:multicall {calls} {
 	set results [itype_list_create]
 
+	if {[llength $calls] > 10} {
+		return -code error "You must not try to execute more than 10 calls at once."
+	}
+
 	set ctx [getctx]
 
 	foreach call $calls {
