@@ -86,6 +86,8 @@ private:
 
 	time_t m_LastResponse; /**< a TS which describes when the last line was received from the server */
 
+	bool m_EatPong; /**< whether to ignore the next PONG event from the IRC server */
+
 	CChannel *AddChannel(const char *Channel);
 	void RemoveChannel(const char *Channel);
 

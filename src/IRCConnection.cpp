@@ -163,6 +163,8 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
 
 	m_Site = NULL;
 	m_Usermodes = NULL;
+
+	m_EatPong = false;
 }
 
 /**
@@ -757,7 +759,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		if (m_Site == NULL) {
 			LOGERROR("ustrdup() failed.");
 		}
-	} else if (argc > 3 && hashRaw == hashPong && strcasecmp(argv[3], "sbnc") == 0) {
+	} else if (argc > 3 && hashRaw == hashPong && m_Server != NULL && strcasecmp(argv[3], m_Server) == 0 && m_EatPong) {
+		m_EatPong = false;
+
 		return false;
 	}
 
@@ -1463,7 +1467,16 @@ bool IRCPingTimer(time_t Now, void *IRCConnection) {
 	}
 
 	if (g_CurrentTime - IRC->m_LastResponse > 300) {
-		IRC->WriteLine("PING :sbnc");
+		const char *ServerName;
+		
+		ServerName = IRC->GetServer();
+
+		if (ServerName == NULL) {
+			ServerName = "sbnc";
+		}
+
+		IRC->WriteLine("PING :%s", ServerName);
+		IRC->m_EatPong = true;
 
 		/* we're using "Now" here, because that's the time when the
 		 * check should've returned a PONG, this might be useful when
