@@ -27,7 +27,7 @@ bool FloodTimer(time_t Now, void *Null);
  * A "penalty" for client commands.
  */
 typedef struct penalty_s {
-	char *Command;
+	const char *Command;
 	int Amplifier;
 } penalty_t;
 

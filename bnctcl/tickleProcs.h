@@ -188,6 +188,8 @@ void bncsetreslimit(const char *Resource, int NewLimit, const char *User = 0);
 
 void setchannelsortvalue(int Value);
 
+int internaldnslookup(const char *host, const char *tclproc, int reverse = 0, int ipv6 = 0, const char *param = 0);
+
 // eggdrop compat
 bool onchan(const char* Nick, const char* Channel = 0);
 const char* topic(const char* Channel);

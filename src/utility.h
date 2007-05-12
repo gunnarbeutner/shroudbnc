@@ -58,6 +58,8 @@ typedef struct utility_s {
 	void *(*Alloc)(size_t Size);
 
 	const char *(*IpToString)(sockaddr *Address);
+	bool (*StringToIp)(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
+	const sockaddr *(*HostEntToSockAddr)(hostent *HostEnt);
 } utility_t;
 
 const char *ArgParseServerLine(const char *Data);
@@ -141,7 +143,9 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 #endif
 
 const char *IpToString(sockaddr *Address);
+bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
 int CompareAddress(const sockaddr *pA, const sockaddr *pB);
+const sockaddr *HostEntToSockAddr(hostent *HostEnt);
 
 int SetPermissions(const char *Filename, int Modes);
 bool RegisterZone(CZoneInformation *ZoneInformation);

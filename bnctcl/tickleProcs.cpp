@@ -2348,3 +2348,132 @@ void bncsetreslimit(const char *Resource, int NewLimit, const char *User) {
 void setchannelsortvalue(int Value) {
 	g_ChannelSortValue = Value;
 }
+
+void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
+	tcldnsquery_t Cookie = *(tcldnsquery_t *)CookiePtr;
+	const utility_t *Utils;
+	const char *ip, *host, *code;
+	int objc = 5;
+	Tcl_Obj* objv[5];
+	char Buffer[100];
+ 
+	Utils = g_Bouncer->GetUtilities();
+ 
+	if (Response == NULL) {
+		code = "0";
+ 
+		if (Cookie.reverse) {
+			ip = Cookie.host;
+			host = Cookie.host;
+		} else {
+			if (Cookie.ipv6) {
+				ip = "::0";
+			} else {
+				ip = "0.0.0.0";
+			}
+ 
+			host = Cookie.host;
+		}
+	} else {
+		code = "1";
+ 
+		if (Cookie.reverse) {
+			ip = Cookie.host;
+			host = Response->h_name;
+		} else {
+			const sockaddr *sin;
+ 
+			sin = Utils->HostEntToSockAddr(Response);
+ 
+			host = Cookie.host;
+ 
+			if (sin != NULL) {
+				ip = Utils->IpToString(const_cast<sockaddr *>(sin));
+			} else {
+				ip = host;
+			}
+		}
+	}
+ 
+	objv[0] = Tcl_NewStringObj(Cookie.proc, -1);
+	Tcl_IncrRefCount(objv[0]);
+ 
+	objv[1] = Tcl_NewStringObj(ip, -1);
+	Tcl_IncrRefCount(objv[1]);
+ 
+	objv[2] = Tcl_NewStringObj(host, -1);
+	Tcl_IncrRefCount(objv[2]);
+ 
+	objv[3] = Tcl_NewStringObj(code, -1);
+	Tcl_IncrRefCount(objv[3]);
+ 
+	if (Cookie.param) {
+		objv[4] = Tcl_NewStringObj(Cookie.param, -1);
+		Tcl_IncrRefCount(objv[4]);
+	} else {
+		objc--;
+	}
+ 
+	Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
+ 
+	if (Cookie.param) {
+		Tcl_DecrRefCount(objv[4]);
+	}
+ 
+	Tcl_DecrRefCount(objv[3]);
+	Tcl_DecrRefCount(objv[2]);
+	Tcl_DecrRefCount(objv[1]);
+	Tcl_DecrRefCount(objv[0]);
+ 
+	free(Cookie.proc);
+	free(Cookie.param);
+	free(Cookie.host);
+	free(CookiePtr);
+}
+ 
+int internaldnslookup(const char *host, const char *tclproc, int reverse, int ipv6, const char *param) {
+	tcldnsquery_t *Cookie;
+	const utility_t *Utils;
+ 
+	if (tclproc == NULL) {
+		return 1;
+	}
+ 
+	Cookie = (tcldnsquery_t *)malloc(sizeof(tcldnsquery_t));
+ 
+	if (Cookie == NULL) {
+		return 1;
+	}
+ 
+	Cookie->reverse = reverse;
+	Cookie->proc = strdup(tclproc);
+	Cookie->param = param ? strdup(param) : NULL;
+	Cookie->host = strdup(host);
+	Cookie->ipv6 = ipv6;
+ 
+	int af;
+ 
+	if (ipv6) {
+		af = AF_INET6;
+	} else {
+		af = AF_INET;
+	}
+ 
+	CDnsQuery *Query = new CDnsQuery(Cookie, TclDnsLookupCallback, af);
+ 
+	if (!reverse) {
+		Query->GetHostByName(host, af);
+	} else {
+		char sin[MAX_SOCKADDR_LEN];
+ 
+		Utils = g_Bouncer->GetUtilities();
+ 
+		if (!Utils->StringToIp(host, af, (sockaddr *)sin, sizeof(sin))) {
+			throw "Failed to parse IP address.";
+		}
+
+		Query->GetHostByAddr((sockaddr *)sin);
+	}
+ 
+	return 0;
+}

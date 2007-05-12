@@ -62,6 +62,14 @@ typedef struct tcltimer_s {
 	char* param;
 } tcltimer_t;
 
+typedef struct tcldnsquery_s {
+	char *proc;
+	char *param;
+	char *host;
+	bool reverse;
+	bool ipv6;
+} tcldnsquery_t;
+
 class CTclSocket;
 class CTclClientSocket;
 

@@ -1860,6 +1860,8 @@ const utility_t *CCore::GetUtilities(void) {
 		Utilities->Free = free;
 
 		Utilities->IpToString = IpToString;
+		Utilities->StringToIp = StringToIp;
+		Utilities->HostEntToSockAddr = HostEntToSockAddr;
 	}
 
 	return Utilities;

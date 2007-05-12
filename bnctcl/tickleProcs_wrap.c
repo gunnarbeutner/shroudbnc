@@ -4766,6 +4766,92 @@ fail:
 
 
 SWIGINTERN int
+_wrap_internaldnslookup(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 = (int) 0 ;
+  int arg4 = (int) 0 ;
+  char *arg5 = (char *) 0 ;
+  int result;
+  Tcl_DString ds_1 ;
+  bool ds_use_1 = false ;
+  Tcl_DString ds_2 ;
+  bool ds_use_2 = false ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  Tcl_DString ds_5 ;
+  bool ds_use_5 = false ;
+  
+  if (SWIG_GetArgs(interp, objc, objv,"oo|ooo:internaldnslookup host tclproc ?reverse? ?ipv6? ?param? ",(void *)0,(void *)0,(void *)0,(void *)0,(void *)0) == TCL_ERROR) SWIG_fail;
+  {
+    ds_use_1 = true;
+    arg1 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[1]), -1, &ds_1);
+  }
+  {
+    ds_use_2 = true;
+    arg2 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[2]), -1, &ds_2);
+  }
+  if (objc > 3) {
+    ecode3 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[3], &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "internaldnslookup" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = (int)(val3);
+  }
+  if (objc > 4) {
+    ecode4 = SWIG_AsVal_int SWIG_TCL_CALL_ARGS_2(objv[4], &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "internaldnslookup" "', argument " "4"" of type '" "int""'");
+    } 
+    arg4 = (int)(val4);
+  }
+  if (objc > 5) {
+    {
+      ds_use_5 = true;
+      arg5 = Tcl_UtfToExternalDString(g_Encoding, Tcl_GetString(objv[5]), -1, &ds_5);
+    }
+  }
+  {
+    try {
+      result = (int)internaldnslookup((char const *)arg1,(char const *)arg2,arg3,arg4,(char const *)arg5);
+    } catch (const char *Description) {
+      SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
+    }
+  }
+  Tcl_SetObjResult(interp,SWIG_From_int((int)(result)));
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_5)
+    Tcl_DStringFree(&ds_5);
+  }
+  return TCL_OK;
+fail:
+  {
+    if (ds_use_1)
+    Tcl_DStringFree(&ds_1);
+  }
+  {
+    if (ds_use_2)
+    Tcl_DStringFree(&ds_2);
+  }
+  {
+    if (ds_use_5)
+    Tcl_DStringFree(&ds_5);
+  }
+  return TCL_ERROR;
+}
+
+
+SWIGINTERN int
 _wrap_onchan(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -5689,6 +5775,7 @@ static swig_command_info swig_commands[] = {
     { SWIG_prefix "bncgetreslimit", (swig_wrapper_func) _wrap_bncgetreslimit, NULL},
     { SWIG_prefix "bncsetreslimit", (swig_wrapper_func) _wrap_bncsetreslimit, NULL},
     { SWIG_prefix "setchannelsortvalue", (swig_wrapper_func) _wrap_setchannelsortvalue, NULL},
+    { SWIG_prefix "internaldnslookup", (swig_wrapper_func) _wrap_internaldnslookup, NULL},
     { SWIG_prefix "onchan", (swig_wrapper_func) _wrap_onchan, NULL},
     { SWIG_prefix "topic", (swig_wrapper_func) _wrap_topic, NULL},
     { SWIG_prefix "topicnick", (swig_wrapper_func) _wrap_topicnick, NULL},

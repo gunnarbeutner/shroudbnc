@@ -1410,3 +1410,49 @@ extern "C" void unregistersocket(int Socket) {
 		}
 	}
 }
+
+const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
+	static char Buffer[MAX_SOCKADDR_LEN];
+	sockaddr_in *sin4;
+	sockaddr_in6 *sin6;
+
+	memset(Buffer, 0, sizeof(Buffer));
+
+	if (HostEnt->h_addrtype == AF_INET) {
+		sin4 = (sockaddr_in *)Buffer;
+
+		sin4->sin_family = AF_INET;
+		sin4->sin_port = 0;
+		memcpy(&(sin4->sin_addr), HostEnt->h_addr_list[0], sizeof(in_addr));
+	} else {
+		sin6 = (sockaddr_in6 *)Buffer;
+
+		sin6->sin6_family = AF_INET6;
+		sin6->sin6_port = 0;
+		memcpy(&(sin6->sin6_addr), HostEnt->h_addr_list[0], sizeof(in_addr6));
+	}
+
+	return (sockaddr *)Buffer;
+}
+
+bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length) {
+	socklen_t *LengthPtr = &Length;
+
+	memset(SockAddr, 0, Length);
+
+#ifdef _WIN32
+	if (WSAStringToAddress(const_cast<char *>(IP), Family, NULL, SockAddr, LengthPtr) != 0) {
+		return false;
+	}
+#else
+	if (Length < SOCKADDR_LEN(Family)) {
+		return false;
+	}
+
+	if (inet_pton(Family, IP, Buffer) <= 0) {
+		return false;
+	}
+#endif
+
+	return true;
+}
