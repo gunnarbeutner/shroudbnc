@@ -1418,19 +1418,23 @@ const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 
 	memset(Buffer, 0, sizeof(Buffer));
 
+#ifdef IPV6
 	if (HostEnt->h_addrtype == AF_INET) {
+#endif
 		sin4 = (sockaddr_in *)Buffer;
 
 		sin4->sin_family = AF_INET;
 		sin4->sin_port = 0;
 		memcpy(&(sin4->sin_addr), HostEnt->h_addr_list[0], sizeof(in_addr));
+#ifdef IPV6
 	} else {
 		sin6 = (sockaddr_in6 *)Buffer;
 
 		sin6->sin6_family = AF_INET6;
 		sin6->sin6_port = 0;
-		memcpy(&(sin6->sin6_addr), HostEnt->h_addr_list[0], sizeof(in_addr6));
+		memcpy(&(sin6->sin6_addr), HostEnt->h_addr_list[0], sizeof(in6_addr));
 	}
+#endif
 
 	return (sockaddr *)Buffer;
 }
@@ -1449,7 +1453,7 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 		return false;
 	}
 
-	if (inet_pton(Family, IP, Buffer) <= 0) {
+	if (inet_pton(Family, IP, SockAddr) <= 0) {
 		return false;
 	}
 #endif
