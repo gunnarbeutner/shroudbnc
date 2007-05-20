@@ -1,9 +1,7 @@
 #ifndef _RPCAPI_H
 #define _RPCAPI_H
 
-#if !defined(RPCSERVER) && !defined(RPCCLIENT)
-#	define RPCCLIENT
-#endif
+#define RPCCLIENT
 
 #if defined(SBNC) && !defined(RPCCLIENTBIN)
 #	define RPCCLIENTBIN
