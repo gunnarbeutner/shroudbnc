@@ -1,4 +1,3 @@
-#define _SAFEAPI
 #include "../StdAfx.h"
 
 #ifdef RPCSERVER

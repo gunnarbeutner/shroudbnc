@@ -78,7 +78,7 @@ extern "C" {
 }
 #endif
 
-#ifndef _SAFEAPI
+/*
 #	define socket _lame<>1!!
 #	define getpeername _lame<>1!!
 #	define getsockname _lame<>1!!
@@ -99,6 +99,6 @@ extern "C" {
 #	define fcntl _lame<>1!!
 #	define recvfrom _lame<>1!!
 #	define sendto _lame<>1!!
-#endif
+*/
 #endif
 #endif
