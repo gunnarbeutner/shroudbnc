@@ -47,7 +47,6 @@ typedef int SOCKET;
 
 typedef int BOOL;
 typedef int DWORD;
-typedef int PIPE;
 
 #define STD_INPUT_HANDLE 0
 #define STD_OUTPUT_HANDLE 1

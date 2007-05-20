@@ -12,6 +12,8 @@
 #ifdef _WIN32
 typedef HANDLE PIPE;
 #else
+typedef int PIPE;
+
 #define WSAGetLastError() errno
 
 int GetStdHandle(int Handle);
