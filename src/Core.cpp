@@ -240,7 +240,7 @@ void CCore::StartMainLoop(void) {
 
 	time(&g_CurrentTime);
 
-	printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
+	//printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
@@ -633,7 +633,7 @@ void CCore::StartMainLoop(void) {
 		DWORD Ticks = GetTickCount() - TickCount;
 
 		if (Ticks > 50) {
-			printf("Spent %d msec in the main loop.\n", Ticks);
+			//printf("Spent %d msec in the main loop.\n", Ticks);
 		}
 #endif
 	}
@@ -1273,7 +1273,7 @@ bool CCore::Daemonize(void) {
 	pid_t sid;
 	int fd;
 
-	printf("Daemonizing... ");
+	//printf("Daemonizing... ");
 
 	pid = fork();
 	if (pid == -1) {
@@ -1283,7 +1283,7 @@ bool CCore::Daemonize(void) {
 	}
 
 	if (pid) {
-		printf("DONE\n");
+		//printf("DONE\n");
 		exit(0);
 	}
 

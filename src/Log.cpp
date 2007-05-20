@@ -195,7 +195,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 	}
 
 	fputs(Out, LogFile);
-	printf("%s", Out);
+	//printf("%s", Out);
 
 	free(Out);
 
