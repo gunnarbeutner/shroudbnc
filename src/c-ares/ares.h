@@ -19,8 +19,6 @@
 #define ARES__H
 
 #include "../fdhelper.h"
-#include "../rpc/RPCApi.h"
-#include "../rpc/SafeAPI.h"
 
 #include <sys/types.h>
 
@@ -42,6 +40,10 @@
   #include <netinet/in.h>
   #include <sys/socket.h>
 #endif
+
+
+#include "../rpc/RPCApi.h"
+#include "../rpc/SafeAPI.h"
 
 #ifdef  __cplusplus
 extern "C" {
