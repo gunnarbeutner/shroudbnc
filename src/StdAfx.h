@@ -122,6 +122,8 @@ void mmark(void *Block);
 #ifdef __cplusplus
 #	include "sbncloader/AssocArray.h"
 
+#	include "rpc/RPCApi.h"
+#	include "rpc/SafeAPI.h"
 #	include "sbnc.h"
 #	include "Result.h"
 #	include "Object.h"
@@ -157,6 +159,4 @@ void mmark(void *Block);
 #	include "FloodControl.h"
 #	include "Listener.h"
 #	include "Persistable.h"
-#	include "rpc/RPCApi.h"
-#	include "rpc/SafeAPI.h"
 #endif
