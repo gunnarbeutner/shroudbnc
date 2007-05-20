@@ -19,8 +19,8 @@
 #define ARES__H
 
 #include "../fdhelper.h"
-#include "../RPCApi.h"
-#include "../SafeAPI.h"
+#include "../rpc/RPCApi.h"
+#include "../rpc/SafeAPI.h"
 
 #include <sys/types.h>
 

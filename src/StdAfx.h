@@ -157,6 +157,6 @@ void mmark(void *Block);
 #	include "FloodControl.h"
 #	include "Listener.h"
 #	include "Persistable.h"
-#	include "RPCApi.h"
-#	include "SafeAPI.h"
+#	include "rpc/RPCApi.h"
+#	include "rpc/SafeAPI.h"
 #endif
