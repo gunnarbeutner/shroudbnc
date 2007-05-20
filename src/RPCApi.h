@@ -9,7 +9,11 @@
 #	define RPCCLIENTBIN
 #endif
 
+#ifdef _WIN32
 typedef HANDLE PIPE;
+#else
+typedef int PIPE;
+#endif
 
 typedef struct PipePair_s {
 	PIPE In;

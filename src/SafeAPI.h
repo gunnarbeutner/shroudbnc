@@ -1,10 +1,14 @@
 #ifndef _SAFEAPI_H
 #define _SAFEAPI_H
 
-#ifdef RPCCLIENTBIN
-#	define SAFEAPI __declspec(dllexport)
+#ifdef _WIN32
+#	ifdef RPCCLIENTBIN
+#		define SAFEAPI __declspec(dllexport)
+#	else
+#		define SAFEAPI __declspec(dllimport)
+#	endif
 #else
-#	define SAFEAPI __declspec(dllimport)
+#	define SAFEAPI
 #endif
 
 #ifdef RPCSERVER
