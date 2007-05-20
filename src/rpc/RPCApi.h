@@ -12,13 +12,11 @@
 #ifdef _WIN32
 typedef HANDLE PIPE;
 #else
-typedef int HANDLE;
+#define WSAGetLastError() errno
 
-#define WSAGetLastError errno
-
-HANDLE GetStdHandle(HANDLE Handle);
-DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy);
-DWORD WriteFile(int File, const void *Buffer, size_t Size, DWORD *Written, void *Dummy);
+int GetStdHandle(int Handle);
+int ReadFile(int File, void *Buffer, size_t Size, int *Read, void *Dummy);
+int WriteFile(int File, const void *Buffer, size_t Size, int *Written, void *Dummy);
 #endif
 
 typedef struct PipePair_s {

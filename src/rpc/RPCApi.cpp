@@ -50,11 +50,11 @@ static struct {
 #endif
 
 #ifndef _WIN32
-HANDLE GetStdHandle(HANDLE Handle) {
+int GetStdHandle(int Handle) {
 	return Handle;
 }
 
-DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy) {
+int ReadFile(int File, void *Buffer, size_t Size, int *Read, void *Dummy) {
 	int Result;
 
 	if (Size == 0) {
@@ -82,7 +82,7 @@ DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy) {
 	}
 }
 
-DWORD WriteFile(int File, const void *Buffer, size_t Size, DWORD *Written, void *Dummy) {
+int WriteFile(int File, const void *Buffer, size_t Size, int *Written, void *Dummy) {
 	size_t Offset = 0;
 	int Result;
 
