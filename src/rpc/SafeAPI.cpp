@@ -671,7 +671,7 @@ int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen
 	return ReturnValue.Integer;
 }
 
-int safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, int OptLen) {
+int safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen) {
 	Value_t Arguments[5];
 	Value_t ReturnValue;
 

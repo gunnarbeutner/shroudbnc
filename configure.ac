@@ -125,12 +125,12 @@ AC_CONFIG_FILES([Makefile \
                  scripts/Makefile \
                  src/c-ares/Makefile \
                  src/libltdl/Makefile \
+                 src/rpc/Makefile \
                  bnctcl/Makefile \
                  src/sbncloader/Makefile \
                  src/Makefile \
                  src/md5/Makefile \
                  identd32/Makefile \
                  php/Makefile \
-                 bncmysql/Makefile \
-                 src/rpc/Makefile])
+                 bncmysql/Makefile])
 AC_OUTPUT
