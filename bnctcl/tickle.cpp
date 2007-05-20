@@ -39,7 +39,7 @@ asprintf_func g_asprintf;
 free_func g_free;
 int g_ChannelSortValue;
 
-extern tcltimer_t** g_Timers;
+extern tcltimer_t **g_Timers;
 extern int g_TimerCount;
 
 int Tcl_AppInit(Tcl_Interp *interp) {

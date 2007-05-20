@@ -153,6 +153,8 @@ bool RegisterZone(CZoneInformation *ZoneInformation);
 void FreeString(char *String);
 void FreeUString(char *String);
 
+extern "C" BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag);
+
 typedef struct mmanager_s {
 	CUser *RealManager;
 	unsigned int ReferenceCount;

@@ -199,7 +199,9 @@ void CConnection::InitSocket(void) {
 		}
 
 		if (m_SSL != NULL) {
-			SSL_set_fd(m_SSL, m_Socket);
+			BIO *Bio = BIO_new_safe_socket(m_Socket, 0);
+			SSL_set_bio(m_SSL, Bio, Bio);
+			//SSL_set_fd(m_SSL, m_Socket);
 
 			if (GetRole() == Role_Client) {
 				SSL_set_connect_state(m_SSL);

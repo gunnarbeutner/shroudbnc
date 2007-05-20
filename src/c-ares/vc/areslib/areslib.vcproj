@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="areslib"
 	ProjectGUID="{B06482E5-1D1B-4444-8BEA-015B162D56C1}"
+	RootNamespace="areslib"
 	>
 	<Platforms>
 		<Platform

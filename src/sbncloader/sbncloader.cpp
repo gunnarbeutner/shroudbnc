@@ -87,7 +87,7 @@ BOOL WINAPI sigint_handler(DWORD Code) {
 	}
 
 	if (g_SetStatusFunc != NULL) {
-		printf("Control code received (%s).\n", HRCode);
+		//printf("Control code received (%s).\n", HRCode);
 
 		g_SetStatusFunc(STATUS_SHUTDOWN);
 	}
@@ -300,16 +300,16 @@ HMODULE sbncLoadModule(void) {
 
 	hMod = LoadLibrary(g_Mod);
 
-	printf("Loading shroudBNC from %s\n", g_Mod);
+	//printf("Loading shroudBNC from %s\n", g_Mod);
 
 	if (hMod == NULL) {
-		printf("Module could not be loaded.");
+		//printf("Module could not be loaded.");
 
 #if !defined(_WIN32) || defined(__MINGW32__)
-		printf(" %s", lt_dlerror());
+		//printf(" %s", lt_dlerror());
 #endif
 
-		printf("\n");
+		//printf("\n");
 
 		return NULL;
 	}
@@ -318,7 +318,7 @@ HMODULE sbncLoadModule(void) {
 	g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
 
 	if (g_LoadFunc == NULL) {
-		printf("Function \"sbncLoad\" does not exist in the module.\n");
+		//printf("Function \"sbncLoad\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
@@ -326,7 +326,7 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	if (g_SetStatusFunc == NULL) {
-		printf("Function \"sbncSetStatus\" does not exist in the module.\n");
+		//printf("Function \"sbncSetStatus\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
@@ -343,6 +343,15 @@ int main(int argc, char **argv) {
 	char ExeName[MAX_PATH];
 	char TclLibrary[512];
 
+	if (argc <= 1 || strcasecmp(argv[1], "--rpc-child") != 0) {
+		PipePair_t Pipes;
+
+		RpcInvokeClient(argv[0], &Pipes);
+		RpcRunServer(Pipes);
+
+		return 0;
+	}
+
 	g_Arg0 = argv[0];
 
 #ifdef _WIN32
@@ -357,7 +366,7 @@ int main(int argc, char **argv) {
 	signal(SIGINT, sigint_handler);
 #endif
 
-	printf("shroudBNC loader\n");
+	//printf("shroudBNC loader\n");
 
 #if defined (_WIN32) && !defined(NOSERVICE)
 	if (argc > 1) {
@@ -406,12 +415,12 @@ int main(int argc, char **argv) {
 		g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 		ThisMod = strdup(g_Mod);
 
-		printf("Trying failsafe module...\n");
+		//printf("Trying failsafe module...\n");
 
 		hMod = sbncLoadModule();
 
 		if (hMod == NULL) {
-			printf("Giving up...\n");
+			//printf("Giving up...\n");
 
 			free(g_Mod);
 			free(ThisMod);
@@ -453,7 +462,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 
-		printf("Unloading shroudBNC...\n");
+		//printf("Unloading shroudBNC...\n");
 
 		FreeLibrary(hMod);
 
@@ -470,7 +479,7 @@ int main(int argc, char **argv) {
 			g_Mod = strdup(sbncBuildPath(ThisMod));
 			ThisMod = strdup(g_Mod);
 
-			printf("Trying previous module...\n");
+			//printf("Trying previous module...\n");
 
 			hMod = sbncLoadModule();
 
@@ -478,12 +487,12 @@ int main(int argc, char **argv) {
 				free(g_Mod);
 				g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 
-				printf("Trying failsafe module...\n");
+				//printf("Trying failsafe module...\n");
 
 				hMod = sbncLoadModule();
 
 				if (hMod == NULL) {
-					printf("Giving up...\n");
+					//printf("Giving up...\n");
 
 					ExitCode = EXIT_FAILURE;
 

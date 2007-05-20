@@ -67,10 +67,12 @@ typedef lt_dlhandle HMODULE;
 #endif
 
 #ifdef USESSL
+#	include <openssl/bio.h>
 #	include <openssl/ssl.h>
 #	include <openssl/err.h>
 #else
 	typedef void SSL;
+	typedef void BIO;
 	typedef void SSL_CTX;
 	typedef void X509;
 	typedef void X509_STORE_CTX;
@@ -155,4 +157,6 @@ void mmark(void *Block);
 #	include "FloodControl.h"
 #	include "Listener.h"
 #	include "Persistable.h"
+#	include "RPCApi.h"
+#	include "SafeAPI.h"
 #endif

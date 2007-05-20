@@ -219,3 +219,11 @@ proc stripcodes {flags text} {
 
 	return $result
 }
+
+proc dnslookup {args} {
+	if {[llength $args] < 2} {
+		return -code error "wrong # args: shrould be dnslookup ip-address/hostname proc ?arg1? ... ?argN?"
+	}
+
+	
+}

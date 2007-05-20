@@ -1902,15 +1902,16 @@ const char *CIRCConnection::GetUsermodes(void) {
  */
 bool NickCatchTimer(time_t Now, void *IRCConnection) {
 	CIRCConnection *IRC = (CIRCConnection *)IRCConnection;
+	CUser *Owner = IRC->GetOwner();
 	const char *AwayNick;
 
-	if (IRC->GetOwner() != NULL) {
+	if (Owner != NULL) {
 		AwayNick = IRC->GetOwner()->GetAwayNick();
 	} else {
 		AwayNick = NULL;
 	}
 
-	if (IRC->GetOwner()->GetClientConnectionMultiplexer() != NULL) {
+	if (Owner && Owner->GetClientConnectionMultiplexer() != NULL) {
 		IRC->m_NickCatchTimer = NULL;
 
 		return false;

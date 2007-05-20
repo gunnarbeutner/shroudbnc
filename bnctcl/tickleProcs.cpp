@@ -2355,7 +2355,6 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 	const char *ip, *host, *code;
 	int objc = 5;
 	Tcl_Obj* objv[5];
-	char Buffer[100];
  
 	Utils = g_Bouncer->GetUtilities();
  

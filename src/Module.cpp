@@ -81,16 +81,18 @@ bool CModule::InternalLoad(const char *Filename) {
 
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, (char *)&ErrorMsg, 0, NULL);
 
-		p = strchr(ErrorMsg, '\r');
+		if (ErrorMsg != NULL) {
+			p = strchr(ErrorMsg, '\r');
 
-		if (p != NULL) {
-			p[0] = '\0';
-		}
+			if (p != NULL) {
+				p[0] = '\0';
+			}
 
-		p = strchr(ErrorMsg, '\n');
+			p = strchr(ErrorMsg, '\n');
 
-		if (p != NULL) {
-			p[0] = '\0';
+			if (p != NULL) {
+				p[0] = '\0';
+			}
 		}
 #else
 		const char *ErrorMsg;
@@ -102,13 +104,13 @@ bool CModule::InternalLoad(const char *Filename) {
 			m_Error = strdup("Unknown error.");
 		} else {
 			m_Error = strdup(ErrorMsg);
-		}
 
 #ifdef _WIN32
-		if (ErrorMsg != NULL) {
-			LocalFree(ErrorMsg);
-		}
+			if (ErrorMsg != NULL) {
+				LocalFree(ErrorMsg);
+			}
 #endif
+		}
 
 		return false;
 	} else {
