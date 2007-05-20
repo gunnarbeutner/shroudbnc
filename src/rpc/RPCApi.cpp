@@ -366,9 +366,6 @@ int RpcRunServer(PipePair_t Pipes) {
 	int Result;
 	size_t ReadOffset = 0;
 	DWORD Read;
-	WSADATA wsa;
-
-	WSAStartup(MAKEWORD(1, 1), &wsa);
 
 	AllocedSize = BlockSize;
 	Buffer = (char *)malloc(AllocedSize);

@@ -343,6 +343,8 @@ int main(int argc, char **argv) {
 	char ExeName[MAX_PATH];
 	char TclLibrary[512];
 
+	Socket_Init();
+
 	if (argc <= 1 || strcasecmp(argv[1], "--rpc-child") != 0) {
 		PipePair_t Pipes;
 
@@ -398,8 +400,6 @@ int main(int argc, char **argv) {
 
 	g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 	ThisMod = strdup(g_Mod);
-
-	Socket_Init();
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlinit();
