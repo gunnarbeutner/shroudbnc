@@ -78,22 +78,25 @@ extern "C" {
 }
 #endif
 
-#	define socket safe_socket
-#	define getpeername safe_getpeername
-#	define getsockname safe_getsockname
-#	define bind safe_bind
-#	define connect safe_connect
-#	define listen safe_listen
-#	define accept safe_accept
-#	define poll safe_poll
-#	define recv safe_recv
-#	define send safe_send
-#	define shutdown safe_shutdown
-#	define closesocket safe_closesocket
-#	define getsockopt safe_getsockopt
-#	define setsockopt safe_setsockopt
-#	define ioctlsocket safe_ioctlsocket
-#	define ioctl safe_ioctlsocket
-#	define WSAGetLastError safe_errno
+#	define socket _lame<>1!!
+#	define getpeername _lame<>1!!
+#	define getsockname _lame<>1!!
+//#	define bind _lame<>1!!
+#	define connect _lame<>1!!
+#	define listen _lame<>1!!
+#	define accept _lame<>1!!
+#	define poll _lame<>1!!
+#	define recv _lame<>1!!
+#	define send _lame<>1!!
+#	define shutdown _lame<>1!!
+#	define closesocket _lame<>1!!
+#	define getsockopt _lame<>1!!
+#	define setsockopt _lame<>1!!
+#	define ioctlsocket _lame<>1!!
+#	define ioctl _lame<>1!!
+#	define WSAGetLastError _lame<>1!!
+#	define fcntl _lame<>1!!
+#	define recvfrom _lame<>1!!
+#	define sendto _lame<>1!!
 #endif
 #endif

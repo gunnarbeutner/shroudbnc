@@ -56,11 +56,7 @@
 #define TRUE 1
 #endif
 
-#if (defined(WIN32) || defined(WATT32)) && !defined(MSDOS)
-#define GET_ERRNO()  WSAGetLastError()
-#else
-#define GET_ERRNO()  errno
-#endif
+#define GET_ERRNO()  safe_errno()
 
 #ifdef WIN32
 #define HAVE_IOCTLSOCKET
@@ -166,7 +162,7 @@ static void write_tcp_data(ares_channel channel, time_t now)
           /* Can't allocate iovecs; just send the first request. */
           sendreq = server->qhead;
 
-          scount = send(server->tcp_socket, sendreq->data, sendreq->len, 0);
+          scount = safe_send(server->tcp_socket, sendreq->data, sendreq->len, 0);
 
           if (scount < 0)
             {
@@ -213,7 +209,7 @@ static void read_tcp_data(ares_channel channel, time_t now)
           /* We haven't yet read a length word, so read that (or
            * what's left to read of it).
            */
-          count = recv(server->tcp_socket,
+          count = safe_recv(server->tcp_socket,
                        server->tcp_lenbuf + server->tcp_buffer_pos,
                        2 - server->tcp_buffer_pos, 0);
           if (count <= 0)
@@ -239,7 +235,7 @@ static void read_tcp_data(ares_channel channel, time_t now)
       else
         {
           /* Read data into the allocated buffer. */
-          count = recv(server->tcp_socket,
+          count = safe_recv(server->tcp_socket,
                        server->tcp_buffer + server->tcp_buffer_pos,
                        server->tcp_length - server->tcp_buffer_pos, 0);
           if (count <= 0)
@@ -281,7 +277,7 @@ static void read_udp_packets(ares_channel channel, time_t now)
           !(server->udp_pollfd->revents & (POLLIN|POLLPRI)))
         continue;
 
-      count = recv(server->udp_socket, buf, sizeof(buf), 0);
+      count = safe_recv(server->udp_socket, buf, sizeof(buf), 0);
       if (count <= 0)
         handle_error(channel, i, now);
 
@@ -466,7 +462,7 @@ void ares__send_query(ares_channel channel, struct query *query, time_t now)
               return;
             }
         }
-      if (send(server->udp_socket, query->qbuf, query->qlen, 0) == -1)
+      if (safe_send(server->udp_socket, query->qbuf, query->qlen, 0) == -1)
         {
           query->skip_server[query->server] = 1;
           next_server(channel, query, now);
@@ -505,7 +501,7 @@ static int nonblock(ares_socket_t sockfd,    /* operate on this */
   int flags;
 
   flags = nonblock;
-  return ioctl(sockfd, FIONBIO, &flags);
+  return safe_ioctlsocket(sockfd, FIONBIO, &flags);
 #undef SETBLOCK
 #define SETBLOCK 2
 #endif
@@ -515,7 +511,7 @@ static int nonblock(ares_socket_t sockfd,    /* operate on this */
   unsigned long flags;
   flags = nonblock;
 
-  return ioctlsocket(sockfd, FIONBIO, &flags);
+  return safe_ioctlsocket(sockfd, FIONBIO, &flags);
 #undef SETBLOCK
 #define SETBLOCK 3
 #endif
@@ -530,7 +526,7 @@ static int nonblock(ares_socket_t sockfd,    /* operate on this */
 #if defined(HAVE_SO_NONBLOCK) && (SETBLOCK == 0)
   /* BeOS */
   long b = nonblock ? 1 : 0;
-  return setsockopt(sockfd, SOL_SOCKET, SO_NONBLOCK, &b, sizeof(b));
+  return safe_setsockopt(sockfd, SOL_SOCKET, SO_NONBLOCK, &b, sizeof(b));
 #undef SETBLOCK
 #define SETBLOCK 5
 #endif
@@ -552,7 +548,7 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
   struct sockaddr_in sockin;
 
   /* Acquire a socket. */
-  s = socket(AF_INET, SOCK_STREAM, 0);
+  s = safe_socket(AF_INET, SOCK_STREAM, 0);
   if (s == ARES_SOCKET_BAD)
     return -1;
 
@@ -564,11 +560,11 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
   sockin.sin_family = AF_INET;
   sockin.sin_addr = server->addr;
   sockin.sin_port = channel->tcp_port;
-  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1) {
+  if (safe_connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1) {
     int err = GET_ERRNO();
 
     if (err != EINPROGRESS && err != EWOULDBLOCK) {
-      closesocket(s);
+      safe_closesocket(s);
       return -1;
     }
   }
@@ -586,7 +582,7 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
   struct sockaddr_in sockin;
 
   /* Acquire a socket. */
-  s = socket(AF_INET, SOCK_DGRAM, 0);
+  s = safe_socket(AF_INET, SOCK_DGRAM, 0);
   if (s == ARES_SOCKET_BAD)
     return -1;
 
@@ -598,9 +594,9 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
   sockin.sin_family = AF_INET;
   sockin.sin_addr = server->addr;
   sockin.sin_port = channel->udp_port;
-  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
+  if (safe_connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
     {
-      closesocket(s);
+      safe_closesocket(s);
       return -1;
     }
 

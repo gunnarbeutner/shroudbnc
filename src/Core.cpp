@@ -540,7 +540,7 @@ void CCore::StartMainLoop(void) {
 		DWORD TimeDiff = GetTickCount();
 #endif
 
-		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
+		int ready = safe_poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
 
 #if defined(_WIN32) && defined(_DEBUG)
 		TickCount += GetTickCount() - TimeDiff;
@@ -568,7 +568,7 @@ void CCore::StartMainLoop(void) {
 
 						ErrorCode = 0;
 
-						if (getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
+						if (safe_getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
 							if (ErrorCode != 0) {
 								Events->Error(ErrorCode);
 							}
@@ -600,9 +600,9 @@ void CCore::StartMainLoop(void) {
 			}
 		} else if (ready == -1) {
 #ifndef _WIN32
-			if (errno != EBADF && errno != 0) {
+			if (safe_errno() != EBADF && safe_errno() != 0) {
 #else
-			if (WSAGetLastError() != WSAENOTSOCK) {
+			if (safe_errno() != WSAENOTSOCK) {
 #endif
 				continue;
 			}
@@ -620,7 +620,7 @@ void CCore::StartMainLoop(void) {
 				pfd.fd = SocketCursor->PollFd->fd;
 				pfd.events = POLLIN | POLLOUT | POLLERR;
 
-				int code = poll(&pfd, 1, 0);
+				int code = safe_poll(&pfd, 1, 0);
 
 				if (code == -1) {
 					SocketCursor->Events->Error(-1);

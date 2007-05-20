@@ -81,7 +81,7 @@ public:
 		unsigned long lTrue = 1;
 		sockaddr_in sloc;
 
-		m_Socket = socket(AF_INET, SOCK_DGRAM, 0);
+		m_Socket = safe_socket(AF_INET, SOCK_DGRAM, 0);
 
 		if (m_Socket == INVALID_SOCKET)
 			return;
@@ -94,18 +94,18 @@ public:
 		sloc.sin_addr.s_addr = INADDR_ANY;
 	#endif
 
-		if (bind(m_Socket, (sockaddr *)&sloc, sizeof(sloc)) < 0) {
-			closesocket(m_Socket);
+		if (safe_bind(m_Socket, (sockaddr *)&sloc, sizeof(sloc)) < 0) {
+			safe_closesocket(m_Socket);
 			m_Socket = INVALID_SOCKET;
 
 			return;
 		}
 
-		ioctlsocket(m_Socket, FIONBIO, &lTrue);
+		safe_ioctlsocket(m_Socket, FIONBIO, &lTrue);
 	}
 
 	~CUdpSocket() {
-		closesocket(m_Socket);
+		safe_closesocket(m_Socket);
 	}
 
 	void Destroy(void) {

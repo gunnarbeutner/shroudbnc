@@ -1631,7 +1631,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 		while ((Socket = g_Bouncer->GetSocketByClass("CTclSocket", i++)) != NULL) {
 			sockaddr_in saddr;
 			socklen_t saddrSize = sizeof(saddr);
-			getsockname(Socket->PollFd->fd, (sockaddr*)&saddr, &saddrSize);
+			safe_getsockname(Socket->PollFd->fd, (sockaddr*)&saddr, &saddrSize);
 
 			if (ntohs(saddr.sin_port) == Port) {
 				Socket->Events->Destroy();

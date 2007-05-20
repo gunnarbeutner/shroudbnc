@@ -32,7 +32,7 @@ private:
 		socklen_t PeerSize = sizeof(PeerAddress);
 		SOCKET Client;
 
-		Client = accept(m_Listener, (sockaddr *)PeerAddress, &PeerSize);
+		Client = safe_accept(m_Listener, (sockaddr *)PeerAddress, &PeerSize);
 
 		if (Client != INVALID_SOCKET) {
 			Accept(Client, (sockaddr *)PeerAddress);
@@ -97,7 +97,7 @@ public:
 		}
 
 		if (m_Listener != INVALID_SOCKET) {
-			closesocket(m_Listener);
+			safe_closesocket(m_Listener);
 		}
 	}
 
@@ -173,7 +173,7 @@ public:
 		sockaddr_in Address;
 		socklen_t Length = sizeof(Address);
 
-		if (m_Listener == INVALID_SOCKET || getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
+		if (m_Listener == INVALID_SOCKET || safe_getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
 			return 0;
 		} else {
 			return ntohs(Address.sin_port);
@@ -232,7 +232,7 @@ public:
 		CClientConnection *ClientObject;
 		unsigned long lTrue = 1;
 
-		ioctlsocket(Client, FIONBIO, &lTrue);
+		safe_ioctlsocket(Client, FIONBIO, &lTrue);
 
 		// destruction is controlled by the main loop
 		ClientObject = new CClientConnection(Client, m_SSL);

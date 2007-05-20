@@ -40,7 +40,7 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
 	SetRole(Role);
 
 	if (Socket != INVALID_SOCKET) {
-		getsockname(Socket, (sockaddr *)Address, &AddressLength);
+		safe_getsockname(Socket, (sockaddr *)Address, &AddressLength);
 		m_Family = ((sockaddr *)Address)->sa_family;
 	} else {
 		m_Family = AF_INET;
@@ -153,8 +153,8 @@ CConnection::~CConnection(void) {
 	free(m_BindIpCache);
 
 	if (m_Socket != INVALID_SOCKET) {
-		shutdown(m_Socket, SD_BOTH);
-		closesocket(m_Socket);
+		safe_shutdown(m_Socket, SD_BOTH);
+		safe_closesocket(m_Socket);
 	}
 	
 	free(m_HostAddr);
@@ -262,7 +262,7 @@ int CConnection::Read(bool DontProcess) {
 		return 0;
 	}
 
-	if (BufferSize == 0 && getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
+	if (BufferSize == 0 && safe_getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
 		BufferSize = 8192;
 	}
 
@@ -294,7 +294,7 @@ int CConnection::Read(bool DontProcess) {
 		ERR_print_errors_fp(stdout);
 	} else
 #endif
-		ReadResult = recv(m_Socket, Buffer, BufferSize, 0);
+		ReadResult = safe_recv(m_Socket, Buffer, BufferSize, 0);
 
 	if (ReadResult > 0) {
 		if (g_CurrentTime - m_InboundTrafficReset > 30) {
@@ -316,15 +316,13 @@ int CConnection::Read(bool DontProcess) {
 			return -1;
 		}
 
-#ifdef _WIN32
-		ErrorCode = WSAGetLastError();
+		ErrorCode = safe_errno();
 
+#ifdef _WIN32
 		if (ErrorCode == WSAEWOULDBLOCK) {
 			return 0;
 		}
 #else
-		ErrorCode = errno;
-
 		if (ErrorCode == EAGAIN) {
 			return 0;
 		}
@@ -375,16 +373,12 @@ int CConnection::Write(void) {
 			}
 		} else {
 #endif
-			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
+			WriteResult = safe_send(m_Socket, m_SendQ->Peek(), Size, 0);
 #ifdef USESSL
 		}
 #endif
 
-#ifdef _WIN32
-			ReturnValue = WSAGetLastError();
-#else
-			ReturnValue = errno;
-#endif
+		ReturnValue = safe_errno();
 			
 		if (WriteResult > 0) {
 			if (m_Traffic) {
@@ -405,8 +399,8 @@ int CConnection::Write(void) {
 #endif
 
 		if (m_Socket != INVALID_SOCKET) {
-			shutdown(m_Socket, SD_BOTH);
-			closesocket(m_Socket);
+			safe_shutdown(m_Socket, SD_BOTH);
+			safe_closesocket(m_Socket);
 		}
 	}
 
@@ -819,11 +813,9 @@ void CConnection::AsyncConnect(void) {
 		if (m_Socket == INVALID_SOCKET) {
 			int ErrorCode;
 
-#ifdef _WIN32
-			ErrorCode = WSAGetLastError();
-#else
-			ErrorCode = errno;
+			ErrorCode = safe_errno();
 
+#ifndef _WIN32
 			if (ErrorCode == 0) {
 				ErrorCode = -1;
 			}
@@ -924,7 +916,7 @@ sockaddr *CConnection::GetRemoteAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (m_Socket != INVALID_SOCKET && getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && safe_getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;
@@ -940,7 +932,7 @@ sockaddr *CConnection::GetLocalAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (m_Socket != INVALID_SOCKET && getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && safe_getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;

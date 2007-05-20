@@ -348,13 +348,13 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 		return INVALID_SOCKET;
 	}
 
-	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	Socket = safe_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
-	ioctlsocket(Socket, FIONBIO, &lTrue);
+	safe_ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp && *BindIp) {
 		sloc.sin_family = AF_INET;
@@ -372,7 +372,7 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 			sloc.sin_addr.s_addr = addr;
 		}
 
-		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
+		safe_bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
 	sin.sin_family = AF_INET;
@@ -390,14 +390,14 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 		sin.sin_addr.s_addr = addr;
 	}
 
-	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
+	code = safe_connect(Socket, (const sockaddr *)&sin, sizeof(sin));
 
 #ifdef _WIN32
-	if (code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+	if (code != 0 && safe_errno() != WSAEWOULDBLOCK) {
 #else
 	if (code != 0 && safe_errno() != EINPROGRESS) {
 #endif
-		closesocket(Socket);
+		safe_closesocket(Socket);
 
 		return INVALID_SOCKET;
 	}
@@ -417,16 +417,16 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	unsigned long lTrue = 1;
 	int Code, Size;
 
-	SOCKET Socket = socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET Socket = safe_socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
-	ioctlsocket(Socket, FIONBIO, &lTrue);
+	safe_ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp != NULL) {
-		bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
+		safe_bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
 	}
 
 #ifdef IPV6
@@ -439,14 +439,14 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	}
 #endif
 
-	Code = connect(Socket, Host, Size);
+	Code = safe_connect(Socket, Host, Size);
 
 #ifdef _WIN32
-	if (Code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+	if (Code != 0 && safe_errno() != WSAEWOULDBLOCK) {
 #else
 	if (Code != 0 && safe_errno() != EINPROGRESS) {
 #endif
-		closesocket(Socket);
+		safe_closesocket(Socket);
 
 		return INVALID_SOCKET;
 	}
@@ -505,14 +505,14 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 	SOCKET Listener;
 	hostent *hent;
 
-	Listener = socket(Family, SOCK_STREAM, IPPROTO_TCP);
+	Listener = safe_socket(Family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Listener == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
 #ifndef _WIN32
-	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
+	safe_setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 #endif
 
 #ifdef IPV6
@@ -531,7 +531,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 		saddr = (sockaddr *)&sin6;
 
 #if !defined(_WIN32) && defined(IPV6_V6ONLY)
-		setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
+		safe_setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
 #endif
 	}
 #endif
@@ -566,14 +566,14 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 #endif
 	}
 
-	if (bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
-		closesocket(Listener);
+	if (safe_bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
+		safe_closesocket(Listener);
 
 		return INVALID_SOCKET;
 	}
 
-	if (listen(Listener, SOMAXCONN) != 0) {
-		closesocket(Listener);
+	if (safe_listen(Listener, SOMAXCONN) != 0) {
+		safe_closesocket(Listener);
 
 		return INVALID_SOCKET;
 	}

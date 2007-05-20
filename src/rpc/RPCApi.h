@@ -12,6 +12,8 @@
 #ifdef _WIN32
 typedef HANDLE PIPE;
 #else
+typedef int HANDLE;
+
 HANDLE GetStdHandle(HANDLE Handle);
 DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy);
 DWORD WriteFile(int File, const void *Buffer, size_t Size, DWORD *Written, void *Dummy);
