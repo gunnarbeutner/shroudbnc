@@ -49,6 +49,72 @@ static struct {
 };
 #endif
 
+#ifndef _WIN32
+HANDLE GetStdHandle(HANDLE Handle) {
+	return Handle;
+}
+
+DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy) {
+	int Result;
+
+	if (Size == 0) {
+		*Read = 0;
+
+		return 1;
+	}
+
+	errno = 0;
+
+	Result = read(File, Buffer, Size);
+
+	if (errno == EINTR) {
+		*Read = 0;
+
+		return 1;
+	}
+
+	if (Result <= 0) {
+		return 0;
+	} else {
+		*Read = Result;
+
+		return 1;
+	}
+}
+
+DWORD WriteFile(int File, const void *Buffer, size_t Size, DWORD *Written, void *Dummy) {
+	size_t Offset = 0;
+	int Result;
+
+	if (Size == 0) {
+		*Written = 0;
+
+		return 1;
+	}
+
+	while (Offset < Size) {
+		errno = 0;
+
+		Result = write(File, (char *)Buffer + Offset, Size - Offset);
+
+		if (errno == EINTR) {
+			continue;
+		}
+
+		if (Result <= 0) {
+			return 0;
+		} else {
+			Offset += Result;
+		}
+	}
+
+	*Written = Offset;
+
+	return 1;
+}
+#endif
+
+
 bool RpcWriteValue(PIPE Pipe, Value_t Value) {
 	char ReturnType;
 	unsigned int ReturnSize;

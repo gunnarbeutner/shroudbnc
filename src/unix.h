@@ -46,6 +46,11 @@ typedef int SOCKET;
 #define ioctlsocket ioctl
 
 typedef int BOOL;
+typedef int DWORD;
+typedef int PIPE;
+
+#define STD_INPUT_HANDLE 0
+#define STD_OUTPUT_HANDLE 1
 
 #define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName)
 #define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose(hLibModule) : 0
