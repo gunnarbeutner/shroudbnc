@@ -1,7 +1,9 @@
 #ifndef _RPCAPI_H
 #define _RPCAPI_H
 
-#define RPCCLIENT
+#ifndef RPCCLIENT
+#	define RPCCLIENT
+#endif
 
 #if defined(SBNC) && !defined(RPCCLIENTBIN)
 #	define RPCCLIENTBIN
@@ -11,6 +13,8 @@
 typedef HANDLE PIPE;
 #else
 typedef int HANDLE;
+
+#define WSAGetLastError errno
 
 HANDLE GetStdHandle(HANDLE Handle);
 DWORD ReadFile(int File, void *Buffer, size_t Size, DWORD *Read, void *Dummy);
