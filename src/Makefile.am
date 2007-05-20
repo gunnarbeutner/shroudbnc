@@ -25,8 +25,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Module.cpp \
 	Nick.cpp \
 	Queue.cpp \
-	RPCApi.cpp \
-	SafeAPI.cpp \
 	sbnc.cpp \
 	snprintf.c \
 	sslhelper.c \
@@ -61,8 +59,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Persistable.h \
 	Result.h \
 	Queue.h \
-	RPCApi.h \
-	SafeAPI.h \
 	sbnc.h \
 	snprintf.h \
 	SocketEvents.h \
