@@ -647,7 +647,7 @@ int safe_closesocket(SOCKET Socket) {
 	return ReturnValue.Integer;
 }
 
-int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, int *OptLen) {
+int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen) {
 	Value_t Arguments[5];
 	Value_t ReturnValue;
 

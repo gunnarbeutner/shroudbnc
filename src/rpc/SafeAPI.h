@@ -68,8 +68,8 @@ extern "C" {
 	int SAFEAPI safe_send(SOCKET Socket, const void *Buffer, size_t Size, int Flags);
 	int SAFEAPI safe_shutdown(SOCKET Socket, int How);
 	int SAFEAPI safe_closesocket(SOCKET Socket);
-	int SAFEAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, int *OptLen);
-	int SAFEAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, int OptLen);
+	int SAFEAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen);
+	int SAFEAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen);
 	int SAFEAPI safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP);
 
 	int SAFEAPI safe_errno(void);
