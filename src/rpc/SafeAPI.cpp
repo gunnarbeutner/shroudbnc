@@ -308,7 +308,7 @@ bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 		return false;
 	}
 
-	Result = getsockopt(Arguments[0].Integer, Arguments[1].Integer, Arguments[2].Integer, (char *)Arguments[3].Block, (int *)Arguments[4].Block);
+	Result = getsockopt(Arguments[0].Integer, Arguments[1].Integer, Arguments[2].Integer, (char *)Arguments[3].Block, (socklen_t *)Arguments[4].Block);
 
 	g_RpcErrno = WSAGetLastError();
 
