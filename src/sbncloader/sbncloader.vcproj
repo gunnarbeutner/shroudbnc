@@ -190,14 +190,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\RPCApi.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\SafeAPI.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\sbncloader.cpp"
 				>
 			</File>
@@ -216,14 +208,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\RPCApi.h"
-				>
-			</File>
-			<File
-				RelativePath="..\SafeAPI.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Service.h"
 				>
 			</File>
@@ -233,6 +217,26 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="rpc"
+			>
+			<File
+				RelativePath="..\rpc\RPCApi.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rpc\RPCApi.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rpc\SafeAPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rpc\SafeAPI.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

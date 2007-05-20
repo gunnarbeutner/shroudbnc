@@ -321,14 +321,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\RPCApi.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\SafeAPI.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\sbnc.cpp"
 				>
 			</File>
@@ -474,14 +466,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\RPCApi.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\SafeAPI.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\sbnc.h"
 				>
 			</File>
@@ -550,6 +534,26 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
+		</Filter>
+		<Filter
+			Name="rpc"
+			>
+			<File
+				RelativePath=".\src\rpc\RPCApi.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\rpc\RPCApi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\rpc\SafeAPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\rpc\SafeAPI.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\CHANGELOG"
