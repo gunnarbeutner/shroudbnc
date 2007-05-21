@@ -42,7 +42,7 @@ const char *sbncGetBaseName(void) {
 
 #ifndef _WIN32
 	if (g_ArgV[0][0] == '.' || g_ArgV[0][0] == '/') {
-		BasePath = (char *)malloc(strlen(Arg0) + 1);
+		BasePath = (char *)malloc(strlen(g_ArgV[0]) + 1);
 		strcpy(BasePath, g_ArgV[0]);
 	}
 
