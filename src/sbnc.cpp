@@ -41,9 +41,12 @@ const char *sbncGetBaseName(void) {
 	}
 
 #ifndef _WIN32
+	size_t Len;
+
 	if (g_ArgV[0][0] == '.' || g_ArgV[0][0] == '/') {
-		BasePath = (char *)malloc(strlen(g_ArgV[0]) + 1);
-		strcpy(BasePath, g_ArgV[0]);
+		Len = strlen(g_ArgV[0]) + 1;
+		BasePath = (char *)malloc();
+		strncpy(BasePath, g_ArgV[0], Len);
 	}
 
 	// TODO: look through PATH env
