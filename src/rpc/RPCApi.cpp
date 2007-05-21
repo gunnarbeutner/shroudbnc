@@ -554,7 +554,7 @@ int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *A
 	}
 
 	if (CID != CIDReturn) {
-		__asm int 3
+		exit(200);
 	}
 
 	for (unsigned int i = 0; i < ArgumentCount; i++) {
