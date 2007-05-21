@@ -49,8 +49,6 @@
 #	include "unix.h"
 #endif
 
-#include "fdhelper.h"
-
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT
 #		undef DLL_EXPORT
@@ -83,6 +81,7 @@ typedef lt_dlhandle HMODULE;
 #endif
 
 #include "snprintf.h"
+int SBNCAPI safe_printf(const char *Format, ...);
 
 #ifndef SWIG
 #	include "c-ares/ares.h"
