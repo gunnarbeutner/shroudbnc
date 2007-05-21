@@ -53,11 +53,12 @@ sbncLoad g_LoadFunc = NULL;
  */
 #ifndef _WIN32
 void sigint_handler(int code) {
-	if (g_SetStatusFunc != NULL) {
+	// TODO: fixfixfix
+	/*if (g_SetStatusFunc != NULL) {
 		g_SetStatusFunc(STATUS_SHUTDOWN);
 
 		signal(SIGINT, SIG_IGN);
-	}
+	}*/
 }
 #else
 BOOL WINAPI sigint_handler(DWORD Code) {
