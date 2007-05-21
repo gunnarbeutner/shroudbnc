@@ -56,9 +56,9 @@ const char *sbncGetBaseName(void) {
 		}
 	}
 #else
-	BasePath = (char *)malloc(MAX_PATH);
+	BasePath = (char *)malloc(MAXPATHLEN);
 
-	GetModuleFileName(NULL, BasePath, MAX_PATH);
+	GetModuleFileName(NULL, BasePath, MAXPATHLEN);
 
 	PathRemoveFileSpec(BasePath);
 #endif
@@ -104,7 +104,7 @@ void sbncPathCanonicalize(char *NewPath, const char *Path) {
 }
 
 const char *sbncBuildPath(const char *Filename, const char *BasePath) {
-	char NewPath[MAX_PATH];
+	char NewPath[MAXPATHLEN];
 	static char *Path = NULL;
 	size_t Len;
 
