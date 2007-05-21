@@ -276,7 +276,7 @@ public:
 	 * when there _should_ be no more active objects in this zone.
 	 */
 	void PerformLeakCheck(void) const {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(SBNC)
 		int Count = GetCount();
 
 		if (Count > 0) {

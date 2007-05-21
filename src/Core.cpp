@@ -23,8 +23,6 @@
 #include <openssl/err.h>
 #endif
 
-extern loaderparams_s *g_LoaderParameters; /**< loader parameters */
-
 const char *g_ErrorFile; /**< name of the file where the last error occured */
 unsigned int g_ErrorLine; /**< line where the last error occurred */
 time_t g_CurrentTime; /**< current time (updated in main loop) */
@@ -432,10 +430,6 @@ void CCore::StartMainLoop(void) {
 	}
 
 	int m_ShutdownLoop = 5;
-
-	if (g_LoaderParameters->SigEnable != NULL) {
-		g_LoaderParameters->SigEnable();
-	}
 
 	time_t Last = 0;
 	time_t LastCheck = 0;
@@ -1823,15 +1817,6 @@ bool CCore::InitializeFreeze(void) {
 	return true;
 }
 
-/**
- * GetLoaderParameters
- *
- * Returns the loader parameters which were passed to the bouncer.
- */
-const loaderparams_s *CCore::GetLoaderParameters(void) const {
-	return g_LoaderParameters;
-}
-
 const utility_t *CCore::GetUtilities(void) {
 	static utility_t *Utilities = NULL;
 
@@ -2131,7 +2116,7 @@ const char *CCore::GetTagName(int Index) const {
  * Returns the bouncer's pathname.
  */
 const char *CCore::GetBasePath(void) const {
-	return g_LoaderParameters->basepath;
+	return sbncGetBaseName();
 }
 
 /**
@@ -2144,7 +2129,7 @@ const char *CCore::GetBasePath(void) const {
  * @param BasePath base path
  */
 const char *CCore::BuildPath(const char *Filename, const char *BasePath) const {
-	return g_LoaderParameters->BuildPath(Filename, BasePath);
+	return sbncBuildPath(Filename, BasePath);
 }
 
 /**

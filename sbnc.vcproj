@@ -50,7 +50,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="adns_win/src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;SBNC;NEED_ASPRINTF;NEED_VASPRINTF;USESSL;NEED_ASPRINTF;NEED_VASPRINTF;RPCCLIENTBIN"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;SBNC;NEED_ASPRINTF;NEED_VASPRINTF;USESSL;NEED_ASPRINTF;NEED_VASPRINTF;RPCCLIENT"
 				GeneratePreprocessedFile="0"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -82,7 +82,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/ALIGN:512"
-				AdditionalDependencies="ws2_32.lib ssleay32MT.lib libeay32MT.lib src/c-ares/vc/areslib/Release/areslib.lib advapi32.lib"
+				AdditionalDependencies="ws2_32.lib ssleay32MT.lib libeay32MT.lib src/c-ares/vc/areslib/Release/areslib.lib advapi32.lib shlwapi.lib"
 				OutputFile="bin/sbnc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -153,7 +153,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="adns_win/src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;SBNC;NEED_ASPRINTF;NEED_VASPRINTF;USESSL;NEED_ASPRINTF;NEED_VASPRINTF;RPCCLIENTBIN"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;SBNC;NEED_ASPRINTF;NEED_VASPRINTF;USESSL;NEED_ASPRINTF;NEED_VASPRINTF;RPCCLIENT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
@@ -183,7 +183,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dbghelp.lib ws2_32.lib ssleay32MTd.lib libeay32MTd.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib"
+				AdditionalDependencies="dbghelp.lib ws2_32.lib ssleay32MTd.lib libeay32MTd.lib src/c-ares/vc/areslib/Debug/areslib.lib advapi32.lib shlwapi.lib"
 				OutputFile=".\Debug/sbnc.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

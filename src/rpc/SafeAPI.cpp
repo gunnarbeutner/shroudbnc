@@ -300,7 +300,7 @@ bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SAFEAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, int *OptLen);
+// int SBNCAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, int *OptLen);
 bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -320,7 +320,7 @@ bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SAFEAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, int OptLen);
+// int SBNCAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, int OptLen);
 bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -339,7 +339,7 @@ bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SAFEAPI safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP);
+// int SBNCAPI safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP);
 bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 

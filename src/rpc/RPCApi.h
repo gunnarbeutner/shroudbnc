@@ -1,12 +1,22 @@
 #ifndef _RPCAPI_H
 #define _RPCAPI_H
 
-#ifndef RPCCLIENT
+#if !defined(RPCCLIENT) && !defined(RPCSERVER)
 #	define RPCCLIENT
 #endif
 
-#if defined(SBNC) && !defined(RPCCLIENTBIN)
-#	define RPCCLIENTBIN
+#if defined(RPCSERVER) && defined(RPCCLIENT)
+#	error "Both RPCSERVER and RPCCLIENT defined."
+#endif
+
+#ifdef _WIN32
+#	if defined(SBNC) && defined(RPCCLIENT)
+#		define RPCAPI __declspec(dllexport)
+#	else
+#		define RPCAPI __declspec(dllimport)
+#	endif
+#else
+#	define RPCAPI
 #endif
 
 #ifdef _WIN32

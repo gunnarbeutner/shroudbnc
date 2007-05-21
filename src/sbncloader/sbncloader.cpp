@@ -42,7 +42,9 @@ const char *g_Arg0;
 bool g_Service = false;
 
 sbncLoad g_LoadFunc = NULL;
-sbncSetStatus g_SetStatusFunc = NULL;
+//sbncSetStatus g_SetStatusFunc = NULL;
+
+#define safe_printf(...)
 
 /**
  * sigint_handler
@@ -86,11 +88,11 @@ BOOL WINAPI sigint_handler(DWORD Code) {
 			HRCode = "Unknown code";
 	}
 
-	if (g_SetStatusFunc != NULL) {
+	/*if (g_SetStatusFunc != NULL) {
 		safe_printf("Control code received (%s).\n", HRCode);
 
 		g_SetStatusFunc(STATUS_SHUTDOWN);
-	}
+	}*/
 
 	Sleep(10000);
 
@@ -128,173 +130,6 @@ void Socket_Final(void) {
 
 #endif
 
-void sbncSigEnable(void) {
-#ifndef _WIN32
-	signal(SIGUSR1, sig_usr1);
-#endif
-}
-
-bool sbncGetBox(CAssocArray **Box) {
-	delete g_Box;
-	g_Box = NULL;
-
-	g_Box = new CAssocArray();
-	g_Freeze = true;
-	g_Signal = true;
-
-	*Box = g_Box;
-
-	return true;
-}
-
-void sbncSetModulePath(const char *Module) {
-	free(g_Mod);
-	g_Mod = strdup(Module);
-}
-
-const char *sbncGetModulePath(void) {
-	return g_Mod;
-}
-
-#ifndef _WIN32
-void PathCanonicalize(char *NewPath, const char *Path) {
-	int i = 0, o = 0;
-
-	while (true) {
-		if ((Path[i] == '\\' || Path[i] == '/') && Path[i + 1] == '.') {
-			i += 2;
-		}
-
-		if (o >= MAX_PATH - 1) {
-			NewPath[o] = '\0';
-
-			return;
-		} else {
-			NewPath[o] = Path[i];
-		}
-
-		if (Path[i] == '\0') {
-			return;
-		}
-
-		i++;
-		o++;
-	}
-}
-#endif
-
-const char *sbncGetBaseName(const char *Arg0) {
-	static char *BasePath = NULL;
-
-	if (BasePath != NULL) {
-		return BasePath;
-	}
-
-#ifndef _WIN32
-	if (Arg0[0] == '.' || Arg0[0] == '/') {
-		BasePath = (char *)malloc(strlen(Arg0) + 1);
-		strcpy(BasePath, Arg0);
-	}
-
-	// TODO: look through PATH env
-
-	for (int i = strlen(BasePath) - 1; i >= 0; i--) {
-		if (BasePath[i] == '/') {
-			BasePath[i] = '\0';
-
-			break;
-		}
-	}
-#else
-	BasePath = (char *)malloc(MAX_PATH);
-
-	GetModuleFileName(NULL, BasePath, MAX_PATH);
-
-	PathRemoveFileSpec(BasePath);
-#endif
-
-	return BasePath;
-}
-
-bool sbncIsAbsolutePath(const char *Path) {
-#ifdef _WIN32
-	return !PathIsRelative(Path);
-#else
-	if (Path[0] == '/') {
-		return true;
-	}
-
-	return false;
-#endif
-}
-
-const char *sbncBuildPath(const char *Filename, const char *BasePath = NULL) {
-	char NewPath[MAX_PATH];
-	static char *Path = NULL;
-
-	if (sbncIsAbsolutePath(Filename)) {
-		return Filename;
-	}
-
-	free(Path);
-
-	if (BasePath == NULL) {
-		BasePath = sbncGetBaseName(g_Arg0);
-
-		// couldn't find the basepath, fall back to relative paths (i.e. Filename)
-		if (BasePath == NULL) {
-			return Filename;
-		}
-	}
-
-	Path = (char *)malloc(strlen(BasePath) + 1 + strlen(Filename) + 1);
-	strcpy(Path, BasePath);
-#ifdef _WIN32
-	strcat(Path, "\\");
-#else
-	strcat(Path, "/");
-#endif
-	strcat(Path, Filename);
-
-#ifdef _WIN32
-	for (unsigned int i = 0; i < strlen(Path); i++) {
-		if (Path[i] == '/') {
-			Path[i] = '\\';
-		}
-	}
-#endif
-
-	PathCanonicalize(NewPath, Path);
-	
-	strcpy(Path, NewPath);
-
-	return Path;
-}
-
-void sbncReadIpcFile(void) {
-	FILE *IpcFile;
-
-	IpcFile = fopen(sbncBuildPath("sbnc.ipc"), "r");
-
-	if (IpcFile != NULL) {
-		char *n;
-		char FileBuf[512];
-
-		if ((n = fgets(FileBuf, sizeof(FileBuf) - 1, IpcFile)) != 0) {
-			if (FileBuf[strlen(FileBuf) - 1] == '\n')
-				FileBuf[strlen(FileBuf) - 1] = '\0';
-
-			if (FileBuf[strlen(FileBuf) - 1] == '\r')
-				FileBuf[strlen(FileBuf) - 1] = '\0';
-
-			free(g_Mod);
-			g_Mod = strdup(sbncBuildPath(FileBuf));
-		}
-
-		fclose(IpcFile);
-	}
-}
-
 HMODULE sbncLoadModule(void) {
 	HMODULE hMod;
 
@@ -315,7 +150,7 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	g_LoadFunc = (sbncLoad)GetProcAddress(hMod, "sbncLoad");
-	g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
+	//g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
 
 	if (g_LoadFunc == NULL) {
 		safe_printf("Function \"sbncLoad\" does not exist in the module.\n");
@@ -325,13 +160,13 @@ HMODULE sbncLoadModule(void) {
 		return NULL;
 	}
 
-	if (g_SetStatusFunc == NULL) {
+	/*if (g_SetStatusFunc == NULL) {
 		safe_printf("Function \"sbncSetStatus\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
 		return NULL;
-	}
+	}*/
 	
 	return hMod;
 }
@@ -361,10 +196,8 @@ int main(int argc, char **argv) {
 		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
 	}
 
-	SetCurrentDirectory(sbncBuildPath("."));
 	SetConsoleCtrlHandler(sigint_handler, TRUE);
 #else
-	chdir(sbncBuildPath("."));
 	signal(SIGINT, sigint_handler);
 #endif
 
@@ -398,21 +231,19 @@ int main(int argc, char **argv) {
 	}
 #endif
 
-	g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
+	g_Mod = strdup(SBNC_MODULE);
 	ThisMod = strdup(g_Mod);
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlinit();
 #endif
 
-	sbncReadIpcFile();
-
 	hMod = sbncLoadModule();
 
 	if (hMod == NULL && strcasecmp(g_Mod, SBNC_MODULE) != 0) {
 		free(g_Mod);
 		free(ThisMod);
-		g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
+		g_Mod = strdup(SBNC_MODULE);
 		ThisMod = strdup(g_Mod);
 
 		safe_printf("Trying failsafe module...\n");
@@ -433,77 +264,12 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	loaderparams_s Parameters;
-
-	Parameters.Version = 202;
-
-	Parameters.argc = argc;
-	Parameters.argv = argv;
-	Parameters.basepath = sbncGetBaseName(argv[0]);
-
-	Parameters.GetBox = sbncGetBox;
-	Parameters.SigEnable = sbncSigEnable;
-
-	Parameters.SetModulePath = sbncSetModulePath;
-	Parameters.GetModulePath = sbncGetModulePath;
-
-	Parameters.BuildPath = sbncBuildPath;
-
 	g_Signal = false;
 
-	while (true) {
-		g_Freeze = false;
+	Sleep(10000);
+	DebugBreak();
 
-		Parameters.Box = g_Box;
-
-		g_LoadFunc(&Parameters);
-
-		if (!g_Freeze) {
-			break;
-		}
-
-		safe_printf("Unloading shroudBNC...\n");
-
-		FreeLibrary(hMod);
-
-		if (g_Signal == true)
-			sbncReadIpcFile();
-
-		g_Signal = false;
-
-		hMod = sbncLoadModule();
-
-		if (hMod == NULL) {
-			free(g_Mod);
-			free(ThisMod);
-			g_Mod = strdup(sbncBuildPath(ThisMod));
-			ThisMod = strdup(g_Mod);
-
-			safe_printf("Trying previous module...\n");
-
-			hMod = sbncLoadModule();
-
-			if (hMod == NULL) {
-				free(g_Mod);
-				g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
-
-				safe_printf("Trying failsafe module...\n");
-
-				hMod = sbncLoadModule();
-
-				if (hMod == NULL) {
-					safe_printf("Giving up...\n");
-
-					ExitCode = EXIT_FAILURE;
-
-					break;
-				}
-			}
-		} else {
-			free(ThisMod);
-			ThisMod = strdup(g_Mod);
-		}
-	}
+	g_LoadFunc(ThisMod, argc, argv);
 
 	Socket_Final();
 

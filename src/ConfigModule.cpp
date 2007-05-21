@@ -32,7 +32,7 @@ CConfigModule::CConfigModule(const char *Filename) {
 		m_Image = NULL;
 		m_File = strdup(Filename);
 
-		CorePath = strdup(g_Bouncer->GetLoaderParameters()->GetModulePath());
+		CorePath = strdup(sbncGetModulePath());
 
 		if (CorePath != NULL && *CorePath != '\0') {
 			for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
@@ -48,6 +48,8 @@ CConfigModule::CConfigModule(const char *Filename) {
 	#endif
 		
 			Result = InternalLoad(g_Bouncer->BuildPath(Filename, CorePath));
+
+			free(CorePath);
 		}
 
 		if (!Result) {

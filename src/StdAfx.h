@@ -49,6 +49,9 @@
 #	include "unix.h"
 #endif
 
+#include "rpc/RPCApi.h"
+#include "rpc/SafeAPI.h"
+
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT
 #		undef DLL_EXPORT
@@ -80,13 +83,7 @@ typedef lt_dlhandle HMODULE;
 #	define IPV6
 #endif
 
-#ifdef __cplusplus
-#	include "rpc/RPCApi.h"
-#	include "rpc/SafeAPI.h"
-#endif
-
 #include "snprintf.h"
-int SAFEAPI safe_printf(const char *Format, ...);
 
 #ifndef SWIG
 #	include "c-ares/ares.h"

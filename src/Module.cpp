@@ -33,7 +33,7 @@ CModule::CModule(const char *Filename) {
 	m_Image = NULL;
 	m_File = strdup(Filename);
 
-	CorePath = strdup(g_Bouncer->GetLoaderParameters()->GetModulePath());
+	CorePath = strdup(sbncGetModulePath());
 
 	if (CorePath != NULL && *CorePath != '\0') {
 		for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {

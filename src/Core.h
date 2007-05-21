@@ -118,8 +118,6 @@ class SBNCAPI CCore {
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
-	int m_Status; /**< the program's status code */
-
 	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
 
 	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
@@ -130,6 +128,8 @@ class SBNCAPI CCore {
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
 
 	CConfigModule *m_ConfigModule; /**< config module loader */
+
+	int m_Status; /**< shroudBNC's current status */
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -219,7 +219,6 @@ public:
 	bool Freeze(CAssocArray *Box);
 	bool Thaw(CAssocArray *Box);
 	bool InitializeFreeze(void);
-	const loaderparams_s *GetLoaderParameters(void) const;
 
 	const utility_t *GetUtilities(void);
 

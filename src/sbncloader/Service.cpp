@@ -90,7 +90,9 @@ bool UninstallService(void) {
 }
 
 void WINAPI ServiceCtrlHandler(DWORD Opcode) {
-	switch (Opcode) {
+	// TODO: fixfixfix
+
+/*	switch (Opcode) {
 		case SERVICE_CONTROL_STOP:
 			g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
 			break;
@@ -104,7 +106,7 @@ void WINAPI ServiceCtrlHandler(DWORD Opcode) {
 			break;
 		default:
 			;// Do nothing.. so far
-	}
+	}*/
 
 	SetServiceStatus(g_ServiceStatusHandle, &g_ServiceStatus);
 }

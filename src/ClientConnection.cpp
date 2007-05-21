@@ -769,7 +769,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "reload") == 0 && GetOwner()->IsAdmin()) {
 		if (argc >= 2) {
-			g_Bouncer->GetLoaderParameters()->SetModulePath(argv[1]);
+			// TODO: fixfixfix
+			//g_Bouncer->GetLoaderParameters()->SetModulePath(argv[1]);
 		}
 
 		g_Bouncer->Log("Reload requested by %s", GetOwner()->GetUsername());
@@ -1027,7 +1028,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		} CHECK_ALLOC_RESULT_END;
 
 		if (GetOwner()->IsAdmin()) {
-			asprintf(&Out, "Using module %s", g_Bouncer->GetLoaderParameters()->GetModulePath());
+			asprintf(&Out, "Using module %s", sbncGetModulePath());
 			CHECK_ALLOC_RESULT(Out, asprintf) { } else {
 				SENDUSER(Out);
 				free(Out);

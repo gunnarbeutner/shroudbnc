@@ -24,26 +24,141 @@
 #include "StdAfx.h"
 
 CCore *g_Bouncer = NULL;
-loaderparams_t *g_LoaderParameters;
+
+int g_ArgC;
+char **g_ArgV;
+const char *g_ModulePath;
 
 #if defined(IPV6) && defined(__MINGW32__)
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif
+
+const char *sbncGetBaseName(void) {
+	static char *BasePath = NULL;
+
+	if (BasePath != NULL) {
+		return BasePath;
+	}
+
+#ifndef _WIN32
+	if (g_ArgV[0][0] == '.' || g_ArgV[0][0] == '/') {
+		BasePath = (char *)malloc(strlen(Arg0) + 1);
+		strcpy(BasePath, g_ArgV[0]);
+	}
+
+	// TODO: look through PATH env
+
+	for (int i = strlen(BasePath) - 1; i >= 0; i--) {
+		if (BasePath[i] == '/') {
+			BasePath[i] = '\0';
+
+			break;
+		}
+	}
+#else
+	BasePath = (char *)malloc(MAX_PATH);
+
+	GetModuleFileName(NULL, BasePath, MAX_PATH);
+
+	PathRemoveFileSpec(BasePath);
+#endif
+
+	return BasePath;
+}
+
+bool sbncIsAbsolutePath(const char *Path) {
+#ifdef _WIN32
+	return !PathIsRelative(Path);
+#else
+	if (Path[0] == '/') {
+		return true;
+	}
+
+	return false;
+#endif
+}
+
+void sbncPathCanonicalize(char *NewPath, const char *Path) {
+	int i = 0, o = 0;
+
+	while (true) {
+		if ((Path[i] == '\\' || Path[i] == '/') && Path[i + 1] == '.' && Path[i + 1] != '\0' && Path[i + 2] != '.') {
+			i += 2;
+		}
+
+		if (o >= MAX_PATH - 1) {
+			NewPath[o] = '\0';
+
+			return;
+		} else {
+			NewPath[o] = Path[i];
+		}
+
+		if (Path[i] == '\0') {
+			return;
+		}
+
+		i++;
+		o++;
+	}
+}
+
+const char *sbncBuildPath(const char *Filename, const char *BasePath) {
+	char NewPath[MAX_PATH];
+	static char *Path = NULL;
+	size_t Len;
+
+	if (sbncIsAbsolutePath(Filename)) {
+		return Filename;
+	}
+
+	free(Path);
+
+	if (BasePath == NULL) {
+		BasePath = sbncGetBaseName();
+
+		// couldn't find the basepath, fall back to relative paths (i.e. Filename)
+		if (BasePath == NULL) {
+			return Filename;
+		}
+	}
+
+	Len = strlen(BasePath) + 1 + strlen(Filename) + 1;
+	Path = (char *)malloc(Len);
+	strncpy(Path, BasePath, Len);
+#ifdef _WIN32
+	strncat(Path, "\\", Len);
+#else
+	strncat(Path, "/", Len);
+#endif
+	strncat(Path, Filename, Len);
+
+#ifdef _WIN32
+	for (unsigned int i = 0; i < strlen(Path); i++) {
+		if (Path[i] == '/') {
+			Path[i] = '\\';
+		}
+	}
+#endif
+
+	sbncPathCanonicalize(NewPath, Path);
+	
+	strncpy(Path, NewPath, sizeof(Path));
+
+	return Path;
+}
 
 /**
  * sbncLoad
  *
  * Used by "sbncloader" to start shroudBNC
  */
-extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
+extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 	CConfigFile *Config;
 
-	if (Parameters->Version != 202) {
-		safe_printf("Incompatible loader version. Expected version 202, got %d.\n"
-				"You might want to read the README.issues file for more information about this problem.\n", Parameters->Version);
-
-		return 1;
-	}
+	g_ArgC = argc;
+	g_ArgV = argv;
+	g_ModulePath = ModulePath;
 
 	srand((unsigned int)time(NULL));
 
@@ -69,7 +184,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 	time(&g_CurrentTime);
 
-	Config = new CConfigFile(Parameters->BuildPath("sbnc.conf", NULL), NULL);
+	Config = new CConfigFile(sbncBuildPath("sbnc.conf", NULL), NULL);
 
 	if (Config == NULL) {
 		safe_printf("Fatal: could not create config object.");
@@ -81,14 +196,8 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 		return EXIT_FAILURE;
 	}
 
-	g_LoaderParameters = Parameters;
-
 	// constructor sets g_Bouncer
-	new CCore(Config, Parameters->argc, Parameters->argv);
-
-	if (Parameters->Box) {
-		g_Bouncer->Thaw(Parameters->Box);
-	}
+	new CCore(Config, argc, argv);
 
 #if !defined(_WIN32)
 	signal(SIGPIPE, SIG_IGN);
@@ -97,15 +206,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	g_Bouncer->StartMainLoop();
 
 	if (g_Bouncer != NULL) {
-		if (g_Bouncer->GetStatus() == STATUS_FREEZE) {
-			CAssocArray *Box;
-
-			Parameters->GetBox(&Box);
-
-			g_Bouncer->Freeze(Box);
-		} else {
-			delete g_Bouncer;
-		}
+		delete g_Bouncer;
 	}
 
 	delete Config;
@@ -131,8 +232,8 @@ extern "C" EXPORT bool sbncSetStatus(int Status) {
 }
 
 /* for debugging */
-const char *DebugGetModulePath(void) {
-	return "./lib-0/";
+const char *sbncGetModulePath(void) {
+	return g_ModulePath;
 }
 
 const char *DebugBuildPath(const char *Filename, const char *Base) {
@@ -159,20 +260,3 @@ const char *DebugBuildPath(const char *Filename, const char *Base) {
 }
 
 void DebugSigEnable(void) {}
-
-int main(int argc, char **argv) {
-	loaderparams_s p;
-
-	p.Version = 202;
-	p.argc = argc;
-	p.argv = argv;
-	p.basepath = ".";
-	p.BuildPath = DebugBuildPath;
-	p.GetModulePath = DebugGetModulePath;
-	p.SigEnable = DebugSigEnable;
-	p.Box = NULL;
-
-	sbncLoad(&p);
-
-	return 0;
-}
