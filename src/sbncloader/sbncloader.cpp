@@ -109,12 +109,13 @@ void Socket_Final(void) {}
 #define Sleep(x) usleep(x * 1000)
 
 void sig_usr1(int code) {
+	// TODO: fixfixfix
 	signal(SIGUSR1, SIG_IGN);
 
-	if (g_SetStatusFunc(STATUS_FREEZE))
+	/*if (g_SetStatusFunc(STATUS_FREEZE))
 		g_Freeze = true;
 	else
-		signal(SIGUSR1, sig_usr1);
+		signal(SIGUSR1, sig_usr1);*/
 }
 
 #else
