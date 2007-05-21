@@ -46,7 +46,6 @@ bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue);
 #endif
 
-#ifdef RPCCLIENT
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,5 +100,4 @@ extern "C" {
 #	define recvfrom _lame<>1!!
 #	define sendto _lame<>1!!
 */
-#endif
 #endif

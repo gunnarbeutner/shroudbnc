@@ -5,10 +5,6 @@
 #	define RPCCLIENT
 #endif
 
-#if defined(RPCSERVER) && defined(RPCCLIENT)
-#	error "Both RPCSERVER and RPCCLIENT defined."
-#endif
-
 #ifdef _WIN32
 #	if defined(SBNC) && defined(RPCCLIENT)
 #		define RPCAPI __declspec(dllexport)
