@@ -4,7 +4,7 @@
 
 int g_RpcErrno = 0;
 
-// SOCKET safe_socket(int Domain, int Type, int Protocol);
+// int safe_socket(int Domain, int Type, int Protocol);
 bool RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -22,7 +22,7 @@ bool RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_getpeername(SOCKET Socket, struct sockaddr *Sockaddr, socklen_t *Len);
+// int safe_getpeername(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
 bool RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -40,7 +40,7 @@ bool RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_getsockname(SOCKET Socket, struct sockaddr *Sockaddr, socklen_t *Len);
+// int safe_getsockname(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
 bool RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -58,7 +58,7 @@ bool RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_bind(SOCKET Socket, const struct sockaddr *Sockaddr, socklen_t Len);
+// int safe_bind(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
 bool RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -76,7 +76,7 @@ bool RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_connect(SOCKET Socket, const struct sockaddr *Sockaddr, socklen_t Len);
+// int safe_connect(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
 bool RpcFunc_connect(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -112,7 +112,7 @@ bool RpcFunc_listen(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// SOCKET safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len);
+// int safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len);
 bool RpcFunc_accept(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -221,7 +221,7 @@ bool RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_recv(SOCKET Socket, void *Buffer, size_t Size, int Flags);
+// int safe_recv(int Socket, void *Buffer, size_t Size, int Flags);
 bool RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -246,7 +246,7 @@ bool RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_send(SOCKET Socket, const void *Buffer, size_t Size, int Flags);
+// int safe_send(int Socket, const void *Buffer, size_t Size, int Flags);
 bool RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -264,7 +264,7 @@ bool RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-//int safe_shutdown(SOCKET Socket, int How);
+//int safe_shutdown(int Socket, int How);
 bool RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -282,7 +282,7 @@ bool RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int safe_closesocket(SOCKET Socket);
+// int safe_closesocket(int Socket);
 bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -300,7 +300,7 @@ bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SBNCAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, int *OptLen);
+// int SBNCAPI safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, int *OptLen);
 bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -320,7 +320,7 @@ bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SBNCAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, int OptLen);
+// int SBNCAPI safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, int OptLen);
 bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -339,7 +339,7 @@ bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-// int SBNCAPI safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP);
+// int SBNCAPI safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP);
 bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
@@ -497,7 +497,7 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 
 #ifdef RPCCLIENT
 
-SOCKET safe_socket(int Domain, int Type, int Protocol) {
+int safe_socket(int Domain, int Type, int Protocol) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -516,7 +516,7 @@ SOCKET safe_socket(int Domain, int Type, int Protocol) {
 	return ReturnValue.Integer;
 }
 
-int safe_getpeername(SOCKET Socket, sockaddr *Sockaddr, socklen_t *Len) {
+int safe_getpeername(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -543,7 +543,7 @@ int safe_getpeername(SOCKET Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	return ReturnValue.Integer;
 }
 
-int safe_getsockname(SOCKET Socket, sockaddr *Sockaddr, socklen_t *Len) {
+int safe_getsockname(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -570,7 +570,7 @@ int safe_getsockname(SOCKET Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	return ReturnValue.Integer;
 }
 
-int safe_bind(SOCKET Socket, const sockaddr *Sockaddr, socklen_t Len) {
+int safe_bind(int Socket, const sockaddr *Sockaddr, socklen_t Len) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -589,7 +589,7 @@ int safe_bind(SOCKET Socket, const sockaddr *Sockaddr, socklen_t Len) {
 	return ReturnValue.Integer;
 }
 
-int safe_connect(SOCKET Socket, const sockaddr *Sockaddr, socklen_t Len) {
+int safe_connect(int Socket, const sockaddr *Sockaddr, socklen_t Len) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -626,7 +626,7 @@ int safe_listen(int Socket, int Backlog) {
 	return ReturnValue.Integer;
 }
 
-SOCKET safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
+int safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -673,7 +673,7 @@ int safe_poll(struct pollfd *Sockets, int Nfds, int Timeout) {
 	return ReturnValue.Integer;
 }
 
-int safe_recv(SOCKET Socket, void *Buffer, size_t Size, int Flags) {
+int safe_recv(int Socket, void *Buffer, size_t Size, int Flags) {
 	Value_t Arguments[4];
 	Value_t ReturnValue;
 
@@ -699,7 +699,7 @@ int safe_recv(SOCKET Socket, void *Buffer, size_t Size, int Flags) {
 	return ReturnValue.Integer;
 }
 
-int safe_send(SOCKET Socket, const void *Buffer, size_t Size, int Flags) {
+int safe_send(int Socket, const void *Buffer, size_t Size, int Flags) {
 	Value_t Arguments[4];
 	Value_t ReturnValue;
 
@@ -719,7 +719,7 @@ int safe_send(SOCKET Socket, const void *Buffer, size_t Size, int Flags) {
 	return ReturnValue.Integer;
 }
 
-int safe_shutdown(SOCKET Socket, int How) {
+int safe_shutdown(int Socket, int How) {
 	Value_t Arguments[2];
 	Value_t ReturnValue;
 
@@ -737,7 +737,7 @@ int safe_shutdown(SOCKET Socket, int How) {
 	return ReturnValue.Integer;
 }
 
-int safe_closesocket(SOCKET Socket) {
+int safe_closesocket(int Socket) {
 	Value_t Arguments[1];
 	Value_t ReturnValue;
 
@@ -754,7 +754,7 @@ int safe_closesocket(SOCKET Socket) {
 	return ReturnValue.Integer;
 }
 
-int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen) {
+int safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen) {
 	Value_t Arguments[5];
 	Value_t ReturnValue;
 
@@ -781,7 +781,7 @@ int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen
 	return ReturnValue.Integer;
 }
 
-int safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen) {
+int safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen) {
 	Value_t Arguments[5];
 	Value_t ReturnValue;
 
@@ -802,7 +802,7 @@ int safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, s
 	return ReturnValue.Integer;
 }
 
-int safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP) {
+int safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
@@ -902,7 +902,7 @@ int safe_scan_passwd(char *Buffer, size_t Size) {
 	return ReturnValue.Integer;	
 }
 
-size_t safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen) {
+size_t safe_sendto(int Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen) {
 	Value_t Arguments[6];
 	Value_t ReturnValue;
 
@@ -927,7 +927,7 @@ size_t safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, con
 	return ReturnValue.Integer;
 }
 
-size_t safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen) {
+size_t safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen) {
 	Value_t Arguments[6];
 	Value_t ReturnValue;
 

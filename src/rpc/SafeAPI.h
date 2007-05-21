@@ -49,29 +49,29 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue);
 #ifdef __cplusplus
 extern "C" {
 #endif
-	SOCKET RPCAPI safe_socket(int Domain, int Type, int Protocol);
-	int RPCAPI safe_getpeername(SOCKET Socket, struct sockaddr *Sockaddr, socklen_t *Len);
-	int RPCAPI safe_getsockname(SOCKET Socket, struct sockaddr *Sockaddr, socklen_t *Len);
-	int RPCAPI safe_bind(SOCKET Socket, const struct sockaddr *Sockaddr, socklen_t Len);
-	int RPCAPI safe_connect(SOCKET Socket, const struct sockaddr *Sockaddr, socklen_t Len);
+	int RPCAPI safe_socket(int Domain, int Type, int Protocol);
+	int RPCAPI safe_getpeername(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
+	int RPCAPI safe_getsockname(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
+	int RPCAPI safe_bind(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
+	int RPCAPI safe_connect(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
 	int RPCAPI safe_listen(int Socket, int Backlog);
-	SOCKET RPCAPI safe_accept(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
+	int RPCAPI safe_accept(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
 	int RPCAPI safe_poll(struct pollfd *Sockets, int Nfds, int Timeout);
-	int RPCAPI safe_recv(SOCKET Socket, void *Buffer, size_t Size, int Flags);
-	int RPCAPI safe_send(SOCKET Socket, const void *Buffer, size_t Size, int Flags);
-	int RPCAPI safe_shutdown(SOCKET Socket, int How);
-	int RPCAPI safe_closesocket(SOCKET Socket);
-	int RPCAPI safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen);
-	int RPCAPI safe_setsockopt(SOCKET Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen);
-	int RPCAPI safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP);
+	int RPCAPI safe_recv(int Socket, void *Buffer, size_t Size, int Flags);
+	int RPCAPI safe_send(int Socket, const void *Buffer, size_t Size, int Flags);
+	int RPCAPI safe_shutdown(int Socket, int How);
+	int RPCAPI safe_closesocket(int Socket);
+	int RPCAPI safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen);
+	int RPCAPI safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen);
+	int RPCAPI safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP);
 
 	int RPCAPI safe_errno(void);
 	int RPCAPI safe_print(const char *Line);
 
 	int RPCAPI safe_scan(char *Buffer, size_t Size);
 	int RPCAPI safe_scan_passwd(char *Buffer, size_t Size);
-	size_t RPCAPI safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
-	size_t RPCAPI safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
+	size_t RPCAPI safe_sendto(int Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
+	size_t RPCAPI safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
 
 	int RPCAPI safe_printf(const char *Format, ...);
 #ifdef __cplusplus
