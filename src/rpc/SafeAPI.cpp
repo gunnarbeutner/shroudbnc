@@ -483,7 +483,7 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 	}
 
 	Result = recvfrom(Arguments[0].Integer, (char *)Arguments[1].Block, Arguments[2].Integer,
-		Arguments[3].Integer, (sockaddr *)Arguments[4].Block, (int *)Arguments[5].Block);
+		Arguments[3].Integer, (sockaddr *)Arguments[4].Block, (socklen_t *)Arguments[5].Block);
 
 	g_RpcErrno = errno;
 
