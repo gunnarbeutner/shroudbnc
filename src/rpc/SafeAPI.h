@@ -83,8 +83,6 @@ extern "C" {
 	int SAFEAPI safe_scan_passwd(char *Buffer, size_t Size);
 	size_t SAFEAPI safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
 	size_t SAFEAPI safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
-
-	int SAFEAPI safe_printf(const char *Format, ...);
 #ifdef __cplusplus
 }
 #endif

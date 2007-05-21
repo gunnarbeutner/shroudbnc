@@ -1387,3 +1387,21 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 
 	return true;
 }
+
+int safe_printf(const char *Format, ...) {
+	int Result;
+	char *Out;
+	va_list marker;
+
+	va_start(marker, Format);
+	vasprintf(&Out, Format, marker);
+	va_end(marker);
+
+	if (Out != NULL) {
+		Result = safe_print(Out);
+
+		free(Out);
+	}
+
+	return Result;
+}

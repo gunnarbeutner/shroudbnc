@@ -87,7 +87,7 @@ BOOL WINAPI sigint_handler(DWORD Code) {
 	}
 
 	if (g_SetStatusFunc != NULL) {
-		//printf("Control code received (%s).\n", HRCode);
+		safe_printf("Control code received (%s).\n", HRCode);
 
 		g_SetStatusFunc(STATUS_SHUTDOWN);
 	}
@@ -300,16 +300,16 @@ HMODULE sbncLoadModule(void) {
 
 	hMod = LoadLibrary(g_Mod);
 
-	//printf("Loading shroudBNC from %s\n", g_Mod);
+	safe_printf("Loading shroudBNC from %s\n", g_Mod);
 
 	if (hMod == NULL) {
-		//printf("Module could not be loaded.");
+		safe_printf("Module could not be loaded.");
 
 #if !defined(_WIN32) || defined(__MINGW32__)
-		//printf(" %s", lt_dlerror());
+		safe_printf(" %s", lt_dlerror());
 #endif
 
-		//printf("\n");
+		safe_printf("\n");
 
 		return NULL;
 	}
@@ -318,7 +318,7 @@ HMODULE sbncLoadModule(void) {
 	g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
 
 	if (g_LoadFunc == NULL) {
-		//printf("Function \"sbncLoad\" does not exist in the module.\n");
+		safe_printf("Function \"sbncLoad\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
@@ -326,7 +326,7 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	if (g_SetStatusFunc == NULL) {
-		//printf("Function \"sbncSetStatus\" does not exist in the module.\n");
+		safe_printf("Function \"sbncSetStatus\" does not exist in the module.\n");
 
 		FreeLibrary(hMod);
 
@@ -368,7 +368,7 @@ int main(int argc, char **argv) {
 	signal(SIGINT, sigint_handler);
 #endif
 
-	//printf("shroudBNC loader\n");
+	safe_printf("shroudBNC loader\n");
 
 #if defined (_WIN32) && !defined(NOSERVICE)
 	if (argc > 1) {
@@ -376,17 +376,17 @@ int main(int argc, char **argv) {
 			GetModuleFileName(NULL, ExeName, sizeof(ExeName));
 
 			if (InstallService(ExeName)) {
-				printf("Service was successfully installed.\n");
+				safe_printf("Service was successfully installed.\n");
 			} else {
-				printf("Service could not be installed.\n");
+				safe_printf("Service could not be installed.\n");
 			}
 
 			return 0;
 		} else if (strcasecmp(argv[1], "--uninstall") == 0) {
 			if (UninstallService()) {
-				printf("Service was successfully removed.\n");
+				safe_printf("Service was successfully removed.\n");
 			} else {
-				printf("Service could not be removed.\n");
+				safe_printf("Service could not be removed.\n");
 			}
 
 			return 0;
@@ -415,12 +415,12 @@ int main(int argc, char **argv) {
 		g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 		ThisMod = strdup(g_Mod);
 
-		//printf("Trying failsafe module...\n");
+		safe_printf("Trying failsafe module...\n");
 
 		hMod = sbncLoadModule();
 
 		if (hMod == NULL) {
-			//printf("Giving up...\n");
+			safe_printf("Giving up...\n");
 
 			free(g_Mod);
 			free(ThisMod);
@@ -462,7 +462,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 
-		//printf("Unloading shroudBNC...\n");
+		safe_printf("Unloading shroudBNC...\n");
 
 		FreeLibrary(hMod);
 
@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
 			g_Mod = strdup(sbncBuildPath(ThisMod));
 			ThisMod = strdup(g_Mod);
 
-			//printf("Trying previous module...\n");
+			safe_printf("Trying previous module...\n");
 
 			hMod = sbncLoadModule();
 
@@ -487,12 +487,12 @@ int main(int argc, char **argv) {
 				free(g_Mod);
 				g_Mod = strdup(sbncBuildPath(SBNC_MODULE));
 
-				//printf("Trying failsafe module...\n");
+				safe_printf("Trying failsafe module...\n");
 
 				hMod = sbncLoadModule();
 
 				if (hMod == NULL) {
-					//printf("Giving up...\n");
+					safe_printf("Giving up...\n");
 
 					ExitCode = EXIT_FAILURE;
 

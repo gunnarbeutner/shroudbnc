@@ -124,6 +124,8 @@ void StrTrim(char *String);
 char *strmcpy(char *Destination, const char *Source, size_t Size);
 char *strmcat(char *Destination, const char *Source, size_t Size);
 
+int SBNCAPI safe_printf(const char *Format, ...);
+
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))
 #endif
