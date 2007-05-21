@@ -1268,6 +1268,9 @@ time_t CCore::GetStartup(void) const {
  * Daemonizes the bouncer.
  */
 bool CCore::Daemonize(void) {
+	// TODO: fix, move to loader?
+	return true;
+
 #ifndef _WIN32
 	pid_t pid;
 	pid_t sid;

@@ -36,7 +36,7 @@ static struct {
 	{ Function_safe_connect,		3,	RpcFunc_connect		},
 	{ Function_safe_listen,			2,	RpcFunc_listen		},
 	{ Function_safe_accept,			3,	RpcFunc_accept		},
-	{ Function_safe_poll,			3,	RpcFunc_poll		}, // missing
+	{ Function_safe_poll,			3,	RpcFunc_poll		},
 	{ Function_safe_recv,			4,	RpcFunc_recv		},
 	{ Function_safe_send,			4,	RpcFunc_send		},
 	{ Function_safe_shutdown,		2,	RpcFunc_shutdown	},
@@ -437,8 +437,14 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	char *Call = Data;
 	Value_t *Arguments = NULL;
 	Value_t ReturnValue;
+	DWORD Written;
+	int CID;
 
-	RpcExpect(sizeof(char)); // function number
+	RpcExpect(sizeof(int));
+	CID = *(int *)Call;
+	Call += sizeof(int);
+
+	RpcExpect(sizeof(char));
 	Function = (Function_t)*Call;
 	Call += sizeof(char);
 
@@ -486,6 +492,10 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 
 	errno = 0;
 
+	if (!WriteFile(Out, &CID, sizeof(CID), &Written, NULL)) {
+		return -1;
+	}
+
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (int i = 0; i < functions[Function].ArgumentCount; i++) {
 			if (Arguments[i].Flags & Flag_Out) {
@@ -514,9 +524,16 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 #ifdef RPCCLIENT
 int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue) {
 	char FunctionByte;
+	int CID, CIDReturn;
 	DWORD Dummy;
 
 	FunctionByte = Function;
+
+	CID = rand();
+
+	if (!WriteFile(PipeOut, &CID, sizeof(CID), &Dummy, NULL)) {
+		return 0;
+	}
 
 	if (!WriteFile(PipeOut, &FunctionByte, sizeof(char), &Dummy, NULL)) {
 		return 0;
@@ -526,6 +543,14 @@ int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *A
 		if (!RpcWriteValue(PipeOut, Arguments[i])) {
 			return 0;
 		}
+	}
+
+	if (!RpcBlockingRead(PipeIn, &CIDReturn, sizeof(CIDReturn))) {
+		return 0;
+	}
+
+	if (CID != CIDReturn) {
+		__asm int 3
 	}
 
 	for (unsigned int i = 0; i < ArgumentCount; i++) {

@@ -206,13 +206,13 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
 // int safe_poll(struct pollfd *Sockets, int Nfds, int Timeout);
 bool RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
-		
+
 	if (Arguments[0].Type != Block || Arguments[1].Type != Integer || Arguments[2].Type != Integer) {
 		return false;
 	}
 
 	Result = poll((pollfd *)Arguments[0].Block, Arguments[1].Integer, Arguments[2].Integer);
-	
+
 	g_RpcErrno = WSAGetLastError();
 
 	ReturnValue->Type = Integer;
@@ -376,7 +376,7 @@ bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
 		return false;
 	}
 
-	Result = printf("%s\n", Arguments[0].Block);
+	Result = fprintf(stdout, "%s\n", Arguments[0].Block);
 
 	g_RpcErrno = errno;
 
