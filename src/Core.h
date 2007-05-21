@@ -302,7 +302,7 @@ extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
 			if (g_Bouncer != NULL) { \
 				LOGERROR(#Function " failed."); \
 			} else { \
-				printf("%s", #Function " failed."); \
+				safe_printf("%s", #Function " failed."); \
 			} \
 			\
 		} else { \

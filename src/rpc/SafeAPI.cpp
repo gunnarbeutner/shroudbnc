@@ -374,7 +374,116 @@ bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
 		return false;
 	}
 
-	Result = fprintf(stdout, "%s\n", Arguments[0].Block);
+	Result = fwrite(Arguments[0].Block, 1, strlen((const char *)Arguments[0].Block), stdout);
+
+	g_RpcErrno = errno;
+
+	ReturnValue->Type = Integer;
+	ReturnValue->Integer = Result;
+
+	return true;
+}
+
+bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
+	int Result;
+
+	if (Arguments[0].Type != Block || Arguments[1].Type != Integer) {
+		return false;
+	}
+
+	if (fgets((char *)Arguments[0].Block, Arguments[1].Integer, stdin) != NULL) {
+		Result = 1;
+	} else {
+		Result = -1;
+	}
+
+	g_RpcErrno = errno;
+
+	ReturnValue->Type = Integer;
+	ReturnValue->Integer = Result;
+
+	return true;
+}
+
+bool RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue) {
+	bool term_succeeded;
+	bool Result;
+#ifndef _WIN32
+	termios term_old, term_new;
+#else
+	HANDLE StdInHandle;
+	DWORD ConsoleModes, NewConsoleModes;
+#endif
+
+#ifndef _WIN32
+	if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
+		memcpy(&term_new, &term_old, sizeof(term_old));
+		term_new.c_lflag &= ~ECHO;
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &term_new);
+
+		term_succeeded = true;
+	} else {
+		term_succeeded = false;
+	}
+#else
+	StdInHandle = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (StdInHandle != INVALID_HANDLE_VALUE) {
+		if (GetConsoleMode(StdInHandle, &ConsoleModes)) {
+			NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
+
+			SetConsoleMode(StdInHandle,NewConsoleModes);
+
+			term_succeeded = true;
+		} else {
+			term_succeeded = false;
+		}
+	}
+#endif
+
+	Result = RpcFunc_scan(Arguments, ReturnValue);
+
+	if (term_succeeded) {
+#ifndef _WIN32
+		tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
+#else
+		SetConsoleMode(StdInHandle, ConsoleModes);
+#endif
+	}
+
+	return Result;
+}
+
+bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue) {
+	int Result;
+
+	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer ||
+			Arguments[3].Type != Integer || Arguments[4].Type != Block || Arguments[5].Type != Integer) {
+		return false;
+	}
+
+	Result = sendto(Arguments[0].Integer, (const char *)Arguments[1].Block, Arguments[2].Integer,
+		Arguments[3].Integer, (const sockaddr *)Arguments[4].Block, Arguments[5].Integer);
+
+	g_RpcErrno = errno;
+
+	ReturnValue->Type = Integer;
+	ReturnValue->Integer = Result;
+
+	return true;
+}
+
+bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
+	int Result;
+
+	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer ||
+			Arguments[3].Type != Integer || Arguments[4].Type != Block || Arguments[5].Type != Block) {
+		return false;
+	}
+
+	Result = recvfrom(Arguments[0].Integer, (char *)Arguments[1].Block, Arguments[2].Integer,
+		Arguments[3].Integer, (sockaddr *)Arguments[4].Block, (int *)Arguments[5].Block);
 
 	g_RpcErrno = errno;
 
@@ -666,6 +775,9 @@ int safe_getsockopt(SOCKET Socket, int Level, int OptName, char *OptVal, socklen
 	memcpy(OptLen, Arguments[4].Block, sizeof(int));
 	memcpy(OptVal, Arguments[3].Block, *OptLen);
 
+	RpcFreeValue(Arguments[3]);
+	RpcFreeValue(Arguments[4]);
+
 	return ReturnValue.Integer;
 }
 
@@ -706,6 +818,8 @@ int safe_ioctlsocket(SOCKET Socket, long Command, unsigned long *ArgP) {
 		RpcFatal();
 	}
 
+	RpcFreeValue(Arguments[2]);
+
 	return ReturnValue.Integer;
 }
 
@@ -739,5 +853,111 @@ int safe_print(const char *Line) {
 
 	return ReturnValue.Integer;
 }
+
+int safe_scan(char *Buffer, size_t Size) {
+	Value_t Arguments[2];
+	Value_t ReturnValue;
+
+	Arguments[0] = RPC_BLOCK(Buffer, Size, Flag_Out | Flag_Alloc);
+	Arguments[1] = RPC_INT(Size);
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_scan, Arguments, 2, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Integer > 0) {
+		memcpy(Buffer, Arguments[0].Block, ReturnValue.Integer);
+	}
+
+	RpcFreeValue(Arguments[0]);
+
+	return ReturnValue.Integer;
+}
+
+int safe_scan_passwd(char *Buffer, size_t Size) {
+	Value_t Arguments[2];
+	Value_t ReturnValue;
+
+	Arguments[0] = RPC_BLOCK(Buffer, Size, Flag_Out | Flag_Alloc);
+	Arguments[1] = RPC_INT(Size);
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_scan_passwd, Arguments, 2, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Integer > 0) {
+		memcpy(Buffer, Arguments[0].Block, ReturnValue.Integer);
+	}
+
+	RpcFreeValue(Arguments[0]);
+
+	return ReturnValue.Integer;	
+}
+
+size_t safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen) {
+	Value_t Arguments[6];
+	Value_t ReturnValue;
+
+	Arguments[0] = RPC_INT(Socket);
+	Arguments[1] = RPC_BLOCK(Buffer, Len, Flag_None);
+	Arguments[2] = RPC_INT(Len);
+	Arguments[3] = RPC_INT(Flags);
+	Arguments[4] = RPC_BLOCK(To, ToLen, Flag_None);
+	Arguments[5] = RPC_INT(ToLen);
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_sendto, Arguments, 6, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	RpcFreeValue(Arguments[1]);
+	RpcFreeValue(Arguments[4]);
+
+	return ReturnValue.Integer;
+}
+
+size_t safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen) {
+	Value_t Arguments[6];
+	Value_t ReturnValue;
+
+	Arguments[0] = RPC_INT(Socket);
+	Arguments[1] = RPC_BLOCK(Buffer, Len, Flag_Out | Flag_Alloc);
+	Arguments[2] = RPC_INT(Len);
+	Arguments[3] = RPC_INT(Flags);
+	Arguments[4] = RPC_BLOCK(From, *FromLen, Flag_Out | Flag_Alloc);
+	Arguments[5] = RPC_BLOCK(FromLen, sizeof(socklen_t), Flag_Out);
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_sendto, Arguments, 6, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Integer > 0) {
+		memcpy(Buffer, Arguments[1].Block, ReturnValue.Integer);
+		memcpy(FromLen, Arguments[5].Block, sizeof(socklen_t));
+		memcpy(From, Arguments[4].Block, *FromLen);
+	}
+
+	RpcFreeValue(Arguments[1]);
+	RpcFreeValue(Arguments[4]);
+	RpcFreeValue(Arguments[5]);
+
+	return ReturnValue.Integer;
+}
+
 
 #endif

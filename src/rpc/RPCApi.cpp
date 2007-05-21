@@ -45,7 +45,11 @@ static struct {
 	{ Function_safe_setsockopt,		5,	RpcFunc_setsockopt	},
 	{ Function_safe_ioctlsocket,	3,	RpcFunc_ioctlsocket	},
 	{ Function_safe_errno,			0,	RpcFunc_errno		},
-	{ Function_safe_print,			1,	RpcFunc_print		}
+	{ Function_safe_print,			1,	RpcFunc_print		},
+	{ Function_safe_scan,			2,	RpcFunc_scan		},
+	{ Function_safe_scan_passwd,	2,	RpcFunc_scan_passwd	},
+	{ Function_safe_sendto,			6,	RpcFunc_sendto		},
+	{ Function_safe_recvfrom,		6,	RpcFunc_recvfrom	}
 };
 #endif
 
@@ -154,8 +158,8 @@ bool RpcWriteValue(PIPE Pipe, Value_t Value) {
 	return true;
 }
 
-bool RpcBlockingRead(PIPE Pipe, void *Buffer, size_t Size) {
-	size_t Offset = 0;
+bool RpcBlockingRead(PIPE Pipe, void *Buffer, int Size) {
+	int Offset = 0;
 	DWORD Read;
 
 	while (ReadFile(Pipe, (char *)Buffer + Offset, Size - Offset, &Read, NULL)) {
@@ -361,10 +365,10 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 int RpcRunServer(PipePair_t Pipes) {
 	const size_t BlockSize = 512;
 	char *Buffer, *NewBuffer;
-	size_t AllocedSize;
-	size_t Size = 0;
+	int AllocedSize;
+	int Size = 0;
 	int Result;
-	size_t ReadOffset = 0;
+	int ReadOffset = 0;
 	DWORD Read;
 
 	AllocedSize = BlockSize;
@@ -454,7 +458,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 
 	Arguments = (Value_t *)malloc(sizeof(Value_t) * functions[Function].ArgumentCount);
 
-	for (int i = 0; i < functions[Function].ArgumentCount; i++) {
+	for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
 		RpcExpect(sizeof(char));
 		ArgumentType = (Type_t)*Call;
 		Call += sizeof(char);
@@ -497,7 +501,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	}
 
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
-		for (int i = 0; i < functions[Function].ArgumentCount; i++) {
+		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
 			if (Arguments[i].Flags & Flag_Out) {
 				if (!RpcWriteValue(Out, Arguments[i])) {
 					return -1;
@@ -577,7 +581,7 @@ Value_t RpcBuildInteger(int Value) {
 	return Val;
 }
 
-Value_t RpcBuildBlock(const void *Pointer, size_t Size, char Flag) {
+Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag) {
 	Value_t Val;
 
 	Val.Type = Block;

@@ -17,8 +17,8 @@ typedef int PIPE;
 #define WSAGetLastError() errno
 
 int GetStdHandle(int Handle);
-int ReadFile(int File, void *Buffer, size_t Size, int *Read, void *Dummy);
-int WriteFile(int File, const void *Buffer, size_t Size, int *Written, void *Dummy);
+int ReadFile(int File, void *Buffer, int Size, int *Read, void *Dummy);
+int WriteFile(int File, const void *Buffer, int Size, int *Written, void *Dummy);
 #endif
 
 typedef struct PipePair_s {
@@ -44,6 +44,11 @@ typedef enum Function_e {
 	Function_safe_ioctlsocket,
 	Function_safe_errno,
 	Function_safe_print,
+	Function_safe_scan,
+	Function_safe_scan_passwd,
+	Function_safe_sendto,
+	Function_safe_recvfrom,
+
 	last_function
 } Function_t;
 
@@ -86,6 +91,6 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out);
 #ifdef RPCCLIENT
 int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue);
 Value_t RpcBuildInteger(int Value);
-Value_t RpcBuildBlock(const void *Pointer, size_t Size, char Flag);
+Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag);
 #endif
 #endif

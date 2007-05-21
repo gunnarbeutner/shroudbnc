@@ -79,7 +79,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_Log = new CLog("sbnc.log", true);
 
 	if (m_Log == NULL) {
-		printf("Log system could not be initialized. Shutting down.");
+		safe_printf("Log system could not be initialized. Shutting down.");
 
 		exit(EXIT_FAILURE);
 	}
@@ -240,7 +240,7 @@ void CCore::StartMainLoop(void) {
 
 	time(&g_CurrentTime);
 
-	//printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
+	safe_printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
@@ -252,7 +252,7 @@ void CCore::StartMainLoop(void) {
 
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
 			puts("");
-			printf("Syntax: %s [OPTION]", argv[0]);
+			safe_printf("Syntax: %s [OPTION]", argv[0]);
 			puts("");
 			puts("Options:");
 #ifndef _WIN32
@@ -533,7 +533,7 @@ void CCore::StartMainLoop(void) {
 		time(&Last);
 
 #ifdef _DEBUG
-		//printf("poll: %d seconds\n", SleepInterval);
+		//safe_printf("poll: %d seconds\n", SleepInterval);
 #endif
 
 #if defined(_WIN32) && defined(_DEBUG)
@@ -633,7 +633,7 @@ void CCore::StartMainLoop(void) {
 		DWORD Ticks = GetTickCount() - TickCount;
 
 		if (Ticks > 50) {
-			//printf("Spent %d msec in the main loop.\n", Ticks);
+			safe_printf("Spent %d msec in the main loop.\n", Ticks);
 		}
 #endif
 	}
@@ -1276,7 +1276,7 @@ bool CCore::Daemonize(void) {
 	pid_t sid;
 	int fd;
 
-	//printf("Daemonizing... ");
+	safe_printf("Daemonizing... ");
 
 	pid = fork();
 	if (pid == -1) {
@@ -1286,7 +1286,7 @@ bool CCore::Daemonize(void) {
 	}
 
 	if (pid) {
-		//printf("DONE\n");
+		safe_printf("DONE\n");
 		exit(0);
 	}
 
@@ -1877,24 +1877,20 @@ const utility_t *CCore::GetUtilities(void) {
  */
 bool CCore::MakeConfig(void) {
 	int Port;
+	char Buffer[30];
 	char User[81], Password[81], PasswordConfirm[81];
 	char *File;
 	CConfig *MainConfig, *UserConfig;
-	bool term_succeeded;
-#ifndef _WIN32
-	termios term_old, term_new;
-#else
-	HANDLE StdInHandle;
-	DWORD ConsoleModes, NewConsoleModes;
-#endif
 
-	printf("No valid configuration file has been found. A basic\n"
+	safe_printf("No valid configuration file has been found. A basic\n"
 		"configuration file can be created for you automatically. Please\n"
 		"answer the following questions:\n");
 
 	while (true) {
-		printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
-		scanf("%d", &Port);
+		safe_printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
+		Buffer[0] = '\0';
+		safe_scan(Buffer, sizeof(Buffer));
+		Port = atoi(Buffer);
 
 		if (Port == 0) {
 			return false;
@@ -1905,92 +1901,50 @@ bool CCore::MakeConfig(void) {
 #else
 		if (Port <= 0 || Port >= 65536) {
 #endif
-			printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
+			safe_printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
 		} else {
 			break;
 		}
 	}
 
 	while (true) {
-		printf("2. What should the first user's name be? ");
-		scanf("%s", User);
+		safe_printf("2. What should the first user's name be? ");
+		User[0] = '\0';
+		safe_scan(User, sizeof(User));
 	
 		if (strlen(User) == 0) {
 			return false;
 		}
 
 		if (IsValidUsername(User) == false) {
-			printf("Sorry, this is not a valid username. Try again.\n");
+			safe_printf("Sorry, this is not a valid username. Try again.\n");
 		} else {
 			break;
 		}
 	}
 
 	while (true) {
-		printf("Please note that passwords will not be echoed while you type them.\n");
-		printf("3. Please enter a password for the first user: ");
+		safe_printf("Please note that passwords will not be echoed while you type them.\n");
+		safe_printf("3. Please enter a password for the first user: ");
 
-		// disable terminal echo
-#ifndef _WIN32
-		if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
-			memcpy(&term_new, &term_old, sizeof(term_old));
-			term_new.c_lflag &= ~ECHO;
-
-			tcsetattr(STDIN_FILENO, TCSANOW, &term_new);
-
-			term_succeeded = true;
-		} else {
-			term_succeeded = false;
-		}
-#else
-	StdInHandle = GetStdHandle(STD_INPUT_HANDLE);
-
-	if (StdInHandle != INVALID_HANDLE_VALUE) {
-		if (GetConsoleMode(StdInHandle, &ConsoleModes)) {
-			NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
-
-			SetConsoleMode(StdInHandle,NewConsoleModes);
-
-			term_succeeded = true;
-		} else {
-			term_succeeded = false;
-		}
-	}
-#endif
-
-		scanf("%s", Password);
+		Password[0] = '\0';
+		safe_scan_passwd(Password, sizeof(Password));
 
 		if (strlen(Password) == 0) {
-			if (term_succeeded) {
-#ifndef _WIN32
-				tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
-#else
-				SetConsoleMode(StdInHandle, ConsoleModes);
-#endif
-			}
-
 			return false;
 		}
 
-		printf("\n4. Please confirm your password by typing it again: ");
+		safe_printf("\n4. Please confirm your password by typing it again: ");
 
-		scanf("%s", PasswordConfirm);
+		PasswordConfirm[0] = '\0';
+		safe_scan_passwd(PasswordConfirm, sizeof(PasswordConfirm));
 
-		// reset terminal echo
-		if (term_succeeded) {
-#ifndef _WIN32
-			tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
-#else
-			SetConsoleMode(StdInHandle, ConsoleModes);
-#endif
-		}
-
-		printf("\n");
+		safe_printf("\n");
 
 		if (strcmp(Password, PasswordConfirm) == 0) {
 			break;
 		} else {
-			printf("The passwords you entered do not match. Please try again.\n");
+			safe_printf("The passwords you entered do not match. Please try again.\n");
 		}
 	}
 
@@ -2006,22 +1960,22 @@ bool CCore::MakeConfig(void) {
 	MainConfig->WriteInteger("system.md5", 1);
 	MainConfig->WriteString("system.users", User);
 
-	printf("Writing main configuration file...");
+	safe_printf("Writing main configuration file...");
 
 	MainConfig->Destroy();
 
-	printf(" DONE\n");
+	safe_printf(" DONE\n");
 
 	UserConfig = m_ConfigModule->CreateConfigObject(File, NULL);
 
 	UserConfig->WriteString("user.password", UtilMd5(Password, GenerateSalt()));
 	UserConfig->WriteInteger("user.admin", 1);
 
-	printf("Writing first user's configuration file...");
+	safe_printf("Writing first user's configuration file...");
 
 	UserConfig->Destroy();
 
-	printf(" DONE\n");
+	safe_printf(" DONE\n");
 
 	free(File);
 

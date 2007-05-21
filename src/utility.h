@@ -153,7 +153,7 @@ bool RegisterZone(CZoneInformation *ZoneInformation);
 void FreeString(char *String);
 void FreeUString(char *String);
 
-int safe_printf(const char *Format, ...);
+int SBNCAPI safe_printf(const char *Format, ...);
 
 extern "C" BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag);
 

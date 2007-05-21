@@ -30,6 +30,10 @@ bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_ioctl(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_errno(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue);
 #endif
 
 #ifdef HAVE_POLL
@@ -74,6 +78,11 @@ extern "C" {
 
 	int SAFEAPI safe_errno(void);
 	int SAFEAPI safe_print(const char *Line);
+
+	int SAFEAPI safe_scan(char *Buffer, size_t Size);
+	int SAFEAPI safe_scan_passwd(char *Buffer, size_t Size);
+	size_t SAFEAPI safe_sendto(SOCKET Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
+	size_t SAFEAPI safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
 #ifdef __cplusplus
 }
 #endif

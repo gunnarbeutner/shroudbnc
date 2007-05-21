@@ -932,7 +932,7 @@ bool RegisterZone(CZoneInformation *ZoneInformation) {
 		return true;
 	} else {
 #ifdef _DEBUG
-		printf("Error in RegisterZone!\n");
+		safe_printf("Error in RegisterZone!\n");
 #endif
 
 		return false;
@@ -1020,9 +1020,9 @@ LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
 		Line.SizeOfStruct = sizeof(Line);
 
 		if (SymGetLineFromAddr64(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, 0, &Line)) {
-			printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
+			safe_printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
 		} else {
-			printf("Hit guard page at %s.\n", Symbol->Name);
+			safe_printf("Hit guard page at %s.\n", Symbol->Name);
 		}
 
 		return EXCEPTION_CONTINUE_EXECUTION;
@@ -1141,7 +1141,7 @@ void *mmalloc(size_t Size, CUser *Owner) {
 
 #if defined(_DEBUG) && defined(_WIN32)
 /*	if (Block->Manager != NULL && g_Bouncer != NULL) {
-		printf("%p = mmalloc(%d, %p), mgr refcount = %d\n", Block + 1, Size, Owner, Owner->MemoryGetManager()->ReferenceCount);
+		safe_printf("%p = mmalloc(%d, %p), mgr refcount = %d\n", Block + 1, Size, Owner, Owner->MemoryGetManager()->ReferenceCount);
 	}*/
 
 	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
@@ -1192,7 +1192,7 @@ void mfree(void *Block) {
 
 #if defined(_DEBUG) && defined(_WIN32)
 /*	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
-		printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
+		safe_printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
 	}*/
 
 	VirtualFree(RealBlock, 0, MEM_RELEASE);
@@ -1259,7 +1259,7 @@ void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
 	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
 
 /*	if (NewManager != NULL && g_Bouncer != NULL) {
-		printf("%p = mrealloc(%p, %d, %p), mgr refcount = %d\n", NewRealBlock + 1, Block, NewSize, Manager, NewManager->ReferenceCount);
+		safe_printf("%p = mrealloc(%p, %d, %p), mgr refcount = %d\n", NewRealBlock + 1, Block, NewSize, Manager, NewManager->ReferenceCount);
 	}*/
 //	mstacktrace();
 #endif

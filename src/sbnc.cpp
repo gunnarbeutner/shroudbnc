@@ -39,7 +39,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	CConfigFile *Config;
 
 	if (Parameters->Version != 202) {
-		printf("Incompatible loader version. Expected version 202, got %d.\n"
+		safe_printf("Incompatible loader version. Expected version 202, got %d.\n"
 				"You might want to read the README.issues file for more information about this problem.\n", Parameters->Version);
 
 		return 1;
@@ -55,7 +55,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {
-		printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
+		safe_printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
 		return EXIT_FAILURE;
 	}
 
@@ -72,7 +72,7 @@ extern "C" EXPORT int sbncLoad(loaderparams_t *Parameters) {
 	Config = new CConfigFile(Parameters->BuildPath("sbnc.conf", NULL), NULL);
 
 	if (Config == NULL) {
-		printf("Fatal: could not create config object.");
+		safe_printf("Fatal: could not create config object.");
 
 #if !defined(_WIN32 ) || defined(__MINGW32__)
 		lt_dlexit();

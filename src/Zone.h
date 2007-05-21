@@ -237,7 +237,7 @@ public:
 		HunkObject = (hunkobject_s<Type> *)((char *)Object - ((char *)HunkObject->Data - (char *)HunkObject));
 
 		if (!HunkObject->Valid) {
-			printf("Double free for zone object %p", Object);
+			safe_printf("Double free for zone object %p", Object);
 		} else {
 			m_Count--;
 
@@ -256,7 +256,7 @@ public:
 			if (OwningHunk != NULL) {
 				OwningHunk->Full = false;
 			} else {
-				printf("CZone::Delete(): Couldn't find hunk for an object.\n");
+				safe_printf("CZone::Delete(): Couldn't find hunk for an object.\n");
 			}
 		}
 
@@ -280,7 +280,7 @@ public:
 		int Count = GetCount();
 
 		if (Count > 0) {
-			printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), GetTypeSize());
+			safe_printf("Leaked %d zone objects of type \"%s\" (size %d).\n", Count, GetTypeName(), GetTypeSize());
 		}
 #endif
 	}
