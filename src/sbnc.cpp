@@ -45,7 +45,7 @@ const char *sbncGetBaseName(void) {
 
 	if (g_ArgV[0][0] == '.' || g_ArgV[0][0] == '/') {
 		Len = strlen(g_ArgV[0]) + 1;
-		BasePath = (char *)malloc();
+		BasePath = (char *)malloc(Len);
 		strncpy(BasePath, g_ArgV[0], Len);
 	}
 
