@@ -331,8 +331,6 @@ bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 
 	Result = setsockopt(Arguments[0].Integer, Arguments[1].Integer, Arguments[2].Integer, (const char *)Arguments[3].Block, Arguments[4].Integer);
 
-	Arguments[4].Flags = Flag_Out;
-
 	g_RpcErrno = WSAGetLastError();
 
 	ReturnValue->Type = Integer;
