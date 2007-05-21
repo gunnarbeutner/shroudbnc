@@ -959,5 +959,22 @@ size_t safe_recvfrom(SOCKET Socket, void *Buffer, size_t Len, int Flags, struct 
 	return ReturnValue.Integer;
 }
 
+int safe_printf(const char *Format, ...) {
+	int Result;
+	char *Out;
+	va_list marker;
+
+	va_start(marker, Format);
+	vasprintf(&Out, Format, marker);
+	va_end(marker);
+
+	if (Out != NULL) {
+		Result = safe_print(Out);
+
+		free(Out);
+	}
+
+	return Result;
+}
 
 #endif
