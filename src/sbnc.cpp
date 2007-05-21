@@ -86,7 +86,7 @@ void sbncPathCanonicalize(char *NewPath, const char *Path) {
 			i += 2;
 		}
 
-		if (o >= MAX_PATH - 1) {
+		if (o >= MAXPATHLEN - 1) {
 			NewPath[o] = '\0';
 
 			return;
