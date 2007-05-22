@@ -83,6 +83,8 @@ typedef enum Function_e {
 	Function_safe_get_box,
 	Function_safe_enumerate,
 
+	Function_safe_exit,
+
 	last_function
 } Function_t;
 
