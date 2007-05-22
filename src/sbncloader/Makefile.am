@@ -7,7 +7,7 @@ AM_CFLAGS=-DRPCSERVER
 AM_CPPFLAGS=-DRPCSERVER
 
 ../libltdl/libltdlc.la:
-        make -C ../libltdl
+	make -C ../libltdl
 
 ../rpc/librpc.la:
-        make -C ../rpc
+	make -C ../rpc
