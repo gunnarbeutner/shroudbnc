@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define NOADNSLIB
 #include "../StdAfx.h"
 #include "Service.h"
 
@@ -31,18 +30,12 @@
 #define SBNC_MODULE "./lib-0/libsbnc.la"
 #endif
 
-#ifndef _WIN32
-#define MAX_PATH 260
-#endif
-
 CAssocArray *g_Box;
 char *g_Mod;
-bool g_Freeze, g_Signal;
-const char *g_Arg0;
+bool g_Signal;
 bool g_Service = false;
 
 sbncLoad g_LoadFunc = NULL;
-//sbncSetStatus g_SetStatusFunc = NULL;
 
 #define safe_printf(...)
 
@@ -95,8 +88,6 @@ BOOL WINAPI sigint_handler(DWORD Code) {
 		g_SetStatusFunc(STATUS_SHUTDOWN);
 	}*/
 
-	Sleep(10000);
-
 	return TRUE;
 }
 #endif
@@ -107,16 +98,6 @@ void Socket_Init(void) {}
 void Socket_Final(void) {}
 
 #define Sleep(x) usleep(x * 1000)
-
-void sig_usr1(int code) {
-	// TODO: fixfixfix
-	signal(SIGUSR1, SIG_IGN);
-
-	/*if (g_SetStatusFunc(STATUS_FREEZE))
-		g_Freeze = true;
-	else
-		signal(SIGUSR1, sig_usr1);*/
-}
 
 #else
 
@@ -152,7 +133,6 @@ HMODULE sbncLoadModule(void) {
 	}
 
 	g_LoadFunc = (sbncLoad)GetProcAddress(hMod, "sbncLoad");
-	//g_SetStatusFunc = (sbncSetStatus)GetProcAddress(hMod, "sbncSetStatus");
 
 	if (g_LoadFunc == NULL) {
 		safe_printf("Function \"sbncLoad\" does not exist in the module.\n");
@@ -162,36 +142,28 @@ HMODULE sbncLoadModule(void) {
 		return NULL;
 	}
 
-	/*if (g_SetStatusFunc == NULL) {
-		safe_printf("Function \"sbncSetStatus\" does not exist in the module.\n");
-
-		FreeLibrary(hMod);
-
-		return NULL;
-	}*/
-	
 	return hMod;
 }
 
 int main(int argc, char **argv) {
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
-	char *ThisMod;
-	char ExeName[MAX_PATH];
+#ifdef _WIN32
+	char ExeName[MAXPATHLEN];
 	char TclLibrary[512];
+#endif
 
 	Socket_Init();
 
 	if (argc <= 1 || strcasecmp(argv[1], "--rpc-child") != 0) {
 		PipePair_t Pipes;
 
-		RpcInvokeClient(argv[0], &Pipes);
-		RpcRunServer(Pipes);
+		do {
+			RpcInvokeClient(argv[0], &Pipes);
+		} while (RpcRunServer(Pipes));
 
 		return 0;
 	}
-
-	g_Arg0 = argv[0];
 
 #ifdef _WIN32
 	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
@@ -234,7 +206,6 @@ int main(int argc, char **argv) {
 #endif
 
 	g_Mod = strdup(SBNC_MODULE);
-	ThisMod = strdup(g_Mod);
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlinit();
@@ -244,9 +215,7 @@ int main(int argc, char **argv) {
 
 	if (hMod == NULL && strcasecmp(g_Mod, SBNC_MODULE) != 0) {
 		free(g_Mod);
-		free(ThisMod);
 		g_Mod = strdup(SBNC_MODULE);
-		ThisMod = strdup(g_Mod);
 
 		safe_printf("Trying failsafe module...\n");
 
@@ -256,7 +225,6 @@ int main(int argc, char **argv) {
 			safe_printf("Giving up...\n");
 
 			free(g_Mod);
-			free(ThisMod);
 
 			return EXIT_FAILURE;
 		}
@@ -268,7 +236,7 @@ int main(int argc, char **argv) {
 
 	g_Signal = false;
 
-	g_LoadFunc(ThisMod, argc, argv);
+	g_LoadFunc(g_Mod, argc, argv);
 
 	Socket_Final();
 
@@ -276,7 +244,6 @@ int main(int argc, char **argv) {
 	lt_dlexit();
 #endif
 
-	free(ThisMod);
 	free(g_Mod);
 
 	return ExitCode;

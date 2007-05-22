@@ -271,7 +271,7 @@ int Box_get_integer(box_t Parent, const char *Name){
 	Element = Box_get(Parent, Name);
 
 	if (Element == NULL || Element->Type != TYPE_INTEGER) {
-		return NULL;
+		return 0;
 	} else {
 		return Element->ValueInteger;
 	}

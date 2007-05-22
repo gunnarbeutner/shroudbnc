@@ -72,9 +72,11 @@ bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue);
 #endif
 
 typedef void *safe_box_t;
+typedef void safe_element_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,10 +113,9 @@ extern "C" {
 	int RPCAPI safe_get_integer(safe_box_t Parent, const char *Name);
 	safe_box_t RPCAPI safe_get_box(safe_box_t Parent, const char *Name);
 	int RPCAPI safe_enumerate(safe_box_t Parent, safe_box_t *Previous, char *Name, int Len);
+	void RPCAPI safe_exit(int ExitCode);
 
 	int RPCAPI safe_printf(const char *Format, ...);
-
-
 #ifdef __cplusplus
 }
 #endif
