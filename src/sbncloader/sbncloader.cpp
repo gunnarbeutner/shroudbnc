@@ -158,6 +158,10 @@ int main(int argc, char **argv) {
 	if (argc <= 1 || strcasecmp(argv[1], "--rpc-child") != 0) {
 		PipePair_t Pipes;
 
+#ifndef _WIN32
+		signal(SIGINT, SIG_IGN);
+#endif
+
 		do {
 			RpcInvokeClient(argv[0], &Pipes);
 		} while (RpcRunServer(Pipes));
