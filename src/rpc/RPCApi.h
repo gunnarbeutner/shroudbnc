@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * shroudBNC - an object-oriented framework for IRC                            *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ *                                                                             *
+ * This program is free software; you can redistribute it and/or               *
+ * modify it under the terms of the GNU General Public License                 *
+ * as published by the Free Software Foundation; either version 2              *
+ * of the License, or (at your option) any later version.                      *
+ *                                                                             *
+ * This program is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of              *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               *
+ * GNU General Public License for more details.                                *
+ *                                                                             *
+ * You should have received a copy of the GNU General Public License           *
+ * along with this program; if not, write to the Free Software                 *
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
+ *******************************************************************************/
+
 #ifndef _RPCAPI_H
 #define _RPCAPI_H
 
@@ -55,11 +74,21 @@ typedef enum Function_e {
 	Function_safe_sendto,
 	Function_safe_recvfrom,
 
+	Function_safe_put_string,
+	Function_safe_put_integer,
+	Function_safe_put_box,
+	Function_safe_remove,
+	Function_safe_get_string,
+	Function_safe_get_integer,
+	Function_safe_get_box,
+	Function_safe_enumerate,
+
 	last_function
 } Function_t;
 
 typedef enum Type_e {
 	Integer,
+	Pointer,
 	Block
 } Type_t;
 
@@ -77,6 +106,7 @@ typedef struct Value_s {
 
 		struct {
 			unsigned int Size;
+			void *Pointer;
 			void *Block;
 		};
 	};
@@ -84,6 +114,7 @@ typedef struct Value_s {
 
 #define RPC_INT(Int) RpcBuildInteger(Int)
 #define RPC_BLOCK(Ptr, Size, Flag) RpcBuildBlock(Ptr, Size, Flag)
+#define RPC_POINTER(Ptr) RpcBuildPointer(Ptr)
 
 void RpcFreeValue(Value_t Value);
 void RpcFatal(void);
@@ -98,5 +129,6 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out);
 int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue);
 Value_t RpcBuildInteger(int Value);
 Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag);
+Value_t RpcBuildPointer(const void *Pointer);
 #endif
 #endif

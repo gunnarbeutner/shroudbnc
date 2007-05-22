@@ -1,4 +1,4 @@
-SUBDIRS=md5 libltdl sbncloader c-ares rpc
+SUBDIRS=md5 libltdl rpc sbncloader c-ares
 
 pkglibdir=$(exec_prefix)/${MOD_DIR}
 bindir=$(exec_prefix)

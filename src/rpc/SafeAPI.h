@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * shroudBNC - an object-oriented framework for IRC                            *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ *                                                                             *
+ * This program is free software; you can redistribute it and/or               *
+ * modify it under the terms of the GNU General Public License                 *
+ * as published by the Free Software Foundation; either version 2              *
+ * of the License, or (at your option) any later version.                      *
+ *                                                                             *
+ * This program is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of              *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               *
+ * GNU General Public License for more details.                                *
+ *                                                                             *
+ * You should have received a copy of the GNU General Public License           *
+ * along with this program; if not, write to the Free Software                 *
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
+ *******************************************************************************/
+
 #ifndef _SAFEAPI_H
 #define _SAFEAPI_H
 
@@ -44,7 +63,18 @@ bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue);
+
+bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue);
 #endif
+
+typedef void *safe_box_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,7 +103,18 @@ extern "C" {
 	size_t RPCAPI safe_sendto(int Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
 	size_t RPCAPI safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
 
+	int RPCAPI safe_put_string(safe_box_t Parent, const char *Name, const char *Value);
+	int RPCAPI safe_put_integer(safe_box_t Parent, const char *Name, int Value);
+	safe_box_t RPCAPI safe_put_box(safe_box_t Parent, const char *Name);
+	int RPCAPI safe_remove(safe_box_t Parent, const char *Name);
+	const char RPCAPI *safe_get_string(safe_box_t Parent, const char *Name);
+	int RPCAPI safe_get_integer(safe_box_t Parent, const char *Name);
+	safe_box_t RPCAPI safe_get_box(safe_box_t Parent, const char *Name);
+	int RPCAPI safe_enumerate(safe_box_t Parent, safe_box_t *Previous, char *Name, int Len);
+
 	int RPCAPI safe_printf(const char *Format, ...);
+
+
 #ifdef __cplusplus
 }
 #endif

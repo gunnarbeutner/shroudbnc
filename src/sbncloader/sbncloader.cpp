@@ -268,9 +268,6 @@ int main(int argc, char **argv) {
 
 	g_Signal = false;
 
-	Sleep(10000);
-	DebugBreak();
-
 	g_LoadFunc(ThisMod, argc, argv);
 
 	Socket_Final();

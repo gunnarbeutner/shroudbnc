@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * shroudBNC - an object-oriented framework for IRC                            *
+ * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ *                                                                             *
+ * This program is free software; you can redistribute it and/or               *
+ * modify it under the terms of the GNU General Public License                 *
+ * as published by the Free Software Foundation; either version 2              *
+ * of the License, or (at your option) any later version.                      *
+ *                                                                             *
+ * This program is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of              *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               *
+ * GNU General Public License for more details.                                *
+ *                                                                             *
+ * You should have received a copy of the GNU General Public License           *
+ * along with this program; if not, write to the Free Software                 *
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
+ *******************************************************************************/
+
 #include "../StdAfx.h"
 
 /*
@@ -49,7 +68,15 @@ static struct {
 	{ Function_safe_scan,			2,	RpcFunc_scan		},
 	{ Function_safe_scan_passwd,	2,	RpcFunc_scan_passwd	},
 	{ Function_safe_sendto,			6,	RpcFunc_sendto		},
-	{ Function_safe_recvfrom,		6,	RpcFunc_recvfrom	}
+	{ Function_safe_recvfrom,		6,	RpcFunc_recvfrom	},
+	{ Function_safe_put_string,		3,	RpcFunc_put_string	},
+	{ Function_safe_put_integer,	3,	RpcFunc_put_integer	},
+	{ Function_safe_put_box,		2,	RpcFunc_put_box		},
+	{ Function_safe_remove,			2,	RpcFunc_remove		},
+	{ Function_safe_get_string,		2,	RpcFunc_get_string	},
+	{ Function_safe_get_integer,	2,	RpcFunc_get_integer	},
+	{ Function_safe_get_box,		2,	RpcFunc_get_box		},
+	{ Function_safe_enumerate,		5,	RpcFunc_enumerate	}
 };
 #endif
 
@@ -135,7 +162,11 @@ bool RpcWriteValue(PIPE Pipe, Value_t Value) {
 		if (!WriteFile(Pipe, &(Value.Integer), sizeof(Value.Integer), &Dummy, NULL)) {
 			return false;
 		}
-	} else {
+	} else if (ReturnType == Pointer) {
+		if (!WriteFile(Pipe, &(Value.Pointer), sizeof(Value.Pointer), &Dummy, NULL)) {
+			return false;
+		}
+	} else if (ReturnType == Block) {
 		ReturnFlags = Value.Flags;
 
 		if (!WriteFile(Pipe, &ReturnFlags, sizeof(ReturnFlags), &Dummy, NULL)) {
@@ -189,7 +220,13 @@ bool RpcReadValue(PIPE Pipe, Value_t *Value) {
 		}
 
 		Value->NeedFree = false;
-	} else {
+	} else if (ValueType == Pointer) {
+		if (!RpcBlockingRead(Pipe, &(Value->Pointer), sizeof(Value->Pointer))) {
+			return false;
+		}
+
+		Value->NeedFree = false;
+	} else if (ValueType == Block) {
 		if (!RpcBlockingRead(Pipe, &(Value->Flags), sizeof(Value->Flags))) {
 			return false;
 		}
@@ -471,7 +508,13 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 			RpcExpect(4);
 			Arguments[i].Integer = *(int *)Call;
 			Call += sizeof(int);
-		} else {
+		} else if (ArgumentType == Pointer) {
+			Arguments[i].Flags = Flag_None;
+
+			RpcExpect(sizeof(void *));
+			Arguments[i].Pointer = *(void **)Call;
+			Call += sizeof(void *);
+		} else if (ArgumentType == Block) {
 			RpcExpect(sizeof(char));
 			Arguments[i].Flags = *Call;
 			Call += sizeof(char);
@@ -577,6 +620,7 @@ Value_t RpcBuildInteger(int Value) {
 
 	Val.Type = Integer;
 	Val.Integer = Value;
+	Val.Flags = Flag_None;
 
 	return Val;
 }
@@ -588,6 +632,16 @@ Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag) {
 	Val.Block = const_cast<void *>(Pointer);
 	Val.Size = Size;
 	Val.Flags = Flag;
+
+	return Val;
+}
+
+Value_t RpcBuildPointer(const void *Ptr) {
+	Value_t Val;
+
+	Val.Type = Pointer;
+	Val.Pointer = const_cast<void *>(Ptr);
+	Val.Flags = Flag_None;
 
 	return Val;
 }

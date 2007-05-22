@@ -222,6 +222,14 @@
 			Name="rpc"
 			>
 			<File
+				RelativePath="..\rpc\Box.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rpc\Box.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rpc\RPCApi.cpp"
 				>
 			</File>
