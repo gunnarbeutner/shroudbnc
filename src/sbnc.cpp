@@ -225,7 +225,7 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 	lt_dlexit();
 #endif
 
-	return EXIT_SUCCESS;
+	safe_exit(EXIT_SUCCESS);
 }
 
 /**
