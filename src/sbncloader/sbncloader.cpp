@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
 		PipePair_t Pipes;
 
 #ifndef _WIN32
-		signal(SIGINT, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
 #endif
 
 		do {
