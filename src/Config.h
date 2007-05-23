@@ -64,7 +64,7 @@ public:
 	CConfigFile(const char *Filename, CUser *Owner);
 	virtual ~CConfigFile(void);
 
-	static RESULT<CConfigFile *> Thaw(box_t Box, CUser *Owner);
+	static RESULT<CConfigFile *> Thaw(safe_box_t Box, CUser *Owner);
 #endif
 
 	virtual void Destroy(void);

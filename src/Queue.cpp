@@ -148,7 +148,7 @@ void CQueue::Clear(void) {
  *
  * @param Box the box which is being used for storing the queue
  */
-RESULT<CQueue *> CQueue::Thaw(box_t Box) {
+RESULT<CQueue *> CQueue::Thaw(safe_box_t Box) {
 	unsigned int i = 0;
 	char *Index;
 	const char *Line;

@@ -24,7 +24,7 @@
  *
  * Constructs a new traffic stats object.
  */
-CTrafficStats::CTrafficStats() {
+CTrafficStats::CTrafficStats(safe_box_t Box) {
 	m_Inbound = 0;
 	m_Outbound = 0;
 }
@@ -38,6 +38,10 @@ CTrafficStats::CTrafficStats() {
  */
 void CTrafficStats::AddInbound(unsigned int Bytes) {
 	m_Inbound += Bytes;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "Inbound", m_Inbound);
+	}
 }
 
 /**
@@ -58,6 +62,10 @@ unsigned int CTrafficStats::GetInbound(void) const {
  */
 void CTrafficStats::AddOutbound(unsigned int Bytes) {
 	m_Outbound += Bytes;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "Outbound", m_Outbound);
+	}
 }
 
 /**
@@ -76,21 +84,21 @@ unsigned int CTrafficStats::GetOutbound(void) const {
  *
  * @param Box the box
  */
-RESULT<CTrafficStats *> CTrafficStats::Thaw(box_t Box) {
+RESULT<CTrafficStats *> CTrafficStats::Thaw(safe_box_t Box) {
 	CTrafficStats *TrafficStats;
 
 	if (Box == NULL) {
 		THROW(CTrafficStats *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	TrafficStats = new CTrafficStats();
+	TrafficStats = new CTrafficStats(Box);
 
 	CHECK_ALLOC_RESULT(TrafficStats, new) {
 		THROW(CTrafficStats *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	TrafficStats->m_Inbound = Box->ReadInteger("~traffic.in");
-	TrafficStats->m_Outbound = Box->ReadInteger("~traffic.out");
+	TrafficStats->m_Inbound = safe_get_integer(Box, "Inbound");
+	TrafficStats->m_Outbound = safe_get_integer(Box, "Outbound");
 
 	RETURN(CTrafficStats *, TrafficStats);
 }

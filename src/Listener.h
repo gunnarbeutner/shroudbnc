@@ -108,7 +108,7 @@ public:
 	 *
 	 * @param Box the box which is being used for storing the listener
 	 */
-	static RESULT<InheritedClass *> Thaw(box_t Box, CCore *Owner) {
+	static RESULT<InheritedClass *> Thaw(safe_box_t Box, CCore *Owner) {
 		InheritedClass *Listener = new InheritedClass();
 
 		CHECK_ALLOC_RESULT(Listener, new) {
@@ -218,7 +218,7 @@ public:
 		safe_ioctlsocket(Client, FIONBIO, &lTrue);
 
 		// destruction is controlled by the main loop
-		ClientObject = new CClientConnection(Client, m_SSL);
+		ClientObject = new CClientConnection(Client, NULL, m_SSL);
 	}
 
 	/**

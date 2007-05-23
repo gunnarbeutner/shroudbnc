@@ -1598,7 +1598,7 @@ void CIRCConnection::Destroy(void) {
  * @param Box the box
  * @param Owner the owner of the IRC connection
  */
-RESULT<CIRCConnection *> CIRCConnection::Thaw(box_t Box, CUser *Owner) {
+RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	CAssocArray *TempBox;

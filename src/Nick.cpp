@@ -27,10 +27,12 @@
  * @param Nick the nickname of the user
  * @param Owner the owning channel of this nick object
  */
-CNick::CNick(const char *Nick, CChannel *Owner) {
+CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
 	assert(Nick != NULL);
 
 	SetOwner(Owner);
+
+	m_Box = Box;
 
 	m_Nick = ustrdup(Nick);
 
@@ -43,6 +45,11 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
 
 	m_Creation = g_CurrentTime;
 	m_IdleSince = m_Creation;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "CreationTimestamp", m_Creation);
+		safe_put_integer(m_Box, "IdleTimestamp", m_IdleSince);
+	}
 }
 
 /**
@@ -83,6 +90,10 @@ bool CNick::SetNick(const char *Nick) {
 
 	ufree(m_Nick);
 	m_Nick = NewNick;
+
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Nick", Nick);
+	}
 
 	return true;
 }
@@ -159,6 +170,10 @@ bool CNick::AddPrefix(char Prefix) {
 	m_Prefixes[LengthPrefixes] = Prefix;
 	m_Prefixes[LengthPrefixes + 1] = '\0';
 
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	}
+
 	return true;
 }
 
@@ -196,6 +211,10 @@ bool CNick::RemovePrefix(char Prefix) {
 	ufree(m_Prefixes);
 	m_Prefixes = Copy;
 
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	}
+
 	return true;
 }
 
@@ -221,6 +240,10 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 
 	ufree(m_Prefixes);
 	m_Prefixes = dupPrefixes;
+
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	}
 
 	return true;
 }
@@ -272,6 +295,10 @@ const char *CNick::GetPrefixes(void) const {
  * @param Site the user's new site
  */
 bool CNick::SetSite(const char *Site) {
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Site", Site);
+	}
+
 	IMPL_NICKSET(m_Site, Site, false);
 }
 
@@ -283,6 +310,10 @@ bool CNick::SetSite(const char *Site) {
  * @param Realname the new realname
  */
 bool CNick::SetRealname(const char *Realname) {
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Realname", Realname);
+	}
+
 	IMPL_NICKSET(m_Realname, Realname, true);
 }
 
@@ -294,6 +325,10 @@ bool CNick::SetRealname(const char *Realname) {
  * @param Server the server which the user is using
  */
 bool CNick::SetServer(const char *Server) {
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Server", Server);
+	}
+
 	IMPL_NICKSET(m_Server, Server, true);
 }
 
@@ -421,6 +456,10 @@ time_t CNick::GetIdleSince(void) const {
 bool CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
 
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "IdleTimestamp", Time);
+	}
+
 	return true;
 }
 
@@ -495,29 +534,29 @@ bool CNick::SetTag(const char *Name, const char *Value) {
  *
  * @param Box the box
  */
-RESULT<CNick *> CNick::Thaw(box_t Box, CChannel *Owner) {
+RESULT<CNick *> CNick::Thaw(safe_box_t Box, CChannel *Owner) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;
 
-	Name = Box->ReadString("~nick.nick");
+	Name = safe_get_string(Box, "Nick");
 
 	if (Name == NULL) {
 		THROW(CNick *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
 	}
 
-	Nick = new CNick(Name, Owner);
+	Nick = new CNick(Name, Owner, Box);
 
 	CHECK_ALLOC_RESULT(Nick, new) {
 		THROW(CNick *, Generic_OutOfMemory, "new operator failed");
 	} CHECK_ALLOC_RESULT_END;
 
-	Nick->SetPrefixes(Box->ReadString("~nick.prefixes"));
-	Nick->SetSite(Box->ReadString("~nick.site"));
-	Nick->SetRealname(Box->ReadString("~nick.realname"));
-	Nick->SetServer(Box->ReadString("~nick.server"));
-	Nick->m_Creation = Box->ReadInteger("~nick.creation");
-	Nick->m_IdleSince = Box->ReadInteger("~nick.idlets");
+	Nick->SetPrefixes(safe_get_string(Box, "Prefixes"));
+	Nick->SetSite(safe_get_string(Box, "Site"));
+	Nick->SetRealname(safe_get_string(Box, "Realname"));
+	Nick->SetServer(safe_get_string(Box, "Server"));
+	Nick->m_Creation = safe_get_integer(Box, "CreationTimestamp");
+	Nick->m_IdleSince = safe_get_integer(Box, "IdleTimestamp");
 
 	// TODO: Thaw nicktags
 //	Tags = ThawObject<CConfig>(Box, "~nick.tags");

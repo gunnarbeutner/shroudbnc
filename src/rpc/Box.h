@@ -26,7 +26,7 @@ struct box_s;
 typedef struct element_s {
 	int Type;
 
-	char Name[32];
+	char *Name;
 
 	union {
 		int ValueInteger;
@@ -39,6 +39,8 @@ typedef struct element_s {
 } element_t;
 
 typedef struct box_s {
+	struct box_s *Parent;
+	char *Name;
 	element_t *First;
 	element_t *Last;
 } *box_t;
@@ -52,3 +54,7 @@ const char *Box_get_string(box_t Parent, const char *Name);
 int Box_get_integer(box_t Parent, const char *Name);
 box_t Box_get_box(box_t Parent, const char *Name);
 int Box_enumerate(box_t Parent, element_t **Previous, char *Name, int Len);
+int Box_rename(box_t Parent, const char *OldName, const char *NewName);
+box_t Box_get_parent(box_t Box);
+const char *Box_get_name(box_t Box);
+int Box_move(box_t NewParent, box_t Box, const char *NewName);

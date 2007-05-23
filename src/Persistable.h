@@ -26,8 +26,8 @@
  * @param Name the object's name in that container
  */
 template <typename Type, typename OwnerType>
-RESULT<Type *> ThawObject(box_t Container, const char *Name, OwnerType *Owner) {
-	box_t ObjectBox;
+RESULT<Type *> ThawObject(safe_box_t Container, const char *Name, OwnerType *Owner) {
+	safe_box_t ObjectBox;
 
 	if (Container == NULL || Name == NULL) {
 		THROW(Type *, Generic_InvalidArgument, "Container and/or Name cannot be NULL.");

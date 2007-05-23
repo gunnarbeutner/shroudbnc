@@ -27,11 +27,17 @@
  * @param Name the name of the channel
  * @param Owner the owner of the channel object
  */
-CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
+CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
+	safe_box_t BanlistBox;
+
 	SetOwner(Owner);
+
+	m_Box = Box;
 
 	m_Name = ustrdup(Name);
 	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
+
+	safe_put_string(m_Box, "Channel", Name);
 
 	m_Timestamp = g_CurrentTime;
 	m_Creation = 0;
@@ -48,7 +54,13 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	m_Banlist = unew CBanlist(this);
+	if (m_Box != NULL) {
+		BanlistBox = safe_put_box(m_Box, "Banlist");
+	} else {
+		BanlistBox = NULL;
+	}
+
+	m_Banlist = unew CBanlist(this, BanlistBox);
 }
 
 /**
@@ -305,6 +317,10 @@ time_t CChannel::GetCreationTime(void) const {
  */
 void CChannel::SetCreationTime(time_t Time) {
 	m_Creation = Time;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "CreationTimestamp", Time);
+	}
 }
 
 /**
@@ -335,6 +351,11 @@ void CChannel::SetTopic(const char *Topic) {
 	ufree(m_Topic);
 	m_Topic = NewTopic;
 	m_HasTopic = 1;
+
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "Topic", Topic);
+		safe_put_integer(m_Box, "HasTopic", 1);
+	}
 }
 
 /**
@@ -365,6 +386,11 @@ void CChannel::SetTopicNick(const char *Nick) {
 	ufree(m_TopicNick);
 	m_TopicNick = NewTopicNick;
 	m_HasTopic = 1;
+
+	if (m_Box != NULL) {
+		safe_put_string(m_Box, "TopicNick", Nick);
+		safe_put_integer(m_Box, "HasTopic", 1);
+	}
 }
 
 /**
@@ -386,6 +412,11 @@ time_t CChannel::GetTopicStamp(void) const {
 void CChannel::SetTopicStamp(time_t Timestamp) {
 	m_TopicStamp = Timestamp;
 	m_HasTopic = 1;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "TopicTimestamp", Timestamp);
+		safe_put_integer(m_Box, "HasTopic", 1);
+	}
 }
 
 /**
@@ -404,6 +435,10 @@ int CChannel::HasTopic(void) const {
  */
 void CChannel::SetNoTopic(void) {
 	m_HasTopic = -1;
+
+	if (m_Box != NULL) {
+		safe_put_integer(m_Box, "HasTopic", -1);
+	}
 }
 
 /**
@@ -416,12 +451,25 @@ void CChannel::SetNoTopic(void) {
  */
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
+	safe_box_t NicksBox, NickBox = NULL;
 
 	if (GetUser()->GetLeanMode() > 1) {
 		return;
 	}
 
-	NickObj = unew CNick(Nick, this);
+	if (m_Box != NULL) {
+		NicksBox = safe_get_box(m_Box, "Nicks");
+
+		if (NicksBox == NULL) {
+			NicksBox = safe_put_box(m_Box, "Nicks");
+		}
+
+		if (NicksBox != NULL) {
+			NickBox = safe_put_box(NicksBox, Nick);
+		}
+	}
+
+	NickObj = unew CNick(Nick, this, NickBox);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
 		m_HasNames = false;
@@ -443,6 +491,14 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
  */
 void CChannel::RemoveUser(const char *Nick) {
 	m_Nicks.Remove(Nick);
+	
+	if (m_Box != NULL) {
+		safe_box_t NicksBox = safe_get_box(m_Box, "Nicks");
+
+		if (NicksBox != NULL) {
+			safe_remove(NicksBox, Nick);
+		}
+	}
 }
 
 /**
@@ -463,6 +519,15 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 	}
 
 	m_Nicks.Remove(Nick, true);
+
+	if (m_Box != NULL) {
+		safe_box_t NicksBox = safe_get_box(m_Box, "Nicks");
+
+		if (NicksBox != NULL) {
+			safe_rename(NicksBox, Nick, NewNick);
+		}
+	}
+
 	NickObj->SetNick(NewNick);
 	m_Nicks.Add(NewNick, NickObj);
 }
@@ -643,45 +708,46 @@ time_t CChannel::GetJoinTimestamp(void) const {
  *
  * @param Box the box used for storing the channel object
  */
-RESULT<CChannel *> CChannel::Thaw(box_t Box, CIRCConnection *Owner) {
-	CAssocArray *NicksBox;
+RESULT<CChannel *> CChannel::Thaw(safe_box_t Box, CIRCConnection *Owner) {
+	safe_box_t NicksBox;
+	safe_element_t *Previous = NULL;
 	RESULT<CBanlist *> Banlist;
 	CChannel *Channel;
 	const char *Name, *Temp;
+	char NickIdx[256];
 	unsigned int i = 0;
-	char *Index;
 
 	if (Box == NULL) {
 		THROW(CChannel *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	Name = Box->ReadString("~channel.name");
+	Name = safe_get_string(Box, "Channel");
 
 	if (Name == NULL) {
 		THROW(CChannel *, Generic_Unknown, "Persistent data is invalid: Missing channelname.");
 	}
 
-	Channel = new CChannel(Name, Owner);
+	Channel = new CChannel(Name, Owner, Box);
 
-	Channel->m_Creation = Box->ReadInteger("~channel.ts");
+	Channel->m_Creation = safe_get_integer(Box, "CreationTimestamp");
 
-	Temp = Box->ReadString("~channel.topic");
+	Temp = safe_get_string(Box, "Topic");
 
 	if (Temp != NULL) {
 		Channel->m_Topic = nstrdup(Temp);
 	}
 
-	Temp = Box->ReadString("~channel.topicnick");
+	Temp = safe_get_string(Box, "TopicNick");
 
 	if (Temp != NULL) {
 		Channel->m_TopicNick = nstrdup(Temp);
 	}
 
-	Channel->m_TopicStamp = Box->ReadInteger("~channel.topicts");
+	Channel->m_TopicStamp = safe_get_integer(Box, "TopicTimestamp");
 
-	Channel->m_HasTopic = Box->ReadInteger("~channel.hastopic");
+	Channel->m_HasTopic = safe_get_integer(Box, "HasTopic");
 
-	Banlist = ThawObject<CBanlist>(Box, "~channel.banlist", Channel);
+	Banlist = ThawObject<CBanlist>(Box, "Banlist", Channel);
 
 	if (!IsError(Banlist)) {
 		delete Channel->m_Banlist;
@@ -689,26 +755,16 @@ RESULT<CChannel *> CChannel::Thaw(box_t Box, CIRCConnection *Owner) {
 		Channel->m_Banlist = Banlist;
 	}
 
-	NicksBox = Box->ReadBox("~channel.nicks");
+	NicksBox = safe_get_box(Box, "Nick");
 
-	while (true) {
-		asprintf(&Index, "%d", i);
-
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(CChannel *, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-
-		CNick *Nick = ThawObject<CNick>(NicksBox, Index, Channel);
+	while (safe_enumerate(NicksBox, &Previous, NickIdx, sizeof(NickIdx)) != -1) {
+		CNick *Nick = ThawObject<CNick>(NicksBox, NickIdx, Channel);
 
 		if (Nick == NULL) {
 			break;
 		}
 
 		Channel->m_Nicks.Add(Nick->GetNick(), Nick);
-
-		free(Index);
-
-		i++;
 	}
 
 	RETURN(CChannel *, Channel);

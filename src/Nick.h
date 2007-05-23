@@ -47,16 +47,17 @@ class SBNCAPI CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick,
 	time_t m_Creation; /**< a timestamp, when this user object was created */
 	time_t m_IdleSince; /**< a timestamp, when the user last said something */
 	CVector<nicktag_t> m_Tags; /**< any tags which belong to this nick object */
+	safe_box_t m_Box; /**< box */
 
 	const char *InternalGetSite(void) const;
 	const char *InternalGetRealname(void) const;
 	const char *InternalGetServer(void) const;
 public:
 #ifndef SWIG
-	CNick(const char *Nick, CChannel *Owner);
+	CNick(const char *Nick, CChannel *Owner, safe_box_t Box);
 	virtual ~CNick(void);
 
-	static RESULT<CNick *> Thaw(box_t Box, CChannel *Owner);
+	static RESULT<CNick *> Thaw(safe_box_t Box, CChannel *Owner);
 #endif
 
 	bool SetNick(const char *Nick);

@@ -58,6 +58,7 @@ private:
 	char *m_QuitReason; /**< reason why the client was removed */
 	CTimer* m_PingTimer; /**< timer for sending regular PINGs to the client */
 	time_t m_LastResponse; /**< last response from the client */
+	safe_box_t m_Box; /**< box */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
@@ -80,14 +81,14 @@ private:
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
-	CClientConnection(void);
+	CClientConnection(safe_box_t Box);
 
 public:
 #ifndef SWIG
-	CClientConnection(SOCKET Socket, bool SSL = false);
+	CClientConnection(SOCKET Socket, safe_box_t Box, bool SSL = false);
 	virtual ~CClientConnection(void);
 
-	static RESULT<CClientConnection *> Thaw(box_t Box, CUser *Owner);
+	static RESULT<CClientConnection *> Thaw(safe_box_t Box, CUser *Owner);
 #endif
 
 	virtual void ParseLine(const char *Line);

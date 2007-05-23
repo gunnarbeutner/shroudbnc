@@ -29,7 +29,7 @@ IMPL_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient)
  * @param Client the client socket
  * @param SSL whether to use SSL
  */
-CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Client, SSL, Role_Server) {
+CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : CConnection(Client, SSL, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
@@ -39,6 +39,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
 	m_QuitReason = NULL;
+	m_Box = Box;
 
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
 		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
@@ -76,7 +77,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
  * Constructs a new client connection object. This constructor should
  * only be used by ThawObject().
  */
-CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, Role_Server) {
+CClientConnection::CClientConnection(safe_box_t Box) : CConnection(INVALID_SOCKET, false, Role_Server) {
 	m_Nick = NULL;
 	m_Password = NULL;
 	m_Username = NULL;
@@ -87,6 +88,7 @@ CClientConnection::CClientConnection(void) : CConnection(INVALID_SOCKET, false, 
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
 	m_QuitReason = NULL;
+	m_Box = Box;
 	m_PingTimer = new CTimer(45, true, ClientPingTimer, this); 
 }
 
@@ -2347,7 +2349,7 @@ void CClientConnection::WriteUnformattedLine(const char *Line) {
  * @param Box the box which was used for storing the connection object
  * @param Owner the user
  */
-RESULT<CClientConnection *> CClientConnection::Thaw(box_t Box, CUser *Owner) {
+RESULT<CClientConnection *> CClientConnection::Thaw(safe_box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;
@@ -2356,18 +2358,18 @@ RESULT<CClientConnection *> CClientConnection::Thaw(box_t Box, CUser *Owner) {
 		THROW(CClientConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	Socket = Box->ReadInteger("~client.fd");
+	Socket = safe_get_integer(Box, "Socket");
 
 	if (Socket == INVALID_SOCKET) {
 		RETURN(CClientConnection *, NULL);
 	}
 
-	Client = new CClientConnection();
+	Client = new CClientConnection(Box);
 
 	Client->SetOwner(Owner);
 	Client->SetSocket(Socket);
 
-	Temp = Box->ReadString("~client.peername");
+	Temp = safe_get_string(Box, "PeerName");
 
 	if (Temp != NULL) {
 		Client->m_PeerName = nstrdup(Temp);
@@ -2379,7 +2381,7 @@ RESULT<CClientConnection *> CClientConnection::Thaw(box_t Box, CUser *Owner) {
 		}
 	}
 
-	Temp = Box->ReadString("~client.nick");
+	Temp = safe_get_string(Box, "Nick");
 
 	if (Temp != NULL) {
 		Client->m_Nick = nstrdup(Temp);

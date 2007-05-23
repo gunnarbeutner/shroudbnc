@@ -72,6 +72,11 @@ bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue);
+bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue);
+
 bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue);
 #endif
 
@@ -113,6 +118,11 @@ extern "C" {
 	int RPCAPI safe_get_integer(safe_box_t Parent, const char *Name);
 	safe_box_t RPCAPI safe_get_box(safe_box_t Parent, const char *Name);
 	int RPCAPI safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int Len);
+	int RPCAPI safe_rename(safe_box_t Parent, const char *OldName, const char *NewName);
+	safe_box_t RPCAPI safe_get_parent(safe_box_t Box);
+	const char RPCAPI *safe_get_name(safe_box_t Box);
+	int RPCAPI safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName);
+
 	void RPCAPI safe_exit(int ExitCode);
 
 	int RPCAPI safe_printf(const char *Format, ...);

@@ -77,6 +77,10 @@ static struct {
 	{ Function_safe_get_integer,	2,	RpcFunc_get_integer	},
 	{ Function_safe_get_box,		2,	RpcFunc_get_box		},
 	{ Function_safe_enumerate,		4,	RpcFunc_enumerate	},
+	{ Function_safe_rename,			3,	RpcFunc_rename		},
+	{ Function_safe_get_parent,		1,	RpcFunc_get_parent	},
+	{ Function_safe_get_name,		1,	RpcFunc_get_name	},
+	{ Function_move,				3,	RpcFunc_move		},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
 #endif

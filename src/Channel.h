@@ -65,15 +65,17 @@ private:
 	CBanlist *m_Banlist; /**< a list of bans for this channel */
 	bool m_HasBans; /**< indicates whether the banlist is known */
 
+	safe_box_t m_Box; /**< box */
+
 	chanmode_t *AllocSlot(void);
 	chanmode_t *FindSlot(char Mode);
 
 public:
 #ifndef SWIG
-	CChannel(const char *Name, CIRCConnection *Owner);
+	CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box);
 	virtual ~CChannel(void);
 
-	static RESULT<CChannel *> Thaw(box_t Box, CIRCConnection *Owner);
+	static RESULT<CChannel *> Thaw(safe_box_t Box, CIRCConnection *Owner);
 #endif
 
 	const char *GetName(void) const;

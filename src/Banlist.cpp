@@ -36,9 +36,10 @@ void DestroyBan(ban_t *Ban) {
  *
  * Constructs an empty banlist.
  */
-CBanlist::CBanlist(CChannel *Owner) {
+CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
 	SetOwner(Owner);
 
+	m_Box = Box;
 	m_Bans.RegisterValueDestructor(DestroyBan);
 }
 
@@ -53,6 +54,9 @@ CBanlist::CBanlist(CChannel *Owner) {
  */
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
+	safe_box_t BanBox;
+
+	UnsetBan(Mask);
 
 	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
@@ -68,6 +72,12 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
 	Ban->Nick = ustrdup(Nick);
 	Ban->Timestamp = Timestamp;
 
+	if (m_Box != NULL) {
+		BanBox = safe_put_box(m_Box, Mask);
+		safe_put_string(BanBox, "Nick", Nick);
+		safe_put_integer(BanBox, "Timestamp", Timestamp);
+	}
+
 	return m_Bans.Add(Mask, Ban);
 }
 
@@ -80,6 +90,10 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
  */
 RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
+		if (m_Box != NULL) {
+			safe_remove(m_Box, Mask);
+		}
+
 		return m_Bans.Remove(Mask);
 	} else {
 		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
@@ -115,59 +129,35 @@ const ban_t *CBanlist::GetBan(const char *Mask) const {
  *
  * @param Box the box
  */
-RESULT<CBanlist *> CBanlist::Thaw(box_t Box, CChannel *Owner) {
+RESULT<CBanlist *> CBanlist::Thaw(safe_box_t Box, CChannel *Owner) {
 	CBanlist *Banlist;
-	char *Index;
-	const char *Mask, *Nick;
+	safe_element_t *Previous = NULL;
+	safe_box_t BanBox;
+	char Mask[256];
+	const char *Nick;
 	time_t Timestamp;
-	unsigned int i = 0;
 
 	if (Box == NULL) {
 		THROW(CBanlist *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	Banlist = new CBanlist(Owner);
+	Banlist = new CBanlist(Owner, Box);
 
 	CHECK_ALLOC_RESULT(Banlist, new) {
 		THROW(CBanlist *, Generic_OutOfMemory, "new operator failed.");
 	} CHECK_ALLOC_RESULT_END;
 
-	while (true) {
-		asprintf(&Index, "%d.mask", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			delete Banlist;
-			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Mask = Box->ReadString(Index);
-		free(Index);
+	while (safe_enumerate(Box, &Previous, Mask, sizeof(Mask)) != -1) {
+		BanBox = safe_get_box(Box, Mask);
 
-		if (Mask == NULL) {
-			break;
+		if (BanBox == NULL) {
+			continue;
 		}
 
-		asprintf(&Index, "%d.nick", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			delete Banlist;
-			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Nick = Box->ReadString(Index);
-		free(Index);
-
-		if (Nick == NULL) {
-			break;
-		}
-
-		asprintf(&Index, "%d.ts", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			delete Banlist;
-			THROW(CBanlist *, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Timestamp = Box->ReadInteger(Index);
-		free(Index);
+		Timestamp = safe_get_integer(BanBox, "Timestamp");
+		Nick = safe_get_string(BanBox, "Nick");
 
 		Banlist->SetBan(Mask, Nick, Timestamp);
-
-		i++;
 	}
 
 	RETURN(CBanlist *, Banlist);

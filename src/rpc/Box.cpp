@@ -25,8 +25,9 @@ static box_t g_RootBox;
 
 static box_t Box_alloc(void);
 static void Box_free(box_t Box);
-static void Box_free_element(element_t *Element);
+static void Box_free_element(element_t *Element, int OnlyName = 0);
 static int Box_put(box_t Parent, element_t Element);
+static int Box_remove_internal(box_t Parent, const char *Name, int Free = 1);
 static element_t *Box_get(box_t Parent, const char *Name);
 
 static box_t Box_alloc(void) {
@@ -38,6 +39,7 @@ static box_t Box_alloc(void) {
 		return NULL;
 	}
 
+	Box->Parent = NULL;
 	Box->First = NULL;
 	Box->Last = NULL;
 
@@ -67,7 +69,13 @@ static void Box_free(box_t Box) {
 	free(Box);
 }
 
-static void Box_free_element(element_t *Element) {
+static void Box_free_element(element_t *Element, int OnlyName) {
+	free(Element->Name);
+
+	if (OnlyName) {
+		return;
+	}
+
 	if (Element->Type == TYPE_STRING) {
 		free(Element->ValueString);
 	} else if (Element->Type == TYPE_BOX) {
@@ -111,6 +119,44 @@ static int Box_put(box_t Parent, element_t Element) {
 
 	Parent->Last = NewElement;
 
+	if (Element.Type == TYPE_BOX) {
+		Element.ValueBox->Parent = Parent;
+	}
+
+	return 0;
+}
+
+static int Box_remove_internal(box_t Parent, const char *Name, int Free) {
+	element_t *Element;
+
+	if (Parent == NULL) {
+		if (g_RootBox == NULL) {
+			return 0;
+		}
+
+		Parent = g_RootBox;
+	}
+
+	Element = Box_get(Parent, Name);
+
+	if (Element == NULL) {
+		return 0;
+	}
+
+	if (Element->Previous != NULL) {
+		Element->Previous->Next = NULL;
+	} else {
+		Parent->First = Element->Next;
+	}
+
+	if (Element->Next != NULL) {
+		Element->Next->Previous = NULL;
+	} else {
+		Parent->Last = Element->Previous;
+	}
+
+	Box_free_element(Element, !Free);
+
 	return 0;
 }
 
@@ -143,8 +189,7 @@ int Box_put_string(box_t Parent, const char *Name, const char *Value) {
 
 	Element.Type = TYPE_STRING;
 
-	strncpy(Element.Name, Name, sizeof(Element.Name));
-	Element.Name[sizeof(Element.Name) - 1] = '\0';
+	Element.Name = strdup(Name);
 
 	if (Element.Name == NULL) {
 		return -1;
@@ -172,8 +217,7 @@ int Box_put_integer(box_t Parent, const char *Name, int Value){
 
 	Element.Type = TYPE_INTEGER;
 
-	strncpy(Element.Name, Name, sizeof(Element.Name));
-	Element.Name[sizeof(Element.Name) - 1] = '\0';
+	Element.Name = strdup(Name);
 
 	if (Element.Name == NULL) {
 		return -1;
@@ -195,8 +239,7 @@ box_t Box_put_box(box_t Parent, const char *Name){
 
 	Element.Type = TYPE_STRING;
 
-	strncpy(Element.Name, Name, sizeof(Element.Name));
-	Element.Name[sizeof(Element.Name) - 1] = '\0';
+	Element.Name = strdup(Name);
 
 	if (Element.Name == NULL) {
 		return NULL;
@@ -220,37 +263,7 @@ box_t Box_put_box(box_t Parent, const char *Name){
 }
 
 int Box_remove(box_t Parent, const char *Name) {
-	element_t *Element;
-
-	if (Parent == NULL) {
-		if (g_RootBox == NULL) {
-			return 0;
-		}
-
-		Parent = g_RootBox;
-	}
-
-	Element = Box_get(Parent, Name);
-
-	if (Element == NULL) {
-		return 0;
-	}
-
-	if (Element->Previous != NULL) {
-		Element->Previous->Next = NULL;
-	} else {
-		Parent->First = Element->Next;
-	}
-
-	if (Element->Next != NULL) {
-		Element->Next->Previous = NULL;
-	} else {
-		Parent->Last = Element->Previous;
-	}
-
-	Box_free_element(Element);
-
-	return 0;
+	return Box_remove_internal(Parent, Name, 1);
 }
 
 const char *Box_get_string(box_t Parent, const char *Name){
@@ -318,3 +331,60 @@ int Box_enumerate(box_t Parent, element_t **Previous, char *Name, int Len) {
 
 	return 0;
 }
+
+int Box_rename(box_t Parent, const char *OldName, const char *NewName) {
+	element_t *Element;
+
+	Box_remove(Parent, NewName);
+	Element = Box_get(Parent, OldName);
+
+	if (Element != NULL) {
+		char *Temp = Element->Name;
+		Element->Name = strdup(NewName);
+
+		if (Element->Name == NULL) {
+			return -1;
+		}
+
+		free(Temp);
+	}
+
+	return 0;
+}
+
+box_t Box_get_parent(box_t Box) {
+	if (Box == NULL) {
+		return NULL;
+	} else {
+		return Box->Parent;
+	}
+}
+
+int Box_move(box_t NewParent, box_t Box, const char *NewName) {
+	element_t Element;
+
+	Box_remove_internal(NewParent, NewName, 0);
+
+	char *Temp = Box->Name;
+	Box->Name = strdup(NewName);
+
+	if (Box->Name == NULL) {
+		return -1;
+	}
+
+	free(Temp);
+
+	Element.Name = strdup(NewName);
+
+	if (Element.Name == NULL) {
+		return -1;
+	}
+
+	Element.Type = TYPE_BOX;
+	Element.Next = NULL;
+	Element.Previous = NULL;
+	Element.ValueBox = Box;
+
+	return Box_put(NewParent, Element);
+}
+

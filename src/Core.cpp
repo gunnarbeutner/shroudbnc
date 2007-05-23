@@ -1714,7 +1714,7 @@ const char *CCore::DebugImpulse(int impulse) {
  *
  * @param Box the box
  */
-bool CCore::Thaw(box_t Box) {
+bool CCore::Thaw(safe_box_t Box) {
 	CAssocArray *IRCBox, *ClientsBox;
 
 	m_Listener = ThawObject<CClientListener>(Box, "~listener", this);
