@@ -19,6 +19,9 @@
 
 #include "../StdAfx.h"
 
+// TODO: do NOT use real pointers for box_t/element_t, or at least verify that
+// they are 100% valid
+
 #ifdef RPCSERVER
 
 #include "Box.h"

@@ -64,8 +64,7 @@ public:
 	CConfigFile(const char *Filename, CUser *Owner);
 	virtual ~CConfigFile(void);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CConfigFile *> Thaw(CAssocArray *Box, CUser *Owner);
+	static RESULT<CConfigFile *> Thaw(box_t Box, CUser *Owner);
 #endif
 
 	virtual void Destroy(void);

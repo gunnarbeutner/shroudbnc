@@ -1,5 +1,3 @@
-class CAssocArray;
-
 #define STATUS_RUN 0
 #define STATUS_FREEZE 1
 #define STATUS_SHUTDOWN 2

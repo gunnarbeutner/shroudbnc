@@ -1708,57 +1708,13 @@ const char *CCore::DebugImpulse(int impulse) {
 }
 
 /**
- * Freeze
- *
- * Persists the main bouncer object.
- *
- * @param Box the box
- */
-bool CCore::Freeze(CAssocArray *Box) {
-	FreezeObject<CClientListener>(Box, "~listener", m_Listener);
-	FreezeObject<CClientListener>(Box, "~ssllistener", m_SSLListener);
-	FreezeObject<CClientListener>(Box, "~listenerv6", m_ListenerV6);
-	FreezeObject<CClientListener>(Box, "~ssllistenerv6", m_SSLListenerV6);
-
-	CAssocArray *IRCBox, *ClientsBox;
-
-	IRCBox = Box->Create();
-	Box->AddBox("~irc", IRCBox);
-
-	ClientsBox = Box->Create();
-	Box->AddBox("~clients", ClientsBox);
-
-	int i = 0;
-	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		char *Username = strdup(User->Name);
-
-		CIRCConnection *IRC = User->Value->GetIRCConnection();
-		CClientConnection *Client = User->Value->GetPrimaryClientConnection();
-
-		if (IRC != NULL) {
-			FreezeObject<CIRCConnection>(IRCBox, Username, IRC);
-		}
-
-		if (Client != NULL) {
-			FreezeObject<CClientConnection>(ClientsBox, Username, Client);
-		}
-
-		free(Username);
-	}
-
-	delete this;
-
-	return true;
-}
-
-/**
  * Thaw
  *
  * Depersists the main bouncer object.
  *
  * @param Box the box
  */
-bool CCore::Thaw(CAssocArray *Box) {
+bool CCore::Thaw(box_t Box) {
 	CAssocArray *IRCBox, *ClientsBox;
 
 	m_Listener = ThawObject<CClientListener>(Box, "~listener", this);

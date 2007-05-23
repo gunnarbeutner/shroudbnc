@@ -73,8 +73,7 @@ public:
 	CChannel(const char *Name, CIRCConnection *Owner);
 	virtual ~CChannel(void);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CChannel *> Thaw(CAssocArray *Box, CIRCConnection *Owner);
+	static RESULT<CChannel *> Thaw(box_t Box, CIRCConnection *Owner);
 #endif
 
 	const char *GetName(void) const;

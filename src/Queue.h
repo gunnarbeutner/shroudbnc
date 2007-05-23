@@ -39,8 +39,7 @@ class SBNCAPI CQueue : public CZoneObject<CQueue, 64> {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
 #ifndef SWIG
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CQueue *> Thaw(CAssocArray *Box);
+	static RESULT<CQueue *> Thaw(box_t Box);
 #endif
 
 	RESULT<char *> DequeueItem(void);

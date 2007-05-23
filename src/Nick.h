@@ -56,8 +56,7 @@ public:
 	CNick(const char *Nick, CChannel *Owner);
 	virtual ~CNick(void);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CNick *> Thaw(CAssocArray *Box, CChannel *Owner);
+	static RESULT<CNick *> Thaw(box_t Box, CChannel *Owner);
 #endif
 
 	bool SetNick(const char *Nick);

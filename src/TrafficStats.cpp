@@ -70,33 +70,13 @@ unsigned int CTrafficStats::GetOutbound(void) const {
 }
 
 /**
- * Freeze
- *
- * Persists a CTrafficStats object.
- *
- * @param Box the box
- */
-RESULT<bool> CTrafficStats::Freeze(CAssocArray *Box) {
-	if (Box == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Box->AddInteger("~traffic.in", m_Inbound);
-	Box->AddInteger("~traffic.out", m_Outbound);
-
-	delete this;
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Depersists a CTrafficStats object.
  *
  * @param Box the box
  */
-RESULT<CTrafficStats *> CTrafficStats::Thaw(CAssocArray *Box) {
+RESULT<CTrafficStats *> CTrafficStats::Thaw(box_t Box) {
 	CTrafficStats *TrafficStats;
 
 	if (Box == NULL) {

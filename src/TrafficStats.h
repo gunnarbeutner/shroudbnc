@@ -30,8 +30,7 @@ public:
 #ifndef SWIG
 	CTrafficStats(void);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CTrafficStats *> Thaw(CAssocArray *Box);
+	static RESULT<CTrafficStats *> Thaw(box_t Box);
 #endif
 
 	void AddInbound(unsigned int Bytes);

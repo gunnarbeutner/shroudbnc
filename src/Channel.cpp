@@ -637,65 +637,13 @@ time_t CChannel::GetJoinTimestamp(void) const {
 }
 
 /**
- * Freeze
- *
- * Persists the channel in a box.
- *
- * @param Box the box for storing the channel object
- */
-RESULT<bool> CChannel::Freeze(CAssocArray *Box) {
-	CAssocArray *Nicks;
-	CNick *Nick;
-	unsigned int Count, i = 0;
-	char *Index;
-	RESULT<bool> Result;
-
-	// TODO: persist channel modes
-	Box->AddString("~channel.name", m_Name);
-	Box->AddInteger("~channel.ts", m_Creation);
-	Box->AddString("~channel.topic", m_Topic);
-	Box->AddString("~channel.topicnick", m_TopicNick);
-	Box->AddInteger("~channel.topicts", m_TopicStamp);
-	Box->AddInteger("~channel.hastopic", m_HasTopic);
-
-	Result = FreezeObject<CBanlist>(Box, "~channel.banlist", m_Banlist);
-	THROWIFERROR(bool, Result);
-
-	m_Banlist = NULL;
-
-	Nicks = Box->Create();
-
-	Count = m_Nicks.GetLength();
-
-	for (i = 0; i < Count; i++) {
-		Nick = m_Nicks.Iterate(i)->Value;
-
-		asprintf(&Index, "%d", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Result = FreezeObject<CNick>(Nicks, Index, Nick);
-		THROWIFERROR(bool, Result);
-		free(Index);
-	}
-
-	m_Nicks.RegisterValueDestructor(NULL);
-
-	Box->AddBox("~channel.nicks", Nicks);
-
-	delete this;
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Depersists a channel object from a box.
  *
  * @param Box the box used for storing the channel object
  */
-RESULT<CChannel *> CChannel::Thaw(CAssocArray *Box, CIRCConnection *Owner) {
+RESULT<CChannel *> CChannel::Thaw(box_t Box, CIRCConnection *Owner) {
 	CAssocArray *NicksBox;
 	RESULT<CBanlist *> Banlist;
 	CChannel *Channel;

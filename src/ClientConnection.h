@@ -87,8 +87,7 @@ public:
 	CClientConnection(SOCKET Socket, bool SSL = false);
 	virtual ~CClientConnection(void);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CClientConnection *> Thaw(CAssocArray *Box, CUser *Owner);
+	static RESULT<CClientConnection *> Thaw(box_t Box, CUser *Owner);
 #endif
 
 	virtual void ParseLine(const char *Line);

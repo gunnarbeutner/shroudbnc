@@ -575,6 +575,10 @@
 			RelativePath=".\README"
 			>
 		</File>
+		<File
+			RelativePath=".\safe-analysis.txt"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

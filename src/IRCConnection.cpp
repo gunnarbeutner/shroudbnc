@@ -1590,86 +1590,6 @@ void CIRCConnection::Destroy(void) {
 	delete this;
 }
 
-/* TODO: persist version and other stuff */
-/**
- * Freeze
- *
- * Persists an IRC connection object.
- *
- * @param Box the box which should be used
- */
-RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
-	CAssocArray *QueueHighBox, *QueueMiddleBox, *QueueLowBox, *ISupportBox;
-
-	if (m_CurrentNick == NULL || m_Server == NULL || GetSocket() == INVALID_SOCKET || IsSSL()) {
-		THROW(bool, Generic_Unknown, "Current Nick/Server/Sock invalid or connection is using SSL.");
-	}
-
-	Box->AddString("~irc.nick", m_CurrentNick);
-	Box->AddString("~irc.server", m_Server);
-	Box->AddInteger("~irc.fd", GetSocket());
-
-	Box->AddString("~irc.serverversion", m_ServerVersion);
-	Box->AddString("~irc.serverfeat", m_ServerFeat);
-
-	ISupportBox = Box->Create();
-
-	if (m_ISupport != NULL && ISupportBox != NULL) {
-		hash_t<char *> *Bucket;
-		unsigned int i = 0;
-
-		while ((Bucket = m_ISupport->Iterate(i++)) != NULL) {
-			ISupportBox->AddString(Bucket->Name, Bucket->Value);
-		}
-
-		Box->AddBox("~irc.isupport", ISupportBox);
-	} else if (ISupportBox != NULL) {
-		ISupportBox->Destroy();
-	}
-
-	delete m_ISupport;
-	m_ISupport = NULL;
-
-	Box->AddInteger("~irc.channels", m_Channels->GetLength());
-
-	char *Out;
-	int i = 0;
-	hash_t<CChannel *> *Hash;
-
-	while ((Hash =  m_Channels->Iterate(i++)) != NULL) {
-		asprintf(&Out, "~irc.channel%d", i - 1);
-		FreezeObject<CChannel>(Box, Out, Hash->Value);
-		free(Out);
-	}
-
-	m_Channels->RegisterValueDestructor(NULL);
-	delete m_Channels;
-	m_Channels = NULL;
-
-	QueueHighBox = Box->Create();
-	m_QueueHigh->Freeze(QueueHighBox);
-	m_QueueHigh = NULL;
-	Box->AddBox("~irc.queuehigh", QueueHighBox);
-
-	QueueMiddleBox = Box->Create();
-	m_QueueMiddle->Freeze(QueueMiddleBox);
-	m_QueueMiddle = NULL;
-	Box->AddBox("~irc.queuemiddle", QueueMiddleBox);
-
-	QueueLowBox = Box->Create();
-	m_QueueLow->Freeze(QueueLowBox);
-	m_QueueLow = NULL;
-	Box->AddBox("~irc.queuelow", QueueLowBox);
-
-	// protect the socket from being closed
-	g_Bouncer->UnregisterSocket(GetSocket());
-	SetSocket(INVALID_SOCKET);
-
-	Destroy();
-
-	RETURN(bool, true);
-}
-
 /**
  * Thaw
  *
@@ -1678,7 +1598,7 @@ RESULT<bool> CIRCConnection::Freeze(CAssocArray *Box) {
  * @param Box the box
  * @param Owner the owner of the IRC connection
  */
-RESULT<CIRCConnection *> CIRCConnection::Thaw(CAssocArray *Box, CUser *Owner) {
+RESULT<CIRCConnection *> CIRCConnection::Thaw(box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	CAssocArray *TempBox;

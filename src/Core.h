@@ -29,7 +29,6 @@ class CIdentSupport;
 class CModule;
 class CConnection;
 class CTimer;
-class CAssocArray;
 class CFakeClient;
 class CConfigModule;
 struct CSocketEvents;
@@ -216,8 +215,7 @@ public:
 
 	const char *DebugImpulse(int impulse);
 
-	bool Freeze(CAssocArray *Box);
-	bool Thaw(CAssocArray *Box);
+	bool Thaw(void);
 	bool InitializeFreeze(void);
 
 	const utility_t *GetUtilities(void);

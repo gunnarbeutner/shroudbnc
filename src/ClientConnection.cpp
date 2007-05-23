@@ -107,6 +107,32 @@ CClientConnection::~CClientConnection() {
 	delete m_PingTimer;
 }
 
+void DumpTree(CClientConnection *Client, safe_box_t Root, int Indent = 0) {
+	safe_element_t *Previous = NULL;
+	char Name[32];
+	char *IndentText;
+
+	IndentText = (char *)malloc(Indent * 2);
+
+	memset(IndentText, '-', Indent * 2);
+
+	while (safe_enumerate(Root, &Previous, Name, sizeof(Name)) != -1) {
+		Client->WriteLine(":-tree!safe@mode PRIVMSG %s :%s %s", Client->GetNick(), Indent, Name);
+
+		safe_box_t Sub = safe_get_box(Root, Name);
+
+		if (Sub != NULL) {
+			DumpTree(Client, Sub, Indent + 1);
+		}
+	}
+
+	free(IndentText);
+
+	if (Indent == 0) {
+		Client->WriteLine(":-tree!safe@mode PRIVMSG %s :End of DUMPTREE.", Client->GetNick());
+	}
+}
+
 /**
  * ProcessBncCommand
  *
@@ -1487,6 +1513,10 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
+	} else if (strcasecmp(Subcommand, "dumptree") == 0 && GetOwner()->IsAdmin()) {
+		DumpTree(this, NULL);
+
+		return false;
 	}
 
 	if (NoticeUser) {
@@ -2310,32 +2340,6 @@ void CClientConnection::WriteUnformattedLine(const char *Line) {
 }
 
 /**
- * Freeze
- *
- * Persists this client connection object.
- *
- * @param Box the box which should be used for storing the persisted data
- */
-RESULT<bool> CClientConnection::Freeze(CAssocArray *Box) {
-	// too bad we can't preserve ssl encrypted connections
-	if (m_PeerName == NULL || GetSocket() == INVALID_SOCKET || IsSSL() || m_Nick == NULL) {
-		RETURN(bool, false);
-	}
-
-	Box->AddString("~client.peername", m_PeerName);
-	Box->AddString("~client.nick", m_Nick);
-	Box->AddInteger("~client.fd", GetSocket());
-
-	// protect the socket from being closed
-	g_Bouncer->UnregisterSocket(GetSocket());
-	SetSocket(INVALID_SOCKET);
-
-	Destroy();
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Depersists a client connection object.
@@ -2343,7 +2347,7 @@ RESULT<bool> CClientConnection::Freeze(CAssocArray *Box) {
  * @param Box the box which was used for storing the connection object
  * @param Owner the user
  */
-RESULT<CClientConnection *> CClientConnection::Thaw(CAssocArray *Box, CUser *Owner) {
+RESULT<CClientConnection *> CClientConnection::Thaw(box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CClientConnection *Client;
 	const char *Temp;

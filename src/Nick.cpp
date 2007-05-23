@@ -489,41 +489,13 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 }
 
 /**
- * Freeze
- *
- * Persists a nick object.
- *
- * @param Box the box which is used for storing the object's data
- */
-RESULT<bool> CNick::Freeze(CAssocArray *Box) {
-	Box->AddString("~nick.nick", m_Nick);
-	Box->AddString("~nick.prefixes", m_Prefixes);
-	Box->AddString("~nick.site", m_Site);
-	Box->AddString("~nick.realname", m_Realname);
-	Box->AddString("~nick.server", m_Server);
-	Box->AddInteger("~nick.creation", m_Creation);
-	Box->AddInteger("~nick.idlets", m_IdleSince);
-
-	// TODO: freeze nick tags
-
-//	if (m_Tags != NULL) {
-//		FreezeObject<CConfig>(Box, "~nick.tags", m_Tags);
-//		m_Tags = NULL;
-//	}
-
-	delete this;
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Creates a new nick object by reading its data from a box.
  *
  * @param Box the box
  */
-RESULT<CNick *> CNick::Thaw(CAssocArray *Box, CChannel *Owner) {
+RESULT<CNick *> CNick::Thaw(box_t Box, CChannel *Owner) {
 	const char *Name;
 	CNick *Nick;
 //	CConfig *Tags;

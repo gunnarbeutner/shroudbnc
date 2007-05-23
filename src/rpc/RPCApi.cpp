@@ -76,7 +76,7 @@ static struct {
 	{ Function_safe_get_string,		2,	RpcFunc_get_string	},
 	{ Function_safe_get_integer,	2,	RpcFunc_get_integer	},
 	{ Function_safe_get_box,		2,	RpcFunc_get_box		},
-	{ Function_safe_enumerate,		5,	RpcFunc_enumerate	},
+	{ Function_safe_enumerate,		4,	RpcFunc_enumerate	},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
 #endif

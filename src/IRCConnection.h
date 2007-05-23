@@ -35,7 +35,6 @@ class CChannel;
 class CQueue;
 class CFloodControl;
 class CTimer;
-class CAssocArray;
 
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
@@ -117,8 +116,7 @@ public:
 	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CIRCConnection *> Thaw(CAssocArray *Box, CUser *Owner);
+	static RESULT<CIRCConnection *> Thaw(box_t Box, CUser *Owner);
 #endif
 
 	CChannel *GetChannel(const char *Name);

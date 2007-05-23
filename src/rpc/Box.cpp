@@ -292,7 +292,7 @@ box_t Box_get_box(box_t Parent, const char *Name){
 int Box_enumerate(box_t Parent, element_t **Previous, char *Name, int Len) {
 	element_t *Element;
 
-	if (Previous == NULL) {
+	if (*Previous == NULL) {
 		if (Parent == NULL) {
 			if (g_RootBox == NULL) {
 				return -1;

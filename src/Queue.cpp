@@ -142,40 +142,13 @@ void CQueue::Clear(void) {
 }
 
 /**
- * Freeze
- *
- * Persists a queue.
- *
- * @param Box the box which is being used for storing the queue
- */
-RESULT<bool> CQueue::Freeze(CAssocArray *Box) {
-	unsigned int i = 0;
-	char *Line, *Index;
-
-	if (Box == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	while ((Line = DequeueItem()) != NULL) {
-		asprintf(&Index, "%d", i);
-		Box->AddString(Index, Line);
-		free(Line);
-		free(Index);
-	}
-
-	delete this;
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Depersists a queue.
  *
  * @param Box the box which is being used for storing the queue
  */
-RESULT<CQueue *> CQueue::Thaw(CAssocArray *Box) {
+RESULT<CQueue *> CQueue::Thaw(box_t Box) {
 	unsigned int i = 0;
 	char *Index;
 	const char *Line;

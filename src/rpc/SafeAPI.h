@@ -112,7 +112,7 @@ extern "C" {
 	const char RPCAPI *safe_get_string(safe_box_t Parent, const char *Name);
 	int RPCAPI safe_get_integer(safe_box_t Parent, const char *Name);
 	safe_box_t RPCAPI safe_get_box(safe_box_t Parent, const char *Name);
-	int RPCAPI safe_enumerate(safe_box_t Parent, safe_box_t *Previous, char *Name, int Len);
+	int RPCAPI safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int Len);
 	void RPCAPI safe_exit(int ExitCode);
 
 	int RPCAPI safe_printf(const char *Format, ...);

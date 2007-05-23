@@ -121,7 +121,7 @@ void mmark(void *Block);
 #endif
 
 #ifdef __cplusplus
-#	include "sbncloader/AssocArray.h"
+//#	include "sbncloader/AssocArray.h"
 
 #	include "sbnc.h"
 #	include "Result.h"

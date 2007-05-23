@@ -41,8 +41,7 @@ public:
 #ifndef SWIG
 	CBanlist(CChannel *Owner);
 
-	RESULT<bool> Freeze(CAssocArray *Box);
-	static RESULT<CBanlist *> Thaw(CAssocArray *Box, CChannel *Owner);
+	static RESULT<CBanlist *> Thaw(box_t Box, CChannel *Owner);
 #endif
 
 	RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);

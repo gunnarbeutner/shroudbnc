@@ -102,30 +102,13 @@ public:
 	}
 
 	/**
-	 * Freeze
-	 *
-	 * Persists the socket listener in a box.
-	 *
-	 * @param Box the box
-	 */
-	RESULT<bool> Freeze(CAssocArray *Box) {
-		Box->AddInteger("~listener.fd", m_Listener);
-		g_Bouncer->UnregisterSocket(m_Listener);
-		m_Listener = INVALID_SOCKET;
-
-		delete this;
-
-		RETURN(bool, true);
-	}
-
-	/**
 	 * Thaw
 	 *
 	 * Depersists a listener object.
 	 *
 	 * @param Box the box which is being used for storing the listener
 	 */
-	static RESULT<InheritedClass *> Thaw(CAssocArray *Box, CCore *Owner) {
+	static RESULT<InheritedClass *> Thaw(box_t Box, CCore *Owner) {
 		InheritedClass *Listener = new InheritedClass();
 
 		CHECK_ALLOC_RESULT(Listener, new) {

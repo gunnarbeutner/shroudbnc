@@ -109,61 +109,13 @@ const ban_t *CBanlist::GetBan(const char *Mask) const {
 }
 
 /**
- * Freeze
- *
- * Persists a banlist.
- *
- * @param Box the box which should be used for persisting the banlist
- */
-RESULT<bool> CBanlist::Freeze(CAssocArray *Box) {
-	char *Index;
-	ban_t *Ban;
-	unsigned int Count;
-
-	if (Box == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Count = m_Bans.GetLength();
-
-	for (unsigned i = 0; i < Count; i++) {
-		Ban = m_Bans.Iterate(i)->Value;
-
-		asprintf(&Index, "%d.mask", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Box->AddString(Index, Ban->Mask);
-		free(Index);
-
-		asprintf(&Index, "%d.nick", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Box->AddString(Index, Ban->Nick);
-		free(Index);
-
-		asprintf(&Index, "%d.ts", i);
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-		Box->AddInteger(Index, Ban->Timestamp);
-		free(Index);
-	}
-
-	delete this;
-
-	RETURN(bool, true);
-}
-
-/**
  * Thaw
  *
  * Depersists a banlist.
  *
  * @param Box the box
  */
-RESULT<CBanlist *> CBanlist::Thaw(CAssocArray *Box, CChannel *Owner) {
+RESULT<CBanlist *> CBanlist::Thaw(box_t Box, CChannel *Owner) {
 	CBanlist *Banlist;
 	char *Index;
 	const char *Mask, *Nick;

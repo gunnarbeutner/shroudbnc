@@ -2444,7 +2444,7 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 		return 1;
 	}
  
-	Cookie->reverse = reverse;
+	Cookie->reverse = (reverse != 0);
 	Cookie->proc = strdup(tclproc);
 	Cookie->param = param ? strdup(param) : NULL;
 	Cookie->host = strdup(host);

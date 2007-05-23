@@ -18,41 +18,6 @@
  *******************************************************************************/
 
 /**
- * FreezeObject
- *
- * Persists an object and stores the persisted data in a box.
- *
- * @param Container the container for the object's box
- * @param Name the object's name in the container
- * @param Object the object
- */
-template <typename Type>
-RESULT<bool> FreezeObject(CAssocArray *Container, const char *Name, Type *Object) {
-	CAssocArray *ObjectBox;
-	RESULT<bool> Result;
-
-	if (Container == NULL || Name == NULL || Object == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Container, Name and/or Object cannot be NULL.");
-	}
-
-	ObjectBox = Container->Create();
-
-	if (ObjectBox == NULL) {
-		THROW(bool, Generic_OutOfMemory, "Create() failed.");
-	}
-
-	Result = Object->Freeze(ObjectBox);
-
-	if (!IsError(Result)) {
-		Container->AddBox(Name, ObjectBox);
-	} else {
-		ObjectBox->Destroy();
-	}
-
-	return Result;
-}
-
-/**
  * ThawObject
  *
  * Depersists an object which is stored in a box.
@@ -61,14 +26,14 @@ RESULT<bool> FreezeObject(CAssocArray *Container, const char *Name, Type *Object
  * @param Name the object's name in that container
  */
 template <typename Type, typename OwnerType>
-RESULT<Type *> ThawObject(CAssocArray *Container, const char *Name, OwnerType *Owner) {
-	CAssocArray *ObjectBox;
+RESULT<Type *> ThawObject(box_t Container, const char *Name, OwnerType *Owner) {
+	box_t ObjectBox;
 
 	if (Container == NULL || Name == NULL) {
 		THROW(Type *, Generic_InvalidArgument, "Container and/or Name cannot be NULL.");
 	}
 
-	ObjectBox = Container->ReadBox(Name);
+	ObjectBox = safe_get_box(Container, Name);
 
 	if (ObjectBox == NULL) {
 		THROW(Type *, Generic_Unknown, "There is no such box.");
