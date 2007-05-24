@@ -121,6 +121,9 @@ typedef struct Value_s {
 #define RPC_INT(Int) RpcBuildInteger(Int)
 #define RPC_BLOCK(Ptr, Size, Flag) RpcBuildBlock(Ptr, Size, Flag)
 #define RPC_POINTER(Ptr) RpcBuildPointer(Ptr)
+#define RPC_STRING(Ptr) RpcBuildString(Ptr)
+
+#define FROM_RPC_STRING(Value) RpcStringFromValue(Value)
 
 void RpcFreeValue(Value_t Value);
 void RpcFatal(void);
@@ -129,6 +132,7 @@ void RpcFatal(void);
 int RpcInvokeClient(char *Program, PipePair_t *Pipes);
 int RpcRunServer(PipePair_t Pipes);
 int RpcProcessCall(char *Data, size_t Length, PIPE Out);
+const char *RpcStringFromValue(Value_t Value);
 #endif
 
 #ifdef RPCCLIENT
@@ -136,5 +140,6 @@ int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *A
 Value_t RpcBuildInteger(int Value);
 Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag);
 Value_t RpcBuildPointer(const void *Pointer);
+Value_t RpcBuildString(const char *Pointer);
 #endif
 #endif

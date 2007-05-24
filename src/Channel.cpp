@@ -28,16 +28,13 @@
  * @param Owner the owner of the channel object
  */
 CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
-	safe_box_t BanlistBox;
+	safe_box_t BanlistBox = NULL;
 
 	SetOwner(Owner);
-
-	m_Box = Box;
+	SetBox(Box);
 
 	m_Name = ustrdup(Name);
 	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
-
-	safe_put_string(m_Box, "Channel", Name);
 
 	m_Timestamp = g_CurrentTime;
 	m_Creation = 0;
@@ -54,10 +51,8 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	if (m_Box != NULL) {
-		BanlistBox = safe_put_box(m_Box, "Banlist");
-	} else {
-		BanlistBox = NULL;
+	if (GetBox() != NULL) {
+		BanlistBox = safe_put_box(GetBox(), "Banlist");
 	}
 
 	m_Banlist = unew CBanlist(this, BanlistBox);
@@ -318,8 +313,8 @@ time_t CChannel::GetCreationTime(void) const {
 void CChannel::SetCreationTime(time_t Time) {
 	m_Creation = Time;
 
-	if (m_Box != NULL) {
-		safe_put_integer(m_Box, "CreationTimestamp", Time);
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "CreationTimestamp", Time);
 	}
 }
 
@@ -352,9 +347,9 @@ void CChannel::SetTopic(const char *Topic) {
 	m_Topic = NewTopic;
 	m_HasTopic = 1;
 
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Topic", Topic);
-		safe_put_integer(m_Box, "HasTopic", 1);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Topic", Topic);
+		safe_put_integer(GetBox(), "HasTopic", 1);
 	}
 }
 
@@ -387,9 +382,9 @@ void CChannel::SetTopicNick(const char *Nick) {
 	m_TopicNick = NewTopicNick;
 	m_HasTopic = 1;
 
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "TopicNick", Nick);
-		safe_put_integer(m_Box, "HasTopic", 1);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "TopicNick", Nick);
+		safe_put_integer(GetBox(), "HasTopic", 1);
 	}
 }
 
@@ -413,9 +408,9 @@ void CChannel::SetTopicStamp(time_t Timestamp) {
 	m_TopicStamp = Timestamp;
 	m_HasTopic = 1;
 
-	if (m_Box != NULL) {
-		safe_put_integer(m_Box, "TopicTimestamp", Timestamp);
-		safe_put_integer(m_Box, "HasTopic", 1);
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "TopicTimestamp", Timestamp);
+		safe_put_integer(GetBox(), "HasTopic", 1);
 	}
 }
 
@@ -436,8 +431,8 @@ int CChannel::HasTopic(void) const {
 void CChannel::SetNoTopic(void) {
 	m_HasTopic = -1;
 
-	if (m_Box != NULL) {
-		safe_put_integer(m_Box, "HasTopic", -1);
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "HasTopic", -1);
 	}
 }
 
@@ -457,11 +452,11 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 		return;
 	}
 
-	if (m_Box != NULL) {
-		NicksBox = safe_get_box(m_Box, "Nicks");
+	if (GetBox() != NULL) {
+		NicksBox = safe_get_box(GetBox(), "Nicks");
 
 		if (NicksBox == NULL) {
-			NicksBox = safe_put_box(m_Box, "Nicks");
+			NicksBox = safe_put_box(GetBox(), "Nicks");
 		}
 
 		if (NicksBox != NULL) {
@@ -492,8 +487,8 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 void CChannel::RemoveUser(const char *Nick) {
 	m_Nicks.Remove(Nick);
 	
-	if (m_Box != NULL) {
-		safe_box_t NicksBox = safe_get_box(m_Box, "Nicks");
+	if (GetBox() != NULL) {
+		safe_box_t NicksBox = safe_get_box(GetBox(), "Nicks");
 
 		if (NicksBox != NULL) {
 			safe_remove(NicksBox, Nick);
@@ -520,8 +515,8 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 
 	m_Nicks.Remove(Nick, true);
 
-	if (m_Box != NULL) {
-		safe_box_t NicksBox = safe_get_box(m_Box, "Nicks");
+	if (GetBox() != NULL) {
+		safe_box_t NicksBox = safe_get_box(GetBox(), "Nicks");
 
 		if (NicksBox != NULL) {
 			safe_rename(NicksBox, Nick, NewNick);

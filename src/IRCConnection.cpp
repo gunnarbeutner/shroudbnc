@@ -68,7 +68,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 	SetRole(Role_Client);
 	SetOwner(Owner);
 
-	m_Box = Box;
+	SetBox(Box);
 
 	g_LastReconnect = g_CurrentTime;
 	m_LastResponse = g_LastReconnect;
@@ -884,13 +884,24 @@ const char *CIRCConnection::GetCurrentNick(void) const {
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CUser *User;
 	CChannel *ChannelObj;
+	safe_box_t ChannelBox = NULL;
 	bool LimitExceeded = false;
 
 	if (g_Bouncer->GetResourceLimit("channels") < m_Channels->GetLength()) {
 		LimitExceeded = true;
 		ChannelObj = NULL;
 	} else {
-		ChannelObj = unew CChannel(Channel, this);
+		safe_box_t ChannelsBox, ChannelBox = NULL;
+
+		if (GetBox() != NULL) {
+			ChannelsBox = safe_put_box(GetBox(), "Channels");
+
+			if (ChannelsBox != NULL) {
+				ChannelBox = safe_put_box(ChannelsBox, Channel);
+			}
+		}
+
+		ChannelObj = unew CChannel(Channel, this, ChannelBox);
 	}
 
 	CHECK_ALLOC_RESULT(ChannelObj, unew) {
@@ -1603,72 +1614,78 @@ void CIRCConnection::Destroy(void) {
 RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
-	CAssocArray *TempBox;
-	char *Out;
 	const char *Temp;
-	unsigned int Count;
 
 	if (Box == NULL) {
 		THROW(CIRCConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
 	}
 
-	Socket = Box->ReadInteger("~irc.fd");
+	Socket = safe_get_integer(Box, "Socket");
 
-	Connection = new CIRCConnection(Socket, Owner, false);
+	Connection = new CIRCConnection(Socket, Owner, Box, false);
 
-	Connection->m_CurrentNick = nstrdup(Box->ReadString("~irc.nick"));
-	Connection->m_Server = nstrdup(Box->ReadString("~irc.server"));
+	Temp = safe_get_string(Box, "Nick");
 
-	Temp = Box->ReadString("~irc.serverversion");
+	if (Temp != NULL) {
+		Connection->m_CurrentNick = nstrdup(Temp);
+	}
+
+	Temp = safe_get_string(Box, "Server");
+
+	if (Temp != NULL) {
+		Connection->m_Server = nstrdup(Temp);
+	}
+
+	Temp = safe_get_string(Box, "ServerVersion");
 
 	if (Temp != NULL){
 		Connection->m_ServerVersion = nstrdup(Temp);
 	}
 
-	Temp = Box->ReadString("~irc.serverfeat");
+	Temp = safe_get_string(Box, "ServerFeatures");
 
 	if (Temp != NULL) {
 		Connection->m_ServerFeat = nstrdup(Temp);
 	}
 
-	CAssocArray *ISupportBox = Box->ReadBox("~irc.isupport");
+	safe_box_t ISupportBox = safe_get_box(Box, "ISupportBox");
+	safe_element_t *Previous = NULL;
 
 	if (ISupportBox != NULL) {
-		delete Connection->m_ISupport;
+		char Name[128];
 
 		Connection->m_ISupport = new CHashtable<char *, false, 32>();
 
-		assoc_t *AssocT;
-		unsigned int i = 0;
+		while (safe_enumerate(ISupportBox, &Previous, Name, sizeof(Name)) != -1) {
+			const char *Value = safe_get_string(ISupportBox, Name);
 
-		while ((AssocT = ISupportBox->Iterate(i++)) != NULL) {
-			assert(AssocT->Type == Assoc_String);
+			if (Value == NULL) {
+				continue;
+			}
 
-			Connection->m_ISupport->Add(AssocT->Name, mstrdup(AssocT->ValueString, Owner));
+			Connection->m_ISupport->Add(Name, mstrdup(Value, Owner));
 		}
 	}
 
-	Count = Box->ReadInteger("~irc.channels");
-
 	Connection->WriteLine("VERSION");
 
-	for (unsigned int i = 0; i < Count; i++) {
-		CChannel *Channel;
+	safe_box_t ChannelsBox = safe_get_box(Box, "Channels");
 
-		asprintf(&Out, "~irc.channel%d", i);
+	if (ChannelsBox != NULL) {
+		char Name[128];
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
-			g_Bouncer->Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		Previous = NULL;
 
-		Channel = ThawObject<CChannel>(Box, Out, Connection);
+		while (safe_enumerate(ChannelsBox, &Previous, Name, sizeof(Name)) != -1) {
+			CChannel* Channel;
 
-		Connection->m_Channels->Add(Channel->GetName(), Channel);
+			Channel = ThawObject<CChannel>(ChannelsBox, Name, Connection);
 
-		free(Out);
+			Connection->m_Channels->Add(Channel->GetName(), Channel);
+		}
 	}
 
-	delete Connection->m_FloodControl;
+/*	delete Connection->m_FloodControl;
 
 	Connection->m_FloodControl = new CFloodControl();
 
@@ -1700,7 +1717,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 		Connection->m_QueueLow = CQueue::Thaw(TempBox);
 	}
 
-	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);
+	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);*/
 
 	RETURN(CIRCConnection *, Connection);
 }

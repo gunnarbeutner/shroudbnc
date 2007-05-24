@@ -87,8 +87,6 @@ private:
 
 	bool m_EatPong; /**< whether to ignore the next PONG event from the IRC server */
 
-	safe_box_t m_Box;
-
 	CChannel *AddChannel(const char *Channel);
 	void RemoveChannel(const char *Channel);
 

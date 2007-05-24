@@ -36,7 +36,7 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 	FILE *ClientCert;
 	safe_box_t TrafficClientStatsBox = NULL, TrafficIRCStatsBox = NULL;
 
-	m_Box = Box;
+	SetBox(Box);
 
 	m_ManagedMemory = 0;
 	m_MemoryManager = NULL;
@@ -85,9 +85,9 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	if (m_Box != NULL) {
-		TrafficClientStatsBox = safe_put_box(m_Box, "TrafficClientStats");
-		TrafficIRCStatsBox = safe_put_box(m_Box, "TrafficIRCStats");
+	if (GetBox() != NULL) {
+		TrafficClientStatsBox = safe_put_box(GetBox(), "TrafficClientStats");
+		TrafficIRCStatsBox = safe_put_box(GetBox(), "TrafficIRCStats");
 	}
 
 	m_ClientStats = new CTrafficStats(TrafficClientStatsBox);
@@ -589,6 +589,7 @@ bool CUser::IsRegisteredClientConnection(CClientConnection *Client) {
 void CUser::Reconnect(void) {
 	const char *Server;
 	int Port;
+	safe_box_t IRCBox = NULL;
 
 	if (m_IRC != NULL) {
 		m_IRC->Kill("Reconnecting.");
@@ -629,7 +630,11 @@ void CUser::Reconnect(void) {
 		g_Bouncer->SetIdent(m_Name);
 	}
 
-	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
+	if (GetBox() != NULL) {
+		IRCBox = safe_put_box(GetBox(), "IRC");
+	}
+
+	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, IRCBox, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
 	CHECK_ALLOC_RESULT(Connection, new) {
 		return;
@@ -885,6 +890,18 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	}
 
 	m_PrimaryClient = Client;
+
+	if (GetBox() != NULL) {
+		safe_box_t ClientsBox = safe_get_box(GetBox(), "Clients");
+
+		if (ClientsBox == NULL) {
+			ClientsBox = safe_put_box(GetBox(), "Clients");
+		}
+
+		if (ClientsBox != NULL) {
+			safe_move(ClientsBox, Client->GetBox(), NULL);
+		}
+	}
 
 	Client->SetTrafficStats(m_ClientStats);
 

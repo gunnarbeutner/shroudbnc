@@ -46,6 +46,7 @@ public:
  * Base class for CObject.
  */
 class SBNCAPI CObjectBase {
+private:
 	enum ObjectType_e {
 		eUser,
 		eObject
@@ -100,11 +101,11 @@ public:
  * Base class for all ownable objects.
  */
 template<typename ObjectType, typename OwnerType>
-class SBNCAPI CObject : public CObjectBase {
+class SBNCAPI CObject : public CObjectBase, public CPersistable {
 protected:
-	CObject(void) : CObjectBase() {	}
+	CObject(void) : CObjectBase(), CPersistable() {}
 
-	CObject(OwnerType *Owner) {
+	CObject(OwnerType *Owner) : CObjectBase(), CPersistable() {
 		SetOwner(Owner);
 	}
 

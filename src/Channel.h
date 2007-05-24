@@ -65,8 +65,6 @@ private:
 	CBanlist *m_Banlist; /**< a list of bans for this channel */
 	bool m_HasBans; /**< indicates whether the banlist is known */
 
-	safe_box_t m_Box; /**< box */
-
 	chanmode_t *AllocSlot(void);
 	chanmode_t *FindSlot(char Mode);
 

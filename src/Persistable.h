@@ -18,6 +18,39 @@
  *******************************************************************************/
 
 /**
+ * CPersistable
+ *
+ * Base class for persistable objects.
+ */
+class SBNCAPI CPersistable {
+private:
+	safe_box_t m_Box;
+
+protected:
+	void SetBox(safe_box_t Box) {
+		m_Box = Box;
+	}
+
+public:
+	CPersistable(void) {
+		m_Box = NULL;
+	}
+
+	~CPersistable(void) {
+		if (m_Box != NULL) {
+			safe_box_t Parent = safe_get_parent(m_Box);
+			const char *Name = safe_get_name(m_Box);
+
+			safe_remove(Parent, Name);
+		}
+	}
+
+	safe_box_t GetBox(void) {
+		return m_Box;
+	}
+};
+
+/**
  * ThawObject
  *
  * Depersists an object which is stored in a box.

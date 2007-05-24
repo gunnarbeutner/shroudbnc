@@ -2448,7 +2448,7 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 	Cookie->proc = strdup(tclproc);
 	Cookie->param = param ? strdup(param) : NULL;
 	Cookie->host = strdup(host);
-	Cookie->ipv6 = ipv6;
+	Cookie->ipv6 = (ipv6 != 0);
  
 	int af;
  

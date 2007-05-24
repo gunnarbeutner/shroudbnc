@@ -38,8 +38,8 @@ void DestroyBan(ban_t *Ban) {
  */
 CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
 	SetOwner(Owner);
+	SetBox(Box);
 
-	m_Box = Box;
 	m_Bans.RegisterValueDestructor(DestroyBan);
 }
 
@@ -72,8 +72,8 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
 	Ban->Nick = ustrdup(Nick);
 	Ban->Timestamp = Timestamp;
 
-	if (m_Box != NULL) {
-		BanBox = safe_put_box(m_Box, Mask);
+	if (GetBox() != NULL) {
+		BanBox = safe_put_box(GetBox(), Mask);
 		safe_put_string(BanBox, "Nick", Nick);
 		safe_put_integer(BanBox, "Timestamp", Timestamp);
 	}
@@ -90,8 +90,8 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
  */
 RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
-		if (m_Box != NULL) {
-			safe_remove(m_Box, Mask);
+		if (GetBox() != NULL) {
+			safe_remove(GetBox(), Mask);
 		}
 
 		return m_Bans.Remove(Mask);

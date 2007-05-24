@@ -526,11 +526,11 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block || Arguments[2].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_put_string((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block, (const char *)Arguments[2].Block);
+	Result = Box_put_string((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]), FROM_RPC_STRING(Arguments[2]));
 
 	g_RpcErrno = errno;
 
@@ -544,11 +544,11 @@ bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block || Arguments[2].Type != Integer) {
+	if (Arguments[0].Type != Pointer || Arguments[2].Type != Integer) {
 		return false;
 	}
 
-	Result = Box_put_integer((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block, Arguments[2].Integer);
+	Result = Box_put_integer((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]), Arguments[2].Integer);
 
 	g_RpcErrno = errno;
 
@@ -562,11 +562,11 @@ bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_put_box((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block);
+	Result = Box_put_box((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]));
 
 	g_RpcErrno = errno;
 
@@ -580,11 +580,11 @@ bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_remove((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block);
+	Result = Box_remove((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]));
 
 	g_RpcErrno = errno;
 
@@ -598,11 +598,11 @@ bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
 	const char *Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_get_string((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block);
+	Result = Box_get_string((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]));
 
 	g_RpcErrno = errno;
 
@@ -622,11 +622,11 @@ bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_get_integer((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block);
+	Result = Box_get_integer((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]));
 
 	g_RpcErrno = errno;
 
@@ -640,11 +640,11 @@ bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_get_box((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block);
+	Result = Box_get_box((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]));
 
 	g_RpcErrno = errno;
 
@@ -683,13 +683,12 @@ bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block ||
-		Arguments[2].Type != Block) {
+	if (Arguments[0].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_rename((box_t)Arguments[0].Pointer, (const char *)Arguments[1].Block,
-		(const char *)Arguments[2].Block);
+	Result = Box_rename((box_t)Arguments[0].Pointer, FROM_RPC_STRING(Arguments[1]),
+		RpcStringFromValue(Arguments[2]));
 
 	g_RpcErrno = errno;
 
@@ -732,6 +731,7 @@ bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
 	if (Result != NULL) {
 		ReturnValue->Type = Block;
 		ReturnValue->Block = const_cast<char *>(Result);
+		ReturnValue->Size = strlen(Result) + 1;
 	} else {
 		ReturnValue->Type = Pointer;
 		ReturnValue->Pointer = NULL;
@@ -744,11 +744,11 @@ bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
 bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Pointer || Arguments[1].Type != Pointer || Arguments[2].Type != Block) {
+	if (Arguments[0].Type != Pointer || Arguments[1].Type != Pointer) {
 		return false;
 	}
 
-	Result = Box_move((box_t)Arguments[0].Pointer, (box_t)Arguments[1].Pointer, (const char *)Arguments[2].Block);
+	Result = Box_move((box_t)Arguments[0].Pointer, (box_t)Arguments[1].Pointer, FROM_RPC_STRING(Arguments[2]));
 
 	g_RpcErrno = errno;
 
@@ -1259,9 +1259,13 @@ int safe_put_string(safe_box_t Parent, const char *Name, const char *Value) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
+	if (Value == NULL) {
+		return 0;
+	}
+
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
-	Arguments[2] = RPC_BLOCK(Value, strlen(Value) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
+	Arguments[2] = RPC_STRING(Value);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_string, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
@@ -1279,7 +1283,7 @@ int safe_put_integer(safe_box_t Parent, const char *Name, int Value) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 	Arguments[2] = RPC_INT(Value);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_integer, Arguments, 3, &ReturnValue)) {
@@ -1298,7 +1302,7 @@ safe_box_t safe_put_box(safe_box_t Parent, const char *Name) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_box, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
@@ -1315,8 +1319,12 @@ int safe_remove(safe_box_t Parent, const char *Name) {
 	Value_t Arguments[2];
 	Value_t ReturnValue;
 
+	if (Name == NULL) {
+		return 0;
+	}
+
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_remove, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
@@ -1336,7 +1344,7 @@ const char *safe_get_string(safe_box_t Parent, const char *Name) {
 	RpcFreeValue(ReturnValue);
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_string, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
@@ -1358,7 +1366,7 @@ int safe_get_integer(safe_box_t Parent, const char *Name) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_integer, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
@@ -1376,7 +1384,7 @@ safe_box_t safe_get_box(safe_box_t Parent, const char *Name) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(Name, strlen(Name) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(Name);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_box, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
@@ -1417,8 +1425,8 @@ int safe_rename(safe_box_t Parent, const char *OldName, const char *NewName) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(Parent);
-	Arguments[1] = RPC_BLOCK(OldName, strlen(OldName) + 1, Flag_None);
-	Arguments[2] = RPC_BLOCK(NewName, strlen(NewName) + 1, Flag_None);
+	Arguments[1] = RPC_STRING(OldName);
+	Arguments[2] = RPC_STRING(NewName);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_rename, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
@@ -1477,7 +1485,7 @@ int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName) {
 
 	Arguments[0] = RPC_POINTER(NewParent);
 	Arguments[1] = RPC_POINTER(Box);
-	Arguments[2] = RPC_BLOCK(NewName, strlen(NewName) + 1, Flag_None);
+	Arguments[2] = RPC_STRING(NewName);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_move, Arguments, 3, &ReturnValue)) {
 		RpcFatal();

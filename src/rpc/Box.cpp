@@ -39,6 +39,7 @@ static box_t Box_alloc(void) {
 		return NULL;
 	}
 
+	Box->Name = NULL;
 	Box->Parent = NULL;
 	Box->First = NULL;
 	Box->Last = NULL;
@@ -95,6 +96,10 @@ static int Box_put(box_t Parent, element_t Element) {
 	}
 
 	NewElement = Box_get(Parent, Element.Name);
+
+	if (Element.Type == TYPE_BOX) {
+		return 0;
+	}
 
 	if (NewElement != NULL) {
 		Box_free_element(NewElement);
@@ -370,6 +375,10 @@ const char *Box_get_name(box_t Box) {
 
 int Box_move(box_t NewParent, box_t Box, const char *NewName) {
 	element_t Element;
+
+	if (Box == NULL) {
+		return -1;
+	}
 
 	Box_remove_internal(NewParent, NewName, 0);
 

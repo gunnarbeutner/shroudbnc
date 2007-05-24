@@ -58,7 +58,6 @@ private:
 	char *m_QuitReason; /**< reason why the client was removed */
 	CTimer* m_PingTimer; /**< timer for sending regular PINGs to the client */
 	time_t m_LastResponse; /**< last response from the client */
-	safe_box_t m_Box; /**< box */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);

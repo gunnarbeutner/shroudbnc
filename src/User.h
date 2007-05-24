@@ -118,7 +118,7 @@ bool UserReconnectTimer(time_t Now, void *User);
  *
  * A bouncer user.
  */
-class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager {
+class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager, public CPersistable {
 	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
@@ -148,8 +148,6 @@ class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager {
 	CTimer *m_BadLoginPulse; /**< a timer which will remove "bad logins" */
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
-
-	safe_box_t m_Box;
 
 	size_t m_ManagedMemory;
 	mmanager_t *m_MemoryManager;

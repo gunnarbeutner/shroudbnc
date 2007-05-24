@@ -22,10 +22,8 @@
  *
  * Records traffic statistics for a user.
  */
-class SBNCAPI CTrafficStats : public CZoneObject<CTrafficStats, 32> {
+class SBNCAPI CTrafficStats : public CZoneObject<CTrafficStats, 32>, CObject<CTrafficStats, CUser> {
 private:
-	safe_box_t m_Box;
-
 	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
 	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 public:

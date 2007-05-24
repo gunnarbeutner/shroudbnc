@@ -35,8 +35,6 @@ typedef struct ban_s {
  */
 class SBNCAPI CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CBanlist, CChannel> {
 private:
-	safe_box_t m_Box;
-
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 
 public:

@@ -60,6 +60,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
+	Sleep(10000);
+
 	m_OriginalConfig = Config;
 
 	m_SSLContext = NULL;
@@ -134,9 +136,17 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	Count = ArgCount(Args);
 
+	safe_box_t UsersBox = safe_put_box(NULL, "Users");
+
 	for (i = 0; i < Count; i++) {
+		safe_box_t UserBox = NULL;
 		const char *Name = ArgGet(Args, i + 1);
-		User = new CUser(Name);
+
+		if (UsersBox != NULL) {
+			UserBox = safe_put_box(UsersBox, Name);
+		}
+
+		User = new CUser(Name, UserBox);
 
 		CHECK_ALLOC_RESULT(User, new) {
 			Fatal();
@@ -144,6 +154,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 		m_Users.Add(Name, User);
 	}
+
+	Thaw();
 
 	ArgFree(Args);
 
@@ -1081,7 +1093,15 @@ RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 		THROW(CUser *, Generic_Unknown, "The username you specified is not valid.");
 	}
 
-	User = new CUser(Username);
+	safe_box_t UsersBox, UserBox = NULL;
+
+	UsersBox = safe_get_box(NULL, "Users");
+
+	if (UsersBox != NULL) {
+		UserBox = safe_put_box(UsersBox, Username);
+	}
+
+	User = new CUser(Username, UserBox);
 
 	Result = m_Users.Add(Username, User);
 
@@ -1714,44 +1734,64 @@ const char *CCore::DebugImpulse(int impulse) {
  *
  * @param Box the box
  */
-bool CCore::Thaw(safe_box_t Box) {
-	CAssocArray *IRCBox, *ClientsBox;
+bool CCore::Thaw(void) {
+	safe_box_t UsersBox;
 
-	m_Listener = ThawObject<CClientListener>(Box, "~listener", this);
-	m_ListenerV6 = ThawObject<CClientListener>(Box, "~listenerv6", this);
+	m_Listener = ThawObject<CClientListener>(NULL, "Listener", this);
+	m_ListenerV6 = ThawObject<CClientListener>(NULL, "ListenerV6", this);
 
-	m_SSLListener = ThawObject<CClientListener>(Box, "~ssllistener", this);
+	m_SSLListener = ThawObject<CClientListener>(NULL, "SSLListener", this);
 	if (m_SSLListener != NULL) {
 		m_SSLListener->SetSSL(true);
 	}
 
-	m_SSLListenerV6 = ThawObject<CClientListener>(Box, "~ssllistenerv6", this);
+	m_SSLListenerV6 = ThawObject<CClientListener>(NULL, "SSLListenerV6", this);
 	if (m_SSLListenerV6 != NULL) {
 		m_SSLListenerV6->SetSSL(true);
 	}
 
-	IRCBox = Box->ReadBox("~irc");
-	ClientsBox = Box->ReadBox("~clients");
+	UsersBox = safe_get_box(NULL, "Users");
 
-	int i = 0;
-	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
-		CIRCConnection *IRC;
-		CClientConnection* Client;
+	if (UsersBox != NULL) {
+		safe_element_t *Previous = NULL;
+		char Name[128];
 
-		IRC = ThawObject<CIRCConnection>(IRCBox, User->Name, User->Value);
+		while (safe_enumerate(UsersBox, &Previous, Name, sizeof(Name)) != -1) {
+			safe_box_t UserBox;
+			CUser *User;
 
-		if (IRC != NULL) {
-			User->Value->SetIRCConnection(IRC);
-		}
+			User = GetUser(Name);
 
-		Client = ThawObject<CClientConnection>(ClientsBox, User->Name, User->Value);
-
-		if (Client != NULL) {
-			User->Value->AddClientConnection(Client);
-
-			if (User->Value->IsAdmin()) {
-				Client->Privmsg("shroudBNC was reloaded.");
+			if (User == NULL) {
+				continue; /* Wtf? */
 			}
+
+			UserBox = safe_get_box(UsersBox, Name);
+
+			if (UserBox == NULL) {
+				continue;
+			}
+
+			CIRCConnection *IRC = ThawObject<CIRCConnection>(UserBox, "IRC", User);
+
+			if (IRC != NULL) {
+				User->SetIRCConnection(IRC);
+			}
+
+			safe_box_t ClientsBox = safe_get_box(UserBox, "Clients");
+
+			if (ClientsBox != NULL) {
+				safe_element_t *PreviousClient = NULL;
+				char ClientName[128];
+
+				while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
+					CClientConnection *Client;
+
+					Client = ThawObject<CClientConnection>(ClientsBox, ClientName, User);
+
+					User->AddClientConnection(Client);
+				}
+			}	
 		}
 	}
 

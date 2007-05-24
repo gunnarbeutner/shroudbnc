@@ -571,6 +571,13 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	return Call - Data;
 }
 
+const char *RpcStringFromValue(Value_t Value) {
+	if (Value.Type == Block) {
+		return (const char *)Value.Block;
+	} else {
+		return NULL;
+	}
+}
 #endif
 
 #ifdef RPCCLIENT
@@ -637,6 +644,7 @@ Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag) {
 	Val.Block = const_cast<void *>(Pointer);
 	Val.Size = Size;
 	Val.Flags = Flag;
+	Val.NeedFree = false;
 
 	return Val;
 }
@@ -647,6 +655,23 @@ Value_t RpcBuildPointer(const void *Ptr) {
 	Val.Type = Pointer;
 	Val.Pointer = const_cast<void *>(Ptr);
 	Val.Flags = Flag_None;
+
+	return Val;
+}
+
+Value_t RpcBuildString(const char *Ptr) {
+	Value_t Val;
+
+	if (Ptr != NULL) {
+		Val.Type = Block;
+		Val.Block = const_cast<char *>(Ptr);
+		Val.Flags = Flag_None;
+		Val.Size = strlen(Ptr) + 1;
+		Val.NeedFree = false;
+	} else {
+		Val.Type = Pointer;
+		Val.Pointer = NULL;
+	}
 
 	return Val;
 }

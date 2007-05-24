@@ -145,6 +145,8 @@ class SBNCAPI CCore {
 	void InitializeAdditionalListeners(void);
 	void UninitializeAdditionalListeners(void);
 	void UpdateAdditionalListeners(void);
+
+	bool Thaw(void);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
@@ -215,7 +217,7 @@ public:
 
 	const char *DebugImpulse(int impulse);
 
-	bool Thaw(void);
+	bool nope(void);
 	bool InitializeFreeze(void);
 
 	const utility_t *GetUtilities(void);

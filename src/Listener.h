@@ -213,12 +213,19 @@ public:
 	 */
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CClientConnection *ClientObject;
+		safe_box_t ClientsBox, ClientBox = NULL;
 		unsigned long lTrue = 1;
 
 		safe_ioctlsocket(Client, FIONBIO, &lTrue);
 
+		ClientsBox = safe_put_box(NULL, "Clients");
+
+		if (ClientsBox != NULL) {
+			ClientBox = safe_put_box(ClientsBox, NULL);
+		}
+
 		// destruction is controlled by the main loop
-		ClientObject = new CClientConnection(Client, NULL, m_SSL);
+		ClientObject = new CClientConnection(Client, ClientBox, m_SSL);
 	}
 
 	/**

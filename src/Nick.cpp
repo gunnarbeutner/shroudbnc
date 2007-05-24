@@ -31,8 +31,7 @@ CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
 	assert(Nick != NULL);
 
 	SetOwner(Owner);
-
-	m_Box = Box;
+	SetBox(Box);
 
 	m_Nick = ustrdup(Nick);
 
@@ -46,9 +45,9 @@ CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
 	m_Creation = g_CurrentTime;
 	m_IdleSince = m_Creation;
 
-	if (m_Box != NULL) {
-		safe_put_integer(m_Box, "CreationTimestamp", m_Creation);
-		safe_put_integer(m_Box, "IdleTimestamp", m_IdleSince);
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "CreationTimestamp", m_Creation);
+		safe_put_integer(GetBox(), "IdleTimestamp", m_IdleSince);
 	}
 }
 
@@ -88,15 +87,15 @@ bool CNick::SetNick(const char *Nick) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-	if (m_Box != NULL) {
+	if (GetBox() != NULL) {
 		// TODO: is this sane?
-		/*safe_box_t Parent = safe_get_parent(m_Box);
+		/*safe_box_t Parent = safe_get_parent(GetBox());
 
 		if (Parent != NULL) {
 			safe_rename(Parent, m_Nick, Nick);
 		}*/
 
-		safe_put_string(m_Box, "Nick", Nick);
+		safe_put_string(GetBox(), "Nick", Nick);
 	}
 
 	ufree(m_Nick);
@@ -177,8 +176,8 @@ bool CNick::AddPrefix(char Prefix) {
 	m_Prefixes[LengthPrefixes] = Prefix;
 	m_Prefixes[LengthPrefixes + 1] = '\0';
 
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
 	}
 
 	return true;
@@ -218,8 +217,8 @@ bool CNick::RemovePrefix(char Prefix) {
 	ufree(m_Prefixes);
 	m_Prefixes = Copy;
 
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
 	}
 
 	return true;
@@ -248,8 +247,8 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 	ufree(m_Prefixes);
 	m_Prefixes = dupPrefixes;
 
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Prefixes", m_Prefixes);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
 	}
 
 	return true;
@@ -302,8 +301,8 @@ const char *CNick::GetPrefixes(void) const {
  * @param Site the user's new site
  */
 bool CNick::SetSite(const char *Site) {
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Site", Site);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Site", Site);
 	}
 
 	IMPL_NICKSET(m_Site, Site, false);
@@ -317,8 +316,8 @@ bool CNick::SetSite(const char *Site) {
  * @param Realname the new realname
  */
 bool CNick::SetRealname(const char *Realname) {
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Realname", Realname);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Realname", Realname);
 	}
 
 	IMPL_NICKSET(m_Realname, Realname, true);
@@ -332,8 +331,8 @@ bool CNick::SetRealname(const char *Realname) {
  * @param Server the server which the user is using
  */
 bool CNick::SetServer(const char *Server) {
-	if (m_Box != NULL) {
-		safe_put_string(m_Box, "Server", Server);
+	if (GetBox() != NULL) {
+		safe_put_string(GetBox(), "Server", Server);
 	}
 
 	IMPL_NICKSET(m_Server, Server, true);
@@ -463,8 +462,8 @@ time_t CNick::GetIdleSince(void) const {
 bool CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
 
-	if (m_Box != NULL) {
-		safe_put_integer(m_Box, "IdleTimestamp", Time);
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "IdleTimestamp", Time);
 	}
 
 	return true;

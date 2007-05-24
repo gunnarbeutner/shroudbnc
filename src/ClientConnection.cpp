@@ -39,7 +39,8 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
 	m_QuitReason = NULL;
-	m_Box = Box;
+	
+	SetBox(Box);
 
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
 		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
@@ -88,8 +89,9 @@ CClientConnection::CClientConnection(safe_box_t Box) : CConnection(INVALID_SOCKE
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
 	m_QuitReason = NULL;
-	m_Box = Box;
 	m_PingTimer = new CTimer(45, true, ClientPingTimer, this); 
+
+	SetBox(Box);
 }
 
 /**

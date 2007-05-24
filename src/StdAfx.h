@@ -127,6 +127,7 @@ void mmark(void *Block);
 
 #	include "sbnc.h"
 #	include "Result.h"
+#	include "Persistable.h"
 #	include "Object.h"
 #	include "Zone.h"
 #	include "Vector.h"
@@ -159,5 +160,4 @@ void mmark(void *Block);
 #	include "TrafficStats.h"
 #	include "FloodControl.h"
 #	include "Listener.h"
-#	include "Persistable.h"
 #endif
