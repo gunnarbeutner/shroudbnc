@@ -360,6 +360,14 @@ box_t Box_get_parent(box_t Box) {
 	}
 }
 
+const char *Box_get_name(box_t Box) {
+	if (Box == NULL) {
+		return NULL;
+	} else {
+		return Box->Name;
+	}
+}
+
 int Box_move(box_t NewParent, box_t Box, const char *NewName) {
 	element_t Element;
 

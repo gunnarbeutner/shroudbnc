@@ -39,6 +39,8 @@
 #include <ctype.h>
 #include <limits.h>
 
+#define printf(...)
+
 #ifdef __cplusplus
 #	include <typeinfo>
 #endif

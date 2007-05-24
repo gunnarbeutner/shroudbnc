@@ -30,7 +30,6 @@
 #define SBNC_MODULE "./lib-0/libsbnc.la"
 #endif
 
-CAssocArray *g_Box;
 char *g_Mod;
 bool g_Signal;
 bool g_Service = false;

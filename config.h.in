@@ -136,17 +136,23 @@
 /* Define to 1 if you have the `advapi32' library (-ladvapi32). */
 #undef HAVE_LIBADVAPI32
 
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
 /* Define if you have the libdl library or equivalent. */
 #undef HAVE_LIBDL
 
-/* Define to 1 if you have the `iberty' library (-liberty). */
-#undef HAVE_LIBIBERTY
+/* Define to 1 if you have the `eay32' library (-leay32). */
+#undef HAVE_LIBEAY32
 
 /* Define to 1 if you have the `iphlpapi' library (-liphlpapi). */
 #undef HAVE_LIBIPHLPAPI
 
 /* Define to 1 if you have the `shlwapi' library (-lshlwapi). */
 #undef HAVE_LIBSHLWAPI
+
+/* Define to 1 if you have the `ssl' library (-lssl). */
+#undef HAVE_LIBSSL
 
 /* Define to 1 if you have the `ws2_32' library (-lws2_32). */
 #undef HAVE_LIBWS2_32
@@ -402,10 +408,10 @@
 /* Define to the type of arg 5 for `select'. */
 #undef SELECT_TYPE_ARG5
 
-/* The size of a `struct in6_addr', as computed by sizeof. */
+/* The size of `struct in6_addr', as computed by sizeof. */
 #undef SIZEOF_STRUCT_IN6_ADDR
 
-/* The size of a `struct in_addr', as computed by sizeof. */
+/* The size of `struct in_addr', as computed by sizeof. */
 #undef SIZEOF_STRUCT_IN_ADDR
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -441,7 +447,7 @@
 /* Define to rpl_realloc if the replacement function should be used. */
 #undef realloc
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* the length of a socket address */

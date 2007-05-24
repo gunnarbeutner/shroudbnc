@@ -1452,7 +1452,7 @@ const char *safe_get_name(safe_box_t Box) {
 	Value_t Arguments[1];
 	static Value_t ReturnValue;
 
-	RpcFreeValue(&ReturnValue);
+	RpcFreeValue(ReturnValue);
 
 	Arguments[0] = RPC_POINTER(Box);
 
@@ -1464,22 +1464,20 @@ const char *safe_get_name(safe_box_t Box) {
 		RpcFatal();
 	}
 
-	if (ReturnValue:Type == Block) {
-		return ReturnValue.Block;
+	if (ReturnValue.Type == Block) {
+		return (const char *)ReturnValue.Block;
 	} else {
-		return ReturnValue.Pointer;
+		return (const char *)ReturnValue.Pointer;
 	}
 }
 
-int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName); {
+int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName) {
 	Value_t Arguments[3];
 	static Value_t ReturnValue;
 
-	RpcFreeValue(&ReturnValue);
-
 	Arguments[0] = RPC_POINTER(NewParent);
 	Arguments[1] = RPC_POINTER(Box);
-	Arguments[2] = RPC_POINTER(NewName, strlen(NewName) + 1, Flag_None));
+	Arguments[2] = RPC_BLOCK(NewName, strlen(NewName) + 1, Flag_None);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_move, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
