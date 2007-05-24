@@ -87,6 +87,8 @@ private:
 
 	bool m_EatPong; /**< whether to ignore the next PONG event from the IRC server */
 
+	safe_box_t m_Box;
+
 	CChannel *AddChannel(const char *Channel);
 	void RemoveChannel(const char *Channel);
 
@@ -96,7 +98,7 @@ private:
 
 	bool ModuleEvent(int ArgC, const char **ArgV);
 
-	void InitIrcConnection(CUser *Owner, bool Unfreezing = false);
+	void InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfreezing = false);
 
 	void WriteUnformattedLine(const char *Line);
 
@@ -112,8 +114,8 @@ private:
 	void AsyncBindIpDnsFinished(hostent *Response);
 public:
 #ifndef SWIG
-	CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL = false);
-	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
+	CIRCConnection(SOCKET Socket, CUser *Owner, safe_box_t Box, bool SSL = false);
+	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, safe_box_t Box, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 
 	static RESULT<CIRCConnection *> Thaw(safe_box_t Box, CUser *Owner);

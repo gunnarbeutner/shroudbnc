@@ -88,12 +88,19 @@ bool CNick::SetNick(const char *Nick) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
 
-	ufree(m_Nick);
-	m_Nick = NewNick;
-
 	if (m_Box != NULL) {
+		// TODO: is this sane?
+		/*safe_box_t Parent = safe_get_parent(m_Box);
+
+		if (Parent != NULL) {
+			safe_rename(Parent, m_Nick, Nick);
+		}*/
+
 		safe_put_string(m_Box, "Nick", Nick);
 	}
+
+	ufree(m_Nick);
+	m_Nick = NewNick;
 
 	return true;
 }

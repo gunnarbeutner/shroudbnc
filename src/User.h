@@ -149,6 +149,8 @@ class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager {
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
+	safe_box_t m_Box;
+
 	size_t m_ManagedMemory;
 	mmanager_t *m_MemoryManager;
 
@@ -157,7 +159,7 @@ class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager {
 	void BadLoginPulse(void);
 public:
 #ifndef SWIG
-	CUser(const char *Name);
+	CUser(const char *Name, safe_box_t Box);
 	virtual ~CUser(void);
 #endif
 

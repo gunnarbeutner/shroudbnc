@@ -18,7 +18,7 @@
  *******************************************************************************/
 #include "StdAfx.h"
 
-CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET) {
+CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET, NULL) {
 	SetOwner(User);
 
 	if (m_AuthTimer != NULL) {

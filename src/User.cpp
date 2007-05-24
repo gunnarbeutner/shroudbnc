@@ -30,10 +30,13 @@ CTimer *g_ReconnectTimer = NULL;
  *
  * @param Name the name of the user
  */
-CUser::CUser(const char *Name) {
+CUser::CUser(const char *Name, safe_box_t Box) {
 	char *Out;
 	X509 *Cert;
 	FILE *ClientCert;
+	safe_box_t TrafficClientStatsBox = NULL, TrafficIRCStatsBox = NULL;
+
+	m_Box = Box;
 
 	m_ManagedMemory = 0;
 	m_MemoryManager = NULL;
@@ -82,8 +85,13 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->Fatal();
 	} CHECK_ALLOC_RESULT_END;
 
-	m_ClientStats = new CTrafficStats();
-	m_IRCStats = new CTrafficStats();
+	if (m_Box != NULL) {
+		TrafficClientStatsBox = safe_put_box(m_Box, "TrafficClientStats");
+		TrafficIRCStatsBox = safe_put_box(m_Box, "TrafficIRCStats");
+	}
+
+	m_ClientStats = new CTrafficStats(TrafficClientStatsBox);
+	m_IRCStats = new CTrafficStats(TrafficIRCStatsBox);
 
 	m_Keys = new CKeyring(m_Config, this);
 
@@ -522,7 +530,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	} CHECK_ALLOC_RESULT_END;
 
 	if (FakeClient == NULL) {
-		FakeClient = new CClientConnection(INVALID_SOCKET);
+		FakeClient = new CClientConnection(INVALID_SOCKET, NULL);
 
 		CHECK_ALLOC_RESULT(FakeClient, new) {
 			free(CommandDup);

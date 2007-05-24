@@ -34,8 +34,8 @@ extern time_t g_LastReconnect;
  * @param Owner the owner of this connection
  * @param SSL whether to use SSL
  */
-CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL) : CConnection(Socket, SSL) {
-	InitIrcConnection(Owner, true);
+CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, safe_box_t Box, bool SSL) : CConnection(Socket, SSL) {
+	InitIrcConnection(Owner, Box, true);
 }
 
 /**
@@ -50,8 +50,8 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, bool SSL) : CConnect
  * @param SSL whether to use SSL
  * @param Family socket family (either AF_INET or AF_INET6)
  */
-CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
-	InitIrcConnection(Owner);
+CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, safe_box_t Box, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
+	InitIrcConnection(Owner, Box);
 }
 
 /**
@@ -62,11 +62,13 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
  * @param Owner the owner of the connection object
  * @param Unfreezing whether the object is being de-persisted
  */
-void CIRCConnection::InitIrcConnection(CUser *Owner, bool Unfreezing) {
+void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfreezing) {
 	const char *Ident;
 
 	SetRole(Role_Client);
 	SetOwner(Owner);
+
+	m_Box = Box;
 
 	g_LastReconnect = g_CurrentTime;
 	m_LastResponse = g_LastReconnect;

@@ -116,7 +116,7 @@ public:
 		} CHECK_ALLOC_RESULT_END;
 
 //		Listener->SetOwner(Owner);
-		Listener->Initialize(Box->ReadInteger("~listener.fd"));
+		Listener->Initialize(safe_get_integer(Box, "Socket"));
 
 		RETURN(InheritedClass *, Listener);
 	}

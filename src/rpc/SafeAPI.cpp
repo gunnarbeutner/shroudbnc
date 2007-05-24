@@ -1448,7 +1448,7 @@ safe_box_t safe_get_parent(safe_box_t Box) {
 	return ReturnValue.Pointer;
 }
 
-safe_box_t safe_get_name(safe_box_t Box) {
+const char *safe_get_name(safe_box_t Box) {
 	Value_t Arguments[1];
 	static Value_t ReturnValue;
 
