@@ -193,6 +193,10 @@
 				RelativePath=".\Service.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\snprintf.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -201,6 +205,10 @@
 			>
 			<File
 				RelativePath=".\Service.h"
+				>
+			</File>
+			<File
+				RelativePath="..\snprintf.h"
 				>
 			</File>
 		</Filter>

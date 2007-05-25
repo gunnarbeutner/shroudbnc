@@ -116,12 +116,13 @@ void DumpTree(CClientConnection *Client, safe_box_t Root, int Indent = 0) {
 	char Name[32];
 	char *IndentText;
 
-	IndentText = (char *)malloc(Indent * 2);
+	IndentText = (char *)malloc(Indent * 2 + 1);
 
 	memset(IndentText, '-', Indent * 2);
+	IndentText[Indent * 2] = '\0';
 
 	while (safe_enumerate(Root, &Previous, Name, sizeof(Name)) != -1) {
-		Client->WriteLine(":-tree!safe@mode PRIVMSG %s :%s %s", Client->GetNick(), Indent, Name);
+		Client->WriteLine(":-tree!safe@mode PRIVMSG %s :%s %s", Client->GetNick(), IndentText, Name);
 
 		safe_box_t Sub = safe_get_box(Root, Name);
 

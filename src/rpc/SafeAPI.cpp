@@ -668,10 +668,8 @@ bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	if (Result != -1) {
-		Arguments[1].Flags = Flag_Out;
-		Arguments[2].Flags = Flag_Out;
-	}
+	Arguments[1].Flags = Flag_Out;
+	Arguments[2].Flags = Flag_Out;
 
 	ReturnValue->Type = Integer;
 	ReturnValue->Integer = Result;
@@ -1414,7 +1412,7 @@ int safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int
 		RpcFatal();
 	}
 
-	memcpy(&Previous, Arguments[1].Block, sizeof(safe_box_t));
+	memcpy(Previous, Arguments[1].Block, sizeof(safe_element_t *));
 	memcpy(Name, Arguments[2].Block, Arguments[2].Size);
 
 	return ReturnValue.Integer;

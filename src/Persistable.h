@@ -42,6 +42,8 @@ public:
 			const char *Name = safe_get_name(m_Box);
 
 			safe_remove(Parent, Name);
+
+			m_Box = NULL;
 		}
 	}
 

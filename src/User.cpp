@@ -892,11 +892,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	m_PrimaryClient = Client;
 
 	if (GetBox() != NULL) {
-		safe_box_t ClientsBox = safe_get_box(GetBox(), "Clients");
-
-		if (ClientsBox == NULL) {
-			ClientsBox = safe_put_box(GetBox(), "Clients");
-		}
+		safe_box_t ClientsBox = safe_put_box(GetBox(), "Clients");
 
 		if (ClientsBox != NULL) {
 			safe_move(ClientsBox, Client->GetBox(), NULL);

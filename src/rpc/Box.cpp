@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../snprintf.h"
 #include "Box.h"
 
 static box_t g_RootBox;
@@ -69,6 +70,7 @@ static void Box_free(box_t Box) {
 		Element = Element->Next;
 	}
 
+	free(Box->Name);
 	free(Box);
 }
 
@@ -98,10 +100,6 @@ static int Box_put(box_t Parent, element_t Element) {
 	}
 
 	NewElement = Box_get(Parent, Element.Name);
-
-	if (Element.Type == TYPE_BOX) {
-		return 0;
-	}
 
 	if (NewElement != NULL) {
 		Box_free_element(NewElement);
@@ -262,12 +260,19 @@ int Box_put_integer(box_t Parent, const char *Name, int Value){
 
 box_t Box_put_box(box_t Parent, const char *Name){
 	element_t Element;
+	box_t OldBox;
 
 	if (Name == NULL) {
 		Name = Box_unique_name();
+	} else {
+		OldBox = Box_get_box(Parent, Name);
+
+		if (OldBox != NULL) {
+			return OldBox;
+		}
 	}
 
-	Element.Type = TYPE_STRING;
+	Element.Type = TYPE_BOX;
 
 	Element.Name = strdup(Name);
 
@@ -288,6 +293,7 @@ box_t Box_put_box(box_t Parent, const char *Name){
 
 		return NULL;
 	} else {
+		Element.ValueBox->Name = strdup(Name);
 		return Element.ValueBox;
 	}
 }
@@ -400,12 +406,34 @@ const char *Box_get_name(box_t Box) {
 
 int Box_move(box_t NewParent, box_t Box, const char *NewName) {
 	element_t Element;
+	box_t Parent;
+	const char *OldName;
 
 	if (Box == NULL) {
 		return -1;
 	}
 
-	Box_remove_internal(NewParent, NewName, 0);
+	if (NewName != NULL) {
+		Box_remove(NewParent, NewName);
+	}
+
+	Parent = Box->Parent;
+
+	if (Parent == NULL) {
+		return -1;
+	}
+
+	OldName = Box->Name;
+
+	if (OldName == NULL) {
+		return -1;
+	}
+
+	Box_remove_internal(Parent, OldName, 0);
+
+	if (NewName == NULL) {
+		NewName = Box_unique_name();
+	}
 
 	char *Temp = Box->Name;
 	Box->Name = strdup(NewName);
