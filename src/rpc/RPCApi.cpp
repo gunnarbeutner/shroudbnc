@@ -627,6 +627,8 @@ int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *A
 	return 1;
 }
 
+#endif
+
 Value_t RpcBuildInteger(int Value) {
 	Value_t Val;
 
@@ -675,5 +677,3 @@ Value_t RpcBuildString(const char *Ptr) {
 
 	return Val;
 }
-
-#endif

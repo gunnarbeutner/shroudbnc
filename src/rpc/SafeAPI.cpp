@@ -40,8 +40,7 @@ bool RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -58,8 +57,7 @@ bool RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -76,8 +74,7 @@ bool RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -94,8 +91,7 @@ bool RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -112,8 +108,7 @@ bool RpcFunc_connect(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -130,8 +125,7 @@ bool RpcFunc_listen(Value_t *Arguments, Value_t *ReturnValue) {
 	
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -148,8 +142,7 @@ bool RpcFunc_accept(Value_t *Arguments, Value_t *ReturnValue) {
 	
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -239,8 +232,7 @@ bool RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -264,8 +256,7 @@ bool RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -282,8 +273,7 @@ bool RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -300,8 +290,7 @@ bool RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -318,8 +307,7 @@ bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -338,8 +326,7 @@ bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 
 	Arguments[3].Flags = Flag_Out;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -357,8 +344,7 @@ bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -377,16 +363,14 @@ bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
 
 // int safe_errno(void);
 bool RpcFunc_errno(Value_t *Arguments, Value_t *ReturnValue) {
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = g_RpcErrno;
+	*ReturnValue = RPC_INT(errno);
 
 	return true;
 }
@@ -403,8 +387,7 @@ bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -425,8 +408,7 @@ bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -496,8 +478,7 @@ bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -516,8 +497,7 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -534,8 +514,7 @@ bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -552,8 +531,7 @@ bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -570,8 +548,7 @@ bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Pointer;
-	ReturnValue->Pointer = Result;
+	*ReturnValue = RPC_POINTER(Result);
 
 	return true;
 }
@@ -588,8 +565,7 @@ bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -606,14 +582,7 @@ bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	if (Result != NULL) {
-		ReturnValue->Type = Block;
-		ReturnValue->Block = const_cast<char *>(Result);
-		ReturnValue->Size = strlen(Result);
-	} else {
-		ReturnValue->Type = Integer;
-		ReturnValue->Integer = 0;
-	}
+	*ReturnValue = RPC_STRING(Result);
 
 	return true;
 }
@@ -630,8 +599,7 @@ bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -648,8 +616,7 @@ bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Pointer;
-	ReturnValue->Pointer = Result;
+	*ReturnValue = RPC_POINTER(Result);
 
 	return true;
 }
@@ -671,8 +638,7 @@ bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 	Arguments[1].Flags = Flag_Out;
 	Arguments[2].Flags = Flag_Out;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -690,8 +656,7 @@ bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
@@ -708,8 +673,7 @@ bool RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Pointer;
-	ReturnValue->Pointer = Result;
+	*ReturnValue = RPC_POINTER(Result);
 
 	return true;
 }
@@ -726,14 +690,7 @@ bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	if (Result != NULL) {
-		ReturnValue->Type = Block;
-		ReturnValue->Block = const_cast<char *>(Result);
-		ReturnValue->Size = strlen(Result) + 1;
-	} else {
-		ReturnValue->Type = Pointer;
-		ReturnValue->Pointer = NULL;
-	}
+	*ReturnValue = RPC_STRING(Result);
 
 	return true;
 }
@@ -750,8 +707,7 @@ bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = errno;
 
-	ReturnValue->Type = Integer;
-	ReturnValue->Integer = Result;
+	*ReturnValue = RPC_INT(Result);
 
 	return true;
 }
