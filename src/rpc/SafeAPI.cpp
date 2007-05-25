@@ -370,7 +370,7 @@ bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 
 // int safe_errno(void);
 bool RpcFunc_errno(Value_t *Arguments, Value_t *ReturnValue) {
-	*ReturnValue = RPC_INT(errno);
+	*ReturnValue = RPC_INT(g_RpcErrno);
 
 	return true;
 }
