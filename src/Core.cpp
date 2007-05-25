@@ -60,8 +60,6 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
-	Sleep(10000);
-
 	m_OriginalConfig = Config;
 
 	m_SSLContext = NULL;

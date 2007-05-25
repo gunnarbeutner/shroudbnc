@@ -18,6 +18,7 @@
  *******************************************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "Box.h"
 
@@ -29,6 +30,7 @@ static void Box_free_element(element_t *Element, int OnlyName = 0);
 static int Box_put(box_t Parent, element_t Element);
 static int Box_remove_internal(box_t Parent, const char *Name, int Free = 1);
 static element_t *Box_get(box_t Parent, const char *Name);
+static const char *Box_unique_name(void);
 
 static box_t Box_alloc(void) {
 	box_t Box;
@@ -165,6 +167,17 @@ static int Box_remove_internal(box_t Parent, const char *Name, int Free) {
 	return 0;
 }
 
+static const char *Box_unique_name(void) {
+	static unsigned int UniqueId = 0;
+	static char UniqueIdStr[64];
+
+	snprintf(UniqueIdStr, sizeof(UniqueIdStr), "%d", UniqueId);
+
+	UniqueId++;
+
+	return UniqueIdStr;
+}
+
 element_t *Box_get(box_t Parent, const char *Name) {
 	element_t *Element;
 
@@ -191,6 +204,10 @@ element_t *Box_get(box_t Parent, const char *Name) {
 
 int Box_put_string(box_t Parent, const char *Name, const char *Value) {
 	element_t Element;
+
+	if (Name == NULL) {
+		Name = Box_unique_name();
+	}
 
 	Element.Type = TYPE_STRING;
 
@@ -220,6 +237,10 @@ int Box_put_string(box_t Parent, const char *Name, const char *Value) {
 int Box_put_integer(box_t Parent, const char *Name, int Value){
 	element_t Element;
 
+	if (Name == NULL) {
+		Name = Box_unique_name();
+	}
+
 	Element.Type = TYPE_INTEGER;
 
 	Element.Name = strdup(Name);
@@ -241,6 +262,10 @@ int Box_put_integer(box_t Parent, const char *Name, int Value){
 
 box_t Box_put_box(box_t Parent, const char *Name){
 	element_t Element;
+
+	if (Name == NULL) {
+		Name = Box_unique_name();
+	}
 
 	Element.Type = TYPE_STRING;
 

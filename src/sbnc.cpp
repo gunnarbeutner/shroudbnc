@@ -159,8 +159,6 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
 extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 	CConfigFile *Config;
 
-	Sleep(10000);
-
 	safe_box_t box = safe_put_box(NULL, "hello");
 
 	safe_put_string(box, "hi", "world");
