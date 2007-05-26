@@ -162,6 +162,10 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 
 	Sleep(10000);
 
+	g_ArgC = argc;
+	g_ArgV = argv;
+	g_ModulePath = ModulePath;
+
 	chdir(sbncBuildPath("."));
 
 #ifdef _WIN32
@@ -176,10 +180,6 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 
 	safe_remove(box, "hi");
 	safe_remove(NULL, "hello");
-
-	g_ArgC = argc;
-	g_ArgV = argv;
-	g_ModulePath = ModulePath;
 
 	srand((unsigned int)time(NULL));
 
