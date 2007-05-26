@@ -408,7 +408,7 @@ void RpcWaitForClient(void) {
 #ifndef _WIN32
 	int Dummy;
 
-	wait(&Dummy);
+	waitpid(-1, &Dummy, 0);
 #endif
 }
 
