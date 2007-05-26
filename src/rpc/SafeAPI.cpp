@@ -1304,7 +1304,7 @@ const char *safe_get_string(safe_box_t Parent, const char *Name) {
 		RpcFatal();
 	}
 
-	if (ReturnValue.Type != Block && ReturnValue.Type != Integer) {
+	if (ReturnValue.Type != Block && ReturnValue.Type != Pointer) {
 		RpcFatal();
 	}
 

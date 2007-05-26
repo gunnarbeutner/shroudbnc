@@ -1803,7 +1803,13 @@ bool CCore::Thaw(void) {
 
 					Client = ThawObject<CClientConnection>(ClientsBox, ClientName, User);
 
-					User->AddClientConnection(Client);
+					if (Client != NULL) {
+						User->AddClientConnection(Client);
+
+						if (User->IsAdmin()) {
+							Client->Privmsg("shroudBNC seems to have died unexpectedly. However the parent process was able to successfully resurrect it.");
+						}
+					}
 				}
 			}	
 		}

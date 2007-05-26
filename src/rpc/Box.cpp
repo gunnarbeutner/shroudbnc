@@ -102,13 +102,13 @@ static int Box_put(box_t Parent, element_t Element) {
 	NewElement = Box_get(Parent, Element.Name);
 
 	if (NewElement != NULL) {
-		Box_free_element(NewElement);
-	} else {
-		NewElement = (element_t *)malloc(sizeof(element_t));
+		Box_remove(Parent, Element.Name);
+	}
 
-		if (NewElement == NULL) {
-			return -1;
-		}
+	NewElement = (element_t *)malloc(sizeof(element_t));
+
+	if (NewElement == NULL) {
+		return -1;
 	}
 
 	*NewElement = Element;
@@ -149,13 +149,13 @@ static int Box_remove_internal(box_t Parent, const char *Name, int Free) {
 	}
 
 	if (Element->Previous != NULL) {
-		Element->Previous->Next = NULL;
+		Element->Previous->Next = Element->Next;
 	} else {
 		Parent->First = Element->Next;
 	}
 
 	if (Element->Next != NULL) {
-		Element->Next->Previous = NULL;
+		Element->Next->Previous = Element->Previous;
 	} else {
 		Parent->Last = Element->Previous;
 	}

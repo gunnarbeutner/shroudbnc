@@ -1577,6 +1577,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			ufree(m_Nick);
 			m_Nick = ustrdup(Nick);
 
+			if (GetBox() != NULL) {
+				safe_put_string(GetBox(), "Nick", Nick);
+			}
+
 			if (m_Username != NULL && m_Password != NULL) {
 				ValidateUser();
 			} else if (m_Username != NULL) {

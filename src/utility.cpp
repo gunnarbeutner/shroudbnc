@@ -1393,11 +1393,13 @@ static void signal_segv(int signum, siginfo_t* info, void*ptr) {
 	void *trace[32];
 	int stderr_fd;
 
-	stderr_fd = fdopen(stderr);
+	stderr_fd = fileno(stderr);
 
-	backtrace(trace, sizeof(trace));
+	backtrace(trace, sizeof(trace) / sizeof(trace[0]));
 
-	backtrace_symbols_fd(trace, sizeof(trace), stderr_fd);
+	backtrace_symbols_fd(trace, sizeof(trace) / sizeof(trace[0]), stderr_fd);
+
+	exit(5);
 }
 
 int setup_sigsegv() {

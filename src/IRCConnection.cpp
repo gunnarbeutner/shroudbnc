@@ -1684,7 +1684,9 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 
 			Channel = ThawObject<CChannel>(ChannelsBox, Name, Connection);
 
-			Connection->m_Channels->Add(Channel->GetName(), Channel);
+			if (Channel != NULL) {
+				Connection->m_Channels->Add(Channel->GetName(), Channel);
+			}
 		}
 	}
 

@@ -74,7 +74,13 @@ public:
 			m_Listener = g_Bouncer->CreateListener(Port, BindIp, Family);
 		}
 
-		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
+		if (m_Listener != INVALID_SOCKET) {
+			g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
+
+			if (Box != NULL) {
+				safe_put_integer(Box, "Socket", m_Listener);
+			}
+		}
 	}
 
 	/**

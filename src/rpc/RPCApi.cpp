@@ -324,7 +324,7 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 	memset(&siStartInfo, 0, sizeof(siStartInfo));
 
 	siStartInfo.cb = sizeof(STARTUPINFO); 
-	siStartInfo.hStdError = hChildStdoutWr;
+	siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 	siStartInfo.hStdOutput = hChildStdoutWr;
 	siStartInfo.hStdInput = hChildStdinRd;
 	siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
@@ -348,6 +348,9 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 					NULL,          // use parent's current directory 
 					&siStartInfo,  // STARTUPINFO pointer 
 					&piProcInfo);  // receives PROCESS_INFORMATION 
+
+	CloseHandle(hChildStdoutWr);
+	CloseHandle(hChildStdinRd);
 
 	free(CommandLine);
 
@@ -555,6 +558,8 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	if (!WriteFile(Out, &CID, sizeof(CID), &Written, NULL)) {
 		return -1;
 	}
+
+	fprintf(stderr, "Func: %d\n", Function);
 
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {

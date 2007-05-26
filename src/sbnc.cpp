@@ -162,6 +162,19 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 
 	Sleep(10000);
 
+	time_t LastResurrect = safe_get_integer(NULL, "ResurrectTimestamp");
+
+	if (LastResurrect > time(NULL) - 30) {
+		// We're dying way too often
+		safe_exit(6);
+	}
+
+	safe_put_integer(NULL, "ResurrectTimestamp", time(NULL));
+
+	int ResurrectCount = safe_get_integer(NULL, "Resurrect");
+	ResurrectCount++;
+	safe_put_integer(NULL, "Resurrect", ResurrectCount);
+
 	g_ArgC = argc;
 	g_ArgV = argv;
 	g_ModulePath = ModulePath;
