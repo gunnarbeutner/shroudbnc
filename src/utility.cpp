@@ -1387,3 +1387,33 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 
 	return true;
 }
+
+#ifndef _WIN32
+static void signal_segv(int signum, siginfo_t* info, void*ptr) {
+	void *trace[32];
+	int stderr_fd;
+
+	stderr_fd = fdopen(stderr);
+
+	backtrace(trace, sizeof(trace));
+
+	backtrace_symbols_fd(trace, sizeof(trace), stderr_fd);
+}
+
+int setup_sigsegv() {
+    struct sigaction action;
+    memset(&action, 0, sizeof(action));
+    action.sa_sigaction = signal_segv;
+    action.sa_flags = SA_SIGINFO;
+    if(sigaction(SIGSEGV, &action, NULL) < 0) {
+        perror("sigaction");
+        return 0;
+    }
+
+    return 1;
+}
+
+static void __attribute((constructor)) init(void) {
+    setup_sigsegv();
+}
+#endif

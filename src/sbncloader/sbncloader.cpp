@@ -96,8 +96,6 @@ BOOL WINAPI sigint_handler(DWORD Code) {
 void Socket_Init(void) {}
 void Socket_Final(void) {}
 
-#define Sleep(x) usleep(x * 1000)
-
 #else
 
 void Socket_Init(void) {
