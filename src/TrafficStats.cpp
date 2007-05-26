@@ -25,10 +25,15 @@
  * Constructs a new traffic stats object.
  */
 CTrafficStats::CTrafficStats(safe_box_t Box) {
-	m_Inbound = 0;
-	m_Outbound = 0;
-
 	SetBox(Box);
+
+	if (Box == NULL) {
+		m_Inbound = 0;
+		m_Outbound = 0;
+	} else {
+		m_Inbound = safe_get_integer(Box, "Inbound");
+		m_Outbound = safe_get_integer(Box, "Outbound");
+	}
 }
 
 /**
@@ -77,30 +82,4 @@ void CTrafficStats::AddOutbound(unsigned int Bytes) {
  */
 unsigned int CTrafficStats::GetOutbound(void) const {
 	return m_Outbound;
-}
-
-/**
- * Thaw
- *
- * Depersists a CTrafficStats object.
- *
- * @param Box the box
- */
-RESULT<CTrafficStats *> CTrafficStats::Thaw(safe_box_t Box) {
-	CTrafficStats *TrafficStats;
-
-	if (Box == NULL) {
-		THROW(CTrafficStats *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	TrafficStats = new CTrafficStats(Box);
-
-	CHECK_ALLOC_RESULT(TrafficStats, new) {
-		THROW(CTrafficStats *, Generic_OutOfMemory, "new operator failed.");
-	} CHECK_ALLOC_RESULT_END;
-
-	TrafficStats->m_Inbound = safe_get_integer(Box, "Inbound");
-	TrafficStats->m_Outbound = safe_get_integer(Box, "Outbound");
-
-	RETURN(CTrafficStats *, TrafficStats);
 }

@@ -157,7 +157,16 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
  * Used by "sbncloader" to start shroudBNC
  */
 extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
+	char TclLibrary[512];
 	CConfigFile *Config;
+
+	Sleep(10000);
+
+	SetCurrentDirectory(sbncBuildPath("."));
+
+	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
+		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
+	}
 
 	safe_box_t box = safe_put_box(NULL, "hello");
 

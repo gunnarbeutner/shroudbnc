@@ -70,6 +70,10 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 	m_PingTimer = new CTimer(45, true, ClientPingTimer, this);
 
 	m_LastResponse = g_CurrentTime;
+
+	if (GetBox() != NULL) {
+		safe_put_integer(GetBox(), "Socket", GetSocket());
+	}
 }
 
 /**

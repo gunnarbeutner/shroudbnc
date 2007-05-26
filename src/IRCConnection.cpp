@@ -67,7 +67,6 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 
 	SetRole(Role_Client);
 	SetOwner(Owner);
-
 	SetBox(Box);
 
 	g_LastReconnect = g_CurrentTime;
@@ -497,6 +496,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
 			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
+
+			if (GetBox() != NULL) {
+				safe_put_integer(GetBox(), "Socket", GetSocket());
+			}
 		}
 
 /*		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {

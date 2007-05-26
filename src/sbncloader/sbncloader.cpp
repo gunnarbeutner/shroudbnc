@@ -149,7 +149,6 @@ int main(int argc, char **argv) {
 	HMODULE hMod;
 #ifdef _WIN32
 	char ExeName[MAXPATHLEN];
-	char TclLibrary[512];
 #endif
 
 	Socket_Init();
@@ -169,10 +168,6 @@ int main(int argc, char **argv) {
 	}
 
 #ifdef _WIN32
-	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
-		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
-	}
-
 	SetConsoleCtrlHandler(sigint_handler, TRUE);
 #else
 	signal(SIGINT, sigint_handler);

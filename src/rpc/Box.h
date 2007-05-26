@@ -25,6 +25,7 @@ struct box_s;
 
 typedef struct element_s {
 	int Type;
+	unsigned int References;
 
 	char *Name;
 

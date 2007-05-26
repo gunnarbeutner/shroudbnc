@@ -217,7 +217,6 @@ public:
 
 	const char *DebugImpulse(int impulse);
 
-	bool nope(void);
 	bool InitializeFreeze(void);
 
 	const utility_t *GetUtilities(void);

@@ -455,11 +455,7 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	m_Nicks.Remove(Nick);
 
 	if (GetBox() != NULL) {
-		NicksBox = safe_get_box(GetBox(), "Nicks");
-
-		if (NicksBox == NULL) {
-			NicksBox = safe_put_box(GetBox(), "Nicks");
-		}
+		NicksBox = safe_put_box(GetBox(), "Nicks");
 
 		if (NicksBox != NULL) {
 			NickBox = safe_put_box(NicksBox, Nick);

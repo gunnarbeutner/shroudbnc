@@ -29,8 +29,6 @@ private:
 public:
 #ifndef SWIG
 	CTrafficStats(safe_box_t Box);
-
-	static RESULT<CTrafficStats *> Thaw(safe_box_t Box);
 #endif
 
 	void AddInbound(unsigned int Bytes);

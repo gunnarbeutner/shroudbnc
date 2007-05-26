@@ -34,7 +34,7 @@ proc iface-defaultserver:setdefaultserver {server port} {
 	return ""
 }
 
-if {[info commands "registerifacecmd"] != "} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "defaultserver" "setdefaultserver" "iface-defaultserver:setdefaultserver" "access:admin"
 }
 
@@ -42,6 +42,6 @@ proc iface-defaultserver:getdefaultserver {} {
 	return [itype_list_strings_args [bncgetglobaltag defaultserver] [bncgetglobaltag defaultport]]
 }
 
-if {[info commands "registerifacecmd"] != "} {
+if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "defaultserver" "getdefaultserver" "iface-defaultserver:getdefaultserver" "access:admin"
 }
