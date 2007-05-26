@@ -162,11 +162,13 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
 
 	Sleep(10000);
 
-	SetCurrentDirectory(sbncBuildPath("."));
+	chdir(sbncBuildPath("."));
 
+#ifdef _WIN32
 	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
 		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
 	}
+#endif
 
 	safe_box_t box = safe_put_box(NULL, "hello");
 

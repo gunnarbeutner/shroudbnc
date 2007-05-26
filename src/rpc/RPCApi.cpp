@@ -198,7 +198,7 @@ bool RpcBlockingRead(PIPE Pipe, void *Buffer, int Size) {
 	int Offset = 0;
 	DWORD Read;
 
-	while (ReadFile(Pipe, (char *)Buffer + Offset, Size - Offset, &Read, NULL)) {
+	while (ReadFile(Pipe, (char *)Buffer + Offset, Size - Offset, &Read, NULL) && (Read > 0 || Size - Offset == 0)) {
 		Offset += Read;
 
 		if (Offset == Size) {
@@ -420,7 +420,7 @@ int RpcRunServer(PipePair_t Pipes) {
 		return 0;
 	}
 
-	while (ReadFile(Pipes.In, Buffer + Size, AllocedSize - Size, &Read, NULL)) {
+	while (ReadFile(Pipes.In, Buffer + Size, AllocedSize - Size, &Read, NULL) && (Read > 0 || AllocedSize - Size == 0)) {
 		Size += Read;
 
 		Result = RpcProcessCall(Buffer + ReadOffset, Size - ReadOffset, Pipes.Out);
