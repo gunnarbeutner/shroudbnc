@@ -23,7 +23,7 @@
  * Implements a generic socket listener.
  */
 template<typename InheritedClass>
-class CListenerBase : public CSocketEvents/*, public CObject<InheritedClass, CCore>*/ {
+class CListenerBase : public CSocketEvents, public CPersistable {
 private:
 	SOCKET m_Listener; /**< the listening socket */
 
@@ -48,23 +48,6 @@ private:
 
 	virtual const char *GetClassName(void) const { return "CListenerBase"; }
 
-	/**
-	 * Initialize
-	 *
-	 * Initialized the listener object.
-	 *
-	 * @param Listener a listening socket
-	 */
-	void Initialize(SOCKET Listener) {
-		m_Listener = Listener;
-
-		if (m_Listener == INVALID_SOCKET) {
-			return;
-		}
-
-		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
-	}
-
 protected:
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) = 0;
 
@@ -78,12 +61,20 @@ public:
 	 * @param BindIp the ip address used for binding the listener
 	 * @param Family the socket family of the listener (AF_INET or AF_INET6)
 	 */
-	CListenerBase(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) {
-		Initialize(g_Bouncer->CreateListener(Port, BindIp, Family));
-	}
+	CListenerBase(unsigned int Port, safe_box_t Box, const char *BindIp = NULL, int Family = AF_INET) {
+		m_Listener = INVALID_SOCKET;
 
-	CListenerBase(void) {
-		// used for unfreezing listeners
+		SetBox(Box);
+
+		if (Box != NULL) {
+			m_Listener = safe_get_integer(Box, "Socket");
+		}
+		
+		if (m_Listener == INVALID_SOCKET || m_Listener == 0) {
+			m_Listener = g_Bouncer->CreateListener(Port, BindIp, Family);
+		}
+
+		g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
 	}
 
 	/**
@@ -99,26 +90,6 @@ public:
 		if (m_Listener != INVALID_SOCKET) {
 			safe_closesocket(m_Listener);
 		}
-	}
-
-	/**
-	 * Thaw
-	 *
-	 * Depersists a listener object.
-	 *
-	 * @param Box the box which is being used for storing the listener
-	 */
-	static RESULT<InheritedClass *> Thaw(safe_box_t Box, CCore *Owner) {
-		InheritedClass *Listener = new InheritedClass();
-
-		CHECK_ALLOC_RESULT(Listener, new) {
-			THROW(InheritedClass *, Generic_OutOfMemory, "new operator failed.");
-		} CHECK_ALLOC_RESULT_END;
-
-//		Listener->SetOwner(Owner);
-		Listener->Initialize(safe_get_integer(Box, "Socket"));
-
-		RETURN(InheritedClass *, Listener);
 	}
 
 	/**
@@ -190,17 +161,8 @@ public:
 	 * @param Family socket family (AF_INET or AF_INET6)
 	 * @param SSL whether the listener should be using ssl
 	 */
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
+	CClientListener(unsigned int Port, safe_box_t Box, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, Box, BindIp, Family) {
 		m_SSL = SSL;
-	}
-
-	/**
-	 * CClientListener
-	 *
-	 * Default constructor.
-	 */
-	CClientListener(void) {
-		m_SSL = false;
 	}
 
 	/**

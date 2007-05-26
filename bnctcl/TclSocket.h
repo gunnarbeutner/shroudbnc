@@ -32,7 +32,7 @@ private:
 	bool m_SSL;
 	char *m_TclProc;
 public:
-	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<CTclSocket>(Port, BindIp) {
+	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<CTclSocket>(Port, NULL, BindIp) {
 		char *Buf;
 
 		m_TclProc = strdup(TclProc);

@@ -145,6 +145,7 @@ HMODULE sbncLoadModule(void) {
 }
 
 int main(int argc, char **argv) {
+	int Result;
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 #ifdef _WIN32
@@ -162,7 +163,9 @@ int main(int argc, char **argv) {
 
 		do {
 			RpcInvokeClient(argv[0], &Pipes);
-		} while (RpcRunServer(Pipes));
+			Result = RpcRunServer(Pipes);
+			RpcWaitForClient();
+		} while (Result);
 
 		return 0;
 	}

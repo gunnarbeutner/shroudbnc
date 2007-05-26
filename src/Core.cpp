@@ -290,7 +290,11 @@ void CCore::StartMainLoop(void) {
 
 	if (m_Listener == NULL) {
 		if (Port != 0) {
-			m_Listener = new CClientListener(Port, BindIp, AF_INET);
+			safe_box_t ListenerBox;
+
+			ListenerBox = safe_put_box(NULL, "Listener");
+
+			m_Listener = new CClientListener(Port, ListenerBox, BindIp, AF_INET);
 		} else {
 			m_Listener = NULL;
 		}
@@ -298,7 +302,11 @@ void CCore::StartMainLoop(void) {
 
 	if (m_ListenerV6 == NULL) {
 		if (Port != 0) {
-			m_ListenerV6 = new CClientListener(Port, BindIp, AF_INET6);
+			safe_box_t ListenerBox;
+
+			ListenerBox = safe_put_box(NULL, "ListenerV6");
+
+			m_ListenerV6 = new CClientListener(Port, ListenerBox, BindIp, AF_INET6);
 
 			if (m_ListenerV6->IsValid() == false) {
 				delete m_ListenerV6;
@@ -313,7 +321,11 @@ void CCore::StartMainLoop(void) {
 #ifdef USESSL
 	if (m_SSLListener == NULL) {
 		if (SSLPort != 0) {
-			m_SSLListener = new CClientListener(SSLPort, BindIp, AF_INET, true);
+			safe_box_t ListenerBox;
+
+			ListenerBox = safe_put_box(NULL, "ListenerSSL");
+
+			m_SSLListener = new CClientListener(SSLPort, ListenerBox, BindIp, AF_INET, true);
 		} else {
 			m_SSLListener = NULL;
 		}
@@ -321,7 +333,11 @@ void CCore::StartMainLoop(void) {
 
 	if (m_SSLListenerV6 == NULL) {
 		if (SSLPort != 0) {
-			m_SSLListenerV6 = new CClientListener(SSLPort, BindIp, AF_INET6, true);
+			safe_box_t ListenerBox;
+
+			ListenerBox = safe_put_box(NULL, "ListenerSSLV6");
+
+			m_SSLListenerV6 = new CClientListener(SSLPort, ListenerBox, BindIp, AF_INET6, true);
 
 			if (m_SSLListenerV6->IsValid() == false) {
 				delete m_SSLListenerV6;
@@ -1735,7 +1751,7 @@ const char *CCore::DebugImpulse(int impulse) {
 bool CCore::Thaw(void) {
 	safe_box_t UsersBox;
 
-	m_Listener = ThawObject<CClientListener>(NULL, "Listener", this);
+/*	m_Listener = ThawObject<CClientListener>(NULL, "Listener", this);
 	m_ListenerV6 = ThawObject<CClientListener>(NULL, "ListenerV6", this);
 
 	m_SSLListener = ThawObject<CClientListener>(NULL, "SSLListener", this);
@@ -1746,7 +1762,7 @@ bool CCore::Thaw(void) {
 	m_SSLListenerV6 = ThawObject<CClientListener>(NULL, "SSLListenerV6", this);
 	if (m_SSLListenerV6 != NULL) {
 		m_SSLListenerV6->SetSSL(true);
-	}
+	}*/
 
 	UsersBox = safe_get_box(NULL, "Users");
 
@@ -2383,7 +2399,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 		THROW(bool, Generic_Unknown, "Failed to create an SSL listener because there is no SSL server certificate.");
 	}
 
-	Listener = new CClientListener(Port, BindAddress, AF_INET, SSL);
+	Listener = new CClientListener(Port, NULL, BindAddress, AF_INET, SSL);
 
 	if (Listener == NULL || !Listener->IsValid()) {
 		delete Listener;
@@ -2397,7 +2413,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 		}
 	}
 
-	ListenerV6 = new CClientListener(Port, BindAddress, AF_INET6, SSL);
+	ListenerV6 = new CClientListener(Port, NULL, BindAddress, AF_INET6, SSL);
 
 	if (ListenerV6 == NULL || !ListenerV6->IsValid()) {
 		delete ListenerV6;

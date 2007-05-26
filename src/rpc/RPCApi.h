@@ -136,6 +136,7 @@ void RpcFatal(void);
 #ifdef RPCSERVER
 int RpcInvokeClient(char *Program, PipePair_t *Pipes);
 int RpcRunServer(PipePair_t Pipes);
+void RpcWaitForClient(void);
 int RpcProcessCall(char *Data, size_t Length, PIPE Out);
 const char *RpcStringFromValue(Value_t Value);
 #endif

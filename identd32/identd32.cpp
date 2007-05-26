@@ -157,7 +157,7 @@ public:
 
 IMPL_SOCKETLISTENER(CIdentListener) {
 public:
-	CIdentListener(int Family) : CListenerBase<CIdentListener>(113, NULL, Family) { }
+	CIdentListener(int Family) : CListenerBase<CIdentListener>(113, NULL, NULL, Family) { }
 
 	void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CIdentClient *Handler = new CIdentClient(Client);

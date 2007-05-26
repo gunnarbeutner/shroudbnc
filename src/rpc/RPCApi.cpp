@@ -404,6 +404,14 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 #endif
 }
 
+void RpcWaitForClient(void) {
+#ifndef _WIN32
+	int Dummy;
+
+	wait(&Dummy);
+#endif
+}
+
 int RpcRunServer(PipePair_t Pipes) {
 	const size_t BlockSize = 512;
 	char *Buffer, *NewBuffer;

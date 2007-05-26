@@ -71,4 +71,6 @@ typedef int DWORD;
 
 #define DebugBreak()
 
+#define Sleep(Iv) usleep(1000 * Iv)
+
 #define SBNCAPI
