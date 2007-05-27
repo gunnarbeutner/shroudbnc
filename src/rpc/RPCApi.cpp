@@ -477,17 +477,21 @@ int RpcRunServer(PipePair_t Pipes) {
 	return 1;
 }
 
-#define RpcExpect(Bytes)				\
-	{									\
-		if (Length < Bytes) {			\
-			if (Arguments != NULL) {	\
-				free(Arguments);		\
-			}							\
-										\
-			return 0;					\
-		}								\
-										\
-		Length -= Bytes;				\
+#define RpcExpect(Bytes)								\
+	{													\
+		if (Length < Bytes) {							\
+			if (Arguments != NULL) {					\
+				free(Arguments);						\
+			}											\
+														\
+			for (unsigned int i = 0; i <= Index; i++) { \
+				RpcFreeValue(Arguments[i]);				\
+			}											\
+														\
+			return 0;									\
+		}												\
+														\
+		Length -= Bytes;								\
 	}
 
 /*
@@ -503,6 +507,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	Value_t ReturnValue;
 	DWORD Written;
 	int CID;
+	unsigned int Index = 0;
 
 	RpcExpect(sizeof(int));
 	CID = *(int *)Call;
@@ -518,48 +523,48 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 
 	Arguments = (Value_t *)malloc(sizeof(Value_t) * functions[Function].ArgumentCount);
 
-	for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
+	for (Index = 0; Index < functions[Function].ArgumentCount; Index++) {
 		RpcExpect(sizeof(char));
 		ArgumentType = (Type_t)*Call;
 		Call += sizeof(char);
 
-		Arguments[i].Type = ArgumentType;
+		Arguments[Index].Type = ArgumentType;
 
 		if (ArgumentType == Integer) {
-			Arguments[i].Flags = Flag_None;
+			Arguments[Index].Flags = Flag_None;
 
 			RpcExpect(4);
-			Arguments[i].Integer = *(int *)Call;
+			Arguments[Index].Integer = *(int *)Call;
 			Call += sizeof(int);
 		} else if (ArgumentType == Pointer) {
-			Arguments[i].Flags = Flag_None;
+			Arguments[Index].Flags = Flag_None;
 
 			RpcExpect(sizeof(void *));
-			Arguments[i].Pointer = *(void **)Call;
+			Arguments[Index].Pointer = *(void **)Call;
 			Call += sizeof(void *);
 		} else if (ArgumentType == Block) {
 			RpcExpect(sizeof(char));
-			Arguments[i].Flags = *Call;
+			Arguments[Index].Flags = *Call;
 			Call += sizeof(char);
 
 			RpcExpect(sizeof(unsigned int));
-			Arguments[i].Size = *(unsigned int *)Call;
+			Arguments[Index].Size = *(unsigned int *)Call;
 			Call += sizeof(unsigned int);
 
-			if (Arguments[i].Flags & Flag_Alloc) {
-				Arguments[i].Block = malloc(Arguments[i].Size);
+			if (Arguments[Index].Flags & Flag_Alloc) {
+				Arguments[Index].Block = malloc(Arguments[Index].Size);
 
-				if (Arguments[i].Block == NULL) {
+				if (Arguments[Index].Block == NULL) {
 					return -1;
 				}
 
-				Arguments[i].NeedFree = true;
+				Arguments[Index].NeedFree = true;
 			} else {
-				RpcExpect(Arguments[i].Size);
-				Arguments[i].Block = Call;
-				Call += Arguments[i].Size;
+				RpcExpect(Arguments[Index].Size);
+				Arguments[Index].Block = Call;
+				Call += Arguments[Index].Size;
 
-				Arguments[i].NeedFree = false;
+				Arguments[Index].NeedFree = false;
 			}
 		}
 	}
@@ -598,10 +603,6 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 		RpcFreeValue(ReturnValue);
 	} else {
 		return -1;
-	}
-
-	if (AllocC != 0) {
-		DebugBreak();
 	}
 
 	free(Arguments);
