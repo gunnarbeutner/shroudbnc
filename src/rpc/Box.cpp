@@ -100,6 +100,10 @@ static int Box_put(box_t Parent, element_t Element) {
 		Parent = g_RootBox;
 	}
 
+	if (Parent->ReadOnly) {
+		return -1;
+	}
+
 	NewElement = Box_get(Parent, Element.Name);
 
 	if (NewElement != NULL) {
