@@ -47,6 +47,7 @@ static box_t Box_alloc(void) {
 	Box->Parent = NULL;
 	Box->First = NULL;
 	Box->Last = NULL;
+	Box->ReadOnly = false;
 
 	return Box;
 }
@@ -145,6 +146,10 @@ static int Box_remove_internal(box_t Parent, const char *Name, int Free) {
 		}
 
 		Parent = g_RootBox;
+	}
+
+	if (Parent->ReadOnly) {
+		return -1;
 	}
 
 	Element = Box_get(Parent, Name);
