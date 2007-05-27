@@ -395,8 +395,8 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 		close(stdinpipes[0]);
 		close(stdoutpipes[1]);
 
-		Pipes->In = stdoutpipes[0];
-		Pipes->Out = stdinpipes[1];
+		PipesLocal->In = stdoutpipes[0];
+		PipesLocal->Out = stdinpipes[1];
 
 		return 1;
 	} else {

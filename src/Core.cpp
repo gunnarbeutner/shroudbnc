@@ -1798,6 +1798,8 @@ bool CCore::Thaw(void) {
 				safe_element_t *PreviousClient = NULL;
 				char ClientName[128];
 
+				safe_set_ro(ClientsBox, 1);
+
 				while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
 					CClientConnection *Client;
 
@@ -1811,6 +1813,8 @@ bool CCore::Thaw(void) {
 						}
 					}
 				}
+
+				safe_set_ro(ClientsBox, 0);
 			}	
 		}
 	}
