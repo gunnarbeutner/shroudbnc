@@ -418,14 +418,6 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 #endif
 }
 
-void RpcWaitForClient(void) {
-#ifndef _WIN32
-	int Dummy;
-
-	waitpid(-1, &Dummy, 0);
-#endif
-}
-
 int RpcRunServer(PipePair_t Pipes) {
 	while (RpcProcessCall(Pipes.In, Pipes.Out) > 0)
 		; // empty

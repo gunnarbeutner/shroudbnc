@@ -52,6 +52,12 @@ void sigint_handler(int code) {
 		signal(SIGINT, SIG_IGN);
 	}*/
 }
+
+void sigchld_handler(int Code) {
+	int Status;
+
+	waitpid(-1, &Status, 0);
+}
 #else
 BOOL WINAPI sigint_handler(DWORD Code) {
 	const char *HRCode;
@@ -181,6 +187,7 @@ int main(int argc, char **argv) {
 
 #ifndef _WIN32
 		signal(SIGPIPE, SIG_IGN);
+		signal(SIGCHLD, sigchld_handler);
 #endif
 
 		do {
@@ -189,8 +196,6 @@ int main(int argc, char **argv) {
 			}
 
 			Result = RpcRunServer(PipesLocal);
-
-			RpcWaitForClient();
 		} while (Result);
 
 		return 0;

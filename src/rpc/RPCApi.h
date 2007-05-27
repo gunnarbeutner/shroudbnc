@@ -141,7 +141,6 @@ void RpcFatal(void);
 
 int RpcInvokeClient(char *Program, PipePair_t *PipesLocal);
 int RpcRunServer(PipePair_t Pipes);
-void RpcWaitForClient(void);
 int RpcProcessCall(FILE *In, FILE *Out);
 const char *RpcStringFromValue(Value_t Value);
 
