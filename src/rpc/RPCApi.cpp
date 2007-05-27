@@ -503,6 +503,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	Value_t ReturnValue;
 	DWORD Written;
 	int CID;
+	int AllocC = 0;
 
 	RpcExpect(sizeof(int));
 	CID = *(int *)Call;
@@ -548,6 +549,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 
 			if (Arguments[i].Flags & Flag_Alloc) {
 				Arguments[i].Block = malloc(Arguments[i].Size);
+				AllocC++;
 
 				if (Arguments[i].Block == NULL) {
 					return -1;
@@ -571,7 +573,6 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 			bool HadFlagAlloc = ((Arguments[i].Flags & Flag_Alloc) == Flag_Alloc);
 
 			if (Arguments[i].Flags & Flag_Out) {
-
 				Arguments[i].Flags &= ~Flag_Alloc;
 
 				if (!RpcWriteValue(Out, Arguments[i])) {
@@ -584,15 +585,22 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 			}
 
 			if (Arguments[i].Type == Block && HadFlagAlloc) {
-				free(Arguments[i].Block);
+				RpcFreeValue(Arguments[i]);
+				AllocC--;
 			}
 		}
 
 		if (!RpcWriteValue(Out, ReturnValue)) {
 			return -1;
 		}
+
+		RpcFreeValue(ReturnValue);
 	} else {
 		return -1;
+	}
+
+	if (AllocC != 0) {
+		DebugBreak();
 	}
 
 	free(Arguments);
