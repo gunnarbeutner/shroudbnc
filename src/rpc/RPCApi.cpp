@@ -404,7 +404,7 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 		close(stdoutpipes[1]);
 
 		PipesLocal->In = fdopen(stdoutpipes[0], "rb");
-		PipesLocal->Out = fdopen(stdinpipes[1] "wb");
+		PipesLocal->Out = fdopen(stdinpipes[1], "wb");
 
 		return 1;
 	} else {
@@ -427,7 +427,7 @@ void RpcWaitForClient(void) {
 }
 
 int RpcRunServer(PipePair_t Pipes) {
-	while (RpcProcessCall(Pipes.In, Pipes.Out))
+	while (RpcProcessCall(Pipes.In, Pipes.Out) > 0)
 		; // empty
 
 	return 1;
