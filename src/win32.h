@@ -28,6 +28,7 @@
 #	include <ws2tcpip.h>
 #	include <shlwapi.h>
 #	include <direct.h>
+#	include <io.h>
 #else
 typedef struct { char __addr[16]; } sockaddr_in6;
 #endif

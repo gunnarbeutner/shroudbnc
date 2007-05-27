@@ -160,6 +160,13 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, int argc, char 
 	char TclLibrary[512];
 	CConfigFile *Config;
 
+#ifdef _WIN32
+	_setmode(fileno(stdin),O_BINARY);
+	_setmode(fileno(stdout),O_BINARY);
+#endif
+
+	Sleep(10000);
+
 	RpcSetLPC(LPC);
 
 	safe_reinit();

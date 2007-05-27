@@ -20,6 +20,8 @@
 #ifndef _RPCAPI_H
 #define _RPCAPI_H
 
+#include <stdio.h>
+
 #if !defined(RPCCLIENT) && !defined(RPCSERVER)
 #	define RPCCLIENT
 #endif
@@ -47,8 +49,8 @@ int WriteFile(int File, const void *Buffer, int Size, int *Written, void *Dummy)
 #endif
 
 typedef struct PipePair_s {
-	PIPE In;
-	PIPE Out;
+	FILE *In;
+	FILE *Out;
 } PipePair_t;
 
 typedef enum Function_e {
@@ -140,7 +142,7 @@ void RpcFatal(void);
 int RpcInvokeClient(char *Program, PipePair_t *PipesLocal);
 int RpcRunServer(PipePair_t Pipes);
 void RpcWaitForClient(void);
-int RpcProcessCall(char *Data, size_t Length, PIPE Out);
+int RpcProcessCall(FILE *In, FILE *Out);
 const char *RpcStringFromValue(Value_t Value);
 
 int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue);

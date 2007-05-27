@@ -152,42 +152,37 @@ int WriteFile(int File, const void *Buffer, int Size, int *Written, void *Dummy)
 }
 #endif
 
-
-bool RpcWriteValue(PIPE Pipe, Value_t Value) {
+bool RpcWriteValue(FILE *Pipe, Value_t Value) {
 	char ReturnType;
-	unsigned int ReturnSize;
 	char ReturnFlags;
-	DWORD Dummy;
 
 	ReturnType = Value.Type;
 
-	if (!WriteFile(Pipe, &ReturnType, sizeof(ReturnType), &Dummy, NULL)) {
+	if (fwrite(&ReturnType, 1, sizeof(ReturnType), Pipe) <= 0) {
 		return false;
 	}
 
 	if (ReturnType == Integer) {
-		if (!WriteFile(Pipe, &(Value.Integer), sizeof(Value.Integer), &Dummy, NULL)) {
+		if (fwrite(&(Value.Integer), 1, sizeof(Value.Integer), Pipe) <= 0) {
 			return false;
 		}
 	} else if (ReturnType == Pointer) {
-		if (!WriteFile(Pipe, &(Value.Pointer), sizeof(Value.Pointer), &Dummy, NULL)) {
+		if (fwrite(&(Value.Pointer), 1, sizeof(Value.Pointer), Pipe) <= 0) {
 			return false;
 		}
 	} else if (ReturnType == Block) {
 		ReturnFlags = Value.Flags;
 
-		if (!WriteFile(Pipe, &ReturnFlags, sizeof(ReturnFlags), &Dummy, NULL)) {
+		if (fwrite(&ReturnFlags, 1, sizeof(ReturnFlags), Pipe) <= 0) {
 			return false;
 		}
 
-		ReturnSize = Value.Size;
-
-		if (!WriteFile(Pipe, &ReturnSize, sizeof(ReturnSize), &Dummy, NULL)) {
+		if (fwrite(&(Value.Size), 1, sizeof(Value.Size), Pipe) <= 0) {
 			return false;
 		}
 
 		if (!(Value.Flags & Flag_Alloc)) {
-			if (!WriteFile(Pipe, Value.Block, ReturnSize, &Dummy, NULL)) {
+			if (fwrite(Value.Block, 1, Value.Size, Pipe) <= 0) {
 				return false;
 			}
 		}
@@ -196,11 +191,17 @@ bool RpcWriteValue(PIPE Pipe, Value_t Value) {
 	return true;
 }
 
-bool RpcBlockingRead(PIPE Pipe, void *Buffer, int Size) {
-	int Offset = 0;
-	DWORD Read;
+bool RpcBlockingRead(FILE *Pipe, void *Buffer, int Size) {
+/*	int Offset = 0;
+	DWORD Read;*/
 
-	while (ReadFile(Pipe, (char *)Buffer + Offset, Size - Offset, &Read, NULL) && (Read > 0 || Size - Offset == 0)) {
+	if (fread(Buffer, 1, Size, Pipe) <= 0) {
+		return false;
+	} else {
+		return true;
+	}
+
+/*	while (ReadFile(Pipe, (char *)Buffer + Offset, Size - Offset, &Read, NULL) && (Read > 0 || Size - Offset == 0)) {
 		Offset += Read;
 
 		if (Offset == Size) {
@@ -208,10 +209,10 @@ bool RpcBlockingRead(PIPE Pipe, void *Buffer, int Size) {
 		}
 	}
 
-	return false;
+	return false;*/
 }
 
-bool RpcReadValue(PIPE Pipe, Value_t *Value) {
+bool RpcReadValue(FILE *Pipe, Value_t *Value) {
 	char ValueType;
 	char *Buffer;
 
@@ -234,9 +235,13 @@ bool RpcReadValue(PIPE Pipe, Value_t *Value) {
 
 		Value->NeedFree = false;
 	} else if (ValueType == Block) {
-		if (!RpcBlockingRead(Pipe, &(Value->Flags), sizeof(Value->Flags))) {
+		char Flags;
+
+		if (!RpcBlockingRead(Pipe, &Flags, sizeof(Flags))) {
 			return false;
 		}
+
+		Value->Flags = Flags;
 
 		if (!RpcBlockingRead(Pipe, &Value->Size, sizeof(Value->Size))) {
 			return false;
@@ -363,8 +368,11 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
 
-		PipesLocal->In = hChildStdoutRdDup;
-		PipesLocal->Out = hChildStdinWrDup;
+		int InFd = _open_osfhandle((intptr_t)hChildStdoutRdDup, 0);
+		int OutFd = _open_osfhandle((intptr_t)hChildStdinWrDup, 0);
+
+		PipesLocal->In = fdopen(InFd, "rb");
+		PipesLocal->Out = fdopen(OutFd, "wb");
 
 		return 1;
 	}
@@ -395,8 +403,8 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 		close(stdinpipes[0]);
 		close(stdoutpipes[1]);
 
-		PipesLocal->In = stdoutpipes[0];
-		PipesLocal->Out = stdinpipes[1];
+		PipesLocal->In = fdopen(stdoutpipes[0], "rb");
+		PipesLocal->Out = fdopen(stdinpipes[1] "wb");
 
 		return 1;
 	} else {
@@ -419,103 +427,27 @@ void RpcWaitForClient(void) {
 }
 
 int RpcRunServer(PipePair_t Pipes) {
-	const size_t BlockSize = 512;
-	char *Buffer, *NewBuffer;
-	int AllocedSize;
-	int Size = 0;
-	int Result;
-	int ReadOffset = 0;
-	DWORD Read;
-	PIPE RpcIn, RpcOut;
-
-	RpcIn = Pipes.In;
-	RpcOut = Pipes.Out;
-
-	AllocedSize = BlockSize;
-	Buffer = (char *)malloc(AllocedSize);
-
-	if (Buffer == NULL) {
-		return 0;
-	}
-
-	while (ReadFile(RpcIn, Buffer + Size, AllocedSize - Size, &Read, NULL) && (Read > 0 || AllocedSize - Size == 0)) {
-		Size += Read;
-
-		Result = RpcProcessCall(Buffer + ReadOffset, Size - ReadOffset, RpcOut);
-
-		if (Result > 0) {
-			ReadOffset += Result;
-		} else if (Result < 0) {
-			return 1;
-		}
-
-		if (ReadOffset < BlockSize) {
-			AllocedSize = (Size / BlockSize + 1) * BlockSize;
-			Buffer = (char *)realloc(Buffer, AllocedSize);
-
-			if (Buffer == NULL) {
-				return 0;
-			}
-		} else{
-			AllocedSize = ((Size - ReadOffset) / BlockSize + 1) * BlockSize;
-			NewBuffer = (char *)malloc(AllocedSize);
-
-			if (NewBuffer == NULL) {
-				free(Buffer);
-				
-				return 0;
-			}
-
-			memcpy(NewBuffer, Buffer + ReadOffset, Size - ReadOffset);
-			Size -= ReadOffset;
-			Buffer = NewBuffer;
-			ReadOffset = 0;
-		}
-
-	}
+	while (RpcProcessCall(Pipes.In, Pipes.Out))
+		; // empty
 
 	return 1;
 }
 
-#define RpcExpect(Bytes)								\
-	{													\
-		if (Length < Bytes) {							\
-			for (unsigned int i = 0; i < Index; i++) {	\
-				RpcFreeValue(Arguments[i]);				\
-			}											\
-														\
-			if (Arguments != NULL) {					\
-				free(Arguments);						\
-			}											\
-														\
-			return 0;									\
-		}												\
-														\
-		Length -= Bytes;								\
-	}
-
-/*
-
-TODO: fix alignment issues
-
-*/
-int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
-	Function_t Function;
-	Type_t ArgumentType;
-	char *Call = Data;
+int RpcProcessCall(FILE *In, FILE *Out) {
+	char Function;
+	char ArgumentType;
 	Value_t *Arguments = NULL;
 	Value_t ReturnValue;
-	DWORD Written;
 	int CID;
 	unsigned int Index = 0;
 
-	RpcExpect(sizeof(int));
-	CID = *(int *)Call;
-	Call += sizeof(int);
+	if (fread(&CID, 1, sizeof(int), In) <= 0) {
+		return -1;
+	}
 
-	RpcExpect(sizeof(char));
-	Function = (Function_t)*Call;
-	Call += sizeof(char);
+	if (fread(&Function, 1, sizeof(char), In) <= 0) {
+		return -1;
+	}
 
 	if (Function >= last_function) {
 		return -1;
@@ -524,54 +456,55 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	Arguments = (Value_t *)malloc(sizeof(Value_t) * functions[Function].ArgumentCount);
 
 	for (Index = 0; Index < functions[Function].ArgumentCount; Index++) {
-		RpcExpect(sizeof(char));
-		ArgumentType = (Type_t)*Call;
-		Call += sizeof(char);
+		if (fread(&ArgumentType, 1, sizeof(char), In) <= 0) {
+			return -1;
+		}
 
 		Arguments[Index].Type = ArgumentType;
 
 		if (ArgumentType == Integer) {
 			Arguments[Index].Flags = Flag_None;
 
-			RpcExpect(4);
-			Arguments[Index].Integer = *(int *)Call;
-			Call += sizeof(int);
+			if (fread(&(Arguments[Index].Integer), 1, sizeof(Arguments[Index].Integer), In) <= 0) {
+				return -1;
+			}
 		} else if (ArgumentType == Pointer) {
 			Arguments[Index].Flags = Flag_None;
 
-			RpcExpect(sizeof(void *));
-			Arguments[Index].Pointer = *(void **)Call;
-			Call += sizeof(void *);
+			if (fread(&(Arguments[Index].Pointer), 1, sizeof(Arguments[Index].Pointer), In) <= 0) {
+				return -1;
+			}
 		} else if (ArgumentType == Block) {
-			RpcExpect(sizeof(char));
-			Arguments[Index].Flags = *Call;
-			Call += sizeof(char);
+			char Flags;
 
-			RpcExpect(sizeof(unsigned int));
-			Arguments[Index].Size = *(unsigned int *)Call;
-			Call += sizeof(unsigned int);
+			if (fread(&Flags, 1, sizeof(Flags), In) <= 0) {
+				return -1;
+			}
 
-			if (Arguments[Index].Flags & Flag_Alloc) {
-				Arguments[Index].Block = malloc(Arguments[Index].Size);
+			Arguments[Index].Flags = Flags;
 
-				if (Arguments[Index].Block == NULL) {
+			if (fread(&(Arguments[Index].Size), 1, sizeof(Arguments[Index].Size), In) <= 0) {
+				return -1;
+			}
+
+			Arguments[Index].NeedFree = true;
+			Arguments[Index].Block = malloc(Arguments[Index].Size);
+
+			if (Arguments[Index].Block == NULL) {
+				return -1;
+			}
+
+			if (!(Arguments[Index].Flags & Flag_Alloc)) {
+				if (fread(Arguments[Index].Block, 1, Arguments[Index].Size, In) <= 0) {
 					return -1;
 				}
-
-				Arguments[Index].NeedFree = true;
-			} else {
-				RpcExpect(Arguments[Index].Size);
-				Arguments[Index].Block = Call;
-				Call += Arguments[Index].Size;
-
-				Arguments[Index].NeedFree = false;
 			}
 		}
 	}
 
 	errno = 0;
 
-	if (!WriteFile(Out, &CID, sizeof(CID), &Written, NULL)) {
+	if (fwrite(&CID, 1, sizeof(CID), Out) <= 0) {
 		return -1;
 	}
 
@@ -605,9 +538,11 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 		return -1;
 	}
 
+	fflush(Out);
+
 	free(Arguments);
 
-	return Call - Data;
+	return 1;
 }
 
 const char *RpcStringFromValue(Value_t Value) {
@@ -621,22 +556,21 @@ const char *RpcStringFromValue(Value_t Value) {
 int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue) {
 	char FunctionByte;
 	int CID, CIDReturn;
-	DWORD Dummy;
-	PIPE RpcIn, RpcOut;
+	FILE *RpcIn, *RpcOut;
 
-	RpcIn = GetStdHandle(STD_INPUT_HANDLE);
-	RpcOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	RpcIn = stdin;
+	RpcOut = stdout;
 
 	if (!g_LPC) {
 		FunctionByte = Function;
 
 		CID = rand();
 
-		if (!WriteFile(RpcOut, &CID, sizeof(CID), &Dummy, NULL)) {
+		if (fwrite(&CID, 1, sizeof(CID), RpcOut) <= 0) {
 			return 0;
 		}
 
-		if (!WriteFile(RpcOut, &FunctionByte, sizeof(char), &Dummy, NULL)) {
+		if (fwrite(&FunctionByte, 1, sizeof(FunctionByte), RpcOut) <= 0) {
 			return 0;
 		}
 
@@ -645,6 +579,8 @@ int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int Argu
 				return 0;
 			}
 		}
+
+		fflush(RpcOut);
 
 		if (!RpcBlockingRead(RpcIn, &CIDReturn, sizeof(CIDReturn))) {
 			return 0;
