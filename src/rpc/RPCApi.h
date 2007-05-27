@@ -86,6 +86,8 @@ typedef enum Function_e {
 	Function_safe_get_parent,
 	Function_safe_get_name,
 	Function_safe_move,
+	Function_safe_set_ro,
+	Function_safe_reinit,
 
 	Function_safe_exit,
 

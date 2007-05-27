@@ -436,12 +436,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		ufree(m_CurrentNick);
 		m_CurrentNick = ustrdup(argv[2]);
 
+		if (GetBox() != NULL) {
+			safe_put_string(GetBox(), "Nick", argv[2]);
+		}
+
 		ufree(m_Server);
 		m_Server = ustrdup(Reply);
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
 			ufree(m_CurrentNick);
 			m_CurrentNick = ustrdup(argv[2]);
+
+			if (GetBox() != NULL) {
+				safe_put_string(GetBox(), "Nick", argv[2]);
+			}
 		}
 
 		Nick = NickFromHostmask(argv[0]);
@@ -1681,8 +1689,15 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 
 		while (safe_enumerate(ChannelsBox, &Previous, Name, sizeof(Name)) != -1) {
 			CChannel* Channel;
+			safe_box_t ChannelBox;
 
-			Channel = ThawObject<CChannel>(ChannelsBox, Name, Connection);
+			ChannelBox = safe_get_box(ChannelsBox, Name);
+
+			if (ChannelBox == NULL) {
+				continue;
+			}
+
+			Channel = new CChannel(Name, Connection, ChannelBox);
 
 			if (Channel != NULL) {
 				Connection->m_Channels->Add(Channel->GetName(), Channel);

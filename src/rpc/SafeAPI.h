@@ -76,7 +76,8 @@ bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue);
-
+bool RPCAPI RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue);
+bool RPCAPI RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue);
 bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue);
 #endif
 
@@ -122,6 +123,8 @@ extern "C" {
 	safe_box_t RPCAPI safe_get_parent(safe_box_t Box);
 	const char RPCAPI *safe_get_name(safe_box_t Box);
 	int RPCAPI safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName);
+	int RPCAPI safe_set_ro(safe_box_t Box, int ReadOnly);
+	int RPCAPI safe_reinit(void);
 
 	void RPCAPI safe_exit(int ExitCode);
 

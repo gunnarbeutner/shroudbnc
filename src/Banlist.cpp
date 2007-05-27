@@ -37,10 +37,37 @@ void DestroyBan(ban_t *Ban) {
  * Constructs an empty banlist.
  */
 CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
+	char Mask[128];
+
 	SetOwner(Owner);
 	SetBox(Box);
 
 	m_Bans.RegisterValueDestructor(DestroyBan);
+
+	if (Box != NULL) {
+		safe_element_t *Previous = NULL;
+
+		safe_set_ro(Box, 1);
+
+		while (safe_enumerate(Box, &Previous, Mask, sizeof(Mask)) != -1) {
+			safe_box_t BanBox;
+			time_t Timestamp;
+			const char *Nick;
+
+			BanBox = safe_get_box(Box, Mask);
+
+			if (BanBox == NULL) {
+				continue;
+			}
+
+			Timestamp = safe_get_integer(BanBox, "Timestamp");
+			Nick = safe_get_string(BanBox, "Nick");
+
+			SetBan(Mask, Nick, Timestamp);
+		}
+
+		safe_set_ro(Box, 0);
+	}
 }
 
 /**
@@ -55,8 +82,6 @@ CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 	safe_box_t BanBox;
-
-	UnsetBan(Mask);
 
 	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
@@ -90,11 +115,13 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
  */
 RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
-		if (GetBox() != NULL) {
+		RESULT<bool> Result = m_Bans.Remove(Mask);
+
+		if (!IsError(Result) && GetBox() != NULL) {
 			safe_remove(GetBox(), Mask);
 		}
 
-		return m_Bans.Remove(Mask);
+		return Result;
 	} else {
 		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
 	}
@@ -120,45 +147,4 @@ const hash_t<ban_t *> *CBanlist::Iterate(int Skip) const {
  */
 const ban_t *CBanlist::GetBan(const char *Mask) const {
 	return m_Bans.Get(Mask);
-}
-
-/**
- * Thaw
- *
- * Depersists a banlist.
- *
- * @param Box the box
- */
-RESULT<CBanlist *> CBanlist::Thaw(safe_box_t Box, CChannel *Owner) {
-	CBanlist *Banlist;
-	safe_element_t *Previous = NULL;
-	safe_box_t BanBox;
-	char Mask[256];
-	const char *Nick;
-	time_t Timestamp;
-
-	if (Box == NULL) {
-		THROW(CBanlist *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Banlist = new CBanlist(Owner, Box);
-
-	CHECK_ALLOC_RESULT(Banlist, new) {
-		THROW(CBanlist *, Generic_OutOfMemory, "new operator failed.");
-	} CHECK_ALLOC_RESULT_END;
-
-	while (safe_enumerate(Box, &Previous, Mask, sizeof(Mask)) != -1) {
-		BanBox = safe_get_box(Box, Mask);
-
-		if (BanBox == NULL) {
-			continue;
-		}
-
-		Timestamp = safe_get_integer(BanBox, "Timestamp");
-		Nick = safe_get_string(BanBox, "Nick");
-
-		Banlist->SetBan(Mask, Nick, Timestamp);
-	}
-
-	RETURN(CBanlist *, Banlist);
 }

@@ -72,8 +72,6 @@ public:
 #ifndef SWIG
 	CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box);
 	virtual ~CChannel(void);
-
-	static RESULT<CChannel *> Thaw(safe_box_t Box, CIRCConnection *Owner);
 #endif
 
 	const char *GetName(void) const;

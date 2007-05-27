@@ -712,6 +712,36 @@ bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
+// int safe_set_ro(safe_box_t Box, int ReadOnly);
+bool RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue) {
+	int Result;
+
+	if (Arguments[0].Type != Pointer || Arguments[1].Type != Integer) {
+		return false;
+	}
+
+	Result = Box_set_ro((box_t)Arguments[0].Pointer, Arguments[1].Integer);
+
+	g_RpcErrno = errno;
+
+	*ReturnValue = RPC_INT(Result);
+
+	return true;
+}
+
+// int safe_reinit(void);
+bool RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
+	int Result;
+
+	Result = Box_reinit();
+
+	g_RpcErrno = errno;
+
+	*ReturnValue = RPC_INT(Result);
+
+	return true;
+}
+
 // void safe_exit(int ExitCode);
 bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
@@ -1435,13 +1465,45 @@ const char *safe_get_name(safe_box_t Box) {
 
 int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName) {
 	Value_t Arguments[3];
-	static Value_t ReturnValue;
+	Value_t ReturnValue;
 
 	Arguments[0] = RPC_POINTER(NewParent);
 	Arguments[1] = RPC_POINTER(Box);
 	Arguments[2] = RPC_STRING(NewName);
 
 	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_move, Arguments, 3, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	return ReturnValue.Integer;
+}
+
+int safe_set_ro(safe_box_t Box, int ReadOnly) {
+	Value_t Arguments[2];
+	Value_t ReturnValue;
+
+	Arguments[0] = RPC_POINTER(Box);
+	Arguments[1] = RPC_INT(ReadOnly);
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_set_ro, Arguments, 2, &ReturnValue)) {
+		RpcFatal();
+	}
+
+	if (ReturnValue.Type != Integer) {
+		RpcFatal();
+	}
+
+	return ReturnValue.Integer;
+}
+
+int safe_reinit(void) {
+	Value_t ReturnValue;
+
+	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_reinit, NULL, 0, &ReturnValue)) {
 		RpcFatal();
 	}
 

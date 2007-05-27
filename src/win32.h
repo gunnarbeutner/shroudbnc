@@ -20,6 +20,7 @@
 // win32 specific header
 
 #define WIN32_LEAN_AND_MEAN 1
+#define _WIN32_WINNT 0x0400
 
 #ifndef SWIG
 #	include <windows.h>

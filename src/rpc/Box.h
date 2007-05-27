@@ -42,6 +42,7 @@ typedef struct element_s {
 typedef struct box_s {
 	struct box_s *Parent;
 	char *Name;
+	bool ReadOnly;
 	element_t *First;
 	element_t *Last;
 } *box_t;
@@ -59,3 +60,5 @@ int Box_rename(box_t Parent, const char *OldName, const char *NewName);
 box_t Box_get_parent(box_t Box);
 const char *Box_get_name(box_t Box);
 int Box_move(box_t NewParent, box_t Box, const char *NewName);
+int Box_set_ro(box_t Box, int ReadOnly);
+int Box_reinit(void);

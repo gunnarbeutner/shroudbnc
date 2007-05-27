@@ -81,6 +81,8 @@ static struct {
 	{ Function_safe_get_parent,		1,	RpcFunc_get_parent	},
 	{ Function_safe_get_name,		1,	RpcFunc_get_name	},
 	{ Function_safe_move,			3,	RpcFunc_move		},
+	{ Function_safe_set_ro,			2,	RpcFunc_set_ro		},
+	{ Function_safe_reinit,			0,	RpcFunc_reinit		},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
 #endif
@@ -339,15 +341,15 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 	strcat(CommandLine, " --rpc-child");
 
 	bFuncRetn = CreateProcess(NULL, 
-					CommandLine,   // command line 
-					NULL,          // process security attributes 
-					NULL,          // primary thread security attributes 
-					TRUE,          // handles are inherited 
-					0,             // creation flags 
-					NULL,          // use parent's environment 
-					NULL,          // use parent's current directory 
-					&siStartInfo,  // STARTUPINFO pointer 
-					&piProcInfo);  // receives PROCESS_INFORMATION 
+					CommandLine,      // command line 
+					NULL,             // process security attributes 
+					NULL,             // primary thread security attributes 
+					TRUE,			  // handles are inherited 
+					CREATE_SUSPENDED, // creation flags 
+					NULL,             // use parent's environment 
+					NULL,             // use parent's current directory 
+					&siStartInfo,     // STARTUPINFO pointer 
+					&piProcInfo);     // receives PROCESS_INFORMATION 
 
 	CloseHandle(hChildStdoutWr);
 	CloseHandle(hChildStdinRd);
@@ -357,6 +359,12 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 	if (bFuncRetn == 0) {
 		return false;
 	} else {
+		if (IsDebuggerPresent()) {
+			DebugBreak();
+		}
+
+		ResumeThread(piProcInfo.hThread);
+
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
 
@@ -558,8 +566,6 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	if (!WriteFile(Out, &CID, sizeof(CID), &Written, NULL)) {
 		return -1;
 	}
-
-	fprintf(stderr, "Func: %d\n", Function);
 
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {

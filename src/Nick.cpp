@@ -545,7 +545,7 @@ RESULT<CNick *> CNick::Thaw(safe_box_t Box, CChannel *Owner) {
 	CNick *Nick;
 //	CConfig *Tags;
 
-	Name = safe_get_string(Box, "Nick");
+	Name = safe_get_name(Box);
 
 	if (Name == NULL) {
 		THROW(CNick *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");

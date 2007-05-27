@@ -29,6 +29,8 @@
  */
 CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	safe_box_t BanlistBox = NULL;
+	safe_box_t NicksBox;
+	safe_element_t *Previous = NULL;
 
 	SetOwner(Owner);
 	SetBox(Box);
@@ -42,6 +44,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
+	char NickIdx[128];
 
 	m_Nicks.RegisterValueDestructor(DestroyObject<CNick>);
 
@@ -56,6 +59,50 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	}
 
 	m_Banlist = unew CBanlist(this, BanlistBox);
+
+	if (Box != NULL) {
+		time_t Temp;
+		const char *TempStr;
+
+		safe_set_ro(Box, 1);
+
+		Temp = safe_get_integer(Box, "CreationTimestamp");
+
+		if (Temp != 0) {
+			m_Creation = Temp;
+		}
+
+		TempStr = safe_get_string(Box, "Topic");
+
+		if (TempStr != NULL) {
+			m_Topic = ustrdup(TempStr);
+		}
+
+		TempStr = safe_get_string(Box, "TopicNick");
+
+		if (TempStr != NULL) {
+			m_TopicNick = ustrdup(TempStr);
+		}
+
+		m_TopicStamp = safe_get_integer(Box, "TopicTimestamp");
+		m_HasTopic = safe_get_integer(Box, "HasTopic");
+		
+		NicksBox = safe_get_box(Box, "Nicks");
+
+		if (NicksBox != NULL) {
+			while (safe_enumerate(NicksBox, &Previous, NickIdx, sizeof(NickIdx)) != -1) {
+				CNick *Nick = ThawObject<CNick>(NicksBox, NickIdx, this);
+
+				if (Nick == NULL) {
+					break;
+				}
+
+				m_Nicks.Add(Nick->GetNick(), Nick);
+			}
+		}
+
+		safe_set_ro(Box, 0);
+	}
 }
 
 /**
@@ -692,75 +739,6 @@ bool CChannel::SendWhoReply(CClientConnection *Client, bool Simulate) const {
  */
 time_t CChannel::GetJoinTimestamp(void) const {
 	return m_Timestamp;
-}
-
-/**
- * Thaw
- *
- * Depersists a channel object from a box.
- *
- * @param Box the box used for storing the channel object
- */
-RESULT<CChannel *> CChannel::Thaw(safe_box_t Box, CIRCConnection *Owner) {
-	safe_box_t NicksBox;
-	safe_element_t *Previous = NULL;
-	RESULT<CBanlist *> Banlist;
-	CChannel *Channel;
-	const char *Name, *Temp;
-	char NickIdx[256];
-	unsigned int i = 0;
-
-	if (Box == NULL) {
-		THROW(CChannel *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Name = safe_get_string(Box, "Channel");
-
-	if (Name == NULL) {
-		THROW(CChannel *, Generic_Unknown, "Persistent data is invalid: Missing channelname.");
-	}
-
-	Channel = new CChannel(Name, Owner, Box);
-
-	Channel->m_Creation = safe_get_integer(Box, "CreationTimestamp");
-
-	Temp = safe_get_string(Box, "Topic");
-
-	if (Temp != NULL) {
-		Channel->m_Topic = nstrdup(Temp);
-	}
-
-	Temp = safe_get_string(Box, "TopicNick");
-
-	if (Temp != NULL) {
-		Channel->m_TopicNick = nstrdup(Temp);
-	}
-
-	Channel->m_TopicStamp = safe_get_integer(Box, "TopicTimestamp");
-
-	Channel->m_HasTopic = safe_get_integer(Box, "HasTopic");
-
-	Banlist = ThawObject<CBanlist>(Box, "Banlist", Channel);
-
-	if (!IsError(Banlist)) {
-		delete Channel->m_Banlist;
-
-		Channel->m_Banlist = Banlist;
-	}
-
-	NicksBox = safe_get_box(Box, "Nick");
-
-	while (safe_enumerate(NicksBox, &Previous, NickIdx, sizeof(NickIdx)) != -1) {
-		CNick *Nick = ThawObject<CNick>(NicksBox, NickIdx, Channel);
-
-		if (Nick == NULL) {
-			break;
-		}
-
-		Channel->m_Nicks.Add(Nick->GetNick(), Nick);
-	}
-
-	RETURN(CChannel *, Channel);
 }
 
 /**

@@ -32,6 +32,7 @@ static int Box_put(box_t Parent, element_t Element);
 static int Box_remove_internal(box_t Parent, const char *Name, int Free = 1);
 static element_t *Box_get(box_t Parent, const char *Name);
 static const char *Box_unique_name(void);
+static int Box_reinit_internal(box_t Box);
 
 static box_t Box_alloc(void) {
 	box_t Box;
@@ -174,6 +175,32 @@ static const char *Box_unique_name(void) {
 	UniqueId++;
 
 	return UniqueIdStr;
+}
+
+static int Box_reinit_internal(box_t Box) {
+	element_t *Current;
+
+	if (Box == NULL) {
+		Box = g_RootBox;
+
+		if (Box == NULL) {
+			return 0;
+		}
+	}
+
+	Current = Box->First;
+
+	while (Current != NULL) {
+		if (Current->Type == TYPE_BOX) {
+			Current->ValueBox->ReadOnly = false;
+
+			Box_reinit_internal(Current->ValueBox);
+		}
+
+		Current = Current->Next;
+	}
+
+	return 0;
 }
 
 element_t *Box_get(box_t Parent, const char *Name) {
@@ -458,3 +485,20 @@ int Box_move(box_t NewParent, box_t Box, const char *NewName) {
 	return Box_put(NewParent, Element);
 }
 
+int Box_set_ro(box_t Box, int ReadOnly) {
+	if (Box == NULL) {
+		Box = g_RootBox;
+
+		if (Box == NULL) {
+			return -1;
+		}
+	}
+
+	Box->ReadOnly = (ReadOnly != 0);
+
+	return 0;
+}
+
+int Box_reinit(void) {
+	return Box_reinit_internal(NULL);
+}

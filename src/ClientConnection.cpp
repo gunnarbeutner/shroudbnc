@@ -1658,6 +1658,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (argc >= 2) {
 				ufree(m_Nick);
 				m_Nick = ustrdup(argv[1]);
+
+				if (GetBox() != NULL) {
+					safe_put_string(GetBox(), "Nick", argv[1]);
+				}
+
 				GetOwner()->SetNick(argv[1]);
 			}
 		} else if (argc > 1 && strcasecmp(Command, "join") == 0) {
