@@ -182,7 +182,7 @@ bool RpcWriteValue(FILE *Pipe, Value_t Value) {
 		}
 
 		if (!(Value.Flags & Flag_Alloc)) {
-			if (fwrite(Value.Block, 1, Value.Size, Pipe) <= 0) {
+			if (fwrite(Value.Block, 1, Value.Size, Pipe) <= 0 && Value.Size != 0) {
 				return false;
 			}
 		}
@@ -195,7 +195,7 @@ bool RpcBlockingRead(FILE *Pipe, void *Buffer, int Size) {
 /*	int Offset = 0;
 	DWORD Read;*/
 
-	if (fread(Buffer, 1, Size, Pipe) <= 0) {
+	if (fread(Buffer, 1, Size, Pipe) <= 0 && Size != 0) {
 		return false;
 	} else {
 		return true;
@@ -487,7 +487,7 @@ int RpcProcessCall(FILE *In, FILE *Out) {
 			}
 
 			if (!(Arguments[Index].Flags & Flag_Alloc)) {
-				if (fread(Arguments[Index].Block, 1, Arguments[Index].Size, In) <= 0) {
+				if (fread(Arguments[Index].Block, 1, Arguments[Index].Size, In) <= 0 && Arguments[Index].Size != 0) {
 					free(Arguments[Index].Block);
 
 					return -1;
@@ -505,6 +505,8 @@ int RpcProcessCall(FILE *In, FILE *Out) {
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
 			if (Arguments[i].Flags & Flag_Out) {
+				Arguments[i].Flags &= ~Flag_Alloc;
+
 				if (!RpcWriteValue(Out, Arguments[i])) {
 					return -1;
 				}
@@ -576,6 +578,8 @@ int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int Argu
 
 		for (unsigned int i = 0; i < ArgumentCount; i++) {
 			if (Arguments[i].Type == Block && Arguments[i].Flags & Flag_Out) {
+				RpcFreeValue(Arguments[i]);
+
 				if (!RpcReadValue(RpcIn, &(Arguments[i]))) {
 					return 0;
 				}
