@@ -63,8 +63,6 @@ public:
 #ifndef SWIG
 	CConfigFile(const char *Filename, CUser *Owner);
 	virtual ~CConfigFile(void);
-
-	static RESULT<CConfigFile *> Thaw(safe_box_t Box, CUser *Owner);
 #endif
 
 	virtual void Destroy(void);

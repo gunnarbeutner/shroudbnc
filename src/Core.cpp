@@ -1803,7 +1803,9 @@ bool CCore::Thaw(void) {
 				while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
 					CClientConnection *Client;
 
-					Client = ThawObject<CClientConnection>(ClientsBox, ClientName, User);
+					safe_box_t ClientBox = safe_get_box(ClientsBox, ClientName);
+
+					Client = new CClientConnection(INVALID_SOCKET, ClientBox);
 
 					if (Client != NULL) {
 						User->AddClientConnection(Client);

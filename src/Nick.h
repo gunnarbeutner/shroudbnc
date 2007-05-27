@@ -55,8 +55,6 @@ public:
 #ifndef SWIG
 	CNick(const char *Nick, CChannel *Owner, safe_box_t Box);
 	virtual ~CNick(void);
-
-	static RESULT<CNick *> Thaw(safe_box_t Box, CChannel *Owner);
 #endif
 
 	bool SetNick(const char *Nick);

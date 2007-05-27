@@ -86,8 +86,6 @@ public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, safe_box_t Box, bool SSL = false);
 	virtual ~CClientConnection(void);
-
-	static RESULT<CClientConnection *> Thaw(safe_box_t Box, CUser *Owner);
 #endif
 
 	virtual void ParseLine(const char *Line);

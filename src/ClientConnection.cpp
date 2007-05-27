@@ -42,6 +42,32 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 	
 	SetBox(Box);
 
+	if (Box != NULL && Client == INVALID_SOCKET) {
+		const char *Temp;
+
+		SetSocket(safe_get_integer(Box, "Socket"));
+
+		Temp = safe_get_string(Box, "PeerName");
+
+		if (Temp != NULL) {
+			m_PeerName = ustrdup(Temp);
+		} else {
+			if (GetRemoteAddress() != NULL) {
+				m_PeerName = ustrdup(IpToString(GetRemoteAddress()));
+			} else {
+				m_PeerName = ustrdup("<unknown>");
+			}
+		}
+
+		Temp = safe_get_string(Box, "Nick");
+
+		if (Temp != NULL) {
+			m_Nick = ustrdup(Temp);
+		} else {
+			Kill("Could not restore this connection.");
+		}
+	}
+
 	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
 		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
 
@@ -66,13 +92,20 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 		m_ClientLookup->GetHostByAddr(Remote);
 	}
 
-	m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
+	if (m_Nick == NULL) {
+		m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
+	} else {
+		m_AuthTimer = NULL;
+	}
+
 	m_PingTimer = new CTimer(45, true, ClientPingTimer, this);
 
 	m_LastResponse = g_CurrentTime;
 
 	if (GetBox() != NULL) {
-		safe_put_integer(GetBox(), "Socket", GetSocket());
+		if (GetSocket() != INVALID_SOCKET) {
+			safe_put_integer(GetBox(), "Socket", GetSocket());
+		}
 	}
 }
 
@@ -779,7 +812,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		X509 *Certificate;
 		const CVector<X509 *> *Certificates = GetOwner()->GetClientCertificates();
 
-		if (id == 0 || Certificates->GetLength() > id) {
+		if (id == 0 || id > Certificates->GetLength()) {
 			Certificate = NULL;
 		} else {
 			Certificate = (*Certificates)[id - 1];
@@ -2358,59 +2391,6 @@ void CClientConnection::WriteUnformattedLine(const char *Line) {
 }
 
 /**
- * Thaw
- *
- * Depersists a client connection object.
- *
- * @param Box the box which was used for storing the connection object
- * @param Owner the user
- */
-RESULT<CClientConnection *> CClientConnection::Thaw(safe_box_t Box, CUser *Owner) {
-	SOCKET Socket;
-	CClientConnection *Client;
-	const char *Temp;
-
-	if (Box == NULL) {
-		THROW(CClientConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Socket = safe_get_integer(Box, "Socket");
-
-	if (Socket == INVALID_SOCKET) {
-		RETURN(CClientConnection *, NULL);
-	}
-
-	Client = new CClientConnection(Box);
-
-	Client->SetOwner(Owner);
-	Client->SetSocket(Socket);
-
-	Temp = safe_get_string(Box, "PeerName");
-
-	if (Temp != NULL) {
-		Client->m_PeerName = nstrdup(Temp);
-	} else {
-		if (Client->GetRemoteAddress() != NULL) {
-			Client->m_PeerName = nstrdup(IpToString(Client->GetRemoteAddress()));
-		} else {
-			Client->m_PeerName = nstrdup("<unknown>");
-		}
-	}
-
-	Temp = safe_get_string(Box, "Nick");
-
-	if (Temp != NULL) {
-		Client->m_Nick = nstrdup(Temp);
-	} else {
-		delete Client;
-
-		THROW(CClientConnection *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
-	}
-
-	RETURN(CClientConnection *, Client);
-}
-
-/**
  * Kill
  *
  * Sends an error message to the client and closes the connection.
@@ -2640,7 +2620,7 @@ bool ClientPingTimer(time_t Now, void *ClientConnection) {
 		/* we're using "Now" here, because that's the time when the
 		 * check should've returned a PONG, this might be useful when
 		 * we're in a time warp */
-		if (Now - Client->m_LastResponse > 180) {
+		if (Now - Client->m_LastResponse > 270) {
 			Client->Kill("Ping timeout.");
 		}
 	}

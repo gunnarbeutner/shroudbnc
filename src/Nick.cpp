@@ -41,12 +41,30 @@ CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
 	m_Site = NULL;
 	m_Realname = NULL;
 	m_Server = NULL;
-
-	m_Creation = g_CurrentTime;
-	m_IdleSince = m_Creation;
+	m_Creation = 0;
+	m_IdleSince = 0;
 
 	if (GetBox() != NULL) {
+		safe_set_ro(Box, 1);
+
+
+		SetPrefixes(safe_get_string(Box, "Prefixes"));
+		SetSite(safe_get_string(Box, "Site"));
+		SetRealname(safe_get_string(Box, "Realname"));
+		SetServer(safe_get_string(Box, "Server"));
+		m_Creation = safe_get_integer(Box, "CreationTimestamp");
+		m_IdleSince = safe_get_integer(Box, "IdleTimestamp");
+
+		safe_set_ro(Box, 0);
+	}
+
+	if (m_Creation == 0) {
+		m_Creation = g_CurrentTime;
 		safe_put_integer(GetBox(), "CreationTimestamp", m_Creation);
+	}
+
+	if (m_IdleSince == 0) {
+		m_IdleSince = m_Creation;
 		safe_put_integer(GetBox(), "IdleTimestamp", m_IdleSince);
 	}
 }
@@ -531,44 +549,4 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 	} CHECK_ALLOC_RESULT_END;
 
 	return m_Tags.Insert(NewTag);
-}
-
-/**
- * Thaw
- *
- * Creates a new nick object by reading its data from a box.
- *
- * @param Box the box
- */
-RESULT<CNick *> CNick::Thaw(safe_box_t Box, CChannel *Owner) {
-	const char *Name;
-	CNick *Nick;
-//	CConfig *Tags;
-
-	Name = safe_get_name(Box);
-
-	if (Name == NULL) {
-		THROW(CNick *, Generic_Unknown, "Persistent data is invalid: Missing nickname.");
-	}
-
-	Nick = new CNick(Name, Owner, Box);
-
-	CHECK_ALLOC_RESULT(Nick, new) {
-		THROW(CNick *, Generic_OutOfMemory, "new operator failed");
-	} CHECK_ALLOC_RESULT_END;
-
-	Nick->SetPrefixes(safe_get_string(Box, "Prefixes"));
-	Nick->SetSite(safe_get_string(Box, "Site"));
-	Nick->SetRealname(safe_get_string(Box, "Realname"));
-	Nick->SetServer(safe_get_string(Box, "Server"));
-	Nick->m_Creation = safe_get_integer(Box, "CreationTimestamp");
-	Nick->m_IdleSince = safe_get_integer(Box, "IdleTimestamp");
-
-	// TODO: Thaw nicktags
-//	Tags = ThawObject<CConfig>(Box, "~nick.tags");
-//	if (Tags != NULL) {
-//		Nick->m_Tags = Tags;
-//	}
-
-	RETURN(CNick *, Nick);
 }

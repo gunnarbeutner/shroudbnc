@@ -91,13 +91,18 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 
 		if (NicksBox != NULL) {
 			while (safe_enumerate(NicksBox, &Previous, NickIdx, sizeof(NickIdx)) != -1) {
-				CNick *Nick = ThawObject<CNick>(NicksBox, NickIdx, this);
+				safe_box_t NickBox;
+				CNick *NickObj;
 
-				if (Nick == NULL) {
+				NickBox = safe_get_box(NicksBox, NickIdx);
+
+				NickObj = new CNick(NickIdx, this, NickBox);
+
+				if (NickObj == NULL) {
 					break;
 				}
 
-				m_Nicks.Add(Nick->GetNick(), Nick);
+				m_Nicks.Add(NickIdx, NickObj);
 			}
 		}
 
