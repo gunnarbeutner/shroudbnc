@@ -568,8 +568,9 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
+			bool HadFlagAlloc = ((Arguments[i].Flags & Flag_Alloc) == Flag_Alloc);
+
 			if (Arguments[i].Flags & Flag_Out) {
-				bool HadFlagAlloc = (Arguments[i].Flags & Flag_Alloc);
 
 				Arguments[i].Flags &= ~Flag_Alloc;
 
@@ -582,7 +583,7 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 				}
 			}
 
-			if (Arguments[i].Flags & Flag_Alloc) {
+			if (Arguments[i].Type == Block && HadFlagAlloc) {
 				free(Arguments[i].Block);
 			}
 		}
@@ -590,6 +591,8 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 		if (!RpcWriteValue(Out, ReturnValue)) {
 			return -1;
 		}
+	} else {
+		return -1;
 	}
 
 	free(Arguments);
