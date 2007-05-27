@@ -488,6 +488,8 @@ int RpcProcessCall(FILE *In, FILE *Out) {
 
 			if (!(Arguments[Index].Flags & Flag_Alloc)) {
 				if (fread(Arguments[Index].Block, 1, Arguments[Index].Size, In) <= 0) {
+					free(Arguments[Index].Block);
+
 					return -1;
 				}
 			}
@@ -502,23 +504,13 @@ int RpcProcessCall(FILE *In, FILE *Out) {
 
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
-			bool HadFlagAlloc = ((Arguments[i].Flags & Flag_Alloc) == Flag_Alloc);
-
 			if (Arguments[i].Flags & Flag_Out) {
-				Arguments[i].Flags &= ~Flag_Alloc;
-
 				if (!RpcWriteValue(Out, Arguments[i])) {
 					return -1;
 				}
-
-				if (HadFlagAlloc) {
-					Arguments[i].Flags |= Flag_Alloc;
-				}
 			}
 
-			if (HadFlagAlloc) {
-				RpcFreeValue(Arguments[i]);
-			}
+			RpcFreeValue(Arguments[i]);
 		}
 
 		if (!RpcWriteValue(Out, ReturnValue)) {

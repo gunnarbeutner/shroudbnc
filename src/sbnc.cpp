@@ -161,8 +161,8 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, int argc, char 
 	CConfigFile *Config;
 
 #ifdef _WIN32
-	_setmode(fileno(stdin),O_BINARY);
-	_setmode(fileno(stdout),O_BINARY);
+	_setmode(fileno(stdin), O_BINARY);
+	_setmode(fileno(stdout), O_BINARY);
 #endif
 
 	Sleep(10000);
@@ -275,32 +275,6 @@ extern "C" EXPORT bool sbncSetStatus(int Status) {
 	return true;
 }
 
-/* for debugging */
 const char *sbncGetModulePath(void) {
 	return g_ModulePath;
 }
-
-const char *DebugBuildPath(const char *Filename, const char *Base) {
-	size_t Size;
-	static char *Path = NULL;
-
-	if (Filename[0] == '/') {
-		return Filename;
-	}
-
-	if (Base == NULL) {
-		return Filename;
-	}
-
-	free(Path);
-
-	Size = strlen(Filename) + strlen(Base) + 2;
-	Path = (char *)malloc(Size);
-	strmcpy(Path, Base, Size);
-	strmcat(Path, "/", Size);
-	strmcat(Path, Filename, Size);
-
-	return Path;
-}
-
-void DebugSigEnable(void) {}
