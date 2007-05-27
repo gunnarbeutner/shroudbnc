@@ -480,12 +480,12 @@ int RpcRunServer(PipePair_t Pipes) {
 #define RpcExpect(Bytes)								\
 	{													\
 		if (Length < Bytes) {							\
-			if (Arguments != NULL) {					\
-				free(Arguments);						\
+			for (unsigned int i = 0; i < Index; i++) {	\
+				RpcFreeValue(Arguments[i]);				\
 			}											\
 														\
-			for (unsigned int i = 0; i <= Index; i++) { \
-				RpcFreeValue(Arguments[i]);				\
+			if (Arguments != NULL) {					\
+				free(Arguments);						\
 			}											\
 														\
 			return 0;									\
