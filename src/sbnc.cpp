@@ -156,9 +156,11 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
  *
  * Used by "sbncloader" to start shroudBNC
  */
-extern "C" EXPORT int sbncLoad(const char *ModulePath, int argc, char **argv) {
+extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, int argc, char **argv) {
 	char TclLibrary[512];
 	CConfigFile *Config;
+
+	RpcSetLPC(LPC);
 
 	safe_reinit();
 

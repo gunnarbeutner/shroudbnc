@@ -22,14 +22,12 @@
 // TODO: do NOT use real pointers for box_t/element_t, or at least verify that
 // they are 100% valid
 
-#ifdef RPCSERVER
-
 #include "Box.h"
 
 int g_RpcErrno = 0;
 
 // int safe_socket(int Domain, int Type, int Protocol);
-bool RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer || Arguments[2].Type != Integer) {
@@ -46,7 +44,7 @@ bool RpcFunc_socket(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_getpeername(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
-bool RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Block) {
@@ -63,7 +61,7 @@ bool RpcFunc_getpeername(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_getsockname(int Socket, struct sockaddr *Sockaddr, socklen_t *Len);
-bool RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Block) {
@@ -80,7 +78,7 @@ bool RpcFunc_getsockname(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_bind(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
-bool RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer) {
@@ -97,7 +95,7 @@ bool RpcFunc_bind(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_connect(int Socket, const struct sockaddr *Sockaddr, socklen_t Len);
-bool RpcFunc_connect(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_connect(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer) {
@@ -114,7 +112,7 @@ bool RpcFunc_connect(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_listen(int Socket, int Backlog);
-bool RpcFunc_listen(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_listen(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 		
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer) {
@@ -131,7 +129,7 @@ bool RpcFunc_listen(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len);
-bool RpcFunc_accept(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_accept(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Block) {
@@ -221,7 +219,7 @@ int poll(pollfd *fds, unsigned long nfds, int timo) {
 #endif /* !HAVE_POLL */
 
 // int safe_poll(struct pollfd *Sockets, int Nfds, int Timeout);
-bool RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Block || Arguments[1].Type != Integer || Arguments[2].Type != Integer) {
@@ -238,7 +236,7 @@ bool RpcFunc_poll(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_recv(int Socket, void *Buffer, size_t Size, int Flags);
-bool RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer || Arguments[3].Type != Integer) {
@@ -262,7 +260,7 @@ bool RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_send(int Socket, const void *Buffer, size_t Size, int Flags);
-bool RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer || Arguments[3].Type != Integer) {
@@ -279,7 +277,7 @@ bool RpcFunc_send(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 //int safe_shutdown(int Socket, int How);
-bool RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer) {
@@ -296,7 +294,7 @@ bool RpcFunc_shutdown(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_closesocket(int Socket);
-bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer) {
@@ -313,7 +311,7 @@ bool RpcFunc_closesocket(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int SBNCAPI safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, int *OptLen);
-bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer) {
@@ -332,7 +330,7 @@ bool RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int SBNCAPI safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, int OptLen);
-bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer || Arguments[2].Type != Integer ||
@@ -350,7 +348,7 @@ bool RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int SBNCAPI safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP);
-bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer || Arguments[2].Type != Block) {
@@ -369,14 +367,14 @@ bool RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_errno(void);
-bool RpcFunc_errno(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_errno(Value_t *Arguments, Value_t *ReturnValue) {
 	*ReturnValue = RPC_INT(g_RpcErrno);
 
 	return true;
 }
 
 // int safe_print(const char *Line);
-bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Block) {
@@ -393,7 +391,7 @@ bool RpcFunc_print(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_scan(char *Buffer, size_t Size);
-bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Block || Arguments[1].Type != Integer) {
@@ -414,9 +412,9 @@ bool RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_scan_passwd(char *Buffer, size_t Size);
-bool RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue) {
 	bool term_succeeded;
-	bool Result;
+	int Result;
 #ifndef _WIN32
 	termios term_old, term_new;
 #else
@@ -465,7 +463,7 @@ bool RpcFunc_scan_passwd(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // size_t safe_sendto(int Socket, const void *Buffer, size_t Len, int Flags, const struct sockaddr *To, socklen_t ToLen);
-bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer ||
@@ -484,7 +482,7 @@ bool RpcFunc_sendto(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // size_t safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct sockaddr *From, socklen_t *FromLen);
-bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Integer ||
@@ -503,7 +501,7 @@ bool RpcFunc_recvfrom(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_put_string(safe_box_t Parent, const char *Name, const char *Value);
-bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -520,7 +518,7 @@ bool RpcFunc_put_string(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_put_integer(safe_box_t Parent, const char *Name, int Value);
-bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer || Arguments[2].Type != Integer) {
@@ -537,7 +535,7 @@ bool RpcFunc_put_integer(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // safe_box_t safe_put_box(safe_box_t Parent, const char *Name);
-bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -554,7 +552,7 @@ bool RpcFunc_put_box(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_remove(safe_box_t Parent, const char *Name);
-bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -571,7 +569,7 @@ bool RpcFunc_remove(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // const char *safe_get_string(safe_box_t Parent, const char *Name);
-bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
 	const char *Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -588,7 +586,7 @@ bool RpcFunc_get_string(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_get_integer(safe_box_t Parent, const char *Name);
-bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -605,7 +603,7 @@ bool RpcFunc_get_integer(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // safe_box_t safe_get_box(safe_box_t Parent, const char *Name);
-bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -622,7 +620,7 @@ bool RpcFunc_get_box(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int Len);
-bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer || Arguments[1].Type != Block ||
@@ -644,7 +642,7 @@ bool RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_rename(safe_box_t Parent, const char *OldName, const char *NewName);
-bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -662,7 +660,7 @@ bool RpcFunc_rename(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // safe_box_t safe_get_parent(safe_box_t Box);
-bool RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue) {
 	box_t Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -679,7 +677,7 @@ bool RpcFunc_get_parent(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // const char *safe_get_name(safe_box_t Box);
-bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
 	const char *Result;
 
 	if (Arguments[0].Type != Pointer) {
@@ -696,7 +694,7 @@ bool RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName);
-bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer || Arguments[1].Type != Pointer) {
@@ -713,7 +711,7 @@ bool RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_set_ro(safe_box_t Box, int ReadOnly);
-bool RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	if (Arguments[0].Type != Pointer || Arguments[1].Type != Integer) {
@@ -730,7 +728,7 @@ bool RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // int safe_reinit(void);
-bool RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
+int RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
 	Result = Box_reinit();
@@ -743,9 +741,7 @@ bool RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
 }
 
 // void safe_exit(int ExitCode);
-bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
-	box_t Result;
-
+int RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
 	if (Arguments[0].Type != Integer) {
 		exit(0);
 	} else {
@@ -754,8 +750,6 @@ bool RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
 
 	return false;
 }
-
-#endif
 
 #ifdef RPCCLIENT
 
@@ -767,7 +761,7 @@ int safe_socket(int Domain, int Type, int Protocol) {
 	Arguments[1] = RPC_INT(Type);
 	Arguments[2] = RPC_INT(Protocol);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_socket, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_socket, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -786,7 +780,7 @@ int safe_getpeername(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Arguments[1] = RPC_BLOCK(Sockaddr, *Len, Flag_Out);
 	Arguments[2] = RPC_BLOCK(Len, sizeof(Len), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_getpeername, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_getpeername, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -813,7 +807,7 @@ int safe_getsockname(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Arguments[1] = RPC_BLOCK(Sockaddr, *Len, Flag_Out);
 	Arguments[2] = RPC_BLOCK(Len, sizeof(Len), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_getsockname, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_getsockname, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -840,7 +834,7 @@ int safe_bind(int Socket, const sockaddr *Sockaddr, socklen_t Len) {
 	Arguments[1] = RPC_BLOCK(Sockaddr, Len, Flag_None);
 	Arguments[2] = RPC_INT(Len);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_bind, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_bind, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -859,7 +853,7 @@ int safe_connect(int Socket, const sockaddr *Sockaddr, socklen_t Len) {
 	Arguments[1] = RPC_BLOCK(Sockaddr, Len, Flag_None);
 	Arguments[2] = RPC_INT(Len);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_connect, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_connect, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -877,7 +871,7 @@ int safe_listen(int Socket, int Backlog) {
 	Arguments[0] = RPC_INT(Socket);
 	Arguments[1] = RPC_INT(Backlog);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_listen, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_listen, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -896,7 +890,7 @@ int safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Arguments[1] = RPC_BLOCK(Sockaddr, *Len, Flag_Out);
 	Arguments[2] = RPC_BLOCK(Len, sizeof(Len), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_accept, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_accept, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -918,7 +912,7 @@ int safe_poll(struct pollfd *Sockets, int Nfds, int Timeout) {
 	Arguments[1] = RPC_INT(Nfds);
 	Arguments[2] = RPC_INT(Timeout);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_poll, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_poll, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -944,7 +938,7 @@ int safe_recv(int Socket, void *Buffer, size_t Size, int Flags) {
 	Arguments[2] = RPC_INT(Size);
 	Arguments[3] = RPC_INT(Flags);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_recv, Arguments, 4, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_recv, Arguments, 4, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -970,7 +964,7 @@ int safe_send(int Socket, const void *Buffer, size_t Size, int Flags) {
 	Arguments[2] = RPC_INT(Size);
 	Arguments[3] = RPC_INT(Flags);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_send, Arguments, 4, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_send, Arguments, 4, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -988,7 +982,7 @@ int safe_shutdown(int Socket, int How) {
 	Arguments[0] = RPC_INT(Socket);
 	Arguments[1] = RPC_INT(How);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_shutdown, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_shutdown, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1005,7 +999,7 @@ int safe_closesocket(int Socket) {
 
 	Arguments[0] = RPC_INT(Socket);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_closesocket, Arguments, 1, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_closesocket, Arguments, 1, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1026,7 +1020,7 @@ int safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, socklen_t 
 	Arguments[3] = RPC_BLOCK(OptVal, *OptLen, Flag_Out | Flag_Alloc);
 	Arguments[4] = RPC_BLOCK(OptLen, sizeof(int), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_getsockopt, Arguments, 5, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_getsockopt, Arguments, 5, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1053,7 +1047,7 @@ int safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, sock
 	Arguments[3] = RPC_BLOCK(OptVal, OptLen, Flag_None);
 	Arguments[4] = RPC_INT(OptLen);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_setsockopt, Arguments, 5, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_setsockopt, Arguments, 5, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1072,7 +1066,7 @@ int safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP) {
 	Arguments[1] = RPC_INT(Command);
 	Arguments[2] = RPC_BLOCK(ArgP, sizeof(unsigned long), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_ioctlsocket, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_ioctlsocket, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1088,7 +1082,7 @@ int safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP) {
 int safe_errno(void) {
 	Value_t ReturnValue;
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_errno, NULL, 0, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_errno, NULL, 0, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1105,7 +1099,7 @@ int safe_print(const char *Line) {
 
 	Arguments[0] = RPC_BLOCK(Line, strlen(Line) + 1, Flag_None);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_print, Arguments, 1, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_print, Arguments, 1, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1123,7 +1117,7 @@ int safe_scan(char *Buffer, size_t Size) {
 	Arguments[0] = RPC_BLOCK(Buffer, Size, Flag_Out | Flag_Alloc);
 	Arguments[1] = RPC_INT(Size);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_scan, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_scan, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1147,7 +1141,7 @@ int safe_scan_passwd(char *Buffer, size_t Size) {
 	Arguments[0] = RPC_BLOCK(Buffer, Size, Flag_Out | Flag_Alloc);
 	Arguments[1] = RPC_INT(Size);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_scan_passwd, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_scan_passwd, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1175,7 +1169,7 @@ size_t safe_sendto(int Socket, const void *Buffer, size_t Len, int Flags, const 
 	Arguments[4] = RPC_BLOCK(To, ToLen, Flag_None);
 	Arguments[5] = RPC_INT(ToLen);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_sendto, Arguments, 6, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_sendto, Arguments, 6, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1200,7 +1194,7 @@ size_t safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct soc
 	Arguments[4] = RPC_BLOCK(From, *FromLen, Flag_Out | Flag_Alloc);
 	Arguments[5] = RPC_BLOCK(FromLen, sizeof(socklen_t), Flag_Out);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_sendto, Arguments, 6, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_sendto, Arguments, 6, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1251,7 +1245,7 @@ int safe_put_string(safe_box_t Parent, const char *Name, const char *Value) {
 	Arguments[1] = RPC_STRING(Name);
 	Arguments[2] = RPC_STRING(Value);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_string, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_put_string, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1270,7 +1264,7 @@ int safe_put_integer(safe_box_t Parent, const char *Name, int Value) {
 	Arguments[1] = RPC_STRING(Name);
 	Arguments[2] = RPC_INT(Value);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_integer, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_put_integer, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1288,7 +1282,7 @@ safe_box_t safe_put_box(safe_box_t Parent, const char *Name) {
 	Arguments[0] = RPC_POINTER(Parent);
 	Arguments[1] = RPC_STRING(Name);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_put_box, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_put_box, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1310,7 +1304,7 @@ int safe_remove(safe_box_t Parent, const char *Name) {
 	Arguments[0] = RPC_POINTER(Parent);
 	Arguments[1] = RPC_STRING(Name);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_remove, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_remove, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1330,7 +1324,7 @@ const char *safe_get_string(safe_box_t Parent, const char *Name) {
 	Arguments[0] = RPC_POINTER(Parent);
 	Arguments[1] = RPC_STRING(Name);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_string, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_get_string, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1352,7 +1346,7 @@ int safe_get_integer(safe_box_t Parent, const char *Name) {
 	Arguments[0] = RPC_POINTER(Parent);
 	Arguments[1] = RPC_STRING(Name);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_integer, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_get_integer, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1370,7 +1364,7 @@ safe_box_t safe_get_box(safe_box_t Parent, const char *Name) {
 	Arguments[0] = RPC_POINTER(Parent);
 	Arguments[1] = RPC_STRING(Name);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_box, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_get_box, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1390,7 +1384,7 @@ int safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int
 	Arguments[2] = RPC_BLOCK(Name, Len, Flag_Out | Flag_Alloc);
 	Arguments[3] = RPC_INT(Len);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_enumerate, Arguments, 4, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_enumerate, Arguments, 4, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1412,7 +1406,7 @@ int safe_rename(safe_box_t Parent, const char *OldName, const char *NewName) {
 	Arguments[1] = RPC_STRING(OldName);
 	Arguments[2] = RPC_STRING(NewName);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_rename, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_rename, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1429,7 +1423,7 @@ safe_box_t safe_get_parent(safe_box_t Box) {
 
 	Arguments[0] = RPC_POINTER(Box);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_parent, Arguments, 1, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_get_parent, Arguments, 1, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1448,7 +1442,7 @@ const char *safe_get_name(safe_box_t Box) {
 
 	Arguments[0] = RPC_POINTER(Box);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_get_name, Arguments, 1, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_get_name, Arguments, 1, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1471,7 +1465,7 @@ int safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName) {
 	Arguments[1] = RPC_POINTER(Box);
 	Arguments[2] = RPC_STRING(NewName);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_move, Arguments, 3, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_move, Arguments, 3, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1489,7 +1483,7 @@ int safe_set_ro(safe_box_t Box, int ReadOnly) {
 	Arguments[0] = RPC_POINTER(Box);
 	Arguments[1] = RPC_INT(ReadOnly);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_set_ro, Arguments, 2, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_set_ro, Arguments, 2, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1503,7 +1497,7 @@ int safe_set_ro(safe_box_t Box, int ReadOnly) {
 int safe_reinit(void) {
 	Value_t ReturnValue;
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_reinit, NULL, 0, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_reinit, NULL, 0, &ReturnValue)) {
 		RpcFatal();
 	}
 
@@ -1520,7 +1514,7 @@ void safe_exit(int ExitCode) {
 
 	Arguments[0] = RPC_INT(ExitCode);
 
-	if (!RpcInvokeFunction(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE), Function_safe_exit, Arguments, 1, &ReturnValue)) {
+	if (!RpcInvokeFunction(Function_safe_exit, Arguments, 1, &ReturnValue)) {
 		RpcFatal();
 	}
 

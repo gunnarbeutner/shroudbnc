@@ -94,18 +94,20 @@ typedef enum Function_e {
 	last_function
 } Function_t;
 
+#ifdef __cplusplus
 typedef enum Type_e {
 	Integer,
 	Pointer,
 	Block
 } Type_t;
+#endif
 
 #define Flag_None 0
 #define Flag_Out 1
 #define Flag_Alloc 2
 
 typedef struct Value_s {
-	Type_t Type;
+	int Type;
 	char Flags;
 	int NeedFree;
 
@@ -135,15 +137,12 @@ Value_t RpcBuildString(const char *Pointer);
 void RpcFreeValue(Value_t Value);
 void RpcFatal(void);
 
-#ifdef RPCSERVER
-int RpcInvokeClient(char *Program, PipePair_t *Pipes);
+int RpcInvokeClient(char *Program, PipePair_t *PipesLocal);
 int RpcRunServer(PipePair_t Pipes);
 void RpcWaitForClient(void);
 int RpcProcessCall(char *Data, size_t Length, PIPE Out);
 const char *RpcStringFromValue(Value_t Value);
-#endif
 
-#ifdef RPCCLIENT
-int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue);
-#endif
+int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue);
+void RpcSetLPC(int LPC);
 #endif

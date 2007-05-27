@@ -42,11 +42,12 @@ of the block, followed by a number of bytes
 
 */
 
-#ifdef RPCSERVER
+static bool g_LPC = false;
+
 static struct {
 	Function_t Function;
 	unsigned int ArgumentCount;
-	bool (*RealFunction)(Value_t *Arguments, Value_t *ReturnValue);
+	int (*RealFunction)(Value_t *Arguments, Value_t *ReturnValue);
 } functions[] = {
 	{ Function_safe_socket,			3,	RpcFunc_socket		},
 	{ Function_safe_getpeername,	3,	RpcFunc_getpeername	},
@@ -85,7 +86,6 @@ static struct {
 	{ Function_safe_reinit,			0,	RpcFunc_reinit		},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
-#endif
 
 #ifndef _WIN32
 int GetStdHandle(int Handle) {
@@ -273,9 +273,7 @@ void RpcFatal(void) {
 	exit(1);
 }
 
-#ifdef RPCSERVER
-
-int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
+int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 #ifdef _WIN32
 	HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
 		hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
@@ -331,14 +329,11 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 	siStartInfo.hStdInput = hChildStdinRd;
 	siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-	CommandLine = (char *)malloc(strlen(Program) + 50);
+	asprintf(&CommandLine, "%s --rpc-child", Program);
 
 	if (CommandLine == NULL) {
 		return 0;
 	}
-
-	strcpy(CommandLine, Program);
-	strcat(CommandLine, " --rpc-child");
 
 	bFuncRetn = CreateProcess(NULL, 
 					CommandLine,      // command line 
@@ -357,7 +352,7 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 	free(CommandLine);
 
 	if (bFuncRetn == 0) {
-		return false;
+		return 0;
 	} else {
 		if (IsDebuggerPresent()) {
 			DebugBreak();
@@ -368,8 +363,8 @@ int RpcInvokeClient(char *Program, PipePair_t *Pipes) {
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
 
-		Pipes->In = hChildStdoutRdDup;
-		Pipes->Out = hChildStdinWrDup;
+		PipesLocal->In = hChildStdoutRdDup;
+		PipesLocal->Out = hChildStdinWrDup;
 
 		return 1;
 	}
@@ -431,6 +426,10 @@ int RpcRunServer(PipePair_t Pipes) {
 	int Result;
 	int ReadOffset = 0;
 	DWORD Read;
+	PIPE RpcIn, RpcOut;
+
+	RpcIn = Pipes.In;
+	RpcOut = Pipes.Out;
 
 	AllocedSize = BlockSize;
 	Buffer = (char *)malloc(AllocedSize);
@@ -439,10 +438,10 @@ int RpcRunServer(PipePair_t Pipes) {
 		return 0;
 	}
 
-	while (ReadFile(Pipes.In, Buffer + Size, AllocedSize - Size, &Read, NULL) && (Read > 0 || AllocedSize - Size == 0)) {
+	while (ReadFile(RpcIn, Buffer + Size, AllocedSize - Size, &Read, NULL) && (Read > 0 || AllocedSize - Size == 0)) {
 		Size += Read;
 
-		Result = RpcProcessCall(Buffer + ReadOffset, Size - ReadOffset, Pipes.Out);
+		Result = RpcProcessCall(Buffer + ReadOffset, Size - ReadOffset, RpcOut);
 
 		if (Result > 0) {
 			ReadOffset += Result;
@@ -597,56 +596,68 @@ const char *RpcStringFromValue(Value_t Value) {
 		return NULL;
 	}
 }
-#endif
 
-#ifdef RPCCLIENT
-int RpcInvokeFunction(PIPE PipeIn, PIPE PipeOut, Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue) {
+int RpcInvokeFunction(Function_t Function, Value_t *Arguments, unsigned int ArgumentCount, Value_t *ReturnValue) {
 	char FunctionByte;
 	int CID, CIDReturn;
 	DWORD Dummy;
+	PIPE RpcIn, RpcOut;
 
-	FunctionByte = Function;
+	RpcIn = GetStdHandle(STD_INPUT_HANDLE);
+	RpcOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	CID = rand();
+	if (!g_LPC) {
+		FunctionByte = Function;
 
-	if (!WriteFile(PipeOut, &CID, sizeof(CID), &Dummy, NULL)) {
-		return 0;
-	}
+		CID = rand();
 
-	if (!WriteFile(PipeOut, &FunctionByte, sizeof(char), &Dummy, NULL)) {
-		return 0;
-	}
-
-	for (unsigned int i = 0; i < ArgumentCount; i++) {
-		if (!RpcWriteValue(PipeOut, Arguments[i])) {
+		if (!WriteFile(RpcOut, &CID, sizeof(CID), &Dummy, NULL)) {
 			return 0;
 		}
-	}
 
-	if (!RpcBlockingRead(PipeIn, &CIDReturn, sizeof(CIDReturn))) {
-		return 0;
-	}
+		if (!WriteFile(RpcOut, &FunctionByte, sizeof(char), &Dummy, NULL)) {
+			return 0;
+		}
 
-	if (CID != CIDReturn) {
-		exit(200);
-	}
-
-	for (unsigned int i = 0; i < ArgumentCount; i++) {
-		if (Arguments[i].Type == Block && Arguments[i].Flags & Flag_Out) {
-			if (!RpcReadValue(PipeIn, &(Arguments[i]))) {
+		for (unsigned int i = 0; i < ArgumentCount; i++) {
+			if (!RpcWriteValue(RpcOut, Arguments[i])) {
 				return 0;
 			}
 		}
-	}
 
-	if (!RpcReadValue(PipeIn, ReturnValue)) {
-		return 0;
+		if (!RpcBlockingRead(RpcIn, &CIDReturn, sizeof(CIDReturn))) {
+			return 0;
+		}
+
+		if (CID != CIDReturn) {
+			exit(200);
+		}
+
+		for (unsigned int i = 0; i < ArgumentCount; i++) {
+			if (Arguments[i].Type == Block && Arguments[i].Flags & Flag_Out) {
+				if (!RpcReadValue(RpcIn, &(Arguments[i]))) {
+					return 0;
+				}
+			}
+		}
+
+		if (!RpcReadValue(RpcIn, ReturnValue)) {
+			return 0;
+		}
+	} else {
+		if (functions[Function].ArgumentCount > ArgumentCount) {
+			exit(201);
+		}
+
+		functions[Function].RealFunction(Arguments, ReturnValue);
 	}
 
 	return 1;
 }
 
-#endif
+void RpcSetLPC(int LPC) {
+	g_LPC = (LPC != 0);
+}
 
 Value_t RpcBuildInteger(int Value) {
 	Value_t Val;

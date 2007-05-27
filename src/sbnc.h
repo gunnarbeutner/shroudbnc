@@ -11,5 +11,5 @@ const char *sbncGetModulePath(void);
 
 #ifndef SBNC
 /**< main function of the shroudBNC shared object */
-typedef int (*sbncLoad)(const char *ModulePath, int argc, char **argv);
+typedef int (*sbncLoad)(const char *ModulePath, bool LPC, int argc, char **argv);
 #endif

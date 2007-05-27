@@ -144,24 +144,52 @@ HMODULE sbncLoadModule(void) {
 
 int main(int argc, char **argv) {
 	int Result;
+	bool LPC = false, RpcChild = false;
+	bool Install = false, Uninstall = false, Service = false;
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 #ifdef _WIN32
 	char ExeName[MAXPATHLEN];
 #endif
 
+	for (unsigned int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--rpc-child") == 0) {
+			RpcChild = true;
+		}
+
+		if (strcmp(argv[i], "--lpc") == 0) {
+			LPC = true;
+		}
+
+		if (strcmp(argv[i], "--install") == 0) {
+			Install = true;
+		}
+
+		if (strcmp(argv[i], "--uninstall") == 0) {
+			Uninstall = true;
+		}
+
+		if (strcmp(argv[i], "--service") == 0) {
+			Service = true;
+		}
+	}
+
 	Socket_Init();
 
-	if (argc <= 1 || strcasecmp(argv[1], "--rpc-child") != 0) {
-		PipePair_t Pipes;
+	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
+		PipePair_t PipesLocal;
 
 #ifndef _WIN32
 		signal(SIGPIPE, SIG_IGN);
 #endif
 
 		do {
-			RpcInvokeClient(argv[0], &Pipes);
-			Result = RpcRunServer(Pipes);
+			if (!RpcInvokeClient(argv[0], &PipesLocal)) {
+				break;
+			}
+
+			Result = RpcRunServer(PipesLocal);
+
 			RpcWaitForClient();
 		} while (Result);
 
@@ -177,30 +205,28 @@ int main(int argc, char **argv) {
 	safe_printf("shroudBNC loader\n");
 
 #if defined (_WIN32) && !defined(NOSERVICE)
-	if (argc > 1) {
-		if (strcasecmp(argv[1], "--install") == 0) {
-			GetModuleFileName(NULL, ExeName, sizeof(ExeName));
+	if (Install) {
+		GetModuleFileName(NULL, ExeName, sizeof(ExeName));
 
-			if (InstallService(ExeName)) {
-				safe_printf("Service was successfully installed.\n");
-			} else {
-				safe_printf("Service could not be installed.\n");
-			}
-
-			return 0;
-		} else if (strcasecmp(argv[1], "--uninstall") == 0) {
-			if (UninstallService()) {
-				safe_printf("Service was successfully removed.\n");
-			} else {
-				safe_printf("Service could not be removed.\n");
-			}
-
-			return 0;
-		} else if (strcasecmp(argv[1], "--service") == 0) {
-			ServiceMain();
-
-			return 0;
+		if (InstallService(ExeName)) {
+			safe_printf("Service was successfully installed.\n");
+		} else {
+			safe_printf("Service could not be installed.\n");
 		}
+
+		return 0;
+	} else if (Uninstall) {
+		if (UninstallService()) {
+			safe_printf("Service was successfully removed.\n");
+		} else {
+			safe_printf("Service could not be removed.\n");
+		}
+
+		return 0;
+	} else if (Service) {
+		ServiceMain();
+
+		return 0;
 	}
 #endif
 
@@ -235,7 +261,7 @@ int main(int argc, char **argv) {
 
 	g_Signal = false;
 
-	g_LoadFunc(g_Mod, argc, argv);
+	g_LoadFunc(g_Mod, LPC, argc, argv);
 
 	Socket_Final();
 

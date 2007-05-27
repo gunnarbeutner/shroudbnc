@@ -539,6 +539,14 @@
 			Name="rpc"
 			>
 			<File
+				RelativePath=".\src\rpc\Box.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\rpc\Box.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\rpc\RPCApi.cpp"
 				>
 			</File>
