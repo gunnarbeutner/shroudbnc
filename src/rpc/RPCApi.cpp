@@ -569,8 +569,16 @@ int RpcProcessCall(char *Data, size_t Length, PIPE Out) {
 	if (functions[Function].RealFunction(Arguments, &ReturnValue)) {
 		for (unsigned int i = 0; i < functions[Function].ArgumentCount; i++) {
 			if (Arguments[i].Flags & Flag_Out) {
+				bool HadFlagAlloc = (Arguments[i].Flags & Flag_Alloc);
+
+				Arguments[i].Flags &= ~Flag_Alloc;
+
 				if (!RpcWriteValue(Out, Arguments[i])) {
 					return -1;
+				}
+
+				if (HadFlagAlloc) {
+					Arguments[i].Flags |= Flag_Alloc;
 				}
 			}
 

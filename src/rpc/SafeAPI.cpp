@@ -244,7 +244,6 @@ int RpcFunc_recv(Value_t *Arguments, Value_t *ReturnValue) {
 	}
 
 	Result = recv(Arguments[0].Integer, (char *)Arguments[1].Block, Arguments[2].Integer, Arguments[3].Integer);
-	Arguments[1].Flags = Flag_Out; // clear Flag_Alloc bit
 
 	if (Result >= 0) {
 		Arguments[1].Size = Result;
@@ -322,8 +321,6 @@ int RpcFunc_getsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 
 	g_RpcErrno = WSAGetLastError();
 
-	Arguments[3].Flags = Flag_Out;
-
 	*ReturnValue = RPC_INT(Result);
 
 	return true;
@@ -356,8 +353,6 @@ int RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 	}
 
 	Result = ioctlsocket(Arguments[0].Integer, Arguments[1].Integer, (unsigned long *)Arguments[2].Block);
-
-	Arguments[2].Flags = Flag_Out;
 
 	g_RpcErrno = WSAGetLastError();
 
@@ -632,9 +627,6 @@ int RpcFunc_enumerate(Value_t *Arguments, Value_t *ReturnValue) {
 		(char *)Arguments[2].Block, Arguments[2].Integer);
 
 	g_RpcErrno = errno;
-
-	Arguments[1].Flags = Flag_Out;
-	Arguments[2].Flags = Flag_Out;
 
 	*ReturnValue = RPC_INT(Result);
 
