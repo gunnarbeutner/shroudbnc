@@ -27,20 +27,6 @@ extern time_t g_LastReconnect;
 /**
  * CIRCConnection
  *
- * Constructs a new IRC connection object. This constructor should only be used
- * by ThawObject().
- *
- * @param Socket the IRC socket
- * @param Owner the owner of this connection
- * @param SSL whether to use SSL
- */
-CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, safe_box_t Box, bool SSL) : CConnection(Socket, SSL) {
-	InitIrcConnection(Owner, Box, true);
-}
-
-/**
- * CIRCConnection
- *
  * Constructs a new IRC connection object.
  *
  * @param Host the server's host name
@@ -51,18 +37,6 @@ CIRCConnection::CIRCConnection(SOCKET Socket, CUser *Owner, safe_box_t Box, bool
  * @param Family socket family (either AF_INET or AF_INET6)
  */
 CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, safe_box_t Box, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
-	InitIrcConnection(Owner, Box);
-}
-
-/**
- * InitIrcConnection
- *
- * Initializes the connection object.
- *
- * @param Owner the owner of the connection object
- * @param Unfreezing whether the object is being de-persisted
- */
-void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfreezing) {
 	const char *Ident;
 
 	SetRole(Role_Client);
@@ -75,6 +49,12 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 	m_State = State_Connecting;
 
 	m_CurrentNick = NULL;
+	m_Server = NULL;
+	m_ServerVersion = NULL;
+	m_ServerFeat = NULL;
+	m_Site = NULL;
+	m_Usermodes = NULL;
+	m_EatPong = false;
 
 	m_QueueHigh = new CQueue();
 
@@ -108,7 +88,7 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 		g_Bouncer->Fatal();
 	}
 
-	if (!Unfreezing) {
+	if (Host != NULL) {
 		const char *Password = Owner->GetServerPassword();
 
 		if (Password != NULL) {
@@ -136,10 +116,6 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 
 	m_Channels->RegisterValueDestructor(DestroyObject<CChannel>);
 
-	m_Server = NULL;
-	m_ServerVersion = NULL;
-	m_ServerFeat = NULL;
-
 	m_ISupport = new CHashtable<char *, false, 32>();
 	m_ISupport->RegisterValueDestructor(FreeUString);
 
@@ -162,10 +138,84 @@ void CIRCConnection::InitIrcConnection(CUser *Owner, safe_box_t Box, bool Unfree
 	m_DelayJoinTimer = NULL;
 	m_NickCatchTimer = NULL;
 
-	m_Site = NULL;
-	m_Usermodes = NULL;
+	if (Host == NULL && Box != NULL) {
+		SOCKET Socket;
+		safe_box_t ISupportBox, ChannelsBox;
+		const char *Temp;
 
-	m_EatPong = false;
+		Socket = safe_get_integer(Box, "Socket");
+
+		SetSocket(Socket);
+
+		Temp = safe_get_string(Box, "Nick");
+
+		if (Temp != NULL) {
+			m_CurrentNick = ustrdup(Temp);
+		}
+
+		Temp = safe_get_string(Box, "Server");
+
+		if (Temp != NULL) {
+			m_Server = ustrdup(Temp);
+		}
+
+		Temp = safe_get_string(Box, "ServerVersion");
+
+		if (Temp != NULL) {
+			m_ServerVersion = ustrdup(Temp);
+		}
+
+		Temp = safe_get_string(Box, "ServerFeatures");
+
+		if (Temp != NULL) {
+			m_ServerFeat = ustrdup(Temp);
+		}
+
+		ISupportBox = safe_get_box(Box, "ISupport");
+
+		if (ISupportBox != NULL) {
+			char Name[128];
+			safe_element_t *Previous = NULL;
+
+			while (safe_enumerate(ISupportBox, &Previous, Name, sizeof(Name)) != -1) {
+				const char *Value = safe_get_string(ISupportBox, Name);
+
+				if (Value == NULL) {
+					continue;
+				}
+
+				m_ISupport->Add(Name, ustrdup(Value));
+			}
+		} else {
+			WriteLine("VERSION");
+		}
+
+		ChannelsBox = safe_get_box(Box, "Channels");
+
+		if (ChannelsBox != NULL) {
+			char Name[128];
+			safe_element_t *Previous = NULL;
+
+			Previous = NULL;
+
+			while (safe_enumerate(ChannelsBox, &Previous, Name, sizeof(Name)) != -1) {
+				CChannel* Channel;
+				safe_box_t ChannelBox;
+
+				ChannelBox = safe_get_box(ChannelsBox, Name);
+
+				if (ChannelBox == NULL) {
+					continue;
+				}
+
+				Channel = new CChannel(Name, this, ChannelBox);
+
+				if (Channel != NULL) {
+					m_Channels->Add(Name, Channel);
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -436,12 +486,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		ufree(m_CurrentNick);
 		m_CurrentNick = ustrdup(argv[2]);
 
-		if (GetBox() != NULL) {
-			safe_put_string(GetBox(), "Nick", argv[2]);
-		}
-
 		ufree(m_Server);
 		m_Server = ustrdup(Reply);
+
+		if (GetBox() != NULL) {
+			safe_put_string(GetBox(), "Nick", argv[2]);
+			safe_put_string(GetBox(), "Server", Reply);
+		}
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
 			ufree(m_CurrentNick);
@@ -563,6 +614,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		ufree(m_ServerFeat);
 		m_ServerFeat = ustrdup(argv[5]);
+
+		if (GetBox() != NULL) {
+			safe_put_string(GetBox(), "ServerVersion", argv[3]);
+			safe_put_string(GetBox(), "ServerFeatures", argv[5]);
+		}
 	} else if (argc > 3 && iRaw	== 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
@@ -577,12 +633,27 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				WriteLine("PROTOCTL NAMESX");
 			}
 
+			char *Value;
+
 			if (Eq) {
 				*Eq = '\0';
 
-				m_ISupport->Add(Dup, ustrdup(++Eq));
-			} else
-				m_ISupport->Add(Dup, ustrdup(""));
+				Value = ustrdup(++Eq);
+			} else {
+				Value = ustrdup("");
+			}
+
+			m_ISupport->Add(Dup, Value);
+
+			safe_box_t ISupportBox;
+
+			if (GetBox() != NULL) {
+				ISupportBox = safe_put_box(GetBox(), "ISupport");
+
+				if (ISupportBox != NULL) {
+					safe_put_string(ISupportBox, Dup, Value);
+				}
+			}
 
 			free(Dup);
 		}
@@ -1622,7 +1693,7 @@ void CIRCConnection::Destroy(void) {
  * @param Box the box
  * @param Owner the owner of the IRC connection
  */
-RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
+/*RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 	SOCKET Socket;
 	CIRCConnection *Connection;
 	const char *Temp;
@@ -1705,7 +1776,7 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 		}
 	}
 
-/*	delete Connection->m_FloodControl;
+*//*	delete Connection->m_FloodControl;
 
 	Connection->m_FloodControl = new CFloodControl();
 
@@ -1737,10 +1808,10 @@ RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
 		Connection->m_QueueLow = CQueue::Thaw(TempBox);
 	}
 
-	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);*/
+	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);*//*
 
 	RETURN(CIRCConnection *, Connection);
-}
+}*/
 
 /**
  * Kill

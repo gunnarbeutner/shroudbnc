@@ -60,7 +60,7 @@ public:
  * @param Container the container of the box
  * @param Name the object's name in that container
  */
-template <typename Type, typename OwnerType>
+/*template <typename Type, typename OwnerType>
 RESULT<Type *> ThawObject(safe_box_t Container, const char *Name, OwnerType *Owner) {
 	safe_box_t ObjectBox;
 
@@ -75,4 +75,4 @@ RESULT<Type *> ThawObject(safe_box_t Container, const char *Name, OwnerType *Own
 	}
 
 	return Type::Thaw(ObjectBox, Owner);
-}
+}*/

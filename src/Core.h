@@ -146,8 +146,6 @@ class SBNCAPI CCore {
 	void InitializeAdditionalListeners(void);
 	void UninitializeAdditionalListeners(void);
 	void UpdateAdditionalListeners(void);
-
-	bool Thaw(void);
 public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv, bool Daemonized);

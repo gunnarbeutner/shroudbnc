@@ -71,20 +71,22 @@ CConnection::CConnection(const char *Host, unsigned short Port, const char *Bind
 	m_PortCache = Port;
 	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
 
-	m_DnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncDnsFinished));
+	if (Host != NULL) {
+		m_DnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncDnsFinished));
 
-	m_DnsQuery->GetHostByName(Host, Family);
+		m_DnsQuery->GetHostByName(Host, Family);
 
-	if (m_BindIpCache != NULL) {
-		m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
+		if (m_BindIpCache != NULL) {
+			m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
 
-		m_BindDnsQuery->GetHostByName(BindIp, Family);
-	} else {
-		m_BindDnsQuery = NULL;
+			m_BindDnsQuery->GetHostByName(BindIp, Family);
+		} else {
+			m_BindDnsQuery = NULL;
+		}
+
+		// try to connect.. maybe we already have both addresses
+		AsyncConnect();
 	}
-
-	// try to connect.. maybe we already have both addresses
-	AsyncConnect();
 }
 
 /**

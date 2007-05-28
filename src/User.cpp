@@ -125,6 +125,47 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 	if (IsAdmin()) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
 	}
+
+	if (Box != NULL) {
+		safe_box_t IRCBox = safe_get_box(Box, "IRC");
+
+		if (IRCBox != NULL) {
+			CIRCConnection *IRC;
+
+			IRC = new CIRCConnection(NULL, 0, this, IRCBox, NULL);
+
+			if (IRC != NULL) {
+				SetIRCConnection(IRC);
+			}
+		}
+
+		safe_box_t ClientsBox = safe_get_box(Box, "Clients");
+
+		if (ClientsBox != NULL) {
+			safe_element_t *PreviousClient = NULL;
+			char ClientName[128];
+
+			safe_set_ro(ClientsBox, 1);
+
+			while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
+				CClientConnection *Client;
+
+				safe_box_t ClientBox = safe_get_box(ClientsBox, ClientName);
+
+				Client = new CClientConnection(INVALID_SOCKET, ClientBox);
+
+				if (Client != NULL) {
+					AddClientConnection(Client);
+
+					if (IsAdmin()) {
+						Client->Privmsg("shroudBNC seems to have died unexpectedly. However the parent process was able to successfully resurrect it.");
+					}
+				}
+			}
+
+			safe_set_ro(ClientsBox, 0);
+		}	
+	}
 }
 
 /**

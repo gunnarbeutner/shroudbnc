@@ -192,6 +192,30 @@ bool sbncDaemonize(void) {
 	return true;
 }
 
+void sbncReadIpcFile(void) {
+	FILE *IpcFile;
+
+	IpcFile = fopen("sbnc.ipc", "r");
+
+	if (IpcFile != NULL) {
+		char *n;
+		char FileBuf[512];
+
+		if ((n = fgets(FileBuf, sizeof(FileBuf) - 1, IpcFile)) != 0) {
+			if (FileBuf[strlen(FileBuf) - 1] == '\n')
+				FileBuf[strlen(FileBuf) - 1] = '\0';
+
+			if (FileBuf[strlen(FileBuf) - 1] == '\r')
+				FileBuf[strlen(FileBuf) - 1] = '\0';
+
+			free(g_Mod);
+			g_Mod = strdup(FileBuf);
+		}
+
+		fclose(IpcFile);
+	}
+}
+
 int main(int argc, char **argv) {
 	int Result;
 	bool LPC = false, RpcChild = false;
@@ -318,6 +342,8 @@ int main(int argc, char **argv) {
 #endif
 
 	g_Mod = strdup(SBNC_MODULE);
+
+	sbncReadIpcFile();
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 	lt_dlinit();

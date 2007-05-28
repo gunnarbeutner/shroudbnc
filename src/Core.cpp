@@ -162,8 +162,6 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 		m_Users.Add(Name, User);
 	}
 
-	Thaw();
-
 	ArgFree(Args);
 
 	m_Listener = NULL;
@@ -1671,89 +1669,6 @@ const char *CCore::DebugImpulse(int impulse) {
 	}
 
 	return NULL;
-}
-
-/**
- * Thaw
- *
- * Depersists the main bouncer object.
- *
- * @param Box the box
- */
-bool CCore::Thaw(void) {
-	safe_box_t UsersBox;
-
-/*	m_Listener = ThawObject<CClientListener>(NULL, "Listener", this);
-	m_ListenerV6 = ThawObject<CClientListener>(NULL, "ListenerV6", this);
-
-	m_SSLListener = ThawObject<CClientListener>(NULL, "SSLListener", this);
-	if (m_SSLListener != NULL) {
-		m_SSLListener->SetSSL(true);
-	}
-
-	m_SSLListenerV6 = ThawObject<CClientListener>(NULL, "SSLListenerV6", this);
-	if (m_SSLListenerV6 != NULL) {
-		m_SSLListenerV6->SetSSL(true);
-	}*/
-
-	UsersBox = safe_get_box(NULL, "Users");
-
-	if (UsersBox != NULL) {
-		safe_element_t *Previous = NULL;
-		char Name[128];
-
-		while (safe_enumerate(UsersBox, &Previous, Name, sizeof(Name)) != -1) {
-			safe_box_t UserBox;
-			CUser *User;
-
-			User = GetUser(Name);
-
-			if (User == NULL) {
-				continue; /* Wtf? */
-			}
-
-			UserBox = safe_get_box(UsersBox, Name);
-
-			if (UserBox == NULL) {
-				continue;
-			}
-
-			CIRCConnection *IRC = ThawObject<CIRCConnection>(UserBox, "IRC", User);
-
-			if (IRC != NULL) {
-				User->SetIRCConnection(IRC);
-			}
-
-			safe_box_t ClientsBox = safe_get_box(UserBox, "Clients");
-
-			if (ClientsBox != NULL) {
-				safe_element_t *PreviousClient = NULL;
-				char ClientName[128];
-
-				safe_set_ro(ClientsBox, 1);
-
-				while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
-					CClientConnection *Client;
-
-					safe_box_t ClientBox = safe_get_box(ClientsBox, ClientName);
-
-					Client = new CClientConnection(INVALID_SOCKET, ClientBox);
-
-					if (Client != NULL) {
-						User->AddClientConnection(Client);
-
-						if (User->IsAdmin()) {
-							Client->Privmsg("shroudBNC seems to have died unexpectedly. However the parent process was able to successfully resurrect it.");
-						}
-					}
-				}
-
-				safe_set_ro(ClientsBox, 0);
-			}	
-		}
-	}
-
-	return true;
 }
 
 /**
