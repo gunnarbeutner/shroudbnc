@@ -154,8 +154,6 @@ bool sbncDaemonize(void) {
 	pid_t sid;
 	int fd;
 
-	fprintf(stdout, "Daemonizing... ");
-
 	pid = fork();
 	if (pid == -1) {
 		return false;
