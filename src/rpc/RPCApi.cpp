@@ -279,6 +279,7 @@ void RpcFatal(void) {
 	exit(1);
 }
 
+#ifdef _WIN32
 static char *ArgVToString(int argc, char **argv, char *Additional) {
 	char *Result;
 	size_t Length = 0;
@@ -318,6 +319,7 @@ static char *ArgVToString(int argc, char **argv, char *Additional) {
 
 	return Result;
 }
+#endif
 
 int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv) {
 #ifdef _WIN32
@@ -449,7 +451,7 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 		dup2(stdoutpipes[1], 1);
 		close(stdoutpipes[1]);
 
-		execvp(Program, Program, new_argv);
+		execvp(Program, new_argv);
 		exit(0);
 	} else if (pid > 0) {
 		close(stdinpipes[0]);
