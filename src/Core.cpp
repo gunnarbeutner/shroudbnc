@@ -259,16 +259,16 @@ void CCore::StartMainLoop(void) {
 		}
 
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
-			puts("");
+			safe_print("\n");
 			safe_printf("Syntax: %s [OPTION]", argv[0]);
-			puts("");
-			puts("Options:");
+			safe_print("\n");
+			safe_print("Options:\n");
 #ifndef _WIN32
-			puts("\t-n\tdon't detach");
-			puts("\t--help\tdisplay this help and exit");
+			safe_print("\t-n\tdon't detach\n");
+			safe_print("\t--help\tdisplay this help and exit\n");
 #else
-			puts("\t/n\tdon't detach");
-			puts("\t/?\tdisplay this help and exit");
+			safe_print("\t/n\tdon't detach\n");
+			safe_print("\t/?\tdisplay this help and exit\n");
 #endif
 
 			return;
