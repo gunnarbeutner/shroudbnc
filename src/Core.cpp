@@ -244,20 +244,13 @@ CCore::~CCore(void) {
  */
 void CCore::StartMainLoop(void) {
 	unsigned int i;
-	bool b_DontDetach = false;
 
 	time(&g_CurrentTime);
-
-	safe_printf("shroudBNC %s - an object-oriented IRC bouncer\n", GetBouncerVersion());
 
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
 
 	for (int a = 1; a < argc; a++) {
-		if (strcmp(argv[a], "-n") == 0 || strcmp(argv[a], "/n") == 0) {
-			b_DontDetach = true;
-		}
-
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
 			safe_print("\n");
 			safe_printf("Syntax: %s [OPTION]", argv[0]);
@@ -407,10 +400,6 @@ void CCore::StartMainLoop(void) {
 	InitializeAdditionalListeners();
 
 	Log("Starting main loop.");
-
-	if (!b_DontDetach) {
-		Daemonize();
-	}
 
 	WritePidFile();
 

@@ -732,58 +732,6 @@ int RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
 	return true;
 }
 
-int RpcFunc_daemonize(Value_t *Arguments, Value_t *ReturnValue) {
-#ifndef _WIN32
-	pid_t pid;
-	pid_t sid;
-	int fd;
-
-	fprintf(stdout, "Daemonizing... ");
-
-	pid = fork();
-	if (pid == -1) {
-		*ReturnValue = RPC_INT(-1);
-
-		return true;
-	}
-
-	if (pid) {
-		safe_printf("DONE\n");
-		exit(0);
-	}
-
-	fd = open("/dev/null", O_RDWR);
-	if (fd) {
-		if (fd != 0) {
-			dup2(fd, 0);
-		}
-
-		if (fd != 1) {
-			dup2(fd, 1);
-		}
-
-		if (fd != 2) {
-			dup2(fd, 2);
-		}
-
-		if (fd > 2) {
-			close(fd);
-		}
-	}
-
-	sid = setsid();
-	if (sid == -1) {
-		*ReturnValue = RPC_INT(-1);
-
-		return true;
-	}
-#endif
-
-	*ReturnValue = RPC_INT(0);
-
-	return true;
-}
-
 // void safe_exit(int ExitCode);
 int RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
 	if (Arguments[0].Type != Integer) {
@@ -1539,20 +1487,6 @@ int safe_set_ro(safe_box_t Box, int ReadOnly) {
 }
 
 int safe_reinit(void) {
-	Value_t ReturnValue;
-
-	if (!RpcInvokeFunction(Function_safe_reinit, NULL, 0, &ReturnValue)) {
-		RpcFatal();
-	}
-
-	if (ReturnValue.Type != Integer) {
-		RpcFatal();
-	}
-
-	return ReturnValue.Integer;
-}
-
-int safe_daemonize(void) {
 	Value_t ReturnValue;
 
 	if (!RpcInvokeFunction(Function_safe_reinit, NULL, 0, &ReturnValue)) {

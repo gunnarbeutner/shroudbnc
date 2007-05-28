@@ -84,7 +84,6 @@ static struct {
 	{ Function_safe_move,			3,	RpcFunc_move		},
 	{ Function_safe_set_ro,			2,	RpcFunc_set_ro		},
 	{ Function_safe_reinit,			0,	RpcFunc_reinit		},
-	{ Function_safe_daemonize,		0,	RpcFunc_daemonize	},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
 
@@ -456,7 +455,7 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 		}
 		close(stdoutpipes[1]);
 
-		fd = open("/dev/null", O_RDWR);
+		int fd = open("/dev/null", O_RDWR);
 		if (fd != 2) {
 			dup2(fd, 2);
 		}

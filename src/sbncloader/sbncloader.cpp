@@ -148,10 +148,55 @@ HMODULE sbncLoadModule(void) {
 	return hMod;
 }
 
+bool sbncDaemonize(void) {
+#ifndef _WIN32
+	pid_t pid;
+	pid_t sid;
+	int fd;
+
+	fprintf(stdout, "Daemonizing... ");
+
+	pid = fork();
+	if (pid == -1) {
+		return false;
+	}
+
+	if (pid) {
+		fprintf(stdout, "DONE\n");
+		exit(0);
+	}
+
+	fd = open("/dev/null", O_RDWR);
+	if (fd) {
+		if (fd != 0) {
+			dup2(fd, 0);
+		}
+
+		if (fd != 1) {
+			dup2(fd, 1);
+		}
+
+		if (fd != 2) {
+			dup2(fd, 2);
+		}
+
+		if (fd > 2) {
+			close(fd);
+		}
+	}
+
+	sid = setsid();
+	if (sid == -1) {
+		return false;
+	}
+#endif
+}
+
 int main(int argc, char **argv) {
 	int Result;
 	bool LPC = false, RpcChild = false;
 	bool Install = false, Uninstall = false, Service = false;
+	bool Daemonize = true;
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 #ifdef _WIN32
@@ -178,7 +223,23 @@ int main(int argc, char **argv) {
 		if (strcmp(argv[i], "--service") == 0) {
 			Service = true;
 		}
+
+		if (strcmp(argv[1], "--foreground") == 0) {
+			Daemonize = false;
+		}
 	}
+
+	fprintf(stdout, "shroudBNC - an object-oriented IRC bouncer\n");
+
+#ifndef _WIN32
+	if (Daemonize) {
+		fprintf(stdout, "Daemonizing... ");
+
+		if (sbncDaemonize()) {
+			fprintf(stdout, "DONE\n");
+		}
+	}
+#endif
 
 	Socket_Init();
 
