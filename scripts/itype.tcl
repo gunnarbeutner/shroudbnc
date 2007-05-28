@@ -98,6 +98,10 @@ proc itype_parse {value} {
 			}
 		}
 
+		if {$type == "list" && $wasEscape} {
+			lappend data "\\"
+		}
+
 		if {$type != "" && !$escape} {
 			lappend data $char
 		}

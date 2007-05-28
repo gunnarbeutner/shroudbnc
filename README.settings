@@ -1,7 +1,7 @@
 shroudBNC Configuration
 -----------------------
 
-This document is supposed to give some insight into the available configuration options (i.e. sbnc.conf and the
+This document is supposed to give some insight into the available configuration options (i.e. for sbnc.conf and the
 users' configuration files). You should usually not edit these files manually unless you know what you are doing.
 
 sbnc.conf

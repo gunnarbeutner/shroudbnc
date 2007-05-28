@@ -7,7 +7,7 @@ IRC connections for multiple users. Using TCL scripts it can be extended.
 Installation
 ------------
 
-First of all make sure that you have the following libraries installed:
+First of all make sure that you have the following libraries (and development files) installed:
 
 - openssl (if you're going to use ssl-encrypted connections; README.ssl
            contains more details about how to use SSL)
@@ -34,10 +34,10 @@ files:
 
 You can do that by simply starting shroudBNC in the installation directory:
 
-"shroud@hermes:~/sbnc$ ./sbnc
-shroudBNC loader
-Loading shroudBNC from ./lib-0/libsbnc.la
-Thu Feb 16 09:33:36 2006 Log system initialized.
+<--
+shroud@hermes:~/sbnc$ ./sbnc
+shroudBNC 1.2 $Revision$- an object-oriented IRC bouncer
+Sun May 27 08:39:51 2007: Log system initialized.
 No valid configuration file has been found. A basic
 configuration file can be created for you automatically. Please
 answer the following questions:
@@ -48,13 +48,18 @@ Please note that passwords will not be echoed while you type them.
 4. Please confirm your password by typing it again:
 Writing main configuration file... DONE
 Writing first user's configuration file... DONE
-shroudBNC 1.2 $Revision$ - an object-oriented IRC bouncer
-Thu Feb 16 09:33:46 2006 Created main listener.
-Thu Feb 16 09:33:46 2006 Starting main loop.
-Daemonizing... DONE
-shroud@hermes:~/sbnc$"
+Configuration has been successfully saved. Please restart shroudBNC now.
+shroud@testbed:~/sbnc$
+-->
 
-Basically you're finished here. Your bouncer is now configured and running.
+After creating the configuration files you can start shroudBNC:
+
+<--
+shroud@testbed:~/sbnc$ ./sbnc
+shroudBNC 1.2 $Revision$- an object-oriented IRC bouncer
+Daemonizing... DONE
+shroud@testbed:~/sbnc$
+-->
 
 You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
 any scripts you want. You will have to rehash the tcl module after every
@@ -67,15 +72,15 @@ Usage
 
 Just connect to the bouncer using your favorite IRC client. You will have to set
 your username (i.e. e-mail address in most clients) to the accountname you've
-chosen for your bnc.
+chosen for your bouncer account.
 
 Once you're connected you should type /sbnc help to get a list of available
 commands.
 
-shroudBNC supports oidentd in order to provide custom idents for each user. You
-will need to enable ident-spoofing for the unix account you're using to run
-shroudBNC if you want each user to have his/her own ident. Read oidentd's manual
-or http://www.shroudbnc.info/board/index.php?t=msg&th=9 for more details.
+shroudBNC supports oidentd in order to provide unique idents for each bouncer
+user. You will need to enable ident-spoofing for the unix account you're using
+to run shroudBNC if you want each user to have his/her own ident. Read oidentd's
+manual or http://board.shroudbnc.info/index.php?t=msg&th=9 for more details.
 
 TCL
 ---

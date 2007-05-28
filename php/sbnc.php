@@ -36,7 +36,7 @@ class SBNC {
 
 		fputs($this->socket, "RPC_IFACE\n");
 
-		while (($line = @fgets($this->socket)) != FALSE) {
+		while (($line = @fgets($this->socket, 65536)) != FALSE) {
 			if (strstr($line, "RPC_IFACE_OK") != FALSE) {
 				break;
 			}

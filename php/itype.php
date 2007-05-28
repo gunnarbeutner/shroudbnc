@@ -170,6 +170,10 @@ function itype_parse($value) {
 			}
 		}
 
+		if ($type == 'list' && $wasEscape) {
+			$data .= '\\';
+		}
+
 		if ($type != '' && !$escape) {
 			$data .= $char;
 		}

@@ -257,7 +257,7 @@ int main(int argc, char **argv) {
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
 		PipePair_t PipesLocal;
 
-		fprintf(stdout, "shroudBNC - an object-oriented IRC bouncer\n");
+		fprintf(stdout, "shroudBNC " BNCVERSION " - an object-oriented IRC bouncer\n");
 
 #ifndef _WIN32
 		if (Daemonize) {
