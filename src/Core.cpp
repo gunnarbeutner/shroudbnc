@@ -55,10 +55,12 @@ static struct reslimit_s {
  * @param argc argument counts
  * @param argv program arguments
  */
-CCore::CCore(CConfig *Config, int argc, char **argv) {
+CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 	int i;
 	char *Out;
 	const char *Hostmask;
+
+	m_Daemonized = Daemonized;
 
 	m_OriginalConfig = Config;
 
@@ -256,13 +258,7 @@ void CCore::StartMainLoop(void) {
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
 
-	m_Daemonized = true;
-
 	for (int a = 1; a < argc; a++) {
-		if (strcmp(argv[a], "--foreground") == 0) {
-			m_Daemonized = false;
-		}
-
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
 			safe_print("\n");
 			safe_printf("Syntax: %s [OPTION]", argv[0]);

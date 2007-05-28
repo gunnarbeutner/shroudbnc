@@ -292,7 +292,7 @@ static char *ArgVToString(int argc, char **argv, char *Additional) {
 		Length += strlen(Additional) + 1;
 	}
 
-	Result = (char *)malloc(Length + 1);
+	Result = (char *)malloc(Length + 2);
 
 	if (Result == NULL) {
 		return NULL;
@@ -310,11 +310,15 @@ static char *ArgVToString(int argc, char **argv, char *Additional) {
 	}
 
 	if (Additional != NULL) {
+		PieceLength = strlen(Additional);
+
 		memcpy(Result + Offset, Additional, PieceLength);
 		Result[Offset + PieceLength] = ' ';
 
 		Offset += PieceLength + 1;
 	}
+
+	Result[Offset] = '\0';
 
 	return Result;
 }

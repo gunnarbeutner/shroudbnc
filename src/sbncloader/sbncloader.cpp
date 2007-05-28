@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
 	GetModuleFileName(NULL, PathName, sizeof(PathName));
 #else
 	strncpy(PathName, argv[0], sizeof(PathName));
-	ExeName[sizeof(PathName) - 1] = '\0';
+	PathName[sizeof(PathName) - 1] = '\0';
 #endif
 
 	for (char *p = PathName + strlen(PathName); p >= PathName; p--) {
@@ -348,7 +348,7 @@ int main(int argc, char **argv) {
 
 	g_Signal = false;
 
-	g_LoadFunc(g_Mod, LPC, argc, argv);
+	g_LoadFunc(g_Mod, LPC, Daemonize, argc, argv);
 
 	Socket_Final();
 
