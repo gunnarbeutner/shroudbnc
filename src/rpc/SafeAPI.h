@@ -77,6 +77,9 @@ int RpcFunc_get_name(Value_t *Arguments, Value_t *ReturnValue);
 int RpcFunc_move(Value_t *Arguments, Value_t *ReturnValue);
 int RpcFunc_set_ro(Value_t *Arguments, Value_t *ReturnValue);
 int RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue);
+
+int RpcFunc_daemonize(Value_t *Arguments, Value_t *ReturnValue);
+
 int RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue);
 
 typedef void *safe_box_t;
@@ -123,6 +126,8 @@ extern "C" {
 	int RPCAPI safe_move(safe_box_t NewParent, safe_box_t Box, const char *NewName);
 	int RPCAPI safe_set_ro(safe_box_t Box, int ReadOnly);
 	int RPCAPI safe_reinit(void);
+
+	int RPCAPI safe_daemonize(void);
 
 	void RPCAPI safe_exit(int ExitCode);
 

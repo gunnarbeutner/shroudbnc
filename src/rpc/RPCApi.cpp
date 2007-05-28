@@ -84,6 +84,7 @@ static struct {
 	{ Function_safe_move,			3,	RpcFunc_move		},
 	{ Function_safe_set_ro,			2,	RpcFunc_set_ro		},
 	{ Function_safe_reinit,			0,	RpcFunc_reinit		},
+	{ Function_safe_daemonize,		0,	RpcFunc_daemonize	},
 	{ Function_safe_exit,			1,	RpcFunc_exit		}
 };
 

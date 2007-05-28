@@ -91,6 +91,8 @@ typedef enum Function_e {
 	Function_safe_set_ro,
 	Function_safe_reinit,
 
+	Function_safe_daemonize,
+
 	Function_safe_exit,
 
 	last_function

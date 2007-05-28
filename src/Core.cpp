@@ -1296,52 +1296,9 @@ time_t CCore::GetStartup(void) const {
  * Daemonizes the bouncer.
  */
 bool CCore::Daemonize(void) {
-	// TODO: fix, move to loader?
-	return true;
+	safe_daemonize();
 
-#ifndef _WIN32
-	pid_t pid;
-	pid_t sid;
-	int fd;
-
-	safe_printf("Daemonizing... ");
-
-	pid = fork();
-	if (pid == -1) {
-		Log("fork() returned -1 (failure)");
-
-		return false;
-	}
-
-	if (pid) {
-		safe_printf("DONE\n");
-		exit(0);
-	}
-
-	fd = open("/dev/null", O_RDWR);
-	if (fd) {
-		if (fd != 0) {
-			dup2(fd, 0);
-		}
-
-		if (fd != 1) {
-			dup2(fd, 1);
-		}
-
-		if (fd != 2) {
-			dup2(fd, 2);
-		}
-
-		if (fd > 2) {
-			close(fd);
-		}
-	}
-
-	sid = setsid();
-	if (sid == -1) {
-		return false;
-	}
-#else
+#ifdef _WIN32
 	char *Title;
 
 	asprintf(&Title, "shroudBNC %s", GetBouncerVersion());
