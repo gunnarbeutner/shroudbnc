@@ -395,6 +395,15 @@ int RpcFunc_scan(Value_t *Arguments, Value_t *ReturnValue) {
 
 	if (fgets((char *)Arguments[0].Block, Arguments[1].Integer, stdin) != NULL) {
 		Result = 1;
+
+		for (char *p = (char *)Arguments[0].Block + strlen((char *)Arguments[0].Block);
+				p >= (char *)Arguments[0].Block; p--) {
+			if (*p == '\r' || *p == '\n') {
+				*p = '\0';
+
+				break;
+			}
+		}
 	} else {
 		Result = -1;
 	}
@@ -1118,7 +1127,7 @@ int safe_scan(char *Buffer, size_t Size) {
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[0].Block, ReturnValue.Integer);
+		memcpy(Buffer, Arguments[0].Block, Size);
 	}
 
 	RpcFreeValue(Arguments[0]);
@@ -1142,7 +1151,7 @@ int safe_scan_passwd(char *Buffer, size_t Size) {
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[0].Block, ReturnValue.Integer);
+		memcpy(Buffer, Arguments[0].Block, Size);
 	}
 
 	RpcFreeValue(Arguments[0]);

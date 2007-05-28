@@ -150,7 +150,7 @@ class SBNCAPI CCore {
 	bool Thaw(void);
 public:
 #ifndef SWIG
-	CCore(CConfig *Config, int argc, char **argv);
+	CCore(CConfig *Config, int argc, char **argv, bool Daemonized);
 	virtual ~CCore(void);
 #endif
 
