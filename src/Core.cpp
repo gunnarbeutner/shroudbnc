@@ -115,7 +115,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 	const char *Users;
 	CUser *User;
 
-	while ((Users = m_Config->ReadString("system.users")) == NULL) {
+	if ((Users = m_Config->ReadString("system.users")) == NULL) {
 		if (IsDaemonized()) {
 			LOGERROR("Configuration file does not contain any users. please re-run shroudBNC with --foreground");
 
@@ -128,7 +128,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 			Fatal();
 		}
 
-		m_Config->Reload();
+		safe_print("Configuration has been successfully saved. Please restart shroudBNC now.\n");
+		safe_exit(0);
 	}
 
 	const char *Args;
