@@ -742,8 +742,6 @@ int RpcFunc_daemonize(Value_t *Arguments, Value_t *ReturnValue) {
 
 	pid = fork();
 	if (pid == -1) {
-		Log("fork() returned -1 (failure)");
-
 		*ReturnValue = RPC_INT(-1);
 
 		return true;

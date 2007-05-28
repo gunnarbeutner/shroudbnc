@@ -1296,7 +1296,13 @@ time_t CCore::GetStartup(void) const {
  * Daemonizes the bouncer.
  */
 bool CCore::Daemonize(void) {
-	safe_daemonize();
+	int Result;
+	
+	Result = safe_daemonize();
+
+	if (Result >= 0) {
+		safe_printf("DONE.\n");
+	}
 
 #ifdef _WIN32
 	char *Title;
