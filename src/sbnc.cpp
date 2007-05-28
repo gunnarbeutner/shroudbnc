@@ -165,7 +165,9 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	_setmode(fileno(stdout), O_BINARY);
 #endif
 
+#ifdef _WIN32
 	Sleep(10000);
+#endif
 
 	RpcSetLPC(LPC);
 
