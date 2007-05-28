@@ -738,7 +738,7 @@ int RpcFunc_daemonize(Value_t *Arguments, Value_t *ReturnValue) {
 	pid_t sid;
 	int fd;
 
-	safe_printf("Daemonizing... ");
+	fprintf(stdout, "Daemonizing... ");
 
 	pid = fork();
 	if (pid == -1) {

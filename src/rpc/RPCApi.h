@@ -141,7 +141,7 @@ Value_t RpcBuildString(const char *Pointer);
 void RpcFreeValue(Value_t Value);
 void RpcFatal(void);
 
-int RpcInvokeClient(char *Program, PipePair_t *PipesLocal);
+int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv);
 int RpcRunServer(PipePair_t Pipes);
 int RpcProcessCall(FILE *In, FILE *Out);
 const char *RpcStringFromValue(Value_t Value);

@@ -279,7 +279,47 @@ void RpcFatal(void) {
 	exit(1);
 }
 
-int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
+static char *ArgVToString(int argc, char **argv, char *Additional) {
+	char *Result;
+	size_t Length = 0;
+	size_t Offset = 0, PieceLength;
+
+	for (unsigned int i = 0; i < argc; i++) {
+		Length += strlen(argv[i]) + 1;
+	}
+
+	if (Additional != NULL) {
+		Length += strlen(Additional) + 1;
+	}
+
+	Result = (char *)malloc(Length + 1);
+
+	if (Result == NULL) {
+		return NULL;
+	}
+
+	Result[0] = '\0';
+
+	for (unsigned int i = 0; i < argc; i++) {
+		PieceLength = strlen(argv[i]);
+
+		memcpy(Result + Offset, argv[i], PieceLength);
+		Result[Offset + PieceLength] = ' ';
+
+		Offset += PieceLength + 1;
+	}
+
+	if (Additional != NULL) {
+		memcpy(Result + Offset, Additional, PieceLength);
+		Result[Offset + PieceLength] = ' ';
+
+		Offset += PieceLength + 1;
+	}
+
+	return Result;
+}
+
+int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv) {
 #ifdef _WIN32
 	HANDLE hChildStdinRd, hChildStdinWr, hChildStdinWrDup, 
 		hChildStdoutRd, hChildStdoutWr, hChildStdoutRdDup, 
@@ -335,7 +375,7 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 	siStartInfo.hStdInput = hChildStdinRd;
 	siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-	asprintf(&CommandLine, "%s --rpc-child", Program);
+	CommandLine = ArgVToString(argc, argv, "--rpc-child");
 
 	if (CommandLine == NULL) {
 		return 0;
@@ -385,6 +425,17 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 	pipe(stdinpipes);
 	pipe(stdoutpipes);
 
+	char **new_argv = (char **)malloc((argc + 2) * sizeof(char *));
+
+	if (new_argv == NULL) {
+		return 0;
+	}
+
+	memcpy(new_argv, argv, argc * sizeof(char *));
+
+	new_argv[argc] = "--rpc-child";
+	new_argv[argc + 1] = NULL;
+
 	pid = fork();
 
 	if (pid == 0) {
@@ -398,7 +449,7 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal) {
 		dup2(stdoutpipes[1], 1);
 		close(stdoutpipes[1]);
 
-		execlp(Program, Program, "--rpc-child", (char *) NULL);
+		execvp(Program, Program, new_argv);
 		exit(0);
 	} else if (pid > 0) {
 		close(stdinpipes[0]);

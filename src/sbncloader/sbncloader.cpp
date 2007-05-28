@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
 #endif
 
 		do {
-			if (!RpcInvokeClient(argv[0], &PipesLocal)) {
+			if (!RpcInvokeClient(argv[0], &PipesLocal, argc, argv)) {
 				break;
 			}
 
