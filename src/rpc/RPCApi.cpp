@@ -455,12 +455,6 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 		}
 		close(stdoutpipes[1]);
 
-		int fd = open("/dev/null", O_RDWR);
-		if (fd != 2) {
-			dup2(fd, 2);
-		}
-		close(fd);
-
 		execvp(Program, new_argv);
 		exit(0);
 	} else if (pid > 0) {
