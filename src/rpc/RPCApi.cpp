@@ -446,10 +446,21 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 		close(stdinpipes[1]);
 		close(stdoutpipes[0]);
 
-		dup2(stdinpipes[0], 0);
+		if (stdinpipes[0] != 0) {
+			dup2(stdinpipes[0], 0);
+		}
 		close(stdinpipes[0]);
-		dup2(stdoutpipes[1], 1);
+
+		if (stdoutpipes[1] != 1) {
+			dup2(stdoutpipes[1], 1);
+		}
 		close(stdoutpipes[1]);
+
+		fd = open("/dev/null", O_RDWR);
+		if (fd != 2) {
+			dup2(fd, 2);
+		}
+		close(fd);
 
 		execvp(Program, new_argv);
 		exit(0);
