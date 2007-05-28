@@ -790,8 +790,13 @@ int safe_getpeername(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	}
 
 	if (ReturnValue.Integer == 0) {
-		memcpy(Sockaddr, Arguments[1].Block, *Len);
-		memcpy(Len, Arguments[2].Block, sizeof(Arguments[2].Integer));
+		if (Sockaddr != Arguments[1].Block) {
+			memcpy(Sockaddr, Arguments[1].Block, *Len);
+		}
+
+		if (Len != Arguments[2].Block) {
+			memcpy(Len, Arguments[2].Block, sizeof(Arguments[2].Integer));
+		}
 	}
 
 	RpcFreeValue(Arguments[1]);
@@ -817,8 +822,13 @@ int safe_getsockname(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	}
 
 	if (ReturnValue.Integer == 0) {
-		memcpy(Sockaddr, Arguments[1].Block, *Len);
-		memcpy(Len, Arguments[2].Block, sizeof(Arguments[2].Integer));
+		if (Sockaddr != Arguments[1].Block) {
+			memcpy(Sockaddr, Arguments[1].Block, *Len);
+		}
+
+		if (Len != Arguments[2].Block) {
+			memcpy(Len, Arguments[2].Block, sizeof(Arguments[2].Integer));
+		}
 	}
 
 	RpcFreeValue(Arguments[1]);
@@ -922,7 +932,9 @@ int safe_poll(struct pollfd *Sockets, int Nfds, int Timeout) {
 	}
 
 	if (ReturnValue.Integer >= 0) {
-		memcpy(Sockets, Arguments[0].Block, Nfds * sizeof(pollfd));
+		if (Sockets != Arguments[0].Block) {
+			memcpy(Sockets, Arguments[0].Block, Nfds * sizeof(pollfd));
+		}
 	}
 
 	RpcFreeValue(Arguments[0]);
@@ -948,7 +960,9 @@ int safe_recv(int Socket, void *Buffer, size_t Size, int Flags) {
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[1].Block, ReturnValue.Integer);
+		if (Buffer != Arguments[1].Block) {
+			memcpy(Buffer, Arguments[1].Block, ReturnValue.Integer);
+		}
 	}
 
 	RpcFreeValue(Arguments[1]);
@@ -1029,8 +1043,13 @@ int safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, socklen_t 
 		RpcFatal();
 	}
 
-	memcpy(OptLen, Arguments[4].Block, sizeof(int));
-	memcpy(OptVal, Arguments[3].Block, *OptLen);
+	if (OptLen != Arguments[4].Block) {
+		memcpy(OptLen, Arguments[4].Block, sizeof(int));
+	}
+
+	if (OptVal != Arguments[3].Block) {
+		memcpy(OptVal, Arguments[3].Block, *OptLen);
+	}
 
 	RpcFreeValue(Arguments[3]);
 	RpcFreeValue(Arguments[4]);
@@ -1127,7 +1146,9 @@ int safe_scan(char *Buffer, size_t Size) {
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[0].Block, Size);
+		if (Buffer != Arguments[0].Block) {
+			memcpy(Buffer, Arguments[0].Block, Size);
+		}
 	}
 
 	RpcFreeValue(Arguments[0]);
@@ -1151,7 +1172,9 @@ int safe_scan_passwd(char *Buffer, size_t Size) {
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[0].Block, Size);
+		if (Buffer != Arguments[0].Block) {
+			memcpy(Buffer, Arguments[0].Block, Size);
+		}
 	}
 
 	RpcFreeValue(Arguments[0]);
@@ -1204,9 +1227,17 @@ size_t safe_recvfrom(int Socket, void *Buffer, size_t Len, int Flags, struct soc
 	}
 
 	if (ReturnValue.Integer > 0) {
-		memcpy(Buffer, Arguments[1].Block, ReturnValue.Integer);
-		memcpy(FromLen, Arguments[5].Block, sizeof(socklen_t));
-		memcpy(From, Arguments[4].Block, *FromLen);
+		if (Buffer != Arguments[1].Block) {
+			memcpy(Buffer, Arguments[1].Block, ReturnValue.Integer);
+		}
+
+		if (FromLen != Arguments[5].Block) {
+			memcpy(FromLen, Arguments[5].Block, sizeof(socklen_t));
+		}
+
+		if (From != Arguments[4].Block) {
+			memcpy(From, Arguments[4].Block, *FromLen);
+		}
 	}
 
 	RpcFreeValue(Arguments[1]);
@@ -1393,8 +1424,13 @@ int safe_enumerate(safe_box_t Parent, safe_element_t **Previous, char *Name, int
 		RpcFatal();
 	}
 
-	memcpy(Previous, Arguments[1].Block, sizeof(safe_element_t *));
-	memcpy(Name, Arguments[2].Block, Arguments[2].Size);
+	if (Previous != Arguments[1].Block) {
+		memcpy(Previous, Arguments[1].Block, sizeof(safe_element_t *));
+	}
+
+	if (Name != Arguments[2].Block) {
+		memcpy(Name, Arguments[2].Block, Arguments[2].Size);
+	}
 
 	return ReturnValue.Integer;
 }
