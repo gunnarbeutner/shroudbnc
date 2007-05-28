@@ -1280,35 +1280,6 @@ time_t CCore::GetStartup(void) const {
 }
 
 /**
- * Daemonize
- *
- * Daemonizes the bouncer.
- */
-bool CCore::Daemonize(void) {
-	int Result;
-	
-	Result = safe_daemonize();
-
-	if (Result >= 0) {
-		safe_printf("DONE.\n");
-	}
-
-#ifdef _WIN32
-	char *Title;
-
-	asprintf(&Title, "shroudBNC %s", GetBouncerVersion());
-
-	if (Title != NULL) {
-		SetConsoleTitle(Title);
-
-		free(Title);
-	}
-#endif
-
-	return true;
-}
-
-/**
  * WritePidFile
  *
  * Updates the pid-file for the current bouncer instance.

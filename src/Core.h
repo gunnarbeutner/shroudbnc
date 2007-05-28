@@ -133,7 +133,6 @@ class SBNCAPI CCore {
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
-	bool Daemonize(void) ;
 	void WritePidFile(void) const;
 	bool MakeConfig(void);
 

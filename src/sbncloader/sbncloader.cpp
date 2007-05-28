@@ -224,7 +224,7 @@ int main(int argc, char **argv) {
 			Service = true;
 		}
 
-		if (strcmp(argv[1], "--foreground") == 0) {
+		if (strcmp(argv[i], "--foreground") == 0) {
 			Daemonize = false;
 		}
 	}
