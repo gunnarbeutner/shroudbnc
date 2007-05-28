@@ -231,22 +231,20 @@ int main(int argc, char **argv) {
 
 	fprintf(stdout, "shroudBNC - an object-oriented IRC bouncer\n");
 
-#ifndef _WIN32
-	if (Daemonize) {
-		fprintf(stdout, "Daemonizing... ");
-
-		if (sbncDaemonize()) {
-			fprintf(stdout, "DONE\n");
-		}
-	}
-#endif
-
 	Socket_Init();
 
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
 		PipePair_t PipesLocal;
 
 #ifndef _WIN32
+		if (Daemonize) {
+			fprintf(stdout, "Daemonizing... ");
+
+			if (sbncDaemonize()) {
+				fprintf(stdout, "DONE\n");
+			}
+		}
+
 		signal(SIGPIPE, SIG_IGN);
 		signal(SIGCHLD, sigchld_handler);
 #endif
