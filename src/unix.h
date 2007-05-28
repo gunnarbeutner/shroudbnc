@@ -74,4 +74,6 @@ typedef int DWORD;
 
 #define Sleep(Iv) usleep(1000 * Iv)
 
+#define WSASetLastError(Error) errno = Error
+
 #define SBNCAPI
