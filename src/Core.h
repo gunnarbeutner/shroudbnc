@@ -130,6 +130,8 @@ class SBNCAPI CCore {
 
 	int m_Status; /**< shroudBNC's current status */
 
+	bool m_Daemonized; /**< whether this process is a daemon */
+
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
@@ -277,6 +279,8 @@ public:
 	CACHE(System) *GetConfigCache(void);
 
 	CConfig *CreateConfigObject(const char *Filename, CUser *User);
+
+	bool IsDaemonized(void);
 };
 
 #ifndef SWIG

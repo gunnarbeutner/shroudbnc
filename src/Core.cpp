@@ -114,6 +114,12 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	CUser *User;
 
 	while ((Users = m_Config->ReadString("system.users")) == NULL) {
+		if (IsDaemonized()) {
+			LOGERROR("Configuration file does not contain any users. please re-run shroudBNC with --foreground");
+
+			Fatal();
+		}
+
 		if (!MakeConfig()) {
 			LOGERROR("Configuration file could not be created.");
 
@@ -250,14 +256,20 @@ void CCore::StartMainLoop(void) {
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
 
+	m_Daemonized = true;
+
 	for (int a = 1; a < argc; a++) {
+		if (strcmp(argv[a], "--foreground") == 0) {
+			m_Daemonized = false;
+		}
+
 		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
 			safe_print("\n");
 			safe_printf("Syntax: %s [OPTION]", argv[0]);
 			safe_print("\n");
 			safe_print("Options:\n");
 #ifndef _WIN32
-			safe_print("\t-n\tdon't detach\n");
+			safe_print("\t--foreground\trun in the foreground\n");
 			safe_print("\t--help\tdisplay this help and exit\n");
 #else
 			safe_print("\t/n\tdon't detach\n");
@@ -2705,4 +2717,8 @@ CACHE(System) *CCore::GetConfigCache(void) {
 
 CConfig *CCore::CreateConfigObject(const char *Filename, CUser *User) {
 	return m_ConfigModule->CreateConfigObject(Filename, User);
+}
+
+bool CCore::IsDaemonized(void) {
+	return m_Daemonized;
 }

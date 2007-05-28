@@ -38,6 +38,8 @@
 #include <signal.h>
 #include <ctype.h>
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define printf(...)
 

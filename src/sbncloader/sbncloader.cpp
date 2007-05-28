@@ -188,6 +188,8 @@ bool sbncDaemonize(void) {
 		return false;
 	}
 #endif
+
+	return true;
 }
 
 int main(int argc, char **argv) {
@@ -200,6 +202,24 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
 	char ExeName[MAXPATHLEN];
 #endif
+	char PathName[MAXPATHLEN];
+
+#ifdef _WIN32
+	GetModuleFileName(NULL, PathName, sizeof(PathName));
+#else
+	strncpy(PathName, argv[0], sizeof(PathName));
+	ExeName[sizeof(PathName) - 1] = '\0';
+#endif
+
+	for (char *p = PathName + strlen(PathName); p >= PathName; p--) {
+		if (*p == '/' || *p == '\\') {
+			*p = '\0';
+
+			break;
+		}
+	}
+
+	chdir(PathName);
 
 	for (unsigned int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "--rpc-child") == 0) {
@@ -225,6 +245,11 @@ int main(int argc, char **argv) {
 		if (strcmp(argv[i], "--foreground") == 0) {
 			Daemonize = false;
 		}
+	}
+
+	struct stat ConfigStats;
+	if (stat("sbnc.conf", &ConfigStats) != 0) {
+		Daemonize = false;
 	}
 
 	Socket_Init();
