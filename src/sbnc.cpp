@@ -240,7 +240,7 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	}
 
 	// constructor sets g_Bouncer
-	new CCore(Config, argc, argv);
+	new CCore(Config, argc, argv, Daemonize);
 
 #if !defined(_WIN32)
 	signal(SIGPIPE, SIG_IGN);
