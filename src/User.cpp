@@ -701,7 +701,7 @@ bool CUser::ShouldReconnect(void) const {
 	}
 
 	if (Interval == 0) {
-		Interval = 15;
+		Interval = 25;
 	}
 
 	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && (IsAdmin() || g_CurrentTime - m_LastReconnect > 120) && g_CurrentTime - g_LastReconnect > Interval && IsQuitted() == 0) {

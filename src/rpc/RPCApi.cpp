@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef _WIN32
+#	include <setjmp.h>
+#endif
 #include "../StdAfx.h"
 
 /*
@@ -43,6 +46,11 @@ of the block, followed by a number of bytes
 */
 
 static bool g_LPC = false;
+
+#ifndef _WIN32
+static jmp_buf g_MemCheckTarget;
+static bool g_SegV;
+#endif
 
 static struct {
 	Function_t Function;
@@ -594,6 +602,10 @@ int RpcProcessCall(FILE *In, FILE *Out) {
 }
 
 const char *RpcStringFromValue(Value_t Value) {
+	if (!RpcValidateString(Value)) {
+		return NULL;
+	}
+
 	if (Value.Type == Block) {
 		return (const char *)Value.Block;
 	} else {
@@ -713,4 +725,38 @@ Value_t RpcBuildString(const char *Ptr) {
 	}
 
 	return Val;
+}
+
+#ifndef _WIN32
+void sigsegv_verify_string(int Signal) {
+	longjmp(g_MemCheckTarget, 1);
+}
+#endif
+
+int RpcValidateString(Value_t Value) {
+	if (Value.Type != Block) {
+		return true;
+	}
+
+#ifdef _WIN32
+	return !IsBadWritePtr((char *)Value.Block + Value.Size - 1, 1);
+#else
+	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify);
+
+	if (setjmp(g_MemCheckTarget) != 0) {
+		signal(SIGSEGV, OldHandler);
+
+		return 0;
+	}
+
+	g_SegV = false;
+
+	volatile char Dummy;
+
+	Dummy = ((char *)Value.Block)[Value.Size - 1];
+
+	signal(SIGSEGV, OldHandler);
+
+	return g_SegV ? 0 : 1;
+#endif
 }

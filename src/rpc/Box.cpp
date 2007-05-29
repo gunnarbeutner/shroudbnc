@@ -20,10 +20,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32
+#	include <setjmp.h>
+#else
+#	include <windows.h>
+#endif
 #include "../snprintf.h"
 #include "Box.h"
 
 static box_t g_RootBox;
+
+#ifndef _WIN32
+static bool g_SegV;
+jmp_buf g_MemCheckTarget;
+#endif
 
 static box_t Box_alloc(void);
 static void Box_free(box_t Box);
@@ -34,6 +44,58 @@ static element_t *Box_get(box_t Parent, const char *Name);
 static const char *Box_unique_name(void);
 static int Box_reinit_internal(box_t Box);
 
+#ifndef _WIN32
+void sigsegv_verify(int Signal) {
+	longjmp(g_MemCheckTarget, 1);
+}
+#endif
+
+static bool Box_verify_ptr(void *Ptr, size_t Size) {
+	if (Ptr == NULL) {
+		return true;
+	}
+
+#ifdef _WIN32
+	return !IsBadWritePtr(Ptr, Size);
+#else
+	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify);
+
+	if (setjmp(g_MemCheckTarget) != 0) {
+		signal(SIGSEGV, OldHandler);
+
+		return false;
+	}
+
+	g_SegV = false;
+
+	volatile char Dummy;
+
+	for (size_t i = 0; i < Size; i++) {
+		Dummy = ((char *)Ptr)[i];
+	}
+
+	signal(SIGSEGV, OldHandler);
+
+	return !g_SegV;
+#endif
+}
+
+static bool Box_verify(box_t Box) {
+	if (Box != NULL && (!Box_verify_ptr(Box, sizeof(int)) || Box->Magic != BOX_MAGIC)) {
+		return false;
+	}
+
+	return true;
+}
+
+static bool Box_verify_element(element_t *Element) {
+	if (Element != NULL && (!Box_verify_ptr(Element, sizeof(int)) || Element->Magic != ELEMENT_MAGIC)) { 
+		return false;
+	}
+
+	return true;
+}
+
 static box_t Box_alloc(void) {
 	box_t Box;
 
@@ -43,6 +105,7 @@ static box_t Box_alloc(void) {
 		return NULL;
 	}
 
+	Box->Magic = 0xc7a05c83;
 	Box->Name = NULL;
 	Box->Parent = NULL;
 	Box->First = NULL;
@@ -71,6 +134,8 @@ static void Box_free(box_t Box) {
 
 		Element = Element->Next;
 	}
+
+	Box->Magic = 0;
 
 	free(Box->Name);
 	free(Box);
@@ -101,6 +166,10 @@ static int Box_put(box_t Parent, element_t Element) {
 		Parent = g_RootBox;
 	}
 
+	if (!Box_verify(Parent)) {
+		return -1;
+	}
+
 	if (Parent->ReadOnly) {
 		return -1;
 	}
@@ -124,6 +193,8 @@ static int Box_put(box_t Parent, element_t Element) {
 	} else {
 		Parent->First = NewElement;
 	}
+
+	NewElement->Magic = ELEMENT_MAGIC;
 
 	NewElement->Previous = Parent->Last;
 	NewElement->Next = NULL;
@@ -221,6 +292,10 @@ element_t *Box_get(box_t Parent, const char *Name) {
 		}
 
 		Parent = g_RootBox;
+	}
+
+	if (!Box_verify(Parent)) {
+		return NULL;
 	}
 
 	Element = Parent->First;
@@ -335,6 +410,10 @@ box_t Box_put_box(box_t Parent, const char *Name){
 }
 
 int Box_remove(box_t Parent, const char *Name) {
+	if (!Box_verify(Parent)) {
+		return -1;
+	}
+
 	return Box_remove_internal(Parent, Name, 1);
 }
 
@@ -391,6 +470,14 @@ int Box_enumerate(box_t Parent, element_t **Previous, char *Name, int Len) {
 		Element = (*Previous)->Next;
 	}
 
+	if (!Box_verify(Parent)) {
+		return -1;
+	}
+
+	if (!Box_verify_element(*Previous)) {
+		return -1;
+	}
+
 	if (Element == NULL) {
 		return -1;
 	}
@@ -425,7 +512,7 @@ int Box_rename(box_t Parent, const char *OldName, const char *NewName) {
 }
 
 box_t Box_get_parent(box_t Box) {
-	if (Box == NULL) {
+	if (Box == NULL || !Box_verify(Box)) {
 		return NULL;
 	} else {
 		return Box->Parent;
@@ -433,7 +520,7 @@ box_t Box_get_parent(box_t Box) {
 }
 
 const char *Box_get_name(box_t Box) {
-	if (Box == NULL) {
+	if (Box == NULL || !Box_verify(Box)) {
 		return NULL;
 	} else {
 		return Box->Name;
@@ -446,6 +533,14 @@ int Box_move(box_t NewParent, box_t Box, const char *NewName) {
 	const char *OldName;
 
 	if (Box == NULL) {
+		return -1;
+	}
+
+	if (!Box_verify(NewParent)) {
+		return -1;
+	}
+
+	if (!Box_verify(Box)) {
 		return -1;
 	}
 
@@ -501,6 +596,10 @@ int Box_set_ro(box_t Box, int ReadOnly) {
 		if (Box == NULL) {
 			return -1;
 		}
+	}
+
+	if (!Box_verify(Box)) {
+		return -1;
 	}
 
 	Box->ReadOnly = (ReadOnly != 0);

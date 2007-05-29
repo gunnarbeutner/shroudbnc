@@ -23,9 +23,12 @@
 
 struct box_s;
 
+#define BOX_MAGIC 0xc7a05c83
+
 typedef struct element_s {
+	int Magic;
+
 	int Type;
-	unsigned int References;
 
 	char *Name;
 
@@ -39,7 +42,11 @@ typedef struct element_s {
 	struct element_s *Next;
 } element_t;
 
+#define ELEMENT_MAGIC 0xe39a1dfc
+
 typedef struct box_s {
+	int Magic;
+
 	struct box_s *Parent;
 	char *Name;
 	bool ReadOnly;

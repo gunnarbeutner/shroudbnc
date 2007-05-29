@@ -135,6 +135,7 @@ Value_t RpcBuildInteger(int Value);
 Value_t RpcBuildBlock(const void *Pointer, int Size, char Flag);
 Value_t RpcBuildPointer(const void *Pointer);
 Value_t RpcBuildString(const char *Pointer);
+int RpcValidateString(Value_t Value);
 
 void RpcFreeValue(Value_t Value);
 void RpcFatal(void);

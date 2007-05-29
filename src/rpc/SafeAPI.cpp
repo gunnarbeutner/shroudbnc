@@ -743,6 +743,12 @@ int RpcFunc_reinit(Value_t *Arguments, Value_t *ReturnValue) {
 
 // void safe_exit(int ExitCode);
 int RpcFunc_exit(Value_t *Arguments, Value_t *ReturnValue) {
+#ifdef _WIN32
+	if (IsDebuggerPresent()) {
+		DebugBreak();
+	}
+#endif
+
 	if (Arguments[0].Type != Integer) {
 		exit(0);
 	} else {
