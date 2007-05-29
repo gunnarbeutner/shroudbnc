@@ -31,7 +31,6 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
 	assert(Nick != NULL);
 
 	SetOwner(Owner);
-	SetBox(Box);
 
 	m_Nick = ustrdup(Nick);
 

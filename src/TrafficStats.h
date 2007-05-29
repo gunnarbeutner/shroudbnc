@@ -24,6 +24,7 @@
  */
 class SBNCAPI CTrafficStats : public CZoneObject<CTrafficStats, 32>, CObject<CTrafficStats, CUser> {
 private:
+	time_t m_PreviousSave;
 	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
 	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 public:

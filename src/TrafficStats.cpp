@@ -27,6 +27,8 @@
 CTrafficStats::CTrafficStats(safe_box_t Box) {
 	SetBox(Box);
 
+	m_PreviousSave = 0;
+
 	if (Box == NULL) {
 		m_Inbound = 0;
 		m_Outbound = 0;
@@ -46,8 +48,9 @@ CTrafficStats::CTrafficStats(safe_box_t Box) {
 void CTrafficStats::AddInbound(unsigned int Bytes) {
 	m_Inbound += Bytes;
 
-	if (GetBox() != NULL) {
+	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
 		safe_put_integer(GetBox(), "Inbound", m_Inbound);
+		m_PreviousSafe = g_CurrentTime;
 	}
 }
 
@@ -70,8 +73,9 @@ unsigned int CTrafficStats::GetInbound(void) const {
 void CTrafficStats::AddOutbound(unsigned int Bytes) {
 	m_Outbound += Bytes;
 
-	if (GetBox() != NULL) {
+	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
 		safe_put_integer(GetBox(), "Outbound", m_Outbound);
+		m_PreviousSafe = g_CurrentTime;
 	}
 }
 

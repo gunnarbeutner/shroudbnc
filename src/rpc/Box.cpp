@@ -59,7 +59,7 @@ static bool Box_verify_ptr(void *Ptr, size_t Size) {
 #ifdef _WIN32
 	return !IsBadWritePtr(Ptr, Size);
 #else
-	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify_string);
+	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify);
 
 	if (setjmp(g_MemCheckTarget) != 0) {
 		signal(SIGSEGV, OldHandler);

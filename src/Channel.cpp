@@ -28,10 +28,6 @@
  * @param Owner the owner of the channel object
  */
 CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
-	safe_box_t BanlistBox = NULL;
-	safe_box_t NicksBox;
-	safe_element_t *Previous = NULL;
-
 	SetOwner(Owner);
 	SetBox(Box);
 
@@ -54,11 +50,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	if (GetBox() != NULL) {
-		BanlistBox = safe_put_box(GetBox(), "Banlist");
-	}
-
-	m_Banlist = unew CBanlist(this, BanlistBox);
+	m_Banlist = unew CBanlist(this);
 
 	if (Box != NULL) {
 		time_t Temp;
@@ -86,25 +78,6 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 
 		m_TopicStamp = safe_get_integer(Box, "TopicTimestamp");
 		m_HasTopic = safe_get_integer(Box, "HasTopic");
-		
-		NicksBox = safe_get_box(Box, "Nicks");
-
-		if (NicksBox != NULL) {
-			while (safe_enumerate(NicksBox, &Previous, NickIdx, sizeof(NickIdx)) != -1) {
-				safe_box_t NickBox;
-				CNick *NickObj;
-
-				NickBox = safe_get_box(NicksBox, NickIdx);
-
-				NickObj = new CNick(NickIdx, this, NickBox);
-
-				if (NickObj == NULL) {
-					break;
-				}
-
-				m_Nicks.Add(NickIdx, NickObj);
-			}
-		}
 
 		safe_set_ro(Box, 0);
 	}
