@@ -53,7 +53,7 @@ class SBNCAPI CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick,
 	const char *InternalGetServer(void) const;
 public:
 #ifndef SWIG
-	CNick(const char *Nick, CChannel *Owner, safe_box_t Box);
+	CNick(const char *Nick, CChannel *Owner);
 	virtual ~CNick(void);
 #endif
 

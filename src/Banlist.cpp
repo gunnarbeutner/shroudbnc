@@ -36,38 +36,13 @@ void DestroyBan(ban_t *Ban) {
  *
  * Constructs an empty banlist.
  */
-CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
+CBanlist::CBanlist(CChannel *Owner) {
 	char Mask[128];
 
 	SetOwner(Owner);
 	SetBox(Box);
 
 	m_Bans.RegisterValueDestructor(DestroyBan);
-
-	if (Box != NULL) {
-		safe_element_t *Previous = NULL;
-
-		safe_set_ro(Box, 1);
-
-		while (safe_enumerate(Box, &Previous, Mask, sizeof(Mask)) != -1) {
-			safe_box_t BanBox;
-			time_t Timestamp;
-			const char *Nick;
-
-			BanBox = safe_get_box(Box, Mask);
-
-			if (BanBox == NULL) {
-				continue;
-			}
-
-			Timestamp = safe_get_integer(BanBox, "Timestamp");
-			Nick = safe_get_string(BanBox, "Nick");
-
-			SetBan(Mask, Nick, Timestamp);
-		}
-
-		safe_set_ro(Box, 0);
-	}
 }
 
 /**
@@ -80,9 +55,6 @@ CBanlist::CBanlist(CChannel *Owner, safe_box_t Box) {
  * @param Timestamp the timestamp of the ban
  */
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
-	ban_t *Ban;
-	safe_box_t BanBox;
-
 	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
 	}
@@ -97,12 +69,6 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
 	Ban->Nick = ustrdup(Nick);
 	Ban->Timestamp = Timestamp;
 
-	if (GetBox() != NULL) {
-		BanBox = safe_put_box(GetBox(), Mask);
-		safe_put_string(BanBox, "Nick", Nick);
-		safe_put_integer(BanBox, "Timestamp", Timestamp);
-	}
-
 	return m_Bans.Add(Mask, Ban);
 }
 
@@ -116,10 +82,6 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
 RESULT<bool> CBanlist::UnsetBan(const char *Mask) {
 	if (Mask != NULL) {
 		RESULT<bool> Result = m_Bans.Remove(Mask);
-
-		if (!IsError(Result) && GetBox() != NULL) {
-			safe_remove(GetBox(), Mask);
-		}
 
 		return Result;
 	} else {

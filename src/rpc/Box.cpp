@@ -22,6 +22,7 @@
 #include <string.h>
 #ifndef _WIN32
 #	include <setjmp.h>
+#	include <signal.h>
 #else
 #	include <windows.h>
 #endif
@@ -58,7 +59,7 @@ static bool Box_verify_ptr(void *Ptr, size_t Size) {
 #ifdef _WIN32
 	return !IsBadWritePtr(Ptr, Size);
 #else
-	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify);
+	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify_string);
 
 	if (setjmp(g_MemCheckTarget) != 0) {
 		signal(SIGSEGV, OldHandler);

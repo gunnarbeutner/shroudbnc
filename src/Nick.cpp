@@ -27,7 +27,7 @@
  * @param Nick the nickname of the user
  * @param Owner the owning channel of this nick object
  */
-CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
+CNick::CNick(const char *Nick, CChannel *Owner) {
 	assert(Nick != NULL);
 
 	SetOwner(Owner);
@@ -41,32 +41,8 @@ CNick::CNick(const char *Nick, CChannel *Owner, safe_box_t Box) {
 	m_Site = NULL;
 	m_Realname = NULL;
 	m_Server = NULL;
-	m_Creation = 0;
-	m_IdleSince = 0;
-
-	if (GetBox() != NULL) {
-		safe_set_ro(Box, 1);
-
-
-		SetPrefixes(safe_get_string(Box, "Prefixes"));
-		SetSite(safe_get_string(Box, "Site"));
-		SetRealname(safe_get_string(Box, "Realname"));
-		SetServer(safe_get_string(Box, "Server"));
-		m_Creation = safe_get_integer(Box, "CreationTimestamp");
-		m_IdleSince = safe_get_integer(Box, "IdleTimestamp");
-
-		safe_set_ro(Box, 0);
-	}
-
-	if (m_Creation == 0) {
-		m_Creation = g_CurrentTime;
-		safe_put_integer(GetBox(), "CreationTimestamp", m_Creation);
-	}
-
-	if (m_IdleSince == 0) {
-		m_IdleSince = m_Creation;
-		safe_put_integer(GetBox(), "IdleTimestamp", m_IdleSince);
-	}
+	m_Creation = g_CurrentTime;
+	m_IdleSince = m_Creation;
 }
 
 /**
@@ -104,17 +80,6 @@ bool CNick::SetNick(const char *Nick) {
 	CHECK_ALLOC_RESULT(m_Nick, ustrdup) {
 		return false;
 	} CHECK_ALLOC_RESULT_END;
-
-	if (GetBox() != NULL) {
-		// TODO: is this sane?
-		/*safe_box_t Parent = safe_get_parent(GetBox());
-
-		if (Parent != NULL) {
-			safe_rename(Parent, m_Nick, Nick);
-		}*/
-
-		safe_put_string(GetBox(), "Nick", Nick);
-	}
 
 	ufree(m_Nick);
 	m_Nick = NewNick;
@@ -194,10 +159,6 @@ bool CNick::AddPrefix(char Prefix) {
 	m_Prefixes[LengthPrefixes] = Prefix;
 	m_Prefixes[LengthPrefixes + 1] = '\0';
 
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
-	}
-
 	return true;
 }
 
@@ -235,10 +196,6 @@ bool CNick::RemovePrefix(char Prefix) {
 	ufree(m_Prefixes);
 	m_Prefixes = Copy;
 
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
-	}
-
 	return true;
 }
 
@@ -264,10 +221,6 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 
 	ufree(m_Prefixes);
 	m_Prefixes = dupPrefixes;
-
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Prefixes", m_Prefixes);
-	}
 
 	return true;
 }
@@ -319,10 +272,6 @@ const char *CNick::GetPrefixes(void) const {
  * @param Site the user's new site
  */
 bool CNick::SetSite(const char *Site) {
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Site", Site);
-	}
-
 	IMPL_NICKSET(m_Site, Site, false);
 }
 
@@ -334,10 +283,6 @@ bool CNick::SetSite(const char *Site) {
  * @param Realname the new realname
  */
 bool CNick::SetRealname(const char *Realname) {
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Realname", Realname);
-	}
-
 	IMPL_NICKSET(m_Realname, Realname, true);
 }
 
@@ -349,10 +294,6 @@ bool CNick::SetRealname(const char *Realname) {
  * @param Server the server which the user is using
  */
 bool CNick::SetServer(const char *Server) {
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Server", Server);
-	}
-
 	IMPL_NICKSET(m_Server, Server, true);
 }
 
@@ -479,10 +420,6 @@ time_t CNick::GetIdleSince(void) const {
  */
 bool CNick::SetIdleSince(time_t Time) {
 	m_IdleSince = Time;
-
-	if (GetBox() != NULL) {
-		safe_put_integer(GetBox(), "IdleTimestamp", Time);
-	}
 
 	return true;
 }
