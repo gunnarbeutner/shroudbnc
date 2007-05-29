@@ -741,7 +741,7 @@ int RpcValidateString(Value_t Value) {
 #ifdef _WIN32
 	return !IsBadWritePtr((char *)Value.Block + Value.Size - 1, 1);
 #else
-	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify);
+	sighandler_t OldHandler = signal(SIGSEGV, sigsegv_verify_string);
 
 	if (setjmp(g_MemCheckTarget) != 0) {
 		signal(SIGSEGV, OldHandler);
