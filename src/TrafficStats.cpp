@@ -75,7 +75,7 @@ void CTrafficStats::AddOutbound(unsigned int Bytes) {
 
 	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
 		safe_put_integer(GetBox(), "Outbound", m_Outbound);
-		m_PreviousSafe = g_CurrentTime;
+		m_PreviousSave = g_CurrentTime;
 	}
 }
 

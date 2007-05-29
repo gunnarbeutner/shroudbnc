@@ -40,7 +40,6 @@ CBanlist::CBanlist(CChannel *Owner) {
 	char Mask[128];
 
 	SetOwner(Owner);
-	SetBox(Box);
 
 	m_Bans.RegisterValueDestructor(DestroyBan);
 }

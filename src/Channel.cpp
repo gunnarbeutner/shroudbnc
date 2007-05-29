@@ -471,7 +471,6 @@ void CChannel::SetNoTopic(void) {
  */
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
-	safe_box_t NicksBox, NickBox = NULL;
 
 	if (GetUser()->GetLeanMode() > 1) {
 		return;
@@ -479,15 +478,7 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 
 	m_Nicks.Remove(Nick);
 
-	if (GetBox() != NULL) {
-		NicksBox = safe_put_box(GetBox(), "Nicks");
-
-		if (NicksBox != NULL) {
-			NickBox = safe_put_box(NicksBox, Nick);
-		}
-	}
-
-	NickObj = unew CNick(Nick, this, NickBox);
+	NickObj = unew CNick(Nick, this);
 
 	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
 		m_HasNames = false;
