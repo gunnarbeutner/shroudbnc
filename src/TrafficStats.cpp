@@ -50,7 +50,7 @@ void CTrafficStats::AddInbound(unsigned int Bytes) {
 
 	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
 		safe_put_integer(GetBox(), "Inbound", m_Inbound);
-		m_PreviousSafe = g_CurrentTime;
+		m_PreviousSave = g_CurrentTime;
 	}
 }
 

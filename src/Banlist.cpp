@@ -55,6 +55,8 @@ CBanlist::CBanlist(CChannel *Owner) {
  * @param Timestamp the timestamp of the ban
  */
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
+	ban_t *Ban;
+
 	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
 	}

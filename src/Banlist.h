@@ -39,7 +39,7 @@ private:
 
 public:
 #ifndef SWIG
-	CBanlist(CChannel *Owner, safe_box_t Box);
+	CBanlist(CChannel *Owner);
 #endif
 
 	RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);

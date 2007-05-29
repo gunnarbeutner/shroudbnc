@@ -8,14 +8,14 @@ install:
 	@chmod 600 ${exec_prefix}/sbnc.tcl
 
 update:
-	@export MOD_DIR="lib-`date +%Y%m%d%H%M%S`"; \
+	@export MOD_DIR="lib-`date +%Y%m%d%H%M%S`";
 	${MAKE} clean; \
 	${MAKE} -C src; \
 	${MAKE} -C bnctcl; \
 	${MAKE} -C src install-exec-am; \
 	${MAKE} -C bnctcl install; \
-	${MAKE} -C scripts install; \
-	echo "Reloading any running instances of shroudBNC..."; \
+	${MAKE} -C scripts install;
+	@echo "Reloading any running instances of shroudBNC..."; \
 	echo ./$${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc;
 	@if [ -f ${exec_prefix}/sbnc.pid ]; then \
 		if $$(kill -CHLD `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1); then \
