@@ -169,8 +169,6 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	Sleep(10000);
 #endif
 
-	RpcSetLPC(LPC);
-
 	safe_reinit();
 
 	time_t LastResurrect = safe_get_integer(NULL, "ResurrectTimestamp");

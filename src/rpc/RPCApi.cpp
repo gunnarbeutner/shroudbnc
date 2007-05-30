@@ -394,6 +394,12 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 		return 0;
 	}
 
+	int InFd = _open_osfhandle((intptr_t)hChildStdoutRdDup, 0);
+	int OutFd = _open_osfhandle((intptr_t)hChildStdinWrDup, 0);
+
+	PipesLocal->In = fdopen(InFd, "rb");
+	PipesLocal->Out = fdopen(OutFd, "wb");
+
 	bFuncRetn = CreateProcess(NULL, 
 					CommandLine,      // command line 
 					NULL,             // process security attributes 
@@ -411,6 +417,9 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 	free(CommandLine);
 
 	if (bFuncRetn == 0) {
+		CloseHandle(hChildStdoutRd);
+		CloseHandle(hChildStdinWr);
+
 		return 0;
 	} else {
 		if (IsDebuggerPresent()) {
@@ -421,12 +430,6 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
-
-		int InFd = _open_osfhandle((intptr_t)hChildStdoutRdDup, 0);
-		int OutFd = _open_osfhandle((intptr_t)hChildStdinWrDup, 0);
-
-		PipesLocal->In = fdopen(InFd, "rb");
-		PipesLocal->Out = fdopen(OutFd, "wb");
 
 		return 1;
 	}
@@ -448,6 +451,9 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 
 	new_argv[argc] = "--rpc-child";
 	new_argv[argc + 1] = NULL;
+
+	PipesLocal->In = fdopen(stdoutpipes[0], "rb");
+	PipesLocal->Out = fdopen(stdinpipes[1], "wb");
 
 	pid = fork();
 
@@ -472,9 +478,6 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 	} else if (pid > 0) {
 		close(stdinpipes[0]);
 		close(stdoutpipes[1]);
-
-		PipesLocal->In = fdopen(stdoutpipes[0], "rb");
-		PipesLocal->Out = fdopen(stdinpipes[1], "wb");
 
 		return 1;
 	} else {
