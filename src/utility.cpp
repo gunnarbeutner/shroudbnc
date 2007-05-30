@@ -1389,10 +1389,12 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 }
 
 static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
+	int Result;
 	char ConfirmBuffer[128];
 
 	if (g_Bouncer->IsDaemonized()) {
-		LOGERROR("Password is required to decrypt the SSL certificate. However shroudBNC is daemonized and cannot read user input.");
+		LOGERROR("Password is required to decrypt the SSL certificate. However shroudBNC"
+			" is daemonized and cannot read user input. Re-run shroudBNC with --foreground please.");
 		g_Bouncer->Fatal();
 
 		return -1;
@@ -1405,14 +1407,20 @@ static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 	do {
 		safe_print("PEM passphrase: ");
 		
-		if (safe_scan_passwd(Buffer, Size) <= 0) {
+		Result = safe_scan_passwd(Buffer, Size);
+		safe_print("\n");
+		
+		if (Result <= 0) {
 			return 0;
 		}
 
 		if (RWFlag == 1) {
 			safe_print("Confirm PEM passphrase: ");
 			
-			if (safe_scan_passwd(ConfirmBuffer, sizeof(ConfirmBuffer)) <= 0) {
+			Result = safe_scan_passwd(ConfirmBuffer, sizeof(ConfirmBuffer));
+			safe_print("\n");
+
+			if (Result <= 0) {
 				return 0;
 			}
 
