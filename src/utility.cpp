@@ -1391,6 +1391,13 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 	char ConfirmBuffer[128];
 
+	if (g_Bouncer->IsDaemonized()) {
+		LOGERROR("Password is required to decrypt the SSL certificate. However shroudBNC is daemonized and cannot read user input.");
+		g_Bouncer->Fatal();
+
+		return -1;
+	}
+
 	if (Size > 128) {
 		Size = 128; // nobody could seriously have such a passphrase...
 	}
