@@ -1,4 +1,4 @@
-pkglibdir=$(exec_prefix)/${MOD_DIR}
+pkglibdir=$(exec_prefix)/${MOD_DIR}/
 EXTRA_DIST=commands.txt internalbinds.txt
 
 pkglib_LTLIBRARIES=libbnctcl.la

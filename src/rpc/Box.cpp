@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 #ifndef _WIN32
+#	ifdef __FreeBSD__
+#		define sighandler_t sig_t
+#	endif
 #	include <setjmp.h>
 #	include <signal.h>
 #else
