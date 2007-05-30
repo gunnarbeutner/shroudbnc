@@ -1387,3 +1387,41 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 
 	return true;
 }
+
+static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
+	char ConfirmBuffer[128];
+
+	if (Size > 128) {
+		Size = 128; // nobody could seriously have such a passphrase...
+	}
+
+	do {
+		safe_print("PEM passphrase: ");
+		
+		if (safe_scan_passwd(Buffer, Size) <= 0) {
+			return 0;
+		}
+
+		if (RWFlag == 1) {
+			safe_print("Confirm PEM passphrase: ");
+			
+			if (safe_scan_passwd(ConfirmBuffer, sizeof(ConfirmBuffer)) <= 0) {
+				return 0;
+			}
+
+			if (strcmp(Buffer, ConfirmBuffer) != 0) {
+				safe_print("The passwords you specified do not match. Please try again.\n");
+
+				continue;
+			}
+		}
+
+		break;
+	} while (1);
+
+	return strlen(Buffer);
+}
+
+void SSL_CTX_set_safe_passwd_cb(SSL_CTX *Context) {
+	SSL_CTX_set_default_passwd_cb(Context, safe_passwd_cb);
+}

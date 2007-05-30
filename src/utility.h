@@ -154,6 +154,7 @@ void FreeString(char *String);
 void FreeUString(char *String);
 
 extern "C" BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag);
+void SSL_CTX_set_safe_passwd_cb(SSL_CTX *Context);
 
 typedef struct mmanager_s {
 	CUser *RealManager;

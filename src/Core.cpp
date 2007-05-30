@@ -353,8 +353,12 @@ void CCore::StartMainLoop(void) {
 	SSL_load_error_strings();
 
 	SSL_METHOD *SSLMethod = SSLv23_method();
+
 	m_SSLContext = SSL_CTX_new(SSLMethod);
+	SSL_CTX_set_safe_passwd_cb(m_SSLContext);
+
 	m_SSLClientContext = SSL_CTX_new(SSLMethod);
+	SSL_CTX_set_safe_passwd_cb(m_SSLClientContext);
 
 	SSL_CTX_set_mode(m_SSLContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_mode(m_SSLClientContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
