@@ -216,8 +216,6 @@ public:
 
 	const char *DebugImpulse(int impulse);
 
-	bool InitializeFreeze(void);
-
 	const utility_t *GetUtilities(void);
 
 	const char *GetTagString(const char *Tag) const;

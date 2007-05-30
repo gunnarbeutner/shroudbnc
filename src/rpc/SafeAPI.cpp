@@ -19,9 +19,6 @@
 
 #include "../StdAfx.h"
 
-// TODO: do NOT use real pointers for box_t/element_t, or at least verify that
-// they are 100% valid
-
 #include "Box.h"
 
 int g_RpcErrno = 0;

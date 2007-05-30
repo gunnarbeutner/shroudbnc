@@ -268,12 +268,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: gvhost <host>\nSets the bouncer's default vhost.");
 			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd",
 				"Syntax: motd [text]\nShows or modifies the motd.");
-			AddCommand(&m_CommandList, "reload", "Admin", "reloads shroudBNC",
-#ifndef _WIN32
-				"Syntax: reload [filename]\nReloads shroudBNC (a new .so module file can be specified).");
-#else
-				"Syntax: reload [filename]\nReloads shroudBNC (a new .dll module file can be specified).");
-#endif
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
 			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
@@ -833,16 +827,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 	} else if (strcasecmp(Subcommand, "die") == 0 && GetOwner()->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", GetOwner()->GetUsername());
 		g_Bouncer->Shutdown();
-
-		return false;
-	} else if (strcasecmp(Subcommand, "reload") == 0 && GetOwner()->IsAdmin()) {
-		if (argc >= 2) {
-			// TODO: fixfixfix
-			//g_Bouncer->GetLoaderParameters()->SetModulePath(argv[1]);
-		}
-
-		g_Bouncer->Log("Reload requested by %s", GetOwner()->GetUsername());
-		g_Bouncer->InitializeFreeze();
 
 		return false;
 	} else if (strcasecmp(Subcommand, "adduser") == 0 && GetOwner()->IsAdmin()) {

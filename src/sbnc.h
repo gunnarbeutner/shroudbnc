@@ -1,7 +1,6 @@
 #define STATUS_RUN 0
-#define STATUS_FREEZE 1
-#define STATUS_SHUTDOWN 2
-#define STATUS_PAUSE 3
+#define STATUS_SHUTDOWN 1
+#define STATUS_PAUSE 2
 
 const char *sbncGetBaseName(void);
 bool sbncIsAbsolutePath(const char *Path);

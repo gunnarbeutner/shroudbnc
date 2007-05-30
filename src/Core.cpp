@@ -460,7 +460,7 @@ void CCore::StartMainLoop(void) {
 	time_t Last = 0;
 	time_t LastCheck = 0;
 
-	while ((GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) && GetStatus() != STATUS_FREEZE) {
+	while (GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
 #if defined(_WIN32) && defined(_DEBUG)
@@ -1573,12 +1573,6 @@ int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx) {
  * @param impulse the command
  */
 const char *CCore::DebugImpulse(int impulse) {
-	if (impulse == 5) {
-		InitializeFreeze();
-
-		return "1";
-	}
-
 	if (impulse == 6) {
 		int a = 23, b = 0, c;
 		
@@ -1673,21 +1667,6 @@ const char *CCore::DebugImpulse(int impulse) {
 	}
 
 	return NULL;
-}
-
-/**
- * InitializeFreeze
- *
- * Prepares the bouncer for reloading itself.
- */
-bool CCore::InitializeFreeze(void) {
-	if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE) {
-		return false;
-	}
-
-	SetStatus(STATUS_FREEZE);
-
-	return true;
 }
 
 const utility_t *CCore::GetUtilities(void) {

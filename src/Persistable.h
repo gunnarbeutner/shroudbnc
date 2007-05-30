@@ -51,28 +51,3 @@ public:
 		return m_Box;
 	}
 };
-
-/**
- * ThawObject
- *
- * Depersists an object which is stored in a box.
- *
- * @param Container the container of the box
- * @param Name the object's name in that container
- */
-/*template <typename Type, typename OwnerType>
-RESULT<Type *> ThawObject(safe_box_t Container, const char *Name, OwnerType *Owner) {
-	safe_box_t ObjectBox;
-
-	if (Container == NULL || Name == NULL) {
-		THROW(Type *, Generic_InvalidArgument, "Container and/or Name cannot be NULL.");
-	}
-
-	ObjectBox = safe_get_box(Container, Name);
-
-	if (ObjectBox == NULL) {
-		THROW(Type *, Generic_Unknown, "There is no such box.");
-	}
-
-	return Type::Thaw(ObjectBox, Owner);
-}*/
