@@ -1053,7 +1053,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	BestClient = NULL;
 
 	for (a = m_Clients.GetLength() - 1; a >= 0 ; a--) {
-		if (BestClient == NULL || m_Clients[i].Creation > BestClient->Creation) {
+		if (BestClient == NULL || m_Clients[a].Creation > BestClient->Creation) {
 			BestClient = m_Clients.GetAddressOf(a);
 		}
 	}
