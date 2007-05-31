@@ -492,6 +492,10 @@ int RpcInvokeClient(char *Program, PipePair_t *PipesLocal, int argc, char **argv
 }
 
 int RpcRunServer(PipePair_t Pipes) {
+	if (Pipes.In == NULL || Pipes.Out == NULL) {
+		return 0;
+	}
+
 	while (RpcProcessCall(Pipes.In, Pipes.Out) > 0)
 		; // empty
 

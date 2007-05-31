@@ -302,6 +302,14 @@ int main(int argc, char **argv) {
 			}
 
 			Result = RpcRunServer(PipesLocal);
+
+			if (PipesLocal.In != NULL) {
+				fclose(PipesLocal.In);
+			}
+
+			if (PipesLocal.Out != NULL) {
+				fclose(PipesLocal.Out);
+			}
 		} while (Result);
 
 		return 0;
