@@ -8,7 +8,7 @@ install:
 	@chmod 600 ${exec_prefix}/sbnc.tcl
 
 update:
-	@export MOD_DIR="lib-`date +%Y%m%d%H%M%S`";
+	@export MOD_DIR="lib-`date +%Y%m%d%H%M%S`"; \
 	${MAKE} clean; \
 	${MAKE} -C src; \
 	${MAKE} -C bnctcl; \

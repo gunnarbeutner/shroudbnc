@@ -207,11 +207,11 @@ RESULT<bool> CConfigFile::WriteString(const char *Setting, const char *Value) {
 
 	THROWIFERROR(bool, ReturnValue);
 
-	if (!m_WriteLock) {
-		return Persist();
-	} else {
-		RETURN(bool, true);
+	if (!m_WriteLock && IsError(Persist())) {
+		g_Bouncer->Fatal();
 	}
+
+	RETURN(bool, true);
 }
 
 /**
@@ -247,9 +247,13 @@ RESULT<bool> CConfigFile::WriteInteger(const char *Setting, const int Value) {
  * Persist
  *
  * Saves changes which have been made to the configuration object to disk
- * unless the configuration object is volatile.
+ * unless the configuration object is non-persistant.
  */
 RESULT<bool> CConfigFile::Persist(void) const {
+	static char *Error;
+
+	free(Error);
+
 	if (m_Filename == NULL) {
 		RETURN(bool, false);
 	}
@@ -257,7 +261,9 @@ RESULT<bool> CConfigFile::Persist(void) const {
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
 	CHECK_ALLOC_RESULT(ConfigFile, fopen) {
-		THROW(bool, Generic_Unknown, "Could not open config file.");
+		asprintf(&Error, "Could not open config file: %s", m_Filename);
+
+		THROW(bool, Generic_Unknown, Error);
 	} CHECK_ALLOC_RESULT_END;
 
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);

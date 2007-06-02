@@ -1,0 +1,62 @@
+shroudBNC: Frequently Asked Questions
+-------------------------------------
+
+Q: When logging in I get the error "Unknown user or wrong password.". What is happening?
+A: Either the password is wrong or your username is incorrect. It might also be possible that you set up host masks (i.e. limited access to the bouncer to a few known hosts) and your host is not matched by any of those patterns.
+
+You will also get that error when you tried to log in with a wrong password for a couple of times because shroudBNC temporarily blocks
+logins from your IP address (for about 10 minutes).
+
+---
+
+Q: What are client certificates and what purpose do the commands savecert, delcert and showcert have?
+A: Client certificates are SSL certificates which the client sends to the server for password-less user authentication. For example, in mIRC you can set your client certificate using Ctrl-O -> Connect -> Options -> SSL. Once you are connected to shroudBNC using a client certificate you can use the savecert command to save the certificate in your private keychain. When you reconnect to your bouncer (without specifying a password) shroudBNC will recognise your certificate and allow you to log in. showcert can be used to view a list of currently trusted client certificates. Use delcert to remove a certificate.
+
+---
+
+Q: What are listeners?
+A: Listeners are ports which can be used to connect to shroudBNC. When you initially create your shroudBNC configuration file you already created a main listener. Using the addlistener, dellistener and listeners commands you can create and remove additional listeners.
+
+---
+
+Q: simul does not appear to work; what is wrong?
+A: You should keep in mind that simul is directly passing the command to the parser like any other IRC command. Therefore you will have to specify a valid IRC command. Examples:
+
+simul USER :jump
+- This will not work because /jump is not a valid command.
+
+simul USER :MSG -sBNC #test
+- This will not work either because on most clients /msg is actually an alias for PRIVMSG; MSG is not an IRC command
+
+simul USER :SBNC jump
+- This will work as expected.
+
+simul USER :PRIVMSG -sBNC :help
+- This too will work as expected.
+
+---
+
+Q: Why do I get "Done." twice when using simul?
+A: The first "Done." is from the command you executed. The second one is from the simul command.
+
+---
+
+Q: Why does something like simul USER :whois other-user not work?
+A: shroudBNC does not wait for a reply from the IRC server when executing simul commands. In fact, it could not possibly do that because shroudBNC would have to know what to expect from the IRC server for every IRC command.
+
+It can however directly respond to "sbnc" and "privmsg -sbnc" commands.
+
+---
+
+Q: How do I load a TCL script for a specific user?
+A: If the TCL script is using eggdrop-style binds (bind, unbind) you can use the setctx (set context) command to specify the user which should be used for creating the binds:
+
+setctx "USERNAME"
+source "scripts/your-script.tcl"
+
+---
+
+Q: My TCL script is using eggdrop users for authentication. How can I create those users on top of a shroudBNC user account?
+A: An admin can create, modify and delete "eggdrop" users using the eggtcl commands adduser, deluser, getuser, chattr, addhost and delhost. For example, to create an eggdrop user "test" for the shroudBNC user "bot" with flags +m and the host *!test@example.net you can use the following command:
+
+tcl :setctx bot; adduser test *!test@example.net; chattr test m

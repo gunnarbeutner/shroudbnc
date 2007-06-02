@@ -65,7 +65,7 @@ You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
 any scripts you want. You will have to rehash the tcl module after every
 change you make to sbnc.tcl or any other .tcl script which you have loaded:
 
-/sbnc tcl rehash (while you're connected to the bouncer using an irc client)
+/sbnc tcl rehash (while you're connected to the bouncer using an IRC client)
 
 Usage
 -----
@@ -74,8 +74,7 @@ Just connect to the bouncer using your favorite IRC client. You will have to set
 your username (i.e. e-mail address in most clients) to the accountname you've
 chosen for your bouncer account.
 
-Once you're connected you should type /sbnc help to get a list of available
-commands.
+Once you're connected you should type /msg -sBNC help to get a list of available commands.
 
 shroudBNC supports oidentd in order to provide unique idents for each bouncer
 user. You will need to enable ident-spoofing for the unix account you're using

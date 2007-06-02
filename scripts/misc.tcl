@@ -225,5 +225,32 @@ proc dnslookup {args} {
 		return -code error "wrong # args: shrould be dnslookup ip-address/hostname proc ?arg1? ... ?argN?"
 	}
 
-	
+	set host [lindex $args 0]
+	set proc [lindex $args 1]
+	set arg [lrange $args 2 end]
+
+	if {[regexp {\d*\.\d*\.\d*\.\d*} $host]} {
+		set reverse 1
+		set ipv6 0
+	} elseif {[string first ":" $host] != -1} {
+		set reverse 1
+		set ipv6 1
+	} else {
+		set reverse 0
+		set ipv6 0
+	}
+
+	internaldnslookup $host dnslookup:callback $reverse $ipv6 [list $proc $arg]
+}
+
+proc dnslookup:callback {addr host status cookie} {
+	set proc [lindex $cookie 0]
+
+	set cmd [list $proc $addr $host $status]
+
+	foreach arg [lindex $cookie 1] {
+		lappend cmd $arg
+	}
+
+	eval $cmd
 }

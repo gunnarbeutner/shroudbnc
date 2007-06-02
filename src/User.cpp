@@ -987,10 +987,16 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	LastClient = (m_Clients.GetLength() == 1);
 
 	if (!Silent) {
+		char *Plural = "s";
+
+		if (m_Clients.GetLength() - 1 == 1) {
+			Plural = "";
+		}
+
 		if (Client->GetQuitReason() != NULL) {
-			g_Bouncer->Log("User %s logged off. %d remaining clients for this user. (%s)", GetUsername(), m_Clients.GetLength() - 1, Client->GetQuitReason());
+			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user. (%s)", GetUsername(), m_Clients.GetLength() - 1, Client->GetQuitReason(), Plural);
 		} else {
-			g_Bouncer->Log("User %s logged off. %d remaining clients for this user.", GetUsername(), m_Clients.GetLength() - 1);
+			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user.", GetUsername(), m_Clients.GetLength() - 1, Plural);
 		}
 	}
 
