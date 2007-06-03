@@ -23,7 +23,7 @@ if (!isset($_REQUEST['invoke'])) {
 		array_push( $params_calls, array( 'params', array( $command ) ) );
 	}
 
-	$result = $sbnc->Call("multicall", array( $params_calls ) );
+	$result = $sbnc->MultiCall($params_calls);
 
 	if (IsError($result)) {
 		die(GetCode($result));

@@ -31,12 +31,13 @@ class SBNC {
 		$this->socket = @fsockopen($host, $port);
 
 		if ($this->socket == FALSE) {
-			die('Socket could not be connected.');
+//			die('Socket could not be connected.');
+			return;
 		}
 
 		fputs($this->socket, "RPC_IFACE\n");
 
-		while (($line = @fgets($this->socket, 65536)) != FALSE) {
+		while (($line = @fgets($this->socket)) != FALSE) {
 			if (strstr($line, "RPC_IFACE_OK") != FALSE) {
 				break;
 			}
@@ -61,10 +62,10 @@ class SBNC {
 
 		array_push($cmd, $command);
 		array_push($cmd, $parameters);
-
+	
 		fputs($this->socket, itype_fromphp($cmd) . "\n");
 
-		$line = fgets($this->socket);
+		$line = fgets($this->socket, 128000);
 
 		if ($line === false) {
 			die('Transport layer error occured in the RPC system: fgets() failed.');
@@ -94,6 +95,24 @@ class SBNC {
 
 	function Call($command, $parameters = array()) {
 		return $this->CallAs(FALSE, $command, $parameters);
+	}
+
+	function MultiCallAs($user, $commands) {
+		$results = array();
+
+		while (count($commands) > 0) {
+			$spliced_commands = array_splice($commands, 0, 10);
+
+			$spliced_results = $this->CallAs($user, 'multicall', array( $spliced_commands ));
+
+			$results = array_merge($results, $spliced_results);
+		}
+
+		return $results;
+	}
+
+	function MultiCall($commands) {
+		return $this->MultiCallAs(FALSE, $commands);
 	}
 
 	function IsValid() {

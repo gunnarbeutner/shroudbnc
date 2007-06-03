@@ -1438,5 +1438,7 @@ static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 }
 
 void SSL_CTX_set_safe_passwd_cb(SSL_CTX *Context) {
+#ifdef USESSL
 	SSL_CTX_set_default_passwd_cb(Context, safe_passwd_cb);
+#endif
 }

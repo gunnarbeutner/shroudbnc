@@ -75,7 +75,6 @@
 
 #if defined(_WIN32) && defined(USESSL)
 #include <openssl/applink.c>
-#endif
 
 #include <openssl/bio.h>
 
@@ -243,3 +242,4 @@ static int safe_sock_puts(BIO *bio, const char *String) {
 
 	return Len;
 }
+#endif
