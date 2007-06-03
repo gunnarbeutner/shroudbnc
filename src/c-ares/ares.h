@@ -41,10 +41,6 @@
   #include <sys/socket.h>
 #endif
 
-
-#include "../rpc/RPCApi.h"
-#include "../rpc/SafeAPI.h"
-
 #ifdef  __cplusplus
 extern "C" {
 #endif

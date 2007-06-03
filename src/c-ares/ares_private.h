@@ -33,6 +33,9 @@
 #define writev(s,v,c)     writev_s(s,v,c)
 #endif
 
+#include "../rpc/RPCApi.h"
+#include "../rpc/SafeAPI.h"
+
 #ifdef NETWARE
 #include <time.h>
 #endif

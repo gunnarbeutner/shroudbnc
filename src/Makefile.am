@@ -73,6 +73,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	fdhelper.h
 libsbnc_la_LIBADD=c-ares/libcares.la md5/libmd5.la rpc/librpc.la libltdl/libltdlc.la @SSLLDFLAGS@
 libsbnc_la_LDFLAGS=-no-undefined
-AM_CFLAGS=-DSBNC @SSLCFLAGS@
-AM_CPPFLAGS=-DSBNC @SSLCFLAGS@
+AM_CFLAGS=-DSBNC -DRPCCLIENT @SSLCFLAGS@
+AM_CPPFLAGS=-DSBNC -DRPCCLIENT @SSLCFLAGS@
 

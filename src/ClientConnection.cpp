@@ -1481,7 +1481,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 			SENDUSER("Done.");
 		} else {
-			SENDUSER("There's no such user.");
+			SENDUSER("There's no such fnord.");
 		}
 
 		return false;

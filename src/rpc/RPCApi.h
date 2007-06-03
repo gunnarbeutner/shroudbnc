@@ -26,7 +26,7 @@
 #	define RPCCLIENT
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(RPCNOEXPORT)
 #	if defined(SBNC) && defined(RPCCLIENT)
 #		define RPCAPI __declspec(dllexport)
 #	else
