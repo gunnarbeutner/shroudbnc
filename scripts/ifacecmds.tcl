@@ -33,6 +33,27 @@ proc iface:raw {text} {
 
 registerifacecmd "core" "raw" "iface:raw"
 
+proc iface:getisupport {value} {
+	return [itype_string [getisupport $value]]
+}
+
+registerifacecmd "core" "getisupport" "iface:getisupport"
+
+proc iface:getusercount {channel} {
+	return [itype_string [llength [internalchanlist $channel]]]
+}
+
+registerifacecmd "core" "getusercount" "iface:getusercount"
+
+proc iface:getchanprefix {channel {nick ""}} {
+	if {[string equal $nick ""]} {
+		set nick $::botnick
+	}
+	return [itype_string [getchanprefix $channel $nick]]
+}
+
+registerifacecmd "core" "getchanprefix" "iface:getchanprefix"
+
 proc iface:getnick {} {
 	return [itype_string $::botnick]
 }
@@ -129,6 +150,7 @@ proc iface:getlog {from to} {
 	set stuff [read $file]
 	close $file
 
+	set stuff [string trim $stuff]
 	set lines [split $stuff \n]
 
 	if {$from == -1 && $to == -1} {
@@ -143,6 +165,7 @@ registerifacecmd "core" "getlog" "iface:getlog"
 proc iface:getloglines {} {
 	set file [open "users/[getctx].log" r]
 	set stuff [read $file]
+	set stuff [string trim $stuff]
 	close $file
 
 	return [itype_string [llength [split $stuff \n]]]
@@ -216,6 +239,7 @@ registerifacecmd "core" "getuserlist" "iface:getuserlist" "access:admin"
 proc iface:getmainlog {from to} {
 	set file [open sbnc.log r]
 	set stuff [read $file]
+	set stuff [string trim $stuff]
 	close $file
 
 	set lines [split $stuff \n]
@@ -232,6 +256,7 @@ registerifacecmd "core" "getmainlog" "iface:getmainlog" "access:admin"
 proc iface:getmainloglines {} {
 	set file [open sbnc.log r]
 	set stuff [read $file]
+	set stuff [string trim $stuff]
 	close $file
 
 	return [itype_string [llength [split $stuff \n]]]
