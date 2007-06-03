@@ -32,7 +32,7 @@
 #include "../snprintf.h"
 #include "Box.h"
 
-static box_t g_RootBox;
+static box_t g_RootBox = NULL;
 
 #ifndef _WIN32
 static bool g_SegV;

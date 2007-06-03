@@ -146,7 +146,8 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
 
 	sbncPathCanonicalize(NewPath, Path);
 	
-	strncpy(Path, NewPath, sizeof(Path));
+	strncpy(Path, NewPath, Len);
+	Path[Len - 1] = '\0';
 
 	return Path;
 }
