@@ -119,7 +119,7 @@ void WINAPI ServiceStart(DWORD argc, LPSTR *argv) {
 
 	g_ServiceStatus.dwServiceType = SERVICE_WIN32;
 	g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
-	g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_PAUSE_CONTINUE;
+	g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
 	g_ServiceStatus.dwWin32ExitCode = 0;
 	g_ServiceStatus.dwServiceSpecificExitCode = 0;
 	g_ServiceStatus.dwCheckPoint = 0;
