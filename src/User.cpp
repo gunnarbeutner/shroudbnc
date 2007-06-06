@@ -862,6 +862,21 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 			(*Modules)[i]->ServerDisconnect(GetUsername());
 		}
 
+		CClientConnection *Client = GetClientConnectionMultiplexer();;
+
+		if (Client != NULL) {
+			CHashtable<CChannel *, false, 16> *Channels;
+			unsigned int i;
+			hash_t<CChannel *> *ChannelHash;
+
+			Channels = OldIRC->GetChannels();
+
+			i = 0;
+			while ((ChannelHash = Channels->Iterate(i++)) != NULL) {
+				Client->WriteLine(":shroudbnc.info KICK %s %s :Disconnected from the IRC server.", ChannelHash->Name, GetNick());
+			}
+		}
+
 		g_Bouncer->LogUser(this, "User %s disconnected from the server.", GetUsername());
 	} else if (IRC) {
 		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
