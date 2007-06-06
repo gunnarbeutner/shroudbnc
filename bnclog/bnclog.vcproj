@@ -159,11 +159,12 @@
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/bnclog.pch"
 				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
+				ObjectFile="..\bin/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -179,12 +180,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalOptions="/ALIGN:512"
 				AdditionalDependencies="..\Release\sbnc.lib"
 				OutputFile="../bin/bnclog.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=""
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				GenerateMapFile="true"
 				MapFileName="../bin/bnclog.map"
 				BaseAddress="0x10000000"

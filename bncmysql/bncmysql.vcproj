@@ -120,8 +120,9 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="D:\Programme\MySQL\MySQL Server 5.0\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="..\bin/"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -137,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) mysqlclient.lib ..\Debug\sbnc.lib"
+				AdditionalDependencies="user32.lib advapi32.lib ws2_32.lib kernel32.lib $(NoInherit) mysqlclient.lib ..\Release\sbnc.lib"
 				OutputFile="../bin/bncmysql.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"

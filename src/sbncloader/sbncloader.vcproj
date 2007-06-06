@@ -122,6 +122,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;RPCSERVER"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="..\..\bin/"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"

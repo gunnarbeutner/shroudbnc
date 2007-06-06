@@ -40,7 +40,7 @@ const char *CClientConnectionMultiplexer::GetPeerName(void) const {
 void CClientConnectionMultiplexer::Kill(const char *Error) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+	for (int i = Clients->GetLength() - 1; i >= 0; i--) {
 		(*Clients)[i].Client->Kill(Error);
 	}
 }

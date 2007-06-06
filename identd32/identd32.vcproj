@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="identd32"
 	ProjectGUID="{51C360FF-63CC-4F1F-819F-02A8CE4A4E43}"
+	RootNamespace="identd32"
 	>
 	<Platforms>
 		<Platform
@@ -164,11 +165,12 @@
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/identd32.pch"
 				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
+				ObjectFile="..\bin/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -184,12 +186,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalOptions="/ALIGN:512"
 				AdditionalDependencies="ws2_32.lib ..\Release\sbnc.lib"
 				OutputFile="../bin/identd32.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=""
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				GenerateMapFile="true"
 				MapFileName="../bin/identd32.map"
 				LinkTimeCodeGeneration="1"
