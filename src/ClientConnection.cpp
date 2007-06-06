@@ -1605,7 +1605,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
-				WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
+				WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
 			} else {
 				m_Password = ustrdup(argv[1]);
 			}
@@ -1617,10 +1617,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "user") == 0 && argc > 1) {
 			if (m_Username) {
-				WriteLine(":bouncer 462 %s :You may not reregister", m_Nick);
+				WriteLine(":shroudbnc.info 462 %s :You may not reregister", m_Nick);
 			} else {
 				if (!argv[1]) {
-					WriteLine(":bouncer 461 %s :Not enough parameters", m_Nick);
+					WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
 				} else {
 					const char *Username = argv[1];
 
@@ -1698,9 +1698,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				const char *Nick = argv[1];
 
 				if (strcasecmp("-sbnc", Nick) == 0) {
-					WriteLine(":bouncer 311 %s -sBNC core shroudbnc.info * :shroudBNC", m_Nick);
-					WriteLine(":bouncer 312 %s -sBNC shroudbnc.info :shroudBNC IRC Proxy", m_Nick);
-					WriteLine(":bouncer 318 %s -sBNC :End of /WHOIS list.", m_Nick);
+					WriteLine(":shroudbnc.info 311 %s -sBNC core shroudbnc.info * :shroudBNC", m_Nick);
+					WriteLine(":shroudbnc.info 312 %s -sBNC shroudbnc.info :shroudBNC IRC Proxy", m_Nick);
+					WriteLine(":shroudbnc.info 318 %s -sBNC :End of /WHOIS list.", m_Nick);
 
 					return false;
 				}
