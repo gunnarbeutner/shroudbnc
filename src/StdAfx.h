@@ -87,7 +87,7 @@ typedef lt_dlhandle HMODULE;
 #	define IPV6
 #endif
 
-#include "snprintf.h"
+#include "snprintf/snprintf.h"
 
 #ifndef SWIG
 #	include "c-ares/ares.h"
