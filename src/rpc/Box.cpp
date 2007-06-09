@@ -29,7 +29,7 @@
 #else
 #	include <windows.h>
 #endif
-#include "../snprintf.h"
+#include "../snprintf/snprintf.h"
 #include "Box.h"
 
 static box_t g_RootBox = NULL;

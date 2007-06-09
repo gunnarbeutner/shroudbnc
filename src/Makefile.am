@@ -26,7 +26,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Nick.cpp \
 	Queue.cpp \
 	sbnc.cpp \
-	snprintf.c \
 	sslhelper.c \
 	Timer.cpp \
 	TrafficStats.cpp \
@@ -60,7 +59,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Result.h \
 	Queue.h \
 	sbnc.h \
-	snprintf.h \
 	SocketEvents.h \
 	StdAfx.h \
 	Timer.h \
