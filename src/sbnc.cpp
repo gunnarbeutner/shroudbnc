@@ -166,7 +166,7 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	_setmode(fileno(stdout), O_BINARY);
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_DEBUG)
 	Sleep(10000);
 #endif
 
