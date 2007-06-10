@@ -15,7 +15,7 @@ update:
 	${MAKE} -C src install-exec-am; \
 	${MAKE} -C bnctcl install; \
 	${MAKE} -C scripts install; \
-	@echo "Reloading any running instances of shroudBNC..."; \
+	echo "Reloading any running instances of shroudBNC..."; \
 	echo ./$${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc;
 	@if [ -f ${exec_prefix}/sbnc.pid ]; then \
 		if $$(kill -CHLD `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1); then \
