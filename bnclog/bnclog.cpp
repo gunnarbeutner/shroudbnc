@@ -23,52 +23,39 @@
 CCore *g_Bouncer;
 CHashtable<CHashtable<CLogBuffer *, false, 32> *, false, 64> *g_Logs;
 
-class CLogClass : public CModuleImplementation {
-	CLogBuffer *buf;
+bool LogAttachClientTimer(time_t Now, void *Cookie) {
+	CClientConnection *Client = (CClientConnection *)Cookie;
+	CIRCConnection *IRC = Client->GetOwner()->GetIRCConnection();
 
+	if (IRC == NULL) {
+		return false;
+	}
+
+	unsigned int i;
+	hash_t<CLogBuffer *> *Log;
+	CHashtable<CLogBuffer *, false, 32> *Logs = g_Logs->Get(Client->GetUser()->GetUsername());
+
+	if (Logs == NULL) {
+		return false;
+	}
+
+	i = 0;
+	while ((Log = Logs->Iterate(i++)) != NULL) {
+		if (IRC->GetChannel(Log->Name) != NULL) {
+			Log->Value->PlayLog(Client, Log->Name, Play_Privmsg);
+		}
+	}
+
+	return false;
+}
+
+class CLogClass : public CModuleImplementation {
 	void Destroy(void) {
 		delete this;
 	}
 
 	void Init(CCore *Core) {
 		g_Logs = new CHashtable<CHashtable<CLogBuffer *, false, 32> *, false, 64>();
-
-		buf = new CLogBuffer();
-
-		buf->LogEvent("JOIN", "Zyberdog!zyberdog@doghouse", NULL);
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PRIVMSG", "Zyberdog!zyberdog@doghouse", "hello world");
-		buf->LogEvent("PART", "Zyberdog!zyberdog@doghouse", NULL);
 	}
 
 	bool InterceptClientCommand(CClientConnection *Client, const char *Subcommand, int ArgC, const char **ArgV, bool NoticeUser) {
@@ -87,13 +74,79 @@ class CLogClass : public CModuleImplementation {
 					Client->Privmsg("There is no log for that channel.");
 				}
 			} else {
-				Log->PlayLog(Client, ArgV[1]);
+				Log->PlayLog(Client, ArgV[1], Play_Privmsg);
 			}
 
 			return true;
 		}
 
 		return false;
+	}
+
+	CLogBuffer *GetLog(CUser *User, const char *Channel) {
+		CHashtable<CLogBuffer *, false, 32> *Logs;
+
+		Logs = g_Logs->Get(User->GetUsername());
+
+		if (Logs == NULL) {
+			Logs = new CHashtable<CLogBuffer *, false, 32>();
+
+			g_Logs->Add(User->GetUsername(), Logs);
+		}
+
+		CLogBuffer *Log;
+
+		Log = Logs->Get(Channel);
+
+		if (Log == NULL) {
+			if (Logs->GetLength() >= 30) {
+				return NULL;
+			}
+
+			Log = new CLogBuffer();
+
+			Logs->Add(Channel, Log);
+		}
+
+		return Log;
+	}
+
+	bool InterceptClientMessage(CClientConnection* Client, int ArgC, const char **ArgV) {
+		CIRCConnection *IRC;
+		if (ArgC < 3) {
+			return true;
+		}
+
+		if ((strcasecmp(ArgV[0], "PRIVMSG") != 0 && strcasecmp(ArgV[0], "NOTICE") != 0) || Client->GetOwner() == NULL) {
+			return true;
+		}
+
+		IRC = Client->GetOwner()->GetIRCConnection();
+
+		if (IRC == NULL || IRC->GetChannel(ArgV[1]) == NULL) {
+			return true;
+		}
+
+		CLogBuffer *Log = GetLog(Client->GetOwner(), ArgV[1]);
+
+		if (Log == NULL) {
+			return true;
+		}
+
+		char *Mask;
+		const utility_t *Utils;
+
+		Utils = g_Bouncer->GetUtilities();
+
+		if (Utils == NULL) {
+			return true;
+		}
+
+		Utils->asprintf(&Mask, "%s!%s@%s", Client->GetNick(), Client->GetOwner()->GetUsername(), IRC->GetSite());
+		Log->LogEvent(ArgV[0], Mask, ArgV[2]);
+		Utils->Free(Mask);
+
+		return true;
 	}
 
 	bool InterceptIRCMessage(CIRCConnection *Connection, int ArgC, const char **ArgV) {
@@ -107,37 +160,29 @@ class CLogClass : public CModuleImplementation {
 			Pass = true;
 		}
 
-		if (!Pass) {
+		if (!Pass || Connection->GetChannel(ArgV[2]) == NULL) {
 			return true;
 		}
 
-		CHashtable<CLogBuffer *, false, 32> *Logs;
+		CLogBuffer *Log = GetLog(Connection->GetOwner(), ArgV[2]);
 
-		Logs = g_Logs->Get(Connection->GetUser()->GetUsername());
+		if (Log != NULL) {
+			const char *Text;
 
-		if (Logs == NULL) {
-			Logs = new CHashtable<CLogBuffer *, false, 32>();
-
-			g_Logs->Add(Connection->GetUser()->GetUsername(), Logs);
-		}
-
-		CLogBuffer *Log;
-
-		Log = Logs->Get(ArgV[2]);
-
-		if (Log == NULL) {
-			if (Logs->GetLength() >= 30) {
-				return true;
+			if (ArgC >= 3) {
+				Text = ArgV[3];
+			} else {
+				Text = NULL;
 			}
 
-			Log = new CLogBuffer();
-
-			Logs->Add(ArgV[2], Log);
+			Log->LogEvent(ArgV[1], ArgV[0], Text);
 		}
 
-		Log->LogEvent(ArgV[1], ArgV[0], ArgV[3]);
-
 		return true;
+	}
+
+	void AttachClient(CClientConnection *Client) {
+		g_Bouncer->CreateTimer(0, false, LogAttachClientTimer, Client);
 	}
 };
 

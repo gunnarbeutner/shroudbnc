@@ -66,6 +66,13 @@ proc qauth:commands {client params} {
 		}
 
 		if {[string equal -nocase [lindex $params 1] "qx"]} {
+			if {![string equal -nocase [lindex $params 2] "on"] && ![string equal -nocase [lindex $params 2] "off"]} {
+				bncreply "Value should be either on or off."
+				haltoutput
+
+				return
+			}
+
 			setbncuser $client tag qx [lindex $params 2]
 			bncreply "Done."
 			haltoutput

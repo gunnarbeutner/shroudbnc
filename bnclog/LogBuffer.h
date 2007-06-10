@@ -27,6 +27,11 @@ typedef struct logline_s {
 	logline_s *Next;
 } logline_t;
 
+typedef enum playtype_e {
+	Play_Privmsg,
+	Play_Evt
+} playtype_t;
+
 class CLogBuffer {
 private:
 	logline_t *m_LogBegin;
@@ -40,5 +45,5 @@ public:
 	~CLogBuffer(void);
 
 	bool LogEvent(const char *Type, const char *Source, const char *Text);
-	bool PlayLog(CClientConnection *Client, const char *Channel);
+	bool PlayLog(CClientConnection *Client, const char *Channel, playtype_t Type);
 };

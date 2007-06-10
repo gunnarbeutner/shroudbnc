@@ -278,7 +278,7 @@ public:
 	bool SetTagInteger(const char *Tag, int Value);
 	const char *GetTagName(int Index) const;
 
-	const char *FormatTime(time_t Timestamp) const;
+	const char *FormatTime(time_t Timestamp, const char *Format = NULL) const;
 	void SetGmtOffset(int Offset);
 	int GetGmtOffset(void) const;
 

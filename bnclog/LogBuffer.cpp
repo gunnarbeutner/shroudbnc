@@ -95,7 +95,7 @@ bool CLogBuffer::LogEvent(const char *Type, const char *Source, const char *Text
 	return true;
 }
 
-bool CLogBuffer::PlayLog(CClientConnection *Client, const char *Channel) {
+bool CLogBuffer::PlayLog(CClientConnection *Client, const char *Channel, playtype_t Type) {
 	CUser *Owner;
 	CIRCConnection *IRC;
 	const char *Server = "bouncer";
@@ -113,10 +113,22 @@ bool CLogBuffer::PlayLog(CClientConnection *Client, const char *Channel) {
 	}
 
 	while (Line != NULL) {
-		if (Line->Text != NULL) {
-			Client->WriteLine(":%s LOGEVT %d %s %s %s :%s", Server, Line->Timestamp, Line->Source, Line->Type, Channel, Line->Text);
-		} else {
-			Client->WriteLine(":%s LOGEVT %d %s %s %s", Server, Line->Timestamp, Line->Source, Line->Type, Channel);
+		if (Type == Play_Evt) {
+			if (Line->Text != NULL) {
+				Client->WriteLine(":%s LOGEVT %d %s %s %s :%s", Server, Line->Timestamp, Line->Source, Line->Type, Channel, Line->Text);
+			} else {
+				Client->WriteLine(":%s LOGEVT %d %s %s %s", Server, Line->Timestamp, Line->Source, Line->Type, Channel);
+			}
+		} else if (Type == Play_Privmsg) {
+			const char *Timestamp;
+
+			Timestamp = Owner->FormatTime(Line->Timestamp, "%d.%m. %H:%M:%S");
+
+			if (Line->Text != NULL) {
+				Client->WriteLine(":%s PRIVMSG %s :(%s, %s) %s", Line->Source, Channel, Timestamp, Line->Type, Line->Text);
+			} else {
+				Client->WriteLine(":%s PRIVMSG %s :(%s, %s)", Line->Source, Channel, Timestamp, Line->Type);
+			}
 		}
 
 		Line = Line->Next;
@@ -125,8 +137,6 @@ bool CLogBuffer::PlayLog(CClientConnection *Client, const char *Channel) {
 			break; // we are at the beginning again
 		}
 	}
-
-//	Clear();
 
 	return true;
 }
