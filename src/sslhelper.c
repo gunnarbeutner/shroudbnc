@@ -73,8 +73,10 @@
 
 #include "StdAfx.h"
 
-#if defined(_WIN32) && defined(USESSL)
+#ifdef USESSL
+#ifdef _WIN32
 #include <openssl/applink.c>
+#endif
 
 #include <openssl/bio.h>
 
