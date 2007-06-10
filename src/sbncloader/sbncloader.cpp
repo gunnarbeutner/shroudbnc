@@ -292,9 +292,9 @@ int main(int argc, char **argv) {
 			fprintf(stdout, "Syntax: %s [OPTION]", argv[0]);
 			fprintf(stdout, "\n");
 			fprintf(stdout, "Options:\n");
-			fprintf(stdout, "\t--help\tdisplay this help and exit\n");
+			fprintf(stdout, "\t--help\t\tdisplay this help and exit\n");
 			fprintf(stdout, "\t--foreground\trun in the foreground\n");
-			fprintf(stdout, "\t--lpc\tdon't start a child process\n");
+			fprintf(stdout, "\t--lpc\t\tdon't start a child process\n");
 #ifdef _WIN32
 			fprintf(stdout, "\t--install\tinstalls the win32 service\n");
 			fprintf(stdout, "\t--uninstall\tuninstalls the win32 service\n");
