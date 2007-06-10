@@ -257,24 +257,6 @@ void CCore::StartMainLoop(void) {
 	int argc = m_Args.GetLength();
 	char **argv = m_Args.GetList();
 
-	for (int a = 1; a < argc; a++) {
-		if (strcmp(argv[a], "--help") == 0 || strcmp(argv[a], "/?") == 0) {
-			safe_print("\n");
-			safe_printf("Syntax: %s [OPTION]", argv[0]);
-			safe_print("\n");
-			safe_print("Options:\n");
-#ifndef _WIN32
-			safe_print("\t--foreground\trun in the foreground\n");
-			safe_print("\t--help\tdisplay this help and exit\n");
-#else
-			safe_print("\t/n\tdon't detach\n");
-			safe_print("\t/?\tdisplay this help and exit\n");
-#endif
-
-			return;
-		}
-	}
-
 	int Port = CacheGetInteger(m_ConfigCache, port);
 #ifdef USESSL
 	int SSLPort = CacheGetInteger(m_ConfigCache, sslport);

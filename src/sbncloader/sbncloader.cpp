@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
 	int Result;
 	bool LPC = false, RpcChild = false;
 	bool Install = false, Uninstall = false, Service = false;
-	bool Daemonize = true;
+	bool Daemonize = true, Usage = false;
 	int ExitCode = EXIT_SUCCESS;
 	HMODULE hMod;
 #ifdef _WIN32
@@ -269,6 +269,10 @@ int main(int argc, char **argv) {
 		if (strcmp(argv[i], "--foreground") == 0) {
 			Daemonize = false;
 		}
+
+		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "/?") == 0) {
+			Usage = true;
+		}
 	}
 
 	struct stat ConfigStats;
@@ -282,6 +286,22 @@ int main(int argc, char **argv) {
 		PipePair_t PipesLocal;
 
 		fprintf(stdout, "shroudBNC " BNCVERSION " - an object-oriented IRC bouncer\n");
+
+		if (Usage) {
+			fprintf(stdout, "\n");
+			fprintf(stdout, "Syntax: %s [OPTION]", argv[0]);
+			fprintf(stdout, "\n");
+			fprintf(stdout, "Options:\n");
+			fprintf(stdout, "\t--help\tdisplay this help and exit\n");
+			fprintf(stdout, "\t--foreground\trun in the foreground\n");
+			fprintf(stdout, "\t--lpc\tdon't start a child process\n");
+#ifdef _WIN32
+			fprintf(stdout, "\t--install\tinstalls the win32 service\n");
+			fprintf(stdout, "\t--uninstall\tuninstalls the win32 service\n");
+#endif
+
+			return 3;
+		}
 
 #ifndef _WIN32
 		if (Daemonize) {
