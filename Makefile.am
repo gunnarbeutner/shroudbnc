@@ -14,7 +14,7 @@ update:
 	${MAKE} -C bnctcl; \
 	${MAKE} -C src install-exec-am; \
 	${MAKE} -C bnctcl install; \
-	${MAKE} -C scripts install;
+	${MAKE} -C scripts install; \
 	@echo "Reloading any running instances of shroudBNC..."; \
 	echo ./$${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc;
 	@if [ -f ${exec_prefix}/sbnc.pid ]; then \
