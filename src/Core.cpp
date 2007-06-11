@@ -2474,6 +2474,10 @@ unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 	unsigned int i = 0;
 
 	if (Resource == NULL || (User != NULL && User->IsAdmin())) {
+		if (Resource != NULL && strcasecmp(Resource, "clients") == 0) {
+			return 15;
+		}
+
 		return UINT_MAX;
 	}
 

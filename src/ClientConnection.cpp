@@ -628,12 +628,36 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					GetOwner()->SetPort(atoi(argv[3]));
 					GetOwner()->SetServer(argv[2]);
 				} else if (argc > 2) {
+					// the order of the SetServer/SetPort had some importance
+					// i wonder what it was... hm
 					if (strlen(argv[2]) == 0) {
 						GetOwner()->SetServer(NULL);
 						GetOwner()->SetPort(6667);
 					} else {
-						GetOwner()->SetPort(6667);
-						GetOwner()->SetServer(argv[2]);
+						char *ServerStr = NULL;
+						const char *PortStr = strchr(argv[2], ':');
+						unsigned int Port = 6667;
+
+						if (PortStr != NULL) {
+							PortStr++;
+
+							Port = atoi(PortStr);
+
+							if (Port == 0) {
+								Port = 6667;
+							}
+
+							ServerStr = strdup(argv[2]);
+
+							if (ServerStr != NULL) {
+								ServerStr[PortStr - argv[2] - 1] = '\0';
+							}
+						}
+
+						GetOwner()->SetPort(Port);
+						GetOwner()->SetServer((ServerStr != NULL) ? ServerStr : argv[2]);
+						
+						free(ServerStr);
 					}
 				} else {
 					SENDUSER("Syntax: /sbnc set server host port");
@@ -656,7 +680,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			} else if (strcasecmp(argv[1], "serverpass") == 0) {
 				GetOwner()->SetServerPassword(argv[2]);
 			} else if (strcasecmp(argv[1], "password") == 0) {
-				if (strlen(argv[2]) < 6 || argc > 3) {
+				if (strlen(argv[2]) < 6 || argc > 3 || strchr(argv[2], ':') != NULL) {
 					SENDUSER("Your password is too short or contains invalid characters.");
 					return false;
 				} else {
@@ -1607,7 +1631,20 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (argc < 2) {
 				WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
 			} else {
-				m_Password = ustrdup(argv[1]);
+				const char *ColonPtr = strchr(argv[1], ':');
+
+				if (ColonPtr != NULL) {
+					ufree(m_Username);
+
+					m_Username = ustrdup(argv[1]);
+					m_Username[ColonPtr - argv[1]] = '\0';
+
+					ufree(m_Password);
+					m_Password = ustrdup(ColonPtr + 1);
+				} else{
+					ufree(m_Password);
+					m_Password = ustrdup(argv[1]);
+				}
 			}
 
 			if (m_Nick != NULL && m_Username != NULL && m_Password != NULL) {
@@ -1624,6 +1661,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				} else {
 					const char *Username = argv[1];
 
+					ufree(m_Username);
 					m_Username = ustrdup(Username);
 				}
 			}
@@ -1776,6 +1814,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				WriteLine(":%s 302 %s :%s=+%s@%s", Server, m_Nick, m_Nick, Ident, m_PeerName);
+
+				return false;
+			}
+		} else if (argc > 1 && strcasecmp(Command, "ping") == 0) {
+			if (GetOwner()->GetIRCConnection() == NULL) {
+				WriteLine(":shroudbnc.info PONG :%s", argv[1]);
 
 				return false;
 			}

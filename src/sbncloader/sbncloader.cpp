@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
 		PipePair_t PipesLocal;
 
-		fprintf(stdout, "shroudBNC " BNCVERSION " - an object-oriented IRC bouncer\n");
+		fprintf(stdout, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 
 		if (Usage) {
 			fprintf(stdout, "\n");
