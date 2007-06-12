@@ -269,7 +269,7 @@ proc iface:evalline {line disconnectVar blockVar} {
 		set ifaceoverride 1
 	}
 
-	if {[catch [list getbncuser [lindex $toks 0] server]] || (![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] && !$ifaceoverride)} {
+	if {[catch [list getbncuser [lindex $toks 0] server]] || ((![bnccheckpassword [lindex $toks 0] [lindex $toks 1]] || [getbncuser [lindex $toks 0] lock]) && !$ifaceoverride)} {
 		set disconnect 1
 		set block 1
 
