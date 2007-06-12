@@ -39,6 +39,8 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 	m_CommandList = NULL;
 	m_NamesXSupport = false;
 	m_QuitReason = NULL;
+	m_AuthTimer = NULL;
+	m_PingTimer = NULL;
 	
 	SetBox(Box);
 
@@ -94,8 +96,6 @@ CClientConnection::CClientConnection(SOCKET Client, safe_box_t Box, bool SSL) : 
 
 	if (m_Nick == NULL) {
 		m_AuthTimer = new CTimer(30, false, ClientAuthTimer, this);
-	} else {
-		m_AuthTimer = NULL;
 	}
 
 	m_PingTimer = new CTimer(45, true, ClientPingTimer, this);
