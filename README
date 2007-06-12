@@ -104,6 +104,10 @@ After compiling it you can run the "make update" script which will
 automatically update your currently running shroudBNC. (The script assumes
 that the bouncer's directory is ~/sbnc/).
 
+Please note that "make update" can NOT be used to update from old
+version of shroudBNC (i.e. version 1.1 and before; this also
+includes the beta version of shroudBNC 1.2).
+
 Security
 --------
 
