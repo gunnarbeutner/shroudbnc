@@ -169,7 +169,7 @@ typedef struct {
 #endif
 } mblock;
 
-#define BLOCKMARKER 0xAC3D3AB7
+#define BLOCKMARKER 0xBC3D3AB7
 
 void *mmalloc(size_t Size, CUser *Manager);
 void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
