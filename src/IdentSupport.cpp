@@ -56,9 +56,13 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 	pwd = getpwuid(uid);
 
-	if (pwd != NULL) {
-		homedir = strdup(pwd->pw_dir);
+	if (pwd == NULL) {
+		LOGERROR("Could not figure out the UNIX username. Not setting ident.");
+
+		return;
 	}
+
+	homedir = strdup(pwd->pw_dir);
 
 	char *Out = (char *)malloc(strlen(homedir) + 50);
 
