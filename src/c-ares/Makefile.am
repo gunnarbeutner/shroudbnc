@@ -37,7 +37,8 @@ VER=-version-info 1:0:0
 # set age to 0. (c:r:a=0)
 #
 
-libcares_la_LDADD = $(VER) ../rpc/librpc.la
+libcares_la_LDFLAGS = $(VER)
+libcares_la_LIBADD = ../rpc/librpc.la
 
 # Makefile.inc provides the CSOURCES and HHEADERS defines
 include Makefile.inc
