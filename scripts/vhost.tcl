@@ -42,7 +42,9 @@ proc vhost:countvhost {ip} {
 	if {$ip == ""} { set ip [vhost:getdefaultip] }
 
 	foreach user [bncuserlist] {
-		if {[string equal [getbncuser $user vhost] $ip] || ([getbncuser $user vhost] == "" && [string equal $ip [vhost:getdefaultip]])} {
+		set uip [vhost:host2ip [getbncuser $user vhost]]
+
+		if {[string equal -nocase $uip $ip] || ([getbncuser $user vhost] == "" && [string equal $ip [vhost:getdefaultip]])} {
 			incr count
 		}
 	}
