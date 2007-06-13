@@ -38,6 +38,7 @@ VER=-version-info 1:0:0
 #
 
 libcares_la_LDFLAGS = $(VER)
+libcares_la_LDADD = ../rpc/librpc.la
 
 # Makefile.inc provides the CSOURCES and HHEADERS defines
 include Makefile.inc

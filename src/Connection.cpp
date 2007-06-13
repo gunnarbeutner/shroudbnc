@@ -600,8 +600,14 @@ void CConnection::Kill(const char *Error) {
  */
 bool CConnection::HasQueuedData(void) const {
 #ifdef USESSL
-	if (IsSSL() && SSL_want_write(m_SSL)) {
-		return true;
+	if (IsSSL()) {
+		if (SSL_want_write(m_SSL)) {
+			return true;
+		}
+
+		if (SSL_state(m_SSL) != SSL_ST_OK) {
+			return false;
+		}
 	}
 #endif
 
