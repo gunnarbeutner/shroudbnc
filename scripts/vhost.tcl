@@ -237,7 +237,7 @@ proc vhost:addvhost {ip limit host} {
 	if {[vhost:getlimit $ip] != 0 || [vhost:getlimit $host] != 0} {
 		return -code error "This vhost has already been added."
 	} else {
-		if {[string length $limit] == 0 || ![string is integer $limit]} {
+		if {[string length $limit] == 0 || ![string is integer $limit] || $limit < 0} {
 			return -code error "You need to specify a valid limit."
 		}
 

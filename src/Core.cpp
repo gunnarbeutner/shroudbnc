@@ -1565,44 +1565,6 @@ const char *CCore::DebugImpulse(int impulse) {
 		_exit(0);
 	}
 
-	if (impulse == 10) {
-		char *Name;
-
-		for (unsigned int i = 0; i < 100; i++) {
-			asprintf(&Name, "test%d", rand());
-
-			CUser *User = CreateUser(Name, NULL);
-
-			User->SetServer("217.112.85.191");
-			User->SetPort(6667);
-
-			User->SetLeanMode(2);
-
-			User->Reconnect();
-
-			free(Name);
-		}
-	}
-
-	if (impulse == 11) {
-		int i = 0;
-		char **BaseKeys;
-		char **Keys = GetUsers()->GetSortedKeys();
-
-		BaseKeys = Keys;
-
-		while (*Keys != NULL) {
-			if (match("test*", *Keys) == 0) {
-				RemoveUser(*Keys);
-
-			}
-
-			Keys++;
-		}
-
-		free(BaseKeys);
-	}
-
 	if (impulse == 12) {
 		int i = 0;
 		hash_t<CUser *> *User;
