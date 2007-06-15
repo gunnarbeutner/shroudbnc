@@ -223,7 +223,7 @@ proc channels {} {
 
 	set tmpchans [array names channels]
 
-	if {![catch [list internalchannels] channellist]} {
+	if {[getbncuser [getctx] hasserver] && ![catch [list internalchannels] channellist]} {
 		foreach chan $channellist {
 			lappend tmpchans $chan
 		}
