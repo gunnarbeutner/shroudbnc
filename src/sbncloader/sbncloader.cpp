@@ -282,10 +282,20 @@ int main(int argc, char **argv) {
 
 	Socket_Init();
 
+	fprintf(stdout, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
+
+#ifndef _WIN32
+	if (Daemonize) {
+		fprintf(stdout, "Daemonizing... ");
+
+		if (sbncDaemonize()) {
+			fprintf(stdout, "DONE\n");
+		}
+	}
+#endif
+
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
 		PipePair_t PipesLocal;
-
-		fprintf(stdout, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 
 		if (Usage) {
 			fprintf(stdout, "\n");
@@ -304,14 +314,6 @@ int main(int argc, char **argv) {
 		}
 
 #ifndef _WIN32
-		if (Daemonize) {
-			fprintf(stdout, "Daemonizing... ");
-
-			if (sbncDaemonize()) {
-				fprintf(stdout, "DONE\n");
-			}
-		}
-
 		signal(SIGPIPE, SIG_IGN);
 		signal(SIGCHLD, sigchld_handler);
 #endif
