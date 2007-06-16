@@ -300,6 +300,10 @@ int main(int argc, char **argv) {
 		return 3;
 	}
 
+	if (RpcChild || Install || Uninstall || Service) {
+		Daemonize = false;
+	}
+
 	if (Daemonize) {
 		fprintf(stdout, "Daemonizing... ");
 
