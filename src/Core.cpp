@@ -672,12 +672,23 @@ CUser *CCore::GetUser(const char *Name) {
  */
 void CCore::GlobalNotice(const char *Text) {
 	unsigned int i = 0;
+	char *GlobalText;
+
+	asprintf(&GlobalText, "Global admin message: %s", Text);
+
+	CHECK_ALLOC_RESULT(GlobalText, asprintf) {
+		return;
+	} CHECK_ALLOC_RESULT_END;
 
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		if (User->Value->GetClientConnectionMultiplexer() != NULL) {
-			User->Value->GetClientConnectionMultiplexer()->Privmsg(Text);
+			User->Value->GetClientConnectionMultiplexer()->Privmsg(GlobalText);
+		} else {
+			User->Value->Log("%s", GlobalText);
 		}
 	}
+
+	free(GlobalText);
 }
 
 /**
