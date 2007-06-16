@@ -807,7 +807,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 				Channel->AddUser(Nick, Modes);
 
-				free(Nick);
+				free(BaseNick);
 				free(Modes);
 			}
 
