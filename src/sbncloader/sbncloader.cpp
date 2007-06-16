@@ -282,19 +282,19 @@ int main(int argc, char **argv) {
 
 	Socket_Init();
 
-	fprintf(stdout, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
+	fprintf(stderr, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 
 	if (Usage) {
-		fprintf(stdout, "\n");
-		fprintf(stdout, "Syntax: %s [OPTION]", argv[0]);
-		fprintf(stdout, "\n");
-		fprintf(stdout, "Options:\n");
-		fprintf(stdout, "\t--help\t\tdisplay this help and exit\n");
-		fprintf(stdout, "\t--foreground\trun in the foreground\n");
-		fprintf(stdout, "\t--lpc\t\tdon't start a child process\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Syntax: %s [OPTION]", argv[0]);
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Options:\n");
+		fprintf(stderr, "\t--help\t\tdisplay this help and exit\n");
+		fprintf(stderr, "\t--foreground\trun in the foreground\n");
+		fprintf(stderr, "\t--lpc\t\tdon't start a child process\n");
 #ifdef _WIN32
-		fprintf(stdout, "\t--install\tinstalls the win32 service\n");
-		fprintf(stdout, "\t--uninstall\tuninstalls the win32 service\n");
+		fprintf(stderr, "\t--install\tinstalls the win32 service\n");
+		fprintf(stderr, "\t--uninstall\tuninstalls the win32 service\n");
 #endif
 
 		return 3;
@@ -305,15 +305,13 @@ int main(int argc, char **argv) {
 	}
 
 	if (Daemonize) {
-		fprintf(stdout, "Daemonizing... ");
+		fprintf(stderr, "Daemonizing... ");
 
 		if (sbncDaemonize()) {
-			fprintf(stdout, "DONE\n");
+			fprintf(stderr, "DONE\n");
 		}
-	} else {
-		if (!RpcChild) {
-			LPC = true;
-		}
+	} else if (!RpcChild) {
+		LPC = true;
 	}
 
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
