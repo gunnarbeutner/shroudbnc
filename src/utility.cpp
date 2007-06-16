@@ -249,7 +249,13 @@ tokendata_t ArgTokenize2(const char *String) {
 	tokens.Pointers[0] = 0;
 
 	for (unsigned int i = 0; i < Len; i++) {
-		if (String[i] == ' ' && String[i + 1] != ' ' && String[i + 1] != '\0') {
+		if (String[i] == ' ' && String[i + 1] != ' ') {
+			if (String[i + 1] == '\0') {
+				tokens.String[i] = '\0';
+
+				continue;
+			}
+
 			tokens.Pointers[a] = i + 1;
 			tokens.String[i] = '\0';
 
