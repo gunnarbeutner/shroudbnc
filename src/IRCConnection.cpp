@@ -780,7 +780,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			int nickc = ArgCount(nicks);
 
 			for (int i = 0; i < nickc; i++) {
-				const char *Nick = nickv[i];
+				char *Nick = strdup(nickv[i]);
+
+				CHECK_ALLOC_RESULT(Nick, strdup) {
+					ArgFree(nicks);
+
+					return false;
+				} CHECK_ALLOC_RESULT_END;
+
+				StrTrim(Nick);
 
 				while (IsNickPrefix(*Nick)) {
 					Nick++;
@@ -798,6 +806,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 				Channel->AddUser(Nick, Modes);
 
+				free(Nick);
 				free(Modes);
 			}
 

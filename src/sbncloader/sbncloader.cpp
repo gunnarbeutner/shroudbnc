@@ -282,7 +282,9 @@ int main(int argc, char **argv) {
 
 	Socket_Init();
 
-	fprintf(stderr, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
+	if (!RpcChild) {
+		fprintf(stderr, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
+	}
 
 	if (Usage) {
 		fprintf(stderr, "\n");
