@@ -240,6 +240,10 @@ proc auth:pulse {reason} {
 	global account354
 
 	foreach user [split $account354] {
+		if {![bncvaliduser $user]} {
+			continue
+		}
+
 		setctx $user
 
 		set nicks ""

@@ -27,6 +27,11 @@ proc sbnc:channelflush {} {
 		savechannels
 
 		foreach channel [channels] {
+			if {![validchan $channel]} {
+				channel set $channel +autochan
+				channel set $channel -inactive
+			}
+
 			if {![botonchan $channel]} {
 				if {[channel get $channel autochan]} {
 					channel remove $channel
