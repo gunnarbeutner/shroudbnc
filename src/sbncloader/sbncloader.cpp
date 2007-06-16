@@ -310,6 +310,10 @@ int main(int argc, char **argv) {
 		if (sbncDaemonize()) {
 			fprintf(stdout, "DONE\n");
 		}
+	} else {
+		if (!RpcChild) {
+			LPC = true;
+		}
 	}
 
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
