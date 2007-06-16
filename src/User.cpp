@@ -932,9 +932,9 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 
 	if (!Silent) {
 		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
-	}
 
-	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+	}
 
 	ClientT.Creation = g_CurrentTime;
 	ClientT.Client = Client;
