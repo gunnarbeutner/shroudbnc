@@ -781,6 +781,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			for (int i = 0; i < nickc; i++) {
 				char *Nick = strdup(nickv[i]);
+				char *BaseNick = Nick;
 
 				CHECK_ALLOC_RESULT(Nick, strdup) {
 					ArgFree(nicks);
@@ -796,11 +797,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 				char *Modes = NULL;
 
-				if (nickv[i] != Nick) {
-					Modes = (char *)malloc(Nick - nickv[i] + 1);
+				if (BaseNick != Nick) {
+					Modes = (char *)malloc(Nick - BaseNick + 1);
 
 					CHECK_ALLOC_RESULT(Modes, malloc) {} else {
-						strmcpy(Modes, nickv[i], Nick - nickv[i] + 1);
+						strmcpy(Modes, BaseNick, Nick - BaseNick + 1);
 					} CHECK_ALLOC_RESULT_END;
 				}
 
