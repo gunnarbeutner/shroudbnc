@@ -284,7 +284,22 @@ int main(int argc, char **argv) {
 
 	fprintf(stdout, "shroudBNC (loader: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 
-#ifndef _WIN32
+	if (Usage) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "Syntax: %s [OPTION]", argv[0]);
+		fprintf(stdout, "\n");
+		fprintf(stdout, "Options:\n");
+		fprintf(stdout, "\t--help\t\tdisplay this help and exit\n");
+		fprintf(stdout, "\t--foreground\trun in the foreground\n");
+		fprintf(stdout, "\t--lpc\t\tdon't start a child process\n");
+#ifdef _WIN32
+		fprintf(stdout, "\t--install\tinstalls the win32 service\n");
+		fprintf(stdout, "\t--uninstall\tuninstalls the win32 service\n");
+#endif
+
+		return 3;
+	}
+
 	if (Daemonize) {
 		fprintf(stdout, "Daemonizing... ");
 
@@ -292,26 +307,9 @@ int main(int argc, char **argv) {
 			fprintf(stdout, "DONE\n");
 		}
 	}
-#endif
 
 	if (!RpcChild && !LPC && !Install && !Uninstall && !Service) {
 		PipePair_t PipesLocal;
-
-		if (Usage) {
-			fprintf(stdout, "\n");
-			fprintf(stdout, "Syntax: %s [OPTION]", argv[0]);
-			fprintf(stdout, "\n");
-			fprintf(stdout, "Options:\n");
-			fprintf(stdout, "\t--help\t\tdisplay this help and exit\n");
-			fprintf(stdout, "\t--foreground\trun in the foreground\n");
-			fprintf(stdout, "\t--lpc\t\tdon't start a child process\n");
-#ifdef _WIN32
-			fprintf(stdout, "\t--install\tinstalls the win32 service\n");
-			fprintf(stdout, "\t--uninstall\tuninstalls the win32 service\n");
-#endif
-
-			return 3;
-		}
 
 #ifndef _WIN32
 		signal(SIGPIPE, SIG_IGN);
