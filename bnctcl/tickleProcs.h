@@ -44,14 +44,14 @@
 		Tcl_DStringFree(&ds_$argnum);
 }
 
-%typemap(out) char * {
-	Tcl_DString ds_result;
-
-	Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, $1, -1, &ds_result),-1));
-	Tcl_DStringFree(&ds_result);
-}
-
 %typemap(in) const char * = char *;
+
+%typemap(ret) char * {
+	Tcl_DString ds_ret;
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, $1, -1, &ds_ret),-1));
+
+	Tcl_DStringFree(&ds_ret);
+}
 
 %typemap(freearg) const char * = char *;
 

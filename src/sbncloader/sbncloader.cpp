@@ -306,6 +306,10 @@ int main(int argc, char **argv) {
 		Daemonize = false;
 	}
 
+#ifdef _WIN32
+	Daemonize = false;
+#endif
+
 	if (Daemonize) {
 		fprintf(stderr, "Daemonizing... ");
 

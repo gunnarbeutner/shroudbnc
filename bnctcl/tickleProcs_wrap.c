@@ -1897,6 +1897,12 @@ _wrap_simul(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -2133,6 +2139,12 @@ _wrap_getctx(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2152,6 +2164,12 @@ _wrap_bncuserlist(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2205,6 +2223,12 @@ _wrap_getbncuser(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
   {
     if (ds_use_3)
     Tcl_DStringFree(&ds_3);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -2461,6 +2485,12 @@ _wrap_internalchanlist(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -2484,6 +2514,12 @@ _wrap_bncversion(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2503,6 +2539,12 @@ _wrap_bncnumversion(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2585,6 +2627,12 @@ _wrap_getisupport(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   {
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -2733,6 +2781,12 @@ _wrap_getchanprefix(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -2760,6 +2814,12 @@ _wrap_internalchannels(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2779,6 +2839,12 @@ _wrap_bncmodules(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -2910,6 +2976,12 @@ _wrap_bncgettag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
     if (ds_use_3)
     Tcl_DStringFree(&ds_3);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -2980,6 +3052,12 @@ _wrap_bnccommand(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -3030,6 +3108,12 @@ _wrap_md5(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
   {
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -3505,6 +3589,12 @@ _wrap_internalgetipforsocket(ClientData clientData SWIGUNUSED, Tcl_Interp *inter
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -3667,11 +3757,12 @@ _wrap_internaltimers(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
       SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
     }
   }
+  Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
   {
-    Tcl_DString ds_result;
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
     
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
-    Tcl_DStringFree(&ds_result);
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -3758,6 +3849,12 @@ _wrap_getcurrentnick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int o
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -3777,6 +3874,12 @@ _wrap_internalbinds(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int ob
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -3796,6 +3899,12 @@ _wrap_bncgetmotd(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc,
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -3848,6 +3957,12 @@ _wrap_bncgetgvhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -3900,6 +4015,12 @@ _wrap_getbnchosts(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -4379,6 +4500,12 @@ _wrap_getchanrealname(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -4414,6 +4541,12 @@ _wrap_impulse(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tc
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -4494,6 +4627,12 @@ _wrap_bncgetglobaltag(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int 
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -4517,6 +4656,12 @@ _wrap_bncgetglobaltags(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -4536,6 +4681,12 @@ _wrap_getusermodes(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int obj
     }
   }
   Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   return TCL_ERROR;
@@ -4567,6 +4718,12 @@ _wrap_getzoneinfo(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   {
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -4926,6 +5083,12 @@ _wrap_topic(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
   }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
+  }
   return TCL_OK;
 fail:
   {
@@ -4959,6 +5122,12 @@ _wrap_topicnick(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, 
   {
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -5027,6 +5196,12 @@ _wrap_getchanmode(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   {
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -5227,6 +5402,12 @@ _wrap_getchanhost(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc
   {
     if (ds_use_2)
     Tcl_DStringFree(&ds_2);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
@@ -5636,15 +5817,16 @@ _wrap_chanbans(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, T
       SWIG_exception(SWIG_RuntimeError, const_cast<char *>(Description));
     }
   }
-  {
-    Tcl_DString ds_result;
-    
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_result),-1));
-    Tcl_DStringFree(&ds_result);
-  }
+  Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)result));
   {
     if (ds_use_1)
     Tcl_DStringFree(&ds_1);
+  }
+  {
+    Tcl_DString ds_ret;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_ExternalToUtfDString(g_Encoding, result, -1, &ds_ret),-1));
+    
+    Tcl_DStringFree(&ds_ret);
   }
   return TCL_OK;
 fail:
