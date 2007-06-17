@@ -1013,9 +1013,9 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 		} else {
 			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user.", GetUsername(), m_Clients.GetLength() - 1, Plural);
 		}
-	}
 
-	CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+	}
 
 	if (!Silent && m_IRC != NULL && m_Clients.GetLength() == 1) {
 		AwayMessage = GetAwayMessage();
