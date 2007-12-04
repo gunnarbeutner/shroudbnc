@@ -298,10 +298,10 @@ if {[info commands "registerifacecmd"] != ""} {
 }
 
 proc iface-vhost:setvalue {setting value} {
-	if {[iface:isoverride]} { return "" }
+	if {[iface:isoverride]} { return "RPC_NORESULT" }
 
 	if {[lsearch -exact [info commands] "lock:islocked"] != -1} {
-		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return "" }
+		if {![string equal [lock:islocked [getctx] "vhost"] "0"]} { return -code error "You may not modify this setting." }
 	}
 
 	if {![getbncuser [getctx] admin] && [string equal -nocase $setting "vhost"]} {
@@ -312,9 +312,10 @@ proc iface-vhost:setvalue {setting value} {
 		if {$count >= $limit} { return -code error "Sorry, the virtual host $ip is already being used by $count users. Please use another virtual host." }
 
 		setbncuser [getctx] vhost $value
+		return ""
 	}
 
-	return ""
+	return "RPC_NORESULT"
 }
 
 if {[info commands "registerifacecmd"] != ""} {
@@ -340,7 +341,7 @@ proc iface-vhost:getvhosts {} {
 		itype_list_insert result $vhost_itype
 	}
 
-	itype_list_end $result
+	itype_list_end result
 
 	return $result
 }
