@@ -1956,7 +1956,6 @@ void CUser::SetIPv6(bool IPv6) {
 const char *CUser::FormatTime(time_t Timestamp, const char *Format) const {
 	tm *Time;
 	static char Buffer[128];
-	char *NewLine;
 
 	Timestamp -= GetGmtOffset() * 60;
 	Time = gmtime(&Timestamp);

@@ -306,16 +306,14 @@ int main(int argc, char **argv) {
 		Daemonize = false;
 	}
 
-#ifdef _WIN32
-	Daemonize = false;
-#endif
-
 	if (Daemonize) {
+#ifndef _WIN32
 		fprintf(stderr, "Daemonizing... ");
 
 		if (sbncDaemonize()) {
 			fprintf(stderr, "DONE\n");
 		}
+#endif
 	} else if (!RpcChild) {
 		LPC = true;
 	}

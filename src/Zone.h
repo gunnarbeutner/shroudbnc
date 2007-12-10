@@ -183,6 +183,10 @@ public:
 	 * Allocates a new object from the memory zone.
 	 */
 	Type *Allocate(void) {
+#ifdef _DEBUG
+		return (Type *)malloc(sizeof(Type));
+#endif
+
 		hunk_s<Type, HunkSize> *Hunk;
 
 		if (!m_Registered) {
@@ -230,6 +234,12 @@ public:
 	 * Marks an object as unused.
 	 */
 	void Delete(Type *Object) {
+#ifdef _DEBUG
+		free(Object);
+
+		return;
+#endif
+
 		hunk_s<Type, HunkSize> *Hunk = m_FirstHunk;
 		hunkobject_s<Type> *HunkObject = NULL;
 		hunk_s<Type, HunkSize> *OwningHunk;

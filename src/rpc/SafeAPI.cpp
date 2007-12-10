@@ -901,7 +901,7 @@ int safe_accept(int Socket, sockaddr *Sockaddr, socklen_t *Len) {
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_INT(Socket);
-	Arguments[1] = RPC_BLOCK(Sockaddr, *Len, Flag_Out);
+	Arguments[1] = RPC_BLOCK(Sockaddr, *Len, Flag_Out | Flag_Alloc);
 	Arguments[2] = RPC_BLOCK(Len, sizeof(Len), Flag_Out);
 
 	if (!RpcInvokeFunction(Function_safe_accept, Arguments, 3, &ReturnValue)) {

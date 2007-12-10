@@ -326,7 +326,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\snprintf.c"
+				RelativePath=".\src\snprintf\snprintf.c"
 				>
 			</File>
 			<File

@@ -37,8 +37,6 @@ void DestroyBan(ban_t *Ban) {
  * Constructs an empty banlist.
  */
 CBanlist::CBanlist(CChannel *Owner) {
-	char Mask[128];
-
 	SetOwner(Owner);
 
 	m_Bans.RegisterValueDestructor(DestroyBan);

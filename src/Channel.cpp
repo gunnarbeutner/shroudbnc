@@ -40,7 +40,6 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 	m_TopicNick = NULL;
 	m_TopicStamp = 0;
 	m_HasTopic = 0;
-	char NickIdx[128];
 
 	m_Nicks.RegisterValueDestructor(DestroyObject<CNick>);
 
