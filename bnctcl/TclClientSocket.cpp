@@ -86,7 +86,7 @@ void CTclClientSocket::Destroy(void) {
 		m_Control = NULL;
 	}
 
-	if (g_Bouncer->GetStatus() != STATUS_RUN || GetSendqSize() == 0 && !m_FirstTry) {
+	if ((g_Bouncer->GetStatus() != STATUS_RUN || GetSendqSize() == 0) || !m_FirstTry) {
 		delete this;
 	} else {
 		m_FirstTry = false;
