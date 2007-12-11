@@ -44,6 +44,7 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, bool SSL, connection_role_e Ro
 	m_Control = NULL;
 	m_InTcl = false;
 	m_Destroy = false;
+	m_FirstTry = true;
 }
 
 CTclClientSocket::~CTclClientSocket() {
@@ -85,9 +86,11 @@ void CTclClientSocket::Destroy(void) {
 		m_Control = NULL;
 	}
 
-	if (g_Bouncer->GetStatus() != STATUS_RUN || GetSendqSize() == 0) {
+	if (g_Bouncer->GetStatus() != STATUS_RUN || GetSendqSize() == 0 && !m_FirstTry) {
 		delete this;
 	} else {
+		m_FirstTry = false;
+
 		Kill("");
 	}
 }

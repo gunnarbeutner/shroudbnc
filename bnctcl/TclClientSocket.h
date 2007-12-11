@@ -48,4 +48,5 @@ private:
 	int m_Idx;
 	bool m_InTcl;
 	bool m_Destroy;
+	bool m_FirstTry;
 };
