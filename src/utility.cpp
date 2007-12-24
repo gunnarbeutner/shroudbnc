@@ -978,7 +978,7 @@ void FreeUString(char *String) {
  * @param Size size of the Destination buffer
  */
 char *strmcpy(char *Destination, const char *Source, size_t Size) {
-	size_t CopyLength = min(strlen(Source), Size - 1);
+	size_t CopyLength = min(strlen(Source), (Size > 0) ? Size - 1 : 0);
 
 	memcpy(Destination, Source, CopyLength);
 	Destination[CopyLength] = '\0';
