@@ -229,7 +229,7 @@ proc dnslookup {args} {
 	set proc [lindex $args 1]
 	set arg [lrange $args 2 end]
 
-	if {[regexp {\d*\.\d*\.\d*\.\d*} $host]} {
+	if {[regexp {^\d*\.\d*\.\d*\.\d*$} $host]} {
 		set reverse 1
 		set ipv6 0
 	} elseif {[string first ":" $host] != -1} {
