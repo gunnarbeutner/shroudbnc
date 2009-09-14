@@ -345,11 +345,12 @@ int RpcFunc_setsockopt(Value_t *Arguments, Value_t *ReturnValue) {
 int RpcFunc_ioctlsocket(Value_t *Arguments, Value_t *ReturnValue) {
 	int Result;
 
-	if (Arguments[0].Type != Integer || Arguments[1].Type != Integer || Arguments[2].Type != Block) {
+	if (Arguments[0].Type != Integer || Arguments[1].Type != Block || Arguments[2].Type != Block) {
 		return false;
 	}
 
-	Result = ioctlsocket(Arguments[0].Integer, Arguments[1].Integer, (unsigned long *)Arguments[2].Block);
+	Result = ioctlsocket(Arguments[0].Integer, *(unsigned long *)Arguments[1].Block,
+				(unsigned long *)Arguments[2].Block);
 
 	g_RpcErrno = WSAGetLastError();
 
@@ -1081,12 +1082,12 @@ int safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, sock
 	return ReturnValue.Integer;
 }
 
-int safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP) {
+int safe_ioctlsocket(int Socket, unsigned long Command, unsigned long *ArgP) {
 	Value_t Arguments[3];
 	Value_t ReturnValue;
 
 	Arguments[0] = RPC_INT(Socket);
-	Arguments[1] = RPC_INT(Command);
+	Arguments[1] = RPC_BLOCK(&Command, sizeof(unsigned long), Flag_Out);
 	Arguments[2] = RPC_BLOCK(ArgP, sizeof(unsigned long), Flag_Out);
 
 	if (!RpcInvokeFunction(Function_safe_ioctlsocket, Arguments, 3, &ReturnValue)) {

@@ -100,7 +100,7 @@ extern "C" {
 	int RPCAPI safe_closesocket(int Socket);
 	int RPCAPI safe_getsockopt(int Socket, int Level, int OptName, char *OptVal, socklen_t *OptLen);
 	int RPCAPI safe_setsockopt(int Socket, int Level, int OptName, const char *OptVal, socklen_t OptLen);
-	int RPCAPI safe_ioctlsocket(int Socket, long Command, unsigned long *ArgP);
+	int RPCAPI safe_ioctlsocket(int Socket, unsigned long Command, unsigned long *ArgP);
 
 	int RPCAPI safe_errno(void);
 	int RPCAPI safe_print(const char *Line);
