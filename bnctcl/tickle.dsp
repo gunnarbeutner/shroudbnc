@@ -169,7 +169,7 @@ SOURCE=.\tickleProcs.h
 InputPath=.\tickleProcs.h
 
 "tickleProcs_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	D:\Programme\SWIG-1.3.24\swig -tcl -nosafe -pkgversion 0.4 $(InputPath)
+	D:\Programme\SWIG-1.3.24\swig -tcl -nosafe -pkgversion 1.3 $(InputPath)
 
 # End Custom Build
 
@@ -179,7 +179,7 @@ InputPath=.\tickleProcs.h
 InputPath=.\tickleProcs.h
 
 "tickleProcs_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	D:\Programme\SWIG-1.3.24\swig -tcl -nosafe -pkgversion 0.4 $(InputPath)
+	D:\Programme\SWIG-1.3.24\swig -tcl -nosafe -pkgversion 1.3 $(InputPath)
 
 # End Custom Build
 

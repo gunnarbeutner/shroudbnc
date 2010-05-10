@@ -1,31 +1,14 @@
-export MOD_DIR=@SUBST_MOD_DIR@
-SUBDIRS=src @BNCTCL_MODULE@ @IDENTD_MODULE@ php bncmysql
-EXTRA_DIST=cares.m4 cares2.m4 aclocal.m4 tcl.m4 sbnc.tcl ssl.conf LICENSE LICENSE.Exceptions README README.ssl README.motd README.lean README.service README.settings README.iface2
+SUBDIRS=third-party src @BNCTCL_MODULE@ @IDENTD_MODULE@ php
+DIST_SUBDIRS=third-party src bnctcl identd32 php
 
-install:
-	@echo ./${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc
-	@if [ ! -f ${exec_prefix}/sbnc.tcl ]; then cp sbnc.tcl ${exec_prefix}/sbnc.tcl; fi
-	@chmod 600 ${exec_prefix}/sbnc.tcl
+EXTRA_DIST=aclocal.m4 tcl.m4 ssl.conf LICENSE LICENSE.Exceptions README README.ssl README.motd README.lean README.service README.settings README.iface2
 
-update:
-	@export MOD_DIR="lib-`date +%Y%m%d%H%M%S`"; \
-	${MAKE} clean; \
-	${MAKE} -C src; \
-	${MAKE} -C bnctcl; \
-	${MAKE} -C src install-exec-am; \
-	${MAKE} -C bnctcl install; \
-	${MAKE} -C scripts install; \
-	echo "Reloading any running instances of shroudBNC..."; \
-	echo ./$${MOD_DIR}/libsbnc.la > ${exec_prefix}/sbnc.ipc;
-	@if [ -f ${exec_prefix}/sbnc.pid ]; then \
-		if $$(kill -CHLD `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1); then \
-			echo "Sending TERM signal to shroudBNC child instance in ${exec_prefix} (PID `cat ${exec_prefix}/sbnc.pid`)"; \
-			kill -TERM `cat ${exec_prefix}/sbnc.pid` >/dev/null 2>&1; \
-		fi; \
+ACLOCAL_AMFLAGS=-I m4
+
+install: install-recursive
+	@if [ "${exec_prefix}" = "${HOME}/sbnc" ]; then \
+		ln -sf bin/sbnc ${exec_prefix}/sbnc; \
 	fi;
-	@echo "********************************************"
-	@echo "* shroudBNC has successfully been updated. *"
-	@echo "********************************************"
 
 sslcert:
 	@if [ -f ${exec_prefix}/sbnc.key ]; then \

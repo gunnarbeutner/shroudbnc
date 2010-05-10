@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -26,30 +26,13 @@
 //////////////////////////////////////////////////////////////////////
 
 CModule::CModule(const char *Filename) {
-	char *CorePath;
 	bool Result = false;
 
 	m_Far = NULL;
 	m_Image = NULL;
 	m_File = strdup(Filename);
 
-	CorePath = strdup(sbncGetModulePath());
-
-	if (CorePath != NULL && *CorePath != '\0') {
-		for (size_t i = strlen(CorePath) - 1; i >= 0; i--) {
-			if (CorePath[i] == '/' || CorePath[i] == '\\') {
-				CorePath[i] = '\0';
-
-				break;
-			}
-		}
-
-#if !defined(_WIN32) || defined(__MINGW32__)
-		lt_dlsetsearchpath(CorePath);
-#endif
-	
-		Result = InternalLoad(g_Bouncer->BuildPath(Filename, CorePath));
-	}
+	Result = InternalLoad(g_Bouncer->BuildPathModule(Filename));
 
 	if (!Result) {
 		InternalLoad(Filename);
@@ -257,4 +240,8 @@ void CModule::TagModified(const char *Tag, const char *Value) {
 
 void CModule::UserTagModified(const char *Tag, const char *Value) {
 	return m_Far->UserTagModified(Tag, Value);
+}
+
+bool CModule::MainLoop(void) {
+	return m_Far->MainLoop();
 }

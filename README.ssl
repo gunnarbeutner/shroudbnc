@@ -63,11 +63,3 @@ log in using this client certificate.
 (You can also set your public key by putting a x509 certificate into your users/ directory. The
 file's name should be <username>.crt, where <username> is your username. However this requires
 a restart as sBNC only reads the certificate files during startup.)
-
-SSL and "make update"
----------------------
-
-Please keep in mind that you will not be able to use "make update" or /sbnc reload to update your
-bouncer if you're using a server certificate which is protected with a passphrase. During the
-reload phase of shroudBNC openssl would try to prompt the user for the certificate's passphrase
-which effectively freezes/crashes shroudBNC. A solution for this problem might be implemented later.

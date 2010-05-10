@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -22,14 +22,13 @@
  *
  * Records traffic statistics for a user.
  */
-class SBNCAPI CTrafficStats : public CZoneObject<CTrafficStats, 32>, CObject<CTrafficStats, CUser> {
+class SBNCAPI CTrafficStats : public CObject<CTrafficStats, CUser> {
 private:
-	time_t m_PreviousSave;
 	unsigned int m_Inbound; /**< amount of inbound traffic in bytes */
 	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 public:
 #ifndef SWIG
-	CTrafficStats(safe_box_t Box);
+	CTrafficStats();
 #endif
 
 	void AddInbound(unsigned int Bytes);

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -52,9 +52,9 @@ RESULT<bool> CKeyring::SetKey(const char *Channel, const char *Key) {
 
 	asprintf(&Setting, "key.%s", Channel);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		THROW(bool, Generic_OutOfMemory, "Out of memory.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	ReturnValue = m_Config->WriteString(Setting, Key);
 
@@ -77,9 +77,9 @@ RESULT<const char *> CKeyring::GetKey(const char *Channel) {
 
 	asprintf(&Setting, "key.%s", Channel);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		THROW(const char *, Generic_OutOfMemory, "Out of memory.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	ReturnValue = m_Config->ReadString(Setting);
 
@@ -94,7 +94,7 @@ RESULT<const char *> CKeyring::GetKey(const char *Channel) {
  * Removes obsolete keys from a keyring.
  */
 bool CKeyring::RemoveRedundantKeys(void) {
-	unsigned int i, Count = 0;
+	int i, Count = 0;
 	const char *Channel, *Key;
 	char **Keys;
 

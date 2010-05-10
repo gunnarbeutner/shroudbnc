@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -197,6 +197,13 @@ struct CModuleFar {
 	 * @param Value the new value of the tag
 	 */
 	virtual void UserTagModified(const char *Tag, const char *Value) = 0;
+
+	/**
+	 * MainLoop
+	 *
+	 * Called in every mainloop iteration. Returns "true" if the module had something to do.
+	 */
+	virtual bool MainLoop(void) = 0;
 };
 
 /**
@@ -250,6 +257,10 @@ protected:
 
 	virtual void TagModified(const char *Tag, const char *Value) { }
 	virtual void UserTagModified(const char *Tag, const char *Value) { }
+
+	virtual bool MainLoop(void) {
+		return false;
+	}
 public:
 	CCore *GetCore(void) {
 		return m_Core;

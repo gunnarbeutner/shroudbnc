@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -32,9 +32,9 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
 
 	SetOwner(Owner);
 
-	m_Nick = ustrdup(Nick);
+	m_Nick = strdup(Nick);
 
-	CHECK_ALLOC_RESULT(m_Nick, ustrdup) { } CHECK_ALLOC_RESULT_END;
+	if (AllocFailed(m_Nick)) {}
 
 	m_Prefixes = NULL;
 	m_Site = NULL;
@@ -50,15 +50,15 @@ CNick::CNick(const char *Nick, CChannel *Owner) {
  * Destroys a nick object.
  */
 CNick::~CNick() {
-	ufree(m_Nick);
-	ufree(m_Prefixes);
-	ufree(m_Site);
-	ufree(m_Realname);
-	ufree(m_Server);
+	free(m_Nick);
+	free(m_Prefixes);
+	free(m_Site);
+	free(m_Realname);
+	free(m_Server);
 
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
-		ufree(m_Tags[i].Name);
-		ufree(m_Tags[i].Value);
+		free(m_Tags[i].Name);
+		free(m_Tags[i].Value);
 	}
 }
 
@@ -74,13 +74,13 @@ bool CNick::SetNick(const char *Nick) {
 
 	assert(Nick != NULL);
 
-	NewNick = ustrdup(Nick);
+	NewNick = strdup(Nick);
 
-	CHECK_ALLOC_RESULT(m_Nick, ustrdup) {
+	if (AllocFailed(m_Nick)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	ufree(m_Nick);
+	free(m_Nick);
 	m_Nick = NewNick;
 
 	return true;
@@ -148,11 +148,11 @@ bool CNick::AddPrefix(char Prefix) {
 	char *Prefixes;
 	size_t LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
 
-	Prefixes = (char *)urealloc(m_Prefixes, LengthPrefixes + 2);
+	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
 
-	CHECK_ALLOC_RESULT(Prefixes, realloc) {
+	if (AllocFailed(Prefixes)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Prefixes = Prefixes;
 	m_Prefixes[LengthPrefixes] = Prefix;
@@ -178,11 +178,11 @@ bool CNick::RemovePrefix(char Prefix) {
 
 	LengthPrefixes = strlen(m_Prefixes);
 
-	char *Copy = (char *)umalloc(LengthPrefixes + 1);
+	char *Copy = (char *)malloc(LengthPrefixes + 1);
 
-	CHECK_ALLOC_RESULT(Copy, umalloc) {
+	if (AllocFailed(Copy)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	for (unsigned int i = 0; i < LengthPrefixes; i++) {
 		if (m_Prefixes[i] != Prefix) {
@@ -192,7 +192,7 @@ bool CNick::RemovePrefix(char Prefix) {
 
 	Copy[a] = '\0';
 
-	ufree(m_Prefixes);
+	free(m_Prefixes);
 	m_Prefixes = Copy;
 
 	return true;
@@ -209,16 +209,16 @@ bool CNick::SetPrefixes(const char *Prefixes) {
 	char *dupPrefixes;
 
 	if (Prefixes) {
-		dupPrefixes = ustrdup(Prefixes);
+		dupPrefixes = strdup(Prefixes);
 
-		CHECK_ALLOC_RESULT(dupPrefixes, ustrdup) {
+		if (AllocFailed(dupPrefixes)) {
 			return false;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		dupPrefixes = NULL;
 	}
 
-	ufree(m_Prefixes);
+	free(m_Prefixes);
 	m_Prefixes = dupPrefixes;
 
 	return true;
@@ -250,14 +250,14 @@ const char *CNick::GetPrefixes(void) const {
 		return false; \
 	} \
 \
-	DuplicateValue = ustrdup(NewValue); \
+	DuplicateValue = strdup(NewValue); \
 \
 	if (DuplicateValue == NULL) { \
-		LOGERROR("ustrdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
+		LOGERROR("strdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
 \
 		return false; \
 	} else { \
-		ufree(Name); \
+		free(Name); \
 		Name = DuplicateValue; \
 \
 		return true; \
@@ -307,7 +307,7 @@ const char *CNick::InternalGetSite(void) const {
 		return NULL;
 	}
 
-	char *Host = strstr(m_Site, "!");
+	char *Host = strchr(m_Site, '!');
 
 	if (Host) {
 		return Host + 1;
@@ -357,7 +357,8 @@ const char *CNick::InternalGetServer(void) const {
 \
 		CNick *NickObj = Chan->Value->GetNames()->Get(m_Nick); \
 \
-		if (NickObj && strcasecmp(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
+		if (NickObj && NickObj->GetNick() != NULL && m_Nick != NULL && \
+				 strcasecmp(NickObj->GetNick(), m_Nick) == 0 && NickObj->Name() != NULL) \
 			return NickObj->Name(); \
 	} \
 \
@@ -457,8 +458,8 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 
 	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
-			ufree(m_Tags[i].Name);
-			ufree(m_Tags[i].Value);
+			free(m_Tags[i].Name);
+			free(m_Tags[i].Value);
 
 			m_Tags.Remove(i);
 
@@ -470,19 +471,19 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 		return true;
 	}
 
-	NewTag.Name = ustrdup(Name);
+	NewTag.Name = strdup(Name);
 
-	CHECK_ALLOC_RESULT(NewTag.Name, ustrdup) {
+	if (AllocFailed(NewTag.Name)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	NewTag.Value = ustrdup(Value);
+	NewTag.Value = strdup(Value);
 
-	CHECK_ALLOC_RESULT(NewTag.Value, ustrdup) {
-		ufree(NewTag.Name);
+	if (AllocFailed(NewTag.Value)) {
+		free(NewTag.Name);
 
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	return m_Tags.Insert(NewTag);
 }

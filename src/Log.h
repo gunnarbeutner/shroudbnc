@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -23,16 +23,12 @@ class CUser;
 #define Log_Message 0
 #define Log_Motd 2
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCLog) CZoneObject<class CLog, 16>;
-#endif
-
 /**
  * CLog
  *
  * A log file.
  */
-class SBNCAPI CLog : public CZoneObject<CLog, 16> {
+class SBNCAPI CLog {
 	char *m_Filename; /**< the filename of the log, can be an empty string */
 	bool m_KeepOpen; /**< should we keep the file open? */
 	mutable FILE *m_File; /**< the file */

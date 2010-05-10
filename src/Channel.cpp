@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -27,12 +27,11 @@
  * @param Name the name of the channel
  * @param Owner the owner of the channel object
  */
-CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
+CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	SetOwner(Owner);
-	SetBox(Box);
 
-	m_Name = ustrdup(Name);
-	CHECK_ALLOC_RESULT(m_Name, strdup) { } CHECK_ALLOC_RESULT_END;
+	m_Name = strdup(Name);
+	if (AllocFailed(m_Name)) {}
 
 	m_Timestamp = g_CurrentTime;
 	m_Creation = 0;
@@ -45,41 +44,12 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
 
 	m_HasNames = false;
 	m_ModesValid = false;
+	m_KeepNicklist = true;;
 
 	m_HasBans = false;
 	m_TempModes = NULL;
 
-	m_Banlist = unew CBanlist(this);
-
-	if (Box != NULL) {
-		time_t Temp;
-		const char *TempStr;
-
-		safe_set_ro(Box, 1);
-
-		Temp = safe_get_integer(Box, "CreationTimestamp");
-
-		if (Temp != 0) {
-			m_Creation = Temp;
-		}
-
-		TempStr = safe_get_string(Box, "Topic");
-
-		if (TempStr != NULL) {
-			m_Topic = ustrdup(TempStr);
-		}
-
-		TempStr = safe_get_string(Box, "TopicNick");
-
-		if (TempStr != NULL) {
-			m_TopicNick = ustrdup(TempStr);
-		}
-
-		m_TopicStamp = safe_get_integer(Box, "TopicTimestamp");
-		m_HasTopic = safe_get_integer(Box, "HasTopic");
-
-		safe_set_ro(Box, 0);
-	}
+	m_Banlist = new CBanlist(this);
 }
 
 /**
@@ -88,14 +58,14 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box) {
  * Destructs a channel object.
  */
 CChannel::~CChannel() {
-	ufree(m_Name);
+	free(m_Name);
 
-	ufree(m_Topic);
-	ufree(m_TopicNick);
-	ufree(m_TempModes);
+	free(m_Topic);
+	free(m_TopicNick);
+	free(m_TempModes);
 
 	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
-		ufree(m_Modes[i].Parameter);
+		free(m_Modes[i].Parameter);
 	}
 
 	delete m_Banlist;
@@ -127,11 +97,11 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 	}
 
 	Size = m_Modes.GetLength() + 1024;
-	m_TempModes = (char *)umalloc(Size);
+	m_TempModes = (char *)malloc(Size);
 
-	CHECK_ALLOC_RESULT(m_TempModes, umalloc) {
-		THROW(const char *, Generic_OutOfMemory, "umalloc() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	if (AllocFailed(m_TempModes)) {
+		THROW(const char *, Generic_OutOfMemory, "malloc() failed.");
+	}
 
 	strmcpy(m_TempModes, "+", Size);
 
@@ -154,14 +124,14 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 
 			if (strlen(m_TempModes) + strlen(m_Modes[i].Parameter) > Size) {
 				Size += strlen(m_Modes[i].Parameter) + 1024;
-				NewTempModes = (char *)urealloc(m_TempModes, Size);
+				NewTempModes = (char *)realloc(m_TempModes, Size);
 
-				CHECK_ALLOC_RESULT(NewTempModes, urealloc) {
-					ufree(m_TempModes);
+				if (AllocFailed(NewTempModes)) {
+					free(m_TempModes);
 					m_TempModes = NULL;
 
 					THROW(const char *, Generic_OutOfMemory, "urealloc() failed.");
-				} CHECK_ALLOC_RESULT_END;
+				}
 
 				m_TempModes = NewTempModes;
 			}
@@ -189,7 +159,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 	/* free any cached chanmodes */
 	if (m_TempModes != NULL) {
-		ufree(m_TempModes);
+		free(m_TempModes);
 		m_TempModes = NULL;
 	}
 
@@ -268,7 +238,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 		if (Flip) {
 			if (Slot != NULL) {
-				ufree(Slot->Parameter);
+				free(Slot->Parameter);
 			} else {
 				Slot = m_Modes.GetNew();
 			}
@@ -284,14 +254,14 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			Slot->Mode = Current;
 
 			if (ModeType != 0 && p < pargc) {
-				Slot->Parameter = ustrdup(pargv[p++]);
+				Slot->Parameter = strdup(pargv[p++]);
 			} else {
 				Slot->Parameter = NULL;
 			}
 		} else {
 			if (Slot != NULL) {
 				Slot->Mode = '\0';
-				ufree(Slot->Parameter);
+				free(Slot->Parameter);
 
 				Slot->Parameter = NULL;
 			}
@@ -336,10 +306,6 @@ time_t CChannel::GetCreationTime(void) const {
  */
 void CChannel::SetCreationTime(time_t Time) {
 	m_Creation = Time;
-
-	if (GetBox() != NULL) {
-		safe_put_integer(GetBox(), "CreationTimestamp", Time);
-	}
 }
 
 /**
@@ -361,20 +327,15 @@ const char *CChannel::GetTopic(void) const {
 void CChannel::SetTopic(const char *Topic) {
 	char *NewTopic;
 
-	NewTopic = ustrdup(Topic);
+	NewTopic = strdup(Topic);
 
-	CHECK_ALLOC_RESULT(NewTopic, strdup) {
+	if (AllocFailed(NewTopic)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	ufree(m_Topic);
+	free(m_Topic);
 	m_Topic = NewTopic;
 	m_HasTopic = 1;
-
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "Topic", Topic);
-		safe_put_integer(GetBox(), "HasTopic", 1);
-	}
 }
 
 /**
@@ -396,20 +357,15 @@ const char *CChannel::GetTopicNick(void) const {
 void CChannel::SetTopicNick(const char *Nick) {
 	char *NewTopicNick;
 
-	NewTopicNick = ustrdup(Nick);
+	NewTopicNick = strdup(Nick);
 
-	CHECK_ALLOC_RESULT(NewTopicNick, strdup) {
+	if (AllocFailed(NewTopicNick)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	ufree(m_TopicNick);
+	free(m_TopicNick);
 	m_TopicNick = NewTopicNick;
 	m_HasTopic = 1;
-
-	if (GetBox() != NULL) {
-		safe_put_string(GetBox(), "TopicNick", Nick);
-		safe_put_integer(GetBox(), "HasTopic", 1);
-	}
 }
 
 /**
@@ -431,11 +387,6 @@ time_t CChannel::GetTopicStamp(void) const {
 void CChannel::SetTopicStamp(time_t Timestamp) {
 	m_TopicStamp = Timestamp;
 	m_HasTopic = 1;
-
-	if (GetBox() != NULL) {
-		safe_put_integer(GetBox(), "TopicTimestamp", Timestamp);
-		safe_put_integer(GetBox(), "HasTopic", 1);
-	}
 }
 
 /**
@@ -454,10 +405,6 @@ int CChannel::HasTopic(void) const {
  */
 void CChannel::SetNoTopic(void) {
 	m_HasTopic = -1;
-
-	if (GetBox() != NULL) {
-		safe_put_integer(GetBox(), "HasTopic", -1);
-	}
 }
 
 /**
@@ -471,19 +418,31 @@ void CChannel::SetNoTopic(void) {
 void CChannel::AddUser(const char *Nick, const char *ModeChars) {
 	CNick *NickObj;
 
-	if (GetUser()->GetLeanMode() > 1) {
+	if (GetUser()->GetLeanMode() > 1 || !m_KeepNicklist) {
+		return;
+	}
+
+	if (m_Nicks.GetLength() > g_Bouncer->GetResourceLimit("nicks", GetUser())) {
+		m_Nicks.Clear();
+
+		m_KeepNicklist = false;
+		m_HasNames = false;
+
 		return;
 	}
 
 	m_Nicks.Remove(Nick);
 
-	NickObj = unew CNick(Nick, this);
+	NickObj = new CNick(Nick, this);
 
-	CHECK_ALLOC_RESULT(NickObj, CZone::Allocate) {
+	if (AllocFailed(NickObj)) {
+		m_Nicks.Clear();
+
+		m_KeepNicklist = false;
 		m_HasNames = false;
 
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	NickObj->SetPrefixes(ModeChars);
 
@@ -499,14 +458,6 @@ void CChannel::AddUser(const char *Nick, const char *ModeChars) {
  */
 void CChannel::RemoveUser(const char *Nick) {
 	m_Nicks.Remove(Nick);
-	
-	if (GetBox() != NULL) {
-		safe_box_t NicksBox = safe_get_box(GetBox(), "Nicks");
-
-		if (NicksBox != NULL) {
-			safe_remove(NicksBox, Nick);
-		}
-	}
 }
 
 /**
@@ -528,14 +479,6 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
 
 	m_Nicks.Remove(Nick, true);
 
-	if (GetBox() != NULL) {
-		safe_box_t NicksBox = safe_get_box(GetBox(), "Nicks");
-
-		if (NicksBox != NULL) {
-			safe_rename(NicksBox, Nick, NewNick);
-		}
-	}
-
 	NickObj->SetNick(NewNick);
 	m_Nicks.Add(NewNick, NickObj);
 }
@@ -546,7 +489,7 @@ void CChannel::RenameUser(const char *Nick, const char *NewNick) {
  * Check whether the bouncer knows the names for the channel.
  */
 bool CChannel::HasNames(void) const {
-	if (GetUser()->GetLeanMode() > 1) {
+	if (GetUser()->GetLeanMode() > 1 || !m_KeepNicklist) {
 		return false;
 	} else {
 		return m_HasNames;
@@ -578,7 +521,7 @@ const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
  */
 void CChannel::ClearModes(void) {
 	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
-		ufree(m_Modes[i].Parameter);
+		free(m_Modes[i].Parameter);
 	}
 
 	m_Modes.Clear();
@@ -666,12 +609,12 @@ bool CChannel::SendWhoReply(CClientConnection *Client, bool Simulate) const {
 		Host = strchr(Site, '@');
 
 		if (Host == NULL) {
-			ufree(Site);
+			free(Site);
 
 			return false;
 		}
 
-		strmcpy(CopyIdent, Site, min(Host - Site + 1, sizeof(CopyIdent)));
+		strmcpy(CopyIdent, Site, min((size_t)(Host - Site + 1), sizeof(CopyIdent)));
 
 		Ident = CopyIdent;
 

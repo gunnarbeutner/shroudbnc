@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -30,39 +30,33 @@ CTimer *g_ReconnectTimer = NULL;
  *
  * @param Name the name of the user
  */
-CUser::CUser(const char *Name, safe_box_t Box) {
+CUser::CUser(const char *Name) {
 	char *Out;
 	X509 *Cert;
 	FILE *ClientCert;
-	safe_box_t TrafficClientStatsBox = NULL, TrafficIRCStatsBox = NULL;
-
-	SetBox(Box);
-
-	m_ManagedMemory = 0;
-	m_MemoryManager = NULL;
 
 	m_PrimaryClient = NULL;
 	m_ClientMultiplexer = new CClientConnectionMultiplexer(this);
 	m_IRC = NULL;
-	m_Name = ustrdup(Name);
+	m_Name = strdup(Name);
 
-	CHECK_ALLOC_RESULT(m_Name, strdup) {
+	if (AllocFailed(m_Name)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	asprintf(&Out, "users/%s.conf", Name);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Config = g_Bouncer->CreateConfigObject(Out, this);
 
 	free(Out);
 
-	CHECK_ALLOC_RESULT(m_Config, new) {
+	if (AllocFailed(m_Config)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	CacheInitialize(m_ConfigCache, m_Config, "user.");
 
@@ -73,25 +67,20 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 
 	asprintf(&Out, "users/%s.log", Name);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	m_Log = new CLog(g_Bouncer->BuildPath(Out));
+	m_Log = new CLog(g_Bouncer->BuildPathConfig(Out));
 
 	free(Out);
 
-	CHECK_ALLOC_RESULT(m_Log, new) {
+	if (AllocFailed(m_Log)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
-
-	if (GetBox() != NULL) {
-		TrafficClientStatsBox = safe_put_box(GetBox(), "TrafficClientStats");
-		TrafficIRCStatsBox = safe_put_box(GetBox(), "TrafficIRCStats");
 	}
 
-	m_ClientStats = new CTrafficStats(TrafficClientStatsBox);
-	m_IRCStats = new CTrafficStats(TrafficIRCStatsBox);
+	m_ClientStats = new CTrafficStats();
+	m_IRCStats = new CTrafficStats();
 
 	m_Keys = new CKeyring(m_Config, this);
 
@@ -100,11 +89,11 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 #ifdef USESSL
 	asprintf(&Out, "users/%s.pem", Name);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	ClientCert = fopen(g_Bouncer->BuildPath(Out), "r");
+	ClientCert = fopen(g_Bouncer->BuildPathConfig(Out), "r");
 
 	free(Out);
 
@@ -125,47 +114,6 @@ CUser::CUser(const char *Name, safe_box_t Box) {
 	if (IsAdmin()) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
 	}
-
-	if (Box != NULL) {
-		safe_box_t IRCBox = safe_get_box(Box, "IRC");
-
-		if (IRCBox != NULL) {
-			CIRCConnection *IRC;
-
-			IRC = new CIRCConnection(NULL, 0, this, IRCBox, NULL);
-
-			if (IRC != NULL) {
-				SetIRCConnection(IRC);
-			}
-		}
-
-		safe_box_t ClientsBox = safe_get_box(Box, "Clients");
-
-		if (ClientsBox != NULL) {
-			safe_element_t *PreviousClient = NULL;
-			char ClientName[128];
-
-			safe_set_ro(ClientsBox, 1);
-
-			while (safe_enumerate(ClientsBox, &PreviousClient, ClientName, sizeof(ClientName)) != -1) {
-				CClientConnection *Client;
-
-				safe_box_t ClientBox = safe_get_box(ClientsBox, ClientName);
-
-				Client = new CClientConnection(INVALID_SOCKET, ClientBox);
-
-				if (Client != NULL) {
-					AddClientConnection(Client);
-
-					if (IsAdmin()) {
-						Client->Privmsg("shroudBNC seems to have died unexpectedly. However the parent process was able to successfully resurrect it.");
-					}
-				}
-			}
-
-			safe_set_ro(ClientsBox, 0);
-		}	
-	}
 }
 
 /**
@@ -174,10 +122,6 @@ CUser::CUser(const char *Name, safe_box_t Box) {
  * Destructs a user object.
  */
 CUser::~CUser(void) {
-	if (m_MemoryManager != NULL) {
-		m_MemoryManager->RealManager = NULL;
-	}
-
 	m_ClientMultiplexer->Kill("Removing user.");
 
 	if (m_IRC != NULL) {
@@ -192,7 +136,7 @@ CUser::~CUser(void) {
 
 	delete m_Keys;
 
-	ufree(m_Name);
+	free(m_Name);
 
 	if (m_BadLoginPulse != NULL) {
 		m_BadLoginPulse->Destroy();
@@ -341,11 +285,9 @@ void CUser::Attach(CClientConnection *Client) {
 
 			Channels = (CChannel **)malloc(sizeof(CChannel *) * m_IRC->GetChannels()->GetLength());
 
-			CHECK_ALLOC_RESULT(Channels, malloc) {
+			if (AllocFailed(Channels)) {
 				return;
-			} CHECK_ALLOC_RESULT_END;
-
-			mmark(Channels);
+			}
 
 			i = 0;
 			while (hash_t<CChannel *> *ChannelHash = m_IRC->GetChannels()->Iterate(i++)) {
@@ -566,18 +508,18 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 
 	CommandDup = strdup(Command);
 
-	CHECK_ALLOC_RESULT(CommandDup, strdup) {
+	if (AllocFailed(CommandDup)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	if (FakeClient == NULL) {
 		FakeClient = new CClientConnection(INVALID_SOCKET, NULL);
 
-		CHECK_ALLOC_RESULT(FakeClient, new) {
+		if (AllocFailed(FakeClient)) {
 			free(CommandDup);
 
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	}
 
 	OldOwner = FakeClient->GetOwner();
@@ -630,7 +572,6 @@ bool CUser::IsRegisteredClientConnection(CClientConnection *Client) {
 void CUser::Reconnect(void) {
 	const char *Server;
 	int Port;
-	safe_box_t IRCBox = NULL;
 
 	if (m_IRC != NULL) {
 		m_IRC->Kill("Reconnecting.");
@@ -671,15 +612,11 @@ void CUser::Reconnect(void) {
 		g_Bouncer->SetIdent(m_Name);
 	}
 
-	if (GetBox() != NULL) {
-		IRCBox = safe_put_box(GetBox(), "IRC");
-	}
+	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
 
-	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, IRCBox, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
-
-	CHECK_ALLOC_RESULT(Connection, new) {
+	if (AllocFailed(Connection)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	SetIRCConnection(Connection);
 
@@ -725,7 +662,7 @@ void CUser::ScheduleReconnect(int Delay) {
 		return;
 	}
 
-	CacheSetInteger(m_ConfigCache, quitted, 0);
+	UnmarkQuitted();
 
 	MaxDelay = Delay;
 	Interval = g_Bouncer->GetInterval();
@@ -750,13 +687,13 @@ void CUser::ScheduleReconnect(int Delay) {
 
 	if (GetServer() != NULL && GetClientConnectionMultiplexer() != NULL) {
 		char *Out;
-		asprintf(&Out, "Scheduled reconnect in %d seconds.", m_ReconnectTime - g_CurrentTime);
+		asprintf(&Out, "Scheduled reconnect in %d seconds.", (int)(m_ReconnectTime - g_CurrentTime));
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {} else {
+		if (!AllocFailed(Out)) {
 			GetClientConnectionMultiplexer()->Privmsg(Out);
 
 			free(Out);
-		} CHECK_ALLOC_RESULT_END;
+		}
 	}
 }
 
@@ -798,7 +735,7 @@ void CUser::Log(const char *Format, ...) {
 	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	CHECK_ALLOC_RESULT(Out, vasprintf) {} else {
+	if (!AllocFailed(Out)) {
 		if (GetClientConnectionMultiplexer() == NULL) {
 			m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
 		} else {
@@ -806,7 +743,7 @@ void CUser::Log(const char *Format, ...) {
 		}
 
 		free(Out);
-	} CHECK_ALLOC_RESULT_END;
+	}
 }
 
 /**
@@ -903,7 +840,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	unsigned int i;
 	const CVector<CModule *> *Modules;
 	char *Info;
-	client_t OldestClient;
+	client_t OldestClient = {};
 	time_t ThisTimestamp;
 
 	ThisTimestamp = g_CurrentTime;
@@ -922,6 +859,8 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 				OldestClient = m_Clients[i];
 			}
 		}
+
+		assert(OldestClient.Client != NULL);
 
 		OldestClient.Client->Kill("Another client logged in. Your client has been disconnected because it was the oldest existing client connection.");
 	}
@@ -947,14 +886,6 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 
 	m_PrimaryClient = Client;
 
-	if (GetBox() != NULL) {
-		safe_box_t ClientsBox = safe_put_box(GetBox(), "Clients");
-
-		if (ClientsBox != NULL) {
-			safe_move(ClientsBox, Client->GetBox(), NULL);
-		}
-	}
-
 	Client->SetTrafficStats(m_ClientStats);
 
 	if (!Silent) {
@@ -966,9 +897,9 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 
 		asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		CHECK_ALLOC_RESULT(Info, asprintf) {
+		if (AllocFailed(Info)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
 			if (m_Clients[i].Client != Client) {
@@ -1002,7 +933,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	LastClient = (m_Clients.GetLength() == 1);
 
 	if (!Silent) {
-		char *Plural = "s";
+		const char *Plural = "s";
 
 		if (m_Clients.GetLength() - 1 == 1) {
 			Plural = "";
@@ -1090,17 +1021,17 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	if (!Silent) {
 		asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		CHECK_ALLOC_RESULT(InfoPrimary, asprintf) {
+		if (AllocFailed(InfoPrimary)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		CHECK_ALLOC_RESULT(Info, asprintf) {
+		if (AllocFailed(Info)) {
 			free(Info);
 
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
 			if (m_Clients[i].Client == m_PrimaryClient) {
@@ -1269,6 +1200,16 @@ void CUser::MarkQuitted(bool RequireManualJump) {
 }
 
 /**
+ * UnmarkQuitted
+ *
+ * Tells the bouncer to automatically try to connect to a server
+ * when the user is not already connected to one.
+ */
+void CUser::UnmarkQuitted(void) {
+	CacheSetInteger(m_ConfigCache, quitted, 0);
+}
+
+/**
  * IsQuitted
  *
  * Returns whether the user is marked as quitted.
@@ -1296,13 +1237,12 @@ void CUser::LogBadLogin(sockaddr *Peer) {
 	}
 
 	BadLogin.Count = 1;
-	BadLogin.Address = (sockaddr *)umalloc(SOCKADDR_LEN(Peer->sa_family));
+	BadLogin.Address = (sockaddr *)malloc(SOCKADDR_LEN(Peer->sa_family));
 
-	CHECK_ALLOC_RESULT(BadLogin.Address, umalloc) {
+	if (AllocFailed(BadLogin.Address)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
-	mmark(BadLogin.Address);
 	memcpy(BadLogin.Address, Peer, SOCKADDR_LEN(Peer->sa_family));
 
 	m_BadLogins.Insert(BadLogin);
@@ -1340,7 +1280,7 @@ void CUser::BadLoginPulse(void) {
 			m_BadLogins[i].Count--;
 
 			if (m_BadLogins[i].Count <= 0) {
-				ufree(m_BadLogins[i].Address);
+				free(m_BadLogins[i].Address);
 				m_BadLogins.Remove(i);
 			}
 		}
@@ -1686,12 +1626,12 @@ bool CUser::PersistCertificates(void) {
 	FILE *CertFile;
 
 	asprintf(&TempFilename, "users/%s.pem", m_Name);
-	Filename = g_Bouncer->BuildPath(TempFilename);
+	Filename = g_Bouncer->BuildPathConfig(TempFilename);
 	free(TempFilename);
 
-	CHECK_ALLOC_RESULT(Filename, asprintf) {
+	if (AllocFailed(Filename)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	if (m_ClientCertificates.GetLength() == 0) {
 		unlink(Filename);
@@ -1700,9 +1640,9 @@ bool CUser::PersistCertificates(void) {
 
 		SetPermissions(Filename, S_IRUSR | S_IWUSR);
 
-		CHECK_ALLOC_RESULT(CertFile, fopen) {
+		if (AllocFailed(CertFile)) {
 			return false;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 			PEM_write_X509(CertFile, m_ClientCertificates[i]);
@@ -1807,9 +1747,9 @@ const char *CUser::GetTagString(const char *Tag) const {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		return NULL;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Value = m_Config->ReadString(Setting);
 
@@ -1854,9 +1794,9 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Modules = g_Bouncer->GetModules();
 
@@ -1885,9 +1825,9 @@ bool CUser::SetTagInteger(const char *Tag, int Value) {
 
 	asprintf(&StringValue, "%d", Value);
 
-	CHECK_ALLOC_RESULT(StringValue, asprintf) {
+	if (AllocFailed(StringValue)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	ReturnValue = SetTagString(Tag, StringValue);
 
@@ -1957,7 +1897,6 @@ const char *CUser::FormatTime(time_t Timestamp, const char *Format) const {
 	tm *Time;
 	static char Buffer[128];
 
-	Timestamp -= GetGmtOffset() * 60;
 	Time = gmtime(&Timestamp);
 
 	if (Time->tm_isdst <= 0) {
@@ -1972,50 +1911,6 @@ const char *CUser::FormatTime(time_t Timestamp, const char *Format) const {
 	strftime(Buffer, sizeof(Buffer), Format, Time);
 
 	return Buffer;
-}
-
-/**
- * SetGmtOffset
- *
- * Sets the user's GMT offset (in minutes).
- *
- * @param Offset the new offset
- */
-void CUser::SetGmtOffset(int Offset) {
-	char *Value;
-
-	asprintf(&Value, "%d", Offset % (60 * 24));
-
-	CHECK_ALLOC_RESULT(Value, asprintf) {
-		return;
-	} CHECK_ALLOC_RESULT_END;
-
-	CacheSetString(m_ConfigCache, tz, Value);
-
-	free(Value);
-}
-
-/**
- * GetGmtOffset
- *
- * Returns the user's GMT offset (in minutes).
- */
-int CUser::GetGmtOffset(void) const {
-	const char *Offset;
-
-	Offset = CacheGetString(m_ConfigCache, tz);
-
-	if (Offset == NULL) {
-		struct tm tm;
-		time_t gmt;
-
-		tm = *gmtime(&g_CurrentTime);
-		gmt = mktime(&tm);
-
-		return -(g_CurrentTime - gmt) / 60;
-	} else {
-		return atoi(Offset);
-	}
 }
 
 /**
@@ -2081,43 +1976,6 @@ void CUser::SetLeanMode(unsigned int Mode) {
  */
 unsigned int CUser::GetLeanMode(void) {
 	return CacheGetInteger(m_ConfigCache, lean);
-}
-
-bool CUser::MemoryAddBytes(size_t Bytes) {
-/*	if (rand() < RAND_MAX / 6) {
-		return false;
-	}*/
-
-	if (m_ManagedMemory + Bytes > g_Bouncer->GetResourceLimit("memory")) {
-		return false;
-	}
-
-	m_ManagedMemory += Bytes;
-
-	return true;
-}
-
-void CUser::MemoryRemoveBytes(size_t Bytes) {
-	m_ManagedMemory -= Bytes;
-}
-
-size_t CUser::MemoryGetSize(void) {
-	return m_ManagedMemory;
-}
-
-size_t CUser::MemoryGetLimit(void) {
-	return g_Bouncer->GetResourceLimit("memory");
-}
-
-mmanager_t *CUser::MemoryGetManager(void) {
-	if (m_MemoryManager == NULL) {
-		m_MemoryManager = (mmanager_t *)malloc(sizeof(mmanager_t));
-
-		m_MemoryManager->RealManager = this;
-		m_MemoryManager->ReferenceCount = 0;
-	}
-
-	return m_MemoryManager;
 }
 
 const char *CUser::SimulateWithResult(const char *Command) {

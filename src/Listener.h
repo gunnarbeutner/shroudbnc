@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -23,7 +23,7 @@
  * Implements a generic socket listener.
  */
 template<typename InheritedClass>
-class CListenerBase : public CSocketEvents, public CPersistable {
+class CListenerBase : public CSocketEvents {
 private:
 	SOCKET m_Listener; /**< the listening socket */
 
@@ -32,7 +32,7 @@ private:
 		socklen_t PeerSize = sizeof(PeerAddress);
 		SOCKET Client;
 
-		Client = safe_accept(m_Listener, (sockaddr *)PeerAddress, &PeerSize);
+		Client = accept(m_Listener, (sockaddr *)PeerAddress, &PeerSize);
 
 		if (Client != INVALID_SOCKET) {
 			Accept(Client, (sockaddr *)PeerAddress);
@@ -61,25 +61,15 @@ public:
 	 * @param BindIp the ip address used for binding the listener
 	 * @param Family the socket family of the listener (AF_INET or AF_INET6)
 	 */
-	CListenerBase(unsigned int Port, safe_box_t Box, const char *BindIp = NULL, int Family = AF_INET) {
+	CListenerBase(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) {
 		m_Listener = INVALID_SOCKET;
 
-		SetBox(Box);
-
-		if (Box != NULL) {
-			m_Listener = safe_get_integer(Box, "Socket");
-		}
-		
 		if (m_Listener == INVALID_SOCKET || m_Listener == 0) {
 			m_Listener = g_Bouncer->CreateListener(Port, BindIp, Family);
 		}
 
 		if (m_Listener != INVALID_SOCKET) {
 			g_Bouncer->RegisterSocket(m_Listener, static_cast<CSocketEvents *>(this));
-
-			if (Box != NULL) {
-				safe_put_integer(Box, "Socket", m_Listener);
-			}
 		}
 	}
 
@@ -94,7 +84,7 @@ public:
 		}
 
 		if (m_Listener != INVALID_SOCKET) {
-			safe_closesocket(m_Listener);
+			closesocket(m_Listener);
 		}
 	}
 
@@ -133,7 +123,7 @@ public:
 		sockaddr_in Address;
 		socklen_t Length = sizeof(Address);
 
-		if (m_Listener == INVALID_SOCKET || safe_getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
+		if (m_Listener == INVALID_SOCKET || getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
 			return 0;
 		} else {
 			return ntohs(Address.sin_port);
@@ -167,7 +157,7 @@ public:
 	 * @param Family socket family (AF_INET or AF_INET6)
 	 * @param SSL whether the listener should be using ssl
 	 */
-	CClientListener(unsigned int Port, safe_box_t Box, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, Box, BindIp, Family) {
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
 		m_SSL = SSL;
 	}
 
@@ -181,19 +171,12 @@ public:
 	 */
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CClientConnection *ClientObject;
-		safe_box_t ClientsBox, ClientBox = NULL;
 		unsigned long lTrue = 1;
 
-		safe_ioctlsocket(Client, FIONBIO, &lTrue);
-
-		ClientsBox = safe_put_box(NULL, "Clients");
-
-		if (ClientsBox != NULL) {
-			ClientBox = safe_put_box(ClientsBox, NULL);
-		}
+		ioctlsocket(Client, FIONBIO, &lTrue);
 
 		// destruction is controlled by the main loop
-		ClientObject = new CClientConnection(Client, ClientBox, m_SSL);
+		ClientObject = new CClientConnection(Client, m_SSL);
 	}
 
 	/**

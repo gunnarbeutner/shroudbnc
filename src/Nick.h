@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -29,16 +29,12 @@ typedef struct nicktag_s {
 	char *Value; /**< the value of the tag */
 } nicktag_t;
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCNick) CZoneObject<class CNick, 128>;
-#endif
-
 /**
  * CNick
  *
  * Represents a user on a single channel.
  */
-class SBNCAPI CNick : public CObject<CNick, CChannel>, public CZoneObject<CNick, 128> {
+class SBNCAPI CNick : public CObject<CNick, CChannel> {
 	char *m_Nick; /**< the nickname of the user */
 	char *m_Prefixes; /**< the user's prefixes (e.g. @, +) */
 	char *m_Site; /**< the ident\@host of the user */

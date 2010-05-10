@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -26,6 +26,12 @@
 typedef void (*DnsEventFunction)(void *Object, hostent *Response);
 
 class CTimer;
+class CDnsQuery;
+
+typedef struct {
+	int RefCount;
+	CDnsQuery *Query;
+} DnsEventCookie;
 
 /**
  * CDnsQuery
@@ -33,25 +39,30 @@ class CTimer;
  * A class for dns queries.
  */
 class SBNCAPI CDnsQuery {
-	friend void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity);
+	friend void GenericDnsQueryCallback(void *Cookie, int Status, int Timeouts, hostent *HostEntity);
 	friend bool DestroyDnsChannelTimer(time_t Now, void *Cookie);
+	friend class CDnsSocket;
 
+	DnsEventCookie *m_EventCookie;
 	void *m_EventObject; /**< the object used for callbacks */
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
-	ares_channel m_Channel; /**< the ares channel object */
 	time_t m_Timeout; /**< timeout for the dns query (in seconds) */
 	unsigned int m_PendingQueries; /**< number of pending queries */
 
-	void InitChannel(void);
-	void DestroyChannel(void);
+	static ares_channel m_DnsChannel; /**< the ares channel object */
+
 	void AsyncDnsEvent(int Status, hostent *Response);
+	static ares_channel GetDnsChannel(void);
 public:
 	CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout = 5);
 	~CDnsQuery(void);
+
 	void GetHostByName(const char *Host, int Family = AF_INET);
 	void GetHostByAddr(sockaddr *Address);
-	ares_channel GetChannel(void);
-	void Cleanup(void);
+
+	static DnsSocketCookie *RegisterSockets(void);
+	static void UnregisterSockets(DnsSocketCookie *Cookie);
+	static void ProcessTimeouts(void);
 };
 
 /**

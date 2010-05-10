@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -27,8 +27,8 @@
  * @param Ban the ban which is going to be destroyed
  */
 void DestroyBan(ban_t *Ban) {
-	ufree(Ban->Mask);
-	ufree(Ban->Nick);
+	free(Ban->Mask);
+	free(Ban->Nick);
 }
 
 /**
@@ -54,18 +54,18 @@ CBanlist::CBanlist(CChannel *Owner) {
 RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timestamp) {
 	ban_t *Ban;
 
-	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans")) {
+	if (!GetUser()->IsAdmin() && m_Bans.GetLength() >= g_Bouncer->GetResourceLimit("bans", GetUser())) {
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
 	}
 
-	Ban = (ban_t *)umalloc(sizeof(ban_t));
+	Ban = (ban_t *)malloc(sizeof(ban_t));
 
-	CHECK_ALLOC_RESULT(Ban, umalloc) {
-		THROW(bool, Generic_OutOfMemory, "umalloc() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	if (AllocFailed(Ban)) {
+		THROW(bool, Generic_OutOfMemory, "malloc() failed.");
+	}
 
-	Ban->Mask = ustrdup(Mask);
-	Ban->Nick = ustrdup(Nick);
+	Ban->Mask = strdup(Mask);
+	Ban->Nick = strdup(Nick);
 	Ban->Timestamp = Timestamp;
 
 	return m_Bans.Add(Mask, Ban);

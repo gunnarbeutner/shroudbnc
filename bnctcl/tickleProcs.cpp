@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -948,14 +948,6 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		g_asprintf(&Buffer, "%d", Context->GetLeanMode());
 
 		return Buffer;
-	} else if (strcasecmp(Type, "memory") == 0) {
-		g_asprintf(&Buffer, "%d", Context->MemoryGetSize());
-
-		return Buffer;
-	} else if (strcasecmp(Type, "memorylimit") == 0) {
-		g_asprintf(&Buffer, "%d", Context->MemoryGetLimit());
-
-		return Buffer;
 	} else if (strcasecmp(Type, "channelsort") == 0) {
 		return Context->GetChannelSortMode();
 	} else if (strcasecmp(Type, "sessions") == 0) {
@@ -1631,7 +1623,7 @@ int internallisten(unsigned short Port, const char* Type, const char* Options, c
 		while ((Socket = g_Bouncer->GetSocketByClass("CTclSocket", i++)) != NULL) {
 			sockaddr_in saddr;
 			socklen_t saddrSize = sizeof(saddr);
-			safe_getsockname(Socket->PollFd->fd, (sockaddr*)&saddr, &saddrSize);
+			getsockname(Socket->PollFd->fd, (sockaddr*)&saddr, &saddrSize);
 
 			if (ntohs(saddr.sin_port) == Port) {
 				Socket->Events->Destroy();
@@ -2215,58 +2207,6 @@ const char *bncgetglobaltags(void) {
 	List = Tcl_Merge(argc, const_cast<char **>(argv));
 
 	free(argv);
-
-	return List;
-}
-
-const char *getzoneinfo(const char *Zone) {
-	static char *List = NULL;
-	const CVector<CZoneInformation *> *Zones;
-	char **argv;
-
-	if (List != NULL) {
-		Tcl_Free(List);
-	}
-
-	Zones = g_Bouncer->GetZones();
-
-	if (Zone == NULL) {
-		argv = (char **)malloc(Zones->GetLength() * sizeof(char *));
-
-		for (unsigned int i = 0; i < Zones->GetLength(); i++) {
-			argv[i] = const_cast<char *>(Zones->Get(i)->GetTypeName());
-		}
-
-		List = Tcl_Merge(Zones->GetLength(), const_cast<char **>(argv));
-
-		free(argv);
-	} else {
-		bool Found = false;
-
-		for (unsigned int i = 0; i < Zones->GetLength(); i++) {
-			CZoneInformation *ThisZone = Zones->Get(i);
-
-			if (strcmp(ThisZone->GetTypeName(), Zone) == 0) {
-				argv = (char **)malloc(2 * sizeof(char *));
-				g_asprintf(&(argv[0]), "%d", ThisZone->GetTypeSize());
-				g_asprintf(&(argv[1]), "%d", ThisZone->GetCount());
-
-				List = Tcl_Merge(2, const_cast<char **>(argv));
-
-				g_free(argv[2]);
-				g_free(argv[1]);
-				g_free(argv[0]);
-				free(argv);
-
-				Found = true;
-				break;
-			}
-		}
-
-		if (!Found) {
-			throw "There is no such zone.";
-		}
-	}
 
 	return List;
 }

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 
 /**
- * CConfigFile
+ * CConfig
  *
  * Constructs a new configuration object and loads the given filename
  * if specified. If you specify NULL as the filename, a volatile
@@ -29,19 +29,19 @@
  *
  * @param Filename the filename of the configuration file, can be NULL
  */
-CConfigFile::CConfigFile(const char *Filename, CUser *Owner) {
+CConfig::CConfig(const char *Filename, CUser *Owner) {
 	SetOwner(Owner);
 
 	m_WriteLock = false;
 
-	m_Settings.RegisterValueDestructor(FreeUString);
+	m_Settings.RegisterValueDestructor(FreeString);
 
 	if (Filename != NULL) {
-		m_Filename = ustrdup(Filename);
+		m_Filename = strdup(Filename);
 
-		CHECK_ALLOC_RESULT(m_Filename, strdup) {
+		if (AllocFailed(m_Filename)) {
 			g_Bouncer->Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		m_Filename = NULL;
 	}
@@ -57,7 +57,7 @@ CConfigFile::CConfigFile(const char *Filename, CUser *Owner) {
  *
  * setting=value
  */
-bool CConfigFile::ParseConfig(void) {
+bool CConfig::ParseConfig(void) {
 	const size_t LineLength = 131072;
 	char *Line;
 	char *dupEq;
@@ -69,9 +69,9 @@ bool CConfigFile::ParseConfig(void) {
 
 	Line = (char *)malloc(LineLength);
 
-	CHECK_ALLOC_RESULT(Line, malloc) {
+	if (AllocFailed(Line)) {
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	ConfigFile = fopen(m_Filename, "r");
 
@@ -84,9 +84,7 @@ bool CConfigFile::ParseConfig(void) {
 	m_WriteLock = true;
 
 	while (feof(ConfigFile) == 0) {
-		fgets(Line, LineLength, ConfigFile);
-
-		if (Line == NULL) {
+		if (fgets(Line, LineLength, ConfigFile) == NULL) {
 			break;
 		}
 
@@ -107,15 +105,15 @@ bool CConfigFile::ParseConfig(void) {
 		if (Eq != NULL) {
 			*Eq = '\0';
 
-			dupEq = ustrdup(++Eq);
+			dupEq = strdup(++Eq);
 
-			CHECK_ALLOC_RESULT(dupEq, strdup) {
+			if (AllocFailed(dupEq)) {
 				if (g_Bouncer != NULL) {
 					g_Bouncer->Fatal();
 				} else {
 					exit(0);
 				}
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			if (m_Settings.Add(Line, dupEq) == false) {
 				LOGERROR("CHashtable::Add failed. Config could not be parsed"
@@ -140,8 +138,8 @@ bool CConfigFile::ParseConfig(void) {
  *
  * Destructs the configuration object.
  */
-CConfigFile::~CConfigFile() {
-	ufree(m_Filename);
+CConfig::~CConfig() {
+	free(m_Filename);
 }
 
 /**
@@ -152,7 +150,7 @@ CConfigFile::~CConfigFile() {
  *
  * @param Setting the configuration setting
  */
-RESULT<const char *> CConfigFile::ReadString(const char *Setting) const {
+RESULT<const char *> CConfig::ReadString(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL && Value[0] != '\0') {
@@ -170,7 +168,7 @@ RESULT<const char *> CConfigFile::ReadString(const char *Setting) const {
  *
  * @param Setting the configuration setting
  */
-RESULT<int> CConfigFile::ReadInteger(const char *Setting) const {
+RESULT<int> CConfig::ReadInteger(const char *Setting) const {
 	const char *Value = m_Settings.Get(Setting);
 
 	if (Value != NULL) {
@@ -189,7 +187,7 @@ RESULT<int> CConfigFile::ReadInteger(const char *Setting) const {
  * @param Value the new value for the setting, can be NULL to indicate that
  *              the configuration setting is to be removed
  */
-RESULT<bool> CConfigFile::WriteString(const char *Setting, const char *Value) {
+RESULT<bool> CConfig::WriteString(const char *Setting, const char *Value) {
 	RESULT<bool> ReturnValue;
 	const char *OldValue;
 
@@ -200,7 +198,7 @@ RESULT<bool> CConfigFile::WriteString(const char *Setting, const char *Value) {
 	}
 
 	if (Value != NULL) {
-		ReturnValue = m_Settings.Add(Setting, ustrdup(Value));
+		ReturnValue = m_Settings.Add(Setting, strdup(Value));
 	} else {
 		ReturnValue = m_Settings.Remove(Setting);
 	}
@@ -222,7 +220,7 @@ RESULT<bool> CConfigFile::WriteString(const char *Setting, const char *Value) {
  * @param Setting the configuration setting
  * @param Value the new value for the setting
  */
-RESULT<bool> CConfigFile::WriteInteger(const char *Setting, const int Value) {
+RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
 	char *ValueString;
 	RESULT<bool> ReturnValue;
 
@@ -232,9 +230,9 @@ RESULT<bool> CConfigFile::WriteInteger(const char *Setting, const int Value) {
 
 	asprintf(&ValueString, "%d", Value);
 
-	CHECK_ALLOC_RESULT(ValueString, asprintf) {
+	if (AllocFailed(ValueString)) {
 		THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	ReturnValue = WriteString(Setting, ValueString);
 
@@ -249,7 +247,7 @@ RESULT<bool> CConfigFile::WriteInteger(const char *Setting, const int Value) {
  * Saves changes which have been made to the configuration object to disk
  * unless the configuration object is non-persistant.
  */
-RESULT<bool> CConfigFile::Persist(void) const {
+RESULT<bool> CConfig::Persist(void) const {
 	static char *Error;
 
 	free(Error);
@@ -260,11 +258,11 @@ RESULT<bool> CConfigFile::Persist(void) const {
 
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
-	CHECK_ALLOC_RESULT(ConfigFile, fopen) {
+	if (AllocFailed(ConfigFile)) {
 		asprintf(&Error, "Could not open config file: %s", m_Filename);
 
 		THROW(bool, Generic_Unknown, Error);
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
@@ -286,7 +284,7 @@ RESULT<bool> CConfigFile::Persist(void) const {
  * Returns the filename of the configuration object. The return value will
  * be NULL if the configuration object is volatile.
  */
-const char *CConfigFile::GetFilename(void) const {
+const char *CConfig::GetFilename(void) const {
 	return m_Filename;
 }
 
@@ -297,7 +295,7 @@ const char *CConfigFile::GetFilename(void) const {
  *
  * @param Index specifies the index of the setting which is to be returned
  */
-hash_t<char *> *CConfigFile::Iterate(int Index) const {
+hash_t<char *> *CConfig::Iterate(int Index) const {
 	return m_Settings.Iterate(Index);
 }
 
@@ -306,7 +304,7 @@ hash_t<char *> *CConfigFile::Iterate(int Index) const {
  *
  * Reloads all settings from disk.
  */
-void CConfigFile::Reload(void) {
+void CConfig::Reload(void) {
 	m_Settings.Clear();
 
 	if (m_Filename != NULL) {
@@ -319,7 +317,7 @@ void CConfigFile::Reload(void) {
  *
  * Returns the number of items in the config.
  */
-unsigned int CConfigFile::GetLength(void) const {
+unsigned int CConfig::GetLength(void) const {
 	return m_Settings.GetLength();
 }
 
@@ -329,7 +327,7 @@ unsigned int CConfigFile::GetLength(void) const {
  *
  * Returns the hashtable which is used for caching the settings.
  */
-CHashtable<char *, false, 16> *CConfigFile::GetInnerHashtable(void) {
+CHashtable<char *, false, 16> *CConfig::GetInnerHashtable(void) {
 	return &m_Settings;
 }
 
@@ -338,7 +336,7 @@ CHashtable<char *, false, 16> *CConfigFile::GetInnerHashtable(void) {
  *
  * Checks whether a cached version of this Setting can be used.
  */
-bool CConfigFile::CanUseCache(void) {
+bool CConfig::CanUseCache(void) {
 	return true;
 }
 
@@ -347,6 +345,6 @@ bool CConfigFile::CanUseCache(void) {
  *
  * Destroys the config object.
  */
-void CConfigFile::Destroy(void) {
+void CConfig::Destroy(void) {
 	delete this;
 }

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -111,8 +111,8 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.2 $Revision$"
-#define INTERFACEVERSION 24
+#define BNCVERSION "1.3-ALPHA $Revision$"
+#define INTERFACEVERSION 25
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
@@ -138,7 +138,7 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 #define MAX_SOCKADDR_LEN (max(sizeof(sockaddr_in), sizeof(sockaddr_in6)))
 #else
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
-#define INADDR_LEN(Family) (sizeof(sockaddr_in6))
+#define INADDR_LEN(Family) (sizeof(in_addr))
 #define MAX_SOCKADDR_LEN (sizeof(sockaddr_in))
 #endif
 
@@ -148,36 +148,48 @@ int CompareAddress(const sockaddr *pA, const sockaddr *pB);
 const sockaddr *HostEntToSockAddr(hostent *HostEnt);
 
 int SetPermissions(const char *Filename, int Modes);
-bool RegisterZone(CZoneInformation *ZoneInformation);
 
 void FreeString(char *String);
-void FreeUString(char *String);
 
-extern "C" BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag);
-void SSL_CTX_set_safe_passwd_cb(SSL_CTX *Context);
-
-typedef struct mmanager_s {
-	CUser *RealManager;
-	unsigned int ReferenceCount;
-} mmanager_t;
-
-typedef struct {
-	size_t Size;
-	mmanager_t *Manager;
-#if defined(_DEBUG) && defined(_WIN32)
-	int Marker;
-#endif
-} mblock;
-
-#define BLOCKMARKER 0xAC3E3AB7
-
-void *mmalloc(size_t Size, CUser *Manager);
-void *mrealloc(void *Block, size_t NewSize, CUser *Manager);
-char *mstrdup(const char *String, CUser *Manager);
-void mfree(void *Block);
-
-#define GETUSER() ((typeid(this) == typeid(CUser *)) ? (CUser *)this : dynamic_cast<CObjectBase *>(this)->GetUser())
+extern "C" BIO *BIO_new_socket(SOCKET Socket, int CloseFlag);
+void SSL_CTX_set_passwd_cb(SSL_CTX *Context);
 
 #if defined(_DEBUG) && defined(_WIN32)
 LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception);
 #endif
+
+#ifdef HAVE_POLL
+#	include <sys/poll.h>
+#else
+struct pollfd {
+	int fd;
+	short events;
+	short revents;
+};
+
+#define POLLIN 001
+#define POLLPRI 002
+#define POLLOUT 004
+#define POLLNORM POLLIN
+#define POLLERR 010
+#define POLLHUP 020
+#define POLLNVAL 040
+
+int poll(struct pollfd *fds, unsigned long nfds, int timo);
+#endif
+
+int sn_getline(char *buf, size_t size);
+int sn_getline_passwd(char *buf, size_t size);
+
+bool RcFailedInternal(int ReturnCode, const char *File, int Line);
+bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
+
+/**
+ * AllocFailed
+ *
+ * Checks whether the result of an allocation function
+ * is NULL.
+ *
+ * @param Variable the variable holding the result
+ */
+#define AllocFailed(Variable) AllocFailedInternal(Variable, __FILE__, __LINE__)

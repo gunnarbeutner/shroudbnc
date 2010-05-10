@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -36,12 +36,11 @@ extern time_t g_LastReconnect;
  * @param SSL whether to use SSL
  * @param Family socket family (either AF_INET or AF_INET6)
  */
-CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, safe_box_t Box, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
+CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
 	const char *Ident;
 
 	SetRole(Role_Client);
 	SetOwner(Owner);
-	SetBox(Box);
 
 	g_LastReconnect = g_CurrentTime;
 	m_LastResponse = g_LastReconnect;
@@ -58,33 +57,25 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 
 	m_QueueHigh = new CQueue();
 
-	if (m_QueueHigh == NULL) {
-		LOGERROR("new operator failed. Could not create queue.");
-
+	if (AllocFailed(m_QueueHigh)) {
 		g_Bouncer->Fatal();
 	}
 
 	m_QueueMiddle = new CQueue();
 
-	if (m_QueueMiddle == NULL) {
-		LOGERROR("new operator failed. Could not create queue.");
-
+	if (AllocFailed(m_QueueMiddle)) {
 		g_Bouncer->Fatal();
 	}
 
 	m_QueueLow = new CQueue();
 
-	if (m_QueueLow == NULL) {
-		LOGERROR("new operator failed. Could not create queue.");
-
+	if (AllocFailed(m_QueueLow)) {
 		g_Bouncer->Fatal();
 	}
 
 	m_FloodControl = new CFloodControl();
 
-	if (m_FloodControl == NULL) {
-		LOGERROR("new operator failed. Could not create flood control object.");
-
+	if (AllocFailed(m_FloodControl)) {
 		g_Bouncer->Fatal();
 	}
 
@@ -108,27 +99,24 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 
 	m_Channels = new CHashtable<CChannel *, false, 16>();
 
-	if (m_Channels == NULL) {
-		LOGERROR("new operator failed. Could not create channel list.");
-
+	if (AllocFailed(m_Channels)) {
 		g_Bouncer->Fatal();
 	}
 
 	m_Channels->RegisterValueDestructor(DestroyObject<CChannel>);
 
 	m_ISupport = new CHashtable<char *, false, 32>();
-	m_ISupport->RegisterValueDestructor(FreeUString);
 
-	if (m_ISupport == NULL) {
-		LOGERROR("new operator failed. Could not create ISupport object.");
-
+	if (AllocFailed(m_ISupport)) {
 		g_Bouncer->Fatal();
 	}
 
-	m_ISupport->Add("CHANMODES", ustrdup("bIe,k,l"));
-	m_ISupport->Add("CHANTYPES", ustrdup("#&+"));
-	m_ISupport->Add("PREFIX", ustrdup("(ov)@+"));
-	m_ISupport->Add("NAMESX", ustrdup(""));
+	m_ISupport->RegisterValueDestructor(FreeString);
+
+	m_ISupport->Add("CHANMODES", strdup("bIe,k,l"));
+	m_ISupport->Add("CHANTYPES", strdup("#&+"));
+	m_ISupport->Add("PREFIX", strdup("(ov)@+"));
+	m_ISupport->Add("NAMESX", strdup(""));
 
 	m_FloodControl->AttachInputQueue(m_QueueHigh, 0);
 	m_FloodControl->AttachInputQueue(m_QueueMiddle, 1);
@@ -137,85 +125,6 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 	m_PingTimer = g_Bouncer->CreateTimer(180, true, IRCPingTimer, this);
 	m_DelayJoinTimer = NULL;
 	m_NickCatchTimer = NULL;
-
-	if (Host == NULL && Box != NULL) {
-		SOCKET Socket;
-		safe_box_t ISupportBox, ChannelsBox;
-		const char *Temp;
-
-		Socket = safe_get_integer(Box, "Socket");
-
-		SetSocket(Socket);
-
-		Temp = safe_get_string(Box, "Nick");
-
-		if (Temp != NULL) {
-			m_CurrentNick = ustrdup(Temp);
-		}
-
-		Temp = safe_get_string(Box, "Server");
-
-		if (Temp != NULL) {
-			m_Server = ustrdup(Temp);
-		}
-
-		Temp = safe_get_string(Box, "ServerVersion");
-
-		if (Temp != NULL) {
-			m_ServerVersion = ustrdup(Temp);
-		}
-
-		Temp = safe_get_string(Box, "ServerFeatures");
-
-		if (Temp != NULL) {
-			m_ServerFeat = ustrdup(Temp);
-		}
-
-		ISupportBox = safe_get_box(Box, "ISupport");
-
-		if (ISupportBox != NULL) {
-			char Name[128];
-			safe_element_t *Previous = NULL;
-
-			while (safe_enumerate(ISupportBox, &Previous, Name, sizeof(Name)) != -1) {
-				const char *Value = safe_get_string(ISupportBox, Name);
-
-				if (Value == NULL) {
-					continue;
-				}
-
-				m_ISupport->Add(Name, ustrdup(Value));
-			}
-		} else {
-			WriteLine("VERSION");
-		}
-
-		ChannelsBox = safe_get_box(Box, "Channels");
-
-		if (ChannelsBox != NULL) {
-			char Name[128];
-			safe_element_t *Previous = NULL;
-
-			Previous = NULL;
-
-			while (safe_enumerate(ChannelsBox, &Previous, Name, sizeof(Name)) != -1) {
-				CChannel* Channel;
-				safe_box_t ChannelBox;
-
-				ChannelBox = safe_get_box(ChannelsBox, Name);
-
-				if (ChannelBox == NULL) {
-					continue;
-				}
-
-				Channel = new CChannel(Name, this, ChannelBox);
-
-				if (Channel != NULL) {
-					m_Channels->Add(Name, Channel);
-				}
-			}
-		}
-	}
 }
 
 /**
@@ -224,15 +133,15 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
  * Destructs a connection object.
  */
 CIRCConnection::~CIRCConnection(void) {
-	ufree(m_CurrentNick);
-	ufree(m_Site);
-	ufree(m_Usermodes);
+	free(m_CurrentNick);
+	free(m_Site);
+	free(m_Usermodes);
 
 	delete m_Channels;
 
-	ufree(m_Server);
-	ufree(m_ServerVersion);
-	ufree(m_ServerFeat);
+	free(m_Server);
+	free(m_ServerVersion);
+	free(m_ServerFeat);
 
 	delete m_ISupport;
 
@@ -341,15 +250,13 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			Dup = strdup(Reply);
 
-			if (Dup == NULL) {
-				LOGERROR("strdup() failed.");
-
+			if (AllocFailed(Dup)) {
 				free(Nick);
 
 				return true;
 			}
 
-			Delim = strstr(Dup, "!");
+			Delim = strchr(Dup, '!');
 
 			if (Delim != NULL) {
 				*Delim = '\0';
@@ -400,9 +307,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		if (Channel != NULL) {
 			Nick = NickFromHostmask(Reply);
 
-			if (Nick == NULL) {
-				LOGERROR("NickFromHostmask() failed.");
-
+			if (AllocFailed(Nick)) {
 				return false;
 			}
 
@@ -422,9 +327,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			if (Channel != NULL) {
 				Nick = ::NickFromHostmask(Reply);
 
-				if (Nick == NULL) {
-					LOGERROR("NickFromHostmask() failed.");
-
+				if (AllocFailed(Nick)) {
 					return false;
 				}
 
@@ -446,13 +349,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			if (Client == NULL) {
 				char *Dup = strdup(Reply);
 
-				if (Dup == NULL) {
-					LOGERROR("strdup() failed. Could not log event.");
-
+				if (AllocFailed(Dup)) {
 					return bRet;
 				}
 
-				char *Delim = strstr(Dup, "!");
+				char *Delim = strchr(Dup, '!');
 				const char *Host;
 
 				if (Delim) {
@@ -483,24 +384,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 		}
 
-		ufree(m_CurrentNick);
-		m_CurrentNick = ustrdup(argv[2]);
+		free(m_CurrentNick);
+		m_CurrentNick = strdup(argv[2]);
 
-		ufree(m_Server);
-		m_Server = ustrdup(Reply);
-
-		if (GetBox() != NULL) {
-			safe_put_string(GetBox(), "Nick", argv[2]);
-			safe_put_string(GetBox(), "Server", Reply);
-		}
+		free(m_Server);
+		m_Server = strdup(Reply);
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
-			ufree(m_CurrentNick);
-			m_CurrentNick = ustrdup(argv[2]);
-
-			if (GetBox() != NULL) {
-				safe_put_string(GetBox(), "Nick", argv[2]);
-			}
+			free(m_CurrentNick);
+			m_CurrentNick = strdup(argv[2]);
 		}
 
 		Nick = NickFromHostmask(argv[0]);
@@ -555,10 +447,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
 			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
-
-			if (GetBox() != NULL) {
-				safe_put_integer(GetBox(), "Socket", GetSocket());
-			}
 		}
 
 /*		if (Client != NULL && Client->GetPreviousNick() != NULL && strcmp(Client->GetPreviousNick(), m_CurrentNick) != 0) {
@@ -609,25 +497,20 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	} else if (argc > 3 && iRaw == 465) {
 		g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s: %s", GetOwner()->GetUsername(), argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
-		ufree(m_ServerVersion);
-		m_ServerVersion = ustrdup(argv[3]);
+		free(m_ServerVersion);
+		m_ServerVersion = strdup(argv[3]);
 
-		ufree(m_ServerFeat);
-		m_ServerFeat = ustrdup(argv[5]);
-
-		if (GetBox() != NULL) {
-			safe_put_string(GetBox(), "ServerVersion", argv[3]);
-			safe_put_string(GetBox(), "ServerFeatures", argv[5]);
-		}
+		free(m_ServerFeat);
+		m_ServerFeat = strdup(argv[5]);
 	} else if (argc > 3 && iRaw	== 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
 
-			CHECK_ALLOC_RESULT(Dup, strdup) {
+			if (AllocFailed(Dup)) {
 				return false;
-			} CHECK_ALLOC_RESULT_END;
+			}
 
-			char *Eq = strstr(Dup, "=");
+			char *Eq = strchr(Dup, '=');
 
 			if (strcasecmp(Dup, "NAMESX") == 0) {
 				WriteLine("PROTOCTL NAMESX");
@@ -638,22 +521,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			if (Eq) {
 				*Eq = '\0';
 
-				Value = ustrdup(++Eq);
+				Value = strdup(++Eq);
 			} else {
-				Value = ustrdup("");
+				Value = strdup("");
 			}
 
 			m_ISupport->Add(Dup, Value);
-
-			safe_box_t ISupportBox;
-
-			if (GetBox() != NULL) {
-				ISupportBox = safe_put_box(GetBox(), "ISupport");
-
-				if (ISupportBox != NULL) {
-					safe_put_string(ISupportBox, Dup, Value);
-				}
-			}
 
 			free(Dup);
 		}
@@ -680,11 +553,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 
 			WasNull = (m_Usermodes != NULL) ? false : true;
-			m_Usermodes = (char *)urealloc(m_Usermodes, Length);
+			m_Usermodes = (char *)realloc(m_Usermodes, Length);
 
-			CHECK_ALLOC_RESULT(m_Usermodes, realloc) {
+			if (AllocFailed(m_Usermodes)) {
 				return false;
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			if (WasNull) {
 				m_Usermodes[0] = '\0';
@@ -765,17 +638,17 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 			nicks = ArgTokenize(argv[5]);
 
-			CHECK_ALLOC_RESULT(nicks, ArgTokenize) {
+			if (AllocFailed(nicks)) {
 				return false;
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			nickv = ArgToArray(nicks);
 
-			CHECK_ALLOC_RESULT(nickv, ArgToArray) {
+			if (AllocFailed(nickv)) {
 				ArgFree(nicks);
 
 				return false;
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			int nickc = ArgCount(nicks);
 
@@ -783,11 +656,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				char *Nick = strdup(nickv[i]);
 				char *BaseNick = Nick;
 
-				CHECK_ALLOC_RESULT(Nick, strdup) {
+				if (AllocFailed(Nick)) {
 					ArgFree(nicks);
 
 					return false;
-				} CHECK_ALLOC_RESULT_END;
+				}
 
 				StrTrim(Nick);
 
@@ -800,9 +673,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				if (BaseNick != Nick) {
 					Modes = (char *)malloc(Nick - BaseNick + 1);
 
-					CHECK_ALLOC_RESULT(Modes, malloc) {} else {
+					if (!AllocFailed(Modes)) {
 						strmcpy(Modes, BaseNick, Nick - BaseNick + 1);
-					} CHECK_ALLOC_RESULT_END;
+					}
 				}
 
 				Channel->AddUser(Nick, Modes);
@@ -847,12 +720,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			Channel->SetHasBans();
 		}
 	} else if (argc > 3 && iRaw == 396) {
-		ufree(m_Site);
-		m_Site = ustrdup(argv[3]);
+		free(m_Site);
+		m_Site = strdup(argv[3]);
 
-		if (m_Site == NULL) {
-			LOGERROR("ustrdup() failed.");
-		}
+		if (AllocFailed(m_Site)) {}
 	} else if (argc > 3 && hashRaw == hashPong && m_Server != NULL && strcasecmp(argv[3], m_Server) == 0 && m_EatPong) {
 		m_EatPong = false;
 
@@ -921,10 +792,10 @@ void CIRCConnection::ParseLine(const char *Line) {
 		if (strcasecmp(argv[0], "ping") == 0 && argc > 1) {
 			asprintf(&Out, "PONG :%s", argv[1]);
 
-			CHECK_ALLOC_RESULT(Out, asprintf) {} else {
+			if (!AllocFailed(Out)) {
 				m_QueueHigh->QueueItem(Out);
 				free(Out);
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			if (m_State != State_Connected) {
 				m_State = State_Pong;
@@ -976,39 +847,21 @@ const char *CIRCConnection::GetCurrentNick(void) const {
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CUser *User;
 	CChannel *ChannelObj;
-	safe_box_t ChannelBox = NULL;
 	bool LimitExceeded = false;
 
 	if (g_Bouncer->GetResourceLimit("channels") < m_Channels->GetLength()) {
 		LimitExceeded = true;
 		ChannelObj = NULL;
 	} else {
-		safe_box_t ChannelsBox, ChannelBox = NULL;
-
-		if (GetBox() != NULL) {
-			ChannelsBox = safe_put_box(GetBox(), "Channels");
-
-			if (ChannelsBox != NULL) {
-				ChannelBox = safe_put_box(ChannelsBox, Channel);
-			}
-		}
-
-		ChannelObj = unew CChannel(Channel, this, ChannelBox);
+		ChannelObj = new CChannel(Channel, this);
 	}
 
-	CHECK_ALLOC_RESULT(ChannelObj, unew) {
+	if (AllocFailed(ChannelObj)) {
+		User->Log("Out of memory. Removing channel (%s).", Channel);
 		WriteLine("PART %s", Channel);
 
-		User = GetUser();
-
-		if (User->MemoryIsLimitExceeded()) {
-			LimitExceeded = true;
-		}
-
-		if (LimitExceeded) {
-			User->Log("Memory/Channel limit exceeded. Removing channel (%s).", Channel);
-		}
-	} CHECK_ALLOC_RESULT_END;
+		return NULL;
+	}
 
 	m_Channels->Add(Channel, ChannelObj);
 
@@ -1056,9 +909,9 @@ void CIRCConnection::UpdateChannelConfig(void) {
 		Size = (Out ? strlen(Out) : 0) + strlen(Chan->Name) + 2;
 		Out = (char *)realloc(Out, Size);
 
-		CHECK_ALLOC_RESULT(Out, realloc) {
+		if (AllocFailed(Out)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		if (!WasNull) {
 			strmcat(Out, ",", Size);
@@ -1129,7 +982,7 @@ const char *CIRCConnection::GetISupport(const char *Feature) const {
  * @param Value new value for the feature
  */
 void CIRCConnection::SetISupport(const char *Feature, const char *Value) {
-	m_ISupport->Add(Feature, ustrdup(Value));
+	m_ISupport->Add(Feature, strdup(Value));
 }
 
 /**
@@ -1242,7 +1095,7 @@ bool CIRCConnection::IsNickMode(char Char) const {
  */
 char CIRCConnection::PrefixForChanMode(char Mode) const {
 	const char *Prefixes = GetISupport("PREFIX");
-	const char *ActualPrefixes = strstr(Prefixes, ")");
+	const char *ActualPrefixes = strchr(Prefixes, ')');
 
 	Prefixes++;
 
@@ -1337,7 +1190,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 		return;
 	}
 
-	NickEnd = strstr(Host, "!");
+	NickEnd = strchr(Host, '!');
 
 	if (NickEnd == NULL) {
 		return;
@@ -1347,9 +1200,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 
 	Copy = strdup(Host);
 
-	if (Copy == NULL) {
-		LOGERROR("strdup() failed. Could not update hostmask. (%s)", Host);
-
+	if (AllocFailed(Copy)) {
 		return;
 	}
 
@@ -1360,12 +1211,10 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	Site++;
 
 	if (m_CurrentNick && strcasecmp(Nick, m_CurrentNick) == 0) {
-		ufree(m_Site);
-		m_Site = ustrdup(Site);
+		free(m_Site);
+		m_Site = strdup(Site);
 
-		if (m_Site == NULL) {
-			LOGERROR("ustrdup() failed.");
-		}
+		if (AllocFailed(m_Site)) {}
 	}
 
 	if (GetOwner()->GetLeanMode() > 0) {
@@ -1377,7 +1226,7 @@ void CIRCConnection::UpdateHostHelper(const char *Host) {
 	int i = 0;
 
 	while (hash_t<CChannel *> *Chan = m_Channels->Iterate(i++)) {
-		if (!Chan->Value->HasNames()) {
+		if (!Chan->Value || !Chan->Value->HasNames()) {
 			continue;
 		}
 
@@ -1463,9 +1312,9 @@ void CIRCConnection::JoinChannels(void) {
 
 		DupChannels = strdup(Channels);
 
-		CHECK_ALLOC_RESULT(DupChannels, strdup) {
+		if (AllocFailed(DupChannels)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		Channel = strtok(DupChannels, ",");
 
@@ -1486,20 +1335,18 @@ void CIRCConnection::JoinChannels(void) {
 					Size = strlen(Channel) + 1;
 					ChanList = (char *)malloc(Size);
 
-					CHECK_ALLOC_RESULT(ChanList, malloc) {
+					if (AllocFailed(ChanList)) {
 						free(DupChannels);
 
 						return;
-					} CHECK_ALLOC_RESULT_END;
+					}
 
 					strmcpy(ChanList, Channel, Size);
 				} else {
 					Size = strlen(ChanList) + 1 + strlen(Channel) + 2;
 					newChanList = (char *)realloc(ChanList, Size);
 
-					if (newChanList == NULL) {
-						LOGERROR("realloc() failed. Could not join channel.");
-
+					if (AllocFailed(newChanList)) {
 						continue;
 					}
 
@@ -1614,21 +1461,17 @@ const char *CIRCConnection::GetSite(void) {
 	if (m_Site == NULL) {
 		asprintf(&Out, "%s@unknown.host", GetOwner()->GetUsername());
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			return NULL;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
-		char *Foo = mstrdup("Foo", GETUSER());
-
-		m_Site = ustrdup(Out);
+		m_Site = strdup(Out);
 
 		free(Out);
 
-		CHECK_ALLOC_RESULT(m_Site, ustrdup) {
+		if (AllocFailed(m_Site)) {
 			return NULL;
-		} CHECK_ALLOC_RESULT_END;
-
-		mmark(m_Site);
+		}
 	}
 
 	return m_Site;
@@ -1694,134 +1537,6 @@ void CIRCConnection::Destroy(void) {
 
 	delete this;
 }
-
-/**
- * Thaw
- *
- * De-persists an IRC connection object.
- *
- * @param Box the box
- * @param Owner the owner of the IRC connection
- */
-/*RESULT<CIRCConnection *> CIRCConnection::Thaw(safe_box_t Box, CUser *Owner) {
-	SOCKET Socket;
-	CIRCConnection *Connection;
-	const char *Temp;
-
-	if (Box == NULL) {
-		THROW(CIRCConnection *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Socket = safe_get_integer(Box, "Socket");
-
-	Connection = new CIRCConnection(Socket, Owner, Box, false);
-
-	Temp = safe_get_string(Box, "Nick");
-
-	if (Temp != NULL) {
-		Connection->m_CurrentNick = nstrdup(Temp);
-	}
-
-	Temp = safe_get_string(Box, "Server");
-
-	if (Temp != NULL) {
-		Connection->m_Server = nstrdup(Temp);
-	}
-
-	Temp = safe_get_string(Box, "ServerVersion");
-
-	if (Temp != NULL){
-		Connection->m_ServerVersion = nstrdup(Temp);
-	}
-
-	Temp = safe_get_string(Box, "ServerFeatures");
-
-	if (Temp != NULL) {
-		Connection->m_ServerFeat = nstrdup(Temp);
-	}
-
-	safe_box_t ISupportBox = safe_get_box(Box, "ISupportBox");
-	safe_element_t *Previous = NULL;
-
-	if (ISupportBox != NULL) {
-		char Name[128];
-
-		Connection->m_ISupport = new CHashtable<char *, false, 32>();
-
-		while (safe_enumerate(ISupportBox, &Previous, Name, sizeof(Name)) != -1) {
-			const char *Value = safe_get_string(ISupportBox, Name);
-
-			if (Value == NULL) {
-				continue;
-			}
-
-			Connection->m_ISupport->Add(Name, mstrdup(Value, Owner));
-		}
-	}
-
-	Connection->WriteLine("VERSION");
-
-	safe_box_t ChannelsBox = safe_get_box(Box, "Channels");
-
-	if (ChannelsBox != NULL) {
-		char Name[128];
-
-		Previous = NULL;
-
-		while (safe_enumerate(ChannelsBox, &Previous, Name, sizeof(Name)) != -1) {
-			CChannel* Channel;
-			safe_box_t ChannelBox;
-
-			ChannelBox = safe_get_box(ChannelsBox, Name);
-
-			if (ChannelBox == NULL) {
-				continue;
-			}
-
-			Channel = new CChannel(Name, Connection, ChannelBox);
-
-			if (Channel != NULL) {
-				Connection->m_Channels->Add(Channel->GetName(), Channel);
-			}
-		}
-	}
-
-*//*	delete Connection->m_FloodControl;
-
-	Connection->m_FloodControl = new CFloodControl();
-
-	TempBox = Box->ReadBox("~irc.queuehigh");
-
-	if (TempBox != NULL) {
-		delete Connection->m_QueueHigh;
-
-		Connection->m_QueueHigh = CQueue::Thaw(TempBox);
-	}
-
-	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueHigh, 0);
-
-	TempBox = Box->ReadBox("~irc.queuemiddle");
-
-	if (TempBox != NULL) {
-		delete Connection->m_QueueMiddle;
-
-		Connection->m_QueueMiddle = CQueue::Thaw(TempBox);
-	}
-
-	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueMiddle, 0);
-
-	TempBox = Box->ReadBox("~irc.queuelow");
-
-	if (TempBox != NULL) {
-		delete Connection->m_QueueLow;
-
-		Connection->m_QueueLow = CQueue::Thaw(TempBox);
-	}
-
-	Connection->m_FloodControl->AttachInputQueue(Connection->m_QueueLow, 0);*//*
-
-	RETURN(CIRCConnection *, Connection);
-}*/
 
 /**
  * Kill
@@ -1896,19 +1611,11 @@ void CIRCConnection::Error(int ErrorValue) {
 #endif
 	}
 
-	if (m_State == State_Connecting && GetOwner() != NULL) {
-		if (!IsConnected()) {
-			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-				g_Bouncer->LogUser(GetOwner(), "An error occurred while connecting for user %s.", GetOwner()->GetUsername());
-			} else {
-				g_Bouncer->LogUser(GetOwner(), "An error occurred while connecting for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
-			}
+	if (GetOwner() != NULL) {
+		if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
+			g_Bouncer->LogUser(GetOwner(), "You were disconnected from the IRC server due to an unknown socket error.");
 		} else {
-			if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-				g_Bouncer->LogUser(GetOwner(), "An error occurred while processing a connection for user %s.", GetOwner()->GetUsername());
-			} else {
-				g_Bouncer->LogUser(GetOwner(), "An error occurred while processing a connection for user %s: %s", GetOwner()->GetUsername(), ErrorMsg);
-			}
+			g_Bouncer->LogUser(GetOwner(), "You were disconnected from the IRC server: %s", ErrorMsg);
 		}
 	}
 

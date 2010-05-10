@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -34,14 +34,15 @@ IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
  * @param Role the role of the connection
  */
 CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
-	char Address[MAX_SOCKADDR_LEN];
-	socklen_t AddressLength = sizeof(Address);
+	char AddressBuf[MAX_SOCKADDR_LEN];
+	sockaddr *Address = (sockaddr *)AddressBuf;
+	socklen_t AddressLength = sizeof(AddressBuf);
 
 	SetRole(Role);
 
 	if (Socket != INVALID_SOCKET) {
-		safe_getsockname(Socket, (sockaddr *)Address, &AddressLength);
-		m_Family = ((sockaddr *)Address)->sa_family;
+		getsockname(Socket, Address, &AddressLength);
+		m_Family = Address->sa_family;
 	} else {
 		m_Family = AF_INET;
 	}
@@ -155,8 +156,8 @@ CConnection::~CConnection(void) {
 	free(m_BindIpCache);
 
 	if (m_Socket != INVALID_SOCKET) {
-		safe_shutdown(m_Socket, SD_BOTH);
-		safe_closesocket(m_Socket);
+		shutdown(m_Socket, SD_BOTH);
+		closesocket(m_Socket);
 	}
 	
 	free(m_HostAddr);
@@ -201,7 +202,7 @@ void CConnection::InitSocket(void) {
 		}
 
 		if (m_SSL != NULL) {
-			BIO *Bio = BIO_new_safe_socket(m_Socket, 0);
+			BIO *Bio = BIO_new_socket(m_Socket, 0);
 			SSL_set_bio(m_SSL, Bio, Bio);
 			//SSL_set_fd(m_SSL, m_Socket);
 
@@ -264,7 +265,7 @@ int CConnection::Read(bool DontProcess) {
 		return 0;
 	}
 
-	if (BufferSize == 0 && safe_getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
+	if (BufferSize == 0 && getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
 		BufferSize = 8192;
 	}
 
@@ -272,9 +273,9 @@ int CConnection::Read(bool DontProcess) {
 		Buffer = (char *)malloc(BufferSize);
 	}
 
-	CHECK_ALLOC_RESULT(Buffer, malloc) {
+	if (AllocFailed(Buffer)) {
 		return -1;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 #ifdef USESSL
 	if (IsSSL()) {
@@ -296,7 +297,7 @@ int CConnection::Read(bool DontProcess) {
 		ERR_print_errors_fp(stdout);
 	} else
 #endif
-		ReadResult = safe_recv(m_Socket, Buffer, BufferSize, 0);
+		ReadResult = recv(m_Socket, Buffer, BufferSize, 0);
 
 	if (ReadResult > 0) {
 		if (g_CurrentTime - m_InboundTrafficReset > 30) {
@@ -318,7 +319,7 @@ int CConnection::Read(bool DontProcess) {
 			return -1;
 		}
 
-		ErrorCode = safe_errno();
+		ErrorCode = errno;
 
 #ifdef _WIN32
 		if (ErrorCode == WSAEWOULDBLOCK) {
@@ -353,7 +354,7 @@ int CConnection::Read(bool DontProcess) {
  */
 int CConnection::Write(void) {
 	size_t Size;
-	int ReturnValue;
+	int ReturnValue = 0;
 
 	Size = m_SendQ->GetSize();
 
@@ -375,13 +376,13 @@ int CConnection::Write(void) {
 			}
 		} else {
 #endif
-			WriteResult = safe_send(m_Socket, m_SendQ->Peek(), Size, 0);
+			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
 #ifdef USESSL
 		}
 #endif
 
-		ReturnValue = safe_errno();
-			
+		ReturnValue = errno;
+
 		if (WriteResult > 0) {
 			if (m_Traffic) {
 				m_Traffic->AddOutbound(WriteResult);
@@ -401,8 +402,8 @@ int CConnection::Write(void) {
 #endif
 
 		if (m_Socket != INVALID_SOCKET) {
-			safe_shutdown(m_Socket, SD_BOTH);
-			safe_closesocket(m_Socket);
+			shutdown(m_Socket, SD_BOTH);
+			closesocket(m_Socket);
 		}
 	}
 
@@ -426,11 +427,9 @@ void CConnection::ProcessBuffer(void) {
 		if (RecvQ[i] == '\n' || (RecvQ[i] == '\r' && Size > i + 1 && RecvQ[i + 1] == '\n')) {
 			char *dupLine = (char *)malloc(&(RecvQ[i]) - Line + 1);
 
-			CHECK_ALLOC_RESULT(dupLine, malloc) {
+			if (AllocFailed(dupLine)) {
 				return;
-			} CHECK_ALLOC_RESULT_END;
-
-			mmark(dupLine);
+			}
 
 			memcpy(dupLine, Line, &(RecvQ[i]) - Line);
 			dupLine[&(RecvQ[i]) - Line] = '\0';
@@ -488,11 +487,12 @@ bool CConnection::ReadLine(char **Out) {
 
 		Size = NewPtr - old_recvq + 1;
 		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
-		strmcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
 
-		CHECK_ALLOC_RESULT(*Out, strdup) {
+		if (AllocFailed(*Out)) {
 			return false;
-		} CHECK_ALLOC_RESULT_END;
+		}
+
+		strmcpy(*Out, m_RecvQ->Read(NewPtr - old_recvq), Size);
 
 		return true;
 	} else {
@@ -534,9 +534,9 @@ void CConnection::WriteLine(const char *Format, ...) {
 	vasprintf(&Line, Format, Marker);
 	va_end(Marker);
 
-	CHECK_ALLOC_RESULT(Line, vasprintf) {
+	if (AllocFailed(Line)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	WriteUnformattedLine(Line);
 
@@ -771,7 +771,7 @@ int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
  */
 void CConnection::AsyncConnect(void) {
 	if (m_HostAddr != NULL && (m_BindAddr != NULL || m_BindIpCache == NULL)) {
-		sockaddr *Remote, *Bind = NULL;
+		sockaddr *Remote = NULL, *Bind = NULL;
 
 		if (m_Family == AF_INET) {
 			sockaddr_in RemoteV4, BindV4;
@@ -821,7 +821,7 @@ void CConnection::AsyncConnect(void) {
 		if (m_Socket == INVALID_SOCKET) {
 			int ErrorCode;
 
-			ErrorCode = safe_errno();
+			ErrorCode = errno;
 
 #ifndef _WIN32
 			if (ErrorCode == 0) {
@@ -862,11 +862,11 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 
 		m_HostAddr = (in_addr *)malloc(Size);
 
-		CHECK_ALLOC_RESULT(m_HostAddr, malloc) {
+		if (AllocFailed(m_HostAddr)) {
 			m_LatchedDestruction = true;
 
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
 
@@ -924,7 +924,7 @@ sockaddr *CConnection::GetRemoteAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (m_Socket != INVALID_SOCKET && safe_getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;
@@ -940,7 +940,7 @@ sockaddr *CConnection::GetLocalAddress(void) const {
 	static char Result[MAX_SOCKADDR_LEN];
 	socklen_t ResultLength = sizeof(Result);
 
-	if (m_Socket != INVALID_SOCKET && safe_getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
+	if (m_Socket != INVALID_SOCKET && getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
 		return (sockaddr *)Result;
 	} else {
 		return NULL;

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -25,48 +25,122 @@
 
 CCore *g_Bouncer = NULL;
 
-int g_ArgC;
-char **g_ArgV;
-const char *g_ModulePath;
+static int g_ArgC;
+static char **g_ArgV;
 
 #if defined(IPV6) && defined(__MINGW32__)
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif
 
-const char *sbncGetBaseName(void) {
-	static char *BasePath = NULL;
+// TODO: use argv / getcwd() at start
+const char *sbncGetConfigPath(void) {
+	static char *ConfigPath;
 
-	if (BasePath != NULL) {
-		return BasePath;
+	if (ConfigPath != NULL) {
+		return ConfigPath;
+	}
+
+	ConfigPath = (char *)malloc(MAXPATHLEN);
+
+	if (ConfigPath == NULL) {
+		fprintf(stderr, "Out of memory.\n");
+	}
+
+	if (getcwd(ConfigPath, MAXPATHLEN) == NULL) {
+		fprintf(stderr, "Could not determine current working directory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return ConfigPath;
+}
+
+// TODO: fix, this is horribly broken (e.g. bin/sbnc, without .)
+// Step 1: readlink() argv0 (UNIX)
+// Step 2: Remove exe name
+// Step 3: Check whether path is absolute -> Done
+// Step 4: prepend getcwd()
+const char *sbncGetExePath(void) {
+	static char *ExePath;
+
+	if (ExePath != NULL) {
+		return ExePath;
 	}
 
 #ifndef _WIN32
-	size_t Len;
+	char Buf[MAXPATHLEN], Cwd[MAXPATHLEN];
+	int rc;
 
-	if (g_ArgV[0][0] == '.' || g_ArgV[0][0] == '/') {
-		Len = strlen(g_ArgV[0]) + 1;
-		BasePath = (char *)malloc(Len);
-		strncpy(BasePath, g_ArgV[0], Len);
+	rc = readlink(g_ArgV[0], Buf, sizeof(Buf) - 1);
+
+	if (rc < 0) {
+		strncpy(Buf, g_ArgV[0], sizeof(Buf));
+	} else {
+		Buf[rc] = '\0';
 	}
 
-	// TODO: look through PATH env
+	// remove filename
+	char *LastSlash = strrchr(Buf, '/');
+	if (LastSlash != NULL) {
+		*LastSlash = '\0';
+	}
 
-	for (int i = strlen(BasePath) - 1; i >= 0; i--) {
-		if (BasePath[i] == '/') {
-			BasePath[i] = '\0';
+	if (Buf[0] == '/') {
+		ExePath = strdup(Buf);
 
-			break;
+		if (ExePath == NULL) {
+			fprintf(stderr, "Out of memory.\n");
+			exit(EXIT_FAILURE);
 		}
+
+		return ExePath;
+	}
+
+	if (getcwd(Cwd, sizeof(Cwd)) == NULL) {
+		fprintf(stderr, "Could not determine current working directory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (asprintf(&ExePath, "%s/%s", Cwd, Buf) < 0) {
+		perror("asprintf() failed");
+		exit(EXIT_FAILURE);
 	}
 #else
-	BasePath = (char *)malloc(MAXPATHLEN);
+	ExePath = (char *)malloc(MAXPATHLEN);
 
-	GetModuleFileName(NULL, BasePath, MAXPATHLEN);
+	if (ExePath == NULL) {
+		fprintf(stderr, "Out of memory.\n");
+		exit(EXIT_FAILURE);
+	}
 
-	PathRemoveFileSpec(BasePath);
+	GetModuleFileName(NULL, ExePath, MAXPATHLEN);
+
+	PathRemoveFileSpec(ExePath);
 #endif
 
-	return BasePath;
+	return ExePath;
+}
+
+const char *sbncGetModulePath(void) {
+	static const char *ModulePath;
+
+	if (ModulePath != NULL) {
+		return ModulePath;
+	}
+
+#ifdef _WIN32
+	const char *RelativeModulePath = ".";
+#else
+	const char *RelativeModulePath = "../lib/sbnc";
+#endif
+
+	ModulePath = strdup(sbncBuildPath(RelativeModulePath, sbncGetExePath()));
+
+	if (ModulePath == NULL) {
+		fprintf(stderr, "Out of memory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return ModulePath;
 }
 
 bool sbncIsAbsolutePath(const char *Path) {
@@ -106,10 +180,14 @@ void sbncPathCanonicalize(char *NewPath, const char *Path) {
 	}
 }
 
-const char *sbncBuildPath(const char *Filename, const char *BasePath) {
+const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 	char NewPath[MAXPATHLEN];
 	static char *Path = NULL;
 	size_t Len;
+
+	if (ExePath == NULL) {
+		return Filename;
+	}
 
 	if (sbncIsAbsolutePath(Filename)) {
 		return Filename;
@@ -117,18 +195,9 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
 
 	free(Path);
 
-	if (BasePath == NULL) {
-		BasePath = sbncGetBaseName();
-
-		// couldn't find the basepath, fall back to relative paths (i.e. Filename)
-		if (BasePath == NULL) {
-			return Filename;
-		}
-	}
-
-	Len = strlen(BasePath) + 1 + strlen(Filename) + 1;
+	Len = strlen(ExePath) + 1 + strlen(Filename) + 1;
 	Path = (char *)malloc(Len);
-	strncpy(Path, BasePath, Len);
+	strncpy(Path, ExePath, Len);
 #ifdef _WIN32
 	strncat(Path, "\\", Len);
 #else
@@ -152,16 +221,42 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath) {
 	return Path;
 }
 
-/**
- * sbncLoad
- *
- * Used by "sbncloader" to start shroudBNC
- */
-extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize, int argc, char **argv) {
-	char TclLibrary[512];
-	CConfigFile *Config;
+#ifndef _WIN32
 
-	RpcSetLPC(LPC);
+void Socket_Init(void) {}
+void Socket_Final(void) {}
+
+#else
+
+void Socket_Init(void) {
+	WSADATA wsaData;
+
+	WSAStartup(MAKEWORD(1,1), &wsaData);
+}
+
+void Socket_Final(void) {
+	WSACleanup();
+}
+
+#endif
+
+/**
+ * main
+ *
+ * Entry point for shroudBNC.
+ */
+int main(int argc, char **argv) {
+#ifdef _WIN32
+	char TclLibrary[512];
+#endif
+	CConfig *Config;
+	bool Daemonize, Usage;
+
+	g_ArgC = argc;
+	g_ArgV = argv;
+
+/*	printf("ExePath: %s\nModulePath: %s\nConfigPath: %s\n",
+		sbncGetExePath(), sbncGetModulePath(), sbncGetConfigPath());*/
 
 #ifdef _WIN32
 	_setmode(fileno(stdin), O_BINARY);
@@ -172,39 +267,48 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	Sleep(10000);
 #endif
 
-	safe_reinit();
+	Daemonize = true;
+	Usage = false;
 
-	time_t LastResurrect = safe_get_integer(NULL, "ResurrectTimestamp");
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--lpc") == 0) {
+			printf("Ignoring --lpc (which is now the default behaviour.\n");
+		}
 
-	if (LastResurrect > time(NULL) - 30) {
-		// We're dying way too often
-		safe_exit(6);
+		if (strcmp(argv[i], "--foreground") == 0) {
+			Daemonize = false;
+		}
+
+		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "/?") == 0) {
+			Usage = true;
+		}
 	}
 
-	safe_put_integer(NULL, "ResurrectTimestamp", time(NULL));
+	fprintf(stderr, "shroudBNC (version: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 
-	int ResurrectCount = safe_get_integer(NULL, "Resurrect");
-	ResurrectCount++;
-	safe_put_integer(NULL, "Resurrect", ResurrectCount);
+	if (Usage) {
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Syntax: %s [OPTION]", argv[0]);
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Options:\n");
+		fprintf(stderr, "\t--help\t\tdisplay this help and exit\n");
+		fprintf(stderr, "\t--foreground\trun in the foreground\n");
+#ifdef _WIN32
+		fprintf(stderr, "\t--install\tinstalls the win32 service\n");
+		fprintf(stderr, "\t--uninstall\tuninstalls the win32 service\n");
+#endif
 
-	g_ArgC = argc;
-	g_ArgV = argv;
-	g_ModulePath = ModulePath;
+		return 3;
+	}
 
-	chdir(sbncBuildPath("."));
+	// TODO: need to figure out working directory (either implicitly or from argv)
+	sbncGetConfigPath(); // first call sets config path to cwd
 
 #ifdef _WIN32
 	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {
 		SetEnvironmentVariable("TCL_LIBRARY", "./tcl8.4");
 	}
 #endif
-
-	safe_box_t box = safe_put_box(NULL, "hello");
-
-	safe_put_string(box, "hi", "world");
-
-	safe_remove(box, "hi");
-	safe_remove(NULL, "hello");
 
 	srand((unsigned int)time(NULL));
 
@@ -216,7 +320,7 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {
-		safe_printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
+		printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
 		return EXIT_FAILURE;
 	}
 
@@ -230,10 +334,10 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 
 	time(&g_CurrentTime);
 
-	Config = new CConfigFile(sbncBuildPath("sbnc.conf", NULL), NULL);
+	Config = new CConfig(sbncBuildPath("sbnc.conf", NULL), NULL);
 
 	if (Config == NULL) {
-		safe_printf("Fatal: could not create config object.");
+		printf("Fatal: could not create config object.");
 
 #if !defined(_WIN32 ) || defined(__MINGW32__)
 		lt_dlexit();
@@ -243,13 +347,13 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	}
 
 	// constructor sets g_Bouncer
-	new CCore(Config, argc, argv, Daemonize);
+	new CCore(Config, argc, argv);
 
 #if !defined(_WIN32)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 
-	g_Bouncer->StartMainLoop();
+	g_Bouncer->StartMainLoop(Daemonize);
 
 	if (g_Bouncer != NULL) {
 		delete g_Bouncer;
@@ -261,23 +365,5 @@ extern "C" EXPORT int sbncLoad(const char *ModulePath, bool LPC, bool Daemonize,
 	lt_dlexit();
 #endif
 
-	safe_exit(EXIT_SUCCESS);
 	exit(EXIT_SUCCESS);
-}
-
-/**
- * sbncSetStatus
- *
- * Used by "sbncloader" to notify shroudBNC of status changes.
- */
-extern "C" EXPORT bool sbncSetStatus(int Status) {
-	if (g_Bouncer != NULL) {
-		g_Bouncer->SetStatus(Status);
-	}
-
-	return true;
-}
-
-const char *sbncGetModulePath(void) {
-	return g_ModulePath;
 }

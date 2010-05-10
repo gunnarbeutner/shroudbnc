@@ -1,13 +1,10 @@
-SUBDIRS=snprintf md5 libltdl rpc sbncloader c-ares
+SUBDIRS=snprintf md5
 
-pkglibdir=$(exec_prefix)/${MOD_DIR}
-bindir=$(exec_prefix)
+bin_PROGRAMS=sbnc
 
-pkglib_LTLIBRARIES=libsbnc.la
-libsbnc_la_SOURCES=Banlist.cpp \
+sbnc_SOURCES=Banlist.cpp \
 	Cache.cpp \
 	Config.cpp \
-	ConfigModule.cpp \
 	Core.cpp \
 	Log.cpp \
 	User.cpp \
@@ -16,6 +13,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ClientConnectionMultiplexer.cpp \
 	Connection.cpp \
 	DnsEvents.cpp \
+	DnsSocket.cpp \
 	FIFOBuffer.cpp \
 	FloodControl.cpp \
 	IdentSupport.cpp \
@@ -32,7 +30,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	utility.cpp \
 	Banlist.h \
 	Config.h \
-	ConfigModule.h \
 	Core.h \
 	Log.h \
 	User.h \
@@ -42,6 +39,7 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	ClientConnectionMultiplexer.h \
 	Connection.h \
 	DnsEvents.h \
+	DnsSocket.h \
 	FIFOBuffer.h \
 	FloodControl.h \
 	Hashtable.h \
@@ -55,7 +53,6 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	Module.h \
 	Nick.h \
 	Object.h \
-	Persistable.h \
 	Result.h \
 	Queue.h \
 	sbnc.h \
@@ -67,10 +64,9 @@ libsbnc_la_SOURCES=Banlist.cpp \
 	utility.h \
 	Vector.h \
 	win32.h \
-	Zone.h \
 	fdhelper.h
-libsbnc_la_LIBADD=c-ares/libcares.la md5/libmd5.la rpc/librpc.la libltdl/libltdlc.la snprintf/libsnprintf.la @SSLLDFLAGS@
-libsbnc_la_LDFLAGS=-no-undefined
-AM_CFLAGS=-DSBNC -DRPCCLIENT @SSLCFLAGS@
-AM_CPPFLAGS=-DSBNC -DRPCCLIENT @SSLCFLAGS@
+sbnc_LDADD=../third-party/c-ares/libcares.la md5/libmd5.la snprintf/libsnprintf.la @SSLLDFLAGS@ ${LIBLTDL}
+sbnc_LDFLAGS=-export-dynamic
 
+AM_CFLAGS=-DSBNC @SSLCFLAGS@ ${LTDLINCL}
+AM_CXXFLAGS=-DSBNC @SSLCFLAGS@ ${LTDLINCL}

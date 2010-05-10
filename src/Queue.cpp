@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -48,7 +48,7 @@ RESULT<const char *> CQueue::PeekItem(void) const {
  * Retrieves the next item from the queue and removes it.
  */
 RESULT<char *> CQueue::DequeueItem(void) {
-	int Index;
+	int Index = 0;
 	queue_item_t *Item = NULL;
 	char *Line;
 
@@ -91,9 +91,9 @@ RESULT<bool> CQueue::QueueItem(const char *Line) {
 
 	Item.Line = strdup(Line);
 
-	CHECK_ALLOC_RESULT(Item.Line, strdup) {
+	if (AllocFailed(Item.Line)) {
 		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Item.Priority = 0;
 
@@ -140,52 +140,3 @@ void CQueue::Clear(void) {
 
 	m_Items.Clear();
 }
-
-/**
- * Thaw
- *
- * Depersists a queue.
- *
- * @param Box the box which is being used for storing the queue
- */
-/*RESULT<CQueue *> CQueue::Thaw(safe_box_t Box) {
-	unsigned int i = 0;
-	char *Index;
-	const char *Line;
-	CQueue *Queue;
-
-	if (Box == NULL) {
-		THROW(CQueue *, Generic_InvalidArgument, "Box cannot be NULL.");
-	}
-
-	Queue = new CQueue();
-
-	if (Queue == NULL) {
-		THROW(CQueue *, Generic_OutOfMemory, "new operator failed.");
-	}
-
-	while (true) {
-		asprintf(&Index, "%d", i);
-
-		CHECK_ALLOC_RESULT(Index, asprintf) {
-			THROW(CQueue *, Generic_OutOfMemory, "asprintf() failed.");
-		} CHECK_ALLOC_RESULT_END;
-
-		Line = Box->ReadString(Index);
-
-		if (Line == NULL) {
-			free(Index);
-
-			break;
-		}
-
-		Queue->QueueItem(Line);
-
-		free(Index);
-
-		i++;
-	}
-
-	RETURN(CQueue *, Queue);
-}
-*/

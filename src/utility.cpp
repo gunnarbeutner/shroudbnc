@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -45,9 +45,9 @@ const char *ArgTokenize(const char *Data) {
 	Size = LengthData + 2;
 	Copy = (char *)malloc(Size);
 
-	CHECK_ALLOC_RESULT(Copy, malloc) {
+	if (AllocFailed(Copy)) {
 		return NULL;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	strmcpy(Copy, Data, Size);
 	Copy[LengthData + 1] = '\0';
@@ -141,9 +141,9 @@ const char **ArgToArray(const char *Args) {
 
 	const char **ArgArray = (const char **)malloc(Count * sizeof(const char *));
 
-	CHECK_ALLOC_RESULT(ArgArray, malloc) {
+	if (AllocFailed(ArgArray)) {
 		return NULL;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	for (int i = 0; i < Count; i++) {
 		ArgArray[i] = ArgGet(Args, i + 1);
@@ -291,11 +291,11 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
 	
 	Pointers = (const char **)malloc(sizeof(const char *) * 33);
 
-	memset(Pointers, 0, sizeof(const char *) * 33);
-
-	CHECK_ALLOC_RESULT(Pointers, malloc) {
+	if (AllocFailed(Pointers)) {
 		return NULL;
-	} CHECK_ALLOC_RESULT_END;
+	}
+
+	memset(Pointers, 0, sizeof(const char *) * 33);
 
 	for (unsigned int i = 0; i < min(Tokens.Count, 32); i++) {
 		Pointers[i] = Tokens.Pointers[i] + Tokens.String;
@@ -354,13 +354,13 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 		return INVALID_SOCKET;
 	}
 
-	Socket = safe_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
-	safe_ioctlsocket(Socket, FIONBIO, &lTrue);
+	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp && *BindIp) {
 		sloc.sin_family = AF_INET;
@@ -378,7 +378,7 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 			sloc.sin_addr.s_addr = addr;
 		}
 
-		safe_bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
+		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
 	sin.sin_family = AF_INET;
@@ -396,14 +396,14 @@ SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindI
 		sin.sin_addr.s_addr = addr;
 	}
 
-	code = safe_connect(Socket, (const sockaddr *)&sin, sizeof(sin));
+	code = connect(Socket, (const sockaddr *)&sin, sizeof(sin));
 
 #ifdef _WIN32
-	if (code != 0 && safe_errno() != WSAEWOULDBLOCK) {
+	if (code != 0 && errno != WSAEWOULDBLOCK) {
 #else
-	if (code != 0 && safe_errno() != EINPROGRESS) {
+	if (code != 0 && errno != EINPROGRESS) {
 #endif
-		safe_closesocket(Socket);
+		closesocket(Socket);
 
 		return INVALID_SOCKET;
 	}
@@ -423,16 +423,16 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	unsigned long lTrue = 1;
 	int Code, Size;
 
-	SOCKET Socket = safe_socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET Socket = socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
-	safe_ioctlsocket(Socket, FIONBIO, &lTrue);
+	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp != NULL) {
-		safe_bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
+		bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
 	}
 
 #ifdef IPV6
@@ -445,14 +445,14 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	}
 #endif
 
-	Code = safe_connect(Socket, Host, Size);
+	Code = connect(Socket, Host, Size);
 
 #ifdef _WIN32
-	if (Code != 0 && safe_errno() != WSAEWOULDBLOCK) {
+	if (Code != 0 && errno != WSAEWOULDBLOCK) {
 #else
-	if (Code != 0 && safe_errno() != EINPROGRESS) {
+	if (Code != 0 && errno != EINPROGRESS) {
 #endif
-		safe_closesocket(Socket);
+		closesocket(Socket);
 
 		return INVALID_SOCKET;
 	}
@@ -472,7 +472,7 @@ char *NickFromHostmask(const char *Hostmask) {
 	char *Copy;
 	const char *ExclamationMark;
 
-	ExclamationMark = strstr(Hostmask, "!");
+	ExclamationMark = strchr(Hostmask, '!');
 
 	if (ExclamationMark == NULL) {
 		return NULL;
@@ -511,14 +511,14 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 	SOCKET Listener;
 	hostent *hent;
 
-	Listener = safe_socket(Family, SOCK_STREAM, IPPROTO_TCP);
+	Listener = socket(Family, SOCK_STREAM, IPPROTO_TCP);
 
 	if (Listener == INVALID_SOCKET) {
 		return INVALID_SOCKET;
 	}
 
 #ifndef _WIN32
-	safe_setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
+	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 #endif
 
 #ifdef IPV6
@@ -537,7 +537,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 		saddr = (sockaddr *)&sin6;
 
 #if !defined(_WIN32) && defined(IPV6_V6ONLY)
-		safe_setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
+		setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
 #endif
 	}
 #endif
@@ -572,14 +572,14 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 #endif
 	}
 
-	if (safe_bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
-		safe_closesocket(Listener);
+	if (bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
+		closesocket(Listener);
 
 		return INVALID_SOCKET;
 	}
 
-	if (safe_listen(Listener, SOMAXCONN) != 0) {
-		safe_closesocket(Listener);
+	if (listen(Listener, SOMAXCONN) != 0) {
+		closesocket(Listener);
 
 		return INVALID_SOCKET;
 	}
@@ -617,11 +617,20 @@ const char *UtilMd5(const char *String, const char *Salt) {
 
 	if (Salt != NULL) {
 		SaltAndResult = (char *)malloc(strlen(Salt) + 50);
+
+		if (AllocFailed(SaltAndResult)) {
+			g_Bouncer->Fatal();
+		}
+
 		strmcpy(SaltAndResult, Salt, strlen(Salt) + 50);
 		strmcat(SaltAndResult, "$", strlen(Salt) + 50);
 		StringPtr = SaltAndResult + strlen(SaltAndResult);
 	} else {
 		StringPtr = SaltAndResult = (char *)malloc(50);
+
+		if (AllocFailed(SaltAndResult)) {
+			g_Bouncer->Fatal();
+		}
 	}
 
 	for (int i = 0; i < 16; i++) {
@@ -671,6 +680,11 @@ const char *SaltFromHash(const char *Hash) {
 	free(Salt);
 
 	Salt = (char *)malloc(HashSign - Hash + 1);
+
+	if (AllocFailed(Salt)) {
+		g_Bouncer->Fatal();
+	}
+
 	strmcpy(Salt, Hash, HashSign - Hash + 1);
 
 	return Salt;
@@ -737,7 +751,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 
 	Command = (command_t *)malloc(sizeof(command_t));
 
-	if (Command == NULL) {
+	if (AllocFailed(Command)) {
 		LOGERROR("malloc() failed. Could not add command.");
 
 		return;
@@ -810,9 +824,9 @@ const char *IpToString(sockaddr *Address) {
 	sockaddr *Copy = (sockaddr *)malloc(SOCKADDR_LEN(Address->sa_family));
 	DWORD BufferLength = sizeof(Buffer);
 
-	CHECK_ALLOC_RESULT(Copy, malloc) {
+	if (AllocFailed(Copy)) {
 		return "<out of memory>";
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	memcpy(Copy, Address, SOCKADDR_LEN(Address->sa_family));
 
@@ -925,27 +939,6 @@ int SetPermissions(const char *Filename, int Modes) {
 }
 
 /**
- * RegisterZone
- *
- * Registers a zone information object.
- *
- * @param ZoneInformation the zone information object
- */
-bool RegisterZone(CZoneInformation *ZoneInformation) {
-	if (g_Bouncer != NULL) {
-		g_Bouncer->RegisterZone(ZoneInformation);
-
-		return true;
-	} else {
-#ifdef _DEBUG
-		safe_printf("Error in RegisterZone!\n");
-#endif
-
-		return false;
-	}
-}
-
-/**
  * FreeString
  *
  * Calls free() on a string.
@@ -954,17 +947,6 @@ bool RegisterZone(CZoneInformation *ZoneInformation) {
  */
 void FreeString(char *String) {
 	free(String);
-}
-
-/**
- * FreeUString
- *
- * Calls ufree() on a string.
- *
- * @param String the string
- */
-void FreeUString(char *String) {
-	ufree(String);
 }
 
 /**
@@ -1026,9 +1008,9 @@ LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
 		Line.SizeOfStruct = sizeof(Line);
 
 		if (SymGetLineFromAddr64(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, 0, &Line)) {
-			safe_printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
+			printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
 		} else {
-			safe_printf("Hit guard page at %s.\n", Symbol->Name);
+			printf("Hit guard page at %s.\n", Symbol->Name);
 		}
 
 		return EXCEPTION_CONTINUE_EXECUTION;
@@ -1073,223 +1055,7 @@ void mstacktrace(void) {
 		}
 	}
 }
-
-void mmark(void *Block) {
-	DWORD Dummy;
-	mblock *RealBlock;
-
-	if (Block == NULL) {
-		return;
-	}
-
-	RealBlock = (mblock *)Block - 1;
-
-	VirtualProtect(RealBlock, sizeof(mblock), PAGE_READWRITE, &Dummy);
-
-	if (RealBlock->Marker != BLOCKMARKER) {
-		return;
-	}
-
-	VirtualProtect(RealBlock, sizeof(mblock) + RealBlock->Size, PAGE_READWRITE, &Dummy);
-}
 #endif
-
-void mclaimmanager(mmanager_t *Manager) {
-	Manager->ReferenceCount++;
-}
-
-void mreleasemanager(mmanager_t *Manager) {
-	if (Manager != NULL) {
-		Manager->ReferenceCount--;
-
-		if (Manager->ReferenceCount == 0) {
-			free(Manager);
-		}
-	}
-}
-
-void *mmalloc(size_t Size, CUser *Owner) {
-#if defined(_DEBUG) && defined(_WIN32)
-	DWORD Dummy;
-#endif
-	mblock *Block;
-
-	if (Owner != NULL && !Owner->MemoryAddBytes(Size)) {
-		return NULL;
-	}
-
-#if defined(_DEBUG) && defined(_WIN32)
-	Block = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + Size, MEM_RESERVE |  MEM_COMMIT, PAGE_READWRITE);
-#else
-	Block = (mblock *)malloc(sizeof(mblock) + Size);
-#endif
-
-	if (Block == NULL) {
-		if (Owner != NULL) {
-			Owner->MemoryRemoveBytes(Size);
-		}
-
-		return NULL;
-	}
-
-	Block->Size = Size;
-
-	if (Owner != NULL) {
-		Block->Manager = Owner->MemoryGetManager();
-	 	mclaimmanager(Block->Manager);
-	} else {
-		Block->Manager = NULL;
-	}
-
-#if defined(_DEBUG) && defined(_WIN32)
-	Block->Marker = BLOCKMARKER;
-#endif
-
-#if defined(_DEBUG) && defined(_WIN32)
-/*	if (Block->Manager != NULL && g_Bouncer != NULL) {
-		safe_printf("%p = mmalloc(%d, %p), mgr refcount = %d\n", Block + 1, Size, Owner, Owner->MemoryGetManager()->ReferenceCount);
-	}*/
-
-	VirtualProtect(Block, sizeof(mblock) + Size, PAGE_READWRITE | PAGE_GUARD, &Dummy);
-
-//	mstacktrace();
-#endif
-
-	return Block + 1;
-}
-
-void mfree(void *Block) {
-	mblock *RealBlock;
-	unsigned int DebugRefCount;
-
-	if (Block == NULL) {
-		return;
-	}
-
-	mmark(Block);
-
-	RealBlock = (mblock *)Block - 1;
-
-#if defined(_DEBUG) && defined(_WIN32)
-	if (RealBlock->Marker == 0xaaaaaaaa) {
-		DebugBreak();
-	}
-
-	if (RealBlock->Marker != BLOCKMARKER) {
-		free(Block);
-
-		return;
-	}
-#endif
-
-#ifdef _DEBUG
-	RealBlock->Marker = 0xaaaaaaaa;
-#endif
-
-	if (RealBlock->Manager != NULL) {
-		DebugRefCount = RealBlock->Manager->ReferenceCount - 1;
-	}
-
-	if (RealBlock->Manager != NULL && RealBlock->Manager->RealManager != NULL) {
-		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
-
-		mreleasemanager(RealBlock->Manager);
-	}
-
-#if defined(_DEBUG) && defined(_WIN32)
-/*	if (RealBlock->Manager != NULL && g_Bouncer != NULL) {
-		safe_printf("mfree(%p), mgr refcount = %d\n", Block, DebugRefCount);
-	}*/
-
-	VirtualFree(RealBlock, 0, MEM_RELEASE);
-
-//	mstacktrace();
-#else
-	free(RealBlock);
-#endif
-}
-
-void *mrealloc(void *Block, size_t NewSize, CUser *Manager) {
-#if defined(_DEBUG) && defined(_WIN32)
-	DWORD Dummy;
-#endif
-	mblock *RealBlock, *NewRealBlock;
-	mmanager_t *NewManager;
-
-	if (Block == NULL) {
-		return mmalloc(NewSize, Manager);
-	}
-
-	RealBlock = (mblock *)Block - 1;
-
-	mmark(Block);
-
-	if (RealBlock->Manager->RealManager != NULL) {
-		RealBlock->Manager->RealManager->MemoryRemoveBytes(RealBlock->Size);
-	}
-
-	if (Manager != NULL && !Manager->MemoryAddBytes(NewSize)) {
-		return NULL;
-	}
-
-#if defined(_DEBUG) && defined(_WIN32)
-	NewRealBlock = (mblock *)VirtualAlloc(NULL, sizeof(mblock) + NewSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
-	if (NewRealBlock != NULL) {
-		memcpy(NewRealBlock, RealBlock, sizeof(mblock) + RealBlock->Size);
-		mfree(Block);
-	}
-#else
-	NewRealBlock = (mblock *)realloc(RealBlock, sizeof(mblock) + NewSize);
-#endif
-
-	if (NewRealBlock == NULL) {
-		if (Manager != NULL) {
-			Manager->MemoryRemoveBytes(RealBlock->Size);
-		}
-
-		return NULL;
-	}
-
-	NewRealBlock->Size = NewSize;
-
-	NewManager = Manager->MemoryGetManager();
-	mclaimmanager(NewManager);
-
-	mreleasemanager(NewRealBlock->Manager);
-	NewRealBlock->Manager = NewManager;
-
-#if defined(_DEBUG) && defined(_WIN32)
-	NewRealBlock->Marker = BLOCKMARKER;
-
-	VirtualProtect(NewRealBlock, sizeof(mblock) + NewSize, PAGE_READWRITE | PAGE_GUARD, &Dummy);
-
-/*	if (NewManager != NULL && g_Bouncer != NULL) {
-		safe_printf("%p = mrealloc(%p, %d, %p), mgr refcount = %d\n", NewRealBlock + 1, Block, NewSize, Manager, NewManager->ReferenceCount);
-	}*/
-//	mstacktrace();
-#endif
-
-	return NewRealBlock + 1;
-}
-
-char *mstrdup(const char *String, CUser *Manager) {
-	size_t Length;
-	char *Copy;
-
-	Length = strlen(String);
-
-	Copy = (char *)mmalloc(Length + 1, Manager);
-
-	if (Copy == NULL) {
-		return NULL;
-	}
-
-	mmark(Copy);
-	memcpy(Copy, String, Length + 1);
-
-	return Copy;
-}
 
 extern "C" struct pollfd *registersocket(int Socket) {
 	pollfd *PollFd = NULL;
@@ -1347,7 +1113,9 @@ extern "C" void unregistersocket(int Socket) {
 const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 	static char Buffer[MAX_SOCKADDR_LEN];
 	sockaddr_in *sin4;
+#ifdef IPV6
 	sockaddr_in6 *sin6;
+#endif
 
 	memset(Buffer, 0, sizeof(Buffer));
 
@@ -1373,11 +1141,11 @@ const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 }
 
 bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length) {
-	socklen_t *LengthPtr = &Length;
-
 	memset(SockAddr, 0, Length);
 
 #ifdef _WIN32
+	socklen_t *LengthPtr = &Length;
+
 	if (WSAStringToAddress(const_cast<char *>(IP), Family, NULL, SockAddr, LengthPtr) != 0) {
 		return false;
 	}
@@ -1394,44 +1162,36 @@ bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length
 	return true;
 }
 
-static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
+static int passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 	int Result;
 	char ConfirmBuffer[128];
-
-	if (g_Bouncer->IsDaemonized()) {
-		LOGERROR("Password is required to decrypt the SSL certificate. However shroudBNC"
-			" is daemonized and cannot read user input. Re-run shroudBNC with --foreground please.");
-		g_Bouncer->Fatal();
-
-		return -1;
-	}
 
 	if (Size > 128) {
 		Size = 128; // nobody could seriously have such a passphrase...
 	}
 
 	do {
-		safe_print("PEM passphrase: ");
+		printf("PEM passphrase: ");
 		
-		Result = safe_scan_passwd(Buffer, Size);
-		safe_print("\n");
+		Result = sn_getline_passwd(Buffer, Size);
+		printf("\n");
 		
 		if (Result <= 0) {
 			return 0;
 		}
 
 		if (RWFlag == 1) {
-			safe_print("Confirm PEM passphrase: ");
+			printf("Confirm PEM passphrase: ");
 			
-			Result = safe_scan_passwd(ConfirmBuffer, sizeof(ConfirmBuffer));
-			safe_print("\n");
+			Result = sn_getline_passwd(ConfirmBuffer, sizeof(ConfirmBuffer));
+			printf("\n");
 
 			if (Result <= 0) {
 				return 0;
 			}
 
 			if (strcmp(Buffer, ConfirmBuffer) != 0) {
-				safe_print("The passwords you specified do not match. Please try again.\n");
+				printf("The passwords you specified do not match. Please try again.\n");
 
 				continue;
 			}
@@ -1443,8 +1203,189 @@ static int safe_passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 	return strlen(Buffer);
 }
 
-void SSL_CTX_set_safe_passwd_cb(SSL_CTX *Context) {
+void SSL_CTX_set_passwd_cb(SSL_CTX *Context) {
 #ifdef USESSL
-	SSL_CTX_set_default_passwd_cb(Context, safe_passwd_cb);
+	SSL_CTX_set_default_passwd_cb(Context, passwd_cb);
 #endif
+}
+
+#ifndef HAVE_POLL
+/*
+ *  prt
+ *
+ *  Copyright 1994 University of Washington
+ *
+ *  Permission is hereby granted to copy this software, and to
+ *  use and redistribute it, except that this notice may not be
+ *  removed.  The University of Washington does not guarantee
+ *  that this software is suitable for any purpose and will not
+ *  be held liable for any damage it may cause.
+ */
+
+/*
+**  emulate poll() for those platforms (Ultrix) that don't have it.
+*/
+int poll(pollfd *fds, unsigned long nfds, int timo) {
+	struct timeval timeout, *toptr;
+	fd_set ifds, ofds, efds, *ip, *op;
+	int i, rc, n;
+
+	FD_ZERO(&ifds);
+	FD_ZERO(&ofds);
+	FD_ZERO(&efds);
+
+	for (i = 0, n = -1, op = ip = 0; i < (int)nfds; ++i) {
+		fds[i].revents = 0;
+
+		if (fds[i].fd < 0) {
+			continue;
+		}
+
+		if (fds[i].fd > n) {
+			n = fds[i].fd;
+		}
+
+		if (fds[i].events & (POLLIN|POLLPRI)) {
+			ip = &ifds;
+			FD_SET(fds[i].fd, ip);
+		}
+
+		if (fds[i].events & POLLOUT) {
+			op = &ofds;
+			FD_SET(fds[i].fd, op);
+		}
+
+		FD_SET(fds[i].fd, &efds);
+	}
+
+	if (timo < 0) {
+		toptr = 0;
+	} else {
+		toptr = &timeout;
+		timeout.tv_sec = timo / 1000;
+		timeout.tv_usec = (timo - timeout.tv_sec * 1000) * 1000;
+	}
+
+	rc = select(++n, ip, op, &efds, toptr);
+
+	if (rc <= 0) {
+		return rc;
+	}
+
+	for (i = 0, n = 0; i < (int)nfds; ++i) {
+		if (fds[i].fd < 0) {
+			continue;
+		}
+
+		if (fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fds[i].fd, &ifds)) {
+			fds[i].revents |= POLLIN;
+		}
+
+		if (fds[i].events & POLLOUT && FD_ISSET(fds[i].fd, &ofds)) {
+			fds[i].revents |= POLLOUT;
+		}
+
+		if (FD_ISSET(fds[i].fd, &efds)) {
+			/* Some error was detected ... should be some way to know. */
+			fds[i].revents |= POLLHUP;
+		}
+	}
+
+	return rc;
+}
+#endif /* !HAVE_POLL */
+
+int sn_getline(char *buf, size_t size) {
+	if (fgets(buf, size, stdin) == NULL) {
+		return -1;
+	}
+
+
+	for (char *p = buf + strlen(buf); p >= buf; p--) {
+		if (*p == '\r' || *p == '\n') {
+			*p = '\0';
+
+			break;
+		}
+	}
+
+	return 1;
+}
+
+int sn_getline_passwd(char *buf, size_t size) {
+	bool term_succeeded;
+	int result;
+#ifndef _WIN32
+	termios term_old, term_new;
+#else
+	HANDLE StdInHandle;
+	DWORD ConsoleModes, NewConsoleModes;
+#endif
+
+#ifndef _WIN32
+	if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
+		memcpy(&term_new, &term_old, sizeof(term_old));
+		term_new.c_lflag &= ~ECHO;
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &term_new);
+
+		term_succeeded = true;
+	} else {
+		term_succeeded = false;
+	}
+#else
+	StdInHandle = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (StdInHandle != INVALID_HANDLE_VALUE) {
+		if (GetConsoleMode(StdInHandle, &ConsoleModes)) {
+			NewConsoleModes = ConsoleModes & ~ENABLE_ECHO_INPUT;
+
+			SetConsoleMode(StdInHandle,NewConsoleModes);
+
+			term_succeeded = true;
+		} else {
+			term_succeeded = false;
+		}
+	}
+#endif
+
+	result = sn_getline(buf, size);
+
+	if (term_succeeded) {
+#ifndef _WIN32
+		tcsetattr(STDIN_FILENO, TCSANOW, &term_old);
+#else
+		SetConsoleMode(StdInHandle, ConsoleModes);
+#endif
+	}
+
+	return result;
+}
+
+bool CheckResult(int ReturnCode, const char *Function) {
+	if (ReturnCode >= 0) {
+			return false;
+	}
+
+	if (g_Bouncer != NULL) {
+		LOGERROR("%s failed.\n", Function);
+	} else {
+		printf("%s failed.\n", Function);
+	}
+
+	return true;
+}
+
+bool AllocFailedInternal(const void *Ptr, const char *File, int Line) {
+	if (Ptr != NULL) {
+		return false;
+	}
+
+	if (g_Bouncer != NULL) {
+		LOGERROR("Allocation in %s:%d failed: %s\n", File, Line, strerror(errno));
+	} else {
+		printf("Allocation in %s:%d failed: %s\n", File, Line, strerror(errno));
+	}
+
+	return true;
 }

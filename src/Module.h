@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -71,4 +71,6 @@ public:
 
 	void TagModified(const char *Tag, const char *Value);
 	void UserTagModified(const char *Tag, const char *Value);
+
+	bool MainLoop(void);
 };

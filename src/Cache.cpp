@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -25,9 +25,9 @@ int CacheGetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, co
 	if (Prefix != NULL) {
 		asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		CHECK_ALLOC_RESULT(OptionName, asprintf) {
+		if (AllocFailed(OptionName)) {
 			return 0;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		OptionName = const_cast<char *>(Option);
 	}
@@ -47,9 +47,9 @@ const char *CacheGetStringReal(CConfig *Config, const char **CacheValue, const c
 	if (Prefix != NULL) {
 		asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		CHECK_ALLOC_RESULT(OptionName, asprintf) {
+		if (AllocFailed(OptionName)) {
 			return NULL;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		OptionName = const_cast<char *>(Option);
 	}
@@ -69,9 +69,9 @@ void CacheSetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, i
 	if (Prefix != NULL) {
 		asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		CHECK_ALLOC_RESULT(OptionName, asprintf) {
+		if (AllocFailed(OptionName)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		OptionName = const_cast<char *>(Option);
 	}
@@ -91,9 +91,9 @@ void CacheSetStringReal(CConfig *Config, const char **CacheValue, const char *Op
 	if (Prefix != NULL) {
 		asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		CHECK_ALLOC_RESULT(OptionName, asprintf) {
+		if (AllocFailed(OptionName)) {
 			return;
-		} CHECK_ALLOC_RESULT_END;
+		}
 	} else {
 		OptionName = const_cast<char *>(Option);
 	}

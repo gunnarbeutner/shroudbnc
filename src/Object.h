@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -18,27 +18,6 @@
  *******************************************************************************/
 
 class CUser;
-
-class SBNCAPI CMemoryManager {
-public:
-	virtual bool MemoryAddBytes(size_t Bytes) = 0;
-	virtual void MemoryRemoveBytes(size_t Bytes) = 0;
-	virtual size_t MemoryGetSize(void) = 0;
-	virtual size_t MemoryGetLimit(void) = 0;
-
-	/**
-	 * MemoryIsLimitExceeded
-	 *
-	 * Checks whether the current memory limit is exceeded.
-	 */
-	virtual bool MemoryIsLimitExceeded(void) {
-		if (MemoryGetSize() > MemoryGetLimit()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-};
 
 /**
  * CObjectBase
@@ -101,11 +80,11 @@ public:
  * Base class for all ownable objects.
  */
 template<typename ObjectType, typename OwnerType>
-class SBNCAPI CObject : public CObjectBase, public CPersistable {
+class SBNCAPI CObject : public CObjectBase {
 protected:
-	CObject(void) : CObjectBase(), CPersistable() {}
+	CObject(void) : CObjectBase() {}
 
-	CObject(OwnerType *Owner) : CObjectBase(), CPersistable() {
+	CObject(OwnerType *Owner) : CObjectBase() {
 		SetOwner(Owner);
 	}
 
@@ -155,18 +134,9 @@ public:
 	 */
 	void SetOwner(OwnerType *Owner) {
 		CUser *User;
-		CMemoryManager *Manager;
 
 		if (GetOwnerBase() != NULL) {
 			User = GetUser();
-
-			Manager = dynamic_cast<CMemoryManager *>(User);
-
-			if (Manager != NULL) {
-				Manager->MemoryRemoveBytes(sizeof(ObjectType));
-			} else if (User != NULL) {
-				safe_printf("!?!\n");
-			}
 		}
 
 		if (typeid(Owner) == typeid(CUser *)) {
@@ -176,14 +146,6 @@ public:
 		} else {
 			SetOwnerBase(dynamic_cast<CObjectBase *>(Owner));
 			User = GetUser();
-		}
-
-		if (User != NULL) {
-			Manager = dynamic_cast<CMemoryManager *>(User);
-
-			if (Manager != NULL) {
-				Manager->MemoryAddBytes(sizeof(ObjectType));
-			}
 		}
 	}
 };

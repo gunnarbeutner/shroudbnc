@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -42,7 +42,7 @@ int ChannelNameCompare(const void *p1, const void *p2);
  *
  * Represents an IRC channel.
  */
-class SBNCAPI CChannel : public CObject<CChannel, CIRCConnection>, public CZoneObject<CChannel, 128> {
+class SBNCAPI CChannel : public CObject<CChannel, CIRCConnection> {
 private:
 	char *m_Name; /**< the name of the channel */
 	time_t m_Creation; /**< the time when the channel was created */
@@ -58,9 +58,9 @@ private:
 	time_t m_TopicStamp; /**< the time when the topic was set */
 	int m_HasTopic; /**< indicates whether there is actually a topic */
 
-	CHashtable<CNick *, false, 64> m_Nicks; /**< a list of nicks who are
-												 on this channel */
+	CHashtable<CNick *, false, 64> m_Nicks; /**< a list of nicks who are on this channel */
 	bool m_HasNames; /**< indicates whether m_Nicks is valid */
+	bool m_KeepNicklist; /**< whether to keep the nicklist in memory */
 
 	CBanlist *m_Banlist; /**< a list of bans for this channel */
 	bool m_HasBans; /**< indicates whether the banlist is known */
@@ -70,7 +70,7 @@ private:
 
 public:
 #ifndef SWIG
-	CChannel(const char *Name, CIRCConnection *Owner, safe_box_t Box);
+	CChannel(const char *Name, CIRCConnection *Owner);
 	virtual ~CChannel(void);
 #endif
 

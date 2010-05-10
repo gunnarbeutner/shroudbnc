@@ -1,3 +1,0 @@
-LIBRARY uptime
-EXPORTS
-	bncGetObject

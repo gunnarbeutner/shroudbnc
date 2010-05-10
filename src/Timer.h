@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -19,16 +19,12 @@
 
 typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCTimer) CZoneObject<class CTimer, 64>;
-#endif
-
 /**
  * CTimer
  *
  * A timer.
  */
-class SBNCAPI CTimer : public CZoneObject<CTimer, 512> {
+class SBNCAPI CTimer {
 private:
 	TimerProc m_Proc; /**< the function which should be called for the timer */
 	void *m_Cookie; /**< a user-specific pointer which is passed to the timer's function */

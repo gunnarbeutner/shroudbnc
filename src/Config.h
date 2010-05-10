@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -20,35 +20,9 @@
 /**
  * CConfig
  *
- * Base class for configuration classes
- */
-struct CConfig {
-public:
-	virtual void Destroy(void) = 0;
-
-	virtual RESULT<int> ReadInteger(const char *Setting) const = 0;
-	virtual RESULT<const char *> ReadString(const char *Setting) const = 0;
-
-	virtual RESULT<bool> WriteInteger(const char *Setting, const int Value) = 0;
-	virtual RESULT<bool> WriteString(const char *Setting, const char *Value) = 0;
-
-	virtual const char *GetFilename(void) const = 0;
-
-	virtual void Reload(void) = 0;
-
-	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void) = 0;
-	virtual hash_t<char *> *Iterate(int Index) const = 0;
-	virtual unsigned int GetLength(void) const = 0;
-
-	virtual bool CanUseCache(void) = 0;
-};
-
-/**
- * CConfig
- *
  * Represents a shroudBNC configuration file
  */
-class SBNCAPI CConfigFile : public CConfig, public CZoneObject<CConfigFile, 128>, public CObject<CConfigFile, CUser> {
+class SBNCAPI CConfig : public CObject<CConfig, CUser> {
 private:
 	CHashtable<char *, false, 16> m_Settings; /**< the settings */
 
@@ -61,8 +35,8 @@ private:
 
 public:
 #ifndef SWIG
-	CConfigFile(const char *Filename, CUser *Owner);
-	virtual ~CConfigFile(void);
+	CConfig(const char *Filename, CUser *Owner);
+	virtual ~CConfig(void);
 #endif
 
 	virtual void Destroy(void);

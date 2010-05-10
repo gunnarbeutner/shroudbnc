@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -24,7 +24,7 @@ struct CConfig;
  *
  * A keyring used for storing channel keys.
  */
-class SBNCAPI CKeyring : public CZoneObject<CKeyring, 16>, public CObject<CKeyring, CUser> {
+class SBNCAPI CKeyring : public CObject<CKeyring, CUser> {
 private:
 	CConfig *m_Config; /**< the config object for storing the channel keys */
 

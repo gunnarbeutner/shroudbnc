@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -97,6 +97,16 @@ class CTclSupport : public CModuleImplementation {
 		const char * const*argv;
 
 		CModuleImplementation::Init(Root);
+
+		if (symlink(g_Bouncer->BuildPathModule("scripts"), "scripts") < 0 && errno != EEXIST) {
+			g_Bouncer->Log("Could not create 'scripts' symlink.\n");
+			g_Bouncer->Fatal();
+		}
+
+		if (mkdir("customscripts") < 0 && errno != EEXIST) {
+			g_Bouncer->Log("Could not create 'customscripts' directory.\n");
+			g_Bouncer->Fatal();
+		}
 
 		g_Bouncer = Root;
 
@@ -316,6 +326,12 @@ class CTclSupport : public CModuleImplementation {
 		argv[0] = Tag;
 		argv[1] = Value;
 		CallBinds(Type_SetUserTag, NULL, NULL, 2, argv);
+	}
+
+	bool MainLoop(void) {
+		if (Tcl_DoOneEvent(TCL_ALL_EVENTS | TCL_DONT_WAIT))
+			return true;
+		return false;
 	}
 public:
 	void RehashInterpreter(void) {

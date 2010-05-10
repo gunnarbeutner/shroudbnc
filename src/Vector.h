@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -107,8 +107,6 @@ public:
 				THROW(bool, Generic_OutOfMemory, "Out of memory.");
 			}
 
-			mmark(NewList);
-
 			m_List = NewList;
 		} else {
 			if (m_AllocCount > m_Count) {
@@ -146,8 +144,6 @@ public:
 		NewList = (Type *)realloc(m_List, sizeof(Type) * --m_Count);
 
 		if (NewList != NULL || m_Count == 0) {
-			mmark(NewList);
-
 			m_List = NewList;
 		}
 
@@ -237,8 +233,6 @@ public:
 			THROW(bool, Generic_OutOfMemory, "malloc() failed.");
 		}
 
-		mmark(m_List);
-
 		memcpy(m_List, List, sizeof(Type) * Count);
 		m_Count = Count;
 		m_ReadOnly = false;
@@ -300,7 +294,6 @@ template class SBNCAPI CVector<queue_item_t>;
 template class SBNCAPI CVector<char *>;
 template class SBNCAPI CVector<CDnsQuery *>;
 template class SBNCAPI CVector<additionallistener_t>;
-template class SBNCAPI CVector<CZoneInformation *>;
 template class SBNCAPI CVector<CUser *>;
 template class SBNCAPI CVector<pollfd>;
 template class SBNCAPI CVector<badlogin_t>;

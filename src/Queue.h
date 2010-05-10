@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -35,13 +35,9 @@ typedef struct queue_item_s {
  *
  * A queue which can be used for storing strings.
  */
-class SBNCAPI CQueue : public CZoneObject<CQueue, 64> {
+class SBNCAPI CQueue {
 	CVector<queue_item_t> m_Items; /**< the items which are in the queue */
 public:
-#ifndef SWIG
-	static RESULT<CQueue *> Thaw(safe_box_t Box);
-#endif
-
 	RESULT<char *> DequeueItem(void);
 	RESULT<const char *> PeekItem(void) const;
 	RESULT<bool> QueueItem(const char *Line);

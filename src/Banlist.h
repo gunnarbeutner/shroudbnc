@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -33,7 +33,7 @@ typedef struct ban_s {
  *
  * a list of bans
  */
-class SBNCAPI CBanlist : public CZoneObject<CBanlist, 128>, public CObject<CBanlist, CChannel> {
+class SBNCAPI CBanlist : public CObject<CBanlist, CChannel> {
 private:
 	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
 

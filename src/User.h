@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -55,7 +55,6 @@ DEFINE_CACHE(User)
 	DEFINE_OPTION_STRING(suspend);
 	DEFINE_OPTION_STRING(spass);
 	DEFINE_OPTION_STRING(ident);
-	DEFINE_OPTION_STRING(tz);
 	DEFINE_OPTION_STRING(awaymessage);
 	DEFINE_OPTION_STRING(channelsort);
 END_DEFINE_CACHE
@@ -102,9 +101,9 @@ bool UserReconnectTimer(time_t Now, void *User);
 	if (Value != NULL) { \
 		DupValue = strdup(Value); \
 		\
-		CHECK_ALLOC_RESULT(DupValue, strdup) { \
+		if (AllocFailed(DupValue)) { \
 			return; \
-		} CHECK_ALLOC_RESULT_END; \
+		} \
 		\
 	} \
 	\
@@ -118,7 +117,7 @@ bool UserReconnectTimer(time_t Now, void *User);
  *
  * A bouncer user.
  */
-class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager, public CPersistable {
+class SBNCAPI CUser {
 	friend class CCore;
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
@@ -149,15 +148,12 @@ class SBNCAPI CUser : public CZoneObject<CUser, 128>, public CMemoryManager, pub
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
-	size_t m_ManagedMemory;
-	mmanager_t *m_MemoryManager;
-
 	bool PersistCertificates(void);
 
 	void BadLoginPulse(void);
 public:
 #ifndef SWIG
-	CUser(const char *Name, safe_box_t Box);
+	CUser(const char *Name);
 	virtual ~CUser(void);
 #endif
 
@@ -217,6 +213,7 @@ public:
 	int GetPort(void) const;
 
 	void MarkQuitted(bool RequireManualJump = false);
+	void UnmarkQuitted(void);
 	int IsQuitted(void) const;
 
 	void LoadEvent(void);
@@ -299,10 +296,4 @@ public:
 
 	void SetChannelSortMode(const char *Mode);
 	const char *GetChannelSortMode(void) const;
-
-	bool MemoryAddBytes(size_t Bytes);
-	void MemoryRemoveBytes(size_t Bytes);
-	size_t MemoryGetSize(void);
-	size_t MemoryGetLimit(void);
-	mmanager_t *MemoryGetManager(void);
 };

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -38,7 +38,6 @@ class CTimer;
 
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
-%template(CZoneObjectCIRCConnection) CZoneObject<class CIRCConnection, 16>;
 #endif
 
 #ifndef SWIG
@@ -52,7 +51,7 @@ bool NickCatchTimer(time_t Now, void *IRCConnection);
  *
  * An IRC connection.
  */
-class SBNCAPI CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser>, public CZoneObject<CIRCConnection, 16> {
+class SBNCAPI CIRCConnection : public CConnection, public CObject<CIRCConnection, CUser> {
 private:
 #ifndef SWIG
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
@@ -110,7 +109,7 @@ private:
 	void AsyncBindIpDnsFinished(hostent *Response);
 public:
 #ifndef SWIG
-	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, safe_box_t Box, const char *BindIp, bool SSL = false, int Family = AF_INET);
+	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 #endif
 

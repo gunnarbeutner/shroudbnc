@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -97,9 +97,9 @@ void CFIFOBuffer::Optimize(void) {
 
 	NewBuffer = (char *)ResizeBuffer(NULL, 0, m_BufferSize - m_Offset);
 
-	CHECK_ALLOC_RESULT(NewBuffer, ResizeBuffer) {
+	if (AllocFailed(NewBuffer)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	memcpy(NewBuffer, m_Buffer + m_Offset, m_BufferSize - m_Offset);
 
@@ -169,9 +169,9 @@ RESULT<bool> CFIFOBuffer::Write(const char *Data, size_t Size) {
 	tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
 		m_BufferSize + Size);
 
-	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
+	if (AllocFailed(tempBuffer)) {
 		THROW(bool, Generic_OutOfMemory, "ResizeBuffer() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Data, Size);
@@ -193,9 +193,9 @@ RESULT<bool> CFIFOBuffer::WriteUnformattedLine(const char *Line) {
 	char *tempBuffer = (char *)ResizeBuffer(m_Buffer, m_BufferSize,
 		m_BufferSize + Length + 2);
 
-	CHECK_ALLOC_RESULT(tempBuffer, ResizeBuffer) {
+	if (AllocFailed(tempBuffer)) {
 		THROW(bool, Generic_OutOfMemory, "ResizeBuffer() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Buffer = tempBuffer;
 	memcpy(m_Buffer + m_BufferSize, Line, Length);

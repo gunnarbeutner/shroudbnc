@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -84,34 +84,34 @@
 
 #undef shutdown
 
-static int safe_sock_new(BIO *bio);
-static int safe_sock_free(BIO *bio);
-static int safe_sock_read(BIO *bio, char *Buffer, int Len);
-static int safe_sock_write(BIO *bio, const char *Buffer, int Len);
-static long safe_sock_ctrl(BIO *bio, int cmd, long num, void *ptr);
-static int safe_sock_puts(BIO *bio, const char *String);
+static int sock_new(BIO *bio);
+static int sock_free(BIO *bio);
+static int sock_read(BIO *bio, char *Buffer, int Len);
+static int sock_write(BIO *bio, const char *Buffer, int Len);
+static long sock_ctrl(BIO *bio, int cmd, long num, void *ptr);
+static int sock_puts(BIO *bio, const char *String);
 
-static BIO_METHOD methods_safe_sockp = {
+static BIO_METHOD methods_sockp = {
 	BIO_TYPE_SOCKET,
-	"safe_socket",
-	safe_sock_write,
-	safe_sock_read,
-	safe_sock_puts,
+	"socket",
+	sock_write,
+	sock_read,
+	sock_puts,
 	NULL, /* gets */
-	safe_sock_ctrl,
-	safe_sock_new,
-	safe_sock_free,
+	sock_ctrl,
+	sock_new,
+	sock_free,
 	NULL
 };
 
-BIO_METHOD *BIO_s_safe_sock(void) {
-	return &methods_safe_sockp;
+BIO_METHOD *BIO_s_sock(void) {
+	return &methods_sockp;
 }
 
-BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag) {
+BIO *BIO_new_socket(SOCKET Socket, int CloseFlag) {
 	BIO *Result;
 
-	Result = BIO_new(BIO_s_safe_sock());
+	Result = BIO_new(BIO_s_sock());
 
 	if (Result == NULL) {
 		return NULL;
@@ -122,7 +122,7 @@ BIO *BIO_new_safe_socket(SOCKET Socket, int CloseFlag) {
 	return Result;
 }
 
-static int safe_sock_new(BIO *bio) {
+static int sock_new(BIO *bio) {
 	bio->init = 0;
 	bio->num = 0;
 	bio->ptr = NULL;
@@ -131,15 +131,15 @@ static int safe_sock_new(BIO *bio) {
 	return 1;
 }
 
-static int safe_sock_free(BIO *bio) {
+static int sock_free(BIO *bio) {
 	if (bio == NULL) {
 		return 0;
 	}
 
 	if (bio->shutdown) {
 		if (bio->init) {
-			safe_shutdown(bio->num, SD_BOTH);
-			safe_closesocket(bio->num);
+			shutdown(bio->num, SD_BOTH);
+			closesocket(bio->num);
 		}
 
 		bio->init = 0;
@@ -149,12 +149,12 @@ static int safe_sock_free(BIO *bio) {
 	return 1;
 }
 
-static int safe_sock_read(BIO *bio, char *Buffer, int Len) {
+static int sock_read(BIO *bio, char *Buffer, int Len) {
 	int Result = 0;
 
 	if (Buffer != NULL) {
-		Result = safe_recv(bio->num, Buffer, Len, 0);
-		WSASetLastError(safe_errno());
+		Result = recv(bio->num, Buffer, Len, 0);
+		WSASetLastError(errno);
 		BIO_clear_retry_flags(bio);
 
 		if (Result <= 0) {
@@ -167,11 +167,11 @@ static int safe_sock_read(BIO *bio, char *Buffer, int Len) {
 	return Result;
 }
 
-static int safe_sock_write(BIO *bio, const char *Buffer, int Len) {
+static int sock_write(BIO *bio, const char *Buffer, int Len) {
 	int Result;
 
-	Result = safe_send(bio->num, Buffer, Len, 0);
-	WSASetLastError(safe_errno());
+	Result = send(bio->num, Buffer, Len, 0);
+	WSASetLastError(errno);
 	BIO_clear_retry_flags(bio);
 
 	if (Result <= 0) {
@@ -183,7 +183,7 @@ static int safe_sock_write(BIO *bio, const char *Buffer, int Len) {
 	return Result;
 }
 
-static long safe_sock_ctrl(BIO *bio, int cmd, long num, void *ptr) {
+static long sock_ctrl(BIO *bio, int cmd, long num, void *ptr) {
 	long Result=1;
 	int *ip;
 
@@ -198,7 +198,7 @@ static long safe_sock_ctrl(BIO *bio, int cmd, long num, void *ptr) {
 			Result = 0;
 			break;
 		case BIO_C_SET_FD:
-			safe_sock_free(bio);
+			sock_free(bio);
 			bio->num = *((int *)ptr);
 			bio->shutdown = (int)num;
 			bio->init = 1;
@@ -236,11 +236,11 @@ static long safe_sock_ctrl(BIO *bio, int cmd, long num, void *ptr) {
 	return Result;
 }
 
-static int safe_sock_puts(BIO *bio, const char *String) {
+static int sock_puts(BIO *bio, const char *String) {
 	int Len, Result;
 
 	Len = strlen(String);
-	Result = safe_sock_write(bio, String, Len);
+	Result = sock_write(bio, String, Len);
 
 	return Len;
 }

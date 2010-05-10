@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -19,7 +19,6 @@
 
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
-%template(CZoneObjectCClientConnection) CZoneObject<class CClientConnection, 16>;
 #endif
 
 #ifndef SWIG
@@ -44,8 +43,7 @@ typedef struct clientdata_s {
  *
  * A class for clients of the IRC bouncer.
  */
-class SBNCAPI CClientConnection : public CConnection, public CObject<CClientConnection, CUser>,
-	public CZoneObject<CClientConnection, 16> {
+class SBNCAPI CClientConnection : public CConnection, public CObject<CClientConnection, CUser> {
 private:
 	char *m_Nick; /**< the current nick of the user */
 	char *m_Password; /**< the password which was supplied by the user */
@@ -58,10 +56,12 @@ private:
 	char *m_QuitReason; /**< reason why the client was removed */
 	CTimer* m_PingTimer; /**< timer for sending regular PINGs to the client */
 	time_t m_LastResponse; /**< last response from the client */
+	CTimer* m_DestroyClientTimer; /**< used by Hijack() to destroy the client connection */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
 	friend bool ClientPingTimer(time_t Now, void *ClientConnection);
+	friend bool DestroyClientTimer(time_t Now, void *ClientConnection);
 
 protected:
 	CTimer *m_AuthTimer; /**< used for timing out unauthed connections */
@@ -80,11 +80,11 @@ private:
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
-	CClientConnection(safe_box_t Box);
+	CClientConnection();
 
 public:
 #ifndef SWIG
-	CClientConnection(SOCKET Socket, safe_box_t Box, bool SSL = false);
+	CClientConnection(SOCKET Socket, bool SSL = false);
 	virtual ~CClientConnection(void);
 #endif
 
@@ -162,7 +162,6 @@ public:
 		m_Data = (char *)malloc(m_Queue.GetSize() + 1);
 
 		if (m_Data != NULL) {
-			mmark(m_Data);
 			memcpy(m_Data, m_Queue.Peek(), m_Queue.GetSize());
 			m_Data[m_Queue.GetSize()] = '\0';
 		}

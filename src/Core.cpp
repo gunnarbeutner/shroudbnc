@@ -1,6 +1,6 @@
-/*******************************************************************************
+/******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -38,8 +38,8 @@ static struct reslimit_s {
 	const char *Resource;
 	unsigned int DefaultLimit;
 } g_ResourceLimits[] = {
-		{ "memory", 10 * 1024 * 1024 },
 		{ "channels", 50 },
+		{ "nicks", 5000 },
 		{ "bans", 100 },
 		{ "keys", 50 },
 		{ "clients", 5 },
@@ -55,12 +55,10 @@ static struct reslimit_s {
  * @param argc argument counts
  * @param argv program arguments
  */
-CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
+CCore::CCore(CConfig *Config, int argc, char **argv) {
 	int i;
 	char *Out;
 	const char *Hostmask;
-
-	m_Daemonized = Daemonized;
 
 	m_OriginalConfig = Config;
 
@@ -70,8 +68,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 
 	CacheInitialize(m_ConfigCache, Config, "system.");
 
-	char *SourcePath = strdup(BuildPath("sbnc.log"));
-	rename(SourcePath, BuildPath("sbnc.log.old"));
+	char *SourcePath = strdup(BuildPathConfig("sbnc.log"));
+	rename(SourcePath, BuildPathConfig("sbnc.log.old"));
 	free(SourcePath);
 
 	m_PollFds.Preallocate(SFD_SETSIZE);
@@ -79,7 +77,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 	m_Log = new CLog("sbnc.log", true);
 
 	if (m_Log == NULL) {
-		safe_printf("Log system could not be initialized. Shutting down.");
+		printf("Log system could not be initialized. Shutting down.");
 
 		exit(EXIT_FAILURE);
 	}
@@ -95,41 +93,21 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 
 	m_Ident = new CIdentSupport();
 
-	const char *ConfigModule = m_Config->ReadString("system.configmodule");
-
-	m_ConfigModule = new CConfigModule(ConfigModule);
-
-	CResult<bool> Error = m_ConfigModule->GetError();
-
-	if (IsError(Error)) {
-		LOGERROR(GETDESCRIPTION(Error));
-
-		Fatal();
-	}
-
-	m_ConfigModule->Init(this);
-
-	m_Config = m_ConfigModule->CreateConfigObject("sbnc.conf", NULL);
+	m_Config = new CConfig("sbnc.conf", NULL);
 	CacheInitialize(m_ConfigCache, m_Config, "system.");
 
 	const char *Users;
 	CUser *User;
 
 	if ((Users = m_Config->ReadString("system.users")) == NULL) {
-		if (IsDaemonized()) {
-			LOGERROR("Configuration file does not contain any users. please re-run shroudBNC with --foreground");
-
-			Fatal();
-		}
-
 		if (!MakeConfig()) {
 			LOGERROR("Configuration file could not be created.");
 
 			Fatal();
 		}
 
-		safe_print("Configuration has been successfully saved. Please restart shroudBNC now.\n");
-		safe_exit(0);
+		printf("Configuration has been successfully saved. Please restart shroudBNC now.\n");
+		exit(EXIT_SUCCESS);
 	}
 
 	const char *Args;
@@ -137,27 +115,20 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 
 	Args = ArgTokenize(Users);
 
-	CHECK_ALLOC_RESULT(Args, ArgTokenize) {
+	if (AllocFailed(Args)) {
 		Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Count = ArgCount(Args);
 
-	safe_box_t UsersBox = safe_put_box(NULL, "Users");
-
 	for (i = 0; i < Count; i++) {
-		safe_box_t UserBox = NULL;
 		const char *Name = ArgGet(Args, i + 1);
 
-		if (UsersBox != NULL) {
-			UserBox = safe_put_box(UsersBox, Name);
-		}
+		User = new CUser(Name);
 
-		User = new CUser(Name, UserBox);
-
-		CHECK_ALLOC_RESULT(User, new) {
+		if (AllocFailed(User)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		m_Users.Add(Name, User);
 	}
@@ -175,9 +146,9 @@ CCore::CCore(CConfig *Config, int argc, char **argv, bool Daemonized) {
 	while (true) {
 		asprintf(&Out, "system.hosts.host%d", i++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		Hostmask = m_Config->ReadString(Out);
 
@@ -226,18 +197,12 @@ CCore::~CCore(void) {
 		m_Config->Destroy();
 	}
 
-	delete m_ConfigModule;
-
 	CTimer::DestroyAllTimers();
 
 	delete m_Log;
 	delete m_Ident;
 
 	g_Bouncer = NULL;
-
-	for (i = 0; i < m_Zones.GetLength(); i++) {
-		m_Zones[i]->PerformLeakCheck();
-	}
 
 	for (i = 0; i < m_HostAllows.GetLength(); i++) {
 		free(m_HostAllows[i]);
@@ -249,13 +214,11 @@ CCore::~CCore(void) {
  *
  * Executes shroudBNC's main loop.
  */
-void CCore::StartMainLoop(void) {
+void CCore::StartMainLoop(bool ShouldDaemonize) {
 	unsigned int i;
+        const CVector<CModule *> *Modules;
 
 	time(&g_CurrentTime);
-
-	int argc = m_Args.GetLength();
-	char **argv = m_Args.GetList();
 
 	int Port = CacheGetInteger(m_ConfigCache, port);
 #ifdef USESSL
@@ -272,11 +235,7 @@ void CCore::StartMainLoop(void) {
 
 	if (m_Listener == NULL) {
 		if (Port != 0) {
-			safe_box_t ListenerBox;
-
-			ListenerBox = safe_put_box(NULL, "Listener");
-
-			m_Listener = new CClientListener(Port, ListenerBox, BindIp, AF_INET);
+			m_Listener = new CClientListener(Port, BindIp, AF_INET);
 		} else {
 			m_Listener = NULL;
 		}
@@ -284,11 +243,7 @@ void CCore::StartMainLoop(void) {
 
 	if (m_ListenerV6 == NULL) {
 		if (Port != 0) {
-			safe_box_t ListenerBox;
-
-			ListenerBox = safe_put_box(NULL, "ListenerV6");
-
-			m_ListenerV6 = new CClientListener(Port, ListenerBox, BindIp, AF_INET6);
+			m_ListenerV6 = new CClientListener(Port, BindIp, AF_INET6);
 
 			if (m_ListenerV6->IsValid() == false) {
 				delete m_ListenerV6;
@@ -303,11 +258,7 @@ void CCore::StartMainLoop(void) {
 #ifdef USESSL
 	if (m_SSLListener == NULL) {
 		if (SSLPort != 0) {
-			safe_box_t ListenerBox;
-
-			ListenerBox = safe_put_box(NULL, "ListenerSSL");
-
-			m_SSLListener = new CClientListener(SSLPort, ListenerBox, BindIp, AF_INET, true);
+			m_SSLListener = new CClientListener(SSLPort, BindIp, AF_INET, true);
 		} else {
 			m_SSLListener = NULL;
 		}
@@ -315,11 +266,7 @@ void CCore::StartMainLoop(void) {
 
 	if (m_SSLListenerV6 == NULL) {
 		if (SSLPort != 0) {
-			safe_box_t ListenerBox;
-
-			ListenerBox = safe_put_box(NULL, "ListenerSSLV6");
-
-			m_SSLListenerV6 = new CClientListener(SSLPort, ListenerBox, BindIp, AF_INET6, true);
+			m_SSLListenerV6 = new CClientListener(SSLPort, BindIp, AF_INET6, true);
 
 			if (m_SSLListenerV6->IsValid() == false) {
 				delete m_SSLListenerV6;
@@ -337,17 +284,17 @@ void CCore::StartMainLoop(void) {
 	SSL_METHOD *SSLMethod = SSLv23_method();
 
 	m_SSLContext = SSL_CTX_new(SSLMethod);
-	SSL_CTX_set_safe_passwd_cb(m_SSLContext);
+	SSL_CTX_set_passwd_cb(m_SSLContext);
 
 	m_SSLClientContext = SSL_CTX_new(SSLMethod);
-	SSL_CTX_set_safe_passwd_cb(m_SSLClientContext);
+	SSL_CTX_set_passwd_cb(m_SSLClientContext);
 
 	SSL_CTX_set_mode(m_SSLContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_mode(m_SSLClientContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
 	g_SSLCustomIndex = SSL_get_ex_new_index(0, (void *)"CConnection*", NULL, NULL, NULL);
 
-	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, BuildPath("sbnc.key"), SSL_FILETYPE_PEM)) {
+	if (!SSL_CTX_use_PrivateKey_file(m_SSLContext, BuildPathConfig("sbnc.key"), SSL_FILETYPE_PEM)) {
 		if (SSLPort != 0) {
 			Log("Could not load private key (sbnc.key).");
 			ERR_print_errors_fp(stdout);
@@ -360,7 +307,7 @@ void CCore::StartMainLoop(void) {
 		SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 	}
 
-	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPath("sbnc.crt"))) {
+	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPathConfig("sbnc.crt"))) {
 		if (SSLPort != 0) {
 			Log("Could not load public key (sbnc.crt).");
 			ERR_print_errors_fp(stdout);
@@ -406,7 +353,7 @@ void CCore::StartMainLoop(void) {
 	LoadModule("..\\bnctcl\\Debug\\bnctcl.dll");
 #endif
 #else
-	LoadModule("./libbnctcl.la");
+	LoadModule("libbnctcl.la");
 #endif
 
 	char *Out;
@@ -415,9 +362,9 @@ void CCore::StartMainLoop(void) {
 	while (true) {
 		asprintf(&Out, "system.modules.mod%d", i++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		const char *File = m_Config->ReadString(Out);
 
@@ -437,6 +384,18 @@ void CCore::StartMainLoop(void) {
 		User->Value->LoadEvent();
 	}
 
+	if (ShouldDaemonize) {
+#ifndef _WIN32
+		fprintf(stderr, "Daemonizing... ");
+
+		if (Daemonize()) {
+			fprintf(stderr, "DONE\n");
+		} else {
+			fprintf(stderr, "FAILED\n");
+		}
+#endif
+	}
+
 	int m_ShutdownLoop = 5;
 
 	time_t Last = 0;
@@ -454,6 +413,7 @@ void CCore::StartMainLoop(void) {
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection *IRC;
+		        Modules = g_Bouncer->GetModules();
 
 			if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
 				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
@@ -497,6 +457,8 @@ void CCore::StartMainLoop(void) {
 
 		SleepInterval = Best - g_CurrentTime;
 
+		DnsSocketCookie *DnsCookie = CDnsQuery::RegisterSockets();
+
 		for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
 			if (SocketCursor->PollFd->fd == INVALID_SOCKET) {
 				continue;
@@ -513,7 +475,15 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
-		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE)) {
+		bool ModulesBusy = false;
+
+	        for (unsigned int j = 0; j < Modules->GetLength(); j++) {
+        	        if ((*Modules)[j]->MainLoop()) {
+                	        ModulesBusy = true;
+	                }
+	        }
+
+		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE) || ModulesBusy) {
 			SleepInterval = 1;
 		}
 
@@ -523,40 +493,23 @@ void CCore::StartMainLoop(void) {
 			interval.tv_sec = 3;
 		}
 
-		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
-			ares_channel Channel = m_DnsQueries[i]->GetChannel();
-
-			if (Channel != NULL) {
-				ares_fds(Channel);
-				ares_timeout(Channel, NULL, &interval);
-			}
-		}
-
 		time(&Last);
 
 #ifdef _DEBUG
-		//safe_printf("poll: %d seconds\n", SleepInterval);
+		//printf("poll: %d seconds\n", SleepInterval);
 #endif
 
 #if defined(_WIN32) && defined(_DEBUG)
 		DWORD TimeDiff = GetTickCount();
 #endif
 
-		int ready = safe_poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
+		int ready = poll(m_PollFds.GetList(), m_PollFds.GetLength(), interval.tv_sec * 1000);
 
 #if defined(_WIN32) && defined(_DEBUG)
 		TickCount += GetTickCount() - TimeDiff;
 #endif
 
 		time(&g_CurrentTime);
-
-		for (unsigned int i = 0; i < m_DnsQueries.GetLength(); i++) {
-			ares_channel Channel = m_DnsQueries[i]->GetChannel();
-
-			ares_process(Channel);
-
-			m_DnsQueries[i]->Cleanup();
-		}
 
 		if (ready > 0) {
 			for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
@@ -570,7 +523,7 @@ void CCore::StartMainLoop(void) {
 
 						ErrorCode = 0;
 
-						if (safe_getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
+						if (getsockopt(PollFd->fd, SOL_SOCKET, SO_ERROR, (char *)&ErrorCode, &ErrorCodeLength) != -1) {
 							if (ErrorCode != 0) {
 								Events->Error(ErrorCode);
 							}
@@ -602,14 +555,12 @@ void CCore::StartMainLoop(void) {
 			}
 		} else if (ready == -1) {
 #ifndef _WIN32
-			if (safe_errno() != EBADF && safe_errno() != 0) {
+			if (errno != EBADF && errno != 0) {
 #else
-			if (safe_errno() != WSAENOTSOCK) {
+			if (errno != WSAENOTSOCK) {
 #endif
 				continue;
 			}
-
-			link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 			m_OtherSockets.Lock();
 
@@ -622,7 +573,7 @@ void CCore::StartMainLoop(void) {
 				pfd.fd = SocketCursor->PollFd->fd;
 				pfd.events = POLLIN | POLLOUT | POLLERR;
 
-				int code = safe_poll(&pfd, 1, 0);
+				int code = poll(&pfd, 1, 0);
 
 				if (code == -1) {
 					SocketCursor->Events->Error(-1);
@@ -631,11 +582,14 @@ void CCore::StartMainLoop(void) {
 			}
 		}
 
+		CDnsQuery::ProcessTimeouts();
+		CDnsQuery::UnregisterSockets(DnsCookie);
+
 #if defined(_WIN32) && defined(_DEBUG)
 		DWORD Ticks = GetTickCount() - TickCount;
 
 		if (Ticks > 50) {
-			safe_printf("Spent %d msec in the main loop.\n", Ticks);
+			printf("Spent %d msec in the main loop.\n", Ticks);
 		}
 #endif
 	}
@@ -676,9 +630,9 @@ void CCore::GlobalNotice(const char *Text) {
 
 	asprintf(&GlobalText, "Global admin message: %s", Text);
 
-	CHECK_ALLOC_RESULT(GlobalText, asprintf) {
+	if (AllocFailed(GlobalText)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		if (User->Value->GetClientConnectionMultiplexer() != NULL) {
@@ -748,9 +702,9 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 
 	CModule *Module = new CModule(Filename);
 
-	CHECK_ALLOC_RESULT(Module, new) {
+	if (AllocFailed(Module)) {
 		THROW(CModule *, Generic_OutOfMemory, "new operator failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Result = Module->GetError();
 
@@ -781,11 +735,11 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 
 		ErrorString = strdup(GETDESCRIPTION(Result));
 
-		CHECK_ALLOC_RESULT(ErrorString, strdup) {
+		if (AllocFailed(ErrorString)) {
 			delete Module;
 
 			THROW(CModule *, Generic_OutOfMemory, "strdup() failed.");
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		Log("Module %s could not be loaded: %s", Filename, ErrorString);
 
@@ -830,9 +784,9 @@ void CCore::UpdateModuleConfig(void) {
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		asprintf(&Out, "system.modules.mod%d", a++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		m_Config->WriteString(Out, m_Modules[i]->GetFilename());
 
@@ -841,9 +795,9 @@ void CCore::UpdateModuleConfig(void) {
 
 	asprintf(&Out, "system.modules.mod%d", a);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Config->WriteString(Out, NULL);
 
@@ -935,9 +889,9 @@ void CCore::Log(const char *Format, ...) {
 	Ret = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	CHECK_ALLOC_RESULT(Out, vasprintf) {
+	if (AllocFailed(Out)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Log->WriteLine(NULL, "%s", Out);
 
@@ -971,9 +925,9 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
 	Ret = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	CHECK_ALLOC_RESULT(Out, vasprintf) {
+	if (AllocFailed(Out)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Log->WriteLine(NULL, "%s", Out);
 
@@ -1022,9 +976,9 @@ void CCore::InternalLogError(const char *Format, ...) {
 	vasprintf(&Out, Format2, marker);
 	va_end(marker);
 
-	CHECK_ALLOC_RESULT(Out, vasnprintf) {
+	if (AllocFailed(Out)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Log->WriteUnformattedLine(NULL, Out);
 
@@ -1100,15 +1054,7 @@ RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 		THROW(CUser *, Generic_Unknown, "The username you specified is not valid.");
 	}
 
-	safe_box_t UsersBox, UserBox = NULL;
-
-	UsersBox = safe_get_box(NULL, "Users");
-
-	if (UsersBox != NULL) {
-		UserBox = safe_put_box(UsersBox, Username);
-	}
-
-	User = new CUser(Username, UserBox);
+	User = new CUser(Username);
 
 	Result = m_Users.Add(Username, User);
 
@@ -1298,9 +1244,9 @@ void CCore::WritePidFile(void) const {
 	if (pid) {
 		FILE *pidFile;
 
-		pidFile = fopen(BuildPath("sbnc.pid"), "w");
+		pidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
 
-		SetPermissions(BuildPath("sbnc.pid"), S_IRUSR | S_IWUSR);
+		SetPermissions(BuildPathConfig("sbnc.pid"), S_IRUSR | S_IWUSR);
 
 		if (pidFile) {
 			fprintf(pidFile, "%d", pid);
@@ -1413,28 +1359,6 @@ const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
  */
 CTimer *CCore::CreateTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie) const {
 	return new CTimer(Interval, Repeat, Function, Cookie);
-}
-
-/**
- * RegisterDnsQuery
- *
- * Registers a DNS query.
- *
- * @param DnsQuery the DNS query
- */
-void CCore::RegisterDnsQuery(CDnsQuery *DnsQuery) {
-	m_DnsQueries.Insert(DnsQuery);
-}
-
-/**
- * UnregisterDnsQuery
- *
- * Unregisters a DNS query.
- *
- * @param DnsQuery the DNS query
- */
-void CCore::UnregisterDnsQuery(CDnsQuery *DnsQuery) {
-	m_DnsQueries.Remove(DnsQuery);
 }
 
 /**
@@ -1630,9 +1554,9 @@ const utility_t *CCore::GetUtilities(void) {
 	if (Utilities == NULL) {
 		Utilities = (utility_t *)malloc(sizeof(utility_t));
 
-		CHECK_ALLOC_RESULT(Utilities, malloc) {
+		if (AllocFailed(Utilities)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		Utilities->ArgParseServerLine = ArgParseServerLine;
 		Utilities->ArgTokenize = ArgTokenize;
@@ -1674,14 +1598,14 @@ bool CCore::MakeConfig(void) {
 	char *File;
 	CConfig *MainConfig, *UserConfig;
 
-	safe_printf("No valid configuration file has been found. A basic\n"
+	printf("No valid configuration file has been found. A basic\n"
 		"configuration file can be created for you automatically. Please\n"
 		"answer the following questions:\n");
 
 	while (true) {
-		safe_printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
+		printf("1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): ");
 		Buffer[0] = '\0';
-		safe_scan(Buffer, sizeof(Buffer));
+		sn_getline(Buffer, sizeof(Buffer));
 		Port = atoi(Buffer);
 
 		if (Port == 0) {
@@ -1693,81 +1617,81 @@ bool CCore::MakeConfig(void) {
 #else
 		if (Port <= 0 || Port >= 65536) {
 #endif
-			safe_printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
+			printf("You did not enter a valid port. Try again. Use 0 to abort.\n");
 		} else {
 			break;
 		}
 	}
 
 	while (true) {
-		safe_printf("2. What should the first user's name be? ");
+		printf("2. What should the first user's name be? ");
 		User[0] = '\0';
-		safe_scan(User, sizeof(User));
+		sn_getline(User, sizeof(User));
 	
 		if (strlen(User) == 0) {
 			return false;
 		}
 
 		if (IsValidUsername(User) == false) {
-			safe_printf("Sorry, this is not a valid username. Try again.\n");
+			printf("Sorry, this is not a valid username. Try again.\n");
 		} else {
 			break;
 		}
 	}
 
 	while (true) {
-		safe_printf("Please note that passwords will not be echoed while you type them.\n");
-		safe_printf("3. Please enter a password for the first user: ");
+		printf("Please note that passwords will not be echoed while you type them.\n");
+		printf("3. Please enter a password for the first user: ");
 
 		Password[0] = '\0';
-		safe_scan_passwd(Password, sizeof(Password));
+		sn_getline_passwd(Password, sizeof(Password));
 
 		if (strlen(Password) == 0) {
 			return false;
 		}
 
-		safe_printf("\n4. Please confirm your password by typing it again: ");
+		printf("\n4. Please confirm your password by typing it again: ");
 
 		PasswordConfirm[0] = '\0';
-		safe_scan_passwd(PasswordConfirm, sizeof(PasswordConfirm));
+		sn_getline_passwd(PasswordConfirm, sizeof(PasswordConfirm));
 
-		safe_printf("\n");
+		printf("\n");
 
 		if (strcmp(Password, PasswordConfirm) == 0) {
 			break;
 		} else {
-			safe_printf("The passwords you entered do not match. Please try again.\n");
+			printf("The passwords you entered do not match. Please try again.\n");
 		}
 	}
 
 	asprintf(&File, "users/%s.conf", User);
 
-	// BuildPath is using a static buffer
-	mkdir(BuildPath("users"));
-	SetPermissions(BuildPath("users"), S_IRUSR | S_IWUSR | S_IXUSR);
+	// BuildPathConfig is using a static buffer
+	mkdir(BuildPathConfig("users"));
+	SetPermissions(BuildPathConfig("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 
-	MainConfig = m_ConfigModule->CreateConfigObject("sbnc.conf", NULL);
+	MainConfig = new CConfig("sbnc.conf", NULL);
 
 	MainConfig->WriteInteger("system.port", Port);
 	MainConfig->WriteInteger("system.md5", 1);
 	MainConfig->WriteString("system.users", User);
 
-	safe_printf("Writing main configuration file...");
+	printf("Writing main configuration file...");
 
 	MainConfig->Destroy();
 
-	safe_printf(" DONE\n");
+	printf(" DONE\n");
 
-	UserConfig = m_ConfigModule->CreateConfigObject(File, NULL);
+	UserConfig = new CConfig(File, NULL);
 
 	UserConfig->WriteString("user.password", UtilMd5(Password, GenerateSalt()));
 	UserConfig->WriteInteger("user.admin", 1);
 
-	safe_printf("Writing first user's configuration file...");
+	printf("Writing first user's configuration file...");
 
 	UserConfig->Destroy();
 
-	safe_printf(" DONE\n");
+	printf(" DONE\n");
 
 	free(File);
 
@@ -1791,11 +1715,11 @@ const char *CCore::GetTagString(const char *Tag) const {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
 
 		return NULL;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Value = m_Config->ReadString(Setting);
 
@@ -1839,11 +1763,11 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 
 	asprintf(&Setting, "tag.%s", Tag);
 
-	CHECK_ALLOC_RESULT(Setting, asprintf) {
+	if (AllocFailed(Setting)) {
 		LOGERROR("asprintf() failed. Could not store global tag.");
 
 		return false;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->TagModified(Tag, Value);
@@ -1918,25 +1842,36 @@ const char *CCore::GetTagName(int Index) const {
 }
 
 /**
- * GetBasePath
+ * BuildPathConfig
  *
- * Returns the bouncer's pathname.
+ * Builds a path which is relative to the config directory.
+ *
+ * @param Filename the filename
  */
-const char *CCore::GetBasePath(void) const {
-	return sbncGetBaseName();
+const char *CCore::BuildPathConfig(const char *Filename) const {
+	return sbncBuildPath(Filename, sbncGetConfigPath());
 }
 
 /**
- * BuildPath
+ * BuildPathExe
  *
- * Builds a path which is relative to BasePath or the bouncer's path if
- * BasePath is NULL.
+ * Builds a path which is relative to the executable file's directory.
  *
  * @param Filename the filename
- * @param BasePath base path
  */
-const char *CCore::BuildPath(const char *Filename, const char *BasePath) const {
-	return sbncBuildPath(Filename, BasePath);
+const char *CCore::BuildPathExe(const char *Filename) const {
+	return sbncBuildPath(Filename, sbncGetExePath());
+}
+
+/**
+ * BuildPathModule
+ *
+ * Builds a path which is relative to the module directory.
+ *
+ * @param Filename the filename
+ */
+const char *CCore::BuildPathModule(const char *Filename) const {
+	return sbncBuildPath(Filename, sbncGetModulePath());
 }
 
 /**
@@ -1966,26 +1901,6 @@ void CCore::SetStatus(int NewStatus) {
  */
 int CCore::GetStatus(void) const {
 	return m_Status;
-}
-
-/**
- * RegisterZone
- *
- * Registers a memory zone.
- *
- * @param ZoneInformation zone information object
- */
-void CCore::RegisterZone(CZoneInformation *ZoneInformation) {
-	m_Zones.Insert(ZoneInformation);
-}
-
-/**
- * GetZones
- *
- * Returns the list of currently used memory allocation zones.
- */
-const CVector<CZoneInformation *> *CCore::GetZones(void) const {
-	return &m_Zones;
 }
 
 /**
@@ -2039,9 +1954,9 @@ RESULT<bool> CCore::AddHostAllow(const char *Mask, bool UpdateConfig) {
 
 	dupMask = strdup(Mask);
 
-	CHECK_ALLOC_RESULT(dupMask, strdup) {
+	if (AllocFailed(dupMask)) {
 		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Result = m_HostAllows.Insert(dupMask);
 
@@ -2146,9 +2061,9 @@ void CCore::UpdateHosts(void) {
 	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
 		asprintf(&Out, "system.hosts.host%d", a++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			g_Bouncer->Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		m_Config->WriteString(Out, m_HostAllows[i]);
 		free(Out);
@@ -2156,9 +2071,9 @@ void CCore::UpdateHosts(void) {
 
 	asprintf(&Out, "system.hosts.host%d", a);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		g_Bouncer->Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Config->WriteString(Out, NULL);
 	free(Out);
@@ -2196,7 +2111,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 		THROW(bool, Generic_Unknown, "Failed to create an SSL listener because there is no SSL server certificate.");
 	}
 
-	Listener = new CClientListener(Port, NULL, BindAddress, AF_INET, SSL);
+	Listener = new CClientListener(Port, BindAddress, AF_INET, SSL);
 
 	if (Listener == NULL || !Listener->IsValid()) {
 		delete Listener;
@@ -2210,7 +2125,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 		}
 	}
 
-	ListenerV6 = new CClientListener(Port, NULL, BindAddress, AF_INET6, SSL);
+	ListenerV6 = new CClientListener(Port, BindAddress, AF_INET6, SSL);
 
 	if (ListenerV6 == NULL || !ListenerV6->IsValid()) {
 		delete ListenerV6;
@@ -2302,9 +2217,9 @@ void CCore::InitializeAdditionalListeners(void) {
 	while (true) {
 		asprintf(&Out, "system.listeners.listener%d", i++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		const char *ListenerString = m_Config->ReadString(Out);
 
@@ -2377,9 +2292,9 @@ void CCore::UpdateAdditionalListeners(void) {
 	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		asprintf(&Out, "system.listeners.listener%d", a++);
 
-		CHECK_ALLOC_RESULT(Out, asprintf) {
+		if (AllocFailed(Out)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		if (m_AdditionalListeners[i].BindAddress != NULL) {
 			asprintf(&Value, "%d %d %s", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL, m_AdditionalListeners[i].BindAddress);
@@ -2387,9 +2302,9 @@ void CCore::UpdateAdditionalListeners(void) {
 			asprintf(&Value, "%d %d", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL);
 		}
 
-		CHECK_ALLOC_RESULT(Value, asprintf) {
+		if (AllocFailed(Value)) {
 			Fatal();
-		} CHECK_ALLOC_RESULT_END;
+		}
 
 		m_Config->WriteString(Out, Value);
 
@@ -2398,9 +2313,9 @@ void CCore::UpdateAdditionalListeners(void) {
 
 	asprintf(&Out, "system.listeners.listener%d", a);
 
-	CHECK_ALLOC_RESULT(Out, asprintf) {
+	if (AllocFailed(Out)) {
 		Fatal();
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	m_Config->WriteString(Out, NULL);
 
@@ -2443,8 +2358,8 @@ CClientListener *CCore::GetMainSSLListenerV6(void) const {
 	return m_SSLListenerV6;
 }
 
-unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
-	unsigned int i = 0;
+int CCore::GetResourceLimit(const char *Resource, CUser *User) {
+	int i = 0;
 
 	if (Resource == NULL || (User != NULL && User->IsAdmin())) {
 		if (Resource != NULL && strcasecmp(Resource, "clients") == 0) {
@@ -2461,7 +2376,7 @@ unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 			if (User != NULL) {
 				asprintf(&Name, "user.max%s", Resource);
 
-				CHECK_ALLOC_RESULT(Name, asprintf) {} else {
+				if (!AllocFailed(Name)) {
 					CResult<int> UserLimit = User->GetConfig()->ReadInteger(Name);
 
 					if (!IsError(UserLimit)) {
@@ -2469,14 +2384,14 @@ unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 					}
 
 					free(Name);
-				} CHECK_ALLOC_RESULT_END;
+				}
 			}
 
 			asprintf(&Name, "system.max%s", Resource);
 
-			CHECK_ALLOC_RESULT(Name, asprintf) {
+			if (AllocFailed(Name)) {
 				return g_ResourceLimits[i].DefaultLimit;
-			} CHECK_ALLOC_RESULT_END;
+			}
 
 			int Value = m_Config->ReadInteger(Name);
 
@@ -2497,7 +2412,7 @@ unsigned int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 	return 0;
 }
 
-void CCore::SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User) {
+void CCore::SetResourceLimit(const char *Resource, int Limit, CUser *User) {
 	char *Name;
 	CConfig *Config;
 
@@ -2509,9 +2424,9 @@ void CCore::SetResourceLimit(const char *Resource, unsigned int Limit, CUser *Us
 		Config = GetConfig();
 	}
 
-	CHECK_ALLOC_RESULT(Name, asprintf) {
+	if (AllocFailed(Name)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	Config->WriteInteger(Name, Limit);
 }
@@ -2570,9 +2485,49 @@ CACHE(System) *CCore::GetConfigCache(void) {
 }
 
 CConfig *CCore::CreateConfigObject(const char *Filename, CUser *User) {
-	return m_ConfigModule->CreateConfigObject(Filename, User);
+	return new CConfig(Filename, User);
 }
 
-bool CCore::IsDaemonized(void) {
-	return m_Daemonized;
+bool CCore::Daemonize(void) {
+#ifndef _WIN32
+	pid_t pid;
+	pid_t sid;
+	int fd;
+
+	pid = fork();
+	if (pid == -1) {
+		return false;
+	}
+
+	if (pid) {
+		fprintf(stdout, "DONE\n");
+		exit(0);
+	}
+
+	fd = open("/dev/null", O_RDWR);
+	if (fd) {
+		if (fd != 0) {
+			dup2(fd, 0);
+		}
+
+		if (fd != 1) {
+			dup2(fd, 1);
+		}
+
+		if (fd != 2) {
+			dup2(fd, 2);
+		}
+
+		if (fd > 2) {
+			close(fd);
+		}
+	}
+
+	sid = setsid();
+	if (sid == -1) {
+		return false;
+	}
+#endif
+
+	return true;
 }

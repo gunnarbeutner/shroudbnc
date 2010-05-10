@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -32,7 +32,7 @@ private:
 	bool m_SSL;
 	char *m_TclProc;
 public:
-	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<CTclSocket>(Port, NULL, BindIp) {
+	CTclSocket(unsigned int Port, const char *BindIp, const char *TclProc, bool SSL) : CListenerBase<CTclSocket>(Port, BindIp) {
 		char *Buf;
 
 		m_TclProc = strdup(TclProc);

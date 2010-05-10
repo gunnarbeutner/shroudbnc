@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -32,7 +32,7 @@ CLog::CLog(const char *Filename, bool KeepOpen) {
 	if (Filename != NULL) {
 		m_Filename = strdup(Filename);
 
-		CHECK_ALLOC_RESULT(m_Filename, ustrdup) {} CHECK_ALLOC_RESULT_END;
+		if (AllocFailed(m_Filename)) {}
 	} else {
 		m_Filename = NULL;
 	}
@@ -159,7 +159,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 #ifdef _WIN32
 		strftime(strNow, sizeof(strNow), "%#c" , &Now);
 #else
-		strftime(strNow, sizeof(strNow), "%c" , &Now);
+		strftime(strNow, sizeof(strNow), "%a %B %d %Y %H:%M:%S" , &Now);
 #endif
 
 		Timestamp = strNow;
@@ -167,9 +167,9 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 
 	dupLine = strdup(Line);
 
-	CHECK_ALLOC_RESULT(dupLine, strdup) {
+	if (AllocFailed(dupLine)) {
 		return;
-	} CHECK_ALLOC_RESULT_END;
+	}
 
 	StringLength = strlen(dupLine);
 
@@ -184,18 +184,18 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 		a++;
 	}
 
-	asprintf(&Out, "%s: %s\n", Timestamp, dupLine);
+	int rc = asprintf(&Out, "[%s]: %s\n", Timestamp, dupLine);
 
 	free(dupLine);
 
-	if (Out == NULL) {
-		LOGERROR("asprintf() failed.");
+	if (rc < 0) {
+		perror("asprintf() failed");
 
 		return;
 	}
 
 	fputs(Out, LogFile);
-	safe_printf("%s", Out);
+	printf("%s", Out);
 
 	free(Out);
 
@@ -222,11 +222,11 @@ void CLog::WriteLine(const char *Timestamp, const char *Format, ...) {
 	va_list marker;
 
 	va_start(marker, Format);
-	vasprintf(&Out, Format, marker);
+	int rc = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	if (Out == NULL) {
-		LOGERROR("vasprintf() failed.");
+	if (rc < 0) {
+		perror("vasprintf() failed");
 
 		return;
 	}

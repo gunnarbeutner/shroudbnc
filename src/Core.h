@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -30,7 +30,6 @@ class CModule;
 class CConnection;
 class CTimer;
 class CFakeClient;
-class CConfigModule;
 struct CSocketEvents;
 struct sockaddr_in;
 
@@ -81,9 +80,6 @@ typedef struct additionallistener_s {
 class SBNCAPI CCore {
 #ifndef SWIG
 	friend class CTimer;
-	friend class CDnsQuery;
-	friend bool RegisterZone(CZoneInformation *ZoneInformation);
-
 	friend pollfd *registersocket(int Socket);
 	friend void unregistersocket(int Socket);
 #endif
@@ -110,8 +106,6 @@ class SBNCAPI CCore {
 
 	CVector<char *> m_Args; /**< program arguments */
 
-	CVector<CDnsQuery *> m_DnsQueries; /**< currently active dns queries */
-
 	mutable CACHE(System) m_ConfigCache;
 
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
@@ -121,16 +115,11 @@ class SBNCAPI CCore {
 
 	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
 
-	CVector<CZoneInformation *> m_Zones; /**< currently used allocation zones */
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
 
-	CConfigModule *m_ConfigModule; /**< config module loader */
-
 	int m_Status; /**< shroudBNC's current status */
-
-	bool m_Daemonized; /**< whether this process is a daemon */
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -138,21 +127,18 @@ class SBNCAPI CCore {
 	void WritePidFile(void) const;
 	bool MakeConfig(void);
 
-	void RegisterDnsQuery(CDnsQuery *DnsQuery);
-	void UnregisterDnsQuery(CDnsQuery *DnsQuery);
-
-	void RegisterZone(CZoneInformation *ZoneInformation);
-
 	void InitializeAdditionalListeners(void);
 	void UninitializeAdditionalListeners(void);
 	void UpdateAdditionalListeners(void);
+
+	bool Daemonize(void);
 public:
 #ifndef SWIG
-	CCore(CConfig *Config, int argc, char **argv, bool Daemonized);
+	CCore(CConfig *Config, int argc, char **argv);
 	virtual ~CCore(void);
 #endif
 
-	void StartMainLoop(void);
+	void StartMainLoop(bool ShouldDaemonize);
 
 	CUser *GetUser(const char *Name);
 
@@ -224,15 +210,14 @@ public:
 	bool SetTagInteger(const char *Tag, int Value);
 	const char *GetTagName(int Index) const;
 
-	const char *GetBasePath(void) const;
-	const char *BuildPath(const char *Filename, const char *BasePath = NULL) const;
+	const char *BuildPathConfig(const char *Filename) const;
+	const char *BuildPathExe(const char *Filename) const;
+	const char *BuildPathModule(const char *Filename) const;
 
 	const char *GetBouncerVersion(void) const;
 
 	void SetStatus(int NewStatus);
 	int GetStatus(void) const;
-
-	const CVector<CZoneInformation *> *GetZones(void) const;
 
 	CFakeClient *CreateFakeClient(void) const;
 	void DeleteFakeClient(CFakeClient *FakeClient) const;
@@ -254,8 +239,8 @@ public:
 	CClientListener *GetMainSSLListener(void) const;
 	CClientListener *GetMainSSLListenerV6(void) const;
 
-	unsigned int GetResourceLimit(const char *Resource, CUser *User = NULL);
-	void SetResourceLimit(const char *Resource, unsigned int Limit, CUser *User = NULL);
+	int GetResourceLimit(const char *Resource, CUser *User = NULL);
+	void SetResourceLimit(const char *Resource, int Limit, CUser *User = NULL);
 
 	int GetInterval(void) const;
 	void SetInterval(int Interval);
@@ -275,41 +260,9 @@ public:
 	CACHE(System) *GetConfigCache(void);
 
 	CConfig *CreateConfigObject(const char *Filename, CUser *User);
-
-	bool IsDaemonized(void);
 };
 
 #ifndef SWIG
 extern CCore *g_Bouncer; /**< the main bouncer object */
 extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
 #endif
-
-/**
- * CHECK_ALLOC_RESULT
- *
- * Verifies that the result of an allocation function
- * is not NULL.
- *
- * @param Variable the variable holding the result
- * @param Function the name of the allocation function
- */
-#define CHECK_ALLOC_RESULT(Variable, Function) \
-	do { \
-		if (Variable == NULL) { \
-			if (g_Bouncer != NULL) { \
-				LOGERROR(#Function " failed."); \
-			} else { \
-				safe_printf("%s", #Function " failed."); \
-			} \
-			\
-		} else { \
-			mmark((void *)Variable); \
-		} \
-		if (Variable == NULL)
-
-/**
- * CHECK_ALLOC_RESULT_END
- *
- * Marks the end of a CHECK_ALLOC_RESULT block.
- */
-#define CHECK_ALLOC_RESULT_END } while (0)

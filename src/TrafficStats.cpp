@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -24,18 +24,9 @@
  *
  * Constructs a new traffic stats object.
  */
-CTrafficStats::CTrafficStats(safe_box_t Box) {
-	SetBox(Box);
-
-	m_PreviousSave = 0;
-
-	if (Box == NULL) {
-		m_Inbound = 0;
-		m_Outbound = 0;
-	} else {
-		m_Inbound = safe_get_integer(Box, "Inbound");
-		m_Outbound = safe_get_integer(Box, "Outbound");
-	}
+CTrafficStats::CTrafficStats() {
+	m_Inbound = 0;
+	m_Outbound = 0;
 }
 
 /**
@@ -47,11 +38,6 @@ CTrafficStats::CTrafficStats(safe_box_t Box) {
  */
 void CTrafficStats::AddInbound(unsigned int Bytes) {
 	m_Inbound += Bytes;
-
-	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
-		safe_put_integer(GetBox(), "Inbound", m_Inbound);
-		m_PreviousSave = g_CurrentTime;
-	}
 }
 
 /**
@@ -72,11 +58,6 @@ unsigned int CTrafficStats::GetInbound(void) const {
  */
 void CTrafficStats::AddOutbound(unsigned int Bytes) {
 	m_Outbound += Bytes;
-
-	if (m_PreviousSave < g_CurrentTime - 300 && GetBox() != NULL) {
-		safe_put_integer(GetBox(), "Outbound", m_Outbound);
-		m_PreviousSave = g_CurrentTime;
-	}
 }
 
 /**

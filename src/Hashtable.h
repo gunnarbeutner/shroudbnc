@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -35,7 +35,7 @@ struct hash_t {
  */
 template <typename HashListType>
 struct SBNCAPI hashlist_t {
-	unsigned int Count;
+	int Count;
 	char **Keys;
 	HashListType *Values;
 };
@@ -90,7 +90,7 @@ template<typename Type, bool CaseSensitive, int Size>
 class CHashtable {
 	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
-	unsigned int m_LengthCache; /**< (cached) number of items in the hashtable */
+	int m_LengthCache; /**< (cached) number of items in the hashtable */
 
 public:
 #ifndef SWIG
@@ -122,10 +122,10 @@ public:
 	 * Removes all items from the hashtable.
 	 */
 	void Clear(void) {
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+		for (int i = 0; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
 			hashlist_t<Type> *List = &m_Items[i];
 
-			for (unsigned int a = 0; a < List->Count; a++) {
+			for (int a = 0; a < List->Count; a++) {
 				free(List->Keys[a]);
 
 				if (m_DestructorFunc != NULL) {
@@ -177,8 +177,6 @@ public:
 			THROW(bool, Generic_OutOfMemory, "realloc() failed.");
 		}
 
-		mmark(newKeys);
-
 		List->Keys = newKeys;
 
 		newValues = (Type *)realloc(List->Values, (List->Count + 1) * sizeof(Type));
@@ -188,8 +186,6 @@ public:
 
 			THROW(bool, Generic_OutOfMemory, "realloc() failed.");
 		}
-
-		mmark(newValues);
 
 		List->Count++;
 
@@ -223,7 +219,7 @@ public:
 		if (List->Count == 0) {
 			return NULL;
 		} else {
-			for (unsigned int i = 0; i < List->Count; i++) {
+			for (int i = 0; i < List->Count; i++) {
 				if (List->Keys[i] && (CaseSensitive ? strcmp(List->Keys[i], Key) : strcasecmp(List->Keys[i], Key)) == 0) {
 					return List->Values[i];
 				}
@@ -268,7 +264,7 @@ public:
 
 			m_LengthCache--;
 		} else {
-			for (unsigned int i = 0; i < List->Count; i++) {
+			for (int i = 0; i < List->Count; i++) {
 				if (List->Keys[i] && (CaseSensitive ? strcmp(List->Keys[i], Key) : strcasecmp(List->Keys[i], Key)) == 0) {
 					free(List->Keys[i]);
 
@@ -296,15 +292,7 @@ public:
 	 *
 	 * Returns the number of items in the hashtable.
 	 */
-	unsigned int GetLength(void) const {
-/*		unsigned int Count = 0;
-
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
-			Count += m_Items[i].Count;
-		}
-
-		return Count;*/
-
+	int GetLength(void) const {
 		return m_LengthCache;
 	}
 
@@ -326,11 +314,11 @@ public:
 	 *
 	 * @param Index the index
 	 */
-	hash_t<Type> *Iterate(unsigned int Index) const {
+	hash_t<Type> *Iterate(int Index) const {
 		static void *thisPointer = NULL;
-		static unsigned int cache_Index = 0, cache_i = 0, cache_a = 0;
+		static int cache_Index = 0, cache_i = 0, cache_a = 0;
 		int Skip = 0;
-		unsigned int i, a;
+		int i, a;
 		bool first = true;
 
 		if (thisPointer == this && cache_Index == Index - 1) {
@@ -342,7 +330,7 @@ public:
 			a = 0;
 		}
 
-		for (; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+		for (; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
 			if (!first) {
 				a = 0;
 			} else {
@@ -379,18 +367,16 @@ public:
 	 */
 	char **GetSortedKeys(void) const {
 		char **Keys = NULL;
-		unsigned int Count = 0;
+		int Count = 0;
 
-		for (unsigned int i = 0; i < sizeof(m_Items) / sizeof(hashlist_t<Type>); i++) {
+		for (int i = 0; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
 			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char *));
 
 			if (Count + m_Items[i].Count > 0 && Keys == NULL) {
 				return NULL;
 			}
 
-			mmark(Keys);
-
-			for (unsigned int a = 0; a < m_Items[i].Count; a++) {
+			for (int a = 0; a < m_Items[i].Count; a++) {
 				Keys[Count + a] = m_Items[i].Keys[a];
 			}
 
@@ -404,8 +390,6 @@ public:
 		if (Keys == NULL) {
 			return NULL;
 		}
-
-		mmark(Keys);
 
 		Keys[Count - 1] = NULL;
 

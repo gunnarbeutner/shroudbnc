@@ -388,7 +388,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						CommandLine="swig -tcl -nosafe -pkgversion 1.3 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
 						Outputs="tickleProcs_wrap.c"
 					/>
 				</FileConfiguration>
@@ -397,7 +397,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="swig -tcl -nosafe -pkgversion 0.4 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						CommandLine="swig -tcl -nosafe -pkgversion 1.3 &quot;$(InputPath)&quot;&#x0D;&#x0A;"
 						Outputs="tickleProcs_wrap.c"
 					/>
 				</FileConfiguration>

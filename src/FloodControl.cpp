@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -174,7 +174,7 @@ int CFloodControl::GetQueueSize(void) {
  * Returns the number of bytes which have been recently sent.
  */
 int CFloodControl::GetBytes(void) const {
-	if ((g_CurrentTime - m_LastCommand) * FLOODFADEOUT > m_Bytes) {
+	if ((size_t)((g_CurrentTime - m_LastCommand) * FLOODFADEOUT) > m_Bytes) {
 		return 0;
 	} else {
 		return m_Bytes - (g_CurrentTime - m_LastCommand) * FLOODFADEOUT;
@@ -233,21 +233,15 @@ void CFloodControl::Disable(void) {
  * @param Line the line
  */
 int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
-	const char *Space = strstr(Line, " ");
-	char *Command;
+	const char *Space = strchr(Line, ' ');
+	char Command[32];
 	int i;
 	penalty_t Penalty;
-	
+
 	if (Space != NULL) {
-		Command = (char *)malloc(Space - Line + 1);
-
-		CHECK_ALLOC_RESULT(Command, malloc) {
-			return 1;
-		} CHECK_ALLOC_RESULT_END;
-
-		strmcpy(Command, Line, Space - Line + 1);
+		strmcpy(Command, Line, min(sizeof(Command), (size_t)(Space - Line + 1)));
 	} else {
-		Command = const_cast<char *>(Line);
+		strmcpy(Command, Line, sizeof(Command));
 	}
 
 	i = 0;
@@ -260,17 +254,9 @@ int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
 		}
 
 		if (strcasecmp(Penalty.Command, Command) == 0) {
-			if (Space != NULL) {
-				free(Command);
-			}
-
 			return Penalty.Amplifier;
 		}
 
-	}
-
-	if (Space != NULL) {
-		free(Command);
 	}
 
 	return 1;

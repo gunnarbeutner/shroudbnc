@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -19,22 +19,34 @@
 
 #include "StdAfx.h"
 
+ares_channel CDnsQuery::m_DnsChannel; /**< ares channel object */
+
 /**
  * GenericDnsQueryCallback
  *
  * Used as a thunk between c-ares' C-style callbacks and shroudBNC's
  * object-oriented dns class.
  *
- * @param Cookie a pointer to a CDnsQuery object
+ * @param CookieRaw a pointer to a DnsEventCookie
  * @param Status the status of the dns query
+ * @param Timeouts the number of timeouts that occured while querying the dns servers
  * @param HostEntity the response for the dns query (can be NULL)
  */
-void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
-	CDnsQuery *Query = (CDnsQuery *)Cookie;
+void GenericDnsQueryCallback(void *CookieRaw, int Status, int Timeouts, hostent *HostEntity) {
+	DnsEventCookie *Cookie = (DnsEventCookie *)CookieRaw;
 
-	Query->AsyncDnsEvent(Status, HostEntity);
+	if (Cookie->Query == NULL) {
+		return;
+	}
 
-	Query->m_PendingQueries--;
+	Cookie->Query->AsyncDnsEvent(Status, HostEntity);
+	Cookie->Query->m_PendingQueries--;
+
+	Cookie->RefCount--;
+
+	if (Cookie->RefCount <= 0) {
+		delete Cookie;
+	}
 }
 
 /**
@@ -52,58 +64,36 @@ void GenericDnsQueryCallback(void *Cookie, int Status, hostent *HostEntity) {
 
 CDnsQuery::CDnsQuery(void *EventInterface, DnsEventFunction EventFunction, int Timeout) {
 	m_Timeout = Timeout;
+
+	m_EventCookie = new DnsEventCookie;
+	m_EventCookie->RefCount = 1;
+	m_EventCookie->Query = this;
+
 	m_EventObject = EventInterface;
 	m_EventFunction = EventFunction;
 
-	m_Channel = NULL;
 	m_PendingQueries = 0;
-}
 
-/**
- * InitChannel
- *
- * Initializes a new ARES channel.
- */
-void CDnsQuery::InitChannel(void) {
-	if (m_Channel == NULL) {
+	if (m_DnsChannel == NULL) {
 		ares_options Options;
 
 		Options.timeout = m_Timeout;
-		ares_init_options(&m_Channel, &Options, ARES_OPT_TIMEOUT);
-
-		g_Bouncer->RegisterDnsQuery(this);
-	}
-}
-
-/**
- * DestroyChannel
- *
- * Destroys the ARES channel.
- */
-void CDnsQuery::DestroyChannel(void) {
-	DnsEventFunction Function;
-
-	if (m_Channel != NULL) {
-		Function = m_EventFunction;
-		m_EventFunction = NULL;
-		ares_destroy(m_Channel);
-		m_EventFunction = Function;
-
-		m_Channel = NULL;
-
-		g_Bouncer->UnregisterDnsQuery(this);
-
-		m_PendingQueries = 0;
+		ares_init_options(&m_DnsChannel, &Options, ARES_OPT_TIMEOUT);
 	}
 }
 
 /**
  * ~CDnsQuery
  *
- * Destructs a DNS query object.
+ * Destroys a CDnsQuery object.
  */
 CDnsQuery::~CDnsQuery(void) {
-	DestroyChannel();
+	m_EventCookie->RefCount--;
+	m_EventCookie->Query = NULL;
+
+	if (m_EventCookie->RefCount <= 0) {
+		delete m_EventCookie;
+	}
 }
 
 /**
@@ -116,9 +106,9 @@ CDnsQuery::~CDnsQuery(void) {
  * @param Family the address family (AF_INET or AF_INET6)
  */
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
-	InitChannel();
 	m_PendingQueries++;
-	ares_gethostbyname(m_Channel, Host, Family, GenericDnsQueryCallback, this);
+	m_EventCookie->RefCount++;
+	ares_gethostbyname(m_DnsChannel, Host, Family, GenericDnsQueryCallback, m_EventCookie);
 }
 
 /**
@@ -142,18 +132,9 @@ void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	}
 #endif
 
-	InitChannel();
 	m_PendingQueries++;
-	ares_gethostbyaddr(m_Channel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, this);
-}
-
-/**
- * GetChannel
- *
- * Returns the underlying c-ares channel object.
- */
-ares_channel CDnsQuery::GetChannel(void) {
-	return m_Channel;
+	m_EventCookie->RefCount++;
+	ares_gethostbyaddr(m_DnsChannel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, m_EventCookie);
 }
 
 /**
@@ -172,12 +153,91 @@ void CDnsQuery::AsyncDnsEvent(int Status, hostent *Response) {
 }
 
 /**
- * Cleanup
+ * RegisterSockets
  *
- * Cleans up unused channels.
+ * Registers all DNS sockets and returns a cookie that can be used to
+ * unregister the sockets later on - or NULL if no sockets were registered.
+ *
+ * @return DnsSocketCookie a cookie
  */
-void CDnsQuery::Cleanup(void) {
-	if (m_PendingQueries == 0) {
-		DestroyChannel();
+DnsSocketCookie *CDnsQuery::RegisterSockets() {
+	SOCKET Sockets[ARES_GETSOCK_MAXNUM];
+	int Bitmask, Count = 0;
+	DnsSocketCookie *Cookie;
+
+	if (m_DnsChannel == NULL) {
+		return NULL;
 	}
+
+	Bitmask = ares_getsock(m_DnsChannel, Sockets, sizeof(Sockets) / sizeof(*Sockets));
+
+	Cookie = new DnsSocketCookie;
+
+	if (AllocFailed(Cookie)) {
+		g_Bouncer->Fatal();
+	}
+
+	for (int i = 0; i < (int)(sizeof(Sockets) / sizeof(*Sockets)); i++) {
+		if (!ARES_GETSOCK_READABLE(Bitmask, i) && !ARES_GETSOCK_WRITABLE(Bitmask, i)) {
+			continue;
+		}
+
+		Count++;
+		// ctor takes care of registering the socket
+		Cookie->Sockets[Count - 1] = new CDnsSocket(Sockets[i], ARES_GETSOCK_WRITABLE(Bitmask, i));
+	}
+
+	if (Count == 0) {
+		delete Cookie;
+
+		return NULL;
+	}
+
+	Cookie->Count = Count;
+
+	return Cookie;
+}
+
+/**
+ * UnregisterSockets
+ *
+ * Unregisters a set of DNS sockets.
+ *
+ * @param Cookie a cookie returned by RegisterSockets
+ */
+void CDnsQuery::UnregisterSockets(DnsSocketCookie *Cookie) {
+	if (Cookie == NULL) {
+		return;
+	}
+
+	for (int i = 0; i < Cookie->Count; i++) {
+		// dtor takes care of un-registering the socket
+		Cookie->Sockets[i]->Destroy();
+
+		delete Cookie->Sockets[i];
+	}
+
+	delete Cookie;
+}
+
+/**
+ * ProcessTimeouts
+ *
+ * Processes timeouts for the DNS sockets.
+ */
+void CDnsQuery::ProcessTimeouts(void) {
+	if (m_DnsChannel != NULL) {
+		ares_process_fd(m_DnsChannel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
+	}
+}
+
+/**
+ * GetDnsChannel
+ *
+ * Returns the c-ares channel object.
+ *
+ * @return ares_channel the channel object
+ */
+ares_channel CDnsQuery::GetDnsChannel(void) {
+	return m_DnsChannel;
 }

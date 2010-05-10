@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -30,16 +30,12 @@ typedef struct queue_s {
 	CQueue *Queue; /**< the queue object */
 } irc_queue_t;
 
-#ifdef SWIGINTERFACE
-%template(CZoneObjectCFloodControl) CZoneObject<class CFloodControl, 16>;
-#endif
-
 /**
  * CFloodControl
  *
  * A queue which tries to avoid "Excess Flood" errors.
  */
-class SBNCAPI CFloodControl : public CZoneObject<CFloodControl, 16> {
+class SBNCAPI CFloodControl {
 	CVector<irc_queue_t> m_Queues; /**< a list of queues which have been
 								attached to this object */
 	size_t m_Bytes; /**< the number of bytes which have recently been sent */

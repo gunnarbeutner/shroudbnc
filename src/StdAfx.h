@@ -1,6 +1,6 @@
 /*******************************************************************************
  * shroudBNC - an object-oriented framework for IRC                            *
- * Copyright (C) 2005-2007 Gunnar Beutner                                      *
+ * Copyright (C) 2005-2007,2010 Gunnar Beutner                                 *
  *                                                                             *
  * This program is free software; you can redistribute it and/or               *
  * modify it under the terms of the GNU General Public License                 *
@@ -41,8 +41,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define printf(...)
-
 #ifdef __cplusplus
 #	include <typeinfo>
 #endif
@@ -53,15 +51,12 @@
 #	include "unix.h"
 #endif
 
-#include "rpc/RPCApi.h"
-#include "rpc/SafeAPI.h"
-
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT
 #		undef DLL_EXPORT
 #		define WAS_DLL_EXPORT
 #	endif
-#	include "libltdl/ltdl.h"
+#	include "ltdl.h"
 #	ifdef WAS_DLL_EXPORT
 #		define DLL_EXPORT
 #	endif
@@ -90,27 +85,7 @@ typedef lt_dlhandle HMODULE;
 #include "snprintf/snprintf.h"
 
 #ifndef SWIG
-#	include "c-ares/ares.h"
-#endif
-
-#ifdef SBNC
-void mmark(void *Block);
-
-#	define nmalloc(Size) mmalloc(Size, NULL)
-#	define nrealloc(Block, NewSize) mrealloc(Block, NewSize, NULL)
-#	define nstrdup(String) mstrdup(String, NULL)
-#	define nfree(Block) mfree(Block)
-#	define nmark(Block) mmark(Block)
-
-#	define umalloc(Size) mmalloc(Size, GETUSER())
-#	define urealloc(Block, NewSize) mrealloc(Block, NewSize, GETUSER())
-#	define ustrdup(String) mstrdup(String, GETUSER())
-#	define ufree(Block) mfree(Block)
-#	define umark(Block) mmark(Block)
-#endif
-
-#if !defined(_DEBUG) || !defined(SBNC)
-#	define mmark(Block)
+#	include "../third-party/c-ares/ares.h"
 #endif
 
 #ifdef SBNC
@@ -129,14 +104,13 @@ void mmark(void *Block);
 
 #	include "sbnc.h"
 #	include "Result.h"
-#	include "Persistable.h"
 #	include "Object.h"
-#	include "Zone.h"
 #	include "Vector.h"
 #	include "List.h"
 #	include "Hashtable.h"
 #	include "utility.h"
 #	include "SocketEvents.h"
+#	include "DnsSocket.h"
 #	include "DnsEvents.h"
 #	include "Timer.h"
 #	include "FIFOBuffer.h"
@@ -145,7 +119,6 @@ void mmark(void *Block);
 #	include "Config.h"
 #	include "Cache.h"
 #	include "Core.h"
-#	include "ConfigModule.h"
 #	include "ClientConnection.h"
 #	include "ClientConnectionMultiplexer.h"
 #	include "IRCConnection.h"
