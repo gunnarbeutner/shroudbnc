@@ -114,7 +114,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		RETURN(char *, NULL);
 	}
 
-	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+	for (int i = 0; i < m_Queues.GetLength(); i++) {
 		if (m_Queues[i].Priority < LowestPriority && m_Queues[i].Queue->GetLength() > 0) {
 			LowestPriority = m_Queues[i].Priority;
 			ThatQueue = &m_Queues[i];
@@ -189,7 +189,7 @@ int CFloodControl::GetBytes(void) const {
 int CFloodControl::GetRealLength(void) const {
 	int Count = 0;
 
-	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+	for (int i = 0; i < m_Queues.GetLength(); i++) {
 		Count += m_Queues[i].Queue->GetLength();
 	}
 
@@ -202,7 +202,7 @@ int CFloodControl::GetRealLength(void) const {
  * Clears all queues which have been attached to the flood control object.
  */
 void CFloodControl::Clear(void) {
-	for (unsigned int i = 0; i < m_Queues.GetLength(); i++) {
+	for (int i = 0; i < m_Queues.GetLength(); i++) {
 		m_Queues[i].Queue->Clear();
 	}
 }

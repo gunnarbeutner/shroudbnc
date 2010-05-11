@@ -65,6 +65,8 @@ protected:
 	}
 
 public:
+	virtual ~CObjectBase(void) {}
+
 	virtual CUser *GetUser(void) const {
 		if (m_Type == eUser) {
 			return m_Owner.User;

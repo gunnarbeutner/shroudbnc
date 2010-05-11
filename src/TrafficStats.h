@@ -29,7 +29,7 @@ private:
 public:
 #ifndef SWIG
 	CTrafficStats();
-#endif
+#endif /* SWIG */
 
 	void AddInbound(unsigned int Bytes);
 	unsigned int GetInbound(void) const;

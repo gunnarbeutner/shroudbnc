@@ -264,12 +264,12 @@ AC_SUBST(SSLLDFLAGS)
 AC_SUBST(IDENTD_MODULE)
 
 AC_CONFIG_FILES([Makefile \
-                 src/snprintf/Makefile \
                  bnctcl/Makefile \
                  bnctcl/scripts/Makefile \
-                 src/Makefile \
-                 src/md5/Makefile \
                  identd32/Makefile \
                  php/Makefile \
-                 third-party/Makefile])
+                 src/Makefile
+                 third-party/Makefile \
+                 third-party/md5/Makefile \
+                 third-party/snprintf/Makefile])
 AC_OUTPUT

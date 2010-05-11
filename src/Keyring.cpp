@@ -50,9 +50,9 @@ RESULT<bool> CKeyring::SetKey(const char *Channel, const char *Key) {
 		THROW(bool, Generic_QuotaExceeded, "Too many keys.");
 	}
 
-	asprintf(&Setting, "key.%s", Channel);
+	int rc = asprintf(&Setting, "key.%s", Channel);
 
-	if (AllocFailed(Setting)) {
+	if (RcFailed(rc)) {
 		THROW(bool, Generic_OutOfMemory, "Out of memory.");
 	}
 
@@ -75,9 +75,9 @@ RESULT<const char *> CKeyring::GetKey(const char *Channel) {
 	char *Setting;
 	const char *ReturnValue;
 
-	asprintf(&Setting, "key.%s", Channel);
+	int rc = asprintf(&Setting, "key.%s", Channel);
 
-	if (AllocFailed(Setting)) {
+	if (RcFailed(rc)) {
 		THROW(const char *, Generic_OutOfMemory, "Out of memory.");
 	}
 

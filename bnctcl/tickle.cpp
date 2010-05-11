@@ -358,7 +358,6 @@ void CallBinds(binding_type_e type, const char* user, CClientConnection *client,
 	Tcl_Obj** listv;
 	CUser *User = NULL;
 
-	int objc = 3;
 	int idx = 1;
 	Tcl_Obj* objv[3];
 	bool lazyConversionDone = false;

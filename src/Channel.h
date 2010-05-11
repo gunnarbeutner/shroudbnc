@@ -35,7 +35,7 @@ class CIRCConnection;
 #ifndef SWIG
 int ChannelTSCompare(const void *p1, const void *p2);
 int ChannelNameCompare(const void *p1, const void *p2);
-#endif
+#endif /* SWIG */
 
 /**
  * CChannel
@@ -72,7 +72,7 @@ public:
 #ifndef SWIG
 	CChannel(const char *Name, CIRCConnection *Owner);
 	virtual ~CChannel(void);
-#endif
+#endif /* SWIG */
 
 	const char *GetName(void) const;
 

@@ -34,6 +34,7 @@ CUser::CUser(const char *Name) {
 	char *Out;
 	X509 *Cert;
 	FILE *ClientCert;
+	int rc;
 
 	m_PrimaryClient = NULL;
 	m_ClientMultiplexer = new CClientConnectionMultiplexer(this);
@@ -44,9 +45,9 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->Fatal();
 	}
 
-	asprintf(&Out, "users/%s.conf", Name);
+	rc = asprintf(&Out, "users/%s.conf", Name);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		g_Bouncer->Fatal();
 	}
 
@@ -65,9 +66,9 @@ CUser::CUser(const char *Name) {
 	m_ReconnectTime = 0;
 	m_LastReconnect = 0;
 
-	asprintf(&Out, "users/%s.log", Name);
+	rc = asprintf(&Out, "users/%s.log", Name);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		g_Bouncer->Fatal();
 	}
 
@@ -87,9 +88,9 @@ CUser::CUser(const char *Name) {
 	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
 
 #ifdef USESSL
-	asprintf(&Out, "users/%s.pem", Name);
+	rc = asprintf(&Out, "users/%s.pem", Name);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		g_Bouncer->Fatal();
 	}
 
@@ -143,7 +144,7 @@ CUser::~CUser(void) {
 	}
 
 #ifdef USESSL
-	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		X509_free(m_ClientCertificates[i]);
 	}
 #endif
@@ -161,7 +162,7 @@ void CUser::LoadEvent(void) {
 
 	Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		(*Modules)[i]->UserLoad(m_Name);
 	}
 }
@@ -210,9 +211,10 @@ void CUser::Attach(CClientConnection *Client) {
 	char *Out;
 	const char *Reason, *AutoModes, *IrcNick, *MotdText;
 	CLog *Motd;
-	unsigned int i;
+	int i;
 	bool Added = false;
 	bool FirstClient;
+	int rc;
 
 	if (IsLocked()) {
 		Reason = GetSuspendReason();
@@ -220,11 +222,9 @@ void CUser::Attach(CClientConnection *Client) {
 		if (Reason == NULL) {
 			Client->Kill("*** You cannot attach to this user.");
 		} else {
-			asprintf(&Out, "*** Your account is suspended. Reason: %s", Reason);
+			rc = asprintf(&Out, "*** Your account is suspended. Reason: %s", Reason);
 
-			if (Out == NULL) {
-				LOGERROR("asprintf() failed.");
-
+			if (RcFailed(rc)) {
 				Client->Kill("*** Your account is suspended.");
 			} else {
 				Client->Kill(Out);
@@ -324,22 +324,18 @@ void CUser::Attach(CClientConnection *Client) {
 			for (i = 0; i < m_IRC->GetChannels()->GetLength(); i++) {
 				Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), Client->GetPeerName(), Channels[i]->GetName());
 
-				asprintf(&Out, "TOPIC %s", Channels[i]->GetName());
+				rc = asprintf(&Out, "TOPIC %s", Channels[i]->GetName());
 
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-
+				if (RcFailed(rc)) {
 					Client->Kill("Internal error.");
 				} else {
 					Client->ParseLine(Out);
 					free(Out);
 				}
 
-				asprintf(&Out, "NAMES %s", Channels[i]->GetName());
+				rc = asprintf(&Out, "NAMES %s", Channels[i]->GetName());
 
-				if (Out == NULL) {
-					LOGERROR("asprintf() failed.");
-
+				if (RcFailed(rc)) {
 					Client->Kill("Internal error.");
 				} else {
 					Client->ParseLine(Out);
@@ -366,11 +362,9 @@ void CUser::Attach(CClientConnection *Client) {
 	MotdText = g_Bouncer->GetMotd();
 
 	if (MotdText != NULL) {
-		asprintf(&Out, "Message of the day: %s", MotdText);
-		
-		if (Out == NULL) {
-			LOGERROR("asprintf() failed.");
-		} else {
+		rc = asprintf(&Out, "Message of the day: %s", MotdText);
+
+		if (!RcFailed(rc)) {
 			Client->Privmsg(Out);
 
 			free(Out);
@@ -513,7 +507,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
 	}
 
 	if (FakeClient == NULL) {
-		FakeClient = new CClientConnection(INVALID_SOCKET, NULL);
+		FakeClient = new CClientConnection(INVALID_SOCKET);
 
 		if (AllocFailed(FakeClient)) {
 			free(CommandDup);
@@ -555,7 +549,7 @@ void CUser::Simulate(const char *Command, CClientConnection *FakeClient) {
  * @param Client the client connection
  */
 bool CUser::IsRegisteredClientConnection(CClientConnection *Client) {
-	for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+	for (int i = 0; i < m_Clients.GetLength(); i++) {
 		if (m_Clients[i].Client == Client) {
 			return true;
 		}
@@ -687,9 +681,9 @@ void CUser::ScheduleReconnect(int Delay) {
 
 	if (GetServer() != NULL && GetClientConnectionMultiplexer() != NULL) {
 		char *Out;
-		asprintf(&Out, "Scheduled reconnect in %d seconds.", (int)(m_ReconnectTime - g_CurrentTime));
+		int rc = asprintf(&Out, "Scheduled reconnect in %d seconds.", (int)(m_ReconnectTime - g_CurrentTime));
 
-		if (!AllocFailed(Out)) {
+		if (!RcFailed(rc)) {
 			GetClientConnectionMultiplexer()->Privmsg(Out);
 
 			free(Out);
@@ -732,10 +726,10 @@ void CUser::Log(const char *Format, ...) {
 	va_list marker;
 
 	va_start(marker, Format);
-	vasprintf(&Out, Format, marker);
+	int rc = vasprintf(&Out, Format, marker);
 	va_end(marker);
 
-	if (!AllocFailed(Out)) {
+	if (!RcFailed(rc)) {
 		if (GetClientConnectionMultiplexer() == NULL) {
 			m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
 		} else {
@@ -795,7 +789,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	Modules = g_Bouncer->GetModules();
 
 	if (IRC == NULL && !WasNull) {
-		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+		for (int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerDisconnect(GetUsername());
 		}
 
@@ -803,7 +797,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 		if (Client != NULL) {
 			CHashtable<CChannel *, false, 16> *Channels;
-			unsigned int i;
+			int i;
 			hash_t<CChannel *> *ChannelHash;
 
 			Channels = OldIRC->GetChannels();
@@ -816,7 +810,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 		g_Bouncer->LogUser(this, "User %s disconnected from the server.", GetUsername());
 	} else if (IRC) {
-		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+		for (int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerConnect(GetUsername());
 		}
 
@@ -837,7 +831,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	sockaddr *Remote;
 	client_t ClientT;
-	unsigned int i;
+	int i;
 	const CVector<CModule *> *Modules;
 	char *Info;
 	client_t OldestClient = {};
@@ -895,13 +889,13 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 			(*Modules)[i]->AttachClient(Client);
 		}
 
-		asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		int rc = asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		if (AllocFailed(Info)) {
+		if (RcFailed(rc)) {
 			return;
 		}
 
-		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+		for (int i = 0; i < m_Clients.GetLength(); i++) {
 			if (m_Clients[i].Client != Client) {
 				m_Clients[i].Client->Privmsg(Info);
 			}
@@ -923,8 +917,8 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	const char *AwayMessage, *DropModes, *AwayNick, *AwayText, *Timestamp;
 	hash_t<CChannel *> *Channel;
 	const CVector<CModule *> *Modules;
-	unsigned int i;
-	int a;
+	int i;
+	int a, rc;
 	client_t *BestClient;
 	sockaddr *Remote;
 	char *InfoPrimary, *Info;
@@ -1019,21 +1013,21 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	Remote = Client->GetRemoteAddress();
 
 	if (!Silent) {
-		asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		rc = asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		if (AllocFailed(InfoPrimary)) {
+		if (RcFailed(rc)) {
 			return;
 		}
 
-		asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		rc = asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		if (AllocFailed(Info)) {
+		if (RcFailed(rc)) {
 			free(Info);
 
 			return;
 		}
 
-		for (unsigned int i = 0; i < m_Clients.GetLength(); i++) {
+		for (int i = 0; i < m_Clients.GetLength(); i++) {
 			if (m_Clients[i].Client == m_PrimaryClient) {
 				m_Clients[i].Client->Privmsg(InfoPrimary);
 			} else {
@@ -1228,7 +1222,7 @@ int CUser::IsQuitted(void) const {
 void CUser::LogBadLogin(sockaddr *Peer) {
 	badlogin_t BadLogin;
 
-	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
+	for (int i = 0; i < m_BadLogins.GetLength(); i++) {
 		if (CompareAddress(m_BadLogins[i].Address, Peer) == 0 && m_BadLogins[i].Count < 3) {
 			m_BadLogins[i].Count++;
 
@@ -1256,7 +1250,7 @@ void CUser::LogBadLogin(sockaddr *Peer) {
  * @param Peer the IP address
  */
 bool CUser::IsIpBlocked(sockaddr *Peer) const {
-	for (unsigned int i = 0; i < m_BadLogins.GetLength(); i++) {
+	for (int i = 0; i < m_BadLogins.GetLength(); i++) {
 		if (CompareAddress(m_BadLogins[i].Address, Peer) == 0) {
 			if (m_BadLogins[i].Count > 2) {
 				return true;
@@ -1575,7 +1569,7 @@ bool CUser::AddClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
 	X509 *DuplicateCertificate;
 
-	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			return true;
 		}
@@ -1600,7 +1594,7 @@ bool CUser::AddClientCertificate(const X509 *Certificate) {
  */
 bool CUser::RemoveClientCertificate(const X509 *Certificate) {
 #ifdef USESSL
-	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			X509_free(m_ClientCertificates[i]);
 
@@ -1625,7 +1619,12 @@ bool CUser::PersistCertificates(void) {
 	const char *Filename;
 	FILE *CertFile;
 
-	asprintf(&TempFilename, "users/%s.pem", m_Name);
+	int rc = asprintf(&TempFilename, "users/%s.pem", m_Name);
+
+	if (RcFailed(rc)) {
+		return false;
+	}
+
 	Filename = g_Bouncer->BuildPathConfig(TempFilename);
 	free(TempFilename);
 
@@ -1644,7 +1643,7 @@ bool CUser::PersistCertificates(void) {
 			return false;
 		}
 
-		for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+		for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 			PEM_write_X509(CertFile, m_ClientCertificates[i]);
 			fprintf(CertFile, "\n");
 		}
@@ -1666,7 +1665,7 @@ bool CUser::PersistCertificates(void) {
  */
 bool CUser::FindClientCertificate(const X509 *Certificate) const {
 #ifdef USESSL
-	for (unsigned int i = 0; i < m_ClientCertificates.GetLength(); i++) {
+	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			return true;
 		}
@@ -1745,9 +1744,9 @@ const char *CUser::GetTagString(const char *Tag) const {
 		return NULL;
 	}
 
-	asprintf(&Setting, "tag.%s", Tag);
+	int rc = asprintf(&Setting, "tag.%s", Tag);
 
-	if (AllocFailed(Setting)) {
+	if (RcFailed(rc)) {
 		return NULL;
 	}
 
@@ -1792,15 +1791,15 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 		return false;
 	}
 
-	asprintf(&Setting, "tag.%s", Tag);
+	int rc = asprintf(&Setting, "tag.%s", Tag);
 
-	if (AllocFailed(Setting)) {
+	if (RcFailed(rc)) {
 		return false;
 	}
 
 	Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		(*Modules)[i]->UserTagModified(Tag, Value);
 	}
 
@@ -1823,9 +1822,9 @@ bool CUser::SetTagInteger(const char *Tag, int Value) {
 	bool ReturnValue;
 	char *StringValue;
 
-	asprintf(&StringValue, "%d", Value);
+	int rc = asprintf(&StringValue, "%d", Value);
 
-	if (AllocFailed(StringValue)) {
+	if (RcFailed(rc)) {
 		return false;
 	}
 

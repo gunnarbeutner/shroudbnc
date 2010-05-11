@@ -166,4 +166,4 @@ typedef enum generic_error_e {
 %template(CResultCharP) CResult<char *>;
 %template(CResultConstCharP) CResult<const char *>;
 %template(CResultBool) CResult<bool>;
-#endif
+#endif /* SWIGINTERFACE */

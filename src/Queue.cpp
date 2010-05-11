@@ -28,7 +28,7 @@ RESULT<const char *> CQueue::PeekItem(void) const {
 	int LowestPriority = 99999;
 	queue_item_t *ThatItem = NULL;
 
-	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+	for (int i = 0; i < m_Items.GetLength(); i++) {
 		if (m_Items[i].Priority < LowestPriority) {
 			LowestPriority = m_Items[i].Priority;
 			ThatItem = m_Items.GetAddressOf(i);
@@ -52,7 +52,7 @@ RESULT<char *> CQueue::DequeueItem(void) {
 	queue_item_t *Item = NULL;
 	char *Line;
 
-	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+	for (int i = 0; i < m_Items.GetLength(); i++) {
 		if (Item == NULL || m_Items[i].Priority < Item->Priority) {
 			Item = m_Items.GetAddressOf(i);
 			Index = i;
@@ -97,7 +97,7 @@ RESULT<bool> CQueue::QueueItem(const char *Line) {
 
 	Item.Priority = 0;
 
-	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+	for (int i = 0; i < m_Items.GetLength(); i++) {
 		m_Items[i].Priority--;
 	}
 
@@ -112,7 +112,7 @@ RESULT<bool> CQueue::QueueItem(const char *Line) {
  * @param Line the item which is to be inserted
  */
 RESULT<bool> CQueue::QueueItemNext(const char *Line) {
-	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+	for (int i = 0; i < m_Items.GetLength(); i++) {
 		m_Items[i].Priority += 2;
 	}
 
@@ -124,7 +124,7 @@ RESULT<bool> CQueue::QueueItemNext(const char *Line) {
  *
  * Returns the number of items which are in the queue.
  */
-unsigned int CQueue::GetLength(void) const {
+int CQueue::GetLength(void) const {
 	return m_Items.GetLength();
 }
 
@@ -134,7 +134,7 @@ unsigned int CQueue::GetLength(void) const {
  * Removes all items from the queue.
  */
 void CQueue::Clear(void) {
-	for (unsigned int i = 0; i < m_Items.GetLength(); i++) {
+	for (int i = 0; i < m_Items.GetLength(); i++) {
 		free(m_Items[i].Line);
 	}
 

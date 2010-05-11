@@ -29,36 +29,40 @@
 #	include <shlwapi.h>
 #	include <direct.h>
 #	include <io.h>
-#else
+#else /* SWIG */
 typedef struct { char __addr[16]; } sockaddr_in6;
-#endif
+#endif /* SWIG */
 
 #define mkdir _mkdir
 
 #ifndef S_IRUSR
 #define S_IRUSR 0
-#endif
+#endif /* S_IRUSR */
+
 #ifndef S_IWUSR
 #define S_IWUSR 0
-#endif
+#endif /* S_IWUSR */
+
 #ifndef S_IXUSR
 #define S_IXUSR 0
-#endif
+#endif /* S_IXUSR */
+
 #ifndef S_IRGRP
 #define S_IRGRP 0
-#endif
+#endif /* S_IRGRP */
+
 #ifndef S_IROTH
 #define S_IROTH 0
-#endif
+#endif /* S_IROTH */
 
 #ifdef _DEBUG
 #	include <dbghelp.h>
 #	include <intrin.h>
-#endif
+#endif /* _DEBUG */
 
 #if !defined(socklen_t)
 typedef int socklen_t;
-#endif
+#endif /* !defined(socklen_t) */
 
 #undef GetClassName
 
@@ -74,7 +78,7 @@ typedef int socklen_t;
 #define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose((lt_dlhandle)hLibModule) : 0
 #undef GetProcAddress
 #define GetProcAddress(hModule, lpProcName) lt_dlsym((lt_dlhandle)hModule, lpProcName)
-#endif
+#endif /* _MSC_VER */
 
 #undef HAVE_AF_INET6
 #define HAVE_AF_INET6
@@ -87,6 +91,6 @@ typedef int socklen_t;
 
 #ifdef SBNC
 #	define SBNCAPI __declspec(dllexport)
-#else
+#else /* SBNC */
 #	define SBNCAPI __declspec(dllimport)
-#endif
+#endif /* SBNC */

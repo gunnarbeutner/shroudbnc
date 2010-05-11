@@ -122,7 +122,7 @@ void CTclClientSocket::ParseLine(const char *Line) {
 	Tcl_IncrRefCount(objv[2]);
 
 	m_InTcl = true;
-	int Code = Tcl_EvalObjv(g_Interp, 3, objv, TCL_EVAL_GLOBAL);
+	Tcl_EvalObjv(g_Interp, 3, objv, TCL_EVAL_GLOBAL);
 	m_InTcl = false;
 
 	Tcl_DecrRefCount(objv[1]);

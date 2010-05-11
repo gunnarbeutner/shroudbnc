@@ -19,12 +19,12 @@
 
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
-#endif
+#endif /* SWIGINTERFACE */
 
 #ifndef SWIG
 bool ClientAuthTimer(time_t Now, void *Client);
 bool ClientPingTimer(time_t Now, void *ClientConnection);
-#endif
+#endif /* SWIG */
 
 /**
  * clientdata_t
@@ -70,13 +70,12 @@ public:
 	void AsyncDnsFinishedClient(hostent *response);
 
 private:
-#endif
+#endif /*SWIG */
 
 	bool ValidateUser(void);
 	void SetPeerName(const char *PeerName, bool LookupFailure);
 	virtual int Read(bool DontProcess = false);
 	virtual const char *GetClassName(void) const;
-	void WriteUnformattedLine(const char *Line);
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
@@ -86,7 +85,7 @@ public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, bool SSL = false);
 	virtual ~CClientConnection(void);
-#endif
+#endif /* SWIG */
 
 	virtual void ParseLine(const char *Line);
 
@@ -109,6 +108,8 @@ public:
 
 	virtual void SetQuitReason(const char *Reason);
 	virtual const char *GetQuitReason(void) const;
+
+	virtual void WriteUnformattedLine(const char *Line);
 };
 
 #ifdef SBNC
@@ -188,6 +189,6 @@ public:
 		free(Object);
 	}
 };
-#else
+#else /* SBNC */
 class CFakeClient;
-#endif
+#endif /* SBNC */

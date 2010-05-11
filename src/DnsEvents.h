@@ -88,6 +88,6 @@ public:
  */
 #define USE_DNSEVENTPROXY(ClassName, Function) DnsEventProxy##ClassName##Function
 
-#else
+#else /* SWIG */
 class CDnsQuery;
-#endif
+#endif /* SWIG */

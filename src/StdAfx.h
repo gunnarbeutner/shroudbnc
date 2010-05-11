@@ -25,7 +25,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #undef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
+#endif /* _CRT_SECURE_NO_DEPRECATE */
 
 #include "fdhelper.h"
 
@@ -43,50 +43,50 @@
 
 #ifdef __cplusplus
 #	include <typeinfo>
-#endif
+#endif /* __cplusplus */
 
 #ifdef _WIN32
 #	include "win32.h"
-#else
+#else /* _WIN32 */
 #	include "unix.h"
-#endif
+#endif /* _WIN32 */
 
 #ifndef _MSC_VER
 #	ifdef DLL_EXPORT
 #		undef DLL_EXPORT
 #		define WAS_DLL_EXPORT
-#	endif
+#	endif /* DLL_EXPORT */
 #	include "ltdl.h"
 #	ifdef WAS_DLL_EXPORT
 #		define DLL_EXPORT
-#	endif
-#endif
+#	endif /* WAS_DLL_EXPORT */
+#endif /* _MSC_VER */
 
 #ifndef _WIN32
 typedef lt_dlhandle HMODULE;
-#endif
+#endif /* _WIN32 */
 
 #ifdef USESSL
 #	include <openssl/bio.h>
 #	include <openssl/ssl.h>
 #	include <openssl/err.h>
-#else
+#else /* USESSL */
 	typedef void SSL;
 	typedef void BIO;
 	typedef void SSL_CTX;
 	typedef void X509;
 	typedef void X509_STORE_CTX;
-#endif
+#endif /* USESSL */
 
 #if defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6)
 #	define IPV6
-#endif
+#endif /* defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6) */
 
-#include "snprintf/snprintf.h"
+#include "../third-party/snprintf/snprintf.h"
 
 #ifndef SWIG
 #	include "../third-party/c-ares/ares.h"
-#endif
+#endif /* SWIG */
 
 #ifdef SBNC
 #	define EXTRA_SECURITY
@@ -96,12 +96,10 @@ typedef lt_dlhandle HMODULE;
 #		define strcat(dest, src) __undefined_function
 #		define fscanf __undefined_function
 #		define sprintf __undefined_function
-#	endif
-#endif
+#	endif /* EXTRA_SECURITY */
+#endif /* SBNC */
 
 #ifdef __cplusplus
-//#	include "sbncloader/AssocArray.h"
-
 #	include "sbnc.h"
 #	include "Result.h"
 #	include "Object.h"
@@ -135,4 +133,4 @@ typedef lt_dlhandle HMODULE;
 #	include "TrafficStats.h"
 #	include "FloodControl.h"
 #	include "Listener.h"
-#endif
+#endif /* __cplusplus */

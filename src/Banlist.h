@@ -28,6 +28,8 @@ typedef struct ban_s {
 	time_t Timestamp;
 } ban_t;
 
+class CChannel;
+
 /**
  * CBanlist
  *
@@ -40,7 +42,7 @@ private:
 public:
 #ifndef SWIG
 	CBanlist(CChannel *Owner);
-#endif
+#endif /* SWIG */
 
 	RESULT<bool> SetBan(const char *Mask, const char *Nick, time_t Timestamp);
 	RESULT<bool> UnsetBan(const char *Mask);

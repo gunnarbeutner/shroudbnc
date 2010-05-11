@@ -28,7 +28,7 @@ public:
 #ifndef SWIG
 	CIdentSupport(void);
 	~CIdentSupport(void);
-#endif
+#endif /* SWIG */
 
 	void SetIdent(const char *Ident);
 	const char *GetIdent(void) const;

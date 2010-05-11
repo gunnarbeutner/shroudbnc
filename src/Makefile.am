@@ -1,5 +1,3 @@
-SUBDIRS=snprintf md5
-
 bin_PROGRAMS=sbnc
 
 sbnc_SOURCES=Banlist.cpp \
@@ -65,7 +63,7 @@ sbnc_SOURCES=Banlist.cpp \
 	Vector.h \
 	win32.h \
 	fdhelper.h
-sbnc_LDADD=../third-party/c-ares/libcares.la md5/libmd5.la snprintf/libsnprintf.la @SSLLDFLAGS@ ${LIBLTDL}
+sbnc_LDADD=../third-party/c-ares/libcares.la ../third-party/md5/libmd5.la ../third-party/snprintf/libsnprintf.la @SSLLDFLAGS@ ${LIBLTDL}
 sbnc_LDFLAGS=-export-dynamic
 
 AM_CFLAGS=-DSBNC @SSLCFLAGS@ ${LTDLINCL}

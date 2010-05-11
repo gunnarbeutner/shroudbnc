@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-class CUser;
-
 #define Log_Notice 1
 #define Log_Message 0
 #define Log_Motd 2
@@ -36,7 +34,7 @@ public:
 #ifndef SWIG
 	CLog(const char *Filename, bool KeepOpen = false);
 	virtual ~CLog(void);
-#endif
+#endif /* SWIG */
 
 	void Clear(void);
 	void WriteLine(const char *Timestamp, const char *Format,...);

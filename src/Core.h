@@ -82,7 +82,7 @@ class SBNCAPI CCore {
 	friend class CTimer;
 	friend pollfd *registersocket(int Socket);
 	friend void unregistersocket(int Socket);
-#endif
+#endif /* SWIG */
 
 	CConfig *m_OriginalConfig; /** sbnc.conf object */
 	CConfig *m_Config; /**< config object (== m_OriginalConfig unless there is a config module) */
@@ -136,7 +136,7 @@ public:
 #ifndef SWIG
 	CCore(CConfig *Config, int argc, char **argv);
 	virtual ~CCore(void);
-#endif
+#endif /* SWIG */
 
 	void StartMainLoop(bool ShouldDaemonize);
 
@@ -265,4 +265,4 @@ public:
 #ifndef SWIG
 extern CCore *g_Bouncer; /**< the main bouncer object */
 extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
-#endif
+#endif /* SWIG */

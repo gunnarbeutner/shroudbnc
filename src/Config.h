@@ -37,7 +37,7 @@ public:
 #ifndef SWIG
 	CConfig(const char *Filename, CUser *Owner);
 	virtual ~CConfig(void);
-#endif
+#endif /* SWIG */
 
 	virtual void Destroy(void);
 

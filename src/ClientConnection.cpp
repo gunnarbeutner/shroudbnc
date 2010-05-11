@@ -126,9 +126,9 @@ CClientConnection::~CClientConnection() {
  */
 bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser) {
 	char *Out;
-	CUser *targUser = GetOwner();
 	const CVector<CModule *> *Modules;
 	bool latchedRetVal = true;
+	int rc;
 
 	Modules = g_Bouncer->GetModules();
 
@@ -264,7 +264,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			"Syntax: help [command]\nDisplays a list of commands or information about individual commands.");
 	}
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		if ((*Modules)[i]->InterceptClientCommand(this, Subcommand, argc, argv, NoticeUser)) {
 			latchedRetVal = false;
 		}
@@ -295,9 +295,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			char *Category = NULL;
 			char *Format;
 
-			asprintf(&Format, "%%-%ds - %%s", (int)Align);
+			rc = asprintf(&Format, "%%-%ds - %%s", (int)Align);
 
-			for (unsigned int i = 0; i < m_CommandList->GetLength(); i++) {
+			if (RcFailed(rc)) {
+				g_Bouncer->Fatal();
+			}
+
+			for (int i = 0; i < m_CommandList->GetLength(); i++) {
 				if (Category == NULL || strcasecmp(CommandList[i].Value->Category, Category) != 0) {
 					if (Category) {
 						SENDUSER("--");
@@ -305,12 +309,22 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 					Category = CommandList[i].Value->Category;
 
-					asprintf(&Out, "%s commands", Category);
+					rc = asprintf(&Out, "%s commands", Category);
+
+					if (RcFailed(rc)) {
+						g_Bouncer->Fatal();
+					}
+
 					SENDUSER(Out);
 					free(Out);
 				}
 
-				asprintf(&Out, Format, CommandList[i].Name, CommandList[i].Value->Description);
+				rc = asprintf(&Out, Format, CommandList[i].Name, CommandList[i].Value->Description);
+
+				if (RcFailed(rc)) {
+					g_Bouncer->Fatal();
+				}
+
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -361,10 +375,10 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 	}
 
 	if (strcasecmp(Subcommand, "lsmod") == 0 && GetOwner()->IsAdmin()) {
-		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
-			asprintf(&Out, "%d: %s", i + 1, (*Modules)[i]->GetFilename());
+		for (int i = 0; i < Modules->GetLength(); i++) {
+			rc = asprintf(&Out, "%d: %s", i + 1, (*Modules)[i]->GetFilename());
 
-			if (AllocFailed(Out)) {
+			if (RcFailed(rc)) {
 				return false;
 			}
 
@@ -386,9 +400,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		if (!IsError(ModuleResult)) {
 			SENDUSER("Module was successfully loaded.");
 		} else {
-			asprintf(&Out, "Module could not be loaded: %s", GETDESCRIPTION(ModuleResult));
+			rc = asprintf(&Out, "Module could not be loaded: %s", GETDESCRIPTION(ModuleResult));
 
-			if (AllocFailed(Out)) {
+			if (RcFailed(rc)) {
 				SENDUSER("Module could not be loaded.");
 
 				return false;
@@ -406,7 +420,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			return false;
 		}
 
-		unsigned int Index = atoi(argv[1]);
+		int Index = atoi(argv[1]);
 
 		if (Index == 0 || Index > Modules->GetLength()) {
 			SENDUSER("There is no such module.");
@@ -426,12 +440,12 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			SENDUSER("Syntax: unset option");
 		} else {
 			if (NoticeUser) {
-				asprintf(&Out, "SBNC SET %s :", argv[1]);
+				rc = asprintf(&Out, "SBNC SET %s :", argv[1]);
 			} else {
-				asprintf(&Out, "PRIVMSG -sBNC :SET %s :", argv[1]);
+				rc = asprintf(&Out, "PRIVMSG -sBNC :SET %s :", argv[1]);
 			}
 
-			if (!AllocFailed(Out)) {
+			if (!RcFailed(rc)) {
 				ParseLine(Out);
 				free(Out);
 			}
@@ -439,83 +453,83 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "set") == 0) {
-		CConfig *Config = GetOwner()->GetConfig();
-
 		if (argc < 3) {
 			SENDUSER("Configurable settings:");
 			SENDUSER("--");
 
 			SENDUSER("password - Set");
 
-			asprintf(&Out, "vhost - %s", GetOwner()->GetVHost() ? GetOwner()->GetVHost() : "Default");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "vhost - %s", GetOwner()->GetVHost() ? GetOwner()->GetVHost() : "Default");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 
 			if (GetOwner()->GetServer() != NULL) {
-				asprintf(&Out, "server - %s:%d", GetOwner()->GetServer(), GetOwner()->GetPort());
+				rc = asprintf(&Out, "server - %s:%d", GetOwner()->GetServer(), GetOwner()->GetPort());
 			} else {
 				Out = strdup("server - Not set");
+
+				rc = (Out == NULL) ? -1 : 0;
 			}
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "serverpass - %s", GetOwner()->GetServerPassword() ? "Set" : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "realname - %s", GetOwner()->GetRealname());
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "awaynick - %s", GetOwner()->GetAwayNick() ? GetOwner()->GetAwayNick() : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "away - %s", GetOwner()->GetAwayText() ? GetOwner()->GetAwayText() : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "awaymessage - %s", GetOwner()->GetAwayMessage() ? GetOwner()->GetAwayMessage() : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "appendtimestamp - %s", GetOwner()->GetAppendTimestamp() ? "On" : "Off");
 			if (!AllocFailed(Out)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 
-			asprintf(&Out, "serverpass - %s", GetOwner()->GetServerPassword() ? "Set" : "Not set");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "realname - %s", GetOwner()->GetRealname());
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "awaynick - %s", GetOwner()->GetAwayNick() ? GetOwner()->GetAwayNick() : "Not set");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "away - %s", GetOwner()->GetAwayText() ? GetOwner()->GetAwayText() : "Not set");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "awaymessage - %s", GetOwner()->GetAwayMessage() ? GetOwner()->GetAwayMessage() : "Not set");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "appendtimestamp - %s", GetOwner()->GetAppendTimestamp() ? "On" : "Off");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			asprintf(&Out, "usequitasaway - %s", GetOwner()->GetUseQuitReason() ? "On" : "Off");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "usequitasaway - %s", GetOwner()->GetUseQuitReason() ? "On" : "Off");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 
 #ifdef USESSL
-			asprintf(&Out, "ssl - %s", GetOwner()->GetSSL() ? "On" : "Off");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "ssl - %s", GetOwner()->GetSSL() ? "On" : "Off");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 #endif
 
 #ifdef IPV6
-			asprintf(&Out, "ipv6 - %s", GetOwner()->GetIPv6() ? "On" : "Off");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "ipv6 - %s", GetOwner()->GetIPv6() ? "On" : "Off");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -536,21 +550,21 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				DropModesPrefix = "";
 			}
 
-			asprintf(&Out, "automodes - %s%s", AutoModesPrefix, ValidAutoModes ? AutoModes : "Not set");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "automodes - %s%s", AutoModesPrefix, ValidAutoModes ? AutoModes : "Not set");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 
-			asprintf(&Out, "dropmodes - %s%s", DropModesPrefix, ValidDropModes ? DropModes : "Not set");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "dropmodes - %s%s", DropModesPrefix, ValidDropModes ? DropModes : "Not set");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
 
 			if (GetOwner()->IsAdmin()) {
-				asprintf(&Out, "sysnotices - %s", GetOwner()->GetSystemNotices() ? "On" : "Off");
-				if (!AllocFailed(Out)) {
+				rc = asprintf(&Out, "sysnotices - %s", GetOwner()->GetSystemNotices() ? "On" : "Off");
+				if (!RcFailed(rc)) {
 					SENDUSER(Out);
 					free(Out);
 				}
@@ -573,7 +587,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					} else {
 						char *ServerStr = NULL;
 						const char *PortStr = strchr(argv[2], ':');
-						unsigned int Port = 6667;
+						unsigned short Port = 6667;
 
 						// Check whether there's a second colon and ignore 'port' if there
 						// isn't because it's most likely an IPv6 address instead.
@@ -708,7 +722,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "showcert") == 0) {
-		int i = 0;
 		char Buffer[300];
 		const CVector<X509 *> *Certificates;
 		X509_NAME *name;
@@ -716,7 +729,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		Certificates = GetOwner()->GetClientCertificates();
 
-		for (unsigned int i = 0; i < Certificates->GetLength(); i++) {
+		for (int i = 0; i < Certificates->GetLength(); i++) {
 			X509 *Certificate = (*Certificates)[i];
 
 			if (First == false) {
@@ -725,8 +738,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				First = false;
 			}
 
-			asprintf(&Out, "Client Certificate #%d", i + 1);
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "Client Certificate #%d", i + 1);
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -734,8 +747,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			name = X509_get_issuer_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
 
-			asprintf(&Out, "issuer: %s", Buffer);
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "issuer: %s", Buffer);
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -743,8 +756,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			name = X509_get_subject_name(Certificate);
 			X509_NAME_oneline(name, Buffer, sizeof(Buffer));
 
-			asprintf(&Out, "subject: %s", Buffer);
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "subject: %s", Buffer);
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -754,7 +767,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "delcert") == 0) {
-		unsigned int id;
+		int id;
 
 		if (argc < 2) {
 			SENDUSER("Syntax: delcert ID");
@@ -767,7 +780,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		X509 *Certificate;
 		const CVector<X509 *> *Certificates = GetOwner()->GetClientCertificates();
 
-		if (id == 0 || id > Certificates->GetLength()) {
+		if (id <= 0 || id > Certificates->GetLength()) {
 			Certificate = NULL;
 		} else {
 			Certificate = (*Certificates)[id - 1];
@@ -826,9 +839,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		g_Bouncer->CreateUser(argv[1], Password);
 
 		if (argc < 3) {
-			asprintf(&Out, "The new user's password is \"%s\".", Password);
+			rc = asprintf(&Out, "The new user's password is \"%s\".", Password);
 
-			if (AllocFailed(Out)) {
+			if (RcFailed(rc)) {
 				return false;
 			}
 
@@ -875,8 +888,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 			SENDUSER("Done.");
 		} else {
-			asprintf(&Out, "No such user: %s", argv[1]);
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "No such user: %s", argv[1]);
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -899,8 +912,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		if (argc < 2) {
 			const char *Ip = g_Bouncer->GetDefaultVHost();
 
-			asprintf(&Out, "Current global VHost: %s", Ip ? Ip : "(none)");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "Current global VHost: %s", Ip ? Ip : "(none)");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -914,8 +927,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		if (argc < 2) {
 			const char *Motd = g_Bouncer->GetMotd();
 
-			asprintf(&Out, "Current MOTD: %s", Motd ? Motd : "(none)");
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "Current MOTD: %s", Motd ? Motd : "(none)");
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -964,9 +977,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			Reason = argv[2];
 		}
 
-		asprintf(&Out, "You were disconnected from the bouncer. (Requested by %s: %s)", GetOwner()->GetUsername(), Reason);
+		rc = asprintf(&Out, "You were disconnected from the bouncer. (Requested by %s: %s)", GetOwner()->GetUsername(), Reason);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			return false;
 		}
 
@@ -1028,26 +1041,26 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "status") == 0) {
-		asprintf(&Out, "Username: %s", GetOwner()->GetUsername());
-		if (!AllocFailed(Out)) {
+		rc = asprintf(&Out, "Username: %s", GetOwner()->GetUsername());
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
 
-		asprintf(&Out, "This is shroudBNC %s", g_Bouncer->GetBouncerVersion());
-		if (!AllocFailed(Out)) {
+		rc = asprintf(&Out, "This is shroudBNC %s", g_Bouncer->GetBouncerVersion());
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
 
-		asprintf(&Out, "You are %san admin.", GetOwner()->IsAdmin() ? "" : "not ");
-		if (!AllocFailed(Out)) {
+		rc = asprintf(&Out, "You are %san admin.", GetOwner()->IsAdmin() ? "" : "not ");
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
 
-		asprintf(&Out, "Client: sendq: %d, recvq: %d", (int)GetSendqSize(), (int)GetRecvqSize());
-		if (!AllocFailed(Out)) {
+		rc = asprintf(&Out, "Client: sendq: %d, recvq: %d", (int)GetSendqSize(), (int)GetRecvqSize());
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
@@ -1055,8 +1068,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		CIRCConnection *IRC = GetOwner()->GetIRCConnection();
 
 		if (IRC) {
-			asprintf(&Out, "IRC: sendq: %d, recvq: %d", (int)IRC->GetSendqSize(), (int)IRC->GetRecvqSize());
-			if (!AllocFailed(Out)) {
+			rc = asprintf(&Out, "IRC: sendq: %d, recvq: %d", (int)IRC->GetSendqSize(), (int)IRC->GetRecvqSize());
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -1072,8 +1085,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			SENDUSER("End of CHANNELS.");
 		}
 
-		asprintf(&Out, "Uptime: %d seconds", GetOwner()->GetIRCUptime());
-		if (!AllocFailed(Out)) {
+		rc = asprintf(&Out, "IRC Uptime: %d seconds", GetOwner()->GetIRCUptime());
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
@@ -1129,7 +1142,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				LastSeen = GetOwner()->FormatTime(User->GetLastSeen());
 			}
 
-			asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s",
+			rc = asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s",
 				User->IsLocked() ? "!" : "",
 				User->IsAdmin() ? "@" : "",
 				ClientAddr ? "*" : "",
@@ -1140,7 +1153,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				LastSeen,
 				User->GetRealname());
 
-			if (!AllocFailed(Out)) {
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -1215,24 +1228,26 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "listeners") == 0 && GetOwner()->IsAdmin()) {
 		if (g_Bouncer->GetMainListener() != NULL) {
-			asprintf(&Out, "Main listener: port %d", g_Bouncer->GetMainListener()->GetPort());
+			rc = asprintf(&Out, "Main listener: port %d", g_Bouncer->GetMainListener()->GetPort());
 		} else {
 			Out = strdup("Main listener: none");
+			rc = (Out == NULL) ? -1 : 0;
 		}
 
-		if (!AllocFailed(&Out)) {
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
 
 #ifdef USESSL
 		if (g_Bouncer->GetMainSSLListener() != NULL) {
-			asprintf(&Out, "Main SSL listener: port %d", g_Bouncer->GetMainSSLListener()->GetPort());
+			rc = asprintf(&Out, "Main SSL listener: port %d", g_Bouncer->GetMainSSLListener()->GetPort());
 		} else {
 			Out = strdup("Main SSL listener: none");
+			rc = (Out == NULL) ? -1 : 0;
 		}
 
-		if (!AllocFailed(&Out)) {
+		if (!RcFailed(rc)) {
 			SENDUSER(Out);
 			free(Out);
 		}
@@ -1243,25 +1258,25 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		CVector<additionallistener_t> *Listeners = g_Bouncer->GetAdditionalListeners();
 
-		for (unsigned int i = 0; i < Listeners->GetLength(); i++) {
+		for (int i = 0; i < Listeners->GetLength(); i++) {
 #ifdef USESSL
 			if ((*Listeners)[i].SSL) {
 				if ((*Listeners)[i].BindAddress != NULL) {
-					asprintf(&Out, "Port: %d (SSL, bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
+					rc = asprintf(&Out, "Port: %d (SSL, bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
 				} else {
-					asprintf(&Out, "Port: %d (SSL)", (*Listeners)[i].Port);
+					rc = asprintf(&Out, "Port: %d (SSL)", (*Listeners)[i].Port);
 				}
 			} else {
 #endif
 				if ((*Listeners)[i].BindAddress != NULL) {
-					asprintf(&Out, "Port: %d (bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
+					rc = asprintf(&Out, "Port: %d (bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
 				} else {
-					asprintf(&Out, "Port: %d", (*Listeners)[i].Port);
+					rc = asprintf(&Out, "Port: %d", (*Listeners)[i].Port);
 				}
 #ifdef USESSL
 			}
 #endif
-			if (!AllocFailed(Out)) {
+			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
@@ -1319,7 +1334,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		SENDUSER("Hostmasks");
 		SENDUSER("---------");
 
-		for (unsigned int i = 0; i < Hosts->GetLength(); i++) {
+		for (int i = 0; i < Hosts->GetLength(); i++) {
 			SENDUSER((*Hosts)[i]);
 		}
 
@@ -1514,6 +1529,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
  */
 bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 	char *Out;
+	int rc;
 
 	if (argc == 0) {
 		return false;
@@ -1523,7 +1539,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		if (!(*Modules)[i]->InterceptClientMessage(this, argc, argv)) {
 			return false;
 		}
@@ -1618,12 +1634,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					GetOwner()->SetAwayText(argv[1]);
 				}
 
-				asprintf(&QuitReason, "Quit: %s", argv[1]);
+				rc = asprintf(&QuitReason, "Quit: %s", argv[1]);
 			} else {
-				asprintf(&QuitReason, "Quit");
+				rc = asprintf(&QuitReason, "Quit");
 			}
 
-			if (!AllocFailed(QuitReason)) {
+			if (!RcFailed(rc)) {
 				SetQuitReason(QuitReason);
 
 				free(QuitReason);
@@ -1691,7 +1707,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 			CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
 
-			for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+			for (int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
 					if (Channel == NULL) {
 						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1], Site, GetOwner()->GetNick(), argv[2]);
@@ -1965,14 +1981,14 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "mode") == 0 || strcasecmp(Command, "topic") == 0 ||
 				strcasecmp(Command, "names") == 0 || strcasecmp(Command, "who") == 0) {
-			if (argc == 2 || (strcasecmp(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0) {
+			if (argc == 2 || ((strcasecmp(Command, "mode") == 0 && argc == 3) && strcmp(argv[2],"+b") == 0)) {
 				if (argc == 2) {
-					asprintf(&Out, "SYNTH %s :%s", argv[0], argv[1]);
+					rc = asprintf(&Out, "SYNTH %s :%s", argv[0], argv[1]);
 				} else {
-					asprintf(&Out, "SYNTH %s %s :%s", argv[0], argv[1], argv[2]);
+					rc = asprintf(&Out, "SYNTH %s %s :%s", argv[0], argv[1], argv[2]);
 				}
 
-			if (!AllocFailed(Out)) {
+			if (!RcFailed(rc)) {
 				ParseLine(Out);
 				free(Out);
 			}
@@ -2258,9 +2274,10 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 
 				if (CompareAddress(saddr, Remote) == 0) {
 					SetPeerName(m_PeerNameTemp, false);
-					free(m_PeerNameTemp);
 
-					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", m_PeerName);
+					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", m_PeerNameTemp);
+
+					free(m_PeerNameTemp);
 
 					return;
 				}
@@ -2445,7 +2462,7 @@ bool ClientAuthTimer(time_t Now, void *Client) {
 
 void CClientConnection::ChangeNick(const char *NewNick) {
 	CIRCConnection *IRC;
-	const char *Site;
+	const char *Site = NULL;
 
 	IRC = GetOwner()->GetIRCConnection();
 

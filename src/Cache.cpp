@@ -23,9 +23,9 @@ int CacheGetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, co
 	char *OptionName;
 
 	if (Prefix != NULL) {
-		asprintf(&OptionName, "%s%s", Prefix, Option);
+		int rc = asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		if (AllocFailed(OptionName)) {
+		if (RcFailed(rc)) {
 			return 0;
 		}
 	} else {
@@ -45,9 +45,9 @@ const char *CacheGetStringReal(CConfig *Config, const char **CacheValue, const c
 	char *OptionName;
 
 	if (Prefix != NULL) {
-		asprintf(&OptionName, "%s%s", Prefix, Option);
+		int rc = asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		if (AllocFailed(OptionName)) {
+		if (RcFailed(rc)) {
 			return NULL;
 		}
 	} else {
@@ -67,9 +67,9 @@ void CacheSetIntegerReal(CConfig *Config, int *CacheValue, const char *Option, i
 	char *OptionName;
 
 	if (Prefix != NULL) {
-		asprintf(&OptionName, "%s%s", Prefix, Option);
+		int rc = asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		if (AllocFailed(OptionName)) {
+		if (RcFailed(rc)) {
 			return;
 		}
 	} else {
@@ -89,9 +89,9 @@ void CacheSetStringReal(CConfig *Config, const char **CacheValue, const char *Op
 	char *OptionName;
 
 	if (Prefix != NULL) {
-		asprintf(&OptionName, "%s%s", Prefix, Option);
+		int rc = asprintf(&OptionName, "%s%s", Prefix, Option);
 
-		if (AllocFailed(OptionName)) {
+		if (RcFailed(rc)) {
 			return;
 		}
 	} else {

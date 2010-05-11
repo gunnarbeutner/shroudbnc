@@ -38,13 +38,13 @@ class CTimer;
 
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
-#endif
+#endif /* SWIGINTERFACE */
 
 #ifndef SWIG
 bool DelayJoinTimer(time_t Now, void *IRCConnection);
 bool IRCPingTimer(time_t Now, void *IRCConnection);
 bool NickCatchTimer(time_t Now, void *IRCConnection);
-#endif
+#endif /* SWIG */
 
 /**
  * CIRCConnection
@@ -57,7 +57,7 @@ private:
 	friend bool DelayJoinTimer(time_t Now, void *IRCConnection);
 	friend bool IRCPingTimer(time_t Now, void *IRCConnection);
 	friend bool NickCatchTimer(time_t Now, void *IRCConnection);
-#endif
+#endif /* SWIG */
 
 	connection_state_e m_State; /**< the current status of the IRC connection */
 
@@ -111,7 +111,7 @@ public:
 #ifndef SWIG
 	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
-#endif
+#endif /* SWIG */
 
 	CChannel *GetChannel(const char *Name);
 	CHashtable<CChannel *, false, 16> *GetChannels(void);

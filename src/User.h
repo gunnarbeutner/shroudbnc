@@ -69,8 +69,6 @@ typedef struct client_s {
 	CClientConnection *Client;
 } client_t;
 
-template class SBNCAPI CVector<client_t>;
-
 /**
  * badlogin_t
  *
@@ -85,7 +83,7 @@ typedef struct badlogin_s {
 #ifndef SWIG
 bool BadLoginTimer(time_t Now, void *User);
 bool UserReconnectTimer(time_t Now, void *User);
-#endif
+#endif /* SWIG */
 
 /**
  * USER_SETFUNCTION
@@ -122,7 +120,7 @@ class SBNCAPI CUser {
 #ifndef SWIG
 	friend bool BadLoginTimer(time_t Now, void *User);
 	friend bool UserReconnectTimer(time_t Now, void *User);
-#endif
+#endif /* SWIG */
 
 	char *m_Name; /**< the name of the user */
 
@@ -155,7 +153,7 @@ public:
 #ifndef SWIG
 	CUser(const char *Name);
 	virtual ~CUser(void);
-#endif
+#endif /* SWIG */
 
 	static void RescheduleReconnectTimer(void);
 

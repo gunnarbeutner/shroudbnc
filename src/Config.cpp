@@ -228,9 +228,9 @@ RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
 		RETURN(bool, true);
 	}
 
-	asprintf(&ValueString, "%d", Value);
+	int rc = asprintf(&ValueString, "%d", Value);
 
-	if (AllocFailed(ValueString)) {
+	if (RcFailed(rc)) {
 		THROW(bool, Generic_OutOfMemory, "asprintf() failed.");
 	}
 
@@ -259,7 +259,9 @@ RESULT<bool> CConfig::Persist(void) const {
 	FILE *ConfigFile = fopen(m_Filename, "w");
 
 	if (AllocFailed(ConfigFile)) {
-		asprintf(&Error, "Could not open config file: %s", m_Filename);
+		int rc = asprintf(&Error, "Could not open config file: %s", m_Filename);
+
+		if (RcFailed(rc)) {}
 
 		THROW(bool, Generic_Unknown, Error);
 	}

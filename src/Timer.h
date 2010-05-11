@@ -40,7 +40,7 @@ public:
 #ifndef SWIG
 	CTimer(unsigned int Interval, bool Repeat, TimerProc Function, void *Cookie);
 	virtual ~CTimer(void);
-#endif
+#endif /* SWIG */
 
 	static time_t GetNextCall(void);
 	static void DestroyAllTimers(void);

@@ -38,8 +38,8 @@ class SBNCAPI CModule : public CModuleFar {
 public:
 #ifndef SWIG
 	CModule(const char *Filename);
-	~CModule(void);
-#endif
+	virtual ~CModule(void);
+#endif /* SWIG */
 
 	CModuleFar *GetModule(void);
 	const char *GetFilename(void);

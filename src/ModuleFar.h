@@ -28,6 +28,13 @@ class CClientConnection;
  */
 struct CModuleFar {
 	/**
+	 * ~CModuleFar
+	 *
+	 * Destructor
+	 */
+	virtual ~CModuleFar(void) {}
+
+	/**
 	 * Destroy
 	 *
 	 * Destroys the module.

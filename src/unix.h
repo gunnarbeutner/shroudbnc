@@ -58,13 +58,17 @@ typedef int DWORD;
 
 #ifdef __CYGWIN__
 	#define EXPORT __declspec(dllexport)
-#else
+#else /* __CYGWIN__ */
 	#define EXPORT
-#endif
+#endif /* __CYGWIN__ */
 
 #ifdef __FreeBSD__
 #define sighandler_t sig_t
-#endif
+#endif /* __FreeBSD__ */
+
+#ifndef PATH_MAX
+#	define PATH_MAX 1024
+#endif /* PATH_MAX */
 
 #define MAXPATHLEN PATH_MAX
 

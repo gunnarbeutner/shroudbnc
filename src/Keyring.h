@@ -31,7 +31,7 @@ private:
 public:
 #ifndef SWIG
 	CKeyring(CConfig *Config, CUser *Owner);
-#endif
+#endif /* SWIG */
 
 	RESULT<bool> SetKey(const char *Channel, const char *Key = NULL);
 	RESULT<const char *> GetKey(const char *Channel);

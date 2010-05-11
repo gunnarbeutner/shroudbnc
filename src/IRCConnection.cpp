@@ -354,7 +354,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				char *Delim = strchr(Dup, '!');
-				const char *Host;
+				const char *Host = NULL;
 
 				if (Delim) {
 					*Delim = '\0';
@@ -417,7 +417,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		Nick = NickFromHostmask(argv[0]);
 
-		unsigned int i = 0;
+		int i = 0;
 
 		while (hash_t<CChannel *> *ChannelHash = m_Channels->Iterate(i++)) {
 			ChannelHash->Value->RemoveUser(Nick);
@@ -431,7 +431,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		if (m_State != State_Connected) {
 			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+			for (int i = 0; i < Modules->GetLength(); i++) {
 				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
 			}
 
@@ -701,12 +701,14 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		const char *Realname = argv[9];
 		char *Mask;
 
-		asprintf(&Mask, "%s!%s@%s", Nick, Ident, Host);
+		int rc = asprintf(&Mask, "%s!%s@%s", Nick, Ident, Host);
 
-		UpdateHostHelper(Mask);
-		UpdateWhoHelper(Nick, Realname, Server);
+		if (!RcFailed(rc)) {
+			UpdateHostHelper(Mask);
+			UpdateWhoHelper(Nick, Realname, Server);
 
-		free(Mask);
+			free(Mask);
+		}
 	} else if (argc > 6 && iRaw == 367) {
 		Channel = GetChannel(argv[3]);
 
@@ -748,7 +750,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 bool CIRCConnection::ModuleEvent(int argc, const char **argv) {
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		if (!(*Modules)[i]->InterceptIRCMessage(this, argc, argv)) {
 			return false;
 		}
@@ -790,9 +792,9 @@ void CIRCConnection::ParseLine(const char *Line) {
 
 	if (ParseLineArgV(argc, argv)) {
 		if (strcasecmp(argv[0], "ping") == 0 && argc > 1) {
-			asprintf(&Out, "PONG :%s", argv[1]);
+			int rc = asprintf(&Out, "PONG :%s", argv[1]);
 
-			if (!AllocFailed(Out)) {
+			if (!RcFailed(rc)) {
 				m_QueueHigh->QueueItem(Out);
 				free(Out);
 			}
@@ -801,7 +803,7 @@ void CIRCConnection::ParseLine(const char *Line) {
 				m_State = State_Pong;
 
 				if (GetOwner()->GetClientConnectionMultiplexer() == NULL) {
-					WriteLine("VERSION");
+					WriteUnformattedLine("VERSION");
 				}
 			}
 		} else {
@@ -811,7 +813,7 @@ void CIRCConnection::ParseLine(const char *Line) {
 				CClientConnection *Client = User->GetClientConnectionMultiplexer();
 
 				if (Client != NULL) {
-					Client->WriteLine("%s", Line);
+					Client->WriteUnformattedLine(Line);
 				}
 			}
 		}
@@ -845,7 +847,6 @@ const char *CIRCConnection::GetCurrentNick(void) const {
  * @param Channel the channel's name
  */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
-	CUser *User;
 	CChannel *ChannelObj;
 	bool LimitExceeded = false;
 
@@ -857,7 +858,7 @@ CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	}
 
 	if (AllocFailed(ChannelObj)) {
-		User->Log("Out of memory. Removing channel (%s).", Channel);
+		GetUser()->Log("Out of memory. Removing channel (%s).", Channel);
 		WriteLine("PART %s", Channel);
 
 		return NULL;
@@ -1051,7 +1052,7 @@ bool CIRCConnection::IsNickPrefix(char Char) const {
 		return false;
 	}
 
-	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
+	for (size_t i = 0; i < strlen(Prefixes); i++) {
 		if (flip) {
 			if (Prefixes[i] == Char) {
 				return true;
@@ -1154,7 +1155,7 @@ const CHashtable<char *, false, 32> *CIRCConnection::GetISupportAll(void) const 
  * @param Server the servername for the user
  */
 void CIRCConnection::UpdateWhoHelper(const char *Nick, const char *Realname, const char *Server) {
-	int a = 0, i = 0;
+	int a = 0;
 
 	if (GetOwner()->GetLeanMode() > 0) {
 		return;
@@ -1459,9 +1460,9 @@ const char *CIRCConnection::GetSite(void) {
 	char *Out;
 
 	if (m_Site == NULL) {
-		asprintf(&Out, "%s@unknown.host", GetOwner()->GetUsername());
+		int rc = asprintf(&Out, "%s@unknown.host", GetOwner()->GetUsername());
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			return NULL;
 		}
 
@@ -1574,7 +1575,7 @@ char CIRCConnection::GetHighestUserFlag(const char *Modes) const {
 		return '\0';
 	}
 
-	for (unsigned int i = 0; i < strlen(Prefixes); i++) {
+	for (size_t i = 0; i < strlen(Prefixes); i++) {
 		if (Flip == false) {
 			if (Prefixes[i] == ')') {
 				Flip = true;

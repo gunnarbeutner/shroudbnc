@@ -41,7 +41,7 @@ class SBNCAPI CConnection : public CSocketEvents {
 #ifndef SWIG
 	friend class CCore;
 	friend class CUser;
-#endif
+#endif /* SWIG */
 protected:
 	virtual void ParseLine(const char *Line);
 
@@ -99,7 +99,7 @@ public:
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
 	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
 	virtual ~CConnection(void);
-#endif
+#endif /* SWIG */
 
 	void SetSocket(SOCKET Socket);
 	SOCKET GetSocket(void) const;

@@ -25,6 +25,13 @@
 struct CSocketEvents {
 public:
 	/**
+	 * ~CSocketEvents
+	 *
+	 * Destructor.
+	 */
+	virtual ~CSocketEvents(void) {}
+
+	/**
 	 * Destroy
 	 *
 	 * Used for destroying the object and the underlying object.

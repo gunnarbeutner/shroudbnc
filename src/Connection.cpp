@@ -531,10 +531,10 @@ void CConnection::WriteLine(const char *Format, ...) {
 	}
 
 	va_start(Marker, Format);
-	vasprintf(&Line, Format, Marker);
+	int rc = vasprintf(&Line, Format, Marker);
 	va_end(Marker);
 
-	if (AllocFailed(Line)) {
+	if (RcFailed(rc)) {
 		return;
 	}
 

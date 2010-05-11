@@ -115,7 +115,7 @@ public:
 	~CHashtable(void) {
 		Clear();
 	}
-#endif
+#endif /*SWIG */
 	/**
 	 * Clear
 	 *
@@ -435,12 +435,4 @@ public:
 		}
 	}
 };
-#endif
-
-typedef struct ban_s ban_t;
-class CNick;
-
-template class SBNCAPI CHashtable<char *, false, 16>;
-template class SBNCAPI CHashtable<CUser *, false, 512>;
-template class SBNCAPI CHashtable<ban_t *, false, 5>;
-template class SBNCAPI CHashtable<CNick *, false, 64>;
+#endif /* SBNC */

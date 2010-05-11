@@ -13,4 +13,4 @@ const char *sbncGetExePath(void);
 #ifndef SBNC
 /**< main function of the shroudBNC shared object */
 typedef int (*sbncLoad)(const char *ModulePath, bool Daemonized, int argc, char **argv);
-#endif
+#endif /* SBNC */

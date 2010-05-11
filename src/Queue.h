@@ -42,6 +42,6 @@ public:
 	RESULT<const char *> PeekItem(void) const;
 	RESULT<bool> QueueItem(const char *Line);
 	RESULT<bool> QueueItemNext(const char *Line);
-	unsigned int GetLength(void) const;
+	int GetLength(void) const;
 	void Clear(void);
 };

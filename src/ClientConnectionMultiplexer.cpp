@@ -18,7 +18,7 @@
  *******************************************************************************/
 #include "StdAfx.h"
 
-CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET, NULL) {
+CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET) {
 	SetOwner(User);
 
 	if (m_AuthTimer != NULL) {
@@ -62,7 +62,7 @@ clientdata_t CClientConnectionMultiplexer::Hijack(void) {
 void CClientConnectionMultiplexer::ChangeNick(const char *NewNick) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+	for (int i = 0; i < Clients->GetLength(); i++) {
 		(*Clients)[i].Client->ChangeNick(NewNick);
 	}
 }
@@ -70,7 +70,7 @@ void CClientConnectionMultiplexer::ChangeNick(const char *NewNick) {
 void CClientConnectionMultiplexer::SetNick(const char *NewNick) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+	for (int i = 0; i < Clients->GetLength(); i++) {
 		(*Clients)[i].Client->SetNick(NewNick);
 	}
 }
@@ -78,7 +78,7 @@ void CClientConnectionMultiplexer::SetNick(const char *NewNick) {
 void CClientConnectionMultiplexer::Privmsg(const char *Text) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+	for (int i = 0; i < Clients->GetLength(); i++) {
 		(*Clients)[i].Client->Privmsg(Text);
 	}
 }
@@ -86,7 +86,7 @@ void CClientConnectionMultiplexer::Privmsg(const char *Text) {
 void CClientConnectionMultiplexer::RealNotice(const char *Text) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
+	for (int i = 0; i < Clients->GetLength(); i++) {
 		(*Clients)[i].Client->RealNotice(Text);
 	}
 }
@@ -94,8 +94,8 @@ void CClientConnectionMultiplexer::RealNotice(const char *Text) {
 void CClientConnectionMultiplexer::WriteUnformattedLine(const char *Line) {
 	CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 
-	for (unsigned int i = 0; i < Clients->GetLength(); i++) {
-		(*Clients)[i].Client->WriteLine("%s", Line);
+	for (int i = 0; i < Clients->GetLength(); i++) {
+		(*Clients)[i].Client->WriteUnformattedLine(Line);
 	}
 }
 

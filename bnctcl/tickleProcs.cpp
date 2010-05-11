@@ -54,7 +54,7 @@ void die(void) {
 void setctx(const char *ctx) {
 	char *Suffix;
 	CUser *User;
-	unsigned int i;
+	int i;
 	time_t TS;
 	char *CtxDup;
 
@@ -104,7 +104,7 @@ void setctx(const char *ctx) {
 
 const char *getctx(int ts) {
 	static char *Context = NULL;
-	unsigned int i;
+	int i;
 	CUser *User;
 	time_t TS;
 
@@ -184,7 +184,7 @@ const char* internalchannels(void) {
 	if (H == NULL)
 		return NULL;
 
-	int Count = Count = H->GetLength();
+	int Count = H->GetLength();
 
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
@@ -957,7 +957,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		char** argv = (char**)malloc(Count * sizeof(const char*));
 
-		for (unsigned int i = 0; i < Count; i++) {
+		for (int i = 0; i < Count; i++) {
 			g_asprintf(&Item, "%s<%d", Context->GetUsername(), (*Clients)[i].Creation);
 
 			argv[i] = Item;
@@ -971,7 +971,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		List = Tcl_Merge(Count, const_cast<char **>(argv));
 
-		for (unsigned int i = 0; i < Count; i++) {
+		for (int i = 0; i < Count; i++) {
 			g_free(argv[i]);
 		}
 
@@ -1426,7 +1426,7 @@ const char* bncmodules(void) {
 	int a = 0;
 	char** List = (char**)malloc(Modules->GetLength() * sizeof(const char*));
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		char *BufId, *Buf1, *Buf2;
 
 		g_asprintf(&BufId, "%d", i);
@@ -1515,7 +1515,7 @@ void haltoutput(void) {
 const char* bnccommand(const char* Cmd, const char* Parameters) {
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+	for (int i = 0; i < Modules->GetLength(); i++) {
 		const char* Result = Modules->Get(i)->Command(Cmd, Parameters);
 
 		if (Result)
@@ -1536,7 +1536,7 @@ void debugout(const char* String) {
 #ifdef _WIN32
 	OutputDebugString(String);
 	OutputDebugString("\n");
-#endif
+#endif /* _WIN32 */
 }
 
 void putlog(const char *Text) {
@@ -2012,7 +2012,7 @@ const char* getbnchosts(void) {
 	int argc = 0;
 	const char** argv = (const char**)malloc(Hosts->GetLength() * sizeof(const char*));
 
-	for (unsigned int i = 0; i < Hosts->GetLength(); i++) {
+	for (int i = 0; i < Hosts->GetLength(); i++) {
 		argv[argc++] = Hosts->Get(i);
 	}
 
@@ -2064,9 +2064,9 @@ bool bncisipblocked(const char* Ip) {
 
 #ifdef _WIN32
 	Peer.sin_addr.S_un.S_addr = addr;
-#else
+#else /* _WIN32 */
 	Peer.sin_addr.s_addr = addr;
-#endif
+#endif /* _WIN32 */
 
 	return Context->IsIpBlocked((sockaddr *)&Peer);
 }
@@ -2085,9 +2085,9 @@ void bnclogbadlogin(const char* Ip) {
 
 #ifdef _WIN32
 	Peer.sin_addr.S_un.S_addr = addr;
-#else
+#else /* _WIN32 */
 	Peer.sin_addr.s_addr = addr;
-#endif
+#endif /* _WIN32 */
 
 	return Context->LogBadLogin((sockaddr *)&Peer);
 }

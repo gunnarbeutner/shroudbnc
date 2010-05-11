@@ -51,7 +51,7 @@ public:
 #ifndef SWIG
 	CNick(const char *Nick, CChannel *Owner);
 	virtual ~CNick(void);
-#endif
+#endif /* SWIG */
 
 	bool SetNick(const char *Nick);
 	const char *GetNick(void) const;

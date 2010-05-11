@@ -44,7 +44,7 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 
 	m_HasNames = false;
 	m_ModesValid = false;
-	m_KeepNicklist = true;;
+	m_KeepNicklist = true;
 
 	m_HasBans = false;
 	m_TempModes = NULL;
@@ -64,7 +64,7 @@ CChannel::~CChannel() {
 	free(m_TopicNick);
 	free(m_TempModes);
 
-	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
+	for (int i = 0; i < m_Modes.GetLength(); i++) {
 		free(m_Modes[i].Parameter);
 	}
 
@@ -86,7 +86,7 @@ const char *CChannel::GetName(void) const {
  * Returns the channel's modes.
  */
 RESULT<const char *> CChannel::GetChannelModes(void) {
-	unsigned int i;
+	int i;
 	size_t Size;
 	char *NewTempModes;
 	char ModeString[2];
@@ -165,7 +165,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 
 	const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
-	for (unsigned int i = 0; i < strlen(Modes); i++) {
+	for (size_t i = 0; i < strlen(Modes); i++) {
 		char Current = Modes[i];
 
 		if (Current == '+') {
@@ -189,7 +189,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				}
 			}
 
-			for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+			for (int i = 0; i < Modules->GetLength(); i++) {
 				(*Modules)[i]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, pargv[p]);
 			}
 
@@ -226,7 +226,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			GetUser()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
-		for (unsigned int i = 0; i < Modules->GetLength(); i++) {
+		for (int i = 0; i < Modules->GetLength(); i++) {
 			const char *arg = NULL;
 
 			if (((Flip && ModeType != 0) || (!Flip && ModeType != 0 && ModeType != 1)) && p < pargc) {
@@ -281,7 +281,7 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
  * @param Mode the mode
  */
 chanmode_t *CChannel::FindSlot(char Mode) {
-	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
+	for (int i = 0; i < m_Modes.GetLength(); i++) {
 		if (m_Modes[i].Mode == Mode) {
 			return &m_Modes[i];
 		}
@@ -520,7 +520,7 @@ const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
  * Clears all modes for the channel.
  */
 void CChannel::ClearModes(void) {
-	for (unsigned int i = 0; i < m_Modes.GetLength(); i++) {
+	for (int i = 0; i < m_Modes.GetLength(); i++) {
 		free(m_Modes[i].Parameter);
 	}
 

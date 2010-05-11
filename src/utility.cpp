@@ -20,8 +20,8 @@
 #include "StdAfx.h"
 
 extern "C" {
-	#include "md5/global.h"
-	#include "md5/md5.h"
+	#include "../third-party/md5/global.h"
+	#include "../third-party/md5/md5.h"
 }
 
 /**
@@ -547,7 +547,7 @@ SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
 
 		if (hent) {
 #ifdef IPV6
-			if (Family = AF_INET) {
+			if (Family == AF_INET) {
 #endif
 				sin.sin_addr.s_addr = ((in_addr*)hent->h_addr_list[0])->s_addr;
 #ifdef IPV6
@@ -600,13 +600,18 @@ const char *UtilMd5(const char *String, const char *Salt) {
 	unsigned char digest[16];
 	char *StringAndSalt, *StringPtr;
 	static char *SaltAndResult = NULL;
+	int rc;
 
 	free(SaltAndResult);
 
 	if (Salt != NULL) {
-		asprintf(&StringAndSalt, "%s%s", String, Salt);
+		rc = asprintf(&StringAndSalt, "%s%s", String, Salt);
 	} else {
-		asprintf(&StringAndSalt, "%s", String);
+		rc = asprintf(&StringAndSalt, "%s", String);
+	}
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
 	}
 
 	MD5Init(&context);
@@ -1067,7 +1072,7 @@ extern "C" struct pollfd *registersocket(int Socket) {
 
 	PollFds = &(g_Bouncer->m_PollFds);
 
-	for (unsigned int i = 0; i < PollFds->GetLength(); i++) {
+	for (int i = 0; i < PollFds->GetLength(); i++) {
 		if (PollFds->Get(i).fd == INVALID_SOCKET) {
 			PollFd = PollFds->GetAddressOf(i);
 			NewStruct = false;
@@ -1100,7 +1105,7 @@ extern "C" void unregistersocket(int Socket) {
 
 	PollFds = &(g_Bouncer->m_PollFds);
 
-	for (unsigned int i = 0; i < PollFds->GetLength(); i++) {
+	for (int i = 0; i < PollFds->GetLength(); i++) {
 		pollfd *PFd = PollFds->GetAddressOf(i);
 
 		if (PFd->fd == Socket) {
@@ -1362,15 +1367,15 @@ int sn_getline_passwd(char *buf, size_t size) {
 	return result;
 }
 
-bool CheckResult(int ReturnCode, const char *Function) {
+bool RcFailedInternal(int ReturnCode, const char *File, int Line) {
 	if (ReturnCode >= 0) {
-			return false;
+		return false;
 	}
 
 	if (g_Bouncer != NULL) {
-		LOGERROR("%s failed.\n", Function);
+		LOGERROR("Function call in %s:%d failed: %s\n", File, Line, strerror(errno));
 	} else {
-		printf("%s failed.\n", Function);
+		printf("Function call in %s:%d failed: %s\n", File, Line, strerror(errno));
 	}
 
 	return true;

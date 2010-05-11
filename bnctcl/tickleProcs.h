@@ -62,12 +62,12 @@ extern Tcl_Encoding g_Encoding;
 struct CTclSocket;
 struct CTclClientSocket;
 
-#else
+#else /* SWIG */
 int Tcl_ProcInit(Tcl_Interp* interp);
 
 class CTclSocket;
 class CTclClientSocket;
-#endif
+#endif /*SWIG */
 
 // exported procs, which are accessible via tcl
 

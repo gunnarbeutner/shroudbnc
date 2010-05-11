@@ -126,21 +126,21 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 
 #ifndef min
 #define min(a, b) ((a)<(b) ? (a) : (b))
-#endif
+#endif /* min */
 
 #ifndef max
 #define max(a, b) ((a)<(b) ? (b) : (a))
-#endif
+#endif /* max */
 
 #ifdef IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
 #define MAX_SOCKADDR_LEN (max(sizeof(sockaddr_in), sizeof(sockaddr_in6)))
-#else
+#else /* IPV6 */
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
 #define INADDR_LEN(Family) (sizeof(in_addr))
 #define MAX_SOCKADDR_LEN (sizeof(sockaddr_in))
-#endif
+#endif /* IPV6 */
 
 const char *IpToString(sockaddr *Address);
 bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
@@ -156,11 +156,11 @@ void SSL_CTX_set_passwd_cb(SSL_CTX *Context);
 
 #if defined(_DEBUG) && defined(_WIN32)
 LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception);
-#endif
+#endif /* defined(_DEBUG) && defined(_WIN32) */
 
 #ifdef HAVE_POLL
 #	include <sys/poll.h>
-#else
+#else /* HAVE_POLL */
 struct pollfd {
 	int fd;
 	short events;
@@ -176,13 +176,23 @@ struct pollfd {
 #define POLLNVAL 040
 
 int poll(struct pollfd *fds, unsigned long nfds, int timo);
-#endif
+#endif /* HAVE_POLL */
 
 int sn_getline(char *buf, size_t size);
 int sn_getline_passwd(char *buf, size_t size);
 
 bool RcFailedInternal(int ReturnCode, const char *File, int Line);
 bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
+
+/**
+ * RcFailed
+ *
+ * Checks whether the specified return code signifies
+ * a failed function call (rc < 0).
+ *
+ * @param RC the return code
+ */
+#define RcFailed(RC) RcFailedInternal(RC, __FILE__, __LINE__)
 
 /**
  * AllocFailed

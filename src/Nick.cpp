@@ -56,7 +56,7 @@ CNick::~CNick() {
 	free(m_Realname);
 	free(m_Server);
 
-	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+	for (int i = 0; i < m_Tags.GetLength(); i++) {
 		free(m_Tags[i].Name);
 		free(m_Tags[i].Value);
 	}
@@ -184,7 +184,7 @@ bool CNick::RemovePrefix(char Prefix) {
 		return false;
 	}
 
-	for (unsigned int i = 0; i < LengthPrefixes; i++) {
+	for (size_t i = 0; i < LengthPrefixes; i++) {
 		if (m_Prefixes[i] != Prefix) {
 			Copy[a++] = m_Prefixes[i];
 		}
@@ -432,7 +432,7 @@ bool CNick::SetIdleSince(time_t Time) {
  * @param Name the name of the tag
  */
 const char *CNick::GetTag(const char *Name) const {
-	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+	for (int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
 			return m_Tags[i].Value;
 		}
@@ -456,7 +456,7 @@ bool CNick::SetTag(const char *Name, const char *Value) {
 		return false;
 	}
 
-	for (unsigned int i = 0; i < m_Tags.GetLength(); i++) {
+	for (int i = 0; i < m_Tags.GetLength(); i++) {
 		if (strcasecmp(m_Tags[i].Name, Name) == 0) {
 			free(m_Tags[i].Name);
 			free(m_Tags[i].Value);

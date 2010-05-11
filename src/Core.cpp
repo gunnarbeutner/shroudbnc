@@ -144,9 +144,9 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	i = 0;
 	while (true) {
-		asprintf(&Out, "system.hosts.host%d", i++);
+		int rc = asprintf(&Out, "system.hosts.host%d", i++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
@@ -171,8 +171,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
  * Destructs a CCore object.
  */
 CCore::~CCore(void) {
-	int a;
-	unsigned int i;
+	int a, i;
 
 	for (a = m_Modules.GetLength() - 1; a >= 0; a--) {
 		delete m_Modules[a];
@@ -216,7 +215,6 @@ CCore::~CCore(void) {
  */
 void CCore::StartMainLoop(bool ShouldDaemonize) {
 	unsigned int i;
-        const CVector<CModule *> *Modules;
 
 	time(&g_CurrentTime);
 
@@ -360,9 +358,9 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 	i = 0;
 	while (true) {
-		asprintf(&Out, "system.modules.mod%d", i++);
+		int rc = asprintf(&Out, "system.modules.mod%d", i++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
@@ -370,11 +368,11 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 		free(Out);
 
-		if (File != NULL) {
-			LoadModule(File);
-		} else {
+		if (File == NULL) {
 			break;
 		}
+
+		LoadModule(File);
 	}
 
 	m_LoadingModules = false;
@@ -399,7 +397,6 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	int m_ShutdownLoop = 5;
 
 	time_t Last = 0;
-	time_t LastCheck = 0;
 
 	while (GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) {
 		time_t Now, Best = 0, SleepInterval = 0;
@@ -413,7 +410,6 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 		i = 0;
 		while (hash_t<CUser *> *UserHash = m_Users.Iterate(i++)) {
 			CIRCConnection *IRC;
-		        Modules = g_Bouncer->GetModules();
 
 			if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
 				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
@@ -477,8 +473,8 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 		bool ModulesBusy = false;
 
-	        for (unsigned int j = 0; j < Modules->GetLength(); j++) {
-        	        if ((*Modules)[j]->MainLoop()) {
+	        for (int j = 0; j < m_Modules.GetLength(); j++) {
+        	        if (m_Modules[j]->MainLoop()) {
                 	        ModulesBusy = true;
 	                }
 	        }
@@ -625,12 +621,12 @@ CUser *CCore::GetUser(const char *Name) {
  * @param Text the text of the message
  */
 void CCore::GlobalNotice(const char *Text) {
-	unsigned int i = 0;
+	int i = 0;
 	char *GlobalText;
 
-	asprintf(&GlobalText, "Global admin message: %s", Text);
+	int rc = asprintf(&GlobalText, "Global admin message: %s", Text);
 
-	if (AllocFailed(GlobalText)) {
+	if (RcFailed(rc)) {
 		return;
 	}
 
@@ -779,12 +775,12 @@ bool CCore::UnloadModule(CModule *Module) {
  */
 void CCore::UpdateModuleConfig(void) {
 	char *Out;
-	int a = 0;
+	int a = 0, rc;
 
-	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
-		asprintf(&Out, "system.modules.mod%d", a++);
+	for (int i = 0; i < m_Modules.GetLength(); i++) {
+		rc = asprintf(&Out, "system.modules.mod%d", a++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
@@ -793,9 +789,9 @@ void CCore::UpdateModuleConfig(void) {
 		free(Out);
 	}
 
-	asprintf(&Out, "system.modules.mod%d", a);
+	rc = asprintf(&Out, "system.modules.mod%d", a);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		Fatal();
 	}
 
@@ -845,8 +841,6 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
  * @param Socket the socket
  */
 void CCore::UnregisterSocket(SOCKET Socket) {
-	link_t<socket_t> *Current = m_OtherSockets.GetHead();
-
 	for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
 		if (SocketCursor->PollFd->fd == Socket) {
 			SocketCursor->PollFd->fd = INVALID_SOCKET;
@@ -895,7 +889,7 @@ void CCore::Log(const char *Format, ...) {
 
 	m_Log->WriteLine(NULL, "%s", Out);
 
-	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
+	for (int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *User = m_AdminUsers.Get(i);
 
 		if (User->GetSystemNotices() && User->GetClientConnectionMultiplexer() != NULL) {
@@ -931,7 +925,7 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
 
 	m_Log->WriteLine(NULL, "%s", Out);
 
-	for (unsigned int i = 0; i < m_AdminUsers.GetLength(); i++) {
+	for (int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *ThisUser = m_AdminUsers[i];
 
 		if (ThisUser->GetSystemNotices() && ThisUser->GetClientConnectionMultiplexer()) {
@@ -973,10 +967,12 @@ void CCore::InternalLogError(const char *Format, ...) {
 	snprintf(Format2, sizeof(Format2), "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
 
 	va_start(marker, Format);
-	vasprintf(&Out, Format2, marker);
+	int rc = vasprintf(&Out, Format2, marker);
 	va_end(marker);
 
-	if (AllocFailed(Out)) {
+	if (rc < 0) {
+		perror("vasprintf failed");
+
 		return;
 	}
 
@@ -1072,7 +1068,7 @@ RESULT<CUser *> CCore::CreateUser(const char *Username, const char *Password) {
 
 	UpdateUserConfig();
 
-	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+	for (int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->UserCreate(Username);
 	}
 
@@ -1101,7 +1097,7 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 		THROW(bool, Generic_Unknown, "There is no such user.");
 	}
 
-	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+	for (int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->UserDelete(Username);
 	}
 
@@ -1148,7 +1144,7 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
  * @param Username the username
  */
 bool CCore::IsValidUsername(const char *Username) const {
-	for (unsigned int i = 0; i < strlen(Username); i++) {
+	for (size_t i = 0; i < strlen(Username); i++) {
 		if (i != 0 && (Username[i] == '-' || Username[i] == '_')) {
 			continue;
 		}
@@ -1328,7 +1324,6 @@ SOCKET CCore::SocketAndConnect(const char *Host, unsigned short Port, const char
  */
 const socket_t *CCore::GetSocketByClass(const char *Class, int Index) const {
 	int a = 0;
-	link_t<socket_t> *Current = m_OtherSockets.GetHead();
 
 	for (CListCursor<socket_t> SocketCursor(&m_OtherSockets); SocketCursor.IsValid(); SocketCursor.Proceed()) {
 		if ((*SocketCursor).PollFd->fd == INVALID_SOCKET) {
@@ -1538,7 +1533,9 @@ const char *CCore::DebugImpulse(int impulse) {
 
 				free(Out);
 
-				asprintf(&Out, "%d lines parsed in %d msecs, approximately %d lines/msec", BENCHMARK_LINES, diff, lps);
+				int rc = asprintf(&Out, "%d lines parsed in %d msecs, approximately %d lines/msec", BENCHMARK_LINES, diff, lps);
+
+				if (RcFailed(rc)) {}
 
 				return Out;
 			}
@@ -1664,7 +1661,11 @@ bool CCore::MakeConfig(void) {
 		}
 	}
 
-	asprintf(&File, "users/%s.conf", User);
+	int rc = asprintf(&File, "users/%s.conf", User);
+
+	if (RcFailed(rc)) {
+		Fatal();
+	}
 
 	// BuildPathConfig is using a static buffer
 	mkdir(BuildPathConfig("users"));
@@ -1713,11 +1714,9 @@ const char *CCore::GetTagString(const char *Tag) const {
 		return NULL;
 	}
 
-	asprintf(&Setting, "tag.%s", Tag);
+	int rc = asprintf(&Setting, "tag.%s", Tag);
 
-	if (AllocFailed(Setting)) {
-		LOGERROR("asprintf() failed. Global tag could not be retrieved.");
-
+	if (RcFailed(rc)) {
 		return NULL;
 	}
 
@@ -1761,15 +1760,13 @@ bool CCore::SetTagString(const char *Tag, const char *Value) {
 		return false;
 	}
 
-	asprintf(&Setting, "tag.%s", Tag);
+	int rc = asprintf(&Setting, "tag.%s", Tag);
 
-	if (AllocFailed(Setting)) {
-		LOGERROR("asprintf() failed. Could not store global tag.");
-
+	if (RcFailed(rc)) {
 		return false;
 	}
 
-	for (unsigned int i = 0; i < m_Modules.GetLength(); i++) {
+	for (int i = 0; i < m_Modules.GetLength(); i++) {
 		m_Modules[i]->TagModified(Tag, Value);
 	}
 
@@ -1799,11 +1796,9 @@ bool CCore::SetTagInteger(const char *Tag, int Value) {
 	if (Value == 0) {
 		StringValue = NULL;
 	} else {
-		asprintf(&StringValue, "%d", Value);
+		int rc = asprintf(&StringValue, "%d", Value);
 
-		if (StringValue == NULL) {
-			LOGERROR("asprintf() failed. Could not store global tag.");
-
+		if (RcFailed(rc)) {
 			return false;
 		}
 	}
@@ -2032,9 +2027,9 @@ const CVector<char *> *CCore::GetHostAllows(void) const {
  * @param Host the host
  */
 bool CCore::CanHostConnect(const char *Host) const {
-	unsigned int Count = 0;
+	int Count = 0;
 
-	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
+	for (int i = 0; i < m_HostAllows.GetLength(); i++) {
 		if (mmatch(m_HostAllows[i], Host) == 0) {
 			return true;
 		} else {
@@ -2056,12 +2051,12 @@ bool CCore::CanHostConnect(const char *Host) const {
  */
 void CCore::UpdateHosts(void) {
 	char *Out;
-	int a = 0;
+	int a = 0, rc;
 
-	for (unsigned int i = 0; i < m_HostAllows.GetLength(); i++) {
-		asprintf(&Out, "system.hosts.host%d", a++);
+	for (int i = 0; i < m_HostAllows.GetLength(); i++) {
+		rc = asprintf(&Out, "system.hosts.host%d", a++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			g_Bouncer->Fatal();
 		}
 
@@ -2069,9 +2064,9 @@ void CCore::UpdateHosts(void) {
 		free(Out);
 	}
 
-	asprintf(&Out, "system.hosts.host%d", a);
+	rc = asprintf(&Out, "system.hosts.host%d", a);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		g_Bouncer->Fatal();
 	}
 
@@ -2101,7 +2096,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
 	additionallistener_t AdditionalListener;
 	CClientListener *Listener, *ListenerV6;
 
-	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+	for (int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Port == Port) {
 			THROW(bool, Generic_Unknown, "This port is already in use.");
 		}
@@ -2165,7 +2160,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
  * @param Port the port of the listener
  */
 RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
-	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+	for (int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Port == Port) {
 			if (m_AdditionalListeners[i].Listener != NULL) {
 				m_AdditionalListeners[i].Listener->Destroy();
@@ -2206,18 +2201,16 @@ CVector<additionallistener_t> *CCore::GetAdditionalListeners(void) {
  * Initialized the additional listeners.
  */
 void CCore::InitializeAdditionalListeners(void) {
-	unsigned short Port;
-	bool SSL;
-	unsigned int i;
+	int i;
 	char *Out;
 
 	m_LoadingListeners = true;
 
 	i = 0;
 	while (true) {
-		asprintf(&Out, "system.listeners.listener%d", i++);
+		int rc = asprintf(&Out, "system.listeners.listener%d", i++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
@@ -2226,6 +2219,8 @@ void CCore::InitializeAdditionalListeners(void) {
 		free(Out);
 
 		if (ListenerString != NULL) {
+			unsigned short Port;
+			bool SSL;
 			const char *ListenerToks = ArgTokenize(ListenerString);
 			const char *PortString = ArgGet(ListenerToks, 1);
 			const char *SSLString = ArgGet(ListenerToks, 2);
@@ -2243,9 +2238,9 @@ void CCore::InitializeAdditionalListeners(void) {
 						Address = ArgGet(ListenerToks, 3);
 					}
 				}
-			}
 
-			AddAdditionalListener(Port, Address, SSL);
+				AddAdditionalListener(Port, Address, SSL);
+			}
 		} else {
 			break;
 		}
@@ -2260,7 +2255,7 @@ void CCore::InitializeAdditionalListeners(void) {
  * Uninitialize the additional listeners.
  */
 void CCore::UninitializeAdditionalListeners(void) {
-	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+	for (int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Listener != NULL) {
 			m_AdditionalListeners[i].Listener->Destroy();
 		}
@@ -2283,26 +2278,26 @@ void CCore::UninitializeAdditionalListeners(void) {
  */
 void CCore::UpdateAdditionalListeners(void) {
 	char *Out, *Value;
-	int a = 0;
+	int a = 0, rc;
 
 	if (m_LoadingListeners) {
 		return;
 	}
 
-	for (unsigned int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
-		asprintf(&Out, "system.listeners.listener%d", a++);
+	for (int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
+		rc = asprintf(&Out, "system.listeners.listener%d", a++);
 
-		if (AllocFailed(Out)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
 		if (m_AdditionalListeners[i].BindAddress != NULL) {
-			asprintf(&Value, "%d %d %s", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL, m_AdditionalListeners[i].BindAddress);
+			rc = asprintf(&Value, "%d %d %s", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL, m_AdditionalListeners[i].BindAddress);
 		} else {
-			asprintf(&Value, "%d %d", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL);
+			rc = asprintf(&Value, "%d %d", m_AdditionalListeners[i].Port, m_AdditionalListeners[i].SSL);
 		}
 
-		if (AllocFailed(Value)) {
+		if (RcFailed(rc)) {
 			Fatal();
 		}
 
@@ -2311,9 +2306,9 @@ void CCore::UpdateAdditionalListeners(void) {
 		free(Out);
 	}
 
-	asprintf(&Out, "system.listeners.listener%d", a);
+	rc = asprintf(&Out, "system.listeners.listener%d", a);
 
-	if (AllocFailed(Out)) {
+	if (RcFailed(rc)) {
 		Fatal();
 	}
 
@@ -2359,14 +2354,14 @@ CClientListener *CCore::GetMainSSLListenerV6(void) const {
 }
 
 int CCore::GetResourceLimit(const char *Resource, CUser *User) {
-	int i = 0;
+	int i = 0, rc;
 
 	if (Resource == NULL || (User != NULL && User->IsAdmin())) {
 		if (Resource != NULL && strcasecmp(Resource, "clients") == 0) {
 			return 15;
 		}
 
-		return UINT_MAX;
+		return INT_MAX;
 	}
 
 	while (g_ResourceLimits[i].Resource != NULL) {
@@ -2374,9 +2369,9 @@ int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 			char *Name;
 
 			if (User != NULL) {
-				asprintf(&Name, "user.max%s", Resource);
+				rc = asprintf(&Name, "user.max%s", Resource);
 
-				if (!AllocFailed(Name)) {
+				if (!RcFailed(rc)) {
 					CResult<int> UserLimit = User->GetConfig()->ReadInteger(Name);
 
 					if (!IsError(UserLimit)) {
@@ -2387,9 +2382,9 @@ int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 				}
 			}
 
-			asprintf(&Name, "system.max%s", Resource);
+			rc = asprintf(&Name, "system.max%s", Resource);
 
-			if (AllocFailed(Name)) {
+			if (RcFailed(rc)) {
 				return g_ResourceLimits[i].DefaultLimit;
 			}
 
@@ -2400,7 +2395,7 @@ int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 			if (Value == 0) {
 				return g_ResourceLimits[i].DefaultLimit;
 			} else if (Value == -1) {
-				return UINT_MAX;
+				return INT_MAX;
 			} else {
 				return Value;
 			}
@@ -2415,16 +2410,17 @@ int CCore::GetResourceLimit(const char *Resource, CUser *User) {
 void CCore::SetResourceLimit(const char *Resource, int Limit, CUser *User) {
 	char *Name;
 	CConfig *Config;
+	int rc;
 
 	if (User != NULL) {
-		asprintf(&Name, "user.max%s", Resource);
+		rc = asprintf(&Name, "user.max%s", Resource);
 		Config = User->GetConfig();
 	} else {
-		asprintf(&Name, "system.max%s", Resource);
+		rc = asprintf(&Name, "system.max%s", Resource);
 		Config = GetConfig();
 	}
 
-	if (AllocFailed(Name)) {
+	if (RcFailed(rc)) {
 		return;
 	}
 

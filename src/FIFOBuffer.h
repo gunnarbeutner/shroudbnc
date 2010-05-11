@@ -36,7 +36,7 @@ public:
 #ifndef SWIG
 	CFIFOBuffer();
 	virtual ~CFIFOBuffer();
-#endif
+#endif /* SWIG */
 
 	size_t GetSize(void) const;
 

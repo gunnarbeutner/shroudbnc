@@ -74,7 +74,7 @@ public:
 	~CList(void) {
 		Clear();
 	}
-#endif
+#endif /* SWIG */
 
 	/**
 	 * Insert
@@ -148,7 +148,7 @@ public:
 			Item->Valid = false;
 #ifdef _DEBUG
 			memset(&(Item->Value), 0, sizeof(Item->Value));
-#endif
+#endif /* _DEBUG */
 		} else {
 			if (Item->Next != NULL) {
 				Item->Next->Previous = Item->Previous;

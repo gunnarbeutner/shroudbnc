@@ -199,6 +199,6 @@ public:
 		return m_SSL;
 	}
 };
-#else
+#else /* SBNC */
 class CClientListener;
-#endif
+#endif /* SBNC */

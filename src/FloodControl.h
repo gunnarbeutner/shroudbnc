@@ -46,7 +46,7 @@ class SBNCAPI CFloodControl {
 public:
 #ifndef SWIG
 	CFloodControl(void);
-#endif
+#endif /* SWIG */
 
 	RESULT<char *> DequeueItem(bool Peek = false);
 	int GetQueueSize(void);

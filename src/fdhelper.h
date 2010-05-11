@@ -25,13 +25,13 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 struct pollfd *registersocket(int Socket);
 void unregistersocket(int Socket);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* _FDHELPER_H */

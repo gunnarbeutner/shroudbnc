@@ -33,8 +33,8 @@ class CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */
-	unsigned int m_Count; /**< the number of items in the list */
-	unsigned int m_AllocCount; /**< the number of allocated items */
+	int m_Count; /**< the number of items in the list */
+	int m_AllocCount; /**< the number of allocated items */
 
 public:
 #ifndef SWIG
@@ -55,7 +55,7 @@ public:
 	 *
 	 * Constructs an empty pre-allocated list.
 	 */
-	CVector(unsigned int AllocCount) {
+	CVector(int AllocCount) {
 		CVector();
 		Preallocate(AllocCount);
 	}
@@ -68,7 +68,7 @@ public:
 	~CVector(void) {
 		Clear();
 	}
-#endif
+#endif /* SWIG */
 
 	/**
 	 * Preallocate
@@ -77,7 +77,7 @@ public:
 	 *
 	 * @param AllocCount number of items
 	 */
-	void Preallocate(unsigned int AllocCount) {
+	void Preallocate(int AllocCount) {
 		Clear();
 
 		m_AllocCount = AllocCount;
@@ -204,7 +204,7 @@ public:
 	 *
 	 * Returns the number of items.
 	 */
-	unsigned int GetLength(void) const {
+	int GetLength(void) const {
 		return m_Count;
 	}
 
@@ -279,25 +279,3 @@ public:
 		RETURN(Type *, GetAddressOf(GetLength() - 1));
 	}
 };
-
-class CModule;
-typedef struct queue_item_s queue_item_t;
-class CDnsQuery;
-typedef struct additionallistener_s additionallistener_t;
-typedef struct badlogin_s badlogin_t;
-typedef struct chanmode_s chanmode_t;
-typedef struct nicktag_s nicktag_t;
-typedef struct queue_s irc_queue_t;
-
-template class SBNCAPI CVector<CModule *>;
-template class SBNCAPI CVector<queue_item_t>;
-template class SBNCAPI CVector<char *>;
-template class SBNCAPI CVector<CDnsQuery *>;
-template class SBNCAPI CVector<additionallistener_t>;
-template class SBNCAPI CVector<CUser *>;
-template class SBNCAPI CVector<pollfd>;
-template class SBNCAPI CVector<badlogin_t>;
-template class SBNCAPI CVector<X509 *>;
-template class SBNCAPI CVector<chanmode_t>;
-template class SBNCAPI CVector<nicktag_t>;
-template class SBNCAPI CVector<irc_queue_t>;
