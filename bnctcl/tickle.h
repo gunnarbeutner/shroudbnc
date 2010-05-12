@@ -73,8 +73,8 @@ typedef struct tcldnsquery_s {
 class CTclSocket;
 class CTclClientSocket;
 
-extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
-extern CHashtable<CTclClientSocket*, false, 5>* g_TclClientSockets;
+extern CHashtable<CTclSocket*, false>* g_TclListeners;
+extern CHashtable<CTclClientSocket*, false>* g_TclClientSockets;
 extern int g_SocketIdx;
 
 extern CClientConnection *g_CurrentClient;

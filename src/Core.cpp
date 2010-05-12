@@ -101,7 +101,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	if ((Users = m_Config->ReadString("system.users")) == NULL) {
 		if (!MakeConfig()) {
-			LOGERROR("Configuration file could not be created.");
+			Log("Configuration file could not be created.");
 
 			Fatal();
 		}
@@ -646,7 +646,7 @@ void CCore::GlobalNotice(const char *Text) {
  *
  * Returns a hashtable which contains all bouncer users.
  */
-CHashtable<CUser *, false, 512> *CCore::GetUsers(void) {
+CHashtable<CUser *, false> *CCore::GetUsers(void) {
 	return &m_Users;
 }
 
@@ -710,7 +710,7 @@ RESULT<CModule *> CCore::LoadModule(const char *Filename) {
 		if (IsError(Result)) {
 			delete Module;
 
-			LOGERROR("Insert() failed. Could not load module");
+			Log("Insert() failed. Could not load module");
 
 			THROWRESULT(CModule *, Result);
 		}
@@ -811,23 +811,55 @@ void CCore::UpdateModuleConfig(void) {
 void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	socket_s SocketStruct;
 	pollfd *PollFd = NULL;
+	pollfd NewPollFd;
+	bool NewStruct = true;
+	int i;
 
-	UnregisterSocket(Socket);
+	for (i = 0; i < m_PollFds.GetLength(); i++) {
+		pollfd *PFd = m_PollFds.GetAddressOf(i);
 
-	PollFd = registersocket(Socket);
-
-	if (PollFd == NULL) {
-		LOGERROR("registersocket() failed.");
-
-		Fatal();
+		if (PFd->fd == Socket) {
+			PFd->fd = INVALID_SOCKET;
+			PFd->events = 0;
+		}
 	}
 
+	for (i = 0; i < m_PollFds.GetLength(); i++) {
+		if (m_PollFds.Get(i).fd == INVALID_SOCKET) {
+			PollFd = m_PollFds.GetAddressOf(i);
+			NewStruct = false;
+
+			break;
+		}
+	}
+
+	if (NewStruct) {
+		PollFd = &NewPollFd;
+	}
+
+	PollFd->fd = Socket;
+	PollFd->events = 0;
+	PollFd->revents = 0;
+
+	if (NewStruct) {
+		if (!m_PollFds.Insert(*PollFd)) {
+			Log("RegisterSocket() failed.");
+
+			Fatal();
+		}
+
+		PollFd = m_PollFds.GetAddressOf(m_PollFds.GetLength() - 1);
+	}
+
+	// This relies on Preallocate() to be called for m_PollFds - otherwise
+	// the underlying address for PollFd might change when Insert() is called
+	// later on
 	SocketStruct.PollFd = PollFd;
 	SocketStruct.Events = EventInterface;
 
 	/* TODO: can we safely recover from this situation? return value maybe? */
 	if (!m_OtherSockets.Insert(SocketStruct)) {
-		LOGERROR("Insert() failed.");
+		Log("Insert() failed.");
 
 		Fatal();
 	}
@@ -862,7 +894,7 @@ void CCore::UnregisterSocket(SOCKET Socket) {
  * @param BindIp bind address (or NULL)
  * @param Family socket family (AF_INET or AF_INET6)
  */
-SOCKET CCore::CreateListener(unsigned short Port, const char *BindIp, int Family) const {
+SOCKET CCore::CreateListener(unsigned int Port, const char *BindIp, int Family) const {
 	return ::CreateListener(Port, BindIp, Family);
 }
 
@@ -1168,7 +1200,7 @@ bool CCore::IsValidUsername(const char *Username) const {
  */
 void CCore::UpdateUserConfig(void) {
 #define MEMORYBLOCKSIZE 4096
-	size_t Size;
+	size_t Size = 0;
 	int i;
 	char *Out = NULL;
 	size_t Blocks = 0, NewBlocks = 1, Length = 1;
@@ -1190,22 +1222,20 @@ void CCore::UpdateUserConfig(void) {
 
 		Blocks = NewBlocks;
 
-		if (Out == NULL) {
-			LOGERROR("realloc() failed. Userlist in sbnc.conf might be out of date.");
+		if (AllocFailed(Out)) {
+			Log("Userlist in sbnc.conf might be out of date.");
 
 			return;
 		}
 
-#undef strcpy
 		if (!WasNull) {
 			Out[Offset] = ' ';
 			Offset++;
-			strcpy(Out + Offset, User->Name);
 		} else {
 			WasNull = false;
 		}
 
-		strcpy(Out + Offset, User->Name);
+		strmcpy(Out + Offset, User->Name, Size - Offset);
 		Offset += NameLength;
 	}
 
@@ -1310,7 +1340,7 @@ bool CCore::IsRegisteredSocket(CSocketEvents *Events) const {
  * @param Port the port
  * @param BindIp bind address (or NULL)
  */
-SOCKET CCore::SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp) {
+SOCKET CCore::SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp) {
 	return ::SocketAndConnect(Host, Port, BindIp);
 }
 
@@ -1956,7 +1986,7 @@ RESULT<bool> CCore::AddHostAllow(const char *Mask, bool UpdateConfig) {
 	Result = m_HostAllows.Insert(dupMask);
 
 	if (IsError(Result)) {
-		LOGERROR("Insert() failed. Host could not be added.");
+		Log("Insert() failed. Host could not be added.");
 
 		free(dupMask);
 
@@ -2092,7 +2122,7 @@ CVector<CUser *> *CCore::GetAdminUsers(void) {
  * @param BindAddress bind address (can be NULL)
  * @param SSL whether to use SSL
  */
-RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindAddress, bool SSL) {
+RESULT<bool> CCore::AddAdditionalListener(unsigned int Port, const char *BindAddress, bool SSL) {
 	additionallistener_t AdditionalListener;
 	CClientListener *Listener, *ListenerV6;
 
@@ -2159,7 +2189,7 @@ RESULT<bool> CCore::AddAdditionalListener(unsigned short Port, const char *BindA
  *
  * @param Port the port of the listener
  */
-RESULT<bool> CCore::RemoveAdditionalListener(unsigned short Port) {
+RESULT<bool> CCore::RemoveAdditionalListener(unsigned int Port) {
 	for (int i = 0; i < m_AdditionalListeners.GetLength(); i++) {
 		if (m_AdditionalListeners[i].Port == Port) {
 			if (m_AdditionalListeners[i].Listener != NULL) {
@@ -2219,7 +2249,7 @@ void CCore::InitializeAdditionalListeners(void) {
 		free(Out);
 
 		if (ListenerString != NULL) {
-			unsigned short Port;
+			unsigned int Port;
 			bool SSL;
 			const char *ListenerToks = ArgTokenize(ListenerString);
 			const char *PortString = ArgGet(ListenerToks, 1);
@@ -2444,8 +2474,8 @@ bool CCore::GetMD5(void) const {
 	}
 }
 
-void CCore::SetMD5(bool MD5) {
-	CacheSetInteger(m_ConfigCache, md5, MD5 ? 1 : 0);
+void CCore::SetMD5(bool MD5Flag) {
+	CacheSetInteger(m_ConfigCache, md5, MD5Flag ? 1 : 0);
 }
 
 const char *CCore::GetDefaultRealName(void) const {

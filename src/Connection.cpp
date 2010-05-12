@@ -61,7 +61,7 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
  * @param SSL whether to use SSL for the connection
  * @param Family the socket family
  */
-CConnection::CConnection(const char *Host, unsigned short Port, const char *BindIp, bool SSL, int Family) {
+CConnection::CConnection(const char *Host, unsigned int Port, const char *BindIp, bool SSL, int Family) {
 	m_Family = Family;
 
 	SetRole(Role_Client);
@@ -129,7 +129,7 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	if (GetRole() == Role_Server && g_Bouncer->GetSSLContext() == NULL && SSL) {
 		m_HasSSL = false;
 
-		LOGERROR("No SSL server certificate available. Falling back to"
+		g_Bouncer->Log("No SSL server certificate available. Falling back to"
 			" non-SSL mode. This might not work.");
 	}
 #endif

@@ -58,7 +58,7 @@ private:
 	time_t m_TopicStamp; /**< the time when the topic was set */
 	int m_HasTopic; /**< indicates whether there is actually a topic */
 
-	CHashtable<CNick *, false, 64> m_Nicks; /**< a list of nicks who are on this channel */
+	CHashtable<CNick *, false> m_Nicks; /**< a list of nicks who are on this channel */
 	bool m_HasNames; /**< indicates whether m_Nicks is valid */
 	bool m_KeepNicklist; /**< whether to keep the nicklist in memory */
 
@@ -100,7 +100,7 @@ public:
 
 	bool HasNames(void) const;
 	void SetHasNames(void);
-	const CHashtable<CNick *, false, 64> *GetNames(void) const;
+	const CHashtable<CNick *, false> *GetNames(void) const;
 
 	void ClearModes(void);
 	bool AreModesValid(void) const;

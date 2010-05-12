@@ -66,12 +66,12 @@ private:
 	char *m_Server; /**< the hostname of the IRC server */
 	char *m_Usermodes; /**< the usermodes */
 
-	CHashtable<CChannel *, false, 16> *m_Channels; /**< the channels this IRC user is on */
+	CHashtable<CChannel *, false> *m_Channels; /**< the channels this IRC user is on */
 
 	char *m_ServerVersion; /**< the version from the 351 reply */
 	char *m_ServerFeat; /**< the server features from the 351 reply */
 
-	CHashtable<char *, false, 32> *m_ISupport; /**< the key/value pairs from the 005 replies */
+	CHashtable<char *, false> *m_ISupport; /**< the key/value pairs from the 005 replies */
 	
 	CTimer *m_DelayJoinTimer; /**< timer for delay-joining channels */
 	CTimer *m_PingTimer; /**< timer for sending regular PINGs to the server */
@@ -109,12 +109,12 @@ private:
 	void AsyncBindIpDnsFinished(hostent *Response);
 public:
 #ifndef SWIG
-	CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
+	CIRCConnection(const char *Host, unsigned int Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
 	virtual ~CIRCConnection();
 #endif /* SWIG */
 
 	CChannel *GetChannel(const char *Name);
-	CHashtable<CChannel *, false, 16> *GetChannels(void);
+	CHashtable<CChannel *, false> *GetChannels(void);
 
 	const char *GetCurrentNick(void) const;
 	const char *GetSite(void) /* const */;
@@ -129,7 +129,7 @@ public:
 
 	CFloodControl *GetFloodControl(void);
 
-	const CHashtable<char *, false, 32> *GetISupportAll(void) const;
+	const CHashtable<char *, false> *GetISupportAll(void) const;
 	const char *GetISupport(const char *Feature) const;
 	void SetISupport(const char *Feature, const char *Value);
 	bool IsChanMode(char Mode) const;

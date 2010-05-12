@@ -22,5 +22,5 @@
 #include "TclClientSocket.h"
 #include "TclSocket.h"
 
-CHashtable<CTclSocket*, false, 5>* g_TclListeners;
+CHashtable<CTclSocket*, false>* g_TclListeners;
 int g_SocketIdx = 0;

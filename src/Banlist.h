@@ -37,7 +37,7 @@ class CChannel;
  */
 class SBNCAPI CBanlist : public CObject<CBanlist, CChannel> {
 private:
-	CHashtable<ban_t *, false, 5> m_Bans; /**< the actual list of bans. */
+	CHashtable<ban_t *, false> m_Bans; /**< the actual list of bans. */
 
 public:
 #ifndef SWIG

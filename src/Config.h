@@ -24,7 +24,7 @@
  */
 class SBNCAPI CConfig : public CObject<CConfig, CUser> {
 private:
-	CHashtable<char *, false, 16> m_Settings; /**< the settings */
+	CHashtable<char *, false> m_Settings; /**< the settings */
 
 	char *m_Filename; /**< the filename of the config */
 	bool m_WriteLock; /**< marks whether the configuration file should be
@@ -51,7 +51,7 @@ public:
 
 	virtual void Reload(void);
 
-	virtual CHashtable<char *, false, 16> *GetInnerHashtable(void);
+	virtual CHashtable<char *, false> *GetInnerHashtable(void);
 	virtual hash_t<char *> *Iterate(int Index) const;
 	virtual unsigned int GetLength(void) const;
 

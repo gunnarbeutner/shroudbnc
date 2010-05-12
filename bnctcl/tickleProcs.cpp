@@ -148,7 +148,7 @@ const char *bncuserlist(void) {
 	int argc = 0;
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));
 
-	CHashtable<CUser *, false, 512> *Users = g_Bouncer->GetUsers();
+	CHashtable<CUser *, false> *Users = g_Bouncer->GetUsers();
 
 	i = 0;
 	while (hash_t<CUser *> *User = Users->Iterate(i++)) {
@@ -179,7 +179,7 @@ const char* internalchannels(void) {
 	if (!IRC)
 		throw "User is not connected to an IRC server.";
 
-	CHashtable<CChannel*, false, 16>* H = IRC->GetChannels();
+	CHashtable<CChannel*, false>* H = IRC->GetChannels();
 
 	if (H == NULL)
 		return NULL;
@@ -628,7 +628,7 @@ const char* internalchanlist(const char* Channel) {
 	if (!Chan)
 		return NULL;
 
-	const CHashtable<CNick*, false, 64>* Names = Chan->GetNames();
+	const CHashtable<CNick*, false>* Names = Chan->GetNames();
 
 	int Count = Names->GetLength();
 	const char** argv = (const char**)malloc(Count * sizeof(const char*));

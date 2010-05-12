@@ -72,7 +72,7 @@ public:
 private:
 	CDnsQuery *m_DnsQuery; /**< the dns query for looking up the hostname */
 	CDnsQuery *m_BindDnsQuery; /**< the dns query for looking up the bind address */
-	unsigned short m_PortCache; /**< the port or -1 if the cache is invalided */
+	unsigned int m_PortCache; /**< the port or -1 if the cache is invalided */
 	char *m_BindIpCache; /**< the bind address */
 
 	bool m_LatchedDestruction; /**< should the connection object be destroyed? */
@@ -97,7 +97,7 @@ private:
 public:
 #ifndef SWIG
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
-	CConnection(const char *Host, unsigned short Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
+	CConnection(const char *Host, unsigned int Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
 	virtual ~CConnection(void);
 #endif /* SWIG */
 

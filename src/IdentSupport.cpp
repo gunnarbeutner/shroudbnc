@@ -48,61 +48,48 @@ void CIdentSupport::SetIdent(const char *Ident) {
 	char *NewIdent;
 
 #ifndef _WIN32
-	char *homedir = NULL;
 	passwd *pwd;
 	uid_t uid;
+	char *Out;
+	int rc;
 
 	uid = getuid();
 
 	pwd = getpwuid(uid);
 
 	if (pwd == NULL) {
-		LOGERROR("Could not figure out the UNIX username. Not setting ident.");
+		g_Bouncer->Log("Could not figure out the UNIX username. Not setting ident.");
 
 		return;
 	}
 
-	homedir = strdup(pwd->pw_dir);
+	rc = asprintf(&Out, "%s/.oidentd.conf", pwd->pw_dir);
 
-	char *Out = (char *)malloc(strlen(homedir) + 50);
-
-	if (Out == NULL) {
-		LOGERROR("malloc failed. Could not set new ident (%s).", Ident);
-
-		free(homedir);
-
+	if (RcFailed(rc)) {
 		return;
 	}
 
-	if (homedir != NULL) {
-		snprintf(Out, strlen(homedir) + 50, "%s/.oidentd.conf", homedir);
+	FILE *identConfig = fopen(Out, "w");
 
-		free(homedir);
-
-		FILE *identConfig = fopen(Out, "w");
-
-		SetPermissions(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-		if (identConfig != NULL) {
-			char *Buf = (char *)malloc(strlen(Ident) + 50);
-
-			snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
-			fputs(Buf, identConfig);
-
-			free(Buf);
-
-			fclose(identConfig);
-		}
-	}
+	SetPermissions(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
 	free(Out);
+
+	if (identConfig != NULL) {
+		char *Buf = (char *)malloc(strlen(Ident) + 50);
+
+		snprintf(Buf, strlen(Ident) + 50, "global { reply \"%s\" }", Ident);
+		fputs(Buf, identConfig);
+
+		free(Buf);
+
+		fclose(identConfig);
+	}
 #endif
 
 	NewIdent = strdup(Ident);
 
-	if (NewIdent == NULL) {
-		LOGERROR("strdup failed. Could not set new ident.");
-
+	if (AllocFailed(NewIdent)) {
 		return;
 	}
 

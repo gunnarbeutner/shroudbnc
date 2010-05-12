@@ -116,7 +116,7 @@ bool CConfig::ParseConfig(void) {
 			}
 
 			if (m_Settings.Add(Line, dupEq) == false) {
-				LOGERROR("CHashtable::Add failed. Config could not be parsed"
+				g_Bouncer->Log("CHashtable::Add failed. Config could not be parsed"
 					" (%s, %s).", Line, Eq);
 
 				g_Bouncer->Fatal();
@@ -329,7 +329,7 @@ unsigned int CConfig::GetLength(void) const {
  *
  * Returns the hashtable which is used for caching the settings.
  */
-CHashtable<char *, false, 16> *CConfig::GetInnerHashtable(void) {
+CHashtable<char *, false> *CConfig::GetInnerHashtable(void) {
 	return &m_Settings;
 }
 

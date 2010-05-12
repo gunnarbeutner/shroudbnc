@@ -36,7 +36,7 @@ extern time_t g_LastReconnect;
  * @param SSL whether to use SSL
  * @param Family socket family (either AF_INET or AF_INET6)
  */
-CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
+CIRCConnection::CIRCConnection(const char *Host, unsigned int Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
 	const char *Ident;
 
 	SetRole(Role_Client);
@@ -97,7 +97,7 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 		WriteLine("USER %s \"\" \"fnords\" :%s", Ident, Owner->GetRealname());
 	}
 
-	m_Channels = new CHashtable<CChannel *, false, 16>();
+	m_Channels = new CHashtable<CChannel *, false>();
 
 	if (AllocFailed(m_Channels)) {
 		g_Bouncer->Fatal();
@@ -105,7 +105,7 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned short Port, CUser *Own
 
 	m_Channels->RegisterValueDestructor(DestroyObject<CChannel>);
 
-	m_ISupport = new CHashtable<char *, false, 32>();
+	m_ISupport = new CHashtable<char *, false>();
 
 	if (AllocFailed(m_ISupport)) {
 		g_Bouncer->Fatal();
@@ -785,7 +785,7 @@ void CIRCConnection::ParseLine(const char *Line) {
 	int argc = ArgCount2(Args);
 
 	if (argv == NULL) {
-		LOGERROR("ArgToArray2 returned NULL. Could not parse line (%s).", Line);
+		g_Bouncer->Log("ArgToArray2 returned NULL. Could not parse line (%s).", Line);
 
 		return;
 	}
@@ -1141,7 +1141,7 @@ const char *CIRCConnection::GetServerFeat(void) const {
  *
  * Returns a hashtable object which contains all 005 replies.
  */
-const CHashtable<char *, false, 32> *CIRCConnection::GetISupportAll(void) const {
+const CHashtable<char *, false> *CIRCConnection::GetISupportAll(void) const {
 	return m_ISupport;
 }
 
@@ -1447,7 +1447,7 @@ bool IRCPingTimer(time_t Now, void *IRCConnection) {
  *
  * Returns a hashtable containing all channels which the user is currently in.
  */
-CHashtable<CChannel *, false, 16> *CIRCConnection::GetChannels(void) {
+CHashtable<CChannel *, false> *CIRCConnection::GetChannels(void) {
 	return m_Channels;
 }
 

@@ -587,7 +587,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					} else {
 						char *ServerStr = NULL;
 						const char *PortStr = strchr(argv[2], ':');
-						unsigned short Port = 6667;
+						unsigned int Port = 6667;
 
 						// Check whether there's a second colon and ignore 'port' if there
 						// isn't because it's most likely an IPv6 address instead.
@@ -1825,7 +1825,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						char *Nicks = (char *)malloc(1);
 						Nicks[0] = '\0';
 
-						const CHashtable<CNick *, false, 64> *H = Chan->GetNames();
+						const CHashtable<CNick *, false> *H = Chan->GetNames();
 
 						int a = 0;
 
@@ -2358,15 +2358,15 @@ void CClientConnection::WriteUnformattedLine(const char *Line) {
  *
  * @param Error the error message
  */
-void CClientConnection::Kill(const char *Error) {
+void CClientConnection::Kill(const char *ErrorMessage) {
 	if (GetOwner() != NULL) {
 		GetOwner()->RemoveClientConnection(this);
 		SetOwner(NULL);
 	}
 
-	WriteLine(":shroudbnc.info NOTICE AUTH :%s", Error);
+	WriteLine(":shroudbnc.info NOTICE AUTH :%s", ErrorMessage);
 
-	CConnection::Kill(Error);
+	CConnection::Kill(ErrorMessage);
 }
 
 /**

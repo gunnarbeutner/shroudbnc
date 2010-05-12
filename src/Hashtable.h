@@ -67,7 +67,7 @@ inline int CmpStringCase(const void *pA, const void *pB) {
 /**
  * Hash
  *
- * Calculates a hash value for a string.
+ * Calculates a hash value for a string (using the djb2 algorithm).
  *
  * @param String the string
  */
@@ -86,11 +86,55 @@ inline unsigned long Hash(const char *String, bool CaseSensitive) {
 	return HashValue;
 }
 
-template<typename Type, bool CaseSensitive, int Size>
+template<typename Type, bool CaseSensitive>
 class CHashtable {
-	hashlist_t<Type> m_Items[Size]; /**< used for storing the items of the hashtable */
+private:
+	hashlist_t<Type> *m_Buckets; /**< used for storing the items of the hashtable */
+	int m_BucketCount; /** bucket count */
 	void (*m_DestructorFunc)(Type Object); /**< the function which should be used for destroying items */
 	int m_LengthCache; /**< (cached) number of items in the hashtable */
+
+	/**
+	 * Rehash
+	 *
+	 * Increases the bucket count and rehashes the hashtable.
+	 */
+	void Rehash(void) {
+		hashlist_t<Type> *OldBuckets;
+		int OldBucketCount;
+
+		OldBuckets = m_Buckets;
+		OldBucketCount = m_BucketCount;
+
+		m_BucketCount *= 2;
+		m_Buckets = (hashlist_t<Type> *)malloc(sizeof(hashlist_t<Type>) * m_BucketCount);
+
+		if (m_Buckets == NULL) {
+			m_Buckets = OldBuckets;
+			m_BucketCount /= 2;
+
+			return;
+		}
+
+		memset(m_Buckets, 0, sizeof(hashlist_t<Type>) * m_BucketCount);
+
+		for (int i = 0; i < OldBucketCount; i++) {
+			hashlist_t<Type> *List = &OldBuckets[i];
+
+			for (int a = 0; a < List->Count; a++) {
+				if (!Add(List->Keys[a], List->Values[a])) {
+					/* TODO: this would be a fatal error */
+					exit(EXIT_FAILURE);
+				}
+					
+			}
+
+			free(List->Keys);
+			free(List->Values);
+		}
+
+		free(OldBuckets);
+	}
 
 public:
 #ifndef SWIG
@@ -100,7 +144,12 @@ public:
 	 * Constructs an empty hashtable.
 	 */
 	CHashtable(void) {
-		memset(m_Items, 0, sizeof(m_Items));
+		m_BucketCount = 32;
+		m_Buckets = (hashlist_t<Type> *)malloc(sizeof(hashlist_t<Type>) * m_BucketCount);
+
+		/* TODO: safely check alloc result */
+
+		memset(m_Buckets, 0, sizeof(hashlist_t<Type>) * m_BucketCount);
 
 		m_DestructorFunc = NULL;
 
@@ -122,8 +171,8 @@ public:
 	 * Removes all items from the hashtable.
 	 */
 	void Clear(void) {
-		for (int i = 0; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
-			hashlist_t<Type> *List = &m_Items[i];
+		for (int i = 0; i < m_BucketCount; i++) {
+			hashlist_t<Type> *List = &m_Buckets[i];
 
 			for (int a = 0; a < List->Count; a++) {
 				free(List->Keys[a]);
@@ -137,7 +186,7 @@ public:
 			free(List->Values);
 		}
 
-		memset(m_Items, 0, sizeof(m_Items));
+		memset(m_Buckets, 0, sizeof(m_Buckets));
 	}
 
 	/**
@@ -161,7 +210,7 @@ public:
 		// Remove any existing item which has the same key
 		Remove(Key);
 
-		List = &m_Items[Hash(Key, CaseSensitive) % Size];
+		List = &m_Buckets[Hash(Key, CaseSensitive) % m_BucketCount];
 
 		dupKey = strdup(Key);
 
@@ -196,6 +245,10 @@ public:
 
 		m_LengthCache++;
 
+		if (List->Count > 3) {
+			Rehash();
+		}
+
 		RETURN(bool, true);
 	}
 
@@ -214,7 +267,7 @@ public:
 			return NULL;
 		}
 
-		List = &m_Items[Hash(Key, CaseSensitive) % Size];
+		List = &m_Buckets[Hash(Key, CaseSensitive) % m_BucketCount];
 
 		if (List->Count == 0) {
 			return NULL;
@@ -245,7 +298,7 @@ public:
 			THROW(bool, Generic_InvalidArgument, "Key cannot be NULL.");
 		}
 
-		List = &m_Items[Hash(Key, CaseSensitive) % Size];
+		List = &m_Buckets[Hash(Key, CaseSensitive) % m_BucketCount];
 
 		if (List->Count == 0) {
 			RETURN(bool, true);
@@ -330,19 +383,19 @@ public:
 			a = 0;
 		}
 
-		for (; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
+		for (; i < m_BucketCount; i++) {
 			if (!first) {
 				a = 0;
 			} else {
 				first = false;
 			}
 
-			for (;a < m_Items[i].Count; a++) {
+			for (;a < m_Buckets[i].Count; a++) {
 				if (Skip == Index) {
 					static hash_t<Type> Item;
 
-					Item.Name = m_Items[i].Keys[a];
-					Item.Value = m_Items[i].Values[a];
+					Item.Name = m_Buckets[i].Keys[a];
+					Item.Value = m_Buckets[i].Values[a];
 
 					cache_Index = Index;
 					cache_i = i;
@@ -369,18 +422,18 @@ public:
 		char **Keys = NULL;
 		int Count = 0;
 
-		for (int i = 0; i < (int)(sizeof(m_Items) / sizeof(hashlist_t<Type>)); i++) {
-			Keys = (char **)realloc(Keys, (Count + m_Items[i].Count) * sizeof(char *));
+		for (int i = 0; i < (int)(sizeof(m_Buckets) / sizeof(hashlist_t<Type>)); i++) {
+			Keys = (char **)realloc(Keys, (Count + m_Buckets[i].Count) * sizeof(char *));
 
-			if (Count + m_Items[i].Count > 0 && Keys == NULL) {
+			if (Count + m_Buckets[i].Count > 0 && Keys == NULL) {
 				return NULL;
 			}
 
-			for (int a = 0; a < m_Items[i].Count; a++) {
-				Keys[Count + a] = m_Items[i].Keys[a];
+			for (int a = 0; a < m_Buckets[i].Count; a++) {
+				Keys[Count + a] = m_Buckets[i].Keys[a];
 			}
 
-			Count += m_Items[i].Count;
+			Count += m_Buckets[i].Count;
 		}
 
 		qsort(Keys, Count, sizeof(char *), CmpStringCase);

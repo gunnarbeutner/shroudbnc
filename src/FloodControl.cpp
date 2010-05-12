@@ -78,7 +78,7 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 }
 
 #define ScheduleCommand() \
-	int Bytes = CurrentBytes - FLOODBYTES; \
+	size_t Bytes = CurrentBytes - FLOODBYTES; \
 	if (Bytes > 0) { \
 		Delay = (Bytes / FLOODFADEOUT) + 1; \
 	} else { \
@@ -128,7 +128,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	RESULT<const char *> PeekItem = ThatQueue->Queue->PeekItem();
 
 	if (IsError(PeekItem)) {
-		LOGERROR("PeekItem() failed.");
+		g_Bouncer->Log("PeekItem() failed.");
 
 		THROWRESULT(char *, PeekItem);
 	}

@@ -65,7 +65,7 @@ typedef struct socket_s {
  * An additional listener for client connections.
  */
 typedef struct additionallistener_s {
-	unsigned short Port; /**< the port of the listener */
+	unsigned int Port; /**< the port of the listener */
 	char *BindAddress; /**< the bind address, or NULL */
 	bool SSL; /**< whether this is an SSL listener */
 	CSocketEvents *Listener; /**< IPv4 listener object */
@@ -90,7 +90,7 @@ class SBNCAPI CCore {
 	CClientListener *m_Listener, *m_ListenerV6; /**< the main unencrypted listeners */
 	CClientListener *m_SSLListener, *m_SSLListenerV6; /**< the main ssl listeners */
 
-	CHashtable<CUser *, false, 512> m_Users; /**< the bouncer users */
+	CHashtable<CUser *, false> m_Users; /**< the bouncer users */
 	CVector<CModule *> m_Modules; /**< currently loaded modules */
 	mutable CList<socket_t> m_OtherSockets; /**< a list of active sockets */
 	CList<CTimer *> m_Timers; /**< a list of active timers */
@@ -144,7 +144,7 @@ public:
 
 	void GlobalNotice(const char *Text);
 
-	CHashtable<CUser *, false, 512> *GetUsers(void);
+	CHashtable<CUser *, false> *GetUsers(void);
 
 	RESULT<CModule *> LoadModule(const char *Filename);
 	bool UnloadModule(CModule *Module);
@@ -158,7 +158,7 @@ public:
 	void RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface);
 	void UnregisterSocket(SOCKET Socket);
 
-	SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET) const;
+	SOCKET CreateListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) const;
 
 	void Log(const char *Format, ...);
 	void LogUser(CUser *User, const char *Format, ...);
@@ -178,7 +178,7 @@ public:
 	const char *const *GetArgV(void) const;
 
 	bool IsRegisteredSocket(CSocketEvents *Events) const;
-	SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp);
+	SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp);
 
 	const socket_t *GetSocketByClass(const char *Class, int Index) const;
 
@@ -230,8 +230,8 @@ public:
 
 	CVector<CUser *> *GetAdminUsers(void);
 
-	RESULT<bool> AddAdditionalListener(unsigned short Port, const char *BindAddress = NULL, bool SSL = false);
-	RESULT<bool> RemoveAdditionalListener(unsigned short Port);
+	RESULT<bool> AddAdditionalListener(unsigned int Port, const char *BindAddress = NULL, bool SSL = false);
+	RESULT<bool> RemoveAdditionalListener(unsigned int Port);
 	CVector<additionallistener_t> *GetAdditionalListeners(void);
 
 	CClientListener *GetMainListener(void) const;
@@ -246,7 +246,7 @@ public:
 	void SetInterval(int Interval);
 
 	bool GetMD5(void) const;
-	void SetMD5(bool MD5);
+	void SetMD5(bool MD5Flag);
 
 	const char *GetDefaultRealName(void) const;
 	void SetDefaultRealName(const char *RealName);

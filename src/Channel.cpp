@@ -117,7 +117,7 @@ RESULT<const char *> CChannel::GetChannelModes(void) {
 	}
 
 	for (i = 0; i < m_Modes.GetLength(); i++) {
-		int ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
+		ModeType = GetOwner()->RequiresParameter(m_Modes[i].Mode);
 
 		if (m_Modes[i].Mode != '\0' && m_Modes[i].Parameter && ModeType != 3) {
 			strmcat(m_TempModes, " ", Size);
@@ -189,8 +189,8 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 				}
 			}
 
-			for (int i = 0; i < Modules->GetLength(); i++) {
-				(*Modules)[i]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, pargv[p]);
+			for (int j = 0; j < Modules->GetLength(); j++) {
+				(*Modules)[j]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, pargv[p]);
 			}
 
 			if (Flip && Current == 'o' && strcasecmp(pargv[p], GetOwner()->GetCurrentNick()) == 0) {
@@ -226,14 +226,14 @@ void CChannel::ParseModeChange(const char *Source, const char *Modes, int pargc,
 			GetUser()->GetKeyring()->SetKey(m_Name, pargv[p]);
 		}
 
-		for (int i = 0; i < Modules->GetLength(); i++) {
+		for (int j = 0; j < Modules->GetLength(); j++) {
 			const char *arg = NULL;
 
 			if (((Flip && ModeType != 0) || (!Flip && ModeType != 0 && ModeType != 1)) && p < pargc) {
 				arg = pargv[p];
 			}
 
-			(*Modules)[i]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, arg);
+			(*Modules)[j]->SingleModeChange(GetOwner(), m_Name, Source, Flip, Current, arg);
 		}
 
 		if (Flip) {
@@ -510,7 +510,7 @@ void CChannel::SetHasNames(void) {
  *
  * Returns a hashtable containing the nicks for the channel.
  */
-const CHashtable<CNick *, false, 64> *CChannel::GetNames(void) const {
+const CHashtable<CNick *, false> *CChannel::GetNames(void) const {
 	return &m_Nicks;
 }
 

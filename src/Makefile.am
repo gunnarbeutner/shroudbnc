@@ -61,8 +61,7 @@ sbnc_SOURCES=Banlist.cpp \
 	unix.h \
 	utility.h \
 	Vector.h \
-	win32.h \
-	fdhelper.h
+	win32.h
 sbnc_LDADD=../third-party/c-ares/libcares.la ../third-party/md5/libmd5.la ../third-party/snprintf/libsnprintf.la @SSLLDFLAGS@ ${LIBLTDL}
 sbnc_LDFLAGS=-export-dynamic
 

@@ -111,7 +111,7 @@ void CLog::PlayToUser(CClientConnection *Client, int Type) const {
 				}
 
 				if (Client != NULL) {
-					Client->WriteLine(":%s 372 %s :%s", Server,	Nick, Line);
+					Client->WriteLine(":%s 372 %s :%s", Server, Nick, Line);
 				}
 			}
 		}

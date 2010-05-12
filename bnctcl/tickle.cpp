@@ -113,8 +113,8 @@ class CTclSupport : public CModuleImplementation {
 		g_asprintf = GetCore()->GetUtilities()->asprintf;
 		g_free = GetCore()->GetUtilities()->Free;
 
-		g_TclListeners = new CHashtable<CTclSocket*, false, 5>;
-		g_TclClientSockets = new CHashtable<CTclClientSocket*, false, 5>;
+		g_TclListeners = new CHashtable<CTclSocket*, false>();
+		g_TclClientSockets = new CHashtable<CTclClientSocket*, false>();
 
 		argv = GetCore()->GetArgV();
 

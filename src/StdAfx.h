@@ -27,7 +27,8 @@
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
 #endif /* _CRT_SECURE_NO_DEPRECATE */
 
-#include "fdhelper.h"
+#undef SFD_SETSIZE
+#define SFD_SETSIZE 16384
 
 #include <stdlib.h>
 #include <stdio.h>

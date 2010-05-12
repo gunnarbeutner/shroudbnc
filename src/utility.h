@@ -29,7 +29,7 @@ typedef struct command_s {
 } command_t;
 
 /** A list of commands. */
-typedef class CHashtable<command_t *, false, 16> *commandlist_t;
+typedef class CHashtable<command_t *, false> *commandlist_t;
 
 /**
  * utility_t
@@ -93,10 +93,10 @@ const char **ArgToArray2(const tokendata_t& Tokens);
 const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg);
 unsigned int ArgCount2(const tokendata_t& Tokens);
 
-SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp = NULL);
+SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp = NULL);
 SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp);
 
-SOCKET CreateListener(unsigned short Port, const char *BindIp = NULL, int Family = AF_INET);
+SOCKET CreateListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET);
 
 char *NickFromHostmask(const char *Hostmask);
 
@@ -116,8 +116,6 @@ int CmpCommandT(const void *pA, const void *pB);
 
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
-
-#define LOGERROR g_Bouncer->InternalSetFileAndLine(__FILE__, __LINE__); g_Bouncer->InternalLogError
 
 void StrTrim(char *String);
 

@@ -21,7 +21,7 @@ class CCore;
 class CConnection;
 class CTclSocket;
 
-extern CHashtable<CTclSocket*, false, 5>* g_TclListeners;
+extern CHashtable<CTclSocket*, false>* g_TclListeners;
 extern int g_SocketIdx;
 extern Tcl_Interp* g_Interp;
 

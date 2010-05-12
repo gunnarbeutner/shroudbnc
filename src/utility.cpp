@@ -342,7 +342,7 @@ unsigned int ArgCount2(const tokendata_t& Tokens) {
  * @param Port the port
  * @param BindIp the ip address/hostname which should be used for binding the socket
  */
-SOCKET SocketAndConnect(const char *Host, unsigned short Port, const char *BindIp) {
+SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp) {
 	unsigned long lTrue = 1;
 	sockaddr_in sin, sloc;
 	SOCKET Socket;
@@ -480,9 +480,7 @@ char *NickFromHostmask(const char *Hostmask) {
 
 	Copy = strdup(Hostmask);
 
-	if (Copy == NULL) {
-		LOGERROR("strdup() failed. Could not parse hostmask (%s).", Hostmask);
-
+	if (AllocFailed(Copy)) {
 		return NULL;
 	}
 
@@ -500,7 +498,7 @@ char *NickFromHostmask(const char *Hostmask) {
  * @param BindIp the IP address this socket should be bound to
  * @param Family address family (i.e. IPv4 or IPv6)
  */
-SOCKET CreateListener(unsigned short Port, const char *BindIp, int Family) {
+SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
 	sockaddr *saddr;
 	sockaddr_in sin;
 #ifdef IPV6
@@ -743,11 +741,9 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 	}
 
 	if (*Commands == NULL) {
-		*Commands = new CHashtable<command_t *, false, 16>();
+		*Commands = new CHashtable<command_t *, false>();
 
-		if (*Commands == NULL) {
-			LOGERROR("new operator failed. Could not add command.");
-
+		if (AllocFailed(*Commands)) {
 			return;
 		}
 
@@ -757,8 +753,6 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 	Command = (command_t *)malloc(sizeof(command_t));
 
 	if (AllocFailed(Command)) {
-		LOGERROR("malloc() failed. Could not add command.");
-
 		return;
 	}
 
@@ -1062,59 +1056,6 @@ void mstacktrace(void) {
 }
 #endif
 
-extern "C" struct pollfd *registersocket(int Socket) {
-	pollfd *PollFd = NULL;
-	pollfd NewPollFd;
-	bool NewStruct = true;
-	CVector<pollfd> *PollFds;
-
-	unregistersocket(Socket);
-
-	PollFds = &(g_Bouncer->m_PollFds);
-
-	for (int i = 0; i < PollFds->GetLength(); i++) {
-		if (PollFds->Get(i).fd == INVALID_SOCKET) {
-			PollFd = PollFds->GetAddressOf(i);
-			NewStruct = false;
-
-			break;
-		}
-	}
-
-	if (NewStruct) {
-		PollFd = &NewPollFd;
-	}
-
-	PollFd->fd = Socket;
-	PollFd->events = 0;
-	PollFd->revents = 0;
-
-	if (NewStruct) {
-		if (!PollFds->Insert(*PollFd)) {
-			return NULL;
-		}
-
-		PollFd = PollFds->GetAddressOf(PollFds->GetLength() - 1);
-	}
-
-	return PollFd;
-}
-
-extern "C" void unregistersocket(int Socket) {
-	CVector<pollfd> *PollFds;
-
-	PollFds = &(g_Bouncer->m_PollFds);
-
-	for (int i = 0; i < PollFds->GetLength(); i++) {
-		pollfd *PFd = PollFds->GetAddressOf(i);
-
-		if (PFd->fd == Socket) {
-			PFd->fd = INVALID_SOCKET;
-			PFd->events = 0;
-		}
-	}
-}
-
 const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 	static char Buffer[MAX_SOCKADDR_LEN];
 	sockaddr_in *sin4;
@@ -1373,7 +1314,7 @@ bool RcFailedInternal(int ReturnCode, const char *File, int Line) {
 	}
 
 	if (g_Bouncer != NULL) {
-		LOGERROR("Function call in %s:%d failed: %s\n", File, Line, strerror(errno));
+		g_Bouncer->Log("Function call in %s:%d failed: %s\n", File, Line, strerror(errno));
 	} else {
 		printf("Function call in %s:%d failed: %s\n", File, Line, strerror(errno));
 	}
@@ -1387,7 +1328,7 @@ bool AllocFailedInternal(const void *Ptr, const char *File, int Line) {
 	}
 
 	if (g_Bouncer != NULL) {
-		LOGERROR("Allocation in %s:%d failed: %s\n", File, Line, strerror(errno));
+		g_Bouncer->Log("Allocation in %s:%d failed: %s\n", File, Line, strerror(errno));
 	} else {
 		printf("Allocation in %s:%d failed: %s\n", File, Line, strerror(errno));
 	}

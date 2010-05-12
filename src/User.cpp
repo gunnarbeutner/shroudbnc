@@ -796,7 +796,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		CClientConnection *Client = GetClientConnectionMultiplexer();;
 
 		if (Client != NULL) {
-			CHashtable<CChannel *, false, 16> *Channels;
+			CHashtable<CChannel *, false> *Channels;
 			int i;
 			hash_t<CChannel *> *ChannelHash;
 

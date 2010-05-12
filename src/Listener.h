@@ -119,7 +119,7 @@ public:
 		return m_Listener;
 	}
 
-	virtual unsigned short GetPort(void) const {
+	virtual unsigned int GetPort(void) const {
 		sockaddr_in Address;
 		socklen_t Length = sizeof(Address);
 

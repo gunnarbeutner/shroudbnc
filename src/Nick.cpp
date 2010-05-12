@@ -252,16 +252,14 @@ const char *CNick::GetPrefixes(void) const {
 \
 	DuplicateValue = strdup(NewValue); \
 \
-	if (DuplicateValue == NULL) { \
-		LOGERROR("strdup() failed. New " #Name " was lost (%s, %s).", m_Nick, NewValue); \
-\
+	if (AllocFailed(DuplicateValue)) { \
 		return false; \
-	} else { \
-		free(Name); \
-		Name = DuplicateValue; \
+	} \
+	free(Name); \
+	Name = DuplicateValue; \
 \
-		return true; \
-	}
+	return true;
+
 
 /**
  * SetSite
