@@ -30,7 +30,7 @@ static char **g_ArgV;
 
 #if defined(IPV6) && defined(__MINGW32__)
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
-#endif
+#endif /* defined(IPV6) && defined(__MINGW32__) */
 
 // TODO: use argv / getcwd() at start
 const char *sbncGetConfigPath(void) {
@@ -104,7 +104,7 @@ const char *sbncGetExePath(void) {
 		perror("asprintf() failed");
 		exit(EXIT_FAILURE);
 	}
-#else
+#else /* _WIN32 */
 	ExePath = (char *)malloc(MAXPATHLEN);
 
 	if (ExePath == NULL) {
@@ -115,7 +115,7 @@ const char *sbncGetExePath(void) {
 	GetModuleFileName(NULL, ExePath, MAXPATHLEN);
 
 	PathRemoveFileSpec(ExePath);
-#endif
+#endif /* _WIN32 */
 
 	return ExePath;
 }
@@ -129,9 +129,9 @@ const char *sbncGetModulePath(void) {
 
 #ifdef _WIN32
 	const char *RelativeModulePath = ".";
-#else
+#else /* _WIN32 */
 	const char *RelativeModulePath = "../lib/sbnc";
-#endif
+#endif /* _WIN32 */
 
 	ModulePath = strdup(sbncBuildPath(RelativeModulePath, sbncGetExePath()));
 
@@ -141,6 +141,29 @@ const char *sbncGetModulePath(void) {
 	}
 
 	return ModulePath;
+}
+
+const char *sbncGetSharedPath(void) {
+	static const char *SharedPath;
+
+	if (SharedPath != NULL) {
+		return SharedPath;
+	}
+
+#ifdef _WIN32
+	const char *RelativeSharedPath = ".";
+#else /* _WIN32 */
+	const char *RelativeSharedPath = "../share/sbnc";
+#endif /* _WIN32 */
+
+	SharedPath = strdup(sbncBuildPath(RelativeSharedPath, sbncGetExePath()));
+
+	if (SharedPath == NULL) {
+		fprintf(stderr, "Out of memory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return SharedPath;
 }
 
 bool sbncIsAbsolutePath(const char *Path) {

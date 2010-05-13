@@ -194,8 +194,8 @@ CARES_CHECK_STRUCT(
        [Define to 1 if you have struct sockaddr_in6.]) ac_have_sockaddr_in6=yes
 )
 
-CFLAGS="$CFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
-CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
+#CFLAGS="$CFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
+#CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
 
 AC_MSG_CHECKING(whether to enable debugging)
 debug_default="yes"

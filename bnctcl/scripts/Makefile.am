@@ -1,4 +1,4 @@
-scriptsdir=$(libdir)/sbnc/scripts
+scriptsdir=$(datadir)/sbnc/scripts
 scripts_DATA=account.tcl \
 alltools.tcl \
 bind.tcl \

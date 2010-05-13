@@ -341,6 +341,18 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 	WritePidFile();
 
+	if (ShouldDaemonize) {
+#ifndef _WIN32
+		fprintf(stderr, "Daemonizing... ");
+
+		if (Daemonize()) {
+			fprintf(stderr, "DONE\n");
+		} else {
+			fprintf(stderr, "FAILED\n");
+		}
+#endif
+	}
+
 	/* Note: We need to load the modules after using fork() as otherwise tcl cannot be cleanly unloaded */
 	m_LoadingModules = true;
 
@@ -380,18 +392,6 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	i = 0;
 	while (hash_t<CUser *> *User = m_Users.Iterate(i++)) {
 		User->Value->LoadEvent();
-	}
-
-	if (ShouldDaemonize) {
-#ifndef _WIN32
-		fprintf(stderr, "Daemonizing... ");
-
-		if (Daemonize()) {
-			fprintf(stderr, "DONE\n");
-		} else {
-			fprintf(stderr, "FAILED\n");
-		}
-#endif
 	}
 
 	int m_ShutdownLoop = 5;
@@ -1897,6 +1897,17 @@ const char *CCore::BuildPathExe(const char *Filename) const {
  */
 const char *CCore::BuildPathModule(const char *Filename) const {
 	return sbncBuildPath(Filename, sbncGetModulePath());
+}
+
+/**
+ * BuildPathShared
+ *
+ * Builds a path which is relative to the shared directory.
+ *
+ * @param Filename the filename
+ */
+const char *CCore::BuildPathShared(const char *Filename) const {
+	return sbncBuildPath(Filename, sbncGetSharedPath());
 }
 
 /**

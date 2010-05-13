@@ -275,7 +275,7 @@ void CUser::Attach(CClientConnection *Client) {
 			Client->ParseLine("SYNTH VERSION-FORCEREPLY");
 
 			if (m_IRC->GetUsermodes() != NULL) {
-				Client->WriteLine(":%s!%s@%s MODE %s +%s", IrcNick, GetUsername(), Client->GetPeerName(), IrcNick, m_IRC->GetUsermodes());
+				Client->WriteLine(":%s!%s MODE %s +%s", IrcNick, m_IRC->GetSite(), IrcNick, m_IRC->GetUsermodes());
 			}
 
 			AddClientConnection(Client);
@@ -322,7 +322,7 @@ void CUser::Attach(CClientConnection *Client) {
 
 			i = 0;
 			for (i = 0; i < m_IRC->GetChannels()->GetLength(); i++) {
-				Client->WriteLine(":%s!%s@%s JOIN %s", m_IRC->GetCurrentNick(), GetUsername(), Client->GetPeerName(), Channels[i]->GetName());
+				Client->WriteLine(":%s!%s JOIN %s", m_IRC->GetCurrentNick(), m_IRC->GetSite(), Channels[i]->GetName());
 
 				rc = asprintf(&Out, "TOPIC %s", Channels[i]->GetName());
 

@@ -213,6 +213,7 @@ public:
 	const char *BuildPathConfig(const char *Filename) const;
 	const char *BuildPathExe(const char *Filename) const;
 	const char *BuildPathModule(const char *Filename) const;
+	const char *BuildPathShared(const char *Filename) const;
 
 	const char *GetBouncerVersion(void) const;
 

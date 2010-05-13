@@ -8,6 +8,7 @@ const char *sbncBuildPath(const char *Filename, const char *BasePath);
 
 const char *sbncGetConfigPath(void);
 const char *sbncGetModulePath(void);
+const char *sbncGetSharedPath(void);
 const char *sbncGetExePath(void);
 
 #ifndef SBNC
