@@ -2416,3 +2416,19 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
  
 	return 0;
 }
+
+const char *bncconfigdir(void) {
+	return sbncGetConfigPath();
+}
+
+const char *bncmoduledir(void) {
+	return sbncGetModulePath();
+}
+
+const char *bncshareddir(void) {
+	return sbncGetSharedPath();
+}
+
+const char *bncexedir(void) {
+	return sbncGetExePath();
+}

@@ -206,3 +206,8 @@ void putlog(const char* Text);
 char* chanbans(const char* Channel);
 
 void control(int Socket, const char* Proc);
+
+const char *bncconfigdir(void);
+const char *bncmoduledir(void);
+const char *bncshareddir(void);
+const char *bncexedir(void);

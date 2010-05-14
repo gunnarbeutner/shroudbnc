@@ -134,6 +134,21 @@ class CTclSupport : public CModuleImplementation {
 
 		Tcl_Preserve(g_Interp);
 
+		Tcl_Eval(g_Interp,
+"rename source tcl_source\n"
+"\n"
+"# TODO: add support for -rsrc and -rsrcid\n"
+"proc source {file} {\n"
+"	set has_shared_file [file isfile [bncshareddir]/$file]\n"
+"	set has_user_file [file isfile [bncconfigdir]$file]\n"
+"\n"
+"	if {$has_user_file || !$has_shared_file} {\n"
+"		tcl_source $file\n"
+"	} else {\n"
+"		tcl_source [bncshareddir]/$file\n"
+"	}\n"
+"}");
+
 		Tcl_EvalFile(g_Interp, "./sbnc.tcl");
 	}
 
