@@ -98,16 +98,6 @@ class CTclSupport : public CModuleImplementation {
 
 		CModuleImplementation::Init(Root);
 
-		if (symlink(g_Bouncer->BuildPathShared("scripts"), "scripts") < 0 && errno != EEXIST) {
-			g_Bouncer->Log("Could not create 'scripts' symlink.\n");
-			g_Bouncer->Fatal();
-		}
-
-		if (mkdir("customscripts") < 0 && errno != EEXIST) {
-			g_Bouncer->Log("Could not create 'customscripts' directory.\n");
-			g_Bouncer->Fatal();
-		}
-
 		g_Bouncer = Root;
 
 		g_asprintf = GetCore()->GetUtilities()->asprintf;
