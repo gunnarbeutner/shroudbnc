@@ -158,9 +158,6 @@
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
 
-/* Define to 1 if you have the <openssl/ssl.h> header file. */
-#undef HAVE_OPENSSL_SSL_H
-
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL
 

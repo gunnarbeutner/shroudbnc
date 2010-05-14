@@ -1,5 +1,12 @@
-SUBDIRS=third-party src @BNCTCL_MODULE@ @IDENTD_MODULE@ php
-DIST_SUBDIRS=third-party src bnctcl identd32 php
+if BUILD_BNCTCL_MODULE
+BNCTCL_MODULE=bnctcl
+endif
+
+if BUILD_IDENTD_MODULE
+IDENTD_MODULE=identd32
+endif
+
+SUBDIRS=third-party src $(BNCTCL_MODULE) $(IDENTD_MODULE) php
 
 EXTRA_DIST=aclocal.m4 tcl.m4 ssl.conf LICENSE LICENSE.Exceptions README README.ssl README.motd README.lean README.service README.settings README.iface2
 

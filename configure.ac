@@ -215,7 +215,7 @@ fi
 sinclude(./tcl.m4)
 SC_PATH_TCLCONFIG
 
-BNCTCL_MODULE=
+build_bnctcl=no
 
 if test x"${no_tcl}" = x ; then
 	SC_LOAD_TCLCONFIG
@@ -231,7 +231,11 @@ if test x"${no_tcl}" = x ; then
 		CFLAGS=$CFLAGS_TMP
 	
 		if test x"${TCLINC}" != x ; then
-			BNCTCL_MODULE="bnctcl"
+			build_bnctcl=yes
+
+			AC_SUBST(TCL_INCLUDE_SPEC)
+			AC_SUBST(TCL_LIBS)
+			AC_SUBST(TCL_LIB_SPEC)
 		else
 			AC_MSG_WARN([TCL header files could not be found.])
 		fi
@@ -240,28 +244,25 @@ else
 	AC_MSG_WARN([TCL is not installed. TCL module support disabled.])
 fi
 
-SSLCFLAGS=
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ USESSL=yes ], [ USESSL=no; AC_MSG_WARN([You need the OpenSSL headers for SSL support. SSL support has been disabled.]) ])
+AM_CONDITIONAL([BUILD_BNCTCL_MODULE], [test "$build_bnctcl" = yes])
 
-if test ${USESSL} = yes; then
-	AC_CHECK_HEADERS([openssl/ssl.h])
-	AC_CHECK_LIB(ssl, SSL_new, [ SSLCFLAGS=-DUSESSL ], AC_MSG_WARN([You need the OpenSSL libraries for SSL support. SSL support has been disabled.]))
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ build_with_ssl=yes ], [ build_with_ssl=no; AC_MSG_WARN([You need the OpenSSL headers for SSL support. SSL support has been disabled.]) ])
+AM_CONDITIONAL([BUILD_WITH_SSL], [test "$build_with_ssl" = yes])
 
-	if test x"${SSLCFLAGS}" != x; then
-		SSLLDFLAGS=-lssl
-	fi
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <ares.h>]], []), [ builtin_cares=no ], [ builtin_cares=yes ])
+AM_CONDITIONAL([USE_BUILTIN_CARES], [test "$builtin_cares" = yes])
+
+if test "$builtin_cares" = yes; then
+	LIBCARES=../third-party/c-ares/libcares.la
+else
+	LIBCARES=-lcares
 fi
 
-AC_CHECK_LIB(ws2_32, main, [ IDENTD_MODULE=identd32; LIBS += -lws2_32 ], [ IDENTD_MODULE="" ])
-AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ IDENTD_MODULE="identd32" ])
+AC_SUBST([LIBCARES])
 
-AC_SUBST(TCL_INCLUDE_SPEC)
-AC_SUBST(TCL_LIBS)
-AC_SUBST(TCL_LIB_SPEC)
-AC_SUBST(BNCTCL_MODULE)
-AC_SUBST(SSLCFLAGS)
-AC_SUBST(SSLLDFLAGS)
-AC_SUBST(IDENTD_MODULE)
+AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS += -lws2_32 ], [ build_identd=no ])
+AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ build_identd=yes ])
+AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 
 AC_CONFIG_FILES([Makefile \
                  bnctcl/Makefile \

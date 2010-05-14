@@ -68,14 +68,56 @@ const char *sbncGetExePath(void) {
 
 #ifndef _WIN32
 	char Buf[MAXPATHLEN], Cwd[MAXPATHLEN];
-	int rc;
+	char *PathEnv, *Directory, PathTest[MAXPATHLEN], FullExePath[MAXPATHLEN];
+	bool FoundPath;
 
-	rc = readlink(g_ArgV[0], Buf, sizeof(Buf) - 1);
+	if (getcwd(Cwd, sizeof(Cwd)) == NULL) {
+		perror("getcwd() failed");
+		exit(EXIT_FAILURE);
+	}
 
-	if (rc < 0) {
-		strncpy(Buf, g_ArgV[0], sizeof(Buf));
-	} else {
-		Buf[rc] = '\0';
+	snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, g_ArgV[0]);
+
+	if (strchr(g_ArgV[0], '/') == NULL) {
+		PathEnv = getenv("PATH");
+
+		if (PathEnv != NULL) {
+			PathEnv = strdup(PathEnv);
+
+			if (PathEnv == NULL) {
+				perror("strdup() failed");
+				exit(EXIT_FAILURE);
+			}
+
+			FoundPath = false;
+
+			for (Directory = strtok(PathEnv, ":"); Directory != NULL; Directory = strtok(NULL, ":")) {
+				if (snprintf(PathTest, sizeof(PathTest), "%s/%s", Directory, g_ArgV[0]) < 0) {
+					perror("snprintf() failed");
+					exit(EXIT_FAILURE);
+				}
+
+				if (access(PathTest, X_OK) == 0) {
+					strmcpy(FullExePath, PathTest, sizeof(FullExePath));
+
+					FoundPath = true;
+
+					break;
+				}
+			}
+
+			free(PathEnv);
+
+			if (!FoundPath) {
+				printf("Could not determine executable path.\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+
+	if (realpath(FullExePath, Buf) == NULL) {
+		perror("realpath() failed");
+		exit(EXIT_FAILURE);
 	}
 
 	// remove filename
@@ -84,24 +126,10 @@ const char *sbncGetExePath(void) {
 		*LastSlash = '\0';
 	}
 
-	if (Buf[0] == '/') {
-		ExePath = strdup(Buf);
+	ExePath = strdup(Buf);
 
-		if (ExePath == NULL) {
-			fprintf(stderr, "Out of memory.\n");
-			exit(EXIT_FAILURE);
-		}
-
-		return ExePath;
-	}
-
-	if (getcwd(Cwd, sizeof(Cwd)) == NULL) {
-		fprintf(stderr, "Could not determine current working directory.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if (asprintf(&ExePath, "%s/%s", Cwd, Buf) < 0) {
-		perror("asprintf() failed");
+	if (ExePath == NULL) {
+		perror("strdup() failed");
 		exit(EXIT_FAILURE);
 	}
 #else /* _WIN32 */
@@ -280,11 +308,6 @@ int main(int argc, char **argv) {
 
 /*	printf("ExePath: %s\nModulePath: %s\nConfigPath: %s\n",
 		sbncGetExePath(), sbncGetModulePath(), sbncGetConfigPath());*/
-
-#ifdef _WIN32
-	_setmode(fileno(stdin), O_BINARY);
-	_setmode(fileno(stdout), O_BINARY);
-#endif
 
 #if defined(_WIN32) && defined(_DEBUG)
 	Sleep(10000);

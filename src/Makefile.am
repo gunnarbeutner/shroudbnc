@@ -62,8 +62,14 @@ sbnc_SOURCES=Banlist.cpp \
 	utility.h \
 	Vector.h \
 	win32.h
-sbnc_LDADD=../third-party/c-ares/libcares.la ../third-party/md5/libmd5.la ../third-party/snprintf/libsnprintf.la @SSLLDFLAGS@ ${LIBLTDL}
+sbnc_LDADD=${LIBCARES} ../third-party/md5/libmd5.la ../third-party/snprintf/libsnprintf.la ${LIBLTDL}
 sbnc_LDFLAGS=-export-dynamic
 
-AM_CFLAGS=-DSBNC @SSLCFLAGS@ ${LTDLINCL}
-AM_CXXFLAGS=-DSBNC @SSLCFLAGS@ ${LTDLINCL}
+if BUILD_WITH_SSL
+	AM_CFLAGS+=-DUSESSL
+	AM_CXXFLAGS+=-DUSESSL
+	sbnc_LDADD+=-lssl
+endif
+
+AM_CFLAGS=-DSBNC ${LTDLINCL}
+AM_CXXFLAGS=-DSBNC ${LTDLINCL}
