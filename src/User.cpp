@@ -346,8 +346,12 @@ void CUser::Attach(CClientConnection *Client) {
 			free(Channels);
 		}
 	} else {
+		Client->WriteLine(":shroudbnc.info 001 %s :Welcome to the Internet Relay Network %s", Client->GetNick(), Client->GetNick());
+
 		if (!Motd->IsEmpty()) {
 			Motd->PlayToUser(Client, Log_Motd);
+		} else {
+			Client->WriteLine(":shroudbnc.info 422 %s :MOTD File is missing", Client->GetNick());
 		}
 
 		if (IsQuitted() != 2) {

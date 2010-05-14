@@ -1988,10 +1988,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					rc = asprintf(&Out, "SYNTH %s %s :%s", argv[0], argv[1], argv[2]);
 				}
 
-			if (!RcFailed(rc)) {
-				ParseLine(Out);
-				free(Out);
-			}
+				if (!RcFailed(rc)) {
+					ParseLine(Out);
+					free(Out);
+				}
 
 				return false;
 			}
@@ -2001,6 +2001,26 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "pong") == 0 && argc > 1 && strcasecmp(argv[1], "sbnc") == 0) {
 			return false;
+		} else if (strcasecmp(Command, "ison") == 0) {
+			for (int i = 1; i < argc; i++) {
+				if (strcasecmp(argv[i], "-sbnc") == 0) {
+					CIRCConnection *IRC = GetOwner()->GetIRCConnection();
+					const char *Server, *Nick;
+
+					if (IRC != NULL) {
+						Server = IRC->GetServer();
+						Nick = IRC->GetCurrentNick();
+					} else {
+						Server = "shroudbnc.info";
+						Nick = GetNick();
+					}
+
+					WriteLine(":%s 303 %s :-sBNC", Server, Nick);
+				}
+			}
+
+			/* Pass it to the server anyway as there might be other nicks */
+			return true;
 		}
 	}
 
