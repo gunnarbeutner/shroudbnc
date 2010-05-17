@@ -153,6 +153,8 @@ public:
 	void Kill(const char *Error);
 
 	const char *GetUsermodes(void);
+
+	int GetState(void);
 };
 
 #endif /* IRCCONNECTION_H */

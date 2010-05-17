@@ -569,7 +569,7 @@ bool CUser::IsRegisteredClientConnection(CClientConnection *Client) {
  */
 void CUser::Reconnect(void) {
 	const char *Server;
-	int Port;
+	int Port, i;
 
 	if (m_IRC != NULL) {
 		m_IRC->Kill("Reconnecting.");
@@ -590,6 +590,17 @@ void CUser::Reconnect(void) {
 		g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for user %s", Server, Port, m_Name);
 	} else {
 		g_Bouncer->LogUser(this, "Trying to reconnect to %s:%d for user %s", Server, Port, m_Name);
+	}
+
+	i = 0;
+	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
+		CIRCConnection *IRC;
+
+		IRC = UserHash->Value->GetIRCConnection();
+
+		if (IRC != NULL && IRC->GetState() != State_Connected) {
+			IRC->Kill("Timed out.");
+		}
 	}
 
 	m_LastReconnect = g_CurrentTime;

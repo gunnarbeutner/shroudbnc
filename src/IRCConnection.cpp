@@ -1663,3 +1663,12 @@ bool NickCatchTimer(time_t Now, void *IRCConnection) {
 
 	return false;
 }
+
+/**
+ * GetState
+ *
+ * Returns the state of the IRC connection.
+ */
+int CIRCConnection::GetState(void) {
+	return m_State;
+}
