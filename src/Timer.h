@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef TIMER_H
+#define TIMER_H
+
 typedef bool (*TimerProc)(time_t CurrentTime, void *Cookie);
 
 /**
@@ -53,3 +56,5 @@ public:
 
 	void Destroy(void);
 };
+
+#endif /* TIMER_H */

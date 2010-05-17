@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef UTILITY_H
+#define UTILITY_H
+
 /**
  * command_t
  *
@@ -201,3 +204,5 @@ bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
  * @param Variable the variable holding the result
  */
 #define AllocFailed(Variable) AllocFailedInternal(Variable, __FILE__, __LINE__)
+
+#endif /* UTILITY_H */

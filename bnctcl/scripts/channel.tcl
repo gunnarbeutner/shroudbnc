@@ -214,7 +214,9 @@ proc loadchannels {} {
 		array set channels {}
 	}
 
-	catch [list source $::chanfile]
+	if {[file isfile $::chanfile]} {
+		catch [list source $::chanfile]
+	}
 
 	return
 }

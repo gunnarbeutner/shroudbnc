@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef NICK_H
+#define NICK_H
+
 class CChannel;
 
 /**
@@ -83,3 +86,5 @@ public:
 	bool SetTag(const char *Name, const char *Value);
 	const char *GetTag(const char *Name) const;
 };
+
+#endif /* NICK_H */

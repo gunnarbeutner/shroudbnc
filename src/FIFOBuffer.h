@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef FIFOBUFFER_H
+#define FIFOBUFFER_H
+
 #define BLOCKSIZE 4096
 
 /**
@@ -47,3 +50,5 @@ public:
 	RESULT<bool> Write(const char *Data, size_t Size);
 	RESULT<bool> WriteUnformattedLine(const char *Line);
 };
+
+#endif /* FIFOBUFFER_H */

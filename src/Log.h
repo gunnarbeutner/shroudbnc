@@ -17,9 +17,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define Log_Notice 1
-#define Log_Message 0
-#define Log_Motd 2
+#ifndef LOG_H
+#define LOG_H
+
+/**
+ * LogType
+ *
+ * The type of the message.
+ */
+typedef enum {
+	Log_Message,
+	Log_Notice,
+	Log_Motd,
+} LogType;
 
 /**
  * CLog
@@ -39,7 +49,9 @@ public:
 	void Clear(void);
 	void WriteLine(const char *Timestamp, const char *Format,...);
 	void WriteUnformattedLine(const char *Timestamp, const char *Line);
-	void PlayToUser(CClientConnection *Client, int Type) const;
+	void PlayToUser(CClientConnection *Client, LogType Type) const;
 	bool IsEmpty(void) const;
 	const char *GetFilename(void) const;
 };
+
+#endif /* LOG_H */

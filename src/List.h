@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef LIST_H
+#define LIST_H
+
 typedef enum list_error_e {
 	List_ReadOnly,
 	List_ItemNotFound
@@ -341,3 +344,5 @@ public:
 		}
 	}
 };
+
+#endif /* LIST_H */

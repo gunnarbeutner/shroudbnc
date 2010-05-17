@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef VECTOR_H
+#define VECTOR_H
+
 typedef enum vector_error_e {
 	Vector_ReadOnly,
 	Vector_PreAllocated,
@@ -279,3 +282,5 @@ public:
 		RETURN(Type *, GetAddressOf(GetLength() - 1));
 	}
 };
+
+#endif /* VECTOR_H */

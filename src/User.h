@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef USER_H
+#define USER_H
+
 class CClientConnection;
 class CIRCConnection;
 struct CConfig;
@@ -295,3 +298,5 @@ public:
 	void SetChannelSortMode(const char *Mode);
 	const char *GetChannelSortMode(void) const;
 };
+
+#endif /* USER_H */

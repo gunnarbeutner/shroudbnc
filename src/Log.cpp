@@ -65,7 +65,7 @@ CLog::~CLog(void) {
  *             Log_Messages - use IRC messages
  *             Log_Motd - use IRC motd replies
  */
-void CLog::PlayToUser(CClientConnection *Client, int Type) const {
+void CLog::PlayToUser(CClientConnection *Client, LogType Type) const {
 	FILE *LogFile;
 
 	CIRCConnection *IRC = Client->GetOwner()->GetIRCConnection();

@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef QUEUE_H
+#define QUEUE_H
+
 /** Defines how many items can be stored in a single queue */
 #define MAX_QUEUE_SIZE 500
 
@@ -45,3 +48,5 @@ public:
 	int GetLength(void) const;
 	void Clear(void);
 };
+
+#endif /* QUEUE_H */

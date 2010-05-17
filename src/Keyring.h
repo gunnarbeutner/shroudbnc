@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef KEYRING_H
+#define KEYRING_H
+
 struct CConfig;
 
 /**
@@ -37,3 +40,5 @@ public:
 	RESULT<const char *> GetKey(const char *Channel);
 	bool RemoveRedundantKeys(void);
 };
+
+#endif /* KEYRING_H */

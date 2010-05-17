@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef MODULE_H
+#define MODULE_H
+
 /**< used for getting the module's main object */
 typedef CModuleFar *(* FNGETOBJECT)();
 
@@ -74,3 +77,5 @@ public:
 
 	bool MainLoop(void);
 };
+
+#endif /* MODULE_H */

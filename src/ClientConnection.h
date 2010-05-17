@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef CLIENTCONNECTION_H
+#define CLIENTCONNECTION_H
+
 #ifdef SWIGINTERFACE
 %template(COwnedObjectCUser) COwnedObject<class CUser>;
 #endif /* SWIGINTERFACE */
@@ -192,3 +195,5 @@ public:
 #else /* SBNC */
 class CFakeClient;
 #endif /* SBNC */
+
+#endif /* CLIENTCONNECTION_H */

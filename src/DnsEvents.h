@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef DNSEVENTS_H
+#define DNSEVENTS_H
+
 #ifndef SWIG
 /**
  * DnsEventFunction
@@ -91,3 +94,5 @@ public:
 #else /* SWIG */
 class CDnsQuery;
 #endif /* SWIG */
+
+#endif /* DNSEVENTS_H */

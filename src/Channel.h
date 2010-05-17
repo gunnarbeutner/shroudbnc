@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef CHANNEL_H
+#define CHANNEL_H
+
 /**
  * chanmode_s
  *
@@ -114,3 +117,5 @@ public:
 
 	time_t GetJoinTimestamp(void) const;
 };
+
+#endif /* CHANNEL_H */

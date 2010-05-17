@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef CACHE_H
+#define CACHE_H
+
 #define CACHE(Name) struct configcache##Name
 
 #define DEFINE_CACHE(Name) CACHE(Name) { \
@@ -46,3 +49,5 @@ void CacheSetStringReal(CConfig *Config, const char **CacheValue, const char *Op
 #define CacheSetInteger(Cache, Option, Value) CacheSetIntegerReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)
 #define CacheSetString(Cache, Option, Value) CacheSetStringReal((Cache).BgConfig, &((Cache).Option), #Option, Value, (Cache).BgPrefix)
 #endif /* SWIG */
+
+#endif /* CACHE_H */

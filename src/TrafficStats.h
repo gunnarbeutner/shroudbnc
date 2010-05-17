@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef TRAFFICSTATS_H
+#define TRAFFICSTATS_H
+
 /**
  * CTrafficStats
  *
@@ -37,3 +40,5 @@ public:
 	void AddOutbound(unsigned int Bytes);
 	unsigned int GetOutbound(void) const;
 };
+
+#endif /* TRAFFICSTATS_H */

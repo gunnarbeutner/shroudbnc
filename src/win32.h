@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef WIN32_H
+#define WIN32_H
+
 // win32 specific header
 
 #define WIN32_LEAN_AND_MEAN 1
@@ -94,3 +97,5 @@ typedef int socklen_t;
 #else /* SBNC */
 #	define SBNCAPI __declspec(dllimport)
 #endif /* SBNC */
+
+#endif /* WIN32_H */

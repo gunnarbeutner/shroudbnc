@@ -17,6 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef MATCH_H
+#define MATCH_H
+
 int mmatch(const char *old_mask, const char *new_mask);
 int match(const char *ma, const char *na);
 char *collapse(char *pattern);
+
+#endif /* MATCH_H */

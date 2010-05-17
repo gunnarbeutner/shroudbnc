@@ -1286,7 +1286,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "read") == 0) {
-		GetOwner()->GetLog()->PlayToUser(this, NoticeUser);
+		GetOwner()->GetLog()->PlayToUser(this, NoticeUser ? Log_Notice : Log_Message);
 
 		if (!GetOwner()->GetLog()->IsEmpty()) {
 			if (NoticeUser) {
@@ -1309,7 +1309,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		return false;
 	} else if (strcasecmp(Subcommand, "playmainlog") == 0 && GetOwner()->IsAdmin()) {
-		g_Bouncer->GetLog()->PlayToUser(this, NoticeUser);
+		g_Bouncer->GetLog()->PlayToUser(this, NoticeUser ? Log_Notice : Log_Message);
 
 		if (!g_Bouncer->GetLog()->IsEmpty()) {
 			if (NoticeUser) {

@@ -76,7 +76,11 @@ const char *sbncGetExePath(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, g_ArgV[0]);
+	if (g_ArgV[0][0] != '/') {
+		snprintf(FullExePath, sizeof(FullExePath), "%s/%s", Cwd, g_ArgV[0]);
+	} else {
+		strmcpy(FullExePath, g_ArgV[0], sizeof(FullExePath));
+	}
 
 	if (strchr(g_ArgV[0], '/') == NULL) {
 		PathEnv = getenv("PATH");

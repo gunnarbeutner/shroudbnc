@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef BANLIST_H
+#define BANLIST_H
+
 /**
  * ban_s
  *
@@ -50,3 +53,5 @@ public:
 	const ban_t *GetBan(const char *Mask) const;
 	const hash_t<ban_t *> *Iterate(int Skip) const;
 };
+
+#endif /* BANLIST_H */

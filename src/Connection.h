@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef CONNECTION_H
+#define CONNECTION_H
+
 class CUser;
 class CTrafficStats;
 class CFIFOBuffer;
@@ -149,3 +152,5 @@ public:
 	virtual bool HasQueuedData(void) const;
 	virtual bool ShouldDestroy(void) const;
 };
+
+#endif /* CONNECTION_H */

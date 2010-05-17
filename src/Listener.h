@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef LISTENER_H
+#define LISTENER_H
+
 /**
  * CListenerBase<InheritedClass>
  *
@@ -202,3 +205,5 @@ public:
 #else /* SBNC */
 class CClientListener;
 #endif /* SBNC */
+
+#endif /* LISTENER_H */

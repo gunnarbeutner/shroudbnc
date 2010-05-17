@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef RESULT_H
+#define RESULT_H
+
 /**
  * CResult<Type>
  *
@@ -167,3 +170,5 @@ typedef enum generic_error_e {
 %template(CResultConstCharP) CResult<const char *>;
 %template(CResultBool) CResult<bool>;
 #endif /* SWIGINTERFACE */
+
+#endif /* RESULT_H */

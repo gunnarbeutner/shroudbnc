@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef UNIX_H
+#define UNIX_H
+
 // *nix specific things
 
 #include <dlfcn.h>
@@ -81,3 +84,5 @@ typedef int DWORD;
 #define WSASetLastError(Error) errno = Error
 
 #define SBNCAPI
+
+#endif /* UNIX_H */

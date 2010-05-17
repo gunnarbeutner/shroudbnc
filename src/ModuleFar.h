@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef MODULEFAR_H
+#define MODULEFAR_H
+
 class CCore;
 class CIRCConnection;
 class CClientConnection;
@@ -273,3 +276,5 @@ public:
 		return m_Core;
 	}
 };
+
+#endif /* MODULEFAR_H */

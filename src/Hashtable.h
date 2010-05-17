@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
+
 /**
  * hash_t<Type>
  *
@@ -422,7 +425,7 @@ public:
 		char **Keys = NULL;
 		int Count = 0;
 
-		for (int i = 0; i < (int)(sizeof(m_Buckets) / sizeof(hashlist_t<Type>)); i++) {
+		for (int i = 0; i < m_BucketCount; i++) {
 			Keys = (char **)realloc(Keys, (Count + m_Buckets[i].Count) * sizeof(char *));
 
 			if (Count + m_Buckets[i].Count > 0 && Keys == NULL) {
@@ -489,3 +492,5 @@ public:
 	}
 };
 #endif /* SBNC */
+
+#endif /* HASHTABLE_H */

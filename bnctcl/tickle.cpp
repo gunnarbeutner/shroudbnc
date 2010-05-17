@@ -94,7 +94,8 @@ class CTclSupport : public CModuleImplementation {
 	}
 
 	void Init(CCore* Root) {
-		const char * const*argv;
+		const char * const *argv;
+		const char *ScriptsDir;
 
 		CModuleImplementation::Init(Root);
 
@@ -102,6 +103,13 @@ class CTclSupport : public CModuleImplementation {
 
 		g_asprintf = GetCore()->GetUtilities()->asprintf;
 		g_free = GetCore()->GetUtilities()->Free;
+
+		ScriptsDir = g_Bouncer->BuildPathConfig("scripts");
+
+		if (mkdir(ScriptsDir) < 0 && errno != EEXIST) {
+			g_Bouncer->Log("Could not create 'scripts' directory.");
+			g_Bouncer->Fatal();
+		}
 
 		g_TclListeners = new CHashtable<CTclSocket*, false>();
 		g_TclClientSockets = new CHashtable<CTclClientSocket*, false>();

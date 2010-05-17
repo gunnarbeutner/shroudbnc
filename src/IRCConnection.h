@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef IRCCONNECTION_H
+#define IRCCONNECTION_H
+
 /**
  * connection_state_e
  *
@@ -151,3 +154,5 @@ public:
 
 	const char *GetUsermodes(void);
 };
+
+#endif /* IRCCONNECTION_H */

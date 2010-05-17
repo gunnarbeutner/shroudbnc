@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef CORE_H
+#define CORE_H
+
 #define DEFAULT_SENDQ (10 * 1024)
 
 struct CConfig;
@@ -84,8 +87,7 @@ class SBNCAPI CCore {
 	friend void unregistersocket(int Socket);
 #endif /* SWIG */
 
-	CConfig *m_OriginalConfig; /** sbnc.conf object */
-	CConfig *m_Config; /**< config object (== m_OriginalConfig unless there is a config module) */
+	CConfig *m_Config; /**< sbnc.conf object */
 
 	CClientListener *m_Listener, *m_ListenerV6; /**< the main unencrypted listeners */
 	CClientListener *m_SSLListener, *m_SSLListenerV6; /**< the main ssl listeners */
@@ -267,3 +269,5 @@ public:
 extern CCore *g_Bouncer; /**< the main bouncer object */
 extern time_t g_CurrentTime; /**< the current time (updated in main loop) */
 #endif /* SWIG */
+
+#endif /* CORE_H */

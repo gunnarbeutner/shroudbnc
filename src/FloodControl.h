@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef FLOODCONTROL_H
+#define FLOODCONTROL_H
+
 #define FLOODBYTES 450
 #define FLOODFADEOUT 65
 
@@ -59,3 +62,5 @@ public:
 	void Enable(void);
 	void Disable(void);
 };
+
+#endif /* FLOODCONTROL_H */

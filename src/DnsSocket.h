@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
+#ifndef DNSSOCKET_H
+#define DNSSOCKET_H
+
 class CDnsSocket : public CSocketEvents {
 private:
         SOCKET m_Socket;
@@ -41,3 +44,4 @@ typedef struct {
 	int Count;
 } DnsSocketCookie;
 
+#endif /* DNSSOCKET_H */
