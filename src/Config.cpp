@@ -249,6 +249,8 @@ RESULT<bool> CConfig::WriteInteger(const char *Setting, const int Value) {
  */
 RESULT<bool> CConfig::Persist(void) const {
 	static char *Error;
+	char *Filename;
+	int rc;
 
 	free(Error);
 
@@ -256,7 +258,15 @@ RESULT<bool> CConfig::Persist(void) const {
 		RETURN(bool, false);
 	}
 
-	FILE *ConfigFile = fopen(m_Filename, "w");
+	/* Rationale for not using mkstemp()/etc.: if your config dir doesn't belong to the
+	   proper user you're screwed anyway. */
+	rc = asprintf(&Filename, "%s.tmp", m_Filename);
+
+	if (RcFailed(rc)) {
+		THROW(bool, Generic_OutOfMemory, "asprintf() failed");
+	}
+
+	FILE *ConfigFile = fopen(Filename, "w");
 
 	if (AllocFailed(ConfigFile)) {
 		int rc = asprintf(&Error, "Could not open config file: %s", m_Filename);
@@ -266,7 +276,7 @@ RESULT<bool> CConfig::Persist(void) const {
 		THROW(bool, Generic_Unknown, Error);
 	}
 
-	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
+	SetPermissions(Filename, S_IRUSR | S_IWUSR);
 
 	int i = 0;
 	while (hash_t<char *> *SettingHash = m_Settings.Iterate(i++)) {
@@ -276,6 +286,14 @@ RESULT<bool> CConfig::Persist(void) const {
 	}
 
 	fclose(ConfigFile);
+
+	rc = rename(Filename, m_Filename);
+
+	if (RcFailed(rc)) {
+		unlink(Filename);
+
+		THROW(bool, Generic_Unknown, "Could not rename() config file.");
+	}
 
 	RETURN(bool, true);
 }

@@ -77,21 +77,24 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 	m_Queues.Insert(IrcQueue);
 }
 
-#define ScheduleCommand() \
-	size_t Bytes = CurrentBytes - FLOODBYTES; \
-	if (Bytes > 0) { \
-		Delay = (Bytes / FLOODFADEOUT) + 1; \
-	} else { \
-		Delay = 0; \
-	} \
-	\
-	time_t NextCommand = 0; \
-	if (g_FloodTimer != NULL) { \
-		NextCommand = g_FloodTimer->GetNextCall(); \
-	} \
-	if (Delay > 0 && /*(g_CurrentTime + Delay < NextCommand || NextCommand < g_CurrentTime) &&*/ GetRealLength() > 0) { \
-		g_FloodTimer->Reschedule(g_CurrentTime + Delay); \
+/**
+ * ScheduleItem
+ *
+ * Re-schedules when the next item can be retrieved using DequeueItem().
+ */
+void CFloodControl::ScheduleItem(void) {
+	size_t Delay;
+
+	if (GetBytes() > 0) {
+		Delay = ((GetBytes() - FLOODBYTES) / FLOODFADEOUT) + 1;
+	} else {
+		Delay = 0;
 	}
+
+	if (Delay > 0 && GetRealLength() > 0) {
+		g_FloodTimer->Reschedule(g_CurrentTime + Delay);
+	}
+}
 
 /**
  * DequeueItem
@@ -101,15 +104,12 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
  * @param Peek determines whether to actually remove the item
  */
 RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
-	size_t CurrentBytes;
 	unsigned int Delay;
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
 
-	CurrentBytes = GetBytes();
-
-	if (m_Control && (CurrentBytes > FLOODBYTES)) {
-		ScheduleCommand();
+	if (m_Control && (GetBytes() > FLOODBYTES)) {
+		ScheduleItem();
 
 		RETURN(char *, NULL);
 	}
@@ -143,10 +143,9 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	THROWIFERROR(char *, Item);
 
 	if (m_Control) {
-		CurrentBytes += max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
-		m_Bytes = CurrentBytes;
+		m_Bytes += max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
 
-		ScheduleCommand();
+		ScheduleItem();
 	}
 
 	m_LastCommand = g_CurrentTime;

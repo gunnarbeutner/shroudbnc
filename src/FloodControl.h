@@ -46,6 +46,8 @@ class SBNCAPI CFloodControl {
 	time_t m_LastCommand; /**< a TS when the last command was sent */
 
 	static int CalculatePenaltyAmplifier(const char *Line);
+
+	void ScheduleItem(void);
 public:
 #ifndef SWIG
 	CFloodControl(void);
