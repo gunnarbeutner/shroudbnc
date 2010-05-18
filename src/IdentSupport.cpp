@@ -50,7 +50,7 @@ void CIdentSupport::SetIdent(const char *Ident) {
 #ifndef _WIN32
 	passwd *pwd;
 	uid_t uid;
-	char *Out;
+	char *FilenameTemp, *Filename;
 	int rc;
 
 	uid = getuid();
@@ -63,17 +63,23 @@ void CIdentSupport::SetIdent(const char *Ident) {
 		return;
 	}
 
-	rc = asprintf(&Out, "%s/.oidentd.conf", pwd->pw_dir);
+	rc = asprintf(&Filename, "%s/.oidentd.conf", pwd->pw_dir);
 
 	if (RcFailed(rc)) {
 		return;
 	}
 
-	FILE *identConfig = fopen(Out, "w");
+	rc = asprintf(&FilenameTemp, "%s.tmp", Filename);
 
-	SetPermissions(Out, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	if (RcFailed(rc)) {
+		free(Filename);
 
-	free(Out);
+		return;
+	}
+
+	FILE *identConfig = fopen(FilenameTemp, "w");
+
+	SetPermissions(FilenameTemp, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
 	if (identConfig != NULL) {
 		char *Buf = (char *)malloc(strlen(Ident) + 50);
@@ -85,6 +91,13 @@ void CIdentSupport::SetIdent(const char *Ident) {
 
 		fclose(identConfig);
 	}
+
+	rc = rename(FilenameTemp, Filename);
+
+	free(Filename);
+	free(FilenameTemp);
+
+	if (RcFailed(rc)) {}
 #endif
 
 	NewIdent = strdup(Ident);
