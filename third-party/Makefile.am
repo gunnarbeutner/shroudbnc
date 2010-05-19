@@ -1,5 +1,5 @@
 if USE_BUILTIN_CARES
-	BUILTIN_CARES=c-ares	
+BUILTIN_CARES=c-ares	
 endif
 
 SUBDIRS=libltdl $(BUILTIN_CARES) md5 snprintf

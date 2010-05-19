@@ -83,10 +83,12 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
  * Re-schedules when the next item can be retrieved using DequeueItem().
  */
 void CFloodControl::ScheduleItem(void) {
-	size_t Delay;
+	size_t Delay, Bytes;
 
-	if (GetBytes() > 0) {
-		Delay = ((GetBytes() - FLOODBYTES) / FLOODFADEOUT) + 1;
+	Bytes = GetBytes() - FLOODBYTES;
+
+	if (Bytes > 0) {
+		Delay = (Bytes / FLOODFADEOUT) + 1;
 	} else {
 		Delay = 0;
 	}
@@ -143,7 +145,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	THROWIFERROR(char *, Item);
 
 	if (m_Control) {
-		m_Bytes += max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
+		m_Bytes = GetBytes() + max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
 
 		ScheduleItem();
 	}
