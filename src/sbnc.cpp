@@ -54,11 +54,6 @@ const char *sbncGetConfigPath(void) {
 	return ConfigPath;
 }
 
-// TODO: fix, this is horribly broken (e.g. bin/sbnc, without .)
-// Step 1: readlink() argv0 (UNIX)
-// Step 2: Remove exe name
-// Step 3: Check whether path is absolute -> Done
-// Step 4: prepend getcwd()
 const char *sbncGetExePath(void) {
 	static char *ExePath;
 

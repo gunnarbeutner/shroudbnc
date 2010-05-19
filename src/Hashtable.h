@@ -119,6 +119,8 @@ private:
 			return;
 		}
 
+		m_LengthCache = 0;
+
 		memset(m_Buckets, 0, sizeof(hashlist_t<Type>) * m_BucketCount);
 
 		for (int i = 0; i < OldBucketCount; i++) {
@@ -126,10 +128,11 @@ private:
 
 			for (int a = 0; a < List->Count; a++) {
 				if (!Add(List->Keys[a], List->Values[a])) {
-					/* TODO: this would be a fatal error */
+					/* TODO: this would be a fatal error, add logging */
 					exit(EXIT_FAILURE);
 				}
-					
+
+				free(List->Keys[a]);
 			}
 
 			free(List->Keys);
@@ -438,6 +441,8 @@ public:
 
 			Count += m_Buckets[i].Count;
 		}
+
+		assert(Count == m_LengthCache);
 
 		qsort(Keys, Count, sizeof(char *), CmpStringCase);
 

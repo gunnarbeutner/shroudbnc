@@ -36,7 +36,11 @@ class CFakeClient;
 struct CSocketEvents;
 struct sockaddr_in;
 
-/* TODO: Use the cache.. */
+/**
+ * Settings cache.
+ *
+ * Commonly used settings are cached.
+ */
 DEFINE_CACHE(System)
 	DEFINE_OPTION_INT(dontmatchuser);
 	DEFINE_OPTION_INT(port);
