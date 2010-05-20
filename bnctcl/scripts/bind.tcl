@@ -1,5 +1,6 @@
 # shroudBNC - an object-oriented framework for IRC
 # Copyright (C) 2005-2007,2010 Gunnar Beutner
+#               2010 Sandro Hummel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,6 +23,17 @@ internalbind svrlogon sbnc:svrlogon
 internalbind prerehash sbnc:prerehash
 internalbind postrehash sbnc:postrehash
 internalbind channelsort sbnc:channelsort
+internalbind server sbnc:need-limit 471 *
+internalbind server sbnc:need-invite 473 *
+internalbind server sbnc:need-unban 474 *
+internalbind server sbnc:need-key 475 *
+internalbind server sbnc:need-op 482 *
+
+setudef str need-op
+setudef str need-invite
+setudef str need-key
+setudef str need-unban
+setudef str need-limit
 
 if {![info exists ::channelsorthandler]} {
 	set ::channelsorthandler "stricmp"
@@ -102,11 +114,7 @@ proc sbnc:modechange {client parameters} {
 		set flags $hand
 	}
 
-	if {[llength $parameters] < 4} {
-		sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode
-	} else {
-		sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode $targ
-	}
+	sbnc:callbinds "mode" $flags $channel "$channel $mode" $nick $host $hand $channel $mode $targ
 }
 
 proc sbnc:rawserver {client parameters} {
@@ -408,3 +416,39 @@ proc setchannelsorthandler {handler} {
 proc getchannelsorthandler {} {
 	return $::channelsorthandler
 }
+
+proc sbnc:need-op {client parameters} {
+	set chan [lindex $parameters 3]
+	if {[validchan $chan] && ![string equal [channel get $chan need-op] ""]} {
+		eval [channel get $chan need-op]
+	}
+}
+
+proc sbnc:need-key {client parameters} {
+	set chan [lindex $parameters 3]
+	if {[validchan $chan] && ![string equal [channel get $chan need-key] ""]} {
+		eval [channel get $chan need-key]
+	}
+}
+
+proc sbnc:need-unban {client parameters} {
+	set chan [lindex $parameters 3]
+	if {[validchan $chan] && ![string equal [channel get $chan need-unban] ""]} {
+		eval [channel get $chan need-unban]
+	}
+}
+
+proc sbnc:need-invite {client parameters} {
+	set chan [lindex $parameters 3]
+	if {[validchan $chan] && ![string equal [channel get $chan need-invite] ""]} {
+		eval [channel get $chan need-invite]
+	}
+}
+
+proc sbnc:need-limit {client parameters} {
+	set chan [lindex $parameters 3]
+	if {[validchan $chan] && ![string equal [channel get $chan need-limit] ""]} {
+		eval [channel get $chan need-limit]
+	}
+}
+
