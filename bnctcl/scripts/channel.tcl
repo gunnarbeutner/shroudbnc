@@ -124,8 +124,11 @@ proc channel {option chan args} {
 			if {![info exists chanoptions($option)]} {
 				return -code error "No such option."
 			} elseif {[string equal -nocase $chanoptions($option) "int"]} {
-				if {[llength $args] < 2} { return -code error "Too few parameters" }
-				elseif {![string is digit $value]} { return -code error "Value is not an integer." }
+				if {[llength $args] < 2} {
+					return -code error "Too few parameters"
+				} elseif {![string is digit $value]} {
+					return -code error "Value is not an integer."
+				}
 
 				set channel($option) $value
 			} elseif {$first == "+" || $first == "-"} {
