@@ -169,6 +169,9 @@ public:
 	 */
 	~CHashtable(void) {
 		Clear();
+
+
+		free(m_Buckets);
 	}
 #endif /*SWIG */
 	/**
@@ -193,6 +196,8 @@ public:
 		}
 
 		memset(m_Buckets, 0, sizeof(m_Buckets));
+
+		m_LengthCache = 0;
 	}
 
 	/**
