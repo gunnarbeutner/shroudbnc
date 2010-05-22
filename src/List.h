@@ -257,7 +257,7 @@ public:
 	 *
 	 * @param List the list object
 	 */
-	CListCursor(CList<Type> *List) {
+	explicit CListCursor(CList<Type> *List) {
 		m_List = List;
 
 		List->Lock();

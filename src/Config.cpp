@@ -269,6 +269,8 @@ RESULT<bool> CConfig::Persist(void) const {
 	FILE *ConfigFile = fopen(Filename, "w");
 
 	if (AllocFailed(ConfigFile)) {
+		free(Filename);
+
 		int rc = asprintf(&Error, "Could not open config file: %s", m_Filename);
 
 		if (RcFailed(rc)) {}
@@ -292,8 +294,12 @@ RESULT<bool> CConfig::Persist(void) const {
 	if (RcFailed(rc)) {
 		unlink(Filename);
 
+		free(Filename);
+
 		THROW(bool, Generic_Unknown, "Could not rename() config file.");
 	}
+
+	free(Filename);
 
 	RETURN(bool, true);
 }

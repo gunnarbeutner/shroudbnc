@@ -19,10 +19,6 @@
 
 #include "StdAfx.h"
 
-#ifdef USESSL
-#include <openssl/err.h>
-#endif
-
 const char *g_ErrorFile; /**< name of the file where the last error occured */
 unsigned int g_ErrorLine; /**< line where the last error occurred */
 time_t g_CurrentTime; /**< current time (updated in main loop) */

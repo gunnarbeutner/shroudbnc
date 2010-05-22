@@ -145,7 +145,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	THROWIFERROR(char *, Item);
 
 	if (m_Control) {
-		m_Bytes = GetBytes() + max(130, strlen(Item) * CalculatePenaltyAmplifier(Item));
+		m_Bytes = GetBytes() + max((size_t)130, strlen(Item) * CalculatePenaltyAmplifier(Item));
 
 		ScheduleItem();
 	}

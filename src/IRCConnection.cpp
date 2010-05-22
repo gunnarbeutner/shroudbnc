@@ -446,7 +446,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 
 			GetOwner()->Log("You were successfully connected to an IRC server.");
-			g_Bouncer->Log("User %s connected to an IRC server.", GetOwner()->GetUsername());
+			g_Bouncer->Log("User %s connected to an IRC server.",
+				GetOwner()->GetUsername());
 		}
 
 		if (DelayJoin == 1) {
@@ -483,9 +484,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			GetOwner()->ScheduleReconnect(5);
 		}
 
-		g_Bouncer->LogUser(GetUser(), "Error received for user %s: %s", GetOwner()->GetUsername(), argv[1]);
+		g_Bouncer->LogUser(GetUser(), "Error received for user %s [%s!%s]: %s",
+			GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[1]);
 	} else if (argc > 3 && iRaw == 465) {
-		g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s: %s", GetOwner()->GetUsername(), argv[3]);
+		g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s [%s!%s]: %s",
+			GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[3]);
 	} else if (argc > 5 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
@@ -1604,9 +1607,13 @@ void CIRCConnection::Error(int ErrorValue) {
 
 	if (GetOwner() != NULL) {
 		if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-			g_Bouncer->LogUser(GetOwner(), "User '%s' was disconnected from the IRC server due to an unknown socket error.", GetOwner()->GetUsername());
+			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
+				"from the IRC server due to an unknown socket error.", GetOwner()->GetUsername(),
+				GetCurrentNick(), GetSite());
 		} else {
-			g_Bouncer->LogUser(GetOwner(), "User '%s' was disconnected from the IRC server: %s", GetOwner()->GetUsername(), ErrorMsg);
+			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
+				"from the IRC server: %s", GetOwner()->GetUsername(),
+				GetCurrentNick(), GetSite(), ErrorMsg);
 		}
 	}
 

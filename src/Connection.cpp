@@ -256,17 +256,12 @@ SOCKET CConnection::GetSocket(void) const {
 int CConnection::Read(bool DontProcess) {
 	int ReadResult;
 	static char *Buffer = NULL;
-	static int BufferSize = 0;
-	socklen_t OptLenght = sizeof(BufferSize);
+	const int BufferSize = 8192;
 
 	m_Connected = true;
 
 	if (m_Shutdown) {
 		return 0;
-	}
-
-	if (BufferSize == 0 && getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, (char *)&BufferSize, &OptLenght) != 0) {
-		BufferSize = 8192;
 	}
 
 	if (Buffer == NULL) {
@@ -295,9 +290,12 @@ int CConnection::Read(bool DontProcess) {
 		}
 
 		ERR_print_errors_fp(stdout);
-	} else
+	} else {
 #endif
 		ReadResult = recv(m_Socket, Buffer, BufferSize, 0);
+#ifdef USESSL
+	}
+#endif
 
 	if (ReadResult > 0) {
 		if (g_CurrentTime - m_InboundTrafficReset > 30) {
@@ -977,9 +975,7 @@ size_t CConnection::GetInboundRate(void) {
  * @param Buffer the new queue
  */
 void CConnection::SetSendQ(CFIFOBuffer *Buffer) {
-	if (m_SendQ != NULL) {
-		delete m_SendQ;
-	}
+	delete m_SendQ;
 
 	m_SendQ = Buffer;
 
@@ -996,9 +992,7 @@ void CConnection::SetSendQ(CFIFOBuffer *Buffer) {
  * @param Buffer the new queue
  */
 void CConnection::SetRecvQ(CFIFOBuffer *Buffer) {
-	if (m_RecvQ != NULL) {
-		delete m_RecvQ;
-	}
+	delete m_RecvQ;
 
 	m_RecvQ = Buffer;
 

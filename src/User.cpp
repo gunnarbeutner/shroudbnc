@@ -286,6 +286,8 @@ void CUser::Attach(CClientConnection *Client) {
 			Channels = (CChannel **)malloc(sizeof(CChannel *) * m_IRC->GetChannels()->GetLength());
 
 			if (AllocFailed(Channels)) {
+				delete Motd;
+
 				return;
 			}
 
@@ -318,7 +320,7 @@ void CUser::Attach(CClientConnection *Client) {
 				SortFunction = ChannelTSCompare;
 			}
 
-			qsort(Channels, m_IRC->GetChannels()->GetLength(), sizeof(CChannel *), SortFunction);
+			qsort(Channels, m_IRC->GetChannels()->GetLength(), sizeof(Channels[0]), SortFunction);
 
 			i = 0;
 			for (i = 0; i < m_IRC->GetChannels()->GetLength(); i++) {
@@ -358,6 +360,8 @@ void CUser::Attach(CClientConnection *Client) {
 			ScheduleReconnect(0);
 		}
 	}
+
+	delete Motd;
 
 	if (!Added) {
 		AddClientConnection(Client);
@@ -629,8 +633,6 @@ void CUser::Reconnect(void) {
 
 	SetIRCConnection(Connection);
 
-	g_Bouncer->Log("Connection initialized for user %s. Waiting for response...", GetUsername());
-
 	RescheduleReconnectTimer();
 }
 
@@ -786,7 +788,6 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 	bool WasNull;
 
 	if (GetClientConnectionMultiplexer() != NULL && m_IRC != NULL) {
-//		GetClientConnection()->SetPreviousNick(m_IRC->GetCurrentNick());
 		GetClientConnectionMultiplexer()->SetNick(m_IRC->GetCurrentNick());
 	}
 
@@ -823,7 +824,8 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 			}
 		}
 
-		g_Bouncer->LogUser(this, "User %s disconnected from the server.", GetUsername());
+		g_Bouncer->LogUser(this, "User %s [%s!%s] disconnected from the server.",
+			GetUsername(), OldIRC->GetCurrentNick(), OldIRC->GetSite());
 	} else if (IRC) {
 		for (int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerConnect(GetUsername());

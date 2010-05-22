@@ -50,7 +50,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	}
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright © 2005-2007,2010 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright (C) 2005-2007,2010 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
@@ -2210,9 +2210,7 @@ void CClientConnection::Destroy(void) {
 void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	sockaddr *Remote;
 
-	if (m_PeerName != NULL) {
-		free(m_PeerName);
-	}
+	free(m_PeerName);
 
 	m_PeerName = strdup(PeerName);
 

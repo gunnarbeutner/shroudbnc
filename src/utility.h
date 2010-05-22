@@ -125,18 +125,10 @@ void StrTrim(char *String);
 char *strmcpy(char *Destination, const char *Source, size_t Size);
 char *strmcat(char *Destination, const char *Source, size_t Size);
 
-#ifndef min
-#define min(a, b) ((a)<(b) ? (a) : (b))
-#endif /* min */
-
-#ifndef max
-#define max(a, b) ((a)<(b) ? (b) : (a))
-#endif /* max */
-
 #ifdef IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
-#define MAX_SOCKADDR_LEN (max(sizeof(sockaddr_in), sizeof(sockaddr_in6)))
+#define MAX_SOCKADDR_LEN (sizeof(sockaddr_in) > sizeof(sockaddr_in6) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #else /* IPV6 */
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
 #define INADDR_LEN(Family) (sizeof(in_addr))

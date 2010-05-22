@@ -444,7 +444,7 @@ public:
 
 		assert(Count == m_LengthCache);
 
-		qsort(Keys, Count, sizeof(char *), CmpStringCase);
+		qsort(Keys, Count, sizeof(Keys[0]), CmpStringCase);
 
 		Keys = (char **)realloc(Keys, ++Count * sizeof(char *));
 
@@ -473,7 +473,7 @@ public:
 	 *
 	 * Constructs a CHashCompare object.
 	 */
-	CHashCompare(const char *String) {
+	explicit CHashCompare(const char *String) {
 		m_String = String;
 
 		if (String) {

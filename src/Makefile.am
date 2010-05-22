@@ -68,7 +68,7 @@ SSLCFLAGS=-DUSESSL
 LIBSSL=-lssl
 endif
 
-sbnc_LDADD=${LIBCARES} ../third-party/md5/libmd5.la ../third-party/snprintf/libsnprintf.la ${LIBLTDL} ${LIBSSL}
+sbnc_LDADD=${LIBCARES} ../third-party/md5/libmd5.la ${LIBSNPRINTF} ${LIBLTDL} ${LIBSSL}
 sbnc_LDFLAGS=-export-dynamic
 
 AM_CFLAGS=-DSBNC ${LTDLINCL} ${SSLCFLAGS}

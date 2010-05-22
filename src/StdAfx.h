@@ -43,7 +43,11 @@
 #include <sys/stat.h>
 
 #ifdef __cplusplus
+#	include <algorithm>
 #	include <typeinfo>
+
+using std::min;
+using std::max;
 #endif /* __cplusplus */
 
 #ifdef _WIN32

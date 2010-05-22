@@ -58,7 +58,7 @@ public:
 	 *
 	 * Constructs an empty pre-allocated list.
 	 */
-	CVector(int AllocCount) {
+	explicit CVector(int AllocCount) {
 		CVector();
 		Preallocate(AllocCount);
 	}

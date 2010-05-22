@@ -21,9 +21,7 @@
 CClientConnectionMultiplexer::CClientConnectionMultiplexer(CUser *User) : CClientConnection(INVALID_SOCKET) {
 	SetOwner(User);
 
-	if (m_AuthTimer != NULL) {
-		delete m_AuthTimer;
-	}
+	delete m_AuthTimer;
 }
 
 void CClientConnectionMultiplexer::ParseLine(const char *Line) {

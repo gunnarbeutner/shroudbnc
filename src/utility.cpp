@@ -297,7 +297,7 @@ const char **ArgToArray2(const tokendata_t& Tokens) {
 
 	memset(Pointers, 0, sizeof(const char *) * 33);
 
-	for (unsigned int i = 0; i < min(Tokens.Count, 32); i++) {
+	for (unsigned int i = 0; i < min(Tokens.Count, (unsigned int)32); i++) {
 		Pointers[i] = Tokens.Pointers[i] + Tokens.String;
 	}
 
@@ -1292,6 +1292,8 @@ int sn_getline_passwd(char *buf, size_t size) {
 		} else {
 			term_succeeded = false;
 		}
+	} else {
+		term_succeeded = false;
 	}
 #endif
 

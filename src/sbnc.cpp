@@ -400,10 +400,7 @@ int main(int argc, char **argv) {
 
 	g_Bouncer->StartMainLoop(Daemonize);
 
-	if (g_Bouncer != NULL) {
-		delete g_Bouncer;
-	}
-
+	delete g_Bouncer;
 	delete Config;
 
 #if !defined(_WIN32 ) || defined(__MINGW32__)

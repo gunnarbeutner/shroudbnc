@@ -177,6 +177,9 @@
 /* Define if you have the shl_load function. */
 #undef HAVE_SHL_LOAD
 
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
