@@ -1591,7 +1591,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 			return false;
 		} else if (strcasecmp(Command, "user") == 0 && argc > 1) {
-			if (m_Username) {
+			if (m_Username && m_Nick) {
 				WriteLine(":shroudbnc.info 462 %s :You may not reregister", m_Nick);
 			} else {
 				if (!argv[1]) {
