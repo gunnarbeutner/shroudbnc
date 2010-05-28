@@ -25,8 +25,6 @@
 #include "tickle.h"
 #include "tickleProcs.h"
 
-#define FREEZEFIX
-
 class CTclSupport;
 
 CCore* g_Bouncer;
@@ -95,7 +93,6 @@ class CTclSupport : public CModuleImplementation {
 
 	void Init(CCore* Root) {
 		const char * const *argv;
-		const char *ScriptsDir;
 
 		CModuleImplementation::Init(Root);
 
@@ -104,7 +101,43 @@ class CTclSupport : public CModuleImplementation {
 		g_asprintf = GetCore()->GetUtilities()->asprintf;
 		g_free = GetCore()->GetUtilities()->Free;
 
-		ScriptsDir = g_Bouncer->BuildPathConfig("scripts");
+		const char *ConfigFile = g_Bouncer->BuildPathConfig("sbnc.tcl");
+		struct stat statbuf;
+
+		if (stat(ConfigFile, &statbuf) < 0) {
+			FILE *ConfigFd = ConfigFd = fopen(ConfigFile, "wb");
+
+			if (ConfigFd == NULL) {
+				g_Bouncer->Log("Could not create 'sbnc.tcl' file.");
+				g_Bouncer->Fatal();
+			}
+
+			const char *ConfigDistFile = g_Bouncer->BuildPathShared("scripts/sbnc.tcl.dist");
+
+			FILE *ConfigDistFd = fopen(ConfigDistFile, "rb");
+
+			if (ConfigDistFd == NULL) {
+				g_Bouncer->Log("Could not open 'sbnc.dist.tcl' file.");
+				g_Bouncer->Fatal();
+			}
+
+			while (!feof(ConfigDistFd) && !ferror(ConfigDistFd)) {
+				size_t Count;
+				char Buffer[1024];
+
+				Count = fread(Buffer, 1, sizeof(Buffer), ConfigDistFd);
+
+				if (fwrite(Buffer, 1, Count, ConfigFd) < Count) {
+					g_Bouncer->Log("Could not write to 'sbnc.tcl' file.");
+					g_Bouncer->Fatal();
+				}
+			}
+
+			fclose(ConfigDistFd);
+			fclose(ConfigFd);
+		}
+
+		const char *ScriptsDir = g_Bouncer->BuildPathConfig("scripts");
 
 		if (mkdir(ScriptsDir) < 0 && errno != EEXIST) {
 			g_Bouncer->Log("Could not create 'scripts' directory.");

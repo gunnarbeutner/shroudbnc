@@ -87,7 +87,9 @@ typedef lt_dlhandle HMODULE;
 #	define IPV6
 #endif /* defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6) */
 
-#include "../third-party/snprintf/snprintf.h"
+#ifndef HAVE_SNPRINTF
+#	include "../third-party/snprintf/snprintf.h"
+#endif
 
 #ifndef SWIG
 #	include "../third-party/c-ares/ares.h"
