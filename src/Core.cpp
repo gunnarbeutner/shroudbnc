@@ -920,7 +920,7 @@ void CCore::Log(const char *Format, ...) {
 	if (m_Log == NULL) {
 		fprintf(stderr, "%s\n", Out);
 	} else {
-		m_Log->WriteLine(NULL, "%s", Out);
+		m_Log->WriteLine("%s", Out);
 	}
 
 	for (int i = 0; i < m_AdminUsers.GetLength(); i++) {
@@ -957,7 +957,7 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
 		return;
 	}
 
-	m_Log->WriteLine(NULL, "%s", Out);
+	m_Log->WriteLine("%s", Out);
 
 	for (int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *ThisUser = m_AdminUsers[i];
@@ -1010,7 +1010,7 @@ void CCore::InternalLogError(const char *Format, ...) {
 		return;
 	}
 
-	m_Log->WriteUnformattedLine(NULL, Out);
+	m_Log->WriteUnformattedLine(Out);
 
 	free(Out);
 }

@@ -130,10 +130,9 @@ void CLog::PlayToUser(CClientConnection *Client, LogType Type) const {
  *
  * Writes a new log entry.
  *
- * @param Timestamp a timestamp, if you specify NULL, a suitable default timestamp will be used
  * @param Line the log entry
  */
-void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
+void CLog::WriteUnformattedLine(const char *Line) {
 	char *Out = NULL, *dupLine;
 	size_t StringLength;
 	unsigned int a;
@@ -153,17 +152,13 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
-	if (Timestamp == NULL) {
-		Now = *localtime(&g_CurrentTime);
+	Now = *localtime(&g_CurrentTime);
 
 #ifdef _WIN32
-		strftime(strNow, sizeof(strNow), "%#c" , &Now);
+	strftime(strNow, sizeof(strNow), "%#c" , &Now);
 #else
-		strftime(strNow, sizeof(strNow), "%a %B %d %Y %H:%M:%S" , &Now);
+	strftime(strNow, sizeof(strNow), "%a %B %d %Y %H:%M:%S" , &Now);
 #endif
-
-		Timestamp = strNow;
-	}
 
 	dupLine = strdup(Line);
 
@@ -184,7 +179,7 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
 		a++;
 	}
 
-	int rc = asprintf(&Out, "[%s]: %s\n", Timestamp, dupLine);
+	int rc = asprintf(&Out, "[%s]: %s\n", strNow, dupLine);
 
 	free(dupLine);
 
@@ -213,11 +208,10 @@ void CLog::WriteUnformattedLine(const char *Timestamp, const char *Line) {
  *
  * Formats a string and writes it into the log.
  *
- * @param Timestamp a timestamp, if you specify NULL, a suitable default timestamp will be used
  * @param Format the format string
  * @param ... parameters used in the format string
  */
-void CLog::WriteLine(const char *Timestamp, const char *Format, ...) {
+void CLog::WriteLine(const char *Format, ...) {
 	char *Out;
 	va_list marker;
 
@@ -231,7 +225,7 @@ void CLog::WriteLine(const char *Timestamp, const char *Format, ...) {
 		return;
 	}
 
-	WriteUnformattedLine(Timestamp, Out);
+	WriteUnformattedLine(Out);
 
 	free(Out);
 }

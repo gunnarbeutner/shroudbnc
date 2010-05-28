@@ -47,8 +47,8 @@ public:
 #endif /* SWIG */
 
 	void Clear(void);
-	void WriteLine(const char *Timestamp, const char *Format,...);
-	void WriteUnformattedLine(const char *Timestamp, const char *Line);
+	void WriteLine(const char *Format,...);
+	void WriteUnformattedLine(const char *Line);
 	void PlayToUser(CClientConnection *Client, LogType Type) const;
 	bool IsEmpty(void) const;
 	const char *GetFilename(void) const;

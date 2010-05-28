@@ -489,7 +489,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[1]);
 		} else {
 			g_Bouncer->LogUser(GetUser(), "Error received for user %s: %s",
-				GetOwner()->GetUsername(), GetCurrentNick(), argv[1]);
+				GetOwner()->GetUsername(), argv[1]);
 		}
 	} else if (argc > 3 && iRaw == 465) {
 		if (GetCurrentNick() != NULL && GetSite() != NULL) {

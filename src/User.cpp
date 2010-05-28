@@ -751,7 +751,7 @@ void CUser::Log(const char *Format, ...) {
 
 	if (!RcFailed(rc)) {
 		if (GetClientConnectionMultiplexer() == NULL) {
-			m_Log->WriteLine(FormatTime(g_CurrentTime), "%s", Out);
+			m_Log->WriteLine("%s", Out);
 		} else {
 			GetClientConnectionMultiplexer()->Privmsg(Out);
 		}
