@@ -205,7 +205,9 @@ CCore::~CCore(void) {
 		free(m_HostAllows[i]);
 	}
 
-	fclose(m_PidFile);
+	if (m_PidFile != NULL) {
+		fclose(m_PidFile);
+	}
 }
 
 /**
