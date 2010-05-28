@@ -32,7 +32,6 @@ static char **g_ArgV;
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif /* defined(IPV6) && defined(__MINGW32__) */
 
-// TODO: use argv / getcwd() at start
 const char *sbncGetConfigPath(void) {
 	static char *ConfigPath;
 
@@ -338,15 +337,10 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Options:\n");
 		fprintf(stderr, "\t--help\t\tdisplay this help and exit\n");
 		fprintf(stderr, "\t--foreground\trun in the foreground\n");
-#ifdef _WIN32
-		fprintf(stderr, "\t--install\tinstalls the win32 service\n");
-		fprintf(stderr, "\t--uninstall\tuninstalls the win32 service\n");
-#endif
 
 		return 3;
 	}
 
-	// TODO: need to figure out working directory (either implicitly or from argv)
 	sbncGetConfigPath(); // first call sets config path to cwd
 
 #ifdef _WIN32

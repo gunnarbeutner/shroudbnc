@@ -128,8 +128,7 @@ private:
 
 			for (int a = 0; a < List->Count; a++) {
 				if (!Add(List->Keys[a], List->Values[a])) {
-					/* TODO: this would be a fatal error, add logging */
-					exit(EXIT_FAILURE);
+					abort();
 				}
 
 				free(List->Keys[a]);
@@ -153,7 +152,9 @@ public:
 		m_BucketCount = 32;
 		m_Buckets = (hashlist_t<Type> *)malloc(sizeof(hashlist_t<Type>) * m_BucketCount);
 
-		/* TODO: safely check alloc result */
+		if (m_Buckets == NULL) {
+			abort();
+		}
 
 		memset(m_Buckets, 0, sizeof(hashlist_t<Type>) * m_BucketCount);
 

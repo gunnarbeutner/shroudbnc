@@ -56,6 +56,10 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	char *Out;
 	const char *Hostmask;
 
+	m_Log = NULL;
+
+	WritePidFile();
+
 	m_Config = Config;
 
 	m_SSLContext = NULL;
@@ -159,6 +163,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_LoadingModules = false;
 	m_LoadingListeners = false;
+
+	m_PidFile = NULL;
 }
 
 /**
@@ -198,6 +204,8 @@ CCore::~CCore(void) {
 	for (i = 0; i < m_HostAllows.GetLength(); i++) {
 		free(m_HostAllows[i]);
 	}
+
+	fclose(m_PidFile);
 }
 
 /**
@@ -330,8 +338,6 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	InitializeAdditionalListeners();
 
 	Log("Starting main loop.");
-
-	WritePidFile();
 
 	if (ShouldDaemonize) {
 #ifndef _WIN32
@@ -911,7 +917,11 @@ void CCore::Log(const char *Format, ...) {
 		return;
 	}
 
-	m_Log->WriteLine(NULL, "%s", Out);
+	if (m_Log == NULL) {
+		fprintf(stderr, "%s\n", Out);
+	} else {
+		m_Log->WriteLine(NULL, "%s", Out);
+	}
 
 	for (int i = 0; i < m_AdminUsers.GetLength(); i++) {
 		CUser *User = m_AdminUsers.Get(i);
@@ -1252,24 +1262,29 @@ time_t CCore::GetStartup(void) const {
  *
  * Updates the pid-file for the current bouncer instance.
  */
-void CCore::WritePidFile(void) const {
+void CCore::WritePidFile(void) {
 #ifndef _WIN32
 	pid_t pid = getpid();
 #else
 	DWORD pid = GetCurrentProcessId();
 #endif
 
-	if (pid) {
-		FILE *pidFile;
+	m_PidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
 
-		pidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
+	SetPermissions(BuildPathConfig("sbnc.pid"), S_IRUSR | S_IWUSR);
 
-		SetPermissions(BuildPathConfig("sbnc.pid"), S_IRUSR | S_IWUSR);
-
-		if (pidFile) {
-			fprintf(pidFile, "%d", pid);
-			fclose(pidFile);
+	if (m_PidFile) {
+#ifndef _WIN32
+		if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
+			Log("This config directory is locked by another shroudBNC instance. Remove the 'sbnc.pid' file if you're certain that no other currently running instance of shroudBNC is accessing this config directory.");
+			Fatal();
 		}
+#endif
+
+		fprintf(m_PidFile, "%d", pid);
+	} else {
+		Log("Could not open 'sbnc.pid' file.");
+		Fatal();
 	}
 }
 

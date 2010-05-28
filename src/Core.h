@@ -91,6 +91,7 @@ class SBNCAPI CCore {
 	friend void unregistersocket(int Socket);
 #endif /* SWIG */
 
+	FILE *m_PidFile; /**< sbnc.pid file */
 	CConfig *m_Config; /**< sbnc.conf object */
 
 	CClientListener *m_Listener, *m_ListenerV6; /**< the main unencrypted listeners */
@@ -130,7 +131,7 @@ class SBNCAPI CCore {
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
-	void WritePidFile(void) const;
+	void WritePidFile(void);
 	bool MakeConfig(void);
 
 	void InitializeAdditionalListeners(void);

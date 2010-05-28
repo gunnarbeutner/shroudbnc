@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
+#include <sys/file.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>

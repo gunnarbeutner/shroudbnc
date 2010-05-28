@@ -1608,7 +1608,7 @@ void CIRCConnection::Error(int ErrorValue) {
 	if (GetOwner() != NULL) {
 		if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
 			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
-				"from the IRC server due to an unknown socket error.", GetOwner()->GetUsername(),
+				"from the IRC server.", GetOwner()->GetUsername(),
 				GetCurrentNick(), GetSite());
 		} else {
 			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
