@@ -380,7 +380,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	} else if (argc > 2 && iRaw == 1) {
 		if (Client != NULL) {
 			if (strcmp(Client->GetNick(), argv[2]) != 0) {
-				Client->WriteLine(":%s!%s NICK :%s", Client->GetNick(), GetSite(), argv[2]);
+				Client->WriteLine(":%s!%s NICK :%s", Client->GetNick(), m_Site ? m_Site : "unknown@unknown.host", argv[2]);
 			}
 		}
 
@@ -484,11 +484,21 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			GetOwner()->ScheduleReconnect(5);
 		}
 
-		g_Bouncer->LogUser(GetUser(), "Error received for user %s [%s!%s]: %s",
-			GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[1]);
+		if (GetCurrentNick() != NULL && GetSite() != NULL) {
+			g_Bouncer->LogUser(GetUser(), "Error received for user %s [%s!%s]: %s",
+				GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[1]);
+		} else {
+			g_Bouncer->LogUser(GetUser(), "Error received for user %s: %s",
+				GetOwner()->GetUsername(), GetCurrentNick(), argv[1]);
+		}
 	} else if (argc > 3 && iRaw == 465) {
-		g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s [%s!%s]: %s",
-			GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[3]);
+		if (GetCurrentNick() != NULL && GetSite() != NULL) {
+			g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s [%s!%s]: %s",
+				GetOwner()->GetUsername(), GetCurrentNick(), GetSite(), argv[3]);
+		} else {
+			g_Bouncer->LogUser(GetUser(), "G/K-line reason for user %s: %s",
+				GetOwner()->GetUsername(), argv[3]);
+		}
 	} else if (argc > 5 && iRaw == 351) {
 		free(m_ServerVersion);
 		m_ServerVersion = strdup(argv[3]);
@@ -1450,24 +1460,6 @@ CHashtable<CChannel *, false> *CIRCConnection::GetChannels(void) {
  * Returns the site (ident\@host) for the IRC connection.
  */
 const char *CIRCConnection::GetSite(void) {
-	char *Out;
-
-	if (m_Site == NULL) {
-		int rc = asprintf(&Out, "%s@unknown.host", GetOwner()->GetUsername());
-
-		if (RcFailed(rc)) {
-			return NULL;
-		}
-
-		m_Site = strdup(Out);
-
-		free(Out);
-
-		if (AllocFailed(m_Site)) {
-			return NULL;
-		}
-	}
-
 	return m_Site;
 }
 
@@ -1607,13 +1599,24 @@ void CIRCConnection::Error(int ErrorValue) {
 
 	if (GetOwner() != NULL) {
 		if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
-			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
-				"from the IRC server.", GetOwner()->GetUsername(),
-				GetCurrentNick(), GetSite());
+			if (GetCurrentNick() != NULL && GetSite() != NULL) {
+				g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
+					"from the IRC server.", GetOwner()->GetUsername(),
+					GetCurrentNick(), GetSite());
+			} else {
+				g_Bouncer->LogUser(GetOwner(), "User '%s' was disconnected "
+					"from the IRC server.", GetOwner()->GetUsername());
+			}
 		} else {
-			g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
-				"from the IRC server: %s", GetOwner()->GetUsername(),
-				GetCurrentNick(), GetSite(), ErrorMsg);
+			if (GetCurrentNick() != NULL && GetSite() != NULL) {
+				g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
+					"from the IRC server: %s", GetOwner()->GetUsername(),
+					GetCurrentNick(), GetSite(), ErrorMsg);
+			} else {
+				g_Bouncer->LogUser(GetOwner(), "User '%s' was disconnected "
+					"from the IRC server: %s", GetOwner()->GetUsername(),
+					ErrorMsg);
+			}
 		}
 	}
 

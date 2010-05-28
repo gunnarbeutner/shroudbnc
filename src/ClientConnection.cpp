@@ -1700,7 +1700,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			Site = GetOwner()->GetIRCConnection()->GetSite();
 
 			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
-				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(), Site, GetOwner()->GetNick(), argv[2]);
+				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(), Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 
 				return false;
 			}
@@ -1710,19 +1710,23 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			for (int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
 					if (Channel == NULL) {
-						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1], Site, GetOwner()->GetNick(), argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1], Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 					} else {
 						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :%s", GetOwner()->GetNick(), argv[1], argv[2]);
 					}
 				}
 			}
 		} else if (argc > 2 && strcasecmp(Command, "notice") == 0) {
+			const char *Site;
+
 			if (GetOwner()->GetIRCConnection() == NULL) {
 				return false;
 			}
 
+			Site = GetOwner()->GetIRCConnection()->GetSite();
+
 			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
-				WriteLine(":%s!%s NOTICE %s :%s", GetOwner()->GetNick(), GetOwner()->GetIRCConnection()->GetSite(), GetOwner()->GetNick(), argv[2]);
+				WriteLine(":%s!%s NOTICE %s :%s", GetOwner()->GetNick(), Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 
 				return false;
 			}
@@ -2488,11 +2492,7 @@ void CClientConnection::ChangeNick(const char *NewNick) {
 		Site = IRC->GetSite();
 	}
 
-	if (IRC == NULL || Site == NULL) {
-		Site = "unknown@host";
-	}
-
-	WriteLine(":%s!%s NICK %s", m_Nick, Site, NewNick);
+	WriteLine(":%s!%s NICK %s", m_Nick, Site ? Site : "unknown@unknown.host", NewNick);
 
 	SetNick(NewNick);
 }

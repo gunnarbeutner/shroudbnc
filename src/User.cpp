@@ -275,7 +275,8 @@ void CUser::Attach(CClientConnection *Client) {
 			Client->ParseLine("SYNTH VERSION-FORCEREPLY");
 
 			if (m_IRC->GetUsermodes() != NULL) {
-				Client->WriteLine(":%s!%s MODE %s +%s", IrcNick, m_IRC->GetSite(), IrcNick, m_IRC->GetUsermodes());
+				const char *Site = m_IRC->GetSite();
+				Client->WriteLine(":%s!%s MODE %s +%s", IrcNick, Site ? Site : "unknown@unknown.host", IrcNick, m_IRC->GetUsermodes());
 			}
 
 			AddClientConnection(Client);
@@ -322,9 +323,11 @@ void CUser::Attach(CClientConnection *Client) {
 
 			qsort(Channels, m_IRC->GetChannels()->GetLength(), sizeof(Channels[0]), SortFunction);
 
+			const char *Site = m_IRC->GetSite();
+
 			i = 0;
 			for (i = 0; i < m_IRC->GetChannels()->GetLength(); i++) {
-				Client->WriteLine(":%s!%s JOIN %s", m_IRC->GetCurrentNick(), m_IRC->GetSite(), Channels[i]->GetName());
+				Client->WriteLine(":%s!%s JOIN %s", m_IRC->GetCurrentNick(), Site ? Site : "unknown@unknown.host", Channels[i]->GetName());
 
 				rc = asprintf(&Out, "TOPIC %s", Channels[i]->GetName());
 
@@ -824,8 +827,13 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 			}
 		}
 
-		g_Bouncer->LogUser(this, "User %s [%s!%s] disconnected from the server.",
-			GetUsername(), OldIRC->GetCurrentNick(), OldIRC->GetSite());
+		if (OldIRC->GetSite() != NULL) {
+			g_Bouncer->LogUser(this, "User %s [%s!%s] disconnected from the server.",
+				GetUsername(), OldIRC->GetCurrentNick(), OldIRC->GetSite());
+		} else {
+			g_Bouncer->LogUser(this, "User %s disconnected from the server.",
+				GetUsername());
+		}
 	} else if (IRC) {
 		for (int i = 0; i < Modules->GetLength(); i++) {
 			(*Modules)[i]->ServerConnect(GetUsername());
