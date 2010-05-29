@@ -1011,13 +1011,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 		AwayText = CacheGetString(m_ConfigCache, away);
 
 		if (AwayText != NULL && LastClient) {
-			if (!GetAppendTimestamp()) {
-				m_IRC->WriteLine("AWAY :%s", AwayText);
-			} else {
-				Timestamp = FormatTime(g_CurrentTime);
-
-				m_IRC->WriteLine("AWAY :%s (Away since %s)", AwayText, Timestamp);
-			}
+			m_IRC->WriteLine("AWAY :%s", AwayText);
 		}
 	}
 
@@ -1911,33 +1905,6 @@ void CUser::SetIPv6(bool IPv6) {
 }
 
 /**
- * FormatTime
- *
- * Formats a timestamp while considering the user's GMT offset.
- *
- * @param Timestamp the timestamp
- */
-const char *CUser::FormatTime(time_t Timestamp, const char *Format) const {
-	tm *Time;
-	static char Buffer[128];
-
-	Time = gmtime(&Timestamp);
-
-	if (Time->tm_isdst <= 0) {
-		Timestamp += 3600;
-		Time = gmtime(&Timestamp);
-	}
-
-	if (Format == NULL) {
-		Format = "%c";
-	}
-
-	strftime(Buffer, sizeof(Buffer), Format, Time);
-
-	return Buffer;
-}
-
-/**
  * SetSystemNotices
  *
  * Sets whether the user should receive system notices.
@@ -2051,18 +2018,6 @@ void CUser::RescheduleReconnectTimer(void) {
 	}
 
 	g_ReconnectTimer->Reschedule(ReconnectTime);
-}
-
-void CUser::SetAppendTimestamp(bool Value) {
-	CacheSetInteger(m_ConfigCache, ts, Value ? 1 : 0);
-}
-
-bool CUser::GetAppendTimestamp(void) {
-	if (CacheGetInteger(m_ConfigCache, ts)) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 void CUser::SetUseQuitReason(bool Value) {

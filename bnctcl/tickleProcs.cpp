@@ -897,10 +897,6 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		g_asprintf(&Buffer, "%d", Context->GetLastSeen());
 
 		return Buffer;
-	} else if (strcasecmp(Type, "appendts") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetConfig()->ReadInteger("user.ts") != 0 ? 1 : 0);
-
-		return Buffer;
 	} else if (strcasecmp(Type, "quitasaway") == 0) {
 		g_asprintf(&Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
 
@@ -979,7 +975,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return List;
 	} else {
-		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen appendts quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort sessions";
+		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort sessions";
 	}
 }
 
@@ -1024,8 +1020,6 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetAdmin(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "tag") == 0 && Value) {
 		Context->SetTagString(Value, Parameter2);
-	} else if (strcasecmp(Type, "appendts") == 0)
-		Context->GetConfig()->WriteString("user.ts", Value);
 	else if (strcasecmp(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
 	else if (strcasecmp(Type, "automodes") == 0)
@@ -1045,7 +1039,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcmp(Type, "channelsort") == 0)
 		Context->SetChannelSortMode(Value);
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password appendts quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean channelsort";
+		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean channelsort";
 
 	return 1;
 }

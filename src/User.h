@@ -33,7 +33,6 @@ class CTimer;
  */
 DEFINE_CACHE(User)
 	DEFINE_OPTION_INT(quitted);
-	DEFINE_OPTION_INT(ts);
 	DEFINE_OPTION_INT(admin);
 	DEFINE_OPTION_INT(port);
 	DEFINE_OPTION_INT(lock);
@@ -276,10 +275,6 @@ public:
 	bool SetTagInteger(const char *Tag, int Value);
 	const char *GetTagName(int Index) const;
 
-	const char *FormatTime(time_t Timestamp, const char *Format = NULL) const;
-	void SetGmtOffset(int Offset);
-	int GetGmtOffset(void) const;
-
 	void SetSystemNotices(bool SystemNotices);
 	bool GetSystemNotices(void) const;
 
@@ -288,9 +283,6 @@ public:
 
 	void SetLeanMode(unsigned int Mode);
 	unsigned int GetLeanMode(void);
-
-	void SetAppendTimestamp(bool Value);
-	bool GetAppendTimestamp(void);
 
 	void SetUseQuitReason(bool Value);
 	bool GetUseQuitReason(void);

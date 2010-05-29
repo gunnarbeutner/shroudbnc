@@ -507,12 +507,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				free(Out);
 			}
 
-			rc = asprintf(&Out, "appendtimestamp - %s", GetOwner()->GetAppendTimestamp() ? "On" : "Off");
-			if (!AllocFailed(Out)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
 			rc = asprintf(&Out, "usequitasaway - %s", GetOwner()->GetUseQuitReason() ? "On" : "Off");
 			if (!RcFailed(rc)) {
 				SENDUSER(Out);
@@ -638,16 +632,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					return false;
 				} else {
 					GetOwner()->SetPassword(argv[2]);
-				}
-			} else if (strcasecmp(argv[1], "appendtimestamp") == 0) {
-				if (strcasecmp(argv[2], "on") == 0) {
-					GetOwner()->SetAppendTimestamp(true);
-				} else if (strcasecmp(argv[2], "off") == 0) {
-					GetOwner()->SetAppendTimestamp(false);
-				} else {
-					SENDUSER("Value must be either 'on' or 'off'.");
-
-					return false;
 				}
 			} else if (strcasecmp(argv[1], "usequitasaway") == 0) {
 				if (strcasecmp(argv[2], "on") == 0) {
