@@ -1014,7 +1014,7 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 			Context->Unlock();
 	} else if (strcasecmp(Type, "admin") == 0)
 		Context->SetAdmin(Value ? (atoi(Value) ? true : false) : false);
-	else if (strcasecmp(Type, "tag") == 0 && Value) {
+	else if (strcasecmp(Type, "tag") == 0 && Value)
 		Context->SetTagString(Value, Parameter2);
 	else if (strcasecmp(Type, "quitasaway") == 0)
 		Context->GetConfig()->WriteString("user.quitaway", Value);
