@@ -1117,13 +1117,25 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			}
 
 			const char *LastSeen;
+			tm SeenTm;
+			time_t SeenTime;
+			char strSeenTime[100];
 
 			if (User->GetLastSeen() == 0) {
 				LastSeen = "Never";
 			} else if (User->GetPrimaryClientConnection() != NULL) {
 				LastSeen = "Now";
 			} else {
-				LastSeen = GetOwner()->FormatTime(User->GetLastSeen());
+				SeenTime = User->GetLastSeen();
+				SeenTm = *localtime(&SeenTime);
+
+#ifdef _WIN32
+				strftime(strSeenTime, sizeof(strSeenTime), "%#c" , &SeenTm);
+#else
+				strftime(strSeenTime, sizeof(strSeenTime), "%a %B %d %Y %H:%M:%S" , &SeenTm);
+#endif
+
+				LastSeen = strSeenTime;
 			}
 
 			rc = asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s",

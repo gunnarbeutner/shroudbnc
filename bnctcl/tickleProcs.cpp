@@ -925,10 +925,6 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Buffer;
 	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
-	} else if (strcasecmp(Type, "timezone") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetGmtOffset());
-
-		return Buffer;
 	} else if (strcasecmp(Type, "localip") == 0) {
 		const utility_t *Utilities;
 		IRC = Context->GetIRCConnection();
@@ -975,7 +971,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return List;
 	} else {
-		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 timezone localip lean memory memorylimit channelsort sessions";
+		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags ipv6 localip lean memory memorylimit channelsort sessions";
 	}
 }
 
@@ -1032,14 +1028,12 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetIPv6(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "ident") == 0)
 		Context->SetIdent(Value);
-	else if (strcasecmp(Type, "timezone") == 0)
-		Context->SetGmtOffset(atoi(Value));
 	else if (strcmp(Type, "lean") == 0)
 		Context->SetLeanMode(atoi(Value));
 	else if (strcmp(Type, "channelsort") == 0)
 		Context->SetChannelSortMode(Value);
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password quitasaway automodes dropmodes suspendreason ident ipv6 timezone lean channelsort";
+		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password quitasaway automodes dropmodes suspendreason ident ipv6 lean channelsort";
 
 	return 1;
 }
