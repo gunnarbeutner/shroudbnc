@@ -29,12 +29,6 @@ internalbind server sbnc:need-unban 474 *
 internalbind server sbnc:need-key 475 *
 internalbind server sbnc:need-op 482 *
 
-setudef str need-op
-setudef str need-invite
-setudef str need-key
-setudef str need-unban
-setudef str need-limit
-
 if {![info exists ::channelsorthandler]} {
 	set ::channelsorthandler "stricmp"
 }

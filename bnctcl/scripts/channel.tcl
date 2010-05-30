@@ -80,6 +80,11 @@ proc channel {option chan args} {
 
 	setudef flag inactive
 	setudef flag autochan
+	setudef str need-op
+	setudef str need-invite
+	setudef str need-key
+	setudef str need-unban
+	setudef str need-limit
 
 	set chan [string tolower $chan]
 
@@ -163,7 +168,7 @@ proc channel {option chan args} {
 			} elseif {[info exists channel([lindex $args 0])]} {
 				return $channel([lindex $args 0])
 			} else {
-				if {$chanoptions(inactive) == "int" || $chanoptions(inactive) == "flag"} {
+				if {$chanoptions([lindex $args 0]) == "int" || $chanoptions([lindex $args 0]) == "flag"} {
 					return 0
 				} else {
 					return {}
