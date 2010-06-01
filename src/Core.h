@@ -67,19 +67,6 @@ typedef struct socket_s {
 } socket_t;
 
 /**
- * additionallistener_t
- *
- * An additional listener for client connections.
- */
-typedef struct additionallistener_s {
-	unsigned int Port; /**< the port of the listener */
-	char *BindAddress; /**< the bind address, or NULL */
-	bool SSL; /**< whether this is an SSL listener */
-	CSocketEvents *Listener; /**< IPv4 listener object */
-	CSocketEvents *ListenerV6; /**< IPv6 listener object */
-} additionallistener_t;
-
-/**
  * CCore
  *
  * The main application class.
@@ -119,8 +106,6 @@ class SBNCAPI CCore {
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
 	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
-
-	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
 
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
@@ -237,10 +222,6 @@ public:
 	bool IsValidHostAllow(const char *Mask) const;
 
 	CVector<CUser *> *GetAdminUsers(void);
-
-	RESULT<bool> AddAdditionalListener(unsigned int Port, const char *BindAddress = NULL, bool SSL = false);
-	RESULT<bool> RemoveAdditionalListener(unsigned int Port);
-	CVector<additionallistener_t> *GetAdditionalListeners(void);
 
 	CClientListener *GetMainListener(void) const;
 	CClientListener *GetMainListenerV6(void) const;
