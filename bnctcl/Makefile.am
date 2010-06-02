@@ -10,6 +10,7 @@ libbnctcl_la_LDFLAGS=-version-info 0:0:0
 
 AM_CXXFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL}
 AM_CFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL}
+AM_LIBTOOLFLAGS=--silent
 CC=@CXX@
 
 tickleProcs_wrap.c: tickleProcs.h
