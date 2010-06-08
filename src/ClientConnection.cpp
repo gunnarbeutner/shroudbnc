@@ -1810,7 +1810,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "pong") == 0 && argc > 1 && strcasecmp(argv[1], "sbnc") == 0) {
 			return false;
-		} else if (strcasecmp(Command, "ison") == 0) {
+		} else if (strcasecmp(Command, "ison") == 0 && GetUser()->GetIRCConnection() == NULL) {
 			for (int i = 1; i < argc; i++) {
 				if (strcasecmp(argv[i], "-sbnc") == 0) {
 					CIRCConnection *IRC = GetOwner()->GetIRCConnection();
@@ -1827,9 +1827,6 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					WriteLine(":%s 303 %s :-sBNC", Server, Nick);
 				}
 			}
-
-			/* Pass it to the server anyway as there might be other nicks */
-			return true;
 		}
 	}
 

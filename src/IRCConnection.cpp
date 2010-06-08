@@ -816,7 +816,11 @@ void CIRCConnection::ParseLine(const char *Line) {
 				CClientConnection *Client = User->GetClientConnectionMultiplexer();
 
 				if (Client != NULL) {
-					Client->WriteUnformattedLine(Line);
+					if (argc > 2 && strcasecmp(argv[1], "303") == 0) {
+						Client->WriteLine("%s -sBNC", Line);
+					} else {
+						Client->WriteUnformattedLine(Line);
+					}
 				}
 			}
 		}
