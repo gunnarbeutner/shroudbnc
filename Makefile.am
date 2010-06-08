@@ -14,10 +14,15 @@ ACLOCAL_AMFLAGS=-I m4
 
 install: install-recursive
 	@if [ "${exec_prefix}" = "${HOME}/sbnc" ]; then \
-		ln -sf bin/sbnc ${exec_prefix}/sbnc; \
+		${INSTALL_PROGRAM} sbnc-start ${exec_prefix}/sbnc; \
 	fi;
 
 sslcert:
+	@if [ "${exec_prefix}" != "${HOME}/sbnc" ]; then \
+		echo "make sslcert can only be used when installing shroudBNC in your home directory. Please use openssl instead to create your SSL certificates."; \
+		exit 1; \
+	fi;
+
 	@if [ -f ${exec_prefix}/sbnc.key ]; then \
 		cp ${exec_prefix}/sbnc.key ${exec_prefix}/sbnc_old.key; \
 	fi;

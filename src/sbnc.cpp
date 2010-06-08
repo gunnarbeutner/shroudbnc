@@ -299,13 +299,10 @@ int main(int argc, char **argv) {
 	char TclLibrary[512];
 #endif
 	CConfig *Config;
-	bool Daemonize, Usage;
+	bool Daemonize, Usage, ExplicitConfigDirectory;
 
 	g_ArgC = argc;
 	g_ArgV = argv;
-
-/*	printf("ExePath: %s\nModulePath: %s\nConfigPath: %s\n",
-		sbncGetExePath(), sbncGetModulePath(), sbncGetConfigPath());*/
 
 #if defined(_WIN32) && defined(_DEBUG)
 	Sleep(10000);
@@ -313,22 +310,64 @@ int main(int argc, char **argv) {
 
 	Daemonize = true;
 	Usage = false;
+	ExplicitConfigDirectory = false;
 
 	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--config") == 0) {
+			if (i + 1 >= argc) {
+				fprintf(stderr, "Missing parameter for --config: You need to specify a config directory.");
+				return EXIT_FAILURE;
+			}
+
+			ExplicitConfigDirectory = true;
+
+			if (chdir(argv[i + 1]) < 0) {
+				fprintf(stderr, "Could not chdir() into config directory '%s': %s\n", argv[i + 1], strerror(errno));
+				return EXIT_FAILURE;
+			}
+
+			i++;
+
+			continue;
+		}
+
 		if (strcmp(argv[i], "--lpc") == 0) {
-			printf("Ignoring --lpc (which is now the default behaviour.\n");
+			fprintf(stderr, "Warning: Ignoring --lpc (which is now the default behaviour.\n");
+
+			continue;
 		}
 
 		if (strcmp(argv[i], "--foreground") == 0) {
 			Daemonize = false;
+
+			continue;
 		}
 
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "/?") == 0) {
 			Usage = true;
+
+			continue;
 		}
+
+		fprintf(stderr, "Unknown command-line option: '%s'\n", argv[i]);
+		return EXIT_FAILURE;
 	}
 
+	if (!ExplicitConfigDirectory) {
+		/* TODO: figure out config directory, in this order:
+			* $HOME/.sbnc
+			* $HOME/sbnc
+			* cwd
+		   fall back to using
+			* $HOME/.sbnc
+		   if no config dir was found.
+		*/
+	}
+
+	sbncGetConfigPath(); // first call sets config path to cwd
+
 	fprintf(stderr, "shroudBNC (version: " BNCVERSION ") - an object-oriented IRC bouncer\n");
+	fprintf(stderr, "Configuration directory: %s\n", sbncGetConfigPath());
 
 	if (Usage) {
 		fprintf(stderr, "\n");
@@ -340,8 +379,6 @@ int main(int argc, char **argv) {
 
 		return 3;
 	}
-
-	sbncGetConfigPath(); // first call sets config path to cwd
 
 #ifdef _WIN32
 	if (!GetEnvironmentVariable("TCL_LIBRARY", TclLibrary, sizeof(TclLibrary)) || strlen(TclLibrary) == 0) {

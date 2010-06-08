@@ -1,0 +1,5 @@
+#!/bin/sh
+# This script is responsible for passing the correct config directory
+# to the sbnc executable when installed in a user's home directory
+# rather than globally (e.g. in /usr/local).
+cd `dirname $0` && bin/sbnc --config `pwd` $*
