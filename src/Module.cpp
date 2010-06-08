@@ -113,7 +113,7 @@ bool CModule::InternalLoad(const char *Filename) {
 			(FNGETINTERFACEVERSION)GetProcAddress(m_Image,
 			"bncGetInterfaceVersion");
 
-		if (pfGetInterfaceVersion != NULL && pfGetInterfaceVersion() < INTERFACEVERSION) {
+		if (pfGetInterfaceVersion == NULL || pfGetInterfaceVersion() < INTERFACEVERSION) {
 			m_Error = strdup("This module was compiled for an earlier version"
 				" of shroudBNC. Please recompile the module and try again.");
 
