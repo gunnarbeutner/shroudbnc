@@ -332,7 +332,7 @@ int main(int argc, char **argv) {
 		}
 
 		if (strcmp(argv[i], "--lpc") == 0) {
-			fprintf(stderr, "Warning: Ignoring --lpc (which is now the default behaviour.\n");
+			fprintf(stderr, "Warning: Ignoring --lpc (which is now the default behaviour.)\n");
 
 			continue;
 		}
