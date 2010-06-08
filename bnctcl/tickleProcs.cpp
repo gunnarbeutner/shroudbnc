@@ -1994,50 +1994,6 @@ void bncsetgvhost(const char* GVHost) {
 	g_Bouncer->GetConfig()->WriteString("system.ip", GVHost);
 }
 
-const char* getbnchosts(void) {
-	const CVector<char *> *Hosts = g_Bouncer->GetHostAllows();
-
-	int argc = 0;
-	const char** argv = (const char**)malloc(Hosts->GetLength() * sizeof(const char*));
-
-	for (int i = 0; i < Hosts->GetLength(); i++) {
-		argv[argc++] = Hosts->Get(i);
-	}
-
-	static char* List = NULL;
-
-	if (List)
-		Tcl_Free(List);
-
-	List = Tcl_Merge(argc, const_cast<char **>(argv));
-
-	free(argv);
-
-	return List;
-}
-
-void delbnchost(const char* Host) {
-	RESULT<bool> Result;
-
-	Result = g_Bouncer->RemoveHostAllow(Host, true);
-
-	if (IsError(Result)) {
-		throw GETDESCRIPTION(Result);
-	}
-}
-
-int addbnchost(const char* Host) {
-	RESULT<bool> Result;
-
-	Result = g_Bouncer->AddHostAllow(Host);
-
-	if (IsError(Result)) {
-		throw GETDESCRIPTION(Result);
-	}
-
-	return 1;
-}
-
 bool bncisipblocked(const char* Ip) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
@@ -2078,10 +2034,6 @@ void bnclogbadlogin(const char* Ip) {
 #endif /* _WIN32 */
 
 	return Context->LogBadLogin((sockaddr *)&Peer);
-}
-
-bool bnccanhostconnect(const char* Host) {
-	return g_Bouncer->CanHostConnect(Host);
 }
 
 bool bncvalidusername(const char* Name) {

@@ -144,12 +144,8 @@ void bncsetmotd(const char* Motd);
 const char* bncgetgvhost(void);
 void bncsetgvhost(const char* GVHost);
 
-const char* getbnchosts(void);
-void delbnchost(const char* Host);
-int addbnchost(const char* Host);
 bool bncisipblocked(const char* Ip);
 void bnclogbadlogin(const char* Ip);
-bool bnccanhostconnect(const char* Host);
 
 bool bncvalidusername(const char *Name);
 bool bncvaliduser(const char *Name);
