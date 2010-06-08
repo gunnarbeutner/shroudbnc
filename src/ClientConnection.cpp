@@ -209,12 +209,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: motd [text]\nShows or modifies the motd.");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
-			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
-				"Syntax: hosts\nLists all hosts which are permitted to use this bouncer.");
-			AddCommand(&m_CommandList, "hostadd", "Admin", "adds a hostmask",
-				"Syntax: hostadd <host>\nAdds a host to the bouncer's hostlist. E.g. *.tiscali.de");
-			AddCommand(&m_CommandList, "hostdel", "Admin", "removes a hostmask",
-				"Syntax: hostdel <host>\nRemoves a host from the bouncer's hostlist.");
 		}
 
 		AddCommand(&m_CommandList, "read", "User", "plays your message log",
@@ -1192,59 +1186,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
-	} else if (strcasecmp(Subcommand, "hosts") == 0 && GetOwner()->IsAdmin()) {
-		const CVector<char *> *Hosts = g_Bouncer->GetHostAllows();
-
-		SENDUSER("Hostmasks");
-		SENDUSER("---------");
-
-		for (int i = 0; i < Hosts->GetLength(); i++) {
-			SENDUSER((*Hosts)[i]);
-		}
-
-		if (Hosts->GetLength() == 0) {
-			SENDUSER("*");
-		}
-
-		SENDUSER("End of HOSTS.");
-
-		return false;
-	} else if (strcasecmp(Subcommand, "hostadd") == 0 && GetOwner()->IsAdmin()) {
-		RESULT<bool> Result;
-
-		if (argc <= 1) {
-			SENDUSER("Syntax: HOSTADD hostmask");
-
-			return false;
-		}
-
-		Result = g_Bouncer->AddHostAllow(argv[1]);
-
-		if (IsError(Result)) {
-			SENDUSER(GETDESCRIPTION(Result));
-		} else {
-			SENDUSER("Done.");
-		}
-
-		return false;
-	} else if (strcasecmp(Subcommand, "hostdel") == 0 && GetOwner()->IsAdmin()) {
-		RESULT<bool> Result;
-
-		if (argc <= 1) {
-			SENDUSER("Syntax: HOSTDEL hostmask");
-
-			return false;
-		}
-
-		Result = g_Bouncer->RemoveHostAllow(argv[1]);
-
-		if (IsError(Result)) {
-			SENDUSER(GETDESCRIPTION(Result));
-		} else {
-			SENDUSER("Done.");
-		}
-
-		return false;
 	} else if (strcasecmp(Subcommand, "admin") == 0 && GetOwner()->IsAdmin()) {
 		if (argc < 2) {
 			SENDUSER("Syntax: ADMIN username");
@@ -2083,16 +2024,6 @@ void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	m_PeerName = strdup(PeerName);
 
 	Remote = GetRemoteAddress();
-
-	if (!g_Bouncer->CanHostConnect(m_PeerName) && (Remote == NULL || !g_Bouncer->CanHostConnect(IpToString(Remote)))) {
-		g_Bouncer->Log("Attempted login from %s[%s]: Host does not match any host allows.", m_PeerName, (Remote != NULL) ? IpToString(Remote) : "unknown ip");
-
-		FlushSendQ();
-
-		Kill("Your host is not allowed to use this bouncer.");
-
-		return;
-	}
 
 	ProcessBuffer();
 }

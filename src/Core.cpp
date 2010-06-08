@@ -142,25 +142,6 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	time(&m_Startup);
 
-	i = 0;
-	while (true) {
-		int rc = asprintf(&Out, "system.hosts.host%d", i++);
-
-		if (RcFailed(rc)) {
-			Fatal();
-		}
-
-		Hostmask = m_Config->ReadString(Out);
-
-		free(Out);
-
-		if (Hostmask != NULL) {
-			AddHostAllow(Hostmask, false);
-		} else {
-			break;
-		}
-	}
-
 	m_LoadingModules = false;
 	m_LoadingListeners = false;
 
@@ -198,10 +179,6 @@ CCore::~CCore(void) {
 	delete m_Ident;
 
 	g_Bouncer = NULL;
-
-	for (i = 0; i < m_HostAllows.GetLength(); i++) {
-		free(m_HostAllows[i]);
-	}
 
 	if (m_PidFile != NULL) {
 		fclose(m_PidFile);
@@ -1962,162 +1939,6 @@ CFakeClient *CCore::CreateFakeClient(void) const {
  */
 void CCore::DeleteFakeClient(CFakeClient *FakeClient) const {
 	delete FakeClient;
-}
-
-/**
- * AddHostAllow
- *
- * Adds a new "host allow" entry. Only users are permitted to log in whose
- * IP address/host is matched by a host in this list.
- *
- * @param Mask the new mask
- * @param UpdateConfig whether to update the config files
- */
-RESULT<bool> CCore::AddHostAllow(const char *Mask, bool UpdateConfig) {
-	char *dupMask;
-	RESULT<bool> Result;
-
-	if (Mask == NULL) {
-		THROW(bool, Generic_InvalidArgument, "Mask cannot be NULL.");
-	}
-
-	if (m_HostAllows.GetLength() > 0 && CanHostConnect(Mask)) {
-		THROW(bool, Generic_Unknown, "This hostmask is already added or another hostmask supercedes it.");
-	}
-
-	if (!IsValidHostAllow(Mask)) {
-		THROW(bool, Generic_Unknown, "The specified mask is not valid.");
-	}
-
-	if (m_HostAllows.GetLength() > 50) {
-		THROW(bool, Generic_Unknown, "You cannot add more than 50 masks.");
-	}
-
-	dupMask = strdup(Mask);
-
-	if (AllocFailed(dupMask)) {
-		THROW(bool, Generic_OutOfMemory, "strdup() failed.");
-	}
-
-	Result = m_HostAllows.Insert(dupMask);
-
-	if (IsError(Result)) {
-		Log("Insert() failed. Host could not be added.");
-
-		free(dupMask);
-
-		THROWRESULT(bool, Result);
-	}
-
-	if (UpdateConfig) {
-		UpdateHosts();
-	}
-
-	RETURN(bool, true);
-}
-
-/**
- * RemoveHostAllow
- *
- * Removes an item from the host allow list.
- *
- * @param Mask the mask
- * @param UpdateConfig whether to update the config files
- */
-RESULT<bool> CCore::RemoveHostAllow(const char *Mask, bool UpdateConfig) {
-	for (int i = m_HostAllows.GetLength() - 1; i >= 0; i--) {
-		if (strcasecmp(m_HostAllows[i], Mask) == 0) {
-			free(m_HostAllows[i]);
-			m_HostAllows.Remove(i);
-
-			if (UpdateConfig) {
-				UpdateHosts();
-			}
-
-			RETURN(bool, true);
-		}
-	}
-
-	THROW(bool, Generic_Unknown, "Host was not found.");
-}
-
-/**
- * IsValidHostAllow
- *
- * Checks whether the specified hostmask is valid for /sbnc hosts.
- *
- * @param Mask the mask
- */
-bool CCore::IsValidHostAllow(const char *Mask) const {
-	if (Mask == NULL || strchr(Mask, '!') != NULL || strchr(Mask, '@') != NULL) {
-		return false;
-	} else {
-		return true;
-	}
-}
-
-/**
- * GetHostAllows
- *
- * Returns a list of "host allow" masks.
- */
-const CVector<char *> *CCore::GetHostAllows(void) const {
-	return &m_HostAllows;
-}
-
-/**
- * CanHostConnect
- *
- * Checks whether the specified host can use the user's account.
- *
- * @param Host the host
- */
-bool CCore::CanHostConnect(const char *Host) const {
-	int Count = 0;
-
-	for (int i = 0; i < m_HostAllows.GetLength(); i++) {
-		if (mmatch(m_HostAllows[i], Host) == 0) {
-			return true;
-		} else {
-			Count++;
-		}
-	}
-
-	if (Count > 0) {
-		return false;
-	} else {
-		return true;	
-	}
-}
-
-/**
- * UpdateHosts
- *
- * Updates the "host allow" list in the config file.
- */
-void CCore::UpdateHosts(void) {
-	char *Out;
-	int a = 0, rc;
-
-	for (int i = 0; i < m_HostAllows.GetLength(); i++) {
-		rc = asprintf(&Out, "system.hosts.host%d", a++);
-
-		if (RcFailed(rc)) {
-			g_Bouncer->Fatal();
-		}
-
-		m_Config->WriteString(Out, m_HostAllows[i]);
-		free(Out);
-	}
-
-	rc = asprintf(&Out, "system.hosts.host%d", a);
-
-	if (RcFailed(rc)) {
-		g_Bouncer->Fatal();
-	}
-
-	m_Config->WriteString(Out, NULL);
-	free(Out);
 }
 
 /**

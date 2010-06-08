@@ -105,8 +105,6 @@ class SBNCAPI CCore {
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
-	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
-
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
@@ -214,12 +212,6 @@ public:
 
 	CFakeClient *CreateFakeClient(void) const;
 	void DeleteFakeClient(CFakeClient *FakeClient) const;
-
-	RESULT<bool> AddHostAllow(const char *Mask, bool UpdateConfig = true);
-	RESULT<bool> RemoveHostAllow(const char *Mask, bool UpdateConfig = true);
-	const CVector<char *> *GetHostAllows(void) const;
-	bool CanHostConnect(const char *Host) const;
-	bool IsValidHostAllow(const char *Mask) const;
 
 	CVector<CUser *> *GetAdminUsers(void);
 
