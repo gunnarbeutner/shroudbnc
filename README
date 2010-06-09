@@ -1,4 +1,4 @@
-shroudBNC 1.2
+shroudBNC 1.3
 -------------
 
 shroudBNC is a modular IRC proxy written in C++. It is capable of proxying
@@ -36,7 +36,7 @@ You can do that by simply starting shroudBNC in the installation directory:
 
 <--
 shroud@hermes:~/sbnc$ ./sbnc
-shroudBNC 1.2 $Revision$- an object-oriented IRC bouncer
+shroudBNC 1.3 $Revision$- an object-oriented IRC bouncer
 Sun May 27 08:39:51 2007: Log system initialized.
 No valid configuration file has been found. A basic
 configuration file can be created for you automatically. Please
@@ -56,7 +56,7 @@ After creating the configuration files you can start shroudBNC:
 
 <--
 shroud@testbed:~/sbnc$ ./sbnc
-shroudBNC 1.2 $Revision$- an object-oriented IRC bouncer
+shroudBNC 1.3 $Revision$- an object-oriented IRC bouncer
 Daemonizing... DONE
 shroud@testbed:~/sbnc$
 -->

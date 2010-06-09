@@ -1,5 +1,5 @@
 shroudBNC Tcl Commands
-Version: 1.2
+Version: 1.3
 -------------------------------------
 
 Commands and variables which have been implemented as part of the eggdrop emulation
@@ -308,16 +308,6 @@ bncgetglobaltags
 putmainlog <Text>
 
   Description: Logs something in the main log.
-  Returns: Nothing.
-
-bncgetreslimit <Resource> [<User>]
-
-  Description: Determines the limit for a resource. If no user is specified the global limit is returned.
-  Returns: An integer.
-
-bncsetreslimit <Resource> <NewLimit> [<User>]
-
-  Description: Sets a new limit for a resource. If no user is specified the global limit is set.
   Returns: Nothing.
 
 bncisipblocked <Ip>
