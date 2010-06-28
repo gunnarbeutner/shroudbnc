@@ -1,7 +1,7 @@
 # usys.tcl (c)2006 Alex Sajzew
 # Written for shroudBNC
 
-set max:handLength 9
+set ::max:handLength 9
 
 internalbind server sbnc:ban:join JOIN
 internalbind modec sbnc:ban:op +o
@@ -1716,10 +1716,10 @@ proc sbnc:userunload { } {
 	}
 }
 
-if {![info exists sbnc:userinit]} {
+if {![info exists ::sbnc:userinit]} {
 	foreach user [bncuserlist] {
 		setctx $user
 		reload
 	}
-	set sbnc:userinit 1
+	set ::sbnc:userinit 1
 }
