@@ -79,7 +79,7 @@ Once you're connected you should type /msg -sBNC help to get a list of available
 shroudBNC supports oidentd in order to provide unique idents for each bouncer
 user. You will need to enable ident-spoofing for the unix account you're using
 to run shroudBNC if you want each user to have his/her own ident. Read oidentd's
-manual or http://board.shroudbnc.info/index.php?t=msg&th=9 for more details.
+manual or http://wiki.shroudbnc.info/en/oidentd for more details.
 
 TCL
 ---
