@@ -56,7 +56,7 @@ typedef int DWORD;
 #define STD_INPUT_HANDLE 0
 #define STD_OUTPUT_HANDLE 1
 
-#define LoadLibrary(lpLibFileName) lt_dlopen(lpLibFileName)
+#define LoadLibrary(lpLibFileName) sbncLoadLibrary(lpLibFileName)
 #define FreeLibrary(hLibModule) hLibModule ? !lt_dlclose(hLibModule) : 0
 #define GetProcAddress(hModule, lpProcName) lt_dlsym(hModule, lpProcName)
 

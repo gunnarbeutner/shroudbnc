@@ -197,4 +197,8 @@ bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
  */
 #define AllocFailed(Variable) AllocFailedInternal(Variable, __FILE__, __LINE__)
 
+#ifndef _WIN32
+lt_dlhandle sbncLoadLibrary(const char *Filename);
+#endif
+
 #endif /* UTILITY_H */

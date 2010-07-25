@@ -1337,3 +1337,19 @@ bool AllocFailedInternal(const void *Ptr, const char *File, int Line) {
 
 	return true;
 }
+
+#ifndef _WIN32
+lt_dlhandle sbncLoadLibrary(const char *Filename) {
+	lt_dlhandle handle = 0;
+	lt_dladvise advise;
+
+	if (!lt_dladvise_init(&advise) && !lt_dladvise_global(&advise)) {
+		handle = lt_dlopenadvise(Filename, advise);
+	}
+
+	lt_dladvise_destroy(&advise);
+
+	return handle;
+}
+#endif
+
