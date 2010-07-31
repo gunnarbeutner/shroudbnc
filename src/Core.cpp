@@ -256,7 +256,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	SSL_library_init();
 	SSL_load_error_strings();
 
-	SSL_METHOD *SSLMethod = SSLv23_method();
+	SSL_METHOD *SSLMethod = (SSL_METHOD *)SSLv23_method();
 
 	m_SSLContext = SSL_CTX_new(SSLMethod);
 	SSL_CTX_set_passwd_cb(m_SSLContext);
