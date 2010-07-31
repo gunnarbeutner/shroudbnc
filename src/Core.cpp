@@ -788,14 +788,7 @@ void CCore::RegisterSocket(SOCKET Socket, CSocketEvents *EventInterface) {
 	bool NewStruct = true;
 	int i;
 
-	for (i = 0; i < m_PollFds.GetLength(); i++) {
-		pollfd *PFd = m_PollFds.GetAddressOf(i);
-
-		if (PFd->fd == Socket) {
-			PFd->fd = INVALID_SOCKET;
-			PFd->events = 0;
-		}
-	}
+	UnregisterSocket(Socket);
 
 	for (i = 0; i < m_PollFds.GetLength(); i++) {
 		if (m_PollFds.Get(i).fd == INVALID_SOCKET) {
