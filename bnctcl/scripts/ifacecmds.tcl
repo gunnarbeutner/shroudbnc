@@ -70,7 +70,13 @@ proc iface:gettag {tag} {
 	return [itype_string [getbncuser [getctx] tag $tag]]
 }
 
-registerifacecmd "core" "gettag" "iface:gettag"
+registerifacecmd "core" "gettag" "iface:gettag" "access:admin"
+
+proc iface:settag {tag value} {
+	setbncuser [getctx] tag $tag $value
+}
+
+registerifacecmd "core" "settag" "iface:settag" "access:admin"
 
 proc iface:getnetwork {} {
 	return [itype_string [getisupport NETWORK]]
