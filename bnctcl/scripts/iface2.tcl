@@ -1,5 +1,6 @@
 # shroudBNC - an object-oriented framework for IRC
 # Copyright (C) 2005-2007,2010 Gunnar Beutner
+# Copyright (C) 2010 Christoph Wiese
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,12 +24,18 @@
 source "scripts/itype.tcl"
 
 internalbind client iface:hijackclient RPC_IFACE
+internalbind command iface:ircclientcommands
 internaltimer 600 1 iface:expireblocks
 
 proc iface:hijackclient {client params} {
 	if {$client == "" && [string equal -nocase [lindex $params 0] "RPC_IFACE"]} {
 		set idx [hijacksocket]
-		control $idx iface:line
+		if {[bncgetglobaltag iface2initpass] == "" || [bncgetglobaltag iface2initpass] == [lindex $params 1]} {
+			control $idx iface:line
+		} else {
+			putdcc $idx "RPC_INVALIDINITPASS"
+			internaltimer 1 0 "killdcc" $idx
+		}
 	}
 }
 
@@ -341,6 +348,25 @@ proc iface:line {idx line} {
 
 	if {$disconnect} {
 		internaltimer 1 0 "killdcc" $idx
+	}
+}
+
+# IRC client commands
+
+proc iface:ircclientcommands {client params} {
+	if {[string equal -nocase [lindex $params 0] "globalset"] && [getbncuser $client admin]} {
+		if {[llength $params] < 3} {
+			if {[bncgetglobaltag iface2initpass] == ""} {
+				set reply "Not set"
+			} else {
+				set reply [bncgetglobaltag iface2initpass]
+			}
+			internaltimer 0 0 bncreply "iface2initpass - $reply"
+		} elseif {[string equal -nocase [lindex $params 1] "iface2initpass"]} {
+			bncsetglobaltag iface2initpass [lindex $params 2]
+			bncreply "Done."
+			haltoutput
+		}
 	}
 }
 
