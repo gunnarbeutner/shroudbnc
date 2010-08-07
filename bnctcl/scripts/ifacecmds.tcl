@@ -129,7 +129,7 @@ proc iface:jump {} {
 registerifacecmd "core" "jump" "iface:jump"
 
 proc iface:setvalue {setting value} {
-	set allowedsettings [list server port serverpass realname nick awaynick away awaymessage channels vhost delayjoin password appendts quitasaway automodes dropmodes ssl ipv6 timezone]
+	set allowedsettings [list server port serverpass realname nick awaynick away awaymessage channels vhost delayjoin password appendts quitasaway automodes dropmodes ssl ipv6]
 
 	if {![iface:isoverride] && [lsearch -exact $allowedsettings $setting] == -1} {
 		return -code error "You may not modify this setting."
