@@ -65,7 +65,7 @@ proc registerifacecmd {module command proc {accessproc "access:anyone"} {paramco
 		} else {
 			set count [llength $arguments]
 
-			if {[llength $arguments] == 1 && [lindex $arguments 0] == "args"]} {
+			if {[llength $arguments] == 1 && [lindex $arguments 0] == "args"} {
 				return -code error "Proc must not have variable number of arguments."
 			}
 		}
