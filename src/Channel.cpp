@@ -50,6 +50,8 @@ CChannel::CChannel(const char *Name, CIRCConnection *Owner) {
 	m_TempModes = NULL;
 
 	m_Banlist = new CBanlist(this);
+
+	m_BacklogCount = 0;
 }
 
 /**
@@ -69,6 +71,11 @@ CChannel::~CChannel() {
 	}
 
 	delete m_Banlist;
+
+	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
+		free(BacklogCursor->Source);
+		free(BacklogCursor->Message);
+	}
 }
 
 /**
@@ -684,4 +691,72 @@ int ChannelNameCompare(const void *p1, const void *p2) {
 	const CChannel *Channel1 = *(const CChannel **)p1, *Channel2 = *(const CChannel **)p2;
 
 	return strcasecmp(Channel1->GetName(), Channel2->GetName());
+}
+
+/**
+ * AddBacklogLine
+ *
+ * Adds a line to the channel's backlog.
+ *
+ * @param Line the line
+ */
+void CChannel::AddBacklogLine(const char *Source, const char *Message) {
+	backlog_t Line;
+	char *dupSource, *dupMessage;
+
+	dupSource = strdup(Source);
+
+	if (AllocFailed(dupSource)) {
+		return;
+	}
+
+	dupMessage = strdup(Message);
+
+	if (AllocFailed(dupMessage)) {
+		free(dupSource);
+
+		return;
+	}
+
+	m_BacklogCount++;
+
+	if (m_BacklogCount > 30) {
+		link_t<backlog_t> *Head;
+
+		Head = m_Backlog.GetHead();
+
+		free(Head->Value.Source);
+		free(Head->Value.Message);
+
+		m_Backlog.Remove(Head);
+	}
+
+	Line.Time = g_CurrentTime;
+	Line.Source = dupSource;
+	Line.Message = dupMessage;
+
+	m_Backlog.Insert(Line);
+}
+
+/**
+ * PlayBacklog
+ *
+ * Plays back the backlog.
+ */
+void CChannel::PlayBacklog(void) {
+	char strMessageTime[100];
+	tm MessageTm;
+	CClientConnection *Client = GetUser()->GetClientConnectionMultiplexer();
+
+	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
+		MessageTm = *localtime(&(BacklogCursor->Time));
+
+#ifdef _WIN32
+		strftime(strMessageTime, sizeof(strMessageTime), "%#c" , &MessageTm);
+#else
+		strftime(strMessageTime, sizeof(strMessageTime), "%a %B %d %Y %H:%M:%S" , &MessageTm);
+#endif
+
+		Client->WriteLine(":%s PRIVMSG %s :(%s) %s", BacklogCursor->Source, m_Name, strMessageTime, BacklogCursor->Message);
+	}
 }

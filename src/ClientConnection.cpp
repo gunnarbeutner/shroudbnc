@@ -224,6 +224,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells shroudBNC not to rejoin them when you reconnect to a server",
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
+		AddCommand(&m_CommandList, "backlog", "User", "replays the channel log for the specified channel",
+			"Syntax: backlog <#channel>\nPlays the channel log for the specified channel.");
 		if (!GetOwner()->IsAdmin()) {
 			AddCommand(&m_CommandList, "disconnect", "User", "disconnects a user from the irc server",
 				"Syntax: disconnect\nDisconnects you from the irc server.");
@@ -1313,6 +1315,32 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		SENDUSER("Done.");
 
 		return false;
+	} else if (strcasecmp(Subcommand, "backlog") == 0) {
+		if (argc < 2) {
+			SENDUSER("Syntax: BACKLOG #channel");
+
+			return false;
+		}
+
+		if (GetOwner()->GetIRCConnection() == NULL) {
+			SENDUSER("You need to be connected to an IRC server for this command to work.");
+
+			return false;
+		}
+
+		CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
+
+		if (Channel == NULL) {
+			SENDUSER("You are not on the channel you specified.");
+
+			return false;
+		}
+
+		Channel->PlayBacklog();
+
+		SENDUSER("Done.");
+
+		return false;		
 	}
 
 	if (NoticeUser) {

@@ -30,6 +30,12 @@ typedef struct chanmode_s {
 	char *Parameter; /**< the associated parameter, or NULL if there is none */
 } chanmode_t;
 
+typedef struct backlog_s {
+	time_t Time; /**< the time this message was received */
+	char *Source; /**< message source, i.e. nick!ident@host */
+	char *Message; /**< the message */
+} backlog_t;
+
 /* Forward declaration of some required classes */
 class CNick;
 class CBanlist;
@@ -67,6 +73,9 @@ private:
 
 	CBanlist *m_Banlist; /**< a list of bans for this channel */
 	bool m_HasBans; /**< indicates whether the banlist is known */
+
+	CList<backlog_t> m_Backlog; /** the backlog for this channel */
+	int m_BacklogCount; /** the number of backlog lines we've stored for this channel */
 
 	chanmode_t *AllocSlot(void);
 	chanmode_t *FindSlot(char Mode);
@@ -116,6 +125,9 @@ public:
 	bool SendWhoReply(CClientConnection *Client, bool Simulate) const;
 
 	time_t GetJoinTimestamp(void) const;
+
+	void AddBacklogLine(const char *Source, const char *Message);
+	void PlayBacklog(void);
 };
 
 #endif /* CHANNEL_H */

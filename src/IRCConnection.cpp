@@ -236,6 +236,8 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 			if (User != NULL) {
 				User->SetIdleSince(g_CurrentTime);
 			}
+
+			Channel->AddBacklogLine(argv[0], argv[3]);
 		}
 
 		if (!ModuleEvent(argc, argv)) {
@@ -274,6 +276,12 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		UpdateHostHelper(Reply);
 
 		return true;
+	} else if (argc > 3 && hashRaw == hashPrivmsg && Client != NULL) {
+		Channel = GetChannel(argv[2]);
+
+		if (Channel != NULL) {
+			Channel->AddBacklogLine(argv[0], argv[3]);
+		}
 	} else if (argc > 3 && hashRaw == hashNotice && Client == NULL) {
 		const char *Dest = argv[2];
 		char *Nick;
