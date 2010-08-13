@@ -898,15 +898,15 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return Buffer;
 	} else if (strcasecmp(Type, "quitasaway") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetConfig()->ReadInteger("user.quitaway") != 0 ? 1 : 0);
+		g_asprintf(&Buffer, "%d", Context->GetUseQuitReason() ? 1 : 0);
 
 		return Buffer;
 	} else if (strcasecmp(Type, "automodes") == 0) {
-		return Context->GetConfig()->ReadString("user.automodes");
+		return Context->GetAutoModes();
 	} else if (strcasecmp(Type, "dropmodes") == 0) {
-		return Context->GetConfig()->ReadString("user.dropmodes");
+		return Context->GetDropModes();
 	} else if (strcasecmp(Type, "suspendreason") == 0) {
-		return Context->GetConfig()->ReadString("user.suspend");
+		return Context->GetSuspendReason();
 	} else if (strcasecmp(Type, "ssl") == 0) {
 		return Context->GetSSL() ? "1" : "0";
 	} else if (strcasecmp(Type, "sslclient") == 0) {
@@ -1017,13 +1017,13 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcasecmp(Type, "tag") == 0 && Value)
 		Context->SetTagString(Value, Parameter2);
 	else if (strcasecmp(Type, "quitasaway") == 0)
-		Context->GetConfig()->WriteString("user.quitaway", Value);
+		Context->SetUseQuitReason(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "automodes") == 0)
-		Context->GetConfig()->WriteString("user.automodes", Value);
+		Context->SetAutoModes(Value);
 	else if (strcasecmp(Type, "dropmodes") == 0)
-		Context->GetConfig()->WriteString("user.dropmodes", Value);
+		Context->SetDropModes(Value);
 	else if (strcasecmp(Type, "suspendreason") == 0)
-		Context->GetConfig()->WriteString("user.suspend", Value);
+		Context->SetSuspendReason(Value);
 	else if (strcasecmp(Type, "ipv6") == 0)
 		Context->SetIPv6(Value ? (atoi(Value) ? true : false) : false);
 	else if (strcasecmp(Type, "ident") == 0)
