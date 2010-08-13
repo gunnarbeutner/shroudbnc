@@ -19,7 +19,7 @@
 set ::qauth_algorithms "md5 sha1 sha256"
  
 foreach algorithm $::qauth_algorithms {
-	if {![catch {package require $algorithm}]} {
+	if {![catch [list package require $algorithm]]} {
 		lappend ::qauth_supported_algorithms $algorithm
 	}
 }
