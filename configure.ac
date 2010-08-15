@@ -64,10 +64,6 @@ AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset 
 AC_CHECK_FUNCS([snprintf], [builtin_snprintf=no], [builtin_snprintf=yes])
 AM_CONDITIONAL([USE_BUILTIN_SNPRINTF], [test "$builtin_snprintf" = "yes"])
 
-if test "$builtin_snprintf" = yes; then
-        LIBCARES=../third-party/c-ares/libcares.la
-fi
-
 AC_CHECK_LIB(iphlpapi, main)
 AC_CHECK_LIB(ws2_32, main)
 AC_CHECK_LIB(shlwapi, main)
