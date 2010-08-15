@@ -257,11 +257,14 @@ AM_CONDITIONAL([USE_BUILTIN_CARES], [test "$builtin_cares" = yes])
 
 if test "$builtin_cares" = yes; then
 	LIBCARES=../third-party/c-ares/libcares.la
+	CARESINCL=-I../third-party/c-ares
 else
 	LIBCARES=-lcares
+	CARESINCL=
 fi
 
 AC_SUBST([LIBCARES])
+AC_SUBST([CARESINCL])
 
 AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS += -lws2_32 ], [ build_identd=no ])
 AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ build_identd=yes ])

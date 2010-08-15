@@ -92,7 +92,7 @@ typedef lt_dlhandle HMODULE;
 #endif
 
 #ifndef SWIG
-#	include "../third-party/c-ares/ares.h"
+#	include <ares.h>
 #endif /* SWIG */
 
 #ifdef SBNC
