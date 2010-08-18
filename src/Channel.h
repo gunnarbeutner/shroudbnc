@@ -127,7 +127,7 @@ public:
 	time_t GetJoinTimestamp(void) const;
 
 	void AddBacklogLine(const char *Source, const char *Message);
-	void PlayBacklog(void);
+	void PlayBacklog(CClientConnection *Client);
 };
 
 #endif /* CHANNEL_H */

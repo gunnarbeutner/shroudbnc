@@ -743,10 +743,9 @@ void CChannel::AddBacklogLine(const char *Source, const char *Message) {
  *
  * Plays back the backlog.
  */
-void CChannel::PlayBacklog(void) {
+void CChannel::PlayBacklog(CClientConnection *Client) {
 	char strMessageTime[100];
 	tm MessageTm;
-	CClientConnection *Client = GetUser()->GetClientConnectionMultiplexer();
 
 	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
 		MessageTm = *localtime(&(BacklogCursor->Time));

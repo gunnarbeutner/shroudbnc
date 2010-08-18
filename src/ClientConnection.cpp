@@ -1336,7 +1336,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			return false;
 		}
 
-		Channel->PlayBacklog();
+		Channel->PlayBacklog(this);
 
 		SENDUSER("Done.");
 
