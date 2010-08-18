@@ -204,31 +204,6 @@ bool sbncIsAbsolutePath(const char *Path) {
 #endif
 }
 
-void sbncPathCanonicalize(char *NewPath, const char *Path) {
-	int i = 0, o = 0;
-
-	while (true) {
-		if ((Path[i] == '\\' || Path[i] == '/') && Path[i + 1] == '.' && Path[i + 1] != '\0' && Path[i + 2] != '.') {
-			i += 2;
-		}
-
-		if (o >= MAXPATHLEN - 1) {
-			NewPath[o] = '\0';
-
-			return;
-		} else {
-			NewPath[o] = Path[i];
-		}
-
-		if (Path[i] == '\0') {
-			return;
-		}
-
-		i++;
-		o++;
-	}
-}
-
 const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 	char NewPath[MAXPATHLEN];
 	static char *Path = NULL;
@@ -262,12 +237,34 @@ const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 	}
 #endif
 
-	sbncPathCanonicalize(NewPath, Path);
-	
-	strncpy(Path, NewPath, Len);
-	Path[Len - 1] = '\0';
-
 	return Path;
+}
+
+char *sbncFindConfigDir(void) {
+	char *HomeDir;
+	char ConfigPath[MAXPATHLEN];
+	struct stat StatBuf;
+
+	// Try the current working dir first...
+	if (lstat("sbnc.conf", &StatBuf) == 0) {
+		return strdup(".");
+	}
+
+	HomeDir = getenv("HOME");
+
+	if (HomeDir == NULL) {
+		return NULL;
+	}
+
+	// legacy config location
+	snprintf(ConfigPath, sizeof(ConfigPath), "%s/sbnc/sbnc.conf", HomeDir);
+
+	if (lstat(ConfigPath, &StatBuf) == 0) {
+		return strdup(dirname(ConfigPath));
+	}
+
+	snprintf(ConfigPath, sizeof(ConfigPath), "%s/.sbnc", HomeDir);
+	return strdup(ConfigPath);
 }
 
 #ifndef _WIN32
@@ -354,14 +351,23 @@ int main(int argc, char **argv) {
 	}
 
 	if (!ExplicitConfigDirectory) {
-		/* TODO: figure out config directory, in this order:
-			* $HOME/.sbnc
-			* $HOME/sbnc
-			* cwd
-		   fall back to using
-			* $HOME/.sbnc
-		   if no config dir was found.
-		*/
+		char *ConfigDir;
+
+		ConfigDir = sbncFindConfigDir();
+
+		if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
+			free(ConfigDir);
+			fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
+			return EXIT_FAILURE;
+		}
+
+		if (chdir(ConfigDir) < 0) {
+			free(ConfigDir);
+			fprintf(stderr, "Could not chdir() into config directory (%s): %s\n", ConfigDir, strerror(errno));
+			return EXIT_FAILURE;
+		}
+
+		free(ConfigDir);
 	}
 
 	sbncGetConfigPath(); // first call sets config path to cwd
@@ -374,8 +380,9 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Syntax: %s [OPTION]", argv[0]);
 		fprintf(stderr, "\n");
 		fprintf(stderr, "Options:\n");
-		fprintf(stderr, "\t--help\t\tdisplay this help and exit\n");
-		fprintf(stderr, "\t--foreground\trun in the foreground\n");
+		fprintf(stderr, "\t--help\t\t\tdisplay this help and exit\n");
+		fprintf(stderr, "\t--foreground\t\trun in the foreground\n");
+		fprintf(stderr, "\t--config <config dir>\tspecifies the location of the configuration directory.\n");
 
 		return 3;
 	}
