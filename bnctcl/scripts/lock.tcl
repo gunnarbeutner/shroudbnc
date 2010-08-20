@@ -283,6 +283,8 @@ if {[info commands "registerifacecmd"] != ""} {
 # iface2 command to fetch all settings that are locked for a user
 
 proc lock:iface_getuserlocks {} {
+	set reply [list]
+
 	foreach setting $::lock_lockable_settings {
 		if {[lock:islocked [getctx] $setting]} {
 			lappend reply $setting
