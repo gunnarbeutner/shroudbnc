@@ -290,8 +290,10 @@ else
 fi
 
 if test "$build_bnctcl" = yes; then
+	feat_tcl_msg="yes"
 	tcl_msg="yes"
 else
+	feat_tcl_msg="no"
 	tcl_msg="no"
 fi
 
@@ -316,6 +318,7 @@ fi
 echo "
 Features:
      SSL:	$feat_ssl_msg
+     TCL:	$feat_tcl_msg
 
 Libraries:
      OpenSSL:	$openssl_msg
