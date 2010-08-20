@@ -34,15 +34,14 @@ IMPL_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished);
  * @param Role the role of the connection
  */
 CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
-	char AddressBuf[MAX_SOCKADDR_LEN];
-	sockaddr *Address = (sockaddr *)AddressBuf;
-	socklen_t AddressLength = sizeof(AddressBuf);
+	sockaddr_storage Address;
+	socklen_t AddressLength = sizeof(Address);
 
 	SetRole(Role);
 
 	if (Socket != INVALID_SOCKET) {
-		getsockname(Socket, Address, &AddressLength);
-		m_Family = Address->sa_family;
+		getsockname(Socket, (sockaddr *)&Address, &AddressLength);
+		m_Family = Address.ss_family;
 	} else {
 		m_Family = AF_INET;
 	}
@@ -919,11 +918,11 @@ bool CConnection::ShouldDestroy(void) const {
  * Returns the remote side's address.
  */
 sockaddr *CConnection::GetRemoteAddress(void) const {
-	static char Result[MAX_SOCKADDR_LEN];
-	socklen_t ResultLength = sizeof(Result);
+	static sockaddr_storage Address;
+	socklen_t AddressLength = sizeof(Address);
 
-	if (m_Socket != INVALID_SOCKET && getpeername(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
-		return (sockaddr *)Result;
+	if (m_Socket != INVALID_SOCKET && getpeername(m_Socket, (sockaddr *)&Address, &AddressLength) == 0) {
+		return (sockaddr *)&Address;
 	} else {
 		return NULL;
 	}
@@ -935,11 +934,11 @@ sockaddr *CConnection::GetRemoteAddress(void) const {
  * Returns the local side's address.
  */
 sockaddr *CConnection::GetLocalAddress(void) const {
-	static char Result[MAX_SOCKADDR_LEN];
-	socklen_t ResultLength = sizeof(Result);
+	static sockaddr_storage Address;
+	socklen_t AddressLength = sizeof(Address);
 
-	if (m_Socket != INVALID_SOCKET && getsockname(m_Socket, (sockaddr *)Result, &ResultLength) == 0) {
-		return (sockaddr *)Result;
+	if (m_Socket != INVALID_SOCKET && getsockname(m_Socket, (sockaddr *)&Address, &AddressLength) == 0) {
+		return (sockaddr *)&Address;
 	} else {
 		return NULL;
 	}

@@ -2093,25 +2093,26 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 			m_ClientLookup->GetHostByName(Response->h_name, Response->h_addrtype);
 		} else {
 			sockaddr *saddr = NULL;
-
-			while (Response && Response->h_addr_list[i] != NULL) {
-				sockaddr_in sin;
+			sockaddr_in sin;
 #ifdef IPV6
-				sockaddr_in6 sin6;
+			sockaddr_in6 sin6;
 #endif
 
+			while (Response && Response->h_addr_list[i] != NULL) {
 				if (Response->h_addrtype == AF_INET) {
 					sin.sin_family = AF_INET;
 					sin.sin_addr.s_addr = (*(in_addr *)Response->h_addr_list[i]).s_addr;
 					sin.sin_port = 0;
 					saddr = (sockaddr *)&sin;
 #ifdef IPV6
-				} else {
+				} else if (Response->h_addrtype == AF_INET6) {
 					sin6.sin6_family = AF_INET6;
-					memcpy(&sin6.sin6_addr.s6_addr, &(Response->h_addr_list[i]), sizeof(in6_addr));
+					memcpy(&sin6.sin6_addr.s6_addr, Response->h_addr_list[i], sizeof(in6_addr));
 					sin6.sin6_port = 0;
 					saddr = (sockaddr *)&sin6;
 #endif
+				} else {
+					continue;
 				}
 
 				if (CompareAddress(saddr, Remote) == 0) {

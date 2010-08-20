@@ -31,14 +31,14 @@ private:
 	SOCKET m_Listener; /**< the listening socket */
 
 	virtual int Read(bool DontProcess) {
-		char PeerAddress[MAX_SOCKADDR_LEN];
+		sockaddr_storage PeerAddress;
 		socklen_t PeerSize = sizeof(PeerAddress);
 		SOCKET Client;
 
-		Client = accept(m_Listener, (sockaddr *)PeerAddress, &PeerSize);
+		Client = accept(m_Listener, (sockaddr *)&PeerAddress, &PeerSize);
 
 		if (Client != INVALID_SOCKET) {
-			Accept(Client, (sockaddr *)PeerAddress);
+			Accept(Client, (sockaddr *)&PeerAddress);
 		}
 
 		return 0;

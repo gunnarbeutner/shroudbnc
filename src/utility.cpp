@@ -879,7 +879,8 @@ int CompareAddress(const sockaddr *pA, const sockaddr *pB) {
 	}
 
 	if (pA->sa_family == AF_INET6) {
-		if (((sockaddr_in6 *)pA)->sin6_addr.s6_addr == ((sockaddr_in6 *)pB)->sin6_addr.s6_addr) {
+		if (memcmp(&(((sockaddr_in6 *)pA)->sin6_addr.s6_addr),
+				&(((sockaddr_in6 *)pB)->sin6_addr.s6_addr), sizeof(in6_addr)) == 0) {
 			return 0;
 		} else {
 			return 1;
@@ -1057,33 +1058,25 @@ void mstacktrace(void) {
 #endif
 
 const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
-	static char Buffer[MAX_SOCKADDR_LEN];
-	sockaddr_in *sin4;
-#ifdef IPV6
-	sockaddr_in6 *sin6;
-#endif
+	static sockaddr_storage sin;
 
-	memset(Buffer, 0, sizeof(Buffer));
+	memset(&sin, 0, sizeof(sin));
 
-#ifdef IPV6
+	sin.ss_family = HostEnt->h_addrtype;
+
 	if (HostEnt->h_addrtype == AF_INET) {
-#endif
-		sin4 = (sockaddr_in *)Buffer;
-
-		sin4->sin_family = AF_INET;
-		sin4->sin_port = 0;
-		memcpy(&(sin4->sin_addr), HostEnt->h_addr_list[0], sizeof(in_addr));
+		((sockaddr_in *)&sin)->sin_port = 0;
+		memcpy(&(((sockaddr_in *)&sin)->sin_addr), HostEnt->h_addr_list[0], sizeof(in_addr));
 #ifdef IPV6
-	} else {
-		sin6 = (sockaddr_in6 *)Buffer;
-
-		sin6->sin6_family = AF_INET6;
-		sin6->sin6_port = 0;
-		memcpy(&(sin6->sin6_addr), HostEnt->h_addr_list[0], sizeof(in6_addr));
-	}
+	} else if (HostEnt->h_addrtype == AF_INET6) {
+		((sockaddr_in6 *)&sin)->sin6_port = 0;
+		memcpy(&(((sockaddr_in6 *)&sin)->sin6_addr), HostEnt->h_addr_list[0], sizeof(in6_addr));
 #endif
+	} else {
+		return NULL;
+	}
 
-	return (sockaddr *)Buffer;
+	return (sockaddr *)&sin;
 }
 
 bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length) {

@@ -114,7 +114,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.3-ALPHA $Revision$"
+#define BNCVERSION "1.3alpha17 $Revision$"
 #define INTERFACEVERSION 25
 
 extern const char *g_ErrorFile;
@@ -128,11 +128,9 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 #ifdef IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
-#define MAX_SOCKADDR_LEN (sizeof(sockaddr_in) > sizeof(sockaddr_in6) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #else /* IPV6 */
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
 #define INADDR_LEN(Family) (sizeof(in_addr))
-#define MAX_SOCKADDR_LEN (sizeof(sockaddr_in))
 #endif /* IPV6 */
 
 const char *IpToString(sockaddr *Address);

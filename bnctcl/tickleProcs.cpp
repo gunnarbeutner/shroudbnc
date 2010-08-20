@@ -2343,15 +2343,15 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 	if (!reverse) {
 		Query->GetHostByName(host, af);
 	} else {
-		char sin[MAX_SOCKADDR_LEN];
+		sockaddr_storage sin;
  
 		Utils = g_Bouncer->GetUtilities();
  
-		if (!Utils->StringToIp(host, af, (sockaddr *)sin, sizeof(sin))) {
+		if (!Utils->StringToIp(host, af, (sockaddr *)&sin, sizeof(sin))) {
 			throw "Failed to parse IP address.";
 		}
 
-		Query->GetHostByAddr((sockaddr *)sin);
+		Query->GetHostByAddr((sockaddr *)&sin);
 	}
  
 	return 0;

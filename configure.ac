@@ -280,3 +280,47 @@ AC_CONFIG_FILES([Makefile \
                  third-party/md5/Makefile \
                  third-party/snprintf/Makefile])
 AC_OUTPUT
+
+if test "$build_with_ssl" = yes; then
+	feat_ssl_msg="yes"
+	openssl_msg="yes"
+else
+	feat_ssl_msg="no"
+	openssl_msg="no"
+fi
+
+if test "$build_bnctcl" = yes; then
+	tcl_msg="yes"
+else
+	tcl_msg="no"
+fi
+
+if test -z "$LTDLDEPS"; then
+	ltdl_msg="system-provided"
+else
+	ltdl_msg="bundled"
+fi
+
+if test "$builtin_cares" = yes; then
+	cares_msg="bundled"
+else
+	cares_msg="system-provided"
+fi
+
+if test "$builtin_snprintf" = yes; then
+	snprintf_msg="bundled"
+else
+	snprintf_msg="system-provided"
+fi
+
+echo "
+Features:
+     SSL:	$feat_ssl_msg
+
+Libraries:
+     OpenSSL:	$openssl_msg
+     TCL:	$tcl_msg
+     ltdl:	$ltdl_msg
+     c-ares:	$cares_msg
+     snprintf:	$snprintf_msg
+"
