@@ -138,6 +138,40 @@ bool CNick::HasPrefix(char Prefix) const {
 }
 
 /**
+ * SortPrefixes
+ *
+ * Sorts the nick's prefixes (highest prefix first).
+ */
+void CNick::SortPrefixes(void) {
+	CIRCConnection *IRC = GetOwner()->GetOwner();
+
+	if (IRC == NULL) {
+		return;
+	}
+
+	printf("len: %d\n", strlen(m_Prefixes));
+
+	int PrefixCount = strlen(m_Prefixes);
+
+	for (int i = 0; i < PrefixCount; i++) {
+		char Highest = IRC->GetHighestUserFlag(m_Prefixes + i);
+
+		if (m_Prefixes[i] != Highest) {
+			for (int p = i; p < PrefixCount; p++) {
+				if (m_Prefixes[p] == Highest) {
+					char Temp;
+					Temp = m_Prefixes[p];
+					m_Prefixes[p] = m_Prefixes[i];
+					m_Prefixes[i] = Temp;
+
+					break;
+				}
+			}
+		}
+	}
+}
+
+/**
  * AddPrefix
  *
  * Adds a prefix to a user.
@@ -148,6 +182,10 @@ bool CNick::AddPrefix(char Prefix) {
 	char *Prefixes;
 	size_t LengthPrefixes = m_Prefixes ? strlen(m_Prefixes) : 0;
 
+	if (HasPrefix(Prefix)) {
+		return true;
+	}
+
 	Prefixes = (char *)realloc(m_Prefixes, LengthPrefixes + 2);
 
 	if (AllocFailed(Prefixes)) {
@@ -157,6 +195,8 @@ bool CNick::AddPrefix(char Prefix) {
 	m_Prefixes = Prefixes;
 	m_Prefixes[LengthPrefixes] = Prefix;
 	m_Prefixes[LengthPrefixes + 1] = '\0';
+
+	SortPrefixes();
 
 	return true;
 }

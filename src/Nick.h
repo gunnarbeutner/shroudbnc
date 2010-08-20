@@ -64,6 +64,7 @@ public:
 	bool IsHalfop(void) const;
 
 	bool HasPrefix(char Prefix) const;
+	void SortPrefixes(void);
 	bool AddPrefix(char Prefix);
 	bool RemovePrefix(char Prefix);
 	bool SetPrefixes(const char *Prefixes);
