@@ -279,3 +279,19 @@ proc lock:iface_unsetuserlock {account setting} {
 if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "lock" "unsetuserlock" "lock:iface_unsetuserlock" access:admin
 }
+
+# iface2 command to fetch all settings that are locked for a user
+
+proc lock:iface_getuserlocks {} {
+	foreach setting $::lock_lockable_settings {
+		if {[lock:islocked [getctx] $setting]} {
+			lappend reply $setting
+		}
+	}
+	
+	return "[itype_list_strings $reply]"
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "lock" "getuserlocks" "lock:iface_getuserlocks"
+}
