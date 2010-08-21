@@ -20,7 +20,6 @@
 #include "StdAfx.h"
 
 extern "C" {
-	#include "../third-party/md5/global.h"
 	#include "../third-party/md5/md5.h"
 }
 
@@ -592,9 +591,12 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
  * a string representation of the hash.
  *
  * @param String the string which should be hashed
+ * @param Salt the salt value
+ * @param BrokenAlgo whether to use the broken algorithm
  */
-const char *UtilMd5(const char *String, const char *Salt) {
+const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
 	sMD5_CTX context;
+	broken_sMD5_CTX broken_context;
 	unsigned char digest[16];
 	char *StringAndSalt, *StringPtr;
 	static char *SaltAndResult = NULL;
@@ -612,9 +614,15 @@ const char *UtilMd5(const char *String, const char *Salt) {
 		g_Bouncer->Fatal();
 	}
 
-	MD5Init(&context);
-	MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
-	MD5Final(digest, &context);
+	if (!BrokenAlgo) {
+		MD5Init(&context);
+		MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
+		MD5Final(digest, &context);
+	} else {
+		broken_MD5Init(&broken_context);
+		broken_MD5Update(&broken_context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
+		broken_MD5Final(digest, &broken_context);
+	}
 
 	free(StringAndSalt);
 

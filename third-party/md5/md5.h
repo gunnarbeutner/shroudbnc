@@ -25,12 +25,22 @@ documentation and/or software.
 
 /* MD5 context. */
 typedef struct {
-  UINT4 state[4];                                   /* state (ABCD) */
-  UINT4 count[2];        /* number of bits, modulo 2^64 (lsb first) */
+  uint32_t state[4];                                   /* state (ABCD) */
+  uint32_t count[2];        /* number of bits, modulo 2^64 (lsb first) */
   unsigned char buffer[64];                         /* input buffer */
 } sMD5_CTX;
 
 void MD5Init(sMD5_CTX *);
 void MD5Update(sMD5_CTX *, unsigned char *, unsigned int);
 void MD5Final(unsigned char [16], sMD5_CTX *);
+
+typedef struct {
+  uint64_t state[4];
+  uint64_t count[2];
+  unsigned char buffer[64];
+} broken_sMD5_CTX;
+
+void broken_MD5Init(broken_sMD5_CTX *);
+void broken_MD5Update(broken_sMD5_CTX *, unsigned char *, unsigned int);
+void broken_MD5Final(unsigned char [16], broken_sMD5_CTX *);
 

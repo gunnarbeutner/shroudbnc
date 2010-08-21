@@ -149,8 +149,6 @@ void CNick::SortPrefixes(void) {
 		return;
 	}
 
-	printf("len: %d\n", strlen(m_Prefixes));
-
 	int PrefixCount = strlen(m_Prefixes);
 
 	for (int i = 0; i < PrefixCount; i++) {

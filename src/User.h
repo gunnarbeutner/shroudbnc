@@ -165,7 +165,7 @@ public:
 
 	CIRCConnection *GetIRCConnection(void);
 
-	bool CheckPassword(const char *Password) const;
+	bool CheckPassword(const char *Password);
 	void Attach(CClientConnection *Client);
 
 	const char *GetNick(void) const;

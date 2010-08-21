@@ -103,7 +103,7 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp = NULL, int Family =
 
 char *NickFromHostmask(const char *Hostmask);
 
-const char *UtilMd5(const char *String, const char *Salt);
+const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo = false);
 const char *GenerateSalt(void);
 const char *SaltFromHash(const char *Hash);
 
@@ -114,7 +114,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.3alpha17 $Revision$"
+#define BNCVERSION "1.3alpha18 $Revision$"
 #define INTERFACEVERSION 25
 
 extern const char *g_ErrorFile;
