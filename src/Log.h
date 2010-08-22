@@ -40,6 +40,10 @@ class SBNCAPI CLog {
 	char *m_Filename; /**< the filename of the log, can be an empty string */
 	bool m_KeepOpen; /**< should we keep the file open? */
 	mutable FILE *m_File; /**< the file */
+#ifndef _WIN32
+	ino_t m_Inode;
+	dev_t m_Dev;
+#endif
 public:
 #ifndef SWIG
 	CLog(const char *Filename, bool KeepOpen = false);

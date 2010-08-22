@@ -39,6 +39,11 @@ CLog::CLog(const char *Filename, bool KeepOpen) {
 
 	m_KeepOpen = KeepOpen;
 	m_File = NULL;
+
+#ifndef _WIN32
+	m_Inode = 0;
+	m_Dev = 0;
+#endif
 }
 
 /**
@@ -139,12 +144,30 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	tm Now;
 	char strNow[100];
 	FILE *LogFile;
+	struct stat StatBuf;
+	int rc;
 
 	if (Line == NULL) {
 		return;
 	}
 
 	LogFile = m_File;
+
+#ifndef _WIN32
+	if (m_Filename != NULL) {
+		rc = lstat(m_Filename, &StatBuf);
+
+		if (m_File != NULL && (rc < 0 || StatBuf.st_ino != m_Inode || StatBuf.st_dev != m_Dev)) {
+			fclose(m_File);
+			m_File = NULL;
+		}
+
+		if (rc == 0) {
+			m_Inode = StatBuf.st_ino;
+			m_Dev = StatBuf.st_dev;
+		}
+	}
+#endif
 
 	if (m_Filename == NULL || (m_File == NULL && (LogFile = fopen(m_Filename, "a")) == NULL)) {
 		return;
@@ -179,7 +202,7 @@ void CLog::WriteUnformattedLine(const char *Line) {
 		a++;
 	}
 
-	int rc = asprintf(&Out, "[%s]: %s\n", strNow, dupLine);
+	rc = asprintf(&Out, "[%s]: %s\n", strNow, dupLine);
 
 	free(dupLine);
 
