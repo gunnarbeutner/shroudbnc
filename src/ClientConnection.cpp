@@ -192,8 +192,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: rmmod <index>\nUnloads a module. Use the \"lsmod\" command to view a list of loaded modules.");
 			AddCommand(&m_CommandList, "simul", "Admin", "simulates a command on another user's connection",
 				"Syntax: simul <username> <command>\nExecutes a command in another user's context.");
-			AddCommand(&m_CommandList, "global", "Admin", "sends a global notice to all bouncer users",
-				"Syntax: global <text>\nSends a notice to all currently connected users.");
+			AddCommand(&m_CommandList, "broadcast", "Admin", "sends a global notice to all bouncer users",
+				"Syntax: broadcast <text>\nSends a notice to all currently connected users.");
 			AddCommand(&m_CommandList, "kill", "Admin", "disconnects a user from the bouncer",
 				"Syntax: kill <username>\nDisconnects a user from the bouncer.");
 			AddCommand(&m_CommandList, "disconnect", "Admin", "disconnects a user from the irc server",
@@ -203,10 +203,10 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: playmainlog\nDisplays the bouncer's log.");
 			AddCommand(&m_CommandList, "erasemainlog", "Admin", "erases the bouncer's log",
 				"Syntax: erasemainlog\nErases the bouncer's log.");
-			AddCommand(&m_CommandList, "gvhost", "Admin", "sets the default/global vhost",
-				"Syntax: gvhost <host>\nSets the bouncer's default vhost.");
-			AddCommand(&m_CommandList, "motd", "Admin", "sets the bouncer's motd",
-				"Syntax: motd [text]\nShows or modifies the motd.");
+			AddCommand(&m_CommandList, "globalset", "Admin", "sets global options",
+				"Syntax: globalset [option] [value]\nDisplays or changed global options.");
+			AddCommand(&m_CommandList, "globalunset", "Admin", "restores the default value of a global option",
+				"Syntax: globalunset <option>\nRestores the default value of a global option.");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
 		}
@@ -417,6 +417,54 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			} else {
 				SENDUSER("Failed to unload this module.");
 			}
+		}
+
+		return false;
+	} else if (strcasecmp(Subcommand, "globalunset") == 0 && GetOwner()->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: globalunset option");
+		} else {
+			if (NoticeUser) {
+				rc = asprintf(&Out, "SBNC GLOBALSET %s :", argv[1]);
+			} else {
+				rc = asprintf(&Out, "PRIVMSG -sBNC :GLOBALSET %s :", argv[1]);
+			}
+
+			if (!RcFailed(rc)) {
+				ParseLine(Out);
+				free(Out);
+			}
+		}
+
+		return false;
+	} else if (strcasecmp(Subcommand, "globalset") == 0 && GetOwner()->IsAdmin()) {
+		if (argc < 3) {
+			SENDUSER("Configurable settings:");
+			SENDUSER("--");
+
+			rc = asprintf(&Out, "defaultvhost - %s", g_Bouncer->GetDefaultVHost() ? g_Bouncer->GetDefaultVHost() : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+
+			rc = asprintf(&Out, "motd - %s", g_Bouncer->GetMotd() ? g_Bouncer->GetMotd() : "Not set");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+		} else {
+			if (strcasecmp(argv[1], "defaultvhost") == 0) {
+				g_Bouncer->SetDefaultVHost(argv[2]);
+			} else if (strcasecmp(argv[1], "motd") == 0) {
+				ArgRejoinArray(argv, 2);
+				g_Bouncer->SetMotd(argv[2]);
+			} else {
+				SENDUSER("Unknown setting.");
+				return false;
+			}
+
+			SENDUSER("Done.");
 		}
 
 		return false;
@@ -877,54 +925,9 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		IRC->WriteLine("%s", argv[1]);
 
 		return false;
-	} else if (strcasecmp(Subcommand, "gvhost") == 0 && GetOwner()->IsAdmin()) {
+	} else if (strcasecmp(Subcommand, "broadcast") == 0 && GetOwner()->IsAdmin()) {
 		if (argc < 2) {
-			const char *Ip = g_Bouncer->GetDefaultVHost();
-
-			rc = asprintf(&Out, "Current global VHost: %s", Ip ? Ip : "(none)");
-			if (!RcFailed(rc)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-		} else {
-			g_Bouncer->SetDefaultVHost(argv[1]);
-			SENDUSER("Done.");
-		}
-
-		return false;
-	} else if (strcasecmp(Subcommand, "motd") == 0) {
-		if (argc < 2) {
-			const char *Motd = g_Bouncer->GetMotd();
-
-			rc = asprintf(&Out, "Current MOTD: %s", Motd ? Motd : "(none)");
-			if (!RcFailed(rc)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-
-			if (Motd != NULL && GetOwner()->IsAdmin()) {
-				if (NoticeUser) {
-					SENDUSER("Use /sbnc motd remove to remove the motd.");
-				} else {
-					SENDUSER("Use /msg -sBNC motd remove to remove the motd.");
-				}
-			}
-		} else if (GetOwner()->IsAdmin()) {
-			ArgRejoinArray(argv, 1);
-
-			if (strcasecmp(argv[1], "remove") == 0) {
-				g_Bouncer->SetMotd(NULL);
-			} else {
-				g_Bouncer->SetMotd(argv[1]);
-			}
-
-			SENDUSER("Done.");
-		}
-
-		return false;
-	} else if (strcasecmp(Subcommand, "global") == 0 && GetOwner()->IsAdmin()) {
-		if (argc < 2) {
-			SENDUSER("Syntax: GLOBAL :text");
+			SENDUSER("Syntax: BROADCAST :text");
 			return false;
 		}
 
