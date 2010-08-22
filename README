@@ -7,78 +7,22 @@ IRC connections for multiple users. Using TCL scripts it can be extended.
 Installation
 ------------
 
-First of all make sure that you have the following libraries (and development files) installed:
-
-- openssl (if you're going to use ssl-encrypted connections; README.ssl
-           contains more details about how to use SSL)
-- tcl     (if you're going to use the tcl module, version 8.4 or later, earlier
-           versions have not been tested)
-
-In order to compile and install sbnc you will have to use the 'configure'
-script which is included in the distribution of sbnc:
-
-./configure
-make
-make install
-
-(You need to use the GNU make utility on FreeBSD; i.e. use 'gmake' rather than 'make'.)
-
-"make install" will install shroudBNC in a directory named "sbnc" in your home
-directory.
-
-Keep in mind that you need to change your current directory to ~/sbnc once you've
-run "make install".
-
-Once you've compiled sbnc you will need to edit shroudBNC's configuration
-files:
-
-You can do that by simply starting shroudBNC in the installation directory:
-
-<--
-shroud@hermes:~/sbnc$ ./sbnc
-shroudBNC 1.3 $Revision$- an object-oriented IRC bouncer
-Sun May 27 08:39:51 2010: Log system initialized.
-No valid configuration file has been found. A basic
-configuration file can be created for you automatically. Please
-answer the following questions:
-1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): 9000
-2. What should the first user's name be? test
-Please note that passwords will not be echoed while you type them.
-3. Please enter a password for the first user:
-4. Please confirm your password by typing it again:
-Writing main configuration file... DONE
-Writing first user's configuration file... DONE
-Configuration has been successfully saved. Please restart shroudBNC now.
-shroud@testbed:~/sbnc$
--->
-
-After creating the configuration files you can start shroudBNC:
-
-<--
-shroud@testbed:~/sbnc$ ./sbnc
-shroudBNC 1.3 $Revision$- an object-oriented IRC bouncer
-Daemonizing... DONE
-shroud@testbed:~/sbnc$
--->
-
-You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
-any scripts you want. You will have to rehash the tcl module after every
-change you make to sbnc.tcl or any other .tcl script which you have loaded:
-
-/sbnc tcl rehash (while you're connected to the bouncer using an IRC client)
+Please read the INSTALL file for more details about how to install shroudBNC.
 
 Usage
 -----
 
 Just connect to the bouncer using your favorite IRC client. You will have to set
 your username (i.e. e-mail address in most clients) to the accountname you've
-chosen for your bouncer account.
+chosen for your bouncer account. If for some reason you can't change your
+client's username you can specify the username in the password setting (of the form
+username:password).
 
 Once you're connected you should type /msg -sBNC help to get a list of available commands.
 
 shroudBNC supports oidentd in order to provide unique idents for each bouncer
 user. You will need to enable ident-spoofing for the unix account you're using
-to run shroudBNC if you want each user to have his/her own ident. Read oidentd's
+to run shroudBNC if you want each user to have their own ident. Read oidentd's
 manual or http://wiki.shroudbnc.info/en/oidentd for more details.
 
 TCL
@@ -92,6 +36,13 @@ are sure that they are installed you might use the --with-tcl parameter to
 specify the location of the tclConfig.sh file manually; e.g.:
 
 ./configure --with-tcl=/usr/local/ActiveTcl/tcl8.4
+
+Log files
+---------
+
+shroudBNC automatically re-creates log files if they disappear during runtime. It
+also re-opens them if their inode of dev numbers change. Therefore rotating logs
+is as easy as moving the existing logs to a different location.
 
 Security
 --------

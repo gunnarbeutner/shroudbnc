@@ -1,0 +1,82 @@
+Installing shroudBNC
+--------------------
+
+First of all make sure that you have the following libraries (and development files) installed:
+
+- openssl (if you're going to use ssl-encrypted connections; README.ssl
+           contains more details about how to use SSL)
+- tcl     (if you're going to use the tcl module, version 8.4 or later, earlier
+           versions have not been tested)
+
+In order to compile and install shroudBNC you will have to use the 'configure'
+script which is included in the distribution of sbnc:
+
+$ ./configure
+
+If you are planning to install shroudBNC as root you will need to manually specify another prefix, e.g.:
+
+# ./configure --prefix=/usr/local
+
+The configure script will tell you which features have been enabled (e.g. SSL, TCL). In case any
+of the required libraries are missing you can now fix these errors and re-run the configure script.
+
+Afterwards you can build shroudBNC:
+
+$ make
+$ make install
+
+Unless you have manually specified another prefix "make install" will install shroudBNC in a directory
+named "sbnc" in your home directory:
+
+[gunnar@hermes ~]$ ls -l ~/sbnc
+total 6
+drwxr-xr-x  2 gunnar  gunnar    3 Aug 22 18:28 bin
+drwxr-xr-x  3 gunnar  gunnar    3 Aug 22 18:28 lib
+-rwxr-xr-x  1 gunnar  gunnar  243 Aug 22 18:28 sbnc
+drwxr-xr-x  3 gunnar  gunnar    3 Aug 22 18:28 share
+[gunnar@hermes ~]$
+
+Once you've compiled sbnc you will need to edit shroudBNC's configuration
+files:
+
+You can do that by simply starting shroudBNC in the installation directory:
+
+[gunnar@hermes ~]$ cd ~/sbnc
+[gunnar@hermes ~/sbnc]$ ./sbnc
+shroudBNC (version: 1.3alpha18 $Revision: 1158 $) - an object-oriented IRC bouncer
+Configuration directory: /usr/home/gunnar/sbnc
+[Sun August 22 2010 18:37:29]: Log system initialized.
+No valid configuration file has been found. A basic
+configuration file can be created for you automatically. Please
+answer the following questions:
+1. Which port should the bouncer listen on (valid ports are in the range 1025 - 65535): 9000
+2. What should the first user's name be? test
+Please note that passwords will not be echoed while you type them.
+3. Please enter a password for the first user:
+4. Please confirm your password by typing it again:
+Writing main configuration file... DONE
+Writing first user's configuration file... DONE
+Configuration has been successfully saved. Please restart shroudBNC now.
+[gunnar@hermes ~/sbnc]$
+
+If you've installed shroudBNC as root you can simply start 'sbnc' in any directory (as a non-root
+user). shroudBNC will pick up any existing configuration directories (i.e. ~/sbnc, ~/.sbnc or
+the current working directory). If no configuration directory could be found it defaults to ~/.sbnc
+and asks you to create a config file.
+
+After creating the configuration files you can start shroudBNC:
+
+[gunnar@hermes ~/sbnc]$ ./sbnc
+shroudBNC (version: 1.3alpha18 $Revision: 1158 $) - an object-oriented IRC bouncer
+Configuration directory: /usr/home/gunnar/sbnc
+[Sun August 22 2010 18:42:53]: Log system initialized.
+[Sun August 22 2010 18:42:53]: Created main listener.
+[Sun August 22 2010 18:42:53]: Starting main loop.
+Daemonizing... DONE
+[gunnar@hermes ~/sbnc]$
+
+You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
+any scripts you want. You will have to rehash the tcl module after every
+change you make to sbnc.tcl or any other .tcl script which you have loaded:
+
+/sbnc tcl rehash (while you're connected to the bouncer using an IRC client)
