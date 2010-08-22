@@ -38,7 +38,7 @@ AC_PROG_LIBTOOL
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([winsock.h net/if.h arpa/inet.h arpa/nameser.h arpa/nameser_compat.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([winsock.h arpa/inet.h arpa/nameser.h arpa/nameser_compat.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
