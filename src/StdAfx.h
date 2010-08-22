@@ -75,6 +75,7 @@ typedef lt_dlhandle HMODULE;
 #ifdef USESSL
 #	include <openssl/bio.h>
 #	include <openssl/ssl.h>
+#	include <openssl/md5.h>
 #	include <openssl/err.h>
 #else /* USESSL */
 	typedef void SSL;

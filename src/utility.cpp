@@ -595,7 +595,11 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
  * @param BrokenAlgo whether to use the broken algorithm
  */
 const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
+#ifdef USESSL
+	MD5_CTX context;
+#else
 	sMD5_CTX context;
+#endif
 	broken_sMD5_CTX broken_context;
 	unsigned char digest[16];
 	char *StringAndSalt, *StringPtr;
@@ -615,9 +619,15 @@ const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
 	}
 
 	if (!BrokenAlgo) {
+#ifdef USESSL
+		MD5_Init(&context);
+		MD5_Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
+		MD5_Final(digest, &context);
+#else
 		MD5Init(&context);
 		MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
 		MD5Final(digest, &context);
+#endif
 	} else {
 		broken_MD5Init(&broken_context);
 		broken_MD5Update(&broken_context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
