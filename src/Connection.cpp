@@ -870,7 +870,6 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
 
 		 if (m_BindIpCache != NULL) {
-			printf("Sending DNS query for bindip (%s, %d)...\n", m_BindIpCache, Response->h_addrtype);
 			m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
 			m_BindDnsQuery->GetHostByName(m_BindIpCache, Response->h_addrtype);
 		}
@@ -890,8 +889,6 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response != NULL) {
 		int Size;
-
-		printf("bindip: %d\n", Response->h_addrtype);
 
 		if (Response->h_addrtype == AF_INET) {
 			Size = sizeof(in_addr);
