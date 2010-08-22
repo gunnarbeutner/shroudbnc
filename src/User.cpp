@@ -606,11 +606,7 @@ void CUser::Reconnect(void) {
 		return;
 	}
 
-	if (GetIPv6()) {
-		g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for user %s", Server, Port, m_Name);
-	} else {
-		g_Bouncer->LogUser(this, "Trying to reconnect to %s:%d for user %s", Server, Port, m_Name);
-	}
+	g_Bouncer->LogUser(this, "Trying to reconnect to [%s]:%d for user %s", Server, Port, m_Name);
 
 	i = 0;
 	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
@@ -641,7 +637,9 @@ void CUser::Reconnect(void) {
 		g_Bouncer->SetIdent(m_Name);
 	}
 
-	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), GetIPv6() ? AF_INET6 : AF_INET);
+	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), m_NetworkUnreachable ? AF_INET : AF_UNSPEC);
+
+	m_NetworkUnreachable = false;
 
 	if (AllocFailed(Connection)) {
 		return;
@@ -1894,30 +1892,6 @@ const char *CUser::GetTagName(int Index) const {
 }
 
 /**
- * GetIPv6
- *
- * Returns whether the user is using IPv6 for IRC connections.
- */
-bool CUser::GetIPv6(void) const {
-	if (CacheGetInteger(m_ConfigCache, ipv6) != 0) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/**
- * SetIPv6
- *
- * Sets whether the user should use IPv6 for connections to IRC servers.
- *
- * @param IPv6 a boolean flag
- */
-void CUser::SetIPv6(bool IPv6) {
-	CacheSetInteger(m_ConfigCache, ipv6, IPv6 ? 1 : 0);
-}
-
-/**
  * SetSystemNotices
  *
  * Sets whether the user should receive system notices.
@@ -2052,3 +2026,12 @@ void CUser::SetChannelSortMode(const char *Mode) {
 const char *CUser::GetChannelSortMode(void) const {
 	return CacheGetString(m_ConfigCache, channelsort);
 }
+
+void CUser::SetNetworkUnreachable(bool Value) {
+	m_NetworkUnreachable = Value;
+}
+
+bool CUser::GetNetworkUnreachable(void) const {
+	return m_NetworkUnreachable;
+}
+

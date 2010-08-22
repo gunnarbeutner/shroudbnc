@@ -554,14 +554,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			}
 #endif
 
-#ifdef IPV6
-			rc = asprintf(&Out, "ipv6 - %s", GetOwner()->GetIPv6() ? "On" : "Off");
-			if (!RcFailed(rc)) {
-				SENDUSER(Out);
-				free(Out);
-			}
-#endif
-
 			const char *AutoModes = GetOwner()->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
 			const char *DropModes = GetOwner()->GetDropModes();
@@ -692,20 +684,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 					return false;
 				}
-#ifdef IPV6
-			} else if (strcasecmp(argv[1], "ipv6") == 0) {
-				if (strcasecmp(argv[2], "on") == 0) {
-					SENDUSER("Please keep in mind that IPv6 will only work if your server actually has IPv6 connectivity.");
-
-					GetOwner()->SetIPv6(true);
-				} else if (strcasecmp(argv[2], "off") == 0) {
-					GetOwner()->SetIPv6(false);
-				} else {
-					SENDUSER("Value must be either 'on' or 'off'.");
-
-					return false;
-				}
-#endif
 			} else if (strcasecmp(argv[1], "sysnotices") == 0) {
 				if (strcasecmp(argv[2], "on") == 0) {
 					GetOwner()->SetSystemNotices(true);

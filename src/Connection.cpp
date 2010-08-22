@@ -58,10 +58,10 @@ CConnection::CConnection(SOCKET Socket, bool SSL, connection_role_e Role) {
  * @param Port the port
  * @param BindIp the local bind address
  * @param SSL whether to use SSL for the connection
- * @param Family the socket family
+ * @param Family the address family
  */
 CConnection::CConnection(const char *Host, unsigned int Port, const char *BindIp, bool SSL, int Family) {
-	m_Family = Family;
+	m_Family = AF_INET;
 
 	SetRole(Role_Client);
 
@@ -70,19 +70,11 @@ CConnection::CConnection(const char *Host, unsigned int Port, const char *BindIp
 	m_Socket = INVALID_SOCKET;
 	m_PortCache = Port;
 	m_BindIpCache = BindIp ? strdup(BindIp) : NULL;
+	m_BindDnsQuery = NULL;
 
 	if (Host != NULL) {
 		m_DnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncDnsFinished));
-
 		m_DnsQuery->GetHostByName(Host, Family);
-
-		if (m_BindIpCache != NULL) {
-			m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
-
-			m_BindDnsQuery->GetHostByName(BindIp, Family);
-		} else {
-			m_BindDnsQuery = NULL;
-		}
 
 		// try to connect.. maybe we already have both addresses
 		AsyncConnect();
@@ -789,7 +781,7 @@ void CConnection::AsyncConnect(void) {
 				Bind = (sockaddr *)&BindV4;
 			}
 #ifdef IPV6
-		} else {
+		} else if (m_Family == AF_INET6) {
 			sockaddr_in6 RemoteV6, BindV6;
 
 			memset(&RemoteV6, 0, sizeof(RemoteV6));
@@ -808,6 +800,10 @@ void CConnection::AsyncConnect(void) {
 				Bind = (sockaddr *)&BindV6;
 			}
 #endif
+		} else {
+			Error(0);
+
+			return;
 		}
 
 		m_Socket = SocketAndConnectResolved(Remote, Bind);
@@ -851,10 +847,16 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 	} else {
 		int Size;
 
+		m_Family = Response->h_addrtype;
+
 		if (Response->h_addrtype == AF_INET) {
 			Size = sizeof(in_addr);
-		} else {
+		} else if (Response->h_addrtype == AF_INET6) {
 			Size = sizeof(in6_addr);
+		} else {
+			m_LatchedDestruction = true;
+
+			return;
 		}
 
 		m_HostAddr = (in_addr *)malloc(Size);
@@ -866,6 +868,12 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
 		}
 
 		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
+
+		 if (m_BindIpCache != NULL) {
+			printf("Sending DNS query for bindip (%s, %d)...\n", m_BindIpCache, Response->h_addrtype);
+			m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
+			m_BindDnsQuery->GetHostByName(m_BindIpCache, Response->h_addrtype);
+		}
 
 		AsyncConnect();
 	}
@@ -883,14 +891,20 @@ void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 	if (Response != NULL) {
 		int Size;
 
+		printf("bindip: %d\n", Response->h_addrtype);
+
 		if (Response->h_addrtype == AF_INET) {
 			Size = sizeof(in_addr);
-		} else {
+		} else if (Response->h_addrtype == AF_INET6) {
 			Size = sizeof(in6_addr);
+		} else {
+			Size = 0;
 		}
 
-		m_BindAddr = (in_addr *)malloc(Size);
-		memcpy(m_BindAddr, Response->h_addr_list[0], Size);
+		if (Size != 0) {
+			m_BindAddr = (in_addr *)malloc(Size);
+			memcpy(m_BindAddr, Response->h_addr_list[0], Size);
+		}
 	}
 
 	free(m_BindIpCache);

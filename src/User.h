@@ -39,7 +39,6 @@ DEFINE_CACHE(User)
 	DEFINE_OPTION_INT(seen);
 	DEFINE_OPTION_INT(delayjoin);
 	DEFINE_OPTION_INT(ssl);
-	DEFINE_OPTION_INT(ipv6);
 	DEFINE_OPTION_INT(ignsysnotices);
 	DEFINE_OPTION_INT(lean);
 	DEFINE_OPTION_INT(quitaway);
@@ -147,6 +146,8 @@ class SBNCAPI CUser {
 	CTimer *m_BadLoginPulse; /**< a timer which will remove "bad logins" */
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
+
+	bool m_NetworkUnreachable; /**< whether the last connection error was 'network unreachable' */
 
 	bool PersistCertificates(void);
 
@@ -266,9 +267,6 @@ public:
 	void SetIdent(const char *Ident);
 	const char *GetIdent(void) const;
 
-	void SetIPv6(bool IPv6);
-	bool GetIPv6(void) const;
-
 	const char *GetTagString(const char *Tag) const;
 	int GetTagInteger(const char *Tag) const;
 	bool SetTagString(const char *Tag, const char *Value);
@@ -289,6 +287,9 @@ public:
 
 	void SetChannelSortMode(const char *Mode);
 	const char *GetChannelSortMode(void) const;
+
+	void SetNetworkUnreachable(bool Value);
+	bool GetNetworkUnreachable(void) const;
 };
 
 #endif /* USER_H */

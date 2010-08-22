@@ -100,7 +100,7 @@ private:
 public:
 #ifndef SWIG
 	CConnection(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Unknown);
-	CConnection(const char *Host, unsigned int Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_INET);
+	CConnection(const char *Host, unsigned int Port, const char *BindIp = NULL, bool SSL = false, int Family = AF_UNSPEC);
 	virtual ~CConnection(void);
 #endif /* SWIG */
 

@@ -1610,6 +1610,10 @@ void CIRCConnection::Error(int ErrorValue) {
 	}
 
 	if (GetOwner() != NULL) {
+		if (m_State == State_Connecting) {
+			GetOwner()->SetNetworkUnreachable(true);
+		}
+
 		if (ErrorMsg == NULL || ErrorMsg[0] == '\0') {
 			if (GetCurrentNick() != NULL && GetSite() != NULL) {
 				g_Bouncer->LogUser(GetOwner(), "User '%s' [%s!%s] was disconnected "
