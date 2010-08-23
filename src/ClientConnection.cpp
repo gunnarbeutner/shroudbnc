@@ -2099,7 +2099,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 				if (CompareAddress(saddr, Remote) == 0) {
 					SetPeerName(m_PeerNameTemp, false);
 
-					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", m_PeerNameTemp);
+					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received (%s).", m_PeerNameTemp);
 
 					free(m_PeerNameTemp);
 
@@ -2110,7 +2110,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 			}
 
 			if (saddr != NULL) {
-				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received. (%s)", IpToString(saddr));
+				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received (%s).", IpToString(saddr));
 			} else {
 				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received.");
 			}
