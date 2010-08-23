@@ -29,7 +29,7 @@ class CClientConnection;
  *
  * The interface for modules.
  */
-struct CModuleFar {
+struct SBNCAPI CModuleFar {
 	/**
 	 * ~CModuleFar
 	 *

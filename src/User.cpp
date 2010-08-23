@@ -32,8 +32,10 @@ CTimer *g_ReconnectTimer = NULL;
  */
 CUser::CUser(const char *Name) {
 	char *Out;
+#ifdef USESSL
 	X509 *Cert;
 	FILE *ClientCert;
+#endif
 	int rc;
 
 	m_PrimaryClient = NULL;
@@ -950,7 +952,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
  * @param Silent whether to silently remove the client
  */
 void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
-	const char *AwayMessage, *DropModes, *AwayNick, *AwayText, *Timestamp;
+	const char *AwayMessage, *DropModes, *AwayNick, *AwayText;
 	hash_t<CChannel *> *Channel;
 	const CVector<CModule *> *Modules;
 	int i;

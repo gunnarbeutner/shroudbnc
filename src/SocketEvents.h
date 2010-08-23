@@ -25,7 +25,7 @@
  *
  * An interface for socket events.
  */
-struct CSocketEvents {
+struct SBNCAPI CSocketEvents {
 public:
 	/**
 	 * ~CSocketEvents

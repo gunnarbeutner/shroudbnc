@@ -53,8 +53,6 @@ static struct reslimit_s {
  */
 CCore::CCore(CConfig *Config, int argc, char **argv) {
 	int i;
-	char *Out;
-	const char *Hostmask;
 
 	m_Log = NULL;
 

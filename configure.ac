@@ -13,6 +13,11 @@ PACKAGE=sbnc
 VERSION=1.3
 
 AC_PREFIX_DEFAULT([\${HOME}/sbnc])
+
+if test "$prefix" = "NONE" -a "`id -u`" = "0"; then
+	prefix="/usr/local"
+fi
+
 AC_CONFIG_SUBDIRS([third-party/c-ares])
 
 # Checks for programs.
@@ -26,7 +31,7 @@ AM_PROG_CC_C_O
 LT_CONFIG_LTDL_DIR([third-party/libltdl])
      
 # Configure libtool with dlopen support if possible
-LT_INIT([dlopen])
+LT_INIT([dlopen, win32-dll])
      
 # Enable building of the convenience libltdl library
 LTDL_INIT([convenience])
@@ -51,9 +56,7 @@ AC_STRUCT_TM
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
-AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
@@ -61,8 +64,19 @@ AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gethostbyname gettimeofday inet_ntoa memchr memmove memset mkdir select socket strchr strcspn strdup strerror strstr strtoul poll])
 
-AC_CHECK_FUNCS([snprintf], [builtin_snprintf=no], [builtin_snprintf=yes])
+AC_CHECK_FUNCS([asprintf], [builtin_snprintf=no], [builtin_snprintf=yes])
 AM_CONDITIONAL([USE_BUILTIN_SNPRINTF], [test "$builtin_snprintf" = "yes"])
+
+if test "$builtin_snprintf" = yes; then
+	LIBSNPRINTF=../third-party/snprintf/libsnprintf.la
+	SNPRINTFINCL=-I../third-party/snprintf
+else
+	LIBSNPRINTF=
+	SNPRINTFINCL=
+fi
+
+AC_SUBST([LIBSNPRINTF])
+AC_SUBST([SNPRINTFINCL])
 
 AC_CHECK_LIB(iphlpapi, main)
 AC_CHECK_LIB(ws2_32, main)
@@ -266,7 +280,7 @@ fi
 AC_SUBST([LIBCARES])
 AC_SUBST([CARESINCL])
 
-AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS += -lws2_32 ], [ build_identd=no ])
+AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS+=-lws2_32 ], [ build_identd=no ])
 AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ build_identd=yes ])
 AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 

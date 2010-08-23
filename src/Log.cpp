@@ -144,7 +144,9 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	tm Now;
 	char strNow[100];
 	FILE *LogFile;
+#ifndef _WIN32
 	struct stat StatBuf;
+#endif
 	int rc;
 
 	if (Line == NULL) {

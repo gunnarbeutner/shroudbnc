@@ -23,12 +23,14 @@
 // win32 specific header
 
 #define WIN32_LEAN_AND_MEAN 1
-#define _WIN32_WINNT 0x0400
+#define _WIN32_WINNT 0x0500
+#define NTDDI_VERSION 0x05000100
 
 #ifndef SWIG
 #	include <windows.h>
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
+#	include <ws2ipdef.h>
 #	include <shlwapi.h>
 #	include <direct.h>
 #	include <io.h>

@@ -33,7 +33,6 @@ enum connection_state_e {
 };
 
 class CUser;
-struct CConfig;
 class CChannel;
 class CQueue;
 class CFloodControl;

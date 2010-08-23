@@ -20,8 +20,6 @@
 #ifndef KEYRING_H
 #define KEYRING_H
 
-struct CConfig;
-
 /**
  * CKeyring
  *

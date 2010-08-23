@@ -28,10 +28,6 @@ CCore *g_Bouncer = NULL;
 static int g_ArgC;
 static char **g_ArgV;
 
-#if defined(IPV6) && defined(__MINGW32__)
-const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
-#endif /* defined(IPV6) && defined(__MINGW32__) */
-
 const char *sbncGetConfigPath(void) {
 	static char *ConfigPath;
 
@@ -205,7 +201,6 @@ bool sbncIsAbsolutePath(const char *Path) {
 }
 
 const char *sbncBuildPath(const char *Filename, const char *ExePath) {
-	char NewPath[MAXPATHLEN];
 	static char *Path = NULL;
 	size_t Len;
 
@@ -241,8 +236,9 @@ const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 }
 
 char *sbncFindConfigDir(void) {
-	char *HomeDir;
 	char ConfigPath[MAXPATHLEN];
+#ifndef _WIN32
+	char *HomeDir;
 	struct stat StatBuf;
 
 	// Try the current working dir first...
@@ -264,6 +260,10 @@ char *sbncFindConfigDir(void) {
 	}
 
 	snprintf(ConfigPath, sizeof(ConfigPath), "%s/.sbnc", HomeDir);
+#else
+	strncpy(ConfigPath, ".", sizeof(ConfigPath));
+#endif
+
 	return strdup(ConfigPath);
 }
 
@@ -355,11 +355,13 @@ int main(int argc, char **argv) {
 
 		ConfigDir = sbncFindConfigDir();
 
+#ifndef _WIN32
 		if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
 			free(ConfigDir);
 			fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
 			return EXIT_FAILURE;
 		}
+#endif
 
 		if (chdir(ConfigDir) < 0) {
 			free(ConfigDir);
@@ -394,12 +396,6 @@ int main(int argc, char **argv) {
 #endif
 
 	srand((unsigned int)time(NULL));
-
-#if defined(_DEBUG) && defined(_WIN32)
-	SetUnhandledExceptionFilter(GuardPageHandler);
-
-	SymInitialize(GetCurrentProcess(), NULL, TRUE);
-#endif
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {

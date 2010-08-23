@@ -41,15 +41,16 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <libgen.h>
+#ifndef _WIN32
+#	include <unistd.h>
+#	include <libgen.h>
+#endif
 
 #ifdef __cplusplus
-#	include <algorithm>
 #	include <typeinfo>
 
-using std::min;
-using std::max;
+#	define min(x, y) ((x) < (y) ? (x) : (y))
+#	define max(x, y) ((x) < (y) ? (y) : (x))
 #endif /* __cplusplus */
 
 #ifdef _WIN32
@@ -90,11 +91,15 @@ typedef lt_dlhandle HMODULE;
 #	define IPV6
 #endif /* defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6) */
 
-#ifndef HAVE_SNPRINTF
-#	include "../third-party/snprintf/snprintf.h"
+#ifndef HAVE_ASPRINTF
+#	include <snprintf.h>
 #endif
 
 #ifndef SWIG
+#	ifdef _WIN32
+#		define CARES_STATICLIB
+#	endif
+
 #	include <ares.h>
 #endif /* SWIG */
 

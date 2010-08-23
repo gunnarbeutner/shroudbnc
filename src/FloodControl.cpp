@@ -106,7 +106,6 @@ void CFloodControl::ScheduleItem(void) {
  * @param Peek determines whether to actually remove the item
  */
 RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
-	unsigned int Delay;
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
 

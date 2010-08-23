@@ -22,7 +22,7 @@
 
 #define DEFAULT_SENDQ (10 * 1024)
 
-struct CConfig;
+class CConfig;
 class CUser;
 class CLog;
 class CClientListener;

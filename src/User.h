@@ -22,7 +22,7 @@
 
 class CClientConnection;
 class CIRCConnection;
-struct CConfig;
+class CConfig;
 class CLog;
 class CTrafficStats;
 class CKeyring;

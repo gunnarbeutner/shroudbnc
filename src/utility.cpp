@@ -564,7 +564,9 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
 			sin.sin_addr.s_addr = htonl(INADDR_ANY);
 #ifdef IPV6
 		} else {
-			memcpy(&(sin6.sin6_addr.s6_addr), &in6addr_any, sizeof(in6_addr));
+			const struct in6_addr v6any = IN6ADDR_ANY_INIT;
+
+			memcpy(&(sin6.sin6_addr.s6_addr), &v6any, sizeof(in6_addr));
 		}
 #endif
 	}
@@ -1011,69 +1013,6 @@ char *strmcat(char *Destination, const char *Source, size_t Size) {
 
 	return Destination;
 }
-
-#if defined(_DEBUG) && defined(_WIN32)
-LONG WINAPI GuardPageHandler(EXCEPTION_POINTERS *Exception) {
-	char charSymbol[sizeof(SYMBOL_INFO) + 200];
-	SYMBOL_INFO *Symbol = (SYMBOL_INFO *)charSymbol;
-	IMAGEHLP_LINE64 Line;
-
-	if (Exception->ExceptionRecord->ExceptionCode == STATUS_GUARD_PAGE_VIOLATION) {
-		Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		Symbol->MaxNameLen = sizeof(charSymbol) - sizeof(SYMBOL_INFO);
-		SymFromAddr(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, NULL, Symbol);
-
-		Line.SizeOfStruct = sizeof(Line);
-
-		if (SymGetLineFromAddr64(GetCurrentProcess(), (DWORD64)Exception->ExceptionRecord->ExceptionAddress, 0, &Line)) {
-			printf("Hit guard page at %s. (%s:%d)\n", Symbol->Name, Line.FileName, Line.LineNumber);
-		} else {
-			printf("Hit guard page at %s.\n", Symbol->Name);
-		}
-
-		return EXCEPTION_CONTINUE_EXECUTION;
-	}
-
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-
-void mstacktrace(void) {
-	STACKFRAME64 Frame;
-	DWORD FramePointer;
-
-//	return; /* ... */
-
-	__asm mov FramePointer, ebp
-
-	memset(&Frame, 0, sizeof(Frame));
-
-	Frame.AddrPC.Offset = (DWORD64)_ReturnAddress();
-	Frame.AddrPC.Mode = AddrModeFlat;
-	Frame.AddrFrame.Offset = FramePointer;
-	Frame.AddrFrame.Mode = AddrModeFlat;
-
-	if (g_Bouncer != NULL) {
-		g_Bouncer->Log("---");
-	}
-
-	while (StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &Frame, NULL, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
-		char charSymbol[sizeof(SYMBOL_INFO) + 200];
-		SYMBOL_INFO *Symbol = (SYMBOL_INFO *)charSymbol;
-
-		if (Frame.AddrPC.Offset == 0) {
-			break;
-		}
-
-		Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		Symbol->MaxNameLen = sizeof(charSymbol) - sizeof(SYMBOL_INFO);
-		SymFromAddr(GetCurrentProcess(), (DWORD64)Frame.AddrPC.Offset, NULL, Symbol);
-
-		if (g_Bouncer != NULL) {
-			g_Bouncer->Log("Call from %s", Symbol->Name);
-		}
-	}
-}
-#endif
 
 const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 	static sockaddr_storage sin;

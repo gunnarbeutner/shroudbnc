@@ -289,6 +289,10 @@ RESULT<bool> CConfig::Persist(void) const {
 
 	fclose(ConfigFile);
 
+#ifdef _WIN32
+	unlink(m_Filename);
+#endif
+
 	rc = rename(Filename, m_Filename);
 
 	if (RcFailed(rc)) {

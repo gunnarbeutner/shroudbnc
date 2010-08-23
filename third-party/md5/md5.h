@@ -23,6 +23,11 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
+#ifdef _WIN32
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#endif
+
 /* MD5 context. */
 typedef struct {
   uint32_t state[4];                                   /* state (ABCD) */
