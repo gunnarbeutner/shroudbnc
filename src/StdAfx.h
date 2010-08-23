@@ -102,9 +102,16 @@ typedef lt_dlhandle HMODULE;
 #	define EXTRA_SECURITY
 
 #	ifdef EXTRA_SECURITY
+#		undef strcpy
 #		define strcpy(dest, src) __undefined_function
+
+#		undef strcat
 #		define strcat(dest, src) __undefined_function
+
+#		undef fscanf
 #		define fscanf __undefined_function
+
+#		undef sprintf
 #		define sprintf __undefined_function
 #	endif /* EXTRA_SECURITY */
 #endif /* SBNC */

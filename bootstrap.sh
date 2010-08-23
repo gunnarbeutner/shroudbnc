@@ -15,4 +15,4 @@ fi
 
 $LIBTOOLIZE --copy --force --ltdl
 automake --gnu --add-missing
-autoconf
+autoreconf
