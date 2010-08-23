@@ -2,9 +2,9 @@
 aclocal --force
 
 if [ -z "$LIBTOOLIZE" ]; then
-	if type -P libtoolize &>/dev/null; then
+	if type libtoolize &>/dev/null; then
 		LIBTOOLIZE=libtoolize
-	elif type -P glibtoolize &>/dev/null; then
+	elif type glibtoolize &>/dev/null; then
 		LIBTOOLIZE=glibtoolize
 	fi
 fi
