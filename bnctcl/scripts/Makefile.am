@@ -5,7 +5,7 @@ bind.tcl \
 botnet.tcl \
 channel.tcl \
 contact.tcl \
-defaultserver.tcl \
+defaultsettings.tcl \
 iface2.tcl \
 ifacecmds.tcl \
 lock.tcl \
