@@ -215,9 +215,8 @@ CARES_CHECK_STRUCT(
 #CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
 
 AC_MSG_CHECKING(whether to enable debugging)
-debug_default="yes"
 AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes] turn on debugging
-			[default=$debug_default]],, enable_debug=$debug_default)
+			[default=yes]],, enable_debug=yes)
 if test "x$enable_debug" = "xyes"; then
 	CFLAGS="$CFLAGS -g"
 	CXXFLAGS="$CXXFLAGS -g"
@@ -261,9 +260,30 @@ else
 	AC_MSG_WARN([TCL is not installed. TCL module support disabled.])
 fi
 
+AC_ARG_ENABLE(tcl, [  --enable-tcl          enables TCL support (enabled by default if possible)],
+  [
+	if test "x$enableval" = "xyes" -a "x$build_bnctcl" != "xyes"; then
+		echo "Could not find TCL headers/libraries and TCL support has been explicitly enabled."
+		exit 1
+	elif test "x$enableval" = "xno"; then
+		build_bnctcl=no
+	fi
+])
+
 AM_CONDITIONAL([BUILD_BNCTCL_MODULE], [test "$build_bnctcl" = yes])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ build_with_ssl=yes ], [ build_with_ssl=no; AC_MSG_WARN([You need the OpenSSL headers for SSL support. SSL support has been disabled.]) ])
+
+AC_ARG_ENABLE(ssl, [  --enable-ssl          enables SSL support (enabled by default if possible)],
+  [
+	if test "x$enableval" = "xyes" -a "x$build_with_ssl" != "xyes"; then
+		echo "Could not find OpenSSL headers/libraries and SSL support has been explicitly enabled."
+		exit 1
+	elif test "x$enableval" = "xno"; then
+		build_with_ssl=no
+	fi
+])
+
 AM_CONDITIONAL([BUILD_WITH_SSL], [test "$build_with_ssl" = yes])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <ares.h>]], []), [ builtin_cares=no ], [ builtin_cares=yes ])
@@ -281,7 +301,7 @@ AC_SUBST([LIBCARES])
 AC_SUBST([CARESINCL])
 
 AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS+=-lws2_32 ], [ build_identd=no ])
-AC_ARG_WITH(identd, enabled building the identd module (enabled by default if possible), [ build_identd=yes ])
+AC_ARG_ENABLE(identd, [  --enable-identd       enables building the identd module (enabled by default if possible)], [ build_identd=yes ])
 AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 
 AC_CONFIG_FILES([Makefile \
