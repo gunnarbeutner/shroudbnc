@@ -481,13 +481,7 @@ const char *CUser::GetRealname(void) const {
 	const char *Realname = CacheGetString(m_ConfigCache, realname);
 
 	if (Realname == NULL) {
-		Realname = g_Bouncer->GetDefaultRealName();
-
-		if (Realname != NULL) {
-			return Realname;
-		} else {
-			return "shroudBNC User";
-		}
+		return "shroudBNC User";
 	} else {
 		return Realname;
 	}

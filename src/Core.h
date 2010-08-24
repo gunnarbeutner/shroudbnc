@@ -53,7 +53,6 @@ DEFINE_CACHE(System)
 	DEFINE_OPTION_STRING(users);
 	DEFINE_OPTION_STRING(ip);
 	DEFINE_OPTION_STRING(motd);
-	DEFINE_OPTION_STRING(realname);
 END_DEFINE_CACHE
 
 /**
@@ -228,9 +227,6 @@ public:
 
 	bool GetMD5(void) const;
 	void SetMD5(bool MD5Flag);
-
-	const char *GetDefaultRealName(void) const;
-	void SetDefaultRealName(const char *RealName);
 
 	const char *GetDefaultVHost(void) const;
 	void SetDefaultVHost(const char *VHost);

@@ -15,14 +15,11 @@ system.md5			| 1			| whether the users' passwords are stored using md5 hashes
 system.vhost			| N/A			| the default vhost for users who have not specified a vhost
 system.ip			| 0.0.0.0		| the ip address which should be used for binding the main listener(s)
 system.motd			| <empty>		| the bouncer's motd (see /sbnc help motd)
-system.realname			| shroudBNC User	| the default realname for users who have not specified a realname
 system.sendq			| 10240			| the sendq size (in kB)
 system.dontmatchuser		| 0			| whether to check the username if the user's ssl certificate already unambiguously matches a user
 system.users			| <empty>		| list of usernames
 system.hosts.host<Nr>		| N/A			| list of hostnames which have access to the bouncer
 system.modules.mod<Nr>		| N/A			| list of module filenames
-system.listeners.listener<Nr>	| N/A			| list of additional listeners
-system.max<Resource>		| N/A			| resource limits (options are: memory, channels, bans, keys, clients)
 
 User configuration files
 ------------------------
@@ -31,7 +28,6 @@ Option				| Default Value		| Purpose
 --------------------------------------------------------------------------------
 user.password			| N/A			| the user's password (md5 hash if system.md5 == 1)
 user.admin			| 0			| whether the user is an admin
-user.max<Resource>		| N/A			| user-specific resource limits
 user.quitted			| 0			| whether the user should stay disconnected from the irc server
 user.ts				| 0			| whether to append a timestamp to the user's away reason
 user.port			| 6667			| the port of the irc server for this user
@@ -39,7 +35,6 @@ user.lock			| 0			| whether the user is suspended
 user.seen			| N/A			| timestamp when the user was last seen
 user.delayjoin			| 0			| whether to delay-join channels (usually just used by scripts)
 user.ssl			| 0			| whether the user's server uses ssl
-user.ipv6			| 0			| whether the user's server uses ipv6
 user.ignsysnotices		| 0			| whether the user should receive system notices
 user.lean			| 0			| lean mode (see README.lean for details)
 user.quitaway			| 0			| whether to use the user's /quit reason as the away reason
@@ -55,6 +50,5 @@ user.channels			| <empty>		| comma-seperated list of channels
 user.suspend			| <empty>		| suspend reason for the user
 user.spass			| <empty>		| irc server password
 user.ident			| the user's username	| ident for the user
-user.tz				| 0			| gmt offset
 user.awaymessage		| <empty>		| the user's away message (spammed to all chans, /ame style)
 user.channelsort		| cts			| how to order channels, options: cts (client ts), alpha (alphabetical), custom (using sort module handler)

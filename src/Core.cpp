@@ -2072,14 +2072,6 @@ void CCore::SetMD5(bool MD5Flag) {
 	CacheSetInteger(m_ConfigCache, md5, MD5Flag ? 1 : 0);
 }
 
-const char *CCore::GetDefaultRealName(void) const {
-	return CacheGetString(m_ConfigCache, realname);
-}
-
-void CCore::SetDefaultRealName(const char *RealName) {
-	CacheSetString(m_ConfigCache, realname, RealName);
-}
-
 const char *CCore::GetDefaultVHost(void) const {
 	return CacheGetString(m_ConfigCache, vhost);
 }
