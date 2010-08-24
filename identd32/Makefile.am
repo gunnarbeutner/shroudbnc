@@ -1,8 +1,9 @@
-pkglibdir=$(exec_prefix)/${MOD_DIR}
-
 pkglib_LTLIBRARIES=libidentd.la
 libidentd_la_SOURCES=identd32.cpp
-libidentd_la_LIBADD=../src/libsbnc.la ../src/rpc/librpc.la
-libidentd_la_LDFLAGS=-version-info 0:0:0 -no-undefined
+libidentd_la_LIBADD=${LIBLTDL} ${LIBSNPRINTF}
+
+AM_CXXFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL} ${SNPRINTFINCL} ${CARESINCL}
+AM_CFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL} ${SNPRINTFINCL} ${CARESINCL}
+AM_LIBTOOLFLAGS=--silent
 
 CC=@CXX@

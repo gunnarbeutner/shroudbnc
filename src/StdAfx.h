@@ -32,7 +32,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdarg.h>
+#include <errno.h>
 #include <time.h>
 #include <assert.h>
 #include <fcntl.h>

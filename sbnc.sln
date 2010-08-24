@@ -24,12 +24,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "identd32", "identd32\identd
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bnclog", "bnclog\bnclog.vcxproj", "{6EA4B308-7C1A-4815-BE63-89115533CF0C}"
-	ProjectSection(WebsiteProperties) = preProject
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.Debug = "False"
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "md5", "third-party\md5\md5.vcxproj", "{0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c-ares", "third-party\c-ares\c-ares.vcxproj", "{797C8CA7-8D7A-4C46-B845-68A3285CF9F6}"
@@ -54,10 +48,6 @@ Global
 		{51C360FF-63CC-4F1F-819F-02A8CE4A4E43}.Debug|Win32.Build.0 = Debug|Win32
 		{51C360FF-63CC-4F1F-819F-02A8CE4A4E43}.Release|Win32.ActiveCfg = Release|Win32
 		{51C360FF-63CC-4F1F-819F-02A8CE4A4E43}.Release|Win32.Build.0 = Release|Win32
-		{6EA4B308-7C1A-4815-BE63-89115533CF0C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{6EA4B308-7C1A-4815-BE63-89115533CF0C}.Debug|Win32.Build.0 = Debug|Win32
-		{6EA4B308-7C1A-4815-BE63-89115533CF0C}.Release|Win32.ActiveCfg = Release|Win32
-		{6EA4B308-7C1A-4815-BE63-89115533CF0C}.Release|Win32.Build.0 = Release|Win32
 		{0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29}.Debug|Win32.Build.0 = Debug|Win32
 		{0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29}.Release|Win32.ActiveCfg = Release|Win32

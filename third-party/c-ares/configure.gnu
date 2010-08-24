@@ -1,2 +1,2 @@
 #!/bin/sh
-./configure --disable-shared $*
+cd `dirname $0` && exec ./configure --disable-shared $*

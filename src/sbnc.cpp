@@ -355,13 +355,11 @@ int main(int argc, char **argv) {
 
 		ConfigDir = sbncFindConfigDir();
 
-#ifndef _WIN32
 		if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
 			free(ConfigDir);
 			fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
 			return EXIT_FAILURE;
 		}
-#endif
 
 		if (chdir(ConfigDir) < 0) {
 			free(ConfigDir);

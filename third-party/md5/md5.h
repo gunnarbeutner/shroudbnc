@@ -23,10 +23,10 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
-#endif
+#endif /* _WIN32 && !__MINGW32__ */
 
 /* MD5 context. */
 typedef struct {

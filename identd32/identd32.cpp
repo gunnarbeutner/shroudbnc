@@ -25,7 +25,7 @@
 
 class CIdentModule;
 
-static CCore *g_Bouncer;
+CCore *g_Bouncer;
 
 class CIdentClient : public CConnection {
 public:
@@ -38,7 +38,7 @@ public:
 		}
 
 		if (g_Bouncer->GetIdent() == NULL) {
-			LOGERROR("GetIdent() failed. identd not functional.");
+			g_Bouncer->Log("GetIdent() failed. identd not functional.");
 
 			Destroy();
 
@@ -157,7 +157,7 @@ public:
 
 IMPL_SOCKETLISTENER(CIdentListener) {
 public:
-	CIdentListener(int Family) : CListenerBase<CIdentListener>(113, NULL, NULL, Family) { }
+	CIdentListener(int Family) : CListenerBase<CIdentListener>(113, NULL, Family) { }
 
 	void Accept(SOCKET Client, const sockaddr *PeerAddress) {
 		CIdentClient *Handler = new CIdentClient(Client);
