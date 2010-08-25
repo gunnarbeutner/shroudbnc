@@ -216,8 +216,21 @@ CARES_CHECK_STRUCT(
 
 build_with_ipv6=no
 if test $ac_have_af_inet6 = "yes" -a $ac_have_in6_addr=yes -a $ac_have_sockaddr_in6=yes; then
-	AC_DEFINE_UNQUOTED(HAVE_IPV6,1,[Define to 1 if you have IPv6 support.])
 	build_with_ipv6=yes
+fi
+
+AC_ARG_ENABLE(ipv6, [  --disable-ipv6        disables IPv6 support (enabled by default if possible)],
+  [
+	if test "x$enableval" = "xyes" -a "x$build_with_ipv6" != "xyes"; then
+		echo "Could not find OS support for IPv6 and IPv6 support has been explicitly requested."
+		exit 1
+	elif test "x$enableval" = "xno"; then
+		build_with_ipv6=no
+	fi
+])
+
+if test $build_with_ipv6 = "yes"; then
+	AC_DEFINE_UNQUOTED(HAVE_IPV6,1,[Define to 1 if you have IPv6 support.])
 fi
 
 #CFLAGS="$CFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
@@ -272,7 +285,7 @@ fi
 AC_ARG_ENABLE(tcl, [  --disable-tcl         disables TCL support (enabled by default if possible)],
   [
 	if test "x$enableval" = "xyes" -a "x$build_bnctcl" != "xyes"; then
-		echo "Could not find TCL headers/libraries and TCL support has been explicitly enabled."
+		echo "Could not find TCL headers/libraries and TCL support has been explicitly requested."
 		exit 1
 	elif test "x$enableval" = "xno"; then
 		build_bnctcl=no
@@ -286,7 +299,7 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ build_wit
 AC_ARG_ENABLE(ssl, [  --disable-ssl         disables SSL support (enabled by default if possible)],
   [
 	if test "x$enableval" = "xyes" -a "x$build_with_ssl" != "xyes"; then
-		echo "Could not find OpenSSL headers/libraries and SSL support has been explicitly enabled."
+		echo "Could not find OpenSSL headers/libraries and SSL support has been explicitly requested."
 		exit 1
 	elif test "x$enableval" = "xno"; then
 		build_with_ssl=no
