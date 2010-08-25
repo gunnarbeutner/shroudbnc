@@ -86,6 +86,19 @@ AC_CHECK_LIB(ssl, SSL_new)
 AC_CHECK_LIB(crypto, X509_NAME_oneline)
 AC_CHECK_LIB(eay32, X509_NAME_oneline)
 
+AC_MSG_CHECKING(whether to enable debugging)
+AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes]   turn on debugging (default=yes)],, enable_debug=yes)
+if test "x$enable_debug" = "xyes"; then
+        CFLAGS="$CFLAGS -g"
+	CXXFLAGS="$CXXFLAGS -g"
+	AC_MSG_RESULT(yes)
+else
+	CFLAGS="$CFLAGS -O2"
+	CXXFLAGS="$CFLAGS -O2"
+	AC_MSG_RESULT(no)
+fi
+
+
 # Check for IPv6
 
 dnl This macro determines if the specified constant exists in the specified file
@@ -219,7 +232,7 @@ if test $ac_have_af_inet6 = "yes" -a $ac_have_in6_addr=yes -a $ac_have_sockaddr_
 	build_with_ipv6=yes
 fi
 
-AC_ARG_ENABLE(ipv6, [  --disable-ipv6        disables IPv6 support (enabled by default if possible)],
+AC_ARG_ENABLE(ipv6, [  --disable-ipv6          disables IPv6 support (enabled by default if possible)],
   [
 	if test "x$enableval" = "xyes" -a "x$build_with_ipv6" != "xyes"; then
 		echo "Could not find OS support for IPv6 and IPv6 support has been explicitly requested."
@@ -232,23 +245,6 @@ AC_ARG_ENABLE(ipv6, [  --disable-ipv6        disables IPv6 support (enabled by d
 if test $build_with_ipv6 = "yes"; then
 	AC_DEFINE_UNQUOTED(HAVE_IPV6,1,[Define to 1 if you have IPv6 support.])
 fi
-
-#CFLAGS="$CFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
-#CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
-
-AC_MSG_CHECKING(whether to enable debugging)
-AC_ARG_ENABLE(debug, [  --enable-debug=[no/yes] turn on debugging
-			[default=yes]],, enable_debug=yes)
-if test "x$enable_debug" = "xyes"; then
-	CFLAGS="$CFLAGS -g"
-	CXXFLAGS="$CXXFLAGS -g"
-	AC_MSG_RESULT(yes)
-else
-	CFLAGS="$CFLAGS -O2"
-	CXXFLAGS="$CFLAGS -O2"
-	AC_MSG_RESULT(no)
-fi
-
 
 sinclude(./tcl.m4)
 SC_PATH_TCLCONFIG
@@ -282,7 +278,7 @@ else
 	AC_MSG_WARN([TCL is not installed. TCL module support disabled.])
 fi
 
-AC_ARG_ENABLE(tcl, [  --disable-tcl         disables TCL support (enabled by default if possible)],
+AC_ARG_ENABLE(tcl, [  --disable-tcl           disables TCL support (enabled by default if possible)],
   [
 	if test "x$enableval" = "xyes" -a "x$build_bnctcl" != "xyes"; then
 		echo "Could not find TCL headers/libraries and TCL support has been explicitly requested."
@@ -296,7 +292,7 @@ AM_CONDITIONAL([BUILD_BNCTCL_MODULE], [test "$build_bnctcl" = yes])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <openssl/ssl.h>]], []), [ build_with_ssl=yes ], [ build_with_ssl=no; AC_MSG_WARN([You need the OpenSSL headers for SSL support. SSL support has been disabled.]) ])
 
-AC_ARG_ENABLE(ssl, [  --disable-ssl         disables SSL support (enabled by default if possible)],
+AC_ARG_ENABLE(ssl, [  --disable-ssl           disables SSL support (enabled by default if possible)],
   [
 	if test "x$enableval" = "xyes" -a "x$build_with_ssl" != "xyes"; then
 		echo "Could not find OpenSSL headers/libraries and SSL support has been explicitly requested."
@@ -323,7 +319,7 @@ AC_SUBST([LIBCARES])
 AC_SUBST([CARESINCL])
 
 AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS+=-lws2_32 ], [ build_identd=no ])
-AC_ARG_ENABLE(identd, [  --disable-identd      disables building the identd module (enabled by default if possible)], [ build_identd=$enableval ])
+AC_ARG_ENABLE(identd, [  --disable-identd        disables building the identd module (enabled by default if possible)], [ build_identd=$enableval ])
 AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 
 AC_CONFIG_FILES([Makefile \
