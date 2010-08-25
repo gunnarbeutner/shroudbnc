@@ -43,12 +43,6 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_PingTimer = NULL;
 	m_DestroyClientTimer = NULL;
 
-	if (g_Bouncer->GetStatus() == STATUS_PAUSE) {
-		Kill("Sorry, no new connections can be accepted at this moment. Please try again later.");
-
-		return;
-	}
-
 	if (Client != INVALID_SOCKET) {
 		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright (C) 2005-2007,2010 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
@@ -230,7 +224,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			AddCommand(&m_CommandList, "disconnect", "User", "disconnects a user from the irc server",
 				"Syntax: disconnect\nDisconnects you from the irc server.");
 		}
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		AddCommand(&m_CommandList, "savecert", "User", "saves your current client certificate for use with public key authentication",
 			"Syntax: savecert\nSaves your current client certificate for use with public key authentication.\n"
 			"Once you have saved your certificate you can use it for logging in without a password.");
@@ -238,7 +232,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			"Syntax: delcert <id>\nRemoves the specified certificate.");
 		AddCommand(&m_CommandList, "showcert", "User", "shows information about your certificates",
 			"Syntax: showcert\nShows a list of certificates which can be used for logging in.");
-#endif
+#endif /* HAVE_LIBSSL */
 
 		if (GetOwner()->IsAdmin()) {
 			AddCommand(&m_CommandList, "status", "User", "tells you the current status",
@@ -546,13 +540,13 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				free(Out);
 			}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 			rc = asprintf(&Out, "ssl - %s", GetOwner()->GetSSL() ? "On" : "Off");
 			if (!RcFailed(rc)) {
 				SENDUSER(Out);
 				free(Out);
 			}
-#endif
+#endif /* HAVE_LIBSSL */
 
 			const char *AutoModes = GetOwner()->GetAutoModes();
 			bool ValidAutoModes = AutoModes && *AutoModes;
@@ -703,7 +697,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		}
 
 		return false;
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	} else if (strcasecmp(Subcommand, "savecert") == 0) {
 		if (!IsSSL()) {
 			SENDUSER("Error: You are not using an SSL-encrypted connection.");
@@ -792,7 +786,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		}
 
 		return false;
-#endif
+#endif /* HAVE_LIBSSL */
 	} else if (strcasecmp(Subcommand, "die") == 0 && GetOwner()->IsAdmin()) {
 		g_Bouncer->Log("Shutdown requested by %s", GetOwner()->GetUsername());
 		g_Bouncer->Shutdown();
@@ -1909,7 +1903,7 @@ bool CClientConnection::ValidateUser(void) {
 		return false;
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	int Count = 0;
 	bool MatchUsername = false;
 	X509 *PeerCert = NULL;
@@ -1954,7 +1948,7 @@ bool CClientConnection::ValidateUser(void) {
 
 		return false;
 	}
-#endif
+#endif /* HAVE_LIBSSL */
 
 	User = g_Bouncer->GetUser(m_Username);
 
@@ -2075,9 +2069,9 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 		} else {
 			sockaddr *saddr = NULL;
 			sockaddr_in sin;
-#ifdef IPV6
+#ifdef HAVE_IPV6
 			sockaddr_in6 sin6;
-#endif
+#endif /* HAVE_IPV6 */
 
 			while (Response && Response->h_addr_list[i] != NULL) {
 				if (Response->h_addrtype == AF_INET) {
@@ -2085,13 +2079,13 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 					sin.sin_addr.s_addr = (*(in_addr *)Response->h_addr_list[i]).s_addr;
 					sin.sin_port = 0;
 					saddr = (sockaddr *)&sin;
-#ifdef IPV6
+#ifdef HAVE_IPV6
 				} else if (Response->h_addrtype == AF_INET6) {
 					sin6.sin6_family = AF_INET6;
 					memcpy(&sin6.sin6_addr.s6_addr, Response->h_addr_list[i], sizeof(in6_addr));
 					sin6.sin6_port = 0;
 					saddr = (sockaddr *)&sin6;
-#endif
+#endif /* HAVE_IPV6 */
 				} else {
 					continue;
 				}

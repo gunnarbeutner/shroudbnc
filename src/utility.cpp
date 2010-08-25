@@ -434,15 +434,7 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 		bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
 	}
 
-#ifdef IPV6
-	if (Host->sa_family == AF_INET) {
-#endif
-		Size = sizeof(sockaddr_in);
-#ifdef IPV6
-	} else {
-		Size = sizeof(sockaddr_in6);
-	}
-#endif
+	Size = SOCKADDR_LEN(Host->sa_family);
 
 	Code = connect(Socket, Host, Size);
 
@@ -500,9 +492,9 @@ char *NickFromHostmask(const char *Hostmask) {
 SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
 	sockaddr *saddr;
 	sockaddr_in sin;
-#ifdef IPV6
+#ifdef HAVE_IPV6
 	sockaddr_in6 sin6;
-#endif
+#endif /* HAVE_IPV6 */
 	const int optTrue = 1;
 	bool Bound = false;
 	SOCKET Listener;
@@ -518,15 +510,15 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
 	setsockopt(Listener, SOL_SOCKET, SO_REUSEADDR, (char *)&optTrue, sizeof(optTrue));
 #endif
 
-#ifdef IPV6
+#ifdef HAVE_IPV6
 	if (Family == AF_INET) {
-#endif
+#endif /* HAVE_IPV6 */
 		sin.sin_family = AF_INET;
 		sin.sin_port = htons(Port);
 
 		saddr = (sockaddr *)&sin;
-#ifdef IPV6
-	} else {
+#ifdef HAVE_IPV6 /* HAVE_IPV6 */
+	} else if (Family == AF_INET6) {
 		memset(&sin6, 0, sizeof(sin6));
 		sin6.sin6_family = AF_INET6;
 		sin6.sin6_port = htons(Port);
@@ -536,39 +528,43 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
 #if !defined(_WIN32) && defined(IPV6_V6ONLY)
 		setsockopt(Listener, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&optTrue, sizeof(optTrue));
 #endif
+	} else {
+		closesocket(Listener);
+
+		return INVALID_SOCKET;
 	}
-#endif
+#endif /* HAVE_IPV6 */
 
 	if (BindIp) {
 		hent = gethostbyname(BindIp);
 
 		if (hent) {
-#ifdef IPV6
+#ifdef HAVE_IPV6
 			if (Family == AF_INET) {
-#endif
+#endif /* HAVE_IPV6 */
 				sin.sin_addr.s_addr = ((in_addr*)hent->h_addr_list[0])->s_addr;
-#ifdef IPV6
+#ifdef HAVE_IPV6
 			} else {
 				memcpy(&(sin6.sin6_addr.s6_addr), &(((in6_addr*)hent->h_addr_list[0])->s6_addr), sizeof(in6_addr));
 			}
-#endif
+#endif /* HAVE_IPV6 */
 
 			Bound = true;
 		}
 	}
 
 	if (!Bound) {
-#ifdef IPV6
+#ifdef HAVE_IPV6
 		if (Family == AF_INET) {
-#endif
+#endif /* HAVE_IPV6 */
 			sin.sin_addr.s_addr = htonl(INADDR_ANY);
-#ifdef IPV6
+#ifdef HAVE_IPV6
 		} else {
 			const struct in6_addr v6any = IN6ADDR_ANY_INIT;
 
 			memcpy(&(sin6.sin6_addr.s6_addr), &v6any, sizeof(in6_addr));
 		}
-#endif
+#endif /* HAVE_IPV6 */
 	}
 
 	if (bind(Listener, saddr, SOCKADDR_LEN(Family)) != 0) {
@@ -597,11 +593,11 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
  * @param BrokenAlgo whether to use the broken algorithm
  */
 const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	MD5_CTX context;
-#else
+#else /* HAVE_LIBSSL */
 	sMD5_CTX context;
-#endif
+#endif /* HAVE_LIBSSL */
 	broken_sMD5_CTX broken_context;
 	unsigned char digest[16];
 	char *StringAndSalt, *StringPtr;
@@ -621,15 +617,15 @@ const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
 	}
 
 	if (!BrokenAlgo) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		MD5_Init(&context);
 		MD5_Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
 		MD5_Final(digest, &context);
-#else
+#else /* HAVE_LIBSSL */
 		MD5Init(&context);
 		MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
 		MD5Final(digest, &context);
-#endif
+#endif /* HAVE_LIBSSL */
 	} else {
 		broken_MD5Init(&broken_context);
 		broken_MD5Update(&broken_context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
@@ -657,7 +653,7 @@ const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
 	}
 
 	for (int i = 0; i < 16; i++) {
-#undef sprintf
+		/* TODO: don't use sprintf */
 		sprintf(StringPtr + i * 2, "%02x", digest[i]);
 	}
 
@@ -840,24 +836,11 @@ const char *IpToString(sockaddr *Address) {
 	static char Buffer[256];
 
 #ifdef _WIN32
-	sockaddr *Copy = (sockaddr *)malloc(SOCKADDR_LEN(Address->sa_family));
 	DWORD BufferLength = sizeof(Buffer);
 
-	if (AllocFailed(Copy)) {
-		return "<out of memory>";
+	if (WSAAddressToString(Address, SOCKADDR_LEN(Address->sa_family), NULL, Buffer, &BufferLength) != 0) {
+		return NULL;
 	}
-
-	memcpy(Copy, Address, SOCKADDR_LEN(Address->sa_family));
-
-	if (Address->sa_family == AF_INET) {
-		((sockaddr_in *)Address)->sin_port = 0;
-	} else {
-		((sockaddr_in6 *)Address)->sin6_port = 0;
-	}
-
-	WSAAddressToString(Address, SOCKADDR_LEN(Address->sa_family), NULL, Buffer, &BufferLength);
-
-	free(Copy);
 #else
 	void *IpAddress;
 
@@ -867,7 +850,9 @@ const char *IpToString(sockaddr *Address) {
 		IpAddress = &(((sockaddr_in6 *)Address)->sin6_addr);
 	}
 
-	inet_ntop(Address->sa_family, IpAddress, Buffer, sizeof(Buffer));
+	if (inet_ntop(Address->sa_family, IpAddress, Buffer, sizeof(Buffer)) == NULL) {
+		return NULL;
+	}
 #endif
 
 	return Buffer;
@@ -1024,11 +1009,11 @@ const sockaddr *HostEntToSockAddr(hostent *HostEnt) {
 	if (HostEnt->h_addrtype == AF_INET) {
 		((sockaddr_in *)&sin)->sin_port = 0;
 		memcpy(&(((sockaddr_in *)&sin)->sin_addr), HostEnt->h_addr_list[0], sizeof(in_addr));
-#ifdef IPV6
+#ifdef HAVE_IPV6
 	} else if (HostEnt->h_addrtype == AF_INET6) {
 		((sockaddr_in6 *)&sin)->sin6_port = 0;
 		memcpy(&(((sockaddr_in6 *)&sin)->sin6_addr), HostEnt->h_addr_list[0], sizeof(in6_addr));
-#endif
+#endif /* HAVE_IPV6 */
 	} else {
 		return NULL;
 	}
@@ -1100,9 +1085,9 @@ static int passwd_cb(char *Buffer, int Size, int RWFlag, void *Cookie) {
 }
 
 void SSL_CTX_set_passwd_cb(SSL_CTX *Context) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	SSL_CTX_set_default_passwd_cb(Context, passwd_cb);
-#endif
+#endif /* HAVE_LIBSSL */
 }
 
 #ifndef HAVE_POLL

@@ -59,11 +59,6 @@ typedef struct { char __addr[16]; } sockaddr_in6;
 #define S_IROTH 0
 #endif /* S_IROTH */
 
-#ifdef _DEBUG
-#	include <dbghelp.h>
-#	include <intrin.h>
-#endif /* _DEBUG */
-
 #if !defined(socklen_t)
 typedef int socklen_t;
 #endif /* !defined(socklen_t) */
@@ -83,13 +78,6 @@ typedef int socklen_t;
 #undef GetProcAddress
 #define GetProcAddress(hModule, lpProcName) lt_dlsym((lt_dlhandle)hModule, lpProcName)
 #endif /* _MSC_VER */
-
-#undef HAVE_AF_INET6
-#define HAVE_AF_INET6
-#undef HAVE_STRUCT_IN6_ADDR
-#define HAVE_STRUCT_IN6_ADDR
-#undef HAVE_STRUCT_SOCKADDR_IN6
-#define HAVE_STRUCT_SOCKADDR_IN6
 
 #define MAXPATHLEN MAX_PATH
 

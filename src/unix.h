@@ -61,9 +61,9 @@ typedef int DWORD;
 #define GetProcAddress(hModule, lpProcName) lt_dlsym(hModule, lpProcName)
 
 #ifdef __CYGWIN__
-	#define EXPORT __declspec(dllexport)
+#	define EXPORT __declspec(dllexport)
 #else /* __CYGWIN__ */
-	#define EXPORT
+#	define EXPORT
 #endif /* __CYGWIN__ */
 
 #ifdef __FreeBSD__

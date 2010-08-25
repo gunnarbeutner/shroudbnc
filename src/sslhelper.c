@@ -73,7 +73,7 @@
 
 #include "StdAfx.h"
 
-#ifdef USESSL
+#ifdef HAVE_SSL
 #ifdef _WIN32
 #include <openssl/applink.c>
 #endif
@@ -244,4 +244,4 @@ static int sock_puts(BIO *bio, const char *String) {
 
 	return Len;
 }
-#endif
+#endif /* HAVE_SSL */

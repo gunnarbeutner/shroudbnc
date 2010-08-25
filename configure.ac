@@ -133,6 +133,7 @@ AC_DEFUN([CARES_CHECK_STRUCT], [
 ])
 
 dnl check for PF_INET6
+ac_have_af_inet6=no
 CARES_CHECK_CONSTANT(
   [
 #undef inline
@@ -153,10 +154,11 @@ CARES_CHECK_CONSTANT(
 #endif
 #endif
   ], [AF_INET6],
-     AC_DEFINE_UNQUOTED(HAVE_AF_INET6,1,[Define to 1 if you have AF_INET6.])
+     AC_DEFINE_UNQUOTED(HAVE_AF_INET6,1,[Define to 1 if you have AF_INET6.]) ac_have_af_inet6=yes
 )
 
 dnl check for the in6_addr structure
+ac_have_in6_addr=no
 CARES_CHECK_STRUCT(
   [
 #undef inline
@@ -180,10 +182,11 @@ CARES_CHECK_STRUCT(
 #endif
 #endif
   ], [in6_addr],
-     AC_DEFINE_UNQUOTED(HAVE_STRUCT_IN6_ADDR,1,[Define to 1 if you have struct in6_addr.])
+     AC_DEFINE_UNQUOTED(HAVE_STRUCT_IN6_ADDR,1,[Define to 1 if you have struct in6_addr.]) ac_have_in6_addr=yes
 )
 
 dnl check for the sockaddr_in6 structure
+ac_have_sockaddr_in6=no
 CARES_CHECK_STRUCT(
   [
 #undef inline
@@ -210,6 +213,12 @@ CARES_CHECK_STRUCT(
      AC_DEFINE_UNQUOTED(HAVE_STRUCT_SOCKADDR_IN6,1,
        [Define to 1 if you have struct sockaddr_in6.]) ac_have_sockaddr_in6=yes
 )
+
+build_with_ipv6=no
+if test $ac_have_af_inet6 = "yes" -a $ac_have_in6_addr=yes -a $ac_have_sockaddr_in6=yes; then
+	AC_DEFINE_UNQUOTED(HAVE_IPV6,1,[Define to 1 if you have IPv6 support.])
+	build_with_ipv6=yes
+fi
 
 #CFLAGS="$CFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
 #CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wconversion -Wcast-qual -Wwrite-strings"
@@ -331,6 +340,12 @@ else
 	tcl_msg="no"
 fi
 
+if test "$build_with_ipv6" = yes; then
+	feat_ipv6_msg="yes"
+else
+	feat_ipv6_msg="no"
+fi
+
 if test -z "$LTDLDEPS"; then
 	ltdl_msg="system-provided"
 else
@@ -353,6 +368,7 @@ echo "
 Features:
      SSL:	$feat_ssl_msg
      TCL:	$feat_tcl_msg
+     IPv6:	$feat_ipv6_msg
 
 Libraries:
      OpenSSL:	$openssl_msg

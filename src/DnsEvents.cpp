@@ -122,15 +122,15 @@ void CDnsQuery::GetHostByName(const char *Host, int Family) {
 void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 	void *IpAddr;
 
-#ifdef IPV6
+#ifdef HAVE_IPV6
 	if (Address->sa_family == AF_INET) {
-#endif
+#endif /* HAVE_IPV6 */
 		IpAddr = &(((sockaddr_in *)Address)->sin_addr);
-#ifdef IPV6
+#ifdef HAVE_IPV6
 	} else {
 		IpAddr = &(((sockaddr_in6 *)Address)->sin6_addr);
 	}
-#endif
+#endif /* HAVE_IPV6 */
 
 	m_PendingQueries++;
 	m_EventCookie->RefCount++;

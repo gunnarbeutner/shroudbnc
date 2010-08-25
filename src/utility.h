@@ -125,13 +125,13 @@ void StrTrim(char *String);
 char *strmcpy(char *Destination, const char *Source, size_t Size);
 char *strmcat(char *Destination, const char *Source, size_t Size);
 
-#ifdef IPV6
+#ifdef HAVE_IPV6
 #define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
 #define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
-#else /* IPV6 */
+#else /* HAVE_IPV6 */
 #define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
 #define INADDR_LEN(Family) (sizeof(in_addr))
-#endif /* IPV6 */
+#endif /* HAVE_IPV6 */
 
 const char *IpToString(sockaddr *Address);
 bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);

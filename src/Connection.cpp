@@ -92,7 +92,6 @@ CConnection::CConnection(const char *Host, unsigned int Port, const char *BindIp
 void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_Socket = Client;
 
-	m_Locked = false;
 	m_Shutdown = false;
 	m_Timeout = 0;
 
@@ -113,7 +112,7 @@ void CConnection::InitConnection(SOCKET Client, bool SSL) {
 	m_InboundTrafficReset = g_CurrentTime;
 	m_InboundTraffic = 0;
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	m_HasSSL = SSL;
 	m_SSL = NULL;
 
@@ -157,7 +156,7 @@ CConnection::~CConnection(void) {
 	delete m_SendQ;
 	delete m_RecvQ;
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (IsSSL() && m_SSL != NULL) {
 		SSL_free(m_SSL);
 	}
@@ -180,7 +179,7 @@ void CConnection::InitSocket(void) {
 	setsockopt(m_Socket, SOL_SOCKET, SO_LINGER, &optLinger, sizeof(optLinger));
 #endif
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (IsSSL()) {
 		if (m_SSL != NULL) {
 			SSL_free(m_SSL);
@@ -263,7 +262,7 @@ int CConnection::Read(bool DontProcess) {
 		return -1;
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (IsSSL()) {
 		ReadResult = SSL_read(m_SSL, Buffer, BufferSize);
 
@@ -284,7 +283,7 @@ int CConnection::Read(bool DontProcess) {
 	} else {
 #endif
 		ReadResult = recv(m_Socket, Buffer, BufferSize, 0);
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	}
 #endif
 
@@ -320,7 +319,7 @@ int CConnection::Read(bool DontProcess) {
 		}
 #endif
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		if (IsSSL()) {
 			SSL_shutdown(m_SSL);
 		}
@@ -350,7 +349,7 @@ int CConnection::Write(void) {
 	if (Size > 0) {
 		int WriteResult;
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		if (IsSSL()) {
 			WriteResult = SSL_write(m_SSL, m_SendQ->Peek(), Size);
 
@@ -366,7 +365,7 @@ int CConnection::Write(void) {
 		} else {
 #endif
 			WriteResult = send(m_Socket, m_SendQ->Peek(), Size, 0);
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		}
 #endif
 
@@ -384,7 +383,7 @@ int CConnection::Write(void) {
 	}
 
 	if (m_Shutdown) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 		if (IsSSL()) {
 			SSL_shutdown(m_SSL);
 		}
@@ -498,9 +497,7 @@ bool CConnection::ReadLine(char **Out) {
  * @param Line the line
  */
 void CConnection::WriteUnformattedLine(const char *Line) {
-	if (!m_Locked && Line != NULL) {
-		m_SendQ->WriteUnformattedLine(Line);
-	}
+	m_SendQ->WriteUnformattedLine(Line);
 }
 
 /**
@@ -588,7 +585,7 @@ void CConnection::Kill(const char *Error) {
  * written to the socket.
  */
 bool CConnection::HasQueuedData(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (IsSSL()) {
 		if (SSL_want_write(m_SSL)) {
 			return true;
@@ -638,24 +635,6 @@ void CConnection::Error(int ErrorCode) {
  */
 void CConnection::Destroy(void) {
 	delete this;
-}
-
-/**
- * Lock
- *
- * Locks the connection object.
- */
-void CConnection::Lock(void) {
-	m_Locked = true;
-}
-
-/**
- * IsLocked
- *
- * Checks whether the connection object is locked.
- */
-bool CConnection::IsLocked(void) const {
-	return m_Locked;
 }
 
 /**
@@ -722,7 +701,7 @@ void CConnection::FlushSendQ(void) {
  * Returns whether SSL is enabled for the connection.
  */
 bool CConnection::IsSSL(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	return m_HasSSL;
 #else
 	return false;
@@ -735,7 +714,7 @@ bool CConnection::IsSSL(void) const {
  * Gets the remote side's certificate.
  */
 const X509 *CConnection::GetPeerCertificate(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (IsSSL()) {
 		return SSL_get_peer_certificate(m_SSL);
 	}
@@ -780,7 +759,7 @@ void CConnection::AsyncConnect(void) {
 
 				Bind = (sockaddr *)&BindV4;
 			}
-#ifdef IPV6
+#ifdef HAVE_IPV6
 		} else if (m_Family == AF_INET6) {
 			sockaddr_in6 RemoteV6, BindV6;
 
@@ -799,7 +778,7 @@ void CConnection::AsyncConnect(void) {
 
 				Bind = (sockaddr *)&BindV6;
 			}
-#endif
+#endif /* HAVE_IPV6 */
 		} else {
 			Error(0);
 
@@ -1019,7 +998,7 @@ void CConnection::SetRecvQ(CFIFOBuffer *Buffer) {
  * @param SSLObject ssl object
  */
 void CConnection::SetSSLObject(void *SSLObject) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (SSLObject == NULL) {
 		m_HasSSL = false;
 	} else {

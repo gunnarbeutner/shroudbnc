@@ -66,6 +66,16 @@ typedef struct socket_s {
 } socket_t;
 
 /**
+ * sbnc_status_t
+ *
+ * Program status.
+ */
+typedef enum sbnc_status_e {
+	Status_Running,
+	Status_Shutdown
+} sbnc_status_t;
+
+/**
  * CCore
  *
  * The main application class.
@@ -108,7 +118,7 @@ class SBNCAPI CCore {
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
 
-	int m_Status; /**< shroudBNC's current status */
+	sbnc_status_t m_Status; /**< shroudBNC's current status */
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
@@ -116,9 +126,8 @@ class SBNCAPI CCore {
 	void WritePidFile(void);
 	bool MakeConfig(void);
 
-	void InitializeAdditionalListeners(void);
-	void UninitializeAdditionalListeners(void);
-	void UpdateAdditionalListeners(void);
+	void InitializeSocket(void);
+	void UninitializeSocket(void);
 
 	bool Daemonize(void);
 public:
@@ -206,8 +215,8 @@ public:
 
 	const char *GetBouncerVersion(void) const;
 
-	void SetStatus(int NewStatus);
-	int GetStatus(void) const;
+	void SetStatus(sbnc_status_t NewStatus);
+	sbnc_status_t GetStatus(void) const;
 
 	CFakeClient *CreateFakeClient(void) const;
 	void DeleteFakeClient(CFakeClient *FakeClient) const;

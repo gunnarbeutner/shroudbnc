@@ -67,7 +67,7 @@ public:
 	CListenerBase(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET) {
 		m_Listener = INVALID_SOCKET;
 
-		if (m_Listener == INVALID_SOCKET || m_Listener == 0) {
+		if (m_Listener == INVALID_SOCKET) {
 			m_Listener = g_Bouncer->CreateListener(Port, BindIp, Family);
 		}
 
@@ -123,13 +123,19 @@ public:
 	}
 
 	virtual unsigned int GetPort(void) const {
-		sockaddr_in Address;
+		sockaddr_storage Address;
 		socklen_t Length = sizeof(Address);
 
 		if (m_Listener == INVALID_SOCKET || getsockname(m_Listener, (sockaddr *)&Address, &Length) != 0) {
 			return 0;
 		} else {
-			return ntohs(Address.sin_port);
+			if (Address.ss_family == AF_INET) {
+				return ntohs(((sockaddr_in *)&Address)->sin_port);
+			} else if (Address.ss_family == AF_INET6) {
+				return ntohs(((sockaddr_in6 *)&Address)->sin6_port);
+			} else {
+				return 0;
+			}
 		}
 	}
 };

@@ -23,7 +23,7 @@ const char *g_ErrorFile; /**< name of the file where the last error occured */
 unsigned int g_ErrorLine; /**< line where the last error occurred */
 time_t g_CurrentTime; /**< current time (updated in main loop) */
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 int SSLVerifyCertificate(int preverify_ok, X509_STORE_CTX *x509ctx);
 int g_SSLCustomIndex; /**< custom SSL index */
 #endif
@@ -62,7 +62,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_SSLContext = NULL;
 
-	m_Status = STATUS_RUN;
+	m_Status = Status_Running; 
 
 	CacheInitialize(m_ConfigCache, Config, "system.");
 
@@ -144,6 +144,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_LoadingListeners = false;
 
 	m_PidFile = NULL;
+
+	InitializeSocket();
 }
 
 /**
@@ -181,6 +183,8 @@ CCore::~CCore(void) {
 	if (m_PidFile != NULL) {
 		fclose(m_PidFile);
 	}
+
+	UninitializeSocket();
 }
 
 /**
@@ -194,7 +198,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	time(&g_CurrentTime);
 
 	int Port = CacheGetInteger(m_ConfigCache, port);
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	int SSLPort = CacheGetInteger(m_ConfigCache, sslport);
 
 	if (Port == 0 && SSLPort == 0) {
@@ -228,7 +232,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 		}
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (m_SSLListener == NULL) {
 		if (SSLPort != 0) {
 			m_SSLListener = new CClientListener(SSLPort, BindIp, AF_INET, true);
@@ -301,7 +305,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 		return;
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (SSLPort != 0 && m_SSLListener != NULL && m_SSLListener->IsValid()) {
 		Log("Created ssl listener.");
 	} else if (SSLPort != 0) {
@@ -369,7 +373,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 	time_t Last = 0;
 
-	while (GetStatus() == STATUS_RUN || GetStatus() == STATUS_PAUSE || --m_ShutdownLoop) {
+	while (GetStatus() == Status_Running || --m_ShutdownLoop) {
 		time_t Now, Best = 0, SleepInterval = 0;
 
 #if defined(_WIN32) && defined(_DEBUG)
@@ -383,7 +387,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 			CIRCConnection *IRC;
 
 			if ((IRC = UserHash->Value->GetIRCConnection()) != NULL) {
-				if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && IRC->IsLocked() == false) {
+				if (GetStatus() != Status_Running) {
 					Log("Closing connection for user %s", UserHash->Name);
 					IRC->Kill("Shutting down.");
 
@@ -450,15 +454,15 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	                }
 	        }
 
-		if (SleepInterval <= 0 || (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE) || ModulesBusy) {
+		if (SleepInterval <= 0 || GetStatus() != Status_Running || ModulesBusy) {
 			SleepInterval = 1;
 		}
 
-		timeval interval = { SleepInterval, 0 };
-
-		if (GetStatus() != STATUS_RUN && GetStatus() != STATUS_PAUSE && SleepInterval > 3) {
-			interval.tv_sec = 3;
+		if (GetStatus() != Status_Running && SleepInterval > 3) {
+			SleepInterval = 3;
 		}
+
+		timeval interval = { SleepInterval, 0 };
 
 		time(&Last);
 
@@ -561,7 +565,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 #endif
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	SSL_CTX_free(m_SSLContext);
 	SSL_CTX_free(m_SSLClientContext);
 #endif
@@ -1020,7 +1024,7 @@ CLog *CCore::GetLog(void) {
 void CCore::Shutdown(void) {
 	g_Bouncer->Log("Shutdown requested.");
 
-	SetStatus(STATUS_SHUTDOWN);
+	SetStatus(Status_Shutdown);
 }
 
 /**
@@ -1452,14 +1456,14 @@ SSL_CTX *CCore::GetSSLClientContext(void) {
  * Returns the custom index for SSL.
  */
 int CCore::GetSSLCustomIndex(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	return g_SSLCustomIndex;
 #else
 	return 0;
 #endif
 }
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 /**
  * SSLVerifyCertificate
  *
@@ -1899,7 +1903,7 @@ const char *CCore::GetBouncerVersion(void) const {
  *
  * @param NewStatus the new status code
  */
-void CCore::SetStatus(int NewStatus) {
+void CCore::SetStatus(sbnc_status_t NewStatus) {
 	m_Status = NewStatus;
 }
 
@@ -1908,7 +1912,7 @@ void CCore::SetStatus(int NewStatus) {
  *
  * Returns the bouncer's status code.
  */
-int CCore::GetStatus(void) const {
+sbnc_status_t CCore::GetStatus(void) const {
 	return m_Status;
 }
 
@@ -2142,4 +2146,25 @@ bool CCore::Daemonize(void) {
 #endif
 
 	return true;
+}
+
+void CCore::InitializeSocket(void) {
+#ifdef _WIN32
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(1, 1), &wsaData);
+#endif /* _WIN32 */
+
+#ifdef CARES_HAVE_ARES_LIBRARY_INIT
+	ares_library_init(ARES_LIB_INIT_ALL);
+#endif /* CARES_HAVE_ARES_LIBRARY_INIT */
+}
+
+void CCore::UninitializeSocket(void) {
+#ifdef CARES_HAVE_ARES_LIBRARY_CLEANUP
+	ares_library_cleanup();
+#endif /* CARES_HAVE_ARES_LIBRARY_CLEANUP */
+
+#ifdef _WIN32
+	WSACleanup();
+#endif /* _WIN32 */
 }

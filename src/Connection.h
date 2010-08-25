@@ -58,7 +58,6 @@ protected:
 
 	void AsyncConnect(void);
 
-	bool m_Locked; /**< determines whether data can be written for this connection */
 	bool m_Shutdown; /**< are we about to close this socket? */
 	time_t m_Timeout; /**< timeout for this socket */
 
@@ -117,9 +116,6 @@ public:
 
 	size_t GetSendqSize(void) const;
 	size_t GetRecvqSize(void) const;
-
-	void Lock(void);
-	bool IsLocked(void) const;
 
 	void Shutdown(void);
 

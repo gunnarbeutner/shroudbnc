@@ -267,25 +267,6 @@ char *sbncFindConfigDir(void) {
 	return strdup(ConfigPath);
 }
 
-#ifndef _WIN32
-
-void Socket_Init(void) {}
-void Socket_Final(void) {}
-
-#else
-
-void Socket_Init(void) {
-	WSADATA wsaData;
-
-	WSAStartup(MAKEWORD(1,1), &wsaData);
-}
-
-void Socket_Final(void) {
-	WSACleanup();
-}
-
-#endif
-
 /**
  * main
  *

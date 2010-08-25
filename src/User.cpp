@@ -32,7 +32,7 @@ CTimer *g_ReconnectTimer = NULL;
  */
 CUser::CUser(const char *Name) {
 	char *Out;
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	X509 *Cert;
 	FILE *ClientCert;
 #endif
@@ -89,7 +89,7 @@ CUser::CUser(const char *Name) {
 
 	m_BadLoginPulse = new CTimer(200, true, BadLoginTimer, this);
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	rc = asprintf(&Out, "users/%s.pem", Name);
 
 	if (RcFailed(rc)) {
@@ -145,7 +145,7 @@ CUser::~CUser(void) {
 		m_BadLoginPulse->Destroy();
 	}
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		X509_free(m_ClientCertificates[i]);
 	}
@@ -1577,7 +1577,7 @@ void CUser::SetDropModes(const char *DropModes) {
  * Returns the user's list of client certificates.
  */
 const CVector<X509 *> *CUser::GetClientCertificates(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	return &m_ClientCertificates;
 #else
 	return NULL;
@@ -1592,7 +1592,7 @@ const CVector<X509 *> *CUser::GetClientCertificates(void) const {
  * @param Certificate the certificate
  */
 bool CUser::AddClientCertificate(const X509 *Certificate) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	X509 *DuplicateCertificate;
 
 	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
@@ -1619,7 +1619,7 @@ bool CUser::AddClientCertificate(const X509 *Certificate) {
  * @param Certificate the certificate
  */
 bool CUser::RemoveClientCertificate(const X509 *Certificate) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			X509_free(m_ClientCertificates[i]);
@@ -1634,7 +1634,7 @@ bool CUser::RemoveClientCertificate(const X509 *Certificate) {
 	return false;
 }
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 /**
  * PersistCertificates
  *
@@ -1690,7 +1690,7 @@ bool CUser::PersistCertificates(void) {
  * @param Certificate a certificate
  */
 bool CUser::FindClientCertificate(const X509 *Certificate) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	for (int i = 0; i < m_ClientCertificates.GetLength(); i++) {
 		if (X509_cmp(m_ClientCertificates[i], Certificate) == 0) {
 			return true;
@@ -1707,7 +1707,7 @@ bool CUser::FindClientCertificate(const X509 *Certificate) const {
  * Returns whether the user is using SSL for IRC connections.
  */
 bool CUser::GetSSL(void) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (CacheGetInteger(m_ConfigCache, ssl) != 0) {
 		return true;
 	} else {
@@ -1726,7 +1726,7 @@ bool CUser::GetSSL(void) const {
  * @param SSL a boolean flag
  */
 void CUser::SetSSL(bool SSL) {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (SSL) {
 		CacheSetInteger(m_ConfigCache, ssl, 1);
 	} else {
@@ -1968,7 +1968,7 @@ bool GlobalUserReconnectTimer(time_t Now, void *Null) {
 	int i = 0;
 
 	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-		if (UserHash->Value->ShouldReconnect() && g_Bouncer->GetStatus() == STATUS_RUN) {
+		if (UserHash->Value->ShouldReconnect() && g_Bouncer->GetStatus() == Status_Running) {
 			UserHash->Value->Reconnect();
 
 			break;
@@ -1990,7 +1990,7 @@ void CUser::RescheduleReconnectTimer(void) {
 
 	ReconnectTime = g_ReconnectTimer->GetNextCall();
 
-	if (g_Bouncer->GetStatus() == STATUS_RUN) {
+	if (g_Bouncer->GetStatus() == Status_Running) {
 		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 			if (UserHash->Value->m_ReconnectTime >= g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
 				ReconnectTime = UserHash->Value->m_ReconnectTime;

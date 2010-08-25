@@ -76,22 +76,18 @@
 typedef lt_dlhandle HMODULE;
 #endif /* _WIN32 */
 
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 #	include <openssl/bio.h>
 #	include <openssl/ssl.h>
 #	include <openssl/md5.h>
 #	include <openssl/err.h>
-#else /* USESSL */
-	typedef void SSL;
-	typedef void BIO;
-	typedef void SSL_CTX;
-	typedef void X509;
-	typedef void X509_STORE_CTX;
-#endif /* USESSL */
-
-#if defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6)
-#	define IPV6
-#endif /* defined(HAVE_AF_INET6) && defined(HAVE_STRUCT_IN6_ADDR) && defined(HAVE_STRUCT_SOCKADDR_IN6) */
+#else /* HAVE_LIBSSL */
+typedef void SSL;
+typedef void BIO;
+typedef void SSL_CTX;
+typedef void X509;
+typedef void X509_STORE_CTX;
+#endif /* HAVE_LIBSSL */
 
 #ifndef HAVE_ASPRINTF
 #	include <snprintf.h>
@@ -104,24 +100,6 @@ typedef lt_dlhandle HMODULE;
 
 #	include <ares.h>
 #endif /* SWIG */
-
-#ifdef SBNC
-#	define EXTRA_SECURITY
-
-#	ifdef EXTRA_SECURITY
-#		undef strcpy
-#		define strcpy(dest, src) __undefined_function
-
-#		undef strcat
-#		define strcat(dest, src) __undefined_function
-
-#		undef fscanf
-#		define fscanf __undefined_function
-
-#		undef sprintf
-#		define sprintf __undefined_function
-#	endif /* EXTRA_SECURITY */
-#endif /* SBNC */
 
 #ifdef __cplusplus
 #	include "sbnc.h"

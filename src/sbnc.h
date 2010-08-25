@@ -17,10 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define STATUS_RUN 0
-#define STATUS_SHUTDOWN 1
-#define STATUS_PAUSE 2
-
 bool sbncIsAbsolutePath(const char *Path);
 void sbncPathCanonicalize(char *NewPath, const char *Path);
 const char *sbncBuildPath(const char *Filename, const char *BasePath);

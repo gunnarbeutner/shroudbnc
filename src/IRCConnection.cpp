@@ -513,7 +513,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		free(m_ServerFeat);
 		m_ServerFeat = strdup(argv[5]);
-	} else if (argc > 3 && iRaw	== 5) {
+	} else if (argc > 3 && iRaw == 5) {
 		for (int i = 3; i < argc - 1; i++) {
 			char *Dup = strdup(argv[i]);
 
@@ -1273,7 +1273,7 @@ CFloodControl *CIRCConnection::GetFloodControl(void) {
  * @param In the line
  */
 void CIRCConnection::WriteUnformattedLine(const char *In) {
-	if (!m_Locked && strlen(In) < 512) {
+	if (strlen(In) < 512) {
 		m_QueueMiddle->QueueItem(In);
 	}
 }
@@ -1484,7 +1484,7 @@ const char *CIRCConnection::GetSite(void) {
  * @param Context the X509 context
  */
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
-#ifdef USESSL
+#ifdef HAVE_LIBSSL
 	if (GetOwner()->GetClientConnectionMultiplexer() != NULL) {
 		GetOwner()->GetClientConnectionMultiplexer()->Privmsg(Context->cert->name);
 	}
