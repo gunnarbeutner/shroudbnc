@@ -310,7 +310,7 @@ AC_SUBST([LIBCARES])
 AC_SUBST([CARESINCL])
 
 AC_CHECK_LIB(ws2_32, main, [ build_identd=yes; LIBS+=-lws2_32 ], [ build_identd=no ])
-AC_ARG_ENABLE(identd, [  --disable-identd      disables building the identd module (enabled by default if possible)], [ build_identd=yes ])
+AC_ARG_ENABLE(identd, [  --disable-identd      disables building the identd module (enabled by default if possible)], [ build_identd=$enableval ])
 AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 
 AC_CONFIG_FILES([Makefile \

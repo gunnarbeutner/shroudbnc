@@ -114,7 +114,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 void DeleteCommand(commandlist_t *Commands, const char *Name);
 int CmpCommandT(const void *pA, const void *pB);
 
-#define BNCVERSION "1.3alpha21 $Revision$"
+#define BNCVERSION "1.3alpha22 $Revision$"
 #define INTERFACEVERSION 25
 
 extern const char *g_ErrorFile;
