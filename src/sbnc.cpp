@@ -286,6 +286,8 @@ int main(int argc, char **argv) {
 	Sleep(10000);
 #endif
 
+	sbncGetExePath(); // first call sets exe path in static var
+
 	Daemonize = true;
 	Usage = false;
 	ExplicitConfigDirectory = false;
