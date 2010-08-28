@@ -106,6 +106,42 @@ CDnsQuery::~CDnsQuery(void) {
  * @param Family the address family (AF_INET or AF_INET6)
  */
 void CDnsQuery::GetHostByName(const char *Host, int Family) {
+	struct addrinfo hints = {}, *result;
+
+	hints.ai_flags = AI_NUMERICHOST;
+	hints.ai_family = Family;
+
+	if (getaddrinfo(Host, NULL, &hints, &result) == 0) {
+		struct hostent hent = {};
+		char *Address;
+		char *AddressList[2];
+
+		hent.h_addrtype = result->ai_family;
+		hent.h_length = INADDR_LEN(result->ai_family);
+
+		if (result->ai_family == AF_INET) {
+			Address = (char *)&(((sockaddr_in *)result->ai_addr)->sin_addr);
+		} else if (result->ai_family == AF_INET6) {
+			Address = (char *)&(((sockaddr_in6 *)result->ai_addr)->sin6_addr);
+		} else {
+			m_EventCookie->RefCount++;
+			GenericDnsQueryCallback(m_EventCookie, ARES_EBADNAME, 0, NULL);
+			return;
+		}
+
+		AddressList[0] = Address;
+		AddressList[1] = NULL;
+
+		hent.h_addr_list = AddressList;
+
+		m_EventCookie->RefCount++;
+		GenericDnsQueryCallback(m_EventCookie, ARES_SUCCESS, 0, &hent);
+
+		freeaddrinfo(result);
+
+		return;
+	}
+
 	m_PendingQueries++;
 	m_EventCookie->RefCount++;
 	ares_gethostbyname(m_DnsChannel, Host, Family, GenericDnsQueryCallback, m_EventCookie);

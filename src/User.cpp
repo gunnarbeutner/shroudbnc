@@ -117,6 +117,8 @@ CUser::CUser(const char *Name) {
 	if (IsAdmin()) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
 	}
+
+	m_NetworkUnreachable = false;
 }
 
 /**
