@@ -493,7 +493,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			}
 
 			if (GetOwner()->GetServer() != NULL) {
-				rc = asprintf(&Out, "server - %s:%d", GetOwner()->GetServer(), GetOwner()->GetPort());
+				rc = asprintf(&Out, "server - [%s]:%d", GetOwner()->GetServer(), GetOwner()->GetPort());
 			} else {
 				Out = strdup("server - Not set");
 
