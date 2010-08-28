@@ -469,7 +469,7 @@ const char* internalbinds(void) {
 	return Out;
 }
 
-int putserv(const char* text) {
+int putserv(const char* text, const char *option) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
@@ -480,7 +480,11 @@ int putserv(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->WriteLine("%s", text);
+	if (option != NULL && strcasecmp(option, "-next") == 0) {
+		IRC->GetQueueMiddle()->QueueItemNext(text);
+	} else {
+		IRC->GetQueueMiddle()->QueueItem(text);
+	}
 
 	return 1;
 }
@@ -1309,7 +1313,7 @@ int queuesize(const char* Queue) {
 	return Size;
 }
 
-int puthelp(const char* text) {
+int puthelp(const char* text, const char *option) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
@@ -1320,12 +1324,16 @@ int puthelp(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->GetQueueLow()->QueueItem(text);
+	if (option != NULL && strcasecmp(option, "-next") == 0) {
+		IRC->GetQueueLow()->QueueItemNext(text);
+	} else {
+		IRC->GetQueueLow()->QueueItem(text);
+	}
 
 	return 1;
 }
 
-int putquick(const char* text) {
+int putquick(const char* text, const char *option) {
 	CUser* Context = g_Bouncer->GetUser(g_Context);
 
 	if (Context == NULL)
@@ -1336,7 +1344,11 @@ int putquick(const char* text) {
 	if (!IRC)
 		return 0;
 
-	IRC->GetQueueHigh()->QueueItem(text);
+	if (option != NULL && strcasecmp(option, "-next") == 0) {
+		IRC->GetQueueHigh()->QueueItemNext(text);
+	} else {
+		IRC->GetQueueHigh()->QueueItem(text);
+	}
 
 	return 1;
 }

@@ -191,13 +191,13 @@ const char* getchanhost(const char* Nick, const char* Channel = 0);
 void jump(const char *Server = 0, unsigned int Port = 0, const char *Password = 0);
 void rehash(void);
 void die(void);
-int putserv(const char* text);
+int putserv(const char* text, const char *option = 0);
 int getchanjoin(const char* Nick, const char* Channel);
 int ticklerand(int limit);
 int clearqueue(const char* Queue);
 int queuesize(const char* Queue);
-int puthelp(const char* text);
-int putquick(const char* text);
+int puthelp(const char* text, const char *option = 0);
+int putquick(const char* text, const char *option = 0);
 void putlog(const char* Text);
 char* chanbans(const char* Channel);
 
