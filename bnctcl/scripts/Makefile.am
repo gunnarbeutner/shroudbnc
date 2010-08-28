@@ -21,7 +21,6 @@ tcl.tcl \
 timers.tcl \
 usys.tcl \
 variables.tcl \
-version.tcl \
 vhost.tcl \
 virtual.tcl \
 telnet.tcl \
