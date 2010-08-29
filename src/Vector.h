@@ -32,7 +32,7 @@ typedef enum vector_error_e {
  * A generic list.
  */
 template <typename Type>
-class SBNCAPI CVector {
+class CVector {
 private:
 	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */

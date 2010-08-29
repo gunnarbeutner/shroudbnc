@@ -48,7 +48,7 @@ CListCursor<Type> GetCursorHelper(CList<Type> *List);
  * A linked list.
  */
 template <typename Type>
-class SBNCAPI CList {
+class CList {
 private:
 	link_t<Type> *m_Head; /**< first element */
 	link_t<Type> *m_Tail; /**< last element */

@@ -197,13 +197,18 @@ const char **ArgDupArray(const char **ArgV) {
 
 	Dup = (char **)malloc(Count * sizeof(char *) + Len + 2);
 
+	if (AllocFailed(Dup)) {
+		return NULL;
+	}
+
 	Offset = (char *)Dup + Count * sizeof(char *) - ArgV[0];
 
 	memcpy(Dup, ArgV, Count * sizeof(char *));
 	memcpy((char *)Dup + Count * sizeof(char *), ArgV[0], Len + 2);
 
-	for (int i = 0; i < Count; i++)
+	for (int i = 0; i < Count; i++) {
 		Dup[i] += Offset;
+	}
 
 	return (const char **)Dup;
 }

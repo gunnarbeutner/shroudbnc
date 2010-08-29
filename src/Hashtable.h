@@ -90,7 +90,7 @@ inline unsigned long Hash(const char *String, bool CaseSensitive) {
 }
 
 template<typename Type, bool CaseSensitive>
-class SBNCAPI CHashtable {
+class CHashtable {
 private:
 	hashlist_t<Type> *m_Buckets; /**< used for storing the items of the hashtable */
 	int m_BucketCount; /** bucket count */

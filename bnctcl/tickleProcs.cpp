@@ -2364,17 +2364,17 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 }
 
 const char *bncconfigdir(void) {
-	return sbncGetConfigPath();
+	return g_Bouncer->BuildPathConfig("");
 }
 
 const char *bncmoduledir(void) {
-	return sbncGetModulePath();
+	return g_Bouncer->BuildPathModule("");
 }
 
 const char *bncshareddir(void) {
-	return sbncGetSharedPath();
+    return g_Bouncer->BuildPathShared("");
 }
 
 const char *bncexedir(void) {
-	return sbncGetExePath();
+    return g_Bouncer->BuildPathExe("");
 }
