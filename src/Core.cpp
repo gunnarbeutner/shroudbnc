@@ -332,11 +332,8 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	m_LoadingModules = true;
 
 #ifdef _MSC_VER
-#ifndef _DEBUG
 	LoadModule("bnctcl.dll");
-#else
-	LoadModule("..\\bnctcl\\Debug\\bnctcl.dll");
-#endif
+    LoadModule("identd32.dll");
 #else
 	LoadModule("libbnctcl.la");
 #endif

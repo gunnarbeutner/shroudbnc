@@ -219,4 +219,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ares_build_win32.h">
+      <Filter>Headerdateien</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>

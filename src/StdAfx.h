@@ -17,7 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#include "../config.h"
+#if !defined(_WIN32) || defined(__MINGW32__)
+#   include "../config.h"
+#endif !_WIN32 || __MINGW32__
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4996 )

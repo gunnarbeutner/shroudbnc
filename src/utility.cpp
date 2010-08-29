@@ -444,7 +444,7 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	Code = connect(Socket, Host, Size);
 
 #ifdef _WIN32
-	if (Code != 0 && errno != WSAEWOULDBLOCK) {
+	if (Code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 #else
 	if (Code != 0 && errno != EINPROGRESS) {
 #endif

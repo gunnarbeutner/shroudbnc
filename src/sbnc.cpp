@@ -149,11 +149,7 @@ const char *sbncGetModulePath(void) {
 		return ModulePath;
 	}
 
-#ifdef _WIN32
-	const char *RelativeModulePath = ".";
-#else /* _WIN32 */
 	const char *RelativeModulePath = "../lib/sbnc";
-#endif /* _WIN32 */
 
 	ModulePath = strdup(sbncBuildPath(RelativeModulePath, sbncGetExePath()));
 
@@ -172,11 +168,7 @@ const char *sbncGetSharedPath(void) {
 		return SharedPath;
 	}
 
-#ifdef _WIN32
-	const char *RelativeSharedPath = ".";
-#else /* _WIN32 */
 	const char *RelativeSharedPath = "../share/sbnc";
-#endif /* _WIN32 */
 
 	SharedPath = strdup(sbncBuildPath(RelativeSharedPath, sbncGetExePath()));
 
@@ -281,10 +273,6 @@ int main(int argc, char **argv) {
 
 	g_ArgC = argc;
 	g_ArgV = argv;
-
-#if defined(_WIN32) && defined(_DEBUG)
-	Sleep(10000);
-#endif
 
 	sbncGetExePath(); // first call sets exe path in static var
 
