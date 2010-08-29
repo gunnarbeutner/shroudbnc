@@ -19,7 +19,7 @@
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 #   include "../config.h"
-#endif !_WIN32 || __MINGW32__
+#endif /* !_WIN32 || __MINGW32__ */
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
