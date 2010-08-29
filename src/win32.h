@@ -23,8 +23,8 @@
 // win32 specific header
 
 #define WIN32_LEAN_AND_MEAN 1
-#define _WIN32_WINNT 0x0500
-#define NTDDI_VERSION 0x05000100
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
+#define NTDDI_VERSION NTDDI_WINXP
 
 #ifndef SWIG
 #	include <windows.h>
