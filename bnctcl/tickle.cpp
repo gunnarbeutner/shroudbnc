@@ -117,11 +117,14 @@ class CTclSupport : public CModuleImplementation {
 			FILE *ConfigDistFd = fopen(ConfigDistFile, "rb");
 
 			if (ConfigDistFd == NULL) {
+                ConfigFile = g_Bouncer->BuildPathConfig("sbnc.tcl");
+                unlink(ConfigFile);
+
 				g_Bouncer->Log("Could not open 'sbnc.dist.tcl' file.");
 				g_Bouncer->Fatal();
 			}
 
-			while (!feof(ConfigDistFd) && !ferror(ConfigDistFd)) {
+            while (!feof(ConfigDistFd) && !ferror(ConfigDistFd)) {
 				size_t Count;
 				char Buffer[1024];
 

@@ -3,7 +3,7 @@ BNCTCL_MODULE=bnctcl
 endif
 
 if BUILD_IDENTD_MODULE
-IDENTD_MODULE=identd32
+IDENTD_MODULE=bncidentd
 endif
 
 SUBDIRS=third-party src $(BNCTCL_MODULE) $(IDENTD_MODULE) php

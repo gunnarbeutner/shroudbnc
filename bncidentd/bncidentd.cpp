@@ -29,7 +29,8 @@ CCore *g_Bouncer;
 
 class CIdentClient : public CConnection {
 public:
-	CIdentClient(SOCKET Client) : CConnection(Client) {}
+	CIdentClient(SOCKET Client) : CConnection(Client) {
+	}
 
 	virtual void ParseLine(const char* Line) {
 		if (Line[0] == '\0') {
@@ -168,7 +169,7 @@ public:
 class CIdentModule : public CModuleImplementation {
 	CIdentListener *m_Listener, *m_ListenerV6;
 
-	void Init(CCore *Root) {
+	void Init(CCore* Root) {
 		CModuleImplementation::Init(Root);
 
 		g_Bouncer = Root;
@@ -184,7 +185,7 @@ class CIdentModule : public CModuleImplementation {
 
 		g_Bouncer->Log("Created IPv4 identd listener.");
 
-#ifdef HAVE_IPV6
+#ifdef IPV6
 		m_ListenerV6 = new CIdentListener(AF_INET6);
 
 		if (!m_ListenerV6->IsValid()) {

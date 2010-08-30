@@ -1,6 +1,6 @@
-pkglib_LTLIBRARIES=libidentd.la
-libidentd_la_SOURCES=identd32.cpp
-libidentd_la_LIBADD=${LIBLTDL} ${LIBSNPRINTF}
+pkglib_LTLIBRARIES=libbncidentd.la
+libbncidentd_la_SOURCES=bncidentd.cpp
+libbncidentd_la_LIBADD=${LIBLTDL} ${LIBSNPRINTF}
 
 AM_CXXFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL} ${SNPRINTFINCL} ${CARESINCL}
 AM_CFLAGS=@TCL_INCLUDE_SPEC@ ${LTDLINCL} ${SNPRINTFINCL} ${CARESINCL}

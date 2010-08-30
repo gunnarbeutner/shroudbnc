@@ -142,7 +142,6 @@ int SetPermissions(const char *Filename, int Modes);
 
 void FreeString(char *String);
 
-extern "C" BIO *BIO_new_socket(SOCKET Socket, int CloseFlag);
 void SSL_CTX_set_passwd_cb(SSL_CTX *Context);
 
 #if defined(_DEBUG) && defined(_WIN32)

@@ -333,7 +333,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 
 #ifdef _MSC_VER
 	LoadModule("bnctcl.dll");
-    LoadModule("identd32.dll");
+    LoadModule("bncidentd.dll");
 #else
 	LoadModule("libbnctcl.la");
 #endif

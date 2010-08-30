@@ -48,8 +48,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>CARES_STATICLIB;WIN32;_MBCS;HAVE_IPV6;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>CARES_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -61,8 +61,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>CARES_STATICLIB;WIN32;_MBCS;HAVE_IPV6;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>CARES_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -121,6 +121,8 @@
     <CustomBuild Include="ares_build_win32.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy ares_build_win32.h ares_build.h</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ares_build.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy ares_build_win32.h ares_build.h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ares_build.h</Outputs>
     </CustomBuild>
     <ClInclude Include="ares_config.h" />
     <ClInclude Include="ares_data.h" />

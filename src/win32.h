@@ -31,6 +31,7 @@
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
 #	include <shlwapi.h>
+#   include <shlobj.h>
 #	include <direct.h>
 #	include <io.h>
 #else /* SWIG */

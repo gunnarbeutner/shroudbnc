@@ -17,10 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#ifndef SBNC
-#define SBNC
-#endif
-
 #include "StdAfx.h"
 
 CCore *g_Bouncer = NULL;
@@ -253,7 +249,10 @@ char *sbncFindConfigDir(void) {
 
 	snprintf(ConfigPath, sizeof(ConfigPath), "%s/.sbnc", HomeDir);
 #else
-	strncpy(ConfigPath, ".", sizeof(ConfigPath));
+    TCHAR AppDataLocation[MAX_PATH];
+    SHGetSpecialFolderPath(NULL, AppDataLocation, CSIDL_APPDATA, FALSE);
+
+    snprintf(ConfigPath, sizeof(ConfigPath), "%s\\shroudBNC", AppDataLocation);
 #endif
 
 	return strdup(ConfigPath);
