@@ -36,7 +36,8 @@ extern time_t g_LastReconnect;
  * @param SSL whether to use SSL
  * @param Family socket family (either AF_INET or AF_INET6)
  */
-CIRCConnection::CIRCConnection(const char *Host, unsigned int Port, CUser *Owner, const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
+CIRCConnection::CIRCConnection(const char *Host, unsigned int Port, CUser *Owner,
+		const char *BindIp, bool SSL, int Family) : CConnection(Host, Port, BindIp, SSL, Family) {
 	const char *Ident;
 
 	SetRole(Role_Client);
@@ -246,7 +247,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		}
 
 		/* don't log ctcp requests */
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL && Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL &&
+				Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 &&
+				strcasecmp(Nick, m_CurrentNick) != 0) {
 			char *Dup;
 			char *Delim;
 
@@ -293,7 +296,9 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		Nick = ::NickFromHostmask(Reply);
 
 		/* don't log ctcp replies */
-		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL && Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 && strcasecmp(Nick, m_CurrentNick) != 0) {
+		if (argv[3][0] != '\1' && argv[3][strlen(argv[3]) - 1] != '\1' && Dest != NULL &&
+				Nick != NULL && m_CurrentNick != NULL && strcasecmp(Dest, m_CurrentNick) == 0 &&
+				strcasecmp(Nick, m_CurrentNick) != 0) {
 			GetOwner()->Log("%s (notice): %s", Reply, argv[3]);
 		}
 

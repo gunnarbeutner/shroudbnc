@@ -367,7 +367,8 @@ int main(int argc, char **argv) {
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0 || getgid() == 0 || getegid() == 0) {
-		printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
+		printf("You cannot run shroudBNC as 'root' or using an account which has 'wheel' "
+			"privileges. Use an ordinary user account and remove the suid bit if it is set.\n");
 		return EXIT_FAILURE;
 	}
 

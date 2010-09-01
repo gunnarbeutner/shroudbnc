@@ -166,7 +166,8 @@ public:
 	 * @param Family socket family (AF_INET or AF_INET6)
 	 * @param SSL whether the listener should be using ssl
 	 */
-	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET, bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
+	CClientListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET,
+			bool SSL = false) : CListenerBase<CClientListener>(Port, BindIp, Family) {
 		m_SSL = SSL;
 	}
 

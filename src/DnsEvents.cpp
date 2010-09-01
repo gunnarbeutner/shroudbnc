@@ -170,7 +170,8 @@ void CDnsQuery::GetHostByAddr(sockaddr *Address) {
 
 	m_PendingQueries++;
 	m_EventCookie->RefCount++;
-	ares_gethostbyaddr(m_DnsChannel, IpAddr, INADDR_LEN(Address->sa_family), Address->sa_family, GenericDnsQueryCallback, m_EventCookie);
+	ares_gethostbyaddr(m_DnsChannel, IpAddr, INADDR_LEN(Address->sa_family),
+		Address->sa_family, GenericDnsQueryCallback, m_EventCookie);
 }
 
 /**

@@ -44,7 +44,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_DestroyClientTimer = NULL;
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - Copyright (C) 2005-2007,2010 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
+		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - "
+			"Copyright (C) 2005-2007,2010 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
@@ -1098,12 +1099,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				LastSeen = strSeenTime;
 			}
 
+			CIRCConnection *IRC = User->GetIRCConnection();
+
 			rc = asprintf(&Out, "%s%s%s%s(%s)@%s [%s] [Last seen: %s] :%s",
 				User->IsLocked() ? "!" : "",
 				User->IsAdmin() ? "@" : "",
 				ClientAddr ? "*" : "",
 				User->GetUsername(),
-				User->GetIRCConnection() ? (User->GetIRCConnection()->GetCurrentNick() ? User->GetIRCConnection()->GetCurrentNick() : "<none>") : User->GetNick(),
+				IRC ? (IRC->GetCurrentNick() ? IRC->GetCurrentNick() : "<none>") : User->GetNick(),
 				ClientAddr ? ClientAddr : "",
 				Server ? Server : "",
 				LastSeen,
@@ -1371,7 +1374,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (m_Username != NULL && m_Password != NULL) {
 				ValidateUser();
 			} else if (m_Username != NULL) {
-				WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+				WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a "
+					"password. Use /QUOTE PASS thepassword to supply a password now.");
 			}
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
@@ -1420,7 +1424,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				if (m_Password == NULL && !ValidSSLCert) {
-					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a password. Use /QUOTE PASS thepassword to supply a password now.");
+					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires "
+						"a password. Use /QUOTE PASS thepassword to supply a password now.");
 				}
 			}
 
@@ -1508,7 +1513,8 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			Site = GetOwner()->GetIRCConnection()->GetSite();
 
 			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
-				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(), Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
+				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(),
+					Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 
 				return false;
 			}
@@ -1518,9 +1524,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			for (int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
 					if (Channel == NULL) {
-						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1], Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1],
+							Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 					} else {
-						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :%s", GetOwner()->GetNick(), argv[1], argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :%s",
+							GetOwner()->GetNick(), argv[1], argv[2]);
 					}
 				}
 			}

@@ -244,7 +244,8 @@ class CTclSupport : public CModuleImplementation {
 		CallBinds(Type_UsrDelete, User, NULL, 0, NULL);
 	}
 
-	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source, bool Flip, char Mode, const char* Parameter) {
+	void SingleModeChange(CIRCConnection* IRC, const char* Channel, const char* Source,
+			bool Flip, char Mode, const char* Parameter) {
 		char ModeC[3];
 
 		ModeC[0] = Flip ? '+' : '-';
@@ -290,7 +291,8 @@ class CTclSupport : public CModuleImplementation {
 			commandlist_t *Commands = Client->GetCommandList();
 			Utils = g_Bouncer->GetUtilities();
 
-			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: tcl command\nExecutes the specified tcl command.");
+			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: "
+				"tcl command\nExecutes the specified tcl command.");
 
 			g_Ret = false;
 		}
@@ -316,7 +318,9 @@ class CTclSupport : public CModuleImplementation {
 			Utils->ArgRejoinArray(argvdup, 1);
 
 			g_CurrentClient = Client;
-			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argvdup[1], -1, &dsScript), -1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
+
+			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argvdup[1], -1, &dsScript),
+				-1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
 
 			Utils->ArgFreeArray(argvdup);
 
@@ -517,7 +521,10 @@ int TclChannelSortHandler(const void *p1, const void *p2) {
 	Channels[0] = (*(const CChannel **)p1)->GetName();
 	Channels[1] = (*(const CChannel **)p2)->GetName();
 
-	CallBinds(Type_ChannelSort, (*(const CChannel **)p1)->GetOwner()->GetOwner()->GetUsername(), (*(const CChannel **)p1)->GetOwner()->GetOwner()->GetPrimaryClientConnection(), 2, Channels);
+	CallBinds(Type_ChannelSort,
+		(*(const CChannel **)p1)->GetOwner()->GetOwner()->GetUsername(),
+		(*(const CChannel **)p1)->GetOwner()->GetOwner()->GetPrimaryClientConnection(),
+		2, Channels);
 
 	return g_ChannelSortValue;
 }

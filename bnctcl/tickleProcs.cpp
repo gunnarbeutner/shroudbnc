@@ -971,7 +971,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return List;
 	} else {
-		throw "Type should be one of: server port serverpass client clientcount realname nick awaynick away awaymessage uptime lock admin hasserver hasclient vhost channels tag delayjoin seen quitasaway automodes dropmodes suspendreason ssl sslclient realserver ident tags localip lean memory memorylimit channelsort sessions";
+		throw "Type should be one of: server port serverpass client clientcount "
+			"realname nick awaynick away awaymessage uptime lock admin hasserver "
+			"hasclient vhost channels tag delayjoin seen quitasaway automodes "
+			"dropmodes suspendreason ssl sslclient realserver ident tags localip "
+			"lean memory memorylimit channelsort sessions";
 	}
 }
 
@@ -1031,7 +1035,9 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 	else if (strcmp(Type, "channelsort") == 0)
 		Context->SetChannelSortMode(Value);
 	else
-		throw "Type should be one of: server port serverpass realname nick awaynick away awaymessage lock admin channels tag vhost delayjoin password quitasaway automodes dropmodes suspendreason ident lean channelsort";
+		throw "Type should be one of: server port serverpass realname nick awaynick "
+			"away awaymessage lock admin channels tag vhost delayjoin password "
+			"quitasaway automodes dropmodes suspendreason ident lean channelsort";
 
 	return 1;
 }
@@ -1591,7 +1597,8 @@ void bncjoinchans(const char* User) {
 		Context->GetIRCConnection()->JoinChannels();
 }
 
-int internallisten(unsigned short Port, const char* Type, const char* Options, const char* Flag, bool SSL, const char *BindIp) {
+int internallisten(unsigned short Port, const char* Type, const char* Options,
+		const char* Flag, bool SSL, const char *BindIp) {
 	if (strcasecmp(Type, "script") == 0) {
 		if (Options == NULL)
 			throw "You need to specifiy a control proc.";
@@ -1918,7 +1925,8 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 		return 0;
 
 	for (int i = 0; i < g_TimerCount; i++) {
-		if (g_Timers[i] && strcmp(g_Timers[i]->proc, Proc) == 0 && (!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0)) {
+		if (g_Timers[i] && strcmp(g_Timers[i]->proc, Proc) == 0 &&
+				(!Parameter || !g_Timers[i]->param || strcmp(Parameter, g_Timers[i]->param) == 0)) {
 			g_Timers[i]->timer->Destroy();
 			free(g_Timers[i]->proc);
 			free(g_Timers[i]->param);

@@ -1243,7 +1243,9 @@ void CCore::WritePidFile(void) {
 	if (m_PidFile) {
 #ifndef _WIN32
 		if (flock(fileno(m_PidFile), LOCK_EX | LOCK_NB) < 0) {
-			Log("This config directory is locked by another shroudBNC instance. Remove the 'sbnc.pid' file if you're certain that no other currently running instance of shroudBNC is accessing this config directory.");
+			Log("This config directory is locked by another shroudBNC instance. Remove "
+				"the 'sbnc.pid' file if you're certain that no other currently running "
+				"instance of shroudBNC is accessing this config directory.");
 			Fatal();
 		}
 #endif

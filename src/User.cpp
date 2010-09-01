@@ -664,7 +664,9 @@ bool CUser::ShouldReconnect(void) const {
 		Interval = 25;
 	}
 
-	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime && (IsAdmin() || g_CurrentTime - m_LastReconnect > 120) && g_CurrentTime - g_LastReconnect > Interval && IsQuitted() == 0) {
+	if (m_IRC == NULL && m_ReconnectTime <= g_CurrentTime &&
+			(IsAdmin() || g_CurrentTime - m_LastReconnect > 120) &&
+			g_CurrentTime - g_LastReconnect > Interval && IsQuitted() == 0) {
 		return true;
 	} else {
 		return false;
@@ -890,7 +892,8 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 
 		assert(OldestClient.Client != NULL);
 
-		OldestClient.Client->Kill("Another client logged in. Your client has been disconnected because it was the oldest existing client connection.");
+		OldestClient.Client->Kill("Another client logged in. Your client has been disconnected "
+			"because it was the oldest existing client connection.");
 	}
 
 	Client->SetOwner(this);
@@ -898,7 +901,8 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 	Remote = Client->GetRemoteAddress();
 
 	if (!Silent) {
-		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(), Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(),
+			Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
 	}
@@ -923,7 +927,9 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 			(*Modules)[i]->AttachClient(Client);
 		}
 
-		int rc = asprintf(&Info, "Another client logged in from %s[%s]. The new client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		int rc = asprintf(&Info, "Another client logged in from %s[%s]. The new client "
+			"has been set as the primary client for this account.",
+			Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		if (RcFailed(rc)) {
 			return;
@@ -968,9 +974,11 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 		}
 
 		if (Client->GetQuitReason() != NULL) {
-			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user. (%s)", GetUsername(), m_Clients.GetLength() - 1, Plural, Client->GetQuitReason());
+			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user. (%s)",
+				 GetUsername(), m_Clients.GetLength() - 1, Plural, Client->GetQuitReason());
 		} else {
-			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user.", GetUsername(), m_Clients.GetLength() - 1, Plural);
+			g_Bouncer->Log("User %s logged off. %d remaining client%s for this user.",
+				GetUsername(), m_Clients.GetLength() - 1, Plural);
 		}
 
 		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
@@ -1041,13 +1049,16 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 	Remote = Client->GetRemoteAddress();
 
 	if (!Silent) {
-		rc = asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client has been set as the primary client for this account.", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		rc = asprintf(&InfoPrimary, "Another client logged off from %s[%s]. Your client "
+			"has been set as the primary client for this account.",
+			Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		if (RcFailed(rc)) {
 			return;
 		}
 
-		rc = asprintf(&Info, "Another client logged off from %s[%s].", Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
+		rc = asprintf(&Info, "Another client logged off from %s[%s].",
+			Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
 		if (RcFailed(rc)) {
 			free(Info);
@@ -1994,7 +2005,9 @@ void CUser::RescheduleReconnectTimer(void) {
 
 	if (g_Bouncer->GetStatus() == Status_Running) {
 		while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
-			if (UserHash->Value->m_ReconnectTime >= g_CurrentTime && UserHash->Value->m_ReconnectTime < ReconnectTime && UserHash->Value->GetIRCConnection() == NULL) {
+			if (UserHash->Value->m_ReconnectTime >= g_CurrentTime &&
+					UserHash->Value->m_ReconnectTime < ReconnectTime &&
+					UserHash->Value->GetIRCConnection() == NULL) {
 				ReconnectTime = UserHash->Value->m_ReconnectTime;
 			} else if (UserHash->Value->ShouldReconnect()) {
 				UserHash->Value->Reconnect();
