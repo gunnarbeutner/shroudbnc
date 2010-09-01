@@ -583,6 +583,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					free(Out);
 				}
 			}
+
+			const char *AutoBacklog = GetOwner()->GetAutoBacklog();
+
+			rc = asprintf(&Out, "autobacklog - %s", GetOwner()->GetAutoBacklog() ? GetOwner()->GetAutoBacklog() : "Off");
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
 		} else {
 			if (strcasecmp(argv[1], "server") == 0) {
 				if (argc > 3) {
@@ -684,6 +692,14 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 					GetOwner()->SetSystemNotices(true);
 				} else if (strcasecmp(argv[2], "off") == 0) {
 					GetOwner()->SetSystemNotices(false);
+				} else {
+					SENDUSER("Value must be either 'on' or 'off'.");
+
+					return false;
+				}
+			} else if (strcasecmp(argv[1], "autobacklog") == 0) {
+				if (strcasecmp(argv[2], "on") == 0 || strcasecmp(argv[2], "off") == 0) {
+					GetOwner()->SetAutoBacklog(argv[2]);
 				} else {
 					SENDUSER("Value must be either 'on' or 'off'.");
 

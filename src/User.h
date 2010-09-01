@@ -58,6 +58,7 @@ DEFINE_CACHE(User)
 	DEFINE_OPTION_STRING(ident);
 	DEFINE_OPTION_STRING(awaymessage);
 	DEFINE_OPTION_STRING(channelsort);
+	DEFINE_OPTION_STRING(autobacklog);
 END_DEFINE_CACHE
 
 /**
@@ -290,6 +291,9 @@ public:
 
 	void SetNetworkUnreachable(bool Value);
 	bool GetNetworkUnreachable(void) const;
+
+	void SetAutoBacklog(const char *Value);
+	const char *GetAutoBacklog(void);
 };
 
 #endif /* USER_H */

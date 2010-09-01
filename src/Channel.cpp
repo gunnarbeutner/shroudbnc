@@ -720,7 +720,7 @@ void CChannel::AddBacklogLine(const char *Source, const char *Message) {
 
 	m_BacklogCount++;
 
-	if (m_BacklogCount > 30) {
+	if (m_BacklogCount > 50) {
 		link_t<backlog_t> *Head;
 
 		Head = m_Backlog.GetHead();
@@ -747,6 +747,8 @@ void CChannel::PlayBacklog(CClientConnection *Client) {
 	char strMessageTime[100];
 	tm MessageTm;
 
+	Client->WriteLine("-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** Start of channel log.", m_Name);
+
 	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
 		MessageTm = *localtime(&(BacklogCursor->Time));
 
@@ -758,4 +760,6 @@ void CChannel::PlayBacklog(CClientConnection *Client) {
 
 		Client->WriteLine(":%s PRIVMSG %s :(%s) %s", BacklogCursor->Source, m_Name, strMessageTime, BacklogCursor->Message);
 	}
+
+	Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** End of channel log.", m_Name);
 }

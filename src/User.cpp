@@ -350,6 +350,10 @@ void CUser::Attach(CClientConnection *Client) {
 					Client->ParseLine(Out);
 					free(Out);
 				}
+
+				if (GetAutoBacklog() != NULL && strcasecmp(GetAutoBacklog(), "off") != 0) {
+					Channels[i]->PlayBacklog(Client);
+				}
 			}
 
 			free(Channels);
@@ -2046,3 +2050,10 @@ bool CUser::GetNetworkUnreachable(void) const {
 	return m_NetworkUnreachable;
 }
 
+void CUser::SetAutoBacklog(const char *Value) {
+	CacheSetString(m_ConfigCache, autobacklog, Value);
+}
+
+const char *CUser::GetAutoBacklog(void) {
+	return CacheGetString(m_ConfigCache, autobacklog);
+}
