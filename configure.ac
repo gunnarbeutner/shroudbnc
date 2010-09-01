@@ -325,7 +325,7 @@ AM_CONDITIONAL([BUILD_IDENTD_MODULE], [test "$build_identd" = yes])
 AC_CONFIG_FILES([Makefile \
                  bnctcl/Makefile \
                  bnctcl/scripts/Makefile \
-                 identd32/Makefile \
+                 bncidentd/Makefile \
                  php/Makefile \
                  src/Makefile
                  third-party/Makefile \
