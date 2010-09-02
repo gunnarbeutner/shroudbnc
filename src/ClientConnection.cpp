@@ -1521,6 +1521,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 		} else if (argc > 2 && strcasecmp(Command, "privmsg") == 0) {
 			CVector<client_t> *Clients = GetOwner()->GetClientConnections();
 			const char *Site;
+			char *Hostmask;
 
 			if (GetOwner()->GetIRCConnection() == NULL) {
 				return false;
@@ -1528,14 +1529,24 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 			Site = GetOwner()->GetIRCConnection()->GetSite();
 
+			rc = asprintf(&Hostmask, "%s!%s", GetOwner()->GetNick(), Site ? Site : "unknown@unknown.host");
+
+			if (RcFailed(rc)) {
+				free(Hostmask);
+
+				return false;
+			}
+
 			if (strcasecmp(GetOwner()->GetNick(), argv[1]) == 0) {
-				WriteLine(":%s!%s PRIVMSG %s :%s", GetOwner()->GetNick(),
-					Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
+				WriteLine(":%s PRIVMSG %s :%s", Hostmask, GetOwner()->GetNick(), argv[2]);
+				free(Hostmask);
 
 				return false;
 			}
 
 			CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
+
+			Channel->AddBacklogLine(Hostmask, argv[2]);
 
 			for (int i = 0; i < Clients->GetLength(); i++) {
 				if ((*Clients)[i].Client != this) {
@@ -1543,11 +1554,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						(*Clients)[i].Client->WriteLine(":%s!%s PRIVMSG %s :-> %s", argv[1],
 							Site ? Site : "unknown@unknown.host", GetOwner()->GetNick(), argv[2]);
 					} else {
-						(*Clients)[i].Client->WriteLine(":%s!unknown@host PRIVMSG %s :%s",
-							GetOwner()->GetNick(), argv[1], argv[2]);
+						(*Clients)[i].Client->WriteLine(":%s PRIVMSG %s :%s", Hostmask, argv[1], argv[2]);
 					}
 				}
 			}
+
+			free(Hostmask);
 		} else if (argc > 2 && strcasecmp(Command, "notice") == 0) {
 			const char *Site;
 
