@@ -1,6 +1,5 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id$
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -229,7 +228,7 @@ int main(int argc, char **argv)
           break;
 
         case 's':
-          /* User specified name servers override default ones. */
+          /* User-specified name servers override default ones. */
           srvr = malloc(sizeof(struct ares_addr_node));
           if (!srvr)
             {
@@ -276,7 +275,7 @@ int main(int argc, char **argv)
            * When alternative name servers have been specified these are set
            * later calling ares_set_servers() overriding any existing server
            * configuration. To prevent initial configuration with default
-           * servers that will be discarded later ARES_OPT_SERVERS is set.
+           * servers that will be discarded later, ARES_OPT_SERVERS is set.
            * If this flag is not set here the result shall be the same but
            * ares_init_options() will do needless work. */
           optmask |= ARES_OPT_SERVERS;

@@ -1,4 +1,3 @@
-/* $Id$ */
 
 /* Copyright 1998, 2009 by the Massachusetts Institute of Technology.
  * Copyright (C) 2007-2010 by Daniel Stenberg
@@ -434,6 +433,12 @@ struct ares_srv_reply {
   unsigned short          port;
 };
 
+struct ares_mx_reply {
+  struct ares_mx_reply   *next;
+  char                   *host;
+  unsigned short          priority;
+};
+
 struct ares_txt_reply {
   struct ares_txt_reply  *next;
   unsigned char          *txt;
@@ -474,6 +479,10 @@ CARES_EXTERN int ares_parse_ns_reply(const unsigned char *abuf,
 CARES_EXTERN int ares_parse_srv_reply(const unsigned char* abuf,
                                       int alen,
                                       struct ares_srv_reply** srv_out);
+
+CARES_EXTERN int ares_parse_mx_reply(const unsigned char* abuf,
+                                      int alen,
+                                      struct ares_mx_reply** mx_out);
 
 CARES_EXTERN int ares_parse_txt_reply(const unsigned char* abuf,
                                       int alen,
