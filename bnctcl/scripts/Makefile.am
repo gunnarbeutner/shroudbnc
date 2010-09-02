@@ -13,7 +13,7 @@ misc.tcl \
 namespace.tcl \
 partyline.tcl \
 pushmode.tcl \
-qauth.tcl \
+auth.tcl \
 sbnc.tcl.dist \
 socket.tcl \
 stubs.tcl \
