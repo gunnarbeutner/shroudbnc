@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-set ::lock_lockable_settings [list password vhost server port serverpass realname awaynick away awaymessage usequitasaway ssl automodes dropmodes]
+set ::lock_lockable_settings [list password vhost server port serverpass realname awaynick away awaymessage usequitasaway ssl automodes dropmodes autobacklog]
 
 internalbind command lock:command
 

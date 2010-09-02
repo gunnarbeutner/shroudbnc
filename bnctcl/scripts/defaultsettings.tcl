@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-set ::defaultsettings_settings [list default-server default-ssl default-serverpass default-realname default-awaynick default-away default-awaymessage default-usequitasaway default-automodes default-dropmodes]
+set ::defaultsettings_settings [list default-server default-ssl default-serverpass default-realname default-awaynick default-away default-awaymessage default-usequitasaway default-automodes default-dropmodes default-autobacklog]
 
 internalbind usrcreate defaultsettings:applydefaultsettings
 internalbind command defaultsettings:command
