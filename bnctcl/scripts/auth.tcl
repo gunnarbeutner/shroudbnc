@@ -25,7 +25,7 @@ internalbind svrlogon auth:logon
 #
 proc auth:ison {client params} {
 	if {[string equal -nocase [lindex $params 3] "NickServ"]} {
-		set ::sbnc_auth([string tolower $client],nickserv) 1
+		set [getns]::sbnc_nickserv 1
 		killtimer [timerexists [list sbnc:multi:command [list "internalunbind server auth:server NOTICE $client" "internalunbind server auth:server PRIVMSG $client"]]]
 		internalunbind server auth:ison 303 $client
 		haltoutput
@@ -49,8 +49,8 @@ proc auth:cleanup {client} {
 #
 proc auth:logon {client} {
 	auth:cleanup $client
-	if {[info exists ::sbnc_auth([string tolower $client],nickserv)]} {
-		unset ::sbnc_auth([string tolower $client],nickserv)
+	if {[info exists [getns]::sbnc_nickserv]} {
+		unset [getns]::sbnc_nickserv
 	}
 	set authuser [getbncuser $client tag authuser]
 	set authpass [getbncuser $client tag authpass]
@@ -146,7 +146,7 @@ proc auth:server {client params} {
 	# NickServ
 	#	
 	if {[string equal -nocase [lindex [split $host "!"] 0] "NickServ"]} {
-		set ::sbnc_auth([string tolower $client],nickserv) 1
+		set [getns]::sbnc_nickserv 1
 		if {[string match -nocase [getbncuser $client tag authphrase] $msg]} {
 			if {[string equal -nocase [getbncuser $client tag authuser] $::botnick] && ![string equal -nocase [getbncuser $client tag authpass] ""] && [string equal -nocase [getbncuser $client tag auth] "on"]} { 
 				putquick "NICKSERV identify [getbncuser $client tag authpass]"
@@ -174,7 +174,7 @@ proc auth:help {client} {
 	} else {
 		set auth "off"
 	}
-	if {[info exists ::sbnc_auth([string tolower $client],nickserv)]} {
+	if {[info exists [getns]::sbnc_nickserv]} {
 		if {![string equal -nocase [getbncuser $client tag authphrase] ""]} {
 			set authphrase [getbncuser $client tag authphrase]
 		} else {
@@ -237,7 +237,7 @@ proc auth:commands {client params} {
 					}	
 				}
 				"authphrase" {
-					if {[info exists ::sbnc_auth([string tolower $client],nickserv)]} {
+					if {[info exists [getns]::sbnc_nickserv]} {
 						set text [join [lrange $params 2 end] " "]
 						if {![string equal -nocase $text ""] && [string length $text] > 7} {
 							setbncuser $client tag authphrase $text
