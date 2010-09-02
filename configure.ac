@@ -304,7 +304,16 @@ AC_ARG_ENABLE(ssl, [  --disable-ssl           disables SSL support (enabled by d
 
 AM_CONDITIONAL([BUILD_WITH_SSL], [test "$build_with_ssl" = yes])
 
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <ares.h>]], []), [ builtin_cares=no ], [ builtin_cares=yes ])
+# Make sure we have a sufficiently recent version of c-ares (by checking
+# whether ares_library_init() is available) because older versions
+# are broken when it comes to IPv6/PF_UNSPEC lookups - which causes
+# unnecessary timeouts while trying to connect to IRC servers.
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <ares.h>]],
+  [
+#if (ARES_VERSION < 0x010700)
+#error "Your version of c-ares is too old."
+#endif
+]), [ builtin_cares=no ], [ builtin_cares=yes ])
 AM_CONDITIONAL([USE_BUILTIN_CARES], [test "$builtin_cares" = yes])
 
 if test "$builtin_cares" = yes; then

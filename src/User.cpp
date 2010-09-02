@@ -392,10 +392,10 @@ void CUser::Attach(CClientConnection *Client) {
 
 	if (m_IRC == NULL) {
 		if (GetServer() == NULL) {
-			Client->Privmsg("You haven't set an IRC server yet. Use /sbnc set server <Hostname> <Port> to do that now.");
-			Client->Privmsg("Use /sbnc help to see a list of available commands.");
+			Client->Privmsg("You haven't set an IRC server yet. Use /msg -sBNC set server <Hostname> <Port> to do that now.");
+			Client->Privmsg("Use /msg -sBNC help to see a list of available commands.");
 		} else if (IsQuitted() == 2) {
-			Client->Privmsg("You are not connected to an irc server. Use /sbnc jump to reconnect now.");
+			Client->Privmsg("You are not connected to an irc server. Use /msg -sBNC jump to reconnect now.");
 		}
 	}
 
@@ -813,6 +813,10 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		WasNull = true;
 	} else {
 		WasNull = false;
+
+		if (m_IRC->GetState() == State_Connecting) {
+			SetNetworkUnreachable(true);
+		}
 
 		m_IRC->SetOwner(NULL);
 	}
