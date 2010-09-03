@@ -1547,7 +1547,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
 
 			if (Channel != NULL) {
-				Channel->AddBacklog(Hostmask, argv[2]);
+				Channel->AddBacklogLine(Hostmask, argv[2]);
 			}
 
 			for (int i = 0; i < Clients->GetLength(); i++) {
