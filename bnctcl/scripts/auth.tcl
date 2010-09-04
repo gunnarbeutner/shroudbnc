@@ -55,8 +55,8 @@ proc auth:logon {client} {
 	set authuser [getbncuser $client tag authuser]
 	set authpass [getbncuser $client tag authpass]
 	set auth [getbncuser $client tag auth]
-	switch -nocase -- [getisupport network] {
-		"QuakeNet" {
+	switch -- [string tolower [getisupport network]] {
+		"quakenet" {
 			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				if {![llength $::qauth_supported_algorithms]} {
 					putquick "PRIVMSG Q@CServe.QuakeNet.Org :AUTH $authuser $authpass"
@@ -68,12 +68,12 @@ proc auth:logon {client} {
 				}
 			}			
 		}
-		"GameSurge" {
+		"gamesurge" {
 			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				putquick "AUTHSERV auth $authuser $authpass"
 			}
 		}	
-		"UnderNet" {
+		"undernet" {
 			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				putquick "PRIVMSG X@channels.undernet.org :login $authuser $authpass"
 			}		
