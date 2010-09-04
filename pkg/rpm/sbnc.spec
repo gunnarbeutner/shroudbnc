@@ -22,7 +22,7 @@ multiple users. Using TCL scripts it can be extended.
 
 %build
 ./configure --prefix=/usr --enable-tcl --enable-ssl --enable-ipv6 --disable-identd
-make all
+make %{?_smp_mflags} all
 
 %install
 make DESTDIR=$RPM_BUILD_ROOT install
