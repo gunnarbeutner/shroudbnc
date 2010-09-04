@@ -1,6 +1,7 @@
 scriptsdir=$(datadir)/sbnc/scripts
 scripts_DATA=account.tcl \
 alltools.tcl \
+auth.tcl \
 bind.tcl \
 botnet.tcl \
 channel.tcl \
@@ -13,7 +14,7 @@ misc.tcl \
 namespace.tcl \
 partyline.tcl \
 pushmode.tcl \
-auth.tcl \
+qauth.tcl \
 sbnc.tcl.dist \
 socket.tcl \
 stubs.tcl \
