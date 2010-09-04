@@ -8,7 +8,7 @@ endif
 
 SUBDIRS=third-party src $(BNCTCL_MODULE) $(IDENTD_MODULE) php
 
-EXTRA_DIST=aclocal.m4 tcl.m4 ssl.conf LICENSE LICENSE.Exceptions README README.ssl README.motd README.lean README.settings README.iface2 sbnc-start
+EXTRA_DIST=aclocal.m4 tcl.m4 ssl.conf LICENSE LICENSE.Exceptions README README.ssl README.motd README.lean README.settings README.iface2 sbnc-start sbnc_version.h
 
 ACLOCAL_AMFLAGS=-I m4
 

@@ -2,15 +2,24 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([shroudbnc], [1.3beta3], [gunnar@beutner.name])
+AC_INIT([shroudbnc], [1.3], [gunnar@beutner.name])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
 
 AM_INIT_AUTOMAKE([shroudbnc], [$PACKAGE_VERSION])
 AM_CONFIG_HEADER([config.h])
 
+dnl SED is mandatory for configure process and libtool.
+dnl Set it now, allowing it to be changed later.
+AC_PATH_PROG([SED], [sed], [not_found],
+  [$PATH:/usr/bin:/usr/local/bin])
+if test -z "$SED" || test "$SED" = "not_found"; then
+  AC_MSG_ERROR([sed not found in PATH. Cannot continue without sed.])
+fi
+AC_SUBST([SED])
+
 PACKAGE=sbnc
-VERSION=$PACKAGE_VERSION
+VERSION=`$SED -ne 's/^#define SBNC_VERSION "\(.*\)"/\1/p' sbnc_version.h`
 
 AC_PREFIX_DEFAULT([\${HOME}/sbnc])
 

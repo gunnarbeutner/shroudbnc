@@ -21,6 +21,8 @@
 #   include "../config.h"
 #endif /* !_WIN32 || __MINGW32__ */
 
+#include "../sbnc_version.h"
+
 #ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
 
