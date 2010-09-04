@@ -57,7 +57,7 @@ proc auth:logon {client} {
 	set auth [getbncuser $client tag auth]
 	switch -nocase -- [getisupport network] {
 		"QuakeNet" {
-			if {![string equal -nocase $authuser ""] && ![string equal -nocase $authpass ""] && [string equal -nocase $auth "on"]} { 
+			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				if {![llength $::qauth_supported_algorithms]} {
 					putquick "PRIVMSG Q@CServe.QuakeNet.Org :AUTH $authuser $authpass"
 					
@@ -69,12 +69,12 @@ proc auth:logon {client} {
 			}			
 		}
 		"GameSurge" {
-			if {![string equal -nocase $authuser ""] && ![string equal -nocase $authpass ""] && [string equal -nocase $auth "on"]} { 
+			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				putquick "AUTHSERV auth $authuser $authpass"
 			}
 		}	
 		"UnderNet" {
-			if {![string equal -nocase $authuser ""] && ![string equal -nocase $authpass ""] && [string equal -nocase $auth "on"]} { 
+			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
 				putquick "PRIVMSG X@channels.undernet.org :login $authuser $authpass"
 			}		
 		}
@@ -148,7 +148,7 @@ proc auth:server {client params} {
 	if {[string equal -nocase [lindex [split $host "!"] 0] "NickServ"]} {
 		set [getns]::sbnc_nickserv 1
 		if {[string match -nocase [getbncuser $client tag authphrase] $msg]} {
-			if {[string equal -nocase [getbncuser $client tag authuser] $::botnick] && ![string equal -nocase [getbncuser $client tag authpass] ""] && [string equal -nocase [getbncuser $client tag auth] "on"]} { 
+			if {[string equal -nocase [getbncuser $client tag authuser] $::botnick] && [getbncuser $client tag authpass] != "" && [string equal -nocase [getbncuser $client tag auth] "on"]} { 
 				putquick "NICKSERV identify [getbncuser $client tag authpass]"
 			}
 		}
@@ -159,23 +159,26 @@ proc auth:server {client params} {
 # outputs auth info during "set"
 #
 proc auth:help {client} {
-	if {![string equal -nocase [getbncuser $client tag authuser] ""]} {
+	if {[getbncuser $client tag authuser] != ""} {
 		set authuser [getbncuser $client tag authuser]
 	} else {
 		set authuser "Not set"
 	}
-	if {![string equal -nocase [getbncuser $client tag authpass] ""]} {
+
+	if {[getbncuser $client tag authpass] != ""} {
 		set authpass "Set"
 	} else {
 		set authpass "Not set"
 	}
+
 	if {[string equal -nocase [getbncuser $client tag auth] "on"]} {
 		set auth "on"
 	} else {
 		set auth "off"
 	}
+
 	if {[info exists [getns]::sbnc_nickserv]} {
-		if {![string equal -nocase [getbncuser $client tag authphrase] ""]} {
+		if {[getbncuser $client tag authphrase] != ""} {
 			set authphrase [getbncuser $client tag authphrase]
 		} else {
 			set authphrase "Not set"
@@ -197,7 +200,7 @@ proc auth:commands {client params} {
 		bncaddcommand authmanual "User" "Manually authenticates to a server's Authentication Service"
 	}
 	if {[string equal -nocase "authmanual" [lindex $params 0]]} {
-		if {![string equal -nocase [getbncuser $client tag authuser] ""] && ![string equal -nocase [getbncuser $client tag authpass] ""] && [string equal -nocase [getbncuser $client tag auth] "on"]} {
+		if {[getbncuser $client tag authuser] != "" && [getbncuser $client tag authpass] != "" && [string equal -nocase [getbncuser $client tag auth] "on"]} {
 			auth:logon $client
 			bncreply "Manually triggered authing"
 			haltoutput
@@ -222,11 +225,11 @@ proc auth:commands {client params} {
 					haltoutput
 				}
 				"auth" {
-					if {![string equal -nocase [getbncuser $client tag authuser] ""] && ![string equal -nocase [getbncuser $client tag authpass] ""]} {
-						if {![string equal -nocase [lindex $params 2] "on"] && ![string equal -nocase [lindex $params 2] "off"]} {
+					if {([getbncuser $client tag authuser] != "" && [getbncuser $client tag authpass] != "") || [lindex $params 2] == ""} {
+						if {![string equal -nocase [lindex $params 2] "on"] && ![string equal -nocase [lindex $params 2] "off"] && [lindex $params 2] != ""} {
 							bncreply "Value should be either 'on' or 'off'."
 							haltoutput
-						} {
+						} else {
 							setbncuser $client tag auth [lindex $params 2]
 							bncreply "Done."
 							haltoutput
@@ -239,7 +242,7 @@ proc auth:commands {client params} {
 				"authphrase" {
 					if {[info exists [getns]::sbnc_nickserv]} {
 						set text [join [lrange $params 2 end] " "]
-						if {![string equal -nocase $text ""] && [string length $text] > 7} {
+						if {$text != "" && [string length $text] > 7} {
 							setbncuser $client tag authphrase $text
 							bncreply "Done."
 							haltoutput						
