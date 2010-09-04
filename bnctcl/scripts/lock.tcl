@@ -256,7 +256,7 @@ proc lock:iface_setuserlock {account setting} {
 	if {[lock:setuserlock $account $setting]} {
 		return ""
 	} else {
-		return -code error "You cannot lock this setting."
+		return -code error "Invalid setting for a lock, no changes applied."
 	}
 }
 
@@ -272,7 +272,7 @@ proc lock:iface_unsetuserlock {account setting} {
 	if {[lock:unsetuserlock $account $setting]} {
 		return ""
 	} else {
-		return -code error "You cannot unlock this setting."
+		return -code error "Setting was not locked specifically for this account, no changes applied."
 	}
 }
 
