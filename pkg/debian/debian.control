@@ -3,6 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Gunnar Beutner <gunnar@beutner.name>
 Build-Depends: debhelper (>= 4.1.16), automake, autotools-dev, libc-ares-dev, libltdl3-dev, libssl-dev, tcl8.5-dev
+Recommends: oidentd
 
 Package: sbnc
 Architecture: any
