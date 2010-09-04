@@ -2,15 +2,15 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(shroudbnc, 1.3, gunnar@beutner.name)
+AC_INIT([shroudbnc], [1.3beta3], [gunnar@beutner.name])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
 
-AM_INIT_AUTOMAKE(shroudbnc, 1.3)
-AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE([shroudbnc], [$PACKAGE_VERSION])
+AM_CONFIG_HEADER([config.h])
 
 PACKAGE=sbnc
-VERSION=1.3
+VERSION=$PACKAGE_VERSION
 
 AC_PREFIX_DEFAULT([\${HOME}/sbnc])
 
