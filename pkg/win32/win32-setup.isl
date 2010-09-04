@@ -560,7 +560,7 @@
 		<row><td>LicenseAgreement</td><td>DlgLine</td><td>Line</td><td>48</td><td>234</td><td>326</td><td>0</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>DlgTitle</td><td>Text</td><td>13</td><td>6</td><td>292</td><td>25</td><td>65539</td><td/><td>##IDS__IsLicenseDlg_LicenseAgreement##</td><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>PushButton</td><td>301</td><td>188</td><td>65</td><td>17</td><td>3</td><td/><td>##IDS_PRINT_BUTTON##</td><td>Agree</td><td/><td>0</td><td/><td/><td/></row>
-		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\win32-setup\gpl.rtf</td><td/></row>
+		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\pkg\win32\gpl.rtf</td><td/></row>
 		<row><td>LicenseAgreement</td><td>Next</td><td>PushButton</td><td>230</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_NEXT##</td><td>Cancel</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>PushButton</td><td>164</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_BACK##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Banner</td><td>Bitmap</td><td>0</td><td>0</td><td>374</td><td>44</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td>NewBinary1</td></row>
@@ -3921,7 +3921,6 @@
 		<row><td>ID_STRING2</td><td>1033</td><td>http://www.shroudbnc.info/</td><td>0</td><td/><td>-199318092</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Gunnar Beutner</td><td>0</td><td/><td>-199334476</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>http://www.shroudbnc.info/Support.aspx</td><td>0</td><td/><td>-199301612</td></row>
-		<row><td>ID_STRING5</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>-199330507</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614388655</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614341583</td></row>
 		<row><td>ID_STRING9</td><td>1033</td><td>Uninstall</td><td>0</td><td/><td>614345679</td></row>
@@ -4027,18 +4026,20 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\setupicon.ico</td><td>0</td></row>
-		<row><td>NewShortcut1_8C545BD9781545A984F04A2B842C21F5.exe</td><td/><td>\sbnc.Primäre Ausgabe</td><td>0</td></row>
 		<row><td>NewShortcut4_FD80E7E3AE22498786DBA58438993981.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2010LE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 		<row><td>_0180C61F063447389FF543EAC51116F2.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_06ACB60D82F44FFCA9B82449B31091D7.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_0ACC70B3BB6943818DEC25447A17B2E1.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_18E1B77BA7EE491098A0352DFDC5FE14.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_1F05BB0F92E44BE79CC6522BFD6B2E56.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_246A0353DF6E43B88F0AE164887ED5B5.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_28B8996E964249188E12FA7C658663EB.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_28FC9DD20BD74117A059F5127E0B6942.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_2E0B95ADD23648318E95A085228A8FB9.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_38116CDF5BD74FAAAD444B0AB6C0F475.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_39D5BA81CBB4494F9FC94E7D12DA3ADC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_3CD7562AA075477188BB44EE82ABC41E.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_400BCD63972E4B98A4A07841E5DC96BC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_4D630EFE472C42338F147C72FB589E2D.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_501F139DD0ED4109B53222C862C35F1B.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_50F94E2418144B5888C36F1B17BF8ADF.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
@@ -4046,7 +4047,10 @@
 		<row><td>_5875055A3F9E49369028CF74CA2993D5.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_6565D5F2CFE140DDA335E4A93BADDEFA.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_66C4225077684168979E52FBD7A3CE4C.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_6818B27EBF6B4DD698DA0C861DEE5A57.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_6A5599807B9D4BB8AAE7B7FE98B1BA92.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_6D001F5AC31B44AF82B71AE077E6D1C0.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_743B7CD187F642E7AD469F9862BDA90F.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_7A9033491E5149D79D914A5B67A0994D.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_8017BE59E7D24F32B2154B9CDD66AE12.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_81905AA5A3CB4840A488392116918389.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
@@ -4056,13 +4060,16 @@
 		<row><td>_A7015E2679A1411BBC1A0E26620EFB3C.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_C0C23970FA46472E986435A85E788F85.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_C291F6E06490453C918075BA27F3102E.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_CBBA8D383C784BFB938B3868D6531D53.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_CD6D11E9CBF04CD7BF999F6C9FC3E9F9.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_D0A5AA7992DE45FF812B8A47EB33CF11.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_D50C3716FF2E44BFB0FC03383A58EA4A.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_E58F97131FDE4C7999E94529DEB333FC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_EB7F7805A0C741FEBB04BEEFE63E4738.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_EBD43C9C782F4C179F7E4E3472AEB6AB.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_F07952182633480EBA6AB88E8A6BFF47.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_F1950E4365EF4086976720EEE63172AE.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_F303C394E1E54BB1A2ED817851336F8A.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_F6D68807FDB9476F86A897099CBF5A18.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 	</table>
 
@@ -4734,7 +4741,6 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>NewShortcut1</td><td>ProgramMenuFolder</td><td>##ID_STRING5##</td><td>sbnc.Prim_re_Ausgabe</td><td>AlwaysInstall</td><td/><td/><td/><td>NewShortcut1_8C545BD9781545A984F04A2B842C21F5.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>newfolder1</td><td>##ID_STRING6##</td><td>sbnc.Prim_re_Ausgabe</td><td>AlwaysInstall</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut4</td><td>newfolder1</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT6</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td/><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
