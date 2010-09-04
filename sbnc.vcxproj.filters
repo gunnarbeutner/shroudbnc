@@ -208,7 +208,7 @@
     <None Include="GPLHeader.txt" />
     <None Include="README" />
     <None Include="safe-analysis.txt" />
-    <None Include="appicon.ico">
+    <None Include="src\appicon.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -216,7 +216,7 @@
     <CustomBuildStep Include="CHANGELOG" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="sbnc.rc">
+    <ResourceCompile Include="src\sbnc.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -46,11 +46,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="commands.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="tickleProcs.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="commands.txt" />
   </ItemGroup>
 </Project>

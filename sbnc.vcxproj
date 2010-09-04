@@ -225,13 +225,13 @@
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </CustomBuildStep>
-    <None Include="appicon.ico" />
     <None Include="GPLHeader.txt" />
     <None Include="README" />
     <None Include="safe-analysis.txt" />
+    <None Include="src\appicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="sbnc.rc" />
+    <ResourceCompile Include="src\sbnc.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -346,6 +346,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{2206C767-3A4A-4738-A324-2AF4E807B99A}</td><td>SBNC</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{270EB6B6-4868-4536-A105-55D0539C308E}</td><td>SBNC1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{DF55FB3B-4B2F-4A6E-9A30-B354A3E3FED6}</td><td>SCRIPTS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{DFB4CE50-1AD4-4565-ABCE-6049ACB32156}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>bncidentd.Prim_re_Ausgabe</td><td>{7308CE96-2D9F-4CC3-B523-D1973F6D937A}</td><td>SBNC1</td><td>2</td><td/><td>bncidentd.prim_re_ausgabe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>bnctcl.Prim_re_Ausgabe</td><td>{1FD8C2DC-E8B9-4EA9-AAB7-E1786AD33A11}</td><td>SBNC1</td><td>2</td><td/><td>bnctcl.prim_re_ausgabe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sbnc.Prim_re_Ausgabe</td><td>{28A2CE55-5C5D-42D1-B378-3B3CF4035C05}</td><td>BIN</td><td>2</td><td/><td>sbnc.prim_re_ausgabe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1058,6 +1059,7 @@
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
 		<row><td>BIN</td><td>ISX_DEFAULTCOMPONENT</td></row>
+		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT6</td></row>
 		<row><td>LIB</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>SBNC</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>SBNC1</td><td>ISX_DEFAULTCOMPONENT4</td></row>
@@ -1180,6 +1182,7 @@
 		<row><td>USERPROFILE</td><td>TARGETDIR</td><td>.:USERPR~1|UserProfile</td><td/><td>0</td><td/></row>
 		<row><td>WindowsFolder</td><td>TARGETDIR</td><td>.:Windows</td><td/><td>0</td><td/></row>
 		<row><td>WindowsVolume</td><td>TARGETDIR</td><td>.:WinRoot</td><td/><td>0</td><td/></row>
+		<row><td>newfolder1</td><td>ProgramMenuFolder</td><td>##ID_STRING8##</td><td/><td>1</td><td/></row>
 	</table>
 
 	<table name="DrLocator">
@@ -1878,6 +1881,7 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
 		<row><td>AlwaysInstall</td><td>bncidentd.Prim_re_Ausgabe</td></row>
 		<row><td>AlwaysInstall</td><td>bnctcl.Prim_re_Ausgabe</td></row>
 		<row><td>AlwaysInstall</td><td>sbnc.Prim_re_Ausgabe</td></row>
@@ -1897,6 +1901,7 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>account.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>account.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\account.tcl</td><td>1</td><td/></row>
 		<row><td>alltools.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>alltools.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\alltools.tcl</td><td>1</td><td/></row>
+		<row><td>auth.tcl</td><td>ISX_DEFAULTCOMPONENT5</td><td>auth.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\auth.tcl</td><td>1</td><td/></row>
 		<row><td>bind.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>bind.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\bind.tcl</td><td>1</td><td/></row>
 		<row><td>bncidentd.prim_re_ausgabe</td><td>bncidentd.Prim_re_Ausgabe</td><td>bncidentd.Primäre Ausgabe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;bncidentd&gt;|Built</td><td>3</td><td/></row>
 		<row><td>bnctcl.prim_re_ausgabe</td><td>bnctcl.Prim_re_Ausgabe</td><td>bnctcl.Primäre Ausgabe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;bnctcl&gt;|Built</td><td>3</td><td/></row>
@@ -1913,7 +1918,6 @@
 		<row><td>namespace.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>NAMESP~1.TCL|namespace.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\namespace.tcl</td><td>1</td><td/></row>
 		<row><td>partyline.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>PARTYL~1.TCL|partyline.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\partyline.tcl</td><td>1</td><td/></row>
 		<row><td>pushmode.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>pushmode.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\pushmode.tcl</td><td>1</td><td/></row>
-		<row><td>qauth.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>qauth.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\qauth.tcl</td><td>1</td><td/></row>
 		<row><td>sbnc.prim_re_ausgabe</td><td>sbnc.Prim_re_Ausgabe</td><td>sbnc.Primäre Ausgabe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;sbnc&gt;|Built</td><td>3</td><td/></row>
 		<row><td>sbnc.tcl.dist2</td><td>ISX_DEFAULTCOMPONENT5</td><td>SBNCTC~1.DIS|sbnc.tcl.dist</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\sbnc.tcl.dist</td><td>1</td><td/></row>
 		<row><td>socket.tcl2</td><td>ISX_DEFAULTCOMPONENT5</td><td>socket.tcl</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\bnctcl\scripts\socket.tcl</td><td>1</td><td/></row>
@@ -2186,6 +2190,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_1A01E011_B9ED_424F_BC78_CF70BBF81992_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_FC289887_CFFD_4CBC_B9C7_3F5C71A6D952_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_9940E397_B91F_4D36_B647_85F3562709ED_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_B0D4F588_C8CF_4E88_8985_583DD0A862D6_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>bncidentd.Prim_re_Ausgabe</td><td/><td/><td>_B1AD47C3_0D41_4786_8535_35E84DCCAEBB_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>bnctcl.Prim_re_Ausgabe</td><td/><td/><td>_451024C2_9A91_495D_8E33_F3D38EB857B1_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sbnc.Prim_re_Ausgabe</td><td/><td/><td>_910219DC_8391_4E37_B6BB_95800CCCA9FF_FILTER</td><td/><td/><td/><td/></row>
@@ -2570,7 +2575,7 @@
 		<row><td>DVD-18</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>15.83</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
 		<row><td>DVD-5</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>4.38</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
 		<row><td>DVD-9</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>7.95</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
-		<row><td>SingleImage</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>PackageName</td><td>1</td><td>1033</td><td>0</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>108573</td><td/><td/><td/><td>3</td></row>
+		<row><td>SingleImage</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>PackageName</td><td>1</td><td>1033</td><td>0</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>108572</td><td/><td/><td/><td>3</td></row>
 		<row><td>WebDeployment</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>PackageName</td><td>4</td><td>1033</td><td>2</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>124941</td><td/><td/><td/><td>3</td></row>
 	</table>
 
@@ -3916,6 +3921,9 @@
 		<row><td>ID_STRING3</td><td>1033</td><td>Gunnar Beutner</td><td>0</td><td/><td>-199334476</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>http://www.shroudbnc.info/Support.aspx</td><td>0</td><td/><td>-199301612</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>-199330507</td></row>
+		<row><td>ID_STRING6</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614388655</td></row>
+		<row><td>ID_STRING8</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614341583</td></row>
+		<row><td>ID_STRING9</td><td>1033</td><td>Uninstall</td><td>0</td><td/><td>614345679</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-199301740</td></row>
 	</table>
 
@@ -4018,17 +4026,42 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\setupicon.ico</td><td>0</td></row>
+		<row><td>NewShortcut1_8C545BD9781545A984F04A2B842C21F5.exe</td><td/><td>\sbnc.Primäre Ausgabe</td><td>0</td></row>
+		<row><td>NewShortcut4_FD80E7E3AE22498786DBA58438993981.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2010LE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
+		<row><td>_0180C61F063447389FF543EAC51116F2.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_0ACC70B3BB6943818DEC25447A17B2E1.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_18E1B77BA7EE491098A0352DFDC5FE14.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_1F05BB0F92E44BE79CC6522BFD6B2E56.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_246A0353DF6E43B88F0AE164887ED5B5.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_28B8996E964249188E12FA7C658663EB.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_28FC9DD20BD74117A059F5127E0B6942.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_38116CDF5BD74FAAAD444B0AB6C0F475.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_39D5BA81CBB4494F9FC94E7D12DA3ADC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_3CD7562AA075477188BB44EE82ABC41E.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_4D630EFE472C42338F147C72FB589E2D.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_501F139DD0ED4109B53222C862C35F1B.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_50F94E2418144B5888C36F1B17BF8ADF.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_56BFEDDE616B466488E8705932710814.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_5875055A3F9E49369028CF74CA2993D5.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_6565D5F2CFE140DDA335E4A93BADDEFA.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_66C4225077684168979E52FBD7A3CE4C.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_6D001F5AC31B44AF82B71AE077E6D1C0.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_7A9033491E5149D79D914A5B67A0994D.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_8017BE59E7D24F32B2154B9CDD66AE12.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_81905AA5A3CB4840A488392116918389.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_835385B433924B21BD8F0676F381DCFF.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_999F19D5D66648A3B6C9ABB81B040322.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_A6165711870C4250AC5CFDF2C5686A44.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_A7015E2679A1411BBC1A0E26620EFB3C.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_C0C23970FA46472E986435A85E788F85.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_C291F6E06490453C918075BA27F3102E.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_CD6D11E9CBF04CD7BF999F6C9FC3E9F9.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_D0A5AA7992DE45FF812B8A47EB33CF11.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_D50C3716FF2E44BFB0FC03383A58EA4A.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_E58F97131FDE4C7999E94529DEB333FC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
+		<row><td>_EB7F7805A0C741FEBB04BEEFE63E4738.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_EBD43C9C782F4C179F7E4E3472AEB6AB.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_F1950E4365EF4086976720EEE63172AE.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_F6D68807FDB9476F86A897099CBF5A18.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 	</table>
 
@@ -4144,8 +4177,8 @@
 		<col def="S0">Value</col>
 		<row><td>ActiveLanguage</td><td>1033</td></row>
 		<row><td>Comments</td><td/></row>
-		<row><td>CurrentMedia</td><td dt:dt="bin.base64" md5="de9f554a3bc05c12be9c31b998217995">
-UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
+		<row><td>CurrentMedia</td><td dt:dt="bin.base64" md5="6d78a46bf2c52ee27034bbcad20f7f95">
+QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 			</td></row>
 		<row><td>DefaultProductConfiguration</td><td>Express</td></row>
 		<row><td>ISCompilerOption_CompileBeforeBuild</td><td>1</td></row>
@@ -4161,7 +4194,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{6AFB0F9F-AF7B-4583-817F-9D7F37C48D03}</td></row>
 		<row><td>ISUSSignature</td><td>{D12C6464-2363-450A-A5D4-B8EC4841516D}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppV,viewProject,viewRealSetupDesign,viewSetupDesign,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewTextMessages,viewSystemSearch,viewSupportFiles,viewInstallScriptStd,viewRelease,viewDesignPatches,viewISToday</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppV,viewProject,viewRealSetupDesign,viewSetupDesign,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewTextMessages,viewSystemSearch,viewSupportFiles,viewInstallScriptStd,viewRelease,viewDesignPatches,viewISToday,viewVRoots,viewComponentServices,viewBillboards</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4537,7 +4570,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKVROOTS</td><td>##IDS_PROGMSG_IIS_ROLLBACKVROOTS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{D6C82A50-8BF0-42DA-B1A3-1B4AD83BF4C2}</td><td/></row>
-		<row><td>ProductName</td><td>shroudBNC</td><td/></row>
+		<row><td>ProductName</td><td>shroudBNC 1.3 Beta 3</td><td/></row>
 		<row><td>ProductVersion</td><td>1.3</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
@@ -4613,6 +4646,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>NewShortcut2</td><td>sbnc.Prim_re_Ausgabe</td><td/><td>newfolder1</td><td>2</td></row>
+		<row><td>NewShortcut4</td><td>ISX_DEFAULTCOMPONENT6</td><td/><td>newfolder1</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4698,7 +4733,9 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>NewShortcut1</td><td>ProgramMenuFolder</td><td>##ID_STRING5##</td><td>sbnc.Prim_re_Ausgabe</td><td>AlwaysInstall</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut1</td><td>ProgramMenuFolder</td><td>##ID_STRING5##</td><td>sbnc.Prim_re_Ausgabe</td><td>AlwaysInstall</td><td/><td/><td/><td>NewShortcut1_8C545BD9781545A984F04A2B842C21F5.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut2</td><td>newfolder1</td><td>##ID_STRING6##</td><td>sbnc.Prim_re_Ausgabe</td><td>AlwaysInstall</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut4</td><td>newfolder1</td><td>##ID_STRING9##</td><td>ISX_DEFAULTCOMPONENT6</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td/><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
