@@ -392,10 +392,15 @@ void CUser::Attach(CClientConnection *Client) {
 
 	if (m_IRC == NULL) {
 		if (GetServer() == NULL) {
-			Client->Privmsg("You haven't set an IRC server yet. Use /msg -sBNC set server <Hostname> <Port> to do that now.");
+			Client->Privmsg("You haven't set an IRC server yet. Use "
+				"/msg -sBNC set server <Hostname> <Port> to do that now.");
 			Client->Privmsg("Use /msg -sBNC help to see a list of available commands.");
 		} else if (IsQuitted() == 2) {
-			Client->Privmsg("You are not connected to an irc server. Use /msg -sBNC jump to reconnect now.");
+			Client->Privmsg("You are not connected to an IRC server. Use "
+				"/msg -sBNC jump to reconnect now.");
+		} else {
+			Client->Privmsg("The connection to the IRC server was lost. "
+				"You will be reconnected shortly.");
 		}
 	}
 
