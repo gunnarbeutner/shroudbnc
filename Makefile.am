@@ -6,9 +6,9 @@ if BUILD_IDENTD_MODULE
 IDENTD_MODULE=bncidentd
 endif
 
-SUBDIRS=third-party src $(BNCTCL_MODULE) $(IDENTD_MODULE) m4 php
+SUBDIRS=third-party src $(BNCTCL_MODULE) $(IDENTD_MODULE) php
 
-EXTRA_DIST=aclocal.m4 ssl.conf LICENSE LICENSE.Exceptions README README.faq README.iface2 README.lean README.motd README.settings README.ssl sbnc-start sbnc_version.h
+EXTRA_DIST=aclocal.m4 ssl.conf LICENSE LICENSE.Exceptions m4/tcl.m4 README README.faq README.iface2 README.lean README.motd README.settings README.ssl sbnc-start sbnc_version.h
 
 ACLOCAL_AMFLAGS=-I m4
 
