@@ -182,7 +182,6 @@
     <ClCompile Include="src\utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h" />
     <ClInclude Include="src\Banlist.h" />
     <ClInclude Include="src\Cache.h" />
     <ClInclude Include="src\Channel.h" />
@@ -208,6 +207,7 @@
     <ClInclude Include="src\Nick.h" />
     <ClInclude Include="src\Object.h" />
     <ClInclude Include="src\Queue.h" />
+    <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\Result.h" />
     <ClInclude Include="src\sbnc.h" />
     <ClInclude Include="src\SocketEvents.h" />
@@ -227,7 +227,6 @@
     </CustomBuildStep>
     <None Include="GPLHeader.txt" />
     <None Include="README" />
-    <None Include="safe-analysis.txt" />
     <None Include="src\appicon.ico" />
   </ItemGroup>
   <ItemGroup>

@@ -200,14 +200,13 @@
     <ClInclude Include="src\win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="src\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="GPLHeader.txt" />
     <None Include="README" />
-    <None Include="safe-analysis.txt" />
     <None Include="src\appicon.ico">
       <Filter>Resource Files</Filter>
     </None>
