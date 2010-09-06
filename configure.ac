@@ -2,11 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([shroudbnc], [1.3], [gunnar@beutner.name])
+AC_INIT([shroudBNC], [1.3], [gunnar@beutner.name])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
 
-AM_INIT_AUTOMAKE([shroudbnc], [$PACKAGE_VERSION])
+AM_INIT_AUTOMAKE([shroudBNC], [$PACKAGE_VERSION])
 AM_CONFIG_HEADER([config.h])
 
 dnl SED is mandatory for configure process and libtool.
@@ -393,14 +393,14 @@ fi
 
 echo "
 Features:
-     SSL:	$feat_ssl_msg
-     TCL:	$feat_tcl_msg
-     IPv6:	$feat_ipv6_msg
+     SSL:       $feat_ssl_msg
+     TCL:       $feat_tcl_msg
+     IPv6:      $feat_ipv6_msg
 
 Libraries:
      OpenSSL:	$openssl_msg
-     TCL:	$tcl_msg
-     ltdl:	$ltdl_msg
-     c-ares:	$cares_msg
-     snprintf:	$snprintf_msg
+     TCL:       $tcl_msg
+     ltdl:      $ltdl_msg
+     c-ares:    $cares_msg
+     snprintf:  $snprintf_msg
 "
