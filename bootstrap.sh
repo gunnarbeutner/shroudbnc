@@ -16,3 +16,6 @@ fi
 $LIBTOOLIZE --copy --force --ltdl
 automake --gnu --add-missing
 autoreconf
+
+cd third-party/c-ares
+./buildconf
