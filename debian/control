@@ -1,0 +1,14 @@
+Source: sbnc
+Section: net
+Priority: optional
+Maintainer: Gunnar Beutner <gunnar@beutner.name>
+Build-Depends: debhelper (>= 7), automake, autotools-dev, libc-ares-dev, libltdl3-dev, libssl-dev, tcl8.5-dev
+Homepage: http://www.shroudbnc.info/
+
+Package: sbnc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: oidentd
+Description: a modular IRC proxy written in C++
+ shroudBNC is a modular IRC proxy written in C++. It is capable of proxying IRC
+ connections for multiple users. Using TCL scripts it can be extended.
