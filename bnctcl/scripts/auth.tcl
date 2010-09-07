@@ -82,7 +82,7 @@ proc auth:logon {client} {
 			internalbind server auth:server NOTICE $client
 			internalbind server auth:server PRIVMSG $client
 			internalbind server auth:ison 303 $client
-			timer 30 [list sbnc:multi:command [list "internalunbind server auth:server NOTICE $client" "internalunbind server auth:server PRIVMSG $client"]]]
+			timer 30 [list sbnc:multi:command [list "internalunbind server auth:server NOTICE $client" "internalunbind server auth:server PRIVMSG $client"]]
 			timer 2 [list internalunbind server auth:ison 303 $client]
 			putquick "ISON NickServ"
 		}
