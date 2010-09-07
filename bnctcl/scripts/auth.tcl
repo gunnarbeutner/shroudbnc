@@ -299,7 +299,7 @@ if {[info commands "registerifacecmd"] != ""} {
 # iface command for setting auth (enabled/disabled)
 #
 proc iface-auth:setauth {state} {
-	if {![string equal -nocase [getbncuser [getctx] tag authuser] ""] && ![string equal -nocase [getbncuser [getctx] tag authpass] ""]} {
+	if {[getbncuser [getctx] tag authuser] != "" && [getbncuser [getctx] tag authpass] != ""} {
 		if {[string is integer $state] && $state} {
 			setbncuser [getctx] tag auth "on"
 		} else {
@@ -328,7 +328,7 @@ if {[info commands "registerifacecmd"] != ""} {
 # iface command for getting authpass
 #
 proc iface-auth:getpass {} {
-	if {[string equal -nocase [getbncuser [getctx] tag authpass] ""]} {
+	if {[getbncuser [getctx] tag authpass] == ""} {
 		return [itype_string "0"]
 	} else {
 		return [itype_string "1"]
