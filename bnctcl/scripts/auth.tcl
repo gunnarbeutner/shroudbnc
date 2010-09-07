@@ -270,3 +270,86 @@ proc sbnc:multi:command {commands} {
 		catch $command
 	}	
 }
+
+#
+# iface command for setting the authuser
+#
+proc iface-auth:setuser {username} {
+	setbncuser [getctx] tag authuser $username
+	return ""
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "setuser" "iface-auth:setuser"
+}
+
+#
+# iface command for setting the authpass
+#
+proc iface-auth:setpass {password} {
+	setbncuser [getctx] tag authpass $password
+	return ""
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "setpass" "iface-auth:setpass"
+}
+
+#
+# iface command for setting auth (enabled/disabled)
+#
+proc iface-auth:setauth {state} {
+	if {![string equal -nocase [getbncuser [getctx] tag authuser] ""] && ![string equal -nocase [getbncuser [getctx] tag authpass] ""]} {
+		if {[string is integer $state] && $state} {
+			setbncuser [getctx] tag auth "on"
+		} else {
+			setbncuser [getctx] tag auth "off"
+		}
+	}
+	return ""
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "setauth" "iface-auth:setauth"
+}
+
+#
+# iface command for getting authuser
+#
+proc iface-auth:getuser {} {
+	return [itype_string [getbncuser [getctx] tag authuser]]
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "getuser" "iface-auth:getuser"
+}
+
+#
+# iface command for getting authpass
+#
+proc iface-auth:getpass {} {
+	if {[string equal -nocase [getbncuser [getctx] tag authpass] ""]} {
+		return [itype_string "0"]
+	} else {
+		return [itype_string "1"]
+	}
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "getpass" "iface-auth:getpass"
+}
+
+#
+# iface command for getting auth (enabled/disabled)
+#
+proc iface-auth:getauth {} {
+	if {[string equal -nocase [getbncuser [getctx] tag auth] "on"]} {
+		return [itype_string "1"]
+	} else {
+		return [itype_string "0"]
+	}
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "auth" "getauth" "iface-auth:getauth"
+}
