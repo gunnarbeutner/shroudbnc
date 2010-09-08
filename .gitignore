@@ -5,15 +5,18 @@
 *.pdf
 *.pc
 
-*.vcproj.*.user
+*.vcxproj.*.user
 *.ncb
 *.aps
 *.suo
+*.sdf
+*.opensdf
 
 Debug/
 Debug_tmp/
 Release/
 Release_tmp/
+ipch/
 
 .deps
 .libs
