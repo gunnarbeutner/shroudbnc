@@ -474,7 +474,7 @@ bool CConnection::ReadLine(char **Out) {
 		char *NewPtr = Pos + 1 + (advance ? 1 : 0);
 
 		Size = NewPtr - old_recvq + 1;
-		*Out = (char *)g_Bouncer->GetUtilities()->Alloc(Size);
+		*Out = (char *)malloc(Size);
 
 		if (AllocFailed(*Out)) {
 			return false;

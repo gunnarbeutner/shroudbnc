@@ -37,7 +37,7 @@ public:
 
 		m_TclProc = strdup(TclProc);
 
-		g_asprintf(&Buf, "%d", g_SocketIdx);
+		asprintf(&Buf, "%d", g_SocketIdx);
 		m_Idx = g_SocketIdx;
 		g_SocketIdx++;
 
@@ -45,7 +45,7 @@ public:
 
 		g_TclListeners->Add(Buf, this);
 
-		g_free(Buf);
+		free(Buf);
 	}
 
 	~CTclSocket(void) {
@@ -53,11 +53,11 @@ public:
 
 		free(m_TclProc);
 
-		g_asprintf(&Buf, "%d", m_Idx);
+		asprintf(&Buf, "%d", m_Idx);
 
 		g_TclListeners->Remove(Buf);
 
-		g_free(Buf);
+		free(Buf);
 	}
 
 	virtual const char *GetClassName(void) const {
@@ -75,7 +75,7 @@ public:
 
 		TclClient = new CTclClientSocket(Client, m_SSL, Role_Server);
 
-		g_asprintf(&ptr, "%d", TclClient->GetIdx());
+		asprintf(&ptr, "%d", TclClient->GetIdx());
 
 		objv[0] = Tcl_NewStringObj(m_TclProc, strlen(m_TclProc));
 		Tcl_IncrRefCount(objv[0]);
@@ -83,7 +83,7 @@ public:
 		objv[1] = Tcl_NewStringObj(ptr, strlen(ptr));
 		Tcl_IncrRefCount(objv[1]);
 
-		g_free(ptr);
+		free(ptr);
 
 		Tcl_EvalObjv(g_Interp, 2, objv, TCL_EVAL_GLOBAL);
 

@@ -34,46 +34,15 @@ typedef struct command_s {
 /** A list of commands. */
 typedef class CHashtable<command_t *, false> *commandlist_t;
 
-/**
- * utility_t
- *
- * Useful utility functions.
- */
-typedef struct utility_s {
-	const char *(*ArgParseServerLine)(const char *Data);
-	const char *(*ArgTokenize)(const char *Data);
-	const char **(*ArgToArray)(const char *Args);
-	void (*ArgRejoinArray)(const char **ArgV, int Index);
-	const char **(*ArgDupArray)(const char **ArgV);
-	void (*ArgFree)(const char *Args);
-	void (*ArgFreeArray)(const char **Array);
-	const char *(*ArgGet)(const char *Args, int Arg);
-	int (*ArgCount)(const char *Args);
-
-	void (*FlushCommands)(commandlist_t *Commands);
-	void (*AddCommand)(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
-	void (*DeleteCommand)(commandlist_t *Commands, const char *Name);
-	int (*CmpCommandT)(const void *pA, const void *pB);
-
-	int (*asprintf)(char **ptr, const char *fmt, ...);
-
-	void (*Free)(void *Pointer);
-	void *(*Alloc)(size_t Size);
-
-	const char *(*IpToString)(sockaddr *Address);
-	bool (*StringToIp)(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
-	const sockaddr *(*HostEntToSockAddr)(hostent *HostEnt);
-} utility_t;
-
-const char *ArgParseServerLine(const char *Data);
-const char *ArgTokenize(const char *Data);
-const char **ArgToArray(const char *Args);
-void ArgRejoinArray(const char **ArgV, int Index);
-const char **ArgDupArray(const char **ArgV);
-void ArgFree(const char *Args);
-void ArgFreeArray(const char **Array);
-const char *ArgGet(const char *Args, int Arg);
-int ArgCount(const char *Args);
+const char * SBNCAPI ArgParseServerLine(const char *Data);
+const char *SBNCAPI ArgTokenize(const char *Data);
+const char ** SBNCAPI ArgToArray(const char *Args);
+void SBNCAPI ArgRejoinArray(const char **ArgV, int Index);
+const char ** SBNCAPI ArgDupArray(const char **ArgV);
+void SBNCAPI ArgFree(const char *Args);
+void SBNCAPI ArgFreeArray(const char **Array);
+const char * SBNCAPI ArgGet(const char *Args, int Arg);
+int SBNCAPI ArgCount(const char *Args);
 
 /**
  * tokendata_t
@@ -109,10 +78,10 @@ const char *SaltFromHash(const char *Hash);
 
 void DestroyString(char *String);
 
-void FlushCommands(commandlist_t *Commands);
-void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
-void DeleteCommand(commandlist_t *Commands, const char *Name);
-int CmpCommandT(const void *pA, const void *pB);
+void SBNCAPI FlushCommands(commandlist_t *Commands);
+void SBNCAPI AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
+void SBNCAPI DeleteCommand(commandlist_t *Commands, const char *Name);
+int SBNCAPI CmpCommandT(const void *pA, const void *pB);
 
 #define BNCVERSION SBNC_VERSION
 #define INTERFACEVERSION 25
@@ -133,10 +102,10 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 #define INADDR_LEN(Family) (sizeof(in_addr))
 #endif /* HAVE_IPV6 */
 
-const char *IpToString(sockaddr *Address);
-bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
-int CompareAddress(const sockaddr *pA, const sockaddr *pB);
-const sockaddr *HostEntToSockAddr(hostent *HostEnt);
+const char * SBNCAPI IpToString(sockaddr *Address);
+bool SBNCAPI StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
+int SBNCAPI CompareAddress(const sockaddr *pA, const sockaddr *pB);
+const sockaddr * SBNCAPI HostEntToSockAddr(hostent *HostEnt);
 
 int SetPermissions(const char *Filename, int Modes);
 

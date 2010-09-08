@@ -1551,44 +1551,6 @@ const char *CCore::DebugImpulse(int impulse) {
 	return NULL;
 }
 
-const utility_t *CCore::GetUtilities(void) {
-	static utility_t *Utilities = NULL;
-
-	if (Utilities == NULL) {
-		Utilities = (utility_t *)malloc(sizeof(utility_t));
-
-		if (AllocFailed(Utilities)) {
-			Fatal();
-		}
-
-		Utilities->ArgParseServerLine = ArgParseServerLine;
-		Utilities->ArgTokenize = ArgTokenize;
-		Utilities->ArgToArray = ArgToArray;
-		Utilities->ArgRejoinArray = ArgRejoinArray;
-		Utilities->ArgDupArray = ArgDupArray;
-		Utilities->ArgFree = ArgFree;
-		Utilities->ArgFreeArray = ArgFreeArray;
-		Utilities->ArgGet = ArgGet;
-		Utilities->ArgCount = ArgCount;
-
-		Utilities->FlushCommands = FlushCommands;
-		Utilities->AddCommand = AddCommand;
-		Utilities->DeleteCommand = DeleteCommand;
-		Utilities->CmpCommandT = CmpCommandT;
-
-		Utilities->asprintf = asprintf;
-
-		Utilities->Alloc = malloc;
-		Utilities->Free = free;
-
-		Utilities->IpToString = IpToString;
-		Utilities->StringToIp = StringToIp;
-		Utilities->HostEntToSockAddr = HostEntToSockAddr;
-	}
-
-	return Utilities;
-}
-
 /**
  * MakeConfig
  *

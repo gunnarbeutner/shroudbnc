@@ -108,19 +108,19 @@ const char *getctx(int ts) {
 	CUser *User;
 	time_t TS;
 
-	g_free(Context);
+	free(Context);
 
 	if (g_CurrentClient != NULL && ts) {
 		User = g_CurrentClient->GetOwner();
 
 		if (User == NULL) {
-			g_asprintf(&Context, "");
+			asprintf(&Context, "");
 
 			return Context;
 		}
 
 		if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {
-			g_asprintf(&Context, "%s<*", g_Context);
+			asprintf(&Context, "%s<*", g_Context);
 		} else {
 			TS = 0;
 
@@ -132,10 +132,10 @@ const char *getctx(int ts) {
 				}
 			}
 
-			g_asprintf(&Context, "%s<%d", g_Context, TS);
+			asprintf(&Context, "%s<%d", g_Context, TS);
 		}
 	} else {
-		g_asprintf(&Context, "%s", g_Context);
+		asprintf(&Context, "%s", g_Context);
 	}
 
 	return Context;
@@ -798,7 +798,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	static char *Buffer = NULL;
 
 	if (Buffer != NULL) {
-		g_free(Buffer);
+		free(Buffer);
 		Buffer = NULL;
 	}
 
@@ -819,7 +819,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return NULL;
 	} else if (strcasecmp(Type, "port") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetPort());
+		asprintf(&Buffer, "%d", Context->GetPort());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "realname") == 0)
@@ -837,7 +837,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "channels") == 0)
 		return Context->GetConfigChannels();
 	else if (strcasecmp(Type, "uptime") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetIRCUptime());
+		asprintf(&Buffer, "%d", Context->GetIRCUptime());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "lock") == 0)
@@ -865,7 +865,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return Client->GetPeerName();
 	} else if (strcasecmp(Type, "clientcount") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetClientConnections()->GetLength());
+		asprintf(&Buffer, "%d", Context->GetClientConnections()->GetLength());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "tag") == 0) {
@@ -898,11 +898,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return List;
 	} else if (strcasecmp(Type, "seen") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetLastSeen());
+		asprintf(&Buffer, "%d", Context->GetLastSeen());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "quitasaway") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetUseQuitReason() ? 1 : 0);
+		asprintf(&Buffer, "%d", Context->GetUseQuitReason() ? 1 : 0);
 
 		return Buffer;
 	} else if (strcasecmp(Type, "automodes") == 0) {
@@ -919,25 +919,22 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (!Client)
 			return NULL;
 		else {
-			g_asprintf(&Buffer, "%d", Client->IsSSL() ? 1 : 0);
+			asprintf(&Buffer, "%d", Client->IsSSL() ? 1 : 0);
 
 			return Buffer;
 		}
 	} else if (strcasecmp(Type, "ident") == 0) {
 		return Context->GetIdent();
 	} else if (strcasecmp(Type, "localip") == 0) {
-		const utility_t *Utilities;
 		IRC = Context->GetIRCConnection();
 
-		Utilities = g_Bouncer->GetUtilities();
-
 		if (IRC != NULL && IRC->GetLocalAddress() != NULL) {
-			return Utilities->IpToString(IRC->GetLocalAddress());
+			return IpToString(IRC->GetLocalAddress());
 		} else {
 			return NULL;
 		}
 	} else if (strcasecmp(Type, "lean") == 0) {
-		g_asprintf(&Buffer, "%d", Context->GetLeanMode());
+		asprintf(&Buffer, "%d", Context->GetLeanMode());
 
 		return Buffer;
 	} else if (strcasecmp(Type, "channelsort") == 0) {
@@ -950,7 +947,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		char** argv = (char**)malloc(Count * sizeof(const char*));
 
 		for (int i = 0; i < Count; i++) {
-			g_asprintf(&Item, "%s<%d", Context->GetUsername(), (*Clients)[i].Creation);
+			asprintf(&Item, "%s<%d", Context->GetUsername(), (*Clients)[i].Creation);
 
 			argv[i] = Item;
 		}
@@ -964,7 +961,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		List = Tcl_Merge(Count, const_cast<char **>(argv));
 
 		for (int i = 0; i < Count; i++) {
-			g_free(argv[i]);
+			free(argv[i]);
 		}
 
 		free(argv);
@@ -1434,17 +1431,17 @@ const char* bncmodules(void) {
 	for (int i = 0; i < Modules->GetLength(); i++) {
 		char *BufId, *Buf1, *Buf2;
 
-		g_asprintf(&BufId, "%d", i);
-		g_asprintf(&Buf1, "%p", Modules->Get(i)->GetHandle());
-		g_asprintf(&Buf2, "%p", Modules->Get(i)->GetModule());
+		asprintf(&BufId, "%d", i);
+		asprintf(&Buf1, "%p", Modules->Get(i)->GetHandle());
+		asprintf(&Buf2, "%p", Modules->Get(i)->GetModule());
 
 		const char* Mod[4] = { BufId, Modules->Get(i)->GetFilename(), Buf1, Buf2 };
 
 		List[a++] = Tcl_Merge(4, const_cast<char **>(Mod));
 
-		g_free(BufId);
-		g_free(Buf1);
-		g_free(Buf2);
+		free(BufId);
+		free(Buf1);
+		free(Buf2);
 	}
 
 	static char* Mods = NULL;
@@ -1645,9 +1642,9 @@ int internallisten(unsigned short Port, const char* Type, const char* Options,
 
 void control(int Socket, const char* Proc) {
 	char *Buf;
-	g_asprintf(&Buf, "%d", Socket);
+	asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	g_free(Buf);
+	free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket.";
@@ -1657,9 +1654,9 @@ void control(int Socket, const char* Proc) {
 
 int internalvalidsocket(int Socket) {
 	char *Buf;
-	g_asprintf(&Buf, "%d", Socket);
+	asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	g_free(Buf);
+	free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		return false;
@@ -1669,9 +1666,9 @@ int internalvalidsocket(int Socket) {
 
 void internalsocketwriteln(int Socket, const char* Line) {
 	char *Buf;
-	g_asprintf(&Buf, "%d", Socket);
+	asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	g_free(Buf);
+	free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1692,9 +1689,9 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 
 const char *internalgetipforsocket(int Socket) {
 	char *Buf;
-	g_asprintf(&Buf, "%d", Socket);
+	asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	g_free(Buf);
+	free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1704,19 +1701,15 @@ const char *internalgetipforsocket(int Socket) {
 	if (RemoteAddr == NULL) {
 		return NULL;
 	} else {
-		const utility_t *Utilities;
-
-		Utilities = g_Bouncer->GetUtilities();
-
-		return Utilities->IpToString(RemoteAddr);
+		return IpToString(RemoteAddr);
 	}
 }
 
 void internalclosesocket(int Socket) {
 	char *Buf;
-	g_asprintf(&Buf, "%d", Socket);
+	asprintf(&Buf, "%d", Socket);
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	g_free(Buf);
+	free(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1811,13 +1804,13 @@ char* chanbans(const char* Channel) {
 		char *Timestamp;
 		const ban_t *Ban = BanHash->Value;
 
-		g_asprintf(&Timestamp, "%d", Ban->Timestamp);
+		asprintf(&Timestamp, "%d", Ban->Timestamp);
 
 		char* ThisBan[3] = { Ban->Mask, Ban->Nick, Timestamp };
 
 		char* List = Tcl_Merge(3, const_cast<char **>(ThisBan));
 
-		g_free(Timestamp);
+		free(Timestamp);
 
 		Blist = (char**)realloc(Blist, ++Bcount * sizeof(char*));
 
@@ -1958,16 +1951,16 @@ char *internaltimers(void) {
 		}
 
 		Timer[0] = g_Timers[i]->proc;
-		g_asprintf(&Temp1, "%d", g_Timers[i]->timer->GetInterval());
+		asprintf(&Temp1, "%d", g_Timers[i]->timer->GetInterval());
 		Timer[1] = Temp1;
-		g_asprintf(&Temp2, "%d", g_Timers[i]->timer->GetRepeat());
+		asprintf(&Temp2, "%d", g_Timers[i]->timer->GetRepeat());
 		Timer[2] = Temp2;
 		Timer[3] = g_Timers[i]->param ? g_Timers[i]->param : "";
 
 		List[Count++] = Tcl_Merge(4, const_cast<char **>(Timer));
 
-		g_free(Temp1);
-		g_free(Temp2);
+		free(Temp1);
+		free(Temp2);
 	}
 
 	static char *Out = NULL;
@@ -2113,9 +2106,8 @@ void bncaddcommand(const char *Name, const char *Category, const char *Descripti
 		return;
 
 	commandlist_t *List = g_CurrentClient->GetCommandList();
-	const utility_t *Utils = g_Bouncer->GetUtilities();
 
-	Utils->AddCommand(List, Name, Category, Description, HelpText);
+	AddCommand(List, Name, Category, Description, HelpText);
 }
 
 void bncdeletecommand(const char *Name) {
@@ -2131,9 +2123,8 @@ void bncdeletecommand(const char *Name) {
 		return;
 
 	commandlist_t *List = g_CurrentClient->GetCommandList();
-	const utility_t *Utils = g_Bouncer->GetUtilities();
 
-	Utils->DeleteCommand(List, Name);
+	DeleteCommand(List, Name);
 }
 
 void bncsetglobaltag(const char *Tag, const char *Value) {
@@ -2250,12 +2241,9 @@ void setchannelsortvalue(int Value) {
 
 void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 	tcldnsquery_t Cookie = *(tcldnsquery_t *)CookiePtr;
-	const utility_t *Utils;
 	const char *ip, *host, *code;
 	int objc = 5;
 	Tcl_Obj* objv[5];
- 
-	Utils = g_Bouncer->GetUtilities();
  
 	if (Response == NULL) {
 		code = "0";
@@ -2281,12 +2269,12 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 		} else {
 			const sockaddr *sin;
  
-			sin = Utils->HostEntToSockAddr(Response);
+			sin = HostEntToSockAddr(Response);
  
 			host = Cookie.host;
  
 			if (sin != NULL) {
-				ip = Utils->IpToString(const_cast<sockaddr *>(sin));
+				ip = IpToString(const_cast<sockaddr *>(sin));
 			} else {
 				ip = host;
 			}
@@ -2331,7 +2319,6 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
  
 int internaldnslookup(const char *host, const char *tclproc, int reverse, int ipv6, const char *param) {
 	tcldnsquery_t *Cookie;
-	const utility_t *Utils;
  
 	if (tclproc == NULL) {
 		return 1;
@@ -2364,9 +2351,7 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 	} else {
 		sockaddr_storage sin;
  
-		Utils = g_Bouncer->GetUtilities();
- 
-		if (!Utils->StringToIp(host, af, (sockaddr *)&sin, sizeof(sin))) {
+		if (!StringToIp(host, af, (sockaddr *)&sin, sizeof(sin))) {
 			throw "Failed to parse IP address.";
 		}
 

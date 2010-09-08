@@ -26,9 +26,3 @@
 #ifdef _MSC_VER
 #pragma warning( disable : 4996 )
 #endif
-
-typedef int (*asprintf_func)(char **ptr, const char *fmt, ...);
-extern asprintf_func g_asprintf;
-
-typedef void (*free_func)(void *ptr);
-extern free_func g_free;

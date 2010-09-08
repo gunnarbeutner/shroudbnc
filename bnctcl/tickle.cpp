@@ -33,8 +33,6 @@ CTclSupport* g_Tcl;
 bool g_Ret;
 bool g_NoticeUser;
 Tcl_Encoding g_Encoding;
-asprintf_func g_asprintf;
-free_func g_free;
 int g_ChannelSortValue;
 
 extern tcltimer_t **g_Timers;
@@ -97,9 +95,6 @@ class CTclSupport : public CModuleImplementation {
 		CModuleImplementation::Init(Root);
 
 		g_Bouncer = Root;
-
-		g_asprintf = GetCore()->GetUtilities()->asprintf;
-		g_free = GetCore()->GetUtilities()->Free;
 
 		const char *ConfigFile = g_Bouncer->BuildPathConfig("sbnc.tcl");
 		struct stat statbuf;
@@ -277,7 +272,6 @@ class CTclSupport : public CModuleImplementation {
 
 	bool InterceptClientCommand(CClientConnection* Client, const char* Subcommand, int argc, const char** argv, bool NoticeUser) {
 		CUser* User = Client->GetOwner();
-		const utility_t *Utils;
 
 		g_NoticeUser = NoticeUser;
 
@@ -289,9 +283,8 @@ class CTclSupport : public CModuleImplementation {
 
 		if (g_Ret && strcasecmp(Subcommand, "help") == 0 && User && User->IsAdmin()) {
 			commandlist_t *Commands = Client->GetCommandList();
-			Utils = g_Bouncer->GetUtilities();
 
-			Utils->AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: "
+			AddCommand(Commands, "tcl", "Admin", "executes tcl commands", "Syntax: "
 				"tcl command\nExecutes the specified tcl command.");
 
 			g_Ret = false;
@@ -312,17 +305,15 @@ class CTclSupport : public CModuleImplementation {
 			Tcl_DString dsScript;
 			const char **argvdup;
 
-			Utils = g_Bouncer->GetUtilities();
-
-			argvdup = Utils->ArgDupArray(argv);
-			Utils->ArgRejoinArray(argvdup, 1);
+			argvdup = ArgDupArray(argv);
+			ArgRejoinArray(argvdup, 1);
 
 			g_CurrentClient = Client;
 
 			int Code = Tcl_EvalEx(g_Interp, Tcl_UtfToExternalDString(g_Encoding, argvdup[1], -1, &dsScript),
 				-1, TCL_EVAL_GLOBAL | TCL_EVAL_DIRECT);
 
-			Utils->ArgFreeArray(argvdup);
+			ArgFreeArray(argvdup);
 
 			Tcl_DStringFree(&dsScript);
 

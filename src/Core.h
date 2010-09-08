@@ -200,8 +200,6 @@ public:
 
 	const char *DebugImpulse(int impulse);
 
-	const utility_t *GetUtilities(void);
-
 	const char *GetTagString(const char *Tag) const;
 	int GetTagInteger(const char *Tag) const;
 	bool SetTagString(const char *Tag, const char *Value);
