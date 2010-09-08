@@ -34,15 +34,15 @@ typedef struct command_s {
 /** A list of commands. */
 typedef class CHashtable<command_t *, false> *commandlist_t;
 
-const char * SBNCAPI ArgParseServerLine(const char *Data);
-const char *SBNCAPI ArgTokenize(const char *Data);
-const char ** SBNCAPI ArgToArray(const char *Args);
-void SBNCAPI ArgRejoinArray(const char **ArgV, int Index);
-const char ** SBNCAPI ArgDupArray(const char **ArgV);
-void SBNCAPI ArgFree(const char *Args);
-void SBNCAPI ArgFreeArray(const char **Array);
-const char * SBNCAPI ArgGet(const char *Args, int Arg);
-int SBNCAPI ArgCount(const char *Args);
+SBNCAPI const char * ArgParseServerLine(const char *Data);
+SBNCAPI const char *ArgTokenize(const char *Data);
+SBNCAPI const char **ArgToArray(const char *Args);
+SBNCAPI void ArgRejoinArray(const char **ArgV, int Index);
+SBNCAPI const char **ArgDupArray(const char **ArgV);
+SBNCAPI void ArgFree(const char *Args);
+SBNCAPI void ArgFreeArray(const char **Array);
+SBNCAPI const char *ArgGet(const char *Args, int Arg);
+SBNCAPI int ArgCount(const char *Args);
 
 /**
  * tokendata_t
@@ -78,10 +78,10 @@ const char *SaltFromHash(const char *Hash);
 
 void DestroyString(char *String);
 
-void SBNCAPI FlushCommands(commandlist_t *Commands);
-void SBNCAPI AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
-void SBNCAPI DeleteCommand(commandlist_t *Commands, const char *Name);
-int SBNCAPI CmpCommandT(const void *pA, const void *pB);
+SBNCAPI void FlushCommands(commandlist_t *Commands);
+SBNCAPI void AddCommand(commandlist_t *Commands, const char *Name, const char *Category, const char *Description, const char *HelpText);
+SBNCAPI void DeleteCommand(commandlist_t *Commands, const char *Name);
+SBNCAPI int CmpCommandT(const void *pA, const void *pB);
 
 #define BNCVERSION SBNC_VERSION
 #define INTERFACEVERSION 25
@@ -102,10 +102,10 @@ char *strmcat(char *Destination, const char *Source, size_t Size);
 #define INADDR_LEN(Family) (sizeof(in_addr))
 #endif /* HAVE_IPV6 */
 
-const char * SBNCAPI IpToString(sockaddr *Address);
-bool SBNCAPI StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
-int SBNCAPI CompareAddress(const sockaddr *pA, const sockaddr *pB);
-const sockaddr * SBNCAPI HostEntToSockAddr(hostent *HostEnt);
+SBNCAPI const char *IpToString(sockaddr *Address);
+SBNCAPI bool StringToIp(const char *IP, int Family, sockaddr *SockAddr, socklen_t Length);
+SBNCAPI int CompareAddress(const sockaddr *pA, const sockaddr *pB);
+SBNCAPI const sockaddr *HostEntToSockAddr(hostent *HostEnt);
 
 int SetPermissions(const char *Filename, int Modes);
 

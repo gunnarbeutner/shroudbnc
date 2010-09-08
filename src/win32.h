@@ -92,5 +92,12 @@ typedef int socklen_t;
 #include <openssl/applink.c>
 #endif /* HAVE_SSL */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+    SBNCAPI int asprintf  (char **ptr, const char *fmt, /*args*/ ...);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* WIN32_H */
