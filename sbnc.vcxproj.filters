@@ -92,9 +92,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\DnsSocket.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Banlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -201,6 +198,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DnsSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -738,7 +738,7 @@ void CUser::ScheduleReconnect(int Delay) {
  */
 unsigned int CUser::GetIRCUptime(void) const {
 	if (m_IRC != NULL) {
-		return g_CurrentTime - m_LastReconnect;
+		return (unsigned int)(g_CurrentTime - m_LastReconnect);
 	} else {
 		return 0;
 	}
@@ -917,7 +917,7 @@ void CUser::AddClientConnection(CClientConnection *Client, bool Silent) {
 		g_Bouncer->Log("User %s logged on (from %s[%s]).", GetUsername(),
 			Client->GetPeerName(), (Remote != NULL) ? IpToString(Remote) : "unknown");
 
-		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, (int)g_CurrentTime);
 	}
 
 	ClientT.Creation = g_CurrentTime;
@@ -994,7 +994,7 @@ void CUser::RemoveClientConnection(CClientConnection *Client, bool Silent) {
 				GetUsername(), m_Clients.GetLength() - 1, Plural);
 		}
 
-		CacheSetInteger(m_ConfigCache, seen, g_CurrentTime);
+		CacheSetInteger(m_ConfigCache, seen, (int)g_CurrentTime);
 	}
 
 	if (!Silent && m_IRC != NULL && m_Clients.GetLength() == 1) {

@@ -221,7 +221,14 @@ DnsSocketCookie *CDnsQuery::RegisterSockets() {
 
 		Count++;
 		// ctor takes care of registering the socket
+#ifdef _MSC_VER
+#	pragma warning( push )
+#	pragma warning( disable : 4800 )
+#endif /* _MSC_VER */
 		Cookie->Sockets[Count - 1] = new CDnsSocket(Sockets[i], ARES_GETSOCK_WRITABLE(Bitmask, i));
+#ifdef _MSC_VER
+#	pragma warning( pop ) 
+#endif /* _MSC_VER */
 	}
 
 	if (Count == 0) {

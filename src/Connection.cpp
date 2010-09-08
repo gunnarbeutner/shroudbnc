@@ -950,7 +950,7 @@ bool CConnection::IsConnected(void) {
  */
 size_t CConnection::GetInboundRate(void) {
 	if (g_CurrentTime - m_InboundTrafficReset > 0) {
-		return m_InboundTraffic / (g_CurrentTime - m_InboundTrafficReset);
+		return m_InboundTraffic / (size_t)(g_CurrentTime - m_InboundTrafficReset);
 	} else {
 		return 0;
 	}

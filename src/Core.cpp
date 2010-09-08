@@ -459,7 +459,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 			SleepInterval = 3;
 		}
 
-		timeval interval = { SleepInterval, 0 };
+		timeval interval = { (long)SleepInterval, 0 };
 
 		time(&Last);
 

@@ -25,6 +25,7 @@
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
+#pragma warning ( disable : 4251 )
 
 #define _CRT_SECURE_NO_DEPRECATE
 #undef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES

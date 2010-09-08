@@ -177,7 +177,7 @@ int CFloodControl::GetBytes(void) const {
 	if ((size_t)((g_CurrentTime - m_LastCommand) * FLOODFADEOUT) > m_Bytes) {
 		return 0;
 	} else {
-		return m_Bytes - (g_CurrentTime - m_LastCommand) * FLOODFADEOUT;
+		return m_Bytes - (size_t)(g_CurrentTime - m_LastCommand) * FLOODFADEOUT;
 	}
 }
 

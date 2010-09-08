@@ -49,7 +49,7 @@ class SBNCAPI CDnsQuery {
 	DnsEventCookie *m_EventCookie;
 	void *m_EventObject; /**< the object used for callbacks */
 	DnsEventFunction m_EventFunction; /**< the function used for callbacks */
-	time_t m_Timeout; /**< timeout for the dns query (in seconds) */
+	int m_Timeout; /**< timeout for the dns query (in seconds) */
 	unsigned int m_PendingQueries; /**< number of pending queries */
 
 	static ares_channel m_DnsChannel; /**< the ares channel object */
