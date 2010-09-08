@@ -88,4 +88,9 @@ typedef int socklen_t;
 #	define SBNCAPI __declspec(dllimport)
 #endif /* SBNC */
 
+#ifdef HAVE_SSL
+#include <openssl/applink.c>
+#endif /* HAVE_SSL */
+
+
 #endif /* WIN32_H */

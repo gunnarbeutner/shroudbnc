@@ -22,7 +22,6 @@ sbnc_SOURCES=Banlist.cpp \
 	Nick.cpp \
 	Queue.cpp \
 	sbnc.cpp \
-	sslhelper.c \
 	Timer.cpp \
 	TrafficStats.cpp \
 	utility.cpp \
