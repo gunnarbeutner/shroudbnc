@@ -5,6 +5,16 @@
 *.pdf
 *.pc
 
+*.vcproj.*.user
+*.ncb
+*.aps
+*.suo
+
+Debug/
+Debug_tmp/
+Release/
+Release_tmp/
+
 .deps
 .libs
 
