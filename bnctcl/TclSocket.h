@@ -37,7 +37,12 @@ public:
 
 		m_TclProc = strdup(TclProc);
 
-		asprintf(&Buf, "%d", g_SocketIdx);
+		int rc = asprintf(&Buf, "%d", g_SocketIdx);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
+
 		m_Idx = g_SocketIdx;
 		g_SocketIdx++;
 
@@ -53,7 +58,11 @@ public:
 
 		free(m_TclProc);
 
-		asprintf(&Buf, "%d", m_Idx);
+		int rc = asprintf(&Buf, "%d", m_Idx);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		g_TclListeners->Remove(Buf);
 
@@ -75,7 +84,11 @@ public:
 
 		TclClient = new CTclClientSocket(Client, m_SSL, Role_Server);
 
-		asprintf(&ptr, "%d", TclClient->GetIdx());
+		int rc = asprintf(&ptr, "%d", TclClient->GetIdx());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		objv[0] = Tcl_NewStringObj(m_TclProc, strlen(m_TclProc));
 		Tcl_IncrRefCount(objv[0]);

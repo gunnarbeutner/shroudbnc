@@ -104,7 +104,7 @@ void setctx(const char *ctx) {
 
 const char *getctx(int ts) {
 	static char *Context = NULL;
-	int i;
+	int i, rc;
 	CUser *User;
 	time_t TS;
 
@@ -114,13 +114,9 @@ const char *getctx(int ts) {
 		User = g_CurrentClient->GetOwner();
 
 		if (User == NULL) {
-			asprintf(&Context, "");
-
-			return Context;
-		}
-
-		if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {
-			asprintf(&Context, "%s<*", g_Context);
+			rc = asprintf(&Context, "");
+		} else 	if (g_CurrentClient == User->GetClientConnectionMultiplexer()) {
+			rc = asprintf(&Context, "%s<*", g_Context);
 		} else {
 			TS = 0;
 
@@ -132,10 +128,14 @@ const char *getctx(int ts) {
 				}
 			}
 
-			asprintf(&Context, "%s<%d", g_Context, TS);
+			rc = asprintf(&Context, "%s<%d", g_Context, (int)TS);
 		}
 	} else {
-		asprintf(&Context, "%s", g_Context);
+		rc = asprintf(&Context, "%s", g_Context);
+	}
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
 	}
 
 	return Context;
@@ -819,7 +819,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return NULL;
 	} else if (strcasecmp(Type, "port") == 0) {
-		asprintf(&Buffer, "%d", Context->GetPort());
+		int rc = asprintf(&Buffer, "%d", Context->GetPort());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "realname") == 0)
@@ -837,7 +841,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	else if (strcasecmp(Type, "channels") == 0)
 		return Context->GetConfigChannels();
 	else if (strcasecmp(Type, "uptime") == 0) {
-		asprintf(&Buffer, "%d", Context->GetIRCUptime());
+		int rc = asprintf(&Buffer, "%d", Context->GetIRCUptime());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "lock") == 0)
@@ -865,7 +873,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		else
 			return Client->GetPeerName();
 	} else if (strcasecmp(Type, "clientcount") == 0) {
-		asprintf(&Buffer, "%d", Context->GetClientConnections()->GetLength());
+		int rc = asprintf(&Buffer, "%d", Context->GetClientConnections()->GetLength());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "tag") == 0) {
@@ -898,11 +910,19 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 
 		return List;
 	} else if (strcasecmp(Type, "seen") == 0) {
-		asprintf(&Buffer, "%d", Context->GetLastSeen());
+		int rc = asprintf(&Buffer, "%d", (int)Context->GetLastSeen());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "quitasaway") == 0) {
-		asprintf(&Buffer, "%d", Context->GetUseQuitReason() ? 1 : 0);
+		int rc = asprintf(&Buffer, "%d", Context->GetUseQuitReason() ? 1 : 0);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "automodes") == 0) {
@@ -919,7 +939,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		if (!Client)
 			return NULL;
 		else {
-			asprintf(&Buffer, "%d", Client->IsSSL() ? 1 : 0);
+			int rc = asprintf(&Buffer, "%d", Client->IsSSL() ? 1 : 0);
+
+			if (RcFailed(rc)) {
+				g_Bouncer->Fatal();
+			}
 
 			return Buffer;
 		}
@@ -934,7 +958,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 			return NULL;
 		}
 	} else if (strcasecmp(Type, "lean") == 0) {
-		asprintf(&Buffer, "%d", Context->GetLeanMode());
+		int rc = asprintf(&Buffer, "%d", Context->GetLeanMode());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		return Buffer;
 	} else if (strcasecmp(Type, "channelsort") == 0) {
@@ -947,7 +975,11 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		char** argv = (char**)malloc(Count * sizeof(const char*));
 
 		for (int i = 0; i < Count; i++) {
-			asprintf(&Item, "%s<%d", Context->GetUsername(), (*Clients)[i].Creation);
+			int rc = asprintf(&Item, "%s<%d", Context->GetUsername(), (int)(*Clients)[i].Creation);
+
+			if (RcFailed(rc)) {
+				g_Bouncer->Fatal();
+			}
 
 			argv[i] = Item;
 		}
@@ -1430,10 +1462,25 @@ const char* bncmodules(void) {
 
 	for (int i = 0; i < Modules->GetLength(); i++) {
 		char *BufId, *Buf1, *Buf2;
+		int rc;
 
-		asprintf(&BufId, "%d", i);
-		asprintf(&Buf1, "%p", Modules->Get(i)->GetHandle());
-		asprintf(&Buf2, "%p", Modules->Get(i)->GetModule());
+		rc = asprintf(&BufId, "%d", i);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
+
+		rc = asprintf(&Buf1, "%p", Modules->Get(i)->GetHandle());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
+
+		rc = asprintf(&Buf2, "%p", Modules->Get(i)->GetModule());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		const char* Mod[4] = { BufId, Modules->Get(i)->GetFilename(), Buf1, Buf2 };
 
@@ -1642,7 +1689,12 @@ int internallisten(unsigned short Port, const char* Type, const char* Options,
 
 void control(int Socket, const char* Proc) {
 	char *Buf;
-	asprintf(&Buf, "%d", Socket);
+	int rc = asprintf(&Buf, "%d", Socket);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 	free(Buf);
 
@@ -1654,7 +1706,12 @@ void control(int Socket, const char* Proc) {
 
 int internalvalidsocket(int Socket) {
 	char *Buf;
-	asprintf(&Buf, "%d", Socket);
+	int rc = asprintf(&Buf, "%d", Socket);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 	free(Buf);
 
@@ -1666,7 +1723,12 @@ int internalvalidsocket(int Socket) {
 
 void internalsocketwriteln(int Socket, const char* Line) {
 	char *Buf;
-	asprintf(&Buf, "%d", Socket);
+	int rc = asprintf(&Buf, "%d", Socket);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 	free(Buf);
 
@@ -1689,7 +1751,12 @@ int internalconnect(const char* Host, unsigned short Port, bool SSL) {
 
 const char *internalgetipforsocket(int Socket) {
 	char *Buf;
-	asprintf(&Buf, "%d", Socket);
+	int rc = asprintf(&Buf, "%d", Socket);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 	free(Buf);
 
@@ -1707,7 +1774,12 @@ const char *internalgetipforsocket(int Socket) {
 
 void internalclosesocket(int Socket) {
 	char *Buf;
-	asprintf(&Buf, "%d", Socket);
+	int rc = asprintf(&Buf, "%d", Socket);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
 	free(Buf);
 
@@ -1804,7 +1876,11 @@ char* chanbans(const char* Channel) {
 		char *Timestamp;
 		const ban_t *Ban = BanHash->Value;
 
-		asprintf(&Timestamp, "%d", Ban->Timestamp);
+		int rc = asprintf(&Timestamp, "%d", (int)Ban->Timestamp);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		char* ThisBan[3] = { Ban->Mask, Ban->Nick, Timestamp };
 
@@ -1946,15 +2022,28 @@ char *internaltimers(void) {
 	int Count = 0;
 
 	for (int i = 0; i < g_TimerCount; i++) {
+		int rc;
+
 		if (g_Timers[i] == NULL) {
 			continue;
 		}
 
 		Timer[0] = g_Timers[i]->proc;
-		asprintf(&Temp1, "%d", g_Timers[i]->timer->GetInterval());
+		rc = asprintf(&Temp1, "%d", g_Timers[i]->timer->GetInterval());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
+
 		Timer[1] = Temp1;
-		asprintf(&Temp2, "%d", g_Timers[i]->timer->GetRepeat());
+		rc = asprintf(&Temp2, "%d", g_Timers[i]->timer->GetRepeat());
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
+
 		Timer[2] = Temp2;
+
 		Timer[3] = g_Timers[i]->param ? g_Timers[i]->param : "";
 
 		List[Count++] = Tcl_Merge(4, const_cast<char **>(Timer));

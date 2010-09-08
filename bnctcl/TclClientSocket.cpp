@@ -33,7 +33,12 @@ extern int g_SocketIdx;
 CTclClientSocket::CTclClientSocket(SOCKET Socket, bool SSL, connection_role_e Role) : CConnection(Socket, SSL, Role) {
 	char *Buf;
 
-	asprintf(&Buf, "%d", g_SocketIdx);
+	int rc = asprintf(&Buf, "%d", g_SocketIdx);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
+
 	m_Idx = g_SocketIdx;
 	g_SocketIdx++;
 
@@ -49,7 +54,11 @@ CTclClientSocket::CTclClientSocket(SOCKET Socket, bool SSL, connection_role_e Ro
 
 CTclClientSocket::~CTclClientSocket() {
 	char *Buf;
-	asprintf(&Buf, "%d", m_Idx);
+	int rc = asprintf(&Buf, "%d", m_Idx);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
 
 	g_TclClientSockets->Remove(Buf);
 	free(Buf);
@@ -62,7 +71,11 @@ void CTclClientSocket::Destroy(void) {
 		Tcl_Obj* objv[3];
 
 		char *ptr;
-		asprintf(&ptr, "%d", m_Idx);
+		int rc = asprintf(&ptr, "%d", m_Idx);
+
+		if (RcFailed(rc)) {
+			g_Bouncer->Fatal();
+		}
 
 		objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 		Tcl_IncrRefCount(objv[0]);
@@ -103,7 +116,11 @@ void CTclClientSocket::ParseLine(const char *Line) {
 	Tcl_Obj* objv[3];
 
 	char *ptr;
-	asprintf(&ptr, "%d", m_Idx);
+	int rc = asprintf(&ptr, "%d", m_Idx);
+
+	if (RcFailed(rc)) {
+		g_Bouncer->Fatal();
+	}
 
 	objv[0] = Tcl_NewStringObj(m_Control, strlen(m_Control));
 	Tcl_IncrRefCount(objv[0]);
