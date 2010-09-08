@@ -59,22 +59,16 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;TICKLE_EXPORTS;HAVE_IPV6;HAVE_LIBSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Debug/tickle.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -82,14 +76,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>tcl85.lib;ws2_32.lib;..\Debug\sbnc.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/tickle.pdb</ProgramDatabaseFile>
-      <ImportLibrary>.\Debug/tickle.lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -114,17 +103,10 @@
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;TICKLE_EXPORTS;HAVE_IPV6;HAVE_LIBSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Release/tickle.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>..\bin/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -135,16 +117,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>tcl85.lib;ws2_32.lib;..\Release\sbnc.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>../bin/tickle.map</MapFileName>
-      <BaseAddress>0x12000000</BaseAddress>
-      <ImportLibrary>.\Release/tickle.lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>

@@ -37,13 +37,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(IncludePath)</IncludePath>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)_tmp\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)_tmp\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -87,17 +87,10 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
-      <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>bin/sbnc.map</MapFileName>
       <SubSystem>Console</SubSystem>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>Release\$(TargetName).lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
+      <AdditionalOptions>/export:snprintf /export:vsnprintf /export:asprintf /export:vasprintf </AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -139,15 +132,10 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
-      <ProgramDatabaseFile>.\Debug/sbnc.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
+      <AdditionalOptions>/export:snprintf /export:vsnprintf /export:asprintf /export:vasprintf</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
