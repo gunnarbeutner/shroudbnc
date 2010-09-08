@@ -5,7 +5,7 @@
 *.pdf
 *.pc
 
-*.vcxproj.*.user
+*.vcxproj.user
 *.ncb
 *.aps
 *.suo
