@@ -20,8 +20,16 @@
 #ifndef MATCH_H
 #define MATCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int mmatch(const char *old_mask, const char *new_mask);
 int match(const char *ma, const char *na);
 char *collapse(char *pattern);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* MATCH_H */

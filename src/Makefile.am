@@ -17,7 +17,6 @@ sbnc_SOURCES=Banlist.cpp \
 	IdentSupport.cpp \
 	IRCConnection.cpp \
 	Keyring.cpp \
-	Match.cpp \
 	Module.cpp \
 	Nick.cpp \
 	Queue.cpp \
@@ -45,7 +44,6 @@ sbnc_SOURCES=Banlist.cpp \
 	Keyring.h \
 	List.h \
 	Listener.h \
-	Match.h \
 	ModuleFar.h \
 	Module.h \
 	Nick.h \
@@ -62,8 +60,8 @@ sbnc_SOURCES=Banlist.cpp \
 	Vector.h \
 	win32.h
 
-sbnc_LDADD=${LIBCARES} ../third-party/md5/libmd5.la ${LIBSNPRINTF} ${LIBLTDL}
+sbnc_LDADD=${LIBCARES} ../third-party/md5/libmd5.la ../third-party/mmatch/libmmatch.la ${LIBSNPRINTF} ${LIBLTDL}
 sbnc_LDFLAGS=-export-dynamic
 
-AM_CFLAGS=-DSBNC ${LTDLINCL} ${CARESINCL} ${SNPRINTFINCL}
-AM_CXXFLAGS=-DSBNC ${LTDLINCL} ${CARESINCL} ${SNPRINTFINCL}
+AM_CFLAGS=-DSBNC ${LTDLINCL} ${CARESINCL} ${SNPRINTFINCL} -I../third-party/mmatch
+AM_CXXFLAGS=-DSBNC ${LTDLINCL} ${CARESINCL} ${SNPRINTFINCL} -I../third-party/mmatch
