@@ -140,8 +140,8 @@ int poll(struct pollfd *fds, unsigned long nfds, int timo);
 int sn_getline(char *buf, size_t size);
 int sn_getline_passwd(char *buf, size_t size);
 
-bool RcFailedInternal(int ReturnCode, const char *File, int Line);
-bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
+SBNCAPI bool RcFailedInternal(int ReturnCode, const char *File, int Line);
+SBNCAPI bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
 
 /**
  * RcFailed

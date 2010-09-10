@@ -19,6 +19,7 @@
  * $Id: Match.cpp,v 1.2 2005/08/15 10:08:50 shroud23 Exp $
  */
 
+#include <ctype.h>
 #include "mmatch.h"
 
 #define ToLower tolower

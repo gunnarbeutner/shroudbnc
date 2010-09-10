@@ -39,8 +39,8 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(ProjectDir)\third-party\mmatch;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\third-party\c-ares;$(ProjectDir)\third-party\snprintf;$(ProjectDir)\third-party\mmatch;$(IncludePath)</IncludePath>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)_tmp\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)_tmp\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
@@ -71,7 +71,7 @@
       <Culture>0x0407</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;$(OutputPath)\mmatch.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/export:snprintf /export:vsnprintf /export:asprintf /export:vasprintf</AdditionalOptions>
@@ -90,8 +90,6 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;SBNC;NEED_ASPRINTF;NEED_VASPRINTF;HAVE_IPV6;HAVE_LIBSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -100,7 +98,6 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Debug/sbnc.pch</PrecompiledHeaderOutputFile>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -110,7 +107,7 @@
       <Culture>0x0407</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;advapi32.lib;shlwapi.lib;libeay32.lib;ssleay32.lib;$(OutputPath)\md5.lib;$(OutputPath)\snprintf.lib;$(OutputPath)\c-ares.lib;$(OutputPath)\mmatch.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
       <SubSystem>Console</SubSystem>
@@ -138,7 +135,6 @@
     <ClCompile Include="src\IRCConnection.cpp" />
     <ClCompile Include="src\Keyring.cpp" />
     <ClCompile Include="src\Log.cpp" />
-    <ClCompile Include="src\Match.cpp" />
     <ClCompile Include="src\Module.cpp" />
     <ClCompile Include="src\Nick.cpp" />
     <ClCompile Include="src\Queue.cpp" />
@@ -168,7 +164,6 @@
     <ClInclude Include="src\List.h" />
     <ClInclude Include="src\Listener.h" />
     <ClInclude Include="src\Log.h" />
-    <ClInclude Include="src\Match.h" />
     <ClInclude Include="src\Module.h" />
     <ClInclude Include="src\ModuleFar.h" />
     <ClInclude Include="src\Nick.h" />
