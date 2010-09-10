@@ -143,7 +143,7 @@ removed.  The University of Washington does not guarantee
 that this software is suitable for any purpose and will not
 be held liable for any damage it may cause.
 
-Files: src/Match.cpp
+Files: third-party/mmatch/*
 Copyright: Copyright (C) 1990 Jarkko Oikarinen
 License: GPL+
 This program is free software; you can redistribute it and/or modify
