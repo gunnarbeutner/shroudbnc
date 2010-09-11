@@ -397,12 +397,6 @@ proc iface:getglobaltags {} {
 
 registerifacecmd "core" "getglobaltags" "iface:getglobaltags" "access:admin"
 
-proc iface:gethosts {} {
-	return [itype_list_strings [getbnchosts]]
-}
-
-registerifacecmd "core" "gethosts" "iface:gethosts" "access:admin"
-
 proc iface:addhost {host} {
 	addbnchost $host
 
