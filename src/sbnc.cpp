@@ -241,10 +241,16 @@ char *sbncFindConfigDir(void) {
 	}
 
 	// legacy config location
-	snprintf(ConfigPath, sizeof(ConfigPath), "%s/sbnc/sbnc.conf", HomeDir);
+	asprintf(&ConfigPath, "%s/sbnc/sbnc.conf", HomeDir);
 
 	if (lstat(ConfigPath, &StatBuf) == 0) {
-		return strdup(dirname(ConfigPath));
+		char *ConfigPath2;
+
+		ConfigPath2 = strdup(dirname(ConfigPath));
+
+		free(ConfigPath);
+
+		return ConfigPath2;
 	}
 
 	asprintf(&ConfigPath, "%s/.sbnc", HomeDir);
