@@ -1427,8 +1427,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				} else {
 					const char *Username = argv[1];
 
-					free(m_Username);
-					m_Username = strdup(Username);
+					if (m_Username == NULL) {
+						m_Username = strdup(Username);
+					}
 				}
 			}
 
