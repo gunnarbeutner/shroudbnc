@@ -167,4 +167,12 @@ SBNCAPI bool AllocFailedInternal(const void *Ptr, const char *File, int Line);
 lt_dlhandle sbncLoadLibrary(const char *Filename);
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+    SBNCAPI void gfree(void *ptr);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif /* UTILITY_H */

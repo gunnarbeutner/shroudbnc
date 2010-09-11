@@ -954,10 +954,11 @@ void CCore::LogUser(CUser *User, const char *Format, ...) {
  * @param ... additional parameters which are used in the format string
  */
 void CCore::InternalLogError(const char *Format, ...) {
-	char Format2[512];
+	char *Format2;
 	char *Out;
 	const char *P = g_ErrorFile;
 	va_list marker;
+	int rc;
 
 	while (*P++) {
 		if (*P == '\\') {
@@ -965,11 +966,19 @@ void CCore::InternalLogError(const char *Format, ...) {
 		}
 	}
 
-	snprintf(Format2, sizeof(Format2), "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
+	rc= asprintf(&Format2, "Error (in %s:%d): %s", g_ErrorFile, g_ErrorLine, Format);
+
+	if (rc < 0) {
+		perror("asprintf failed");
+
+		return;
+	}
 
 	va_start(marker, Format);
-	int rc = vasprintf(&Out, Format2, marker);
+	rc = vasprintf(&Out, Format2, marker);
 	va_end(marker);
+
+	free(Format2);
 
 	if (rc < 0) {
 		perror("vasprintf failed");

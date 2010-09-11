@@ -224,7 +224,7 @@ const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 }
 
 char *sbncFindConfigDir(void) {
-	char ConfigPath[MAXPATHLEN];
+	char *ConfigPath;
 #ifndef _WIN32
 	char *HomeDir;
 	struct stat StatBuf;
@@ -247,15 +247,15 @@ char *sbncFindConfigDir(void) {
 		return strdup(dirname(ConfigPath));
 	}
 
-	snprintf(ConfigPath, sizeof(ConfigPath), "%s/.sbnc", HomeDir);
+	asprintf(&ConfigPath, "%s/.sbnc", HomeDir);
 #else
     TCHAR AppDataLocation[MAX_PATH];
     SHGetSpecialFolderPath(NULL, AppDataLocation, CSIDL_APPDATA, FALSE);
 
-    snprintf(ConfigPath, sizeof(ConfigPath), "%s\\shroudBNC", AppDataLocation);
+    asprintf(&ConfigPath, "%s\\shroudBNC", AppDataLocation);
 #endif
 
-	return strdup(ConfigPath);
+	return ConfigPath;
 }
 
 /**
