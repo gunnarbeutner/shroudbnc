@@ -213,7 +213,7 @@ proc auth:commands {client params} {
 		if {[llength $params] == 1} {
 			internaltimer 0 0 auth:help $client
 		} else {
-			switch -nocase -- [lindex $params 1] {
+			switch -- [string tolower [lindex $params 1]] {
 				"authuser" {
 					setbncuser $client tag authuser [lindex $params 2]
 					bncreply "Done."
