@@ -125,9 +125,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\sbnc.vcxproj">
       <Project>{d5505a5e-a22f-4f1a-ae56-ffb46b0e6a85}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
