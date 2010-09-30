@@ -1,5 +1,6 @@
-# shroudBNC - an object-oriented framework for IRC
+﻿# shroudBNC - an object-oriented framework for IRC
 # Copyright (C) 2005-2007,2010 Gunnar Beutner
+# Copyright (C) 2010 Christoph Wiese
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,8 +18,6 @@
 
 internalbind command virtual:commandiface
 
-set ::vsbncdeluser 0
-
 proc virtual:commandiface {client parameters} {
 	if {![virtual:isadmin $client] && ![getbncuser $client admin]} { return }
 
@@ -32,6 +31,7 @@ proc virtual:commandiface {client parameters} {
 		if {[string equal -nocase $command "getlimit"]} { virtual:cmd:getlimit $client $parameters }
 		if {[string equal -nocase $command "setlimit"]} { virtual:cmd:setlimit $client $parameters }
 		if {[string equal -nocase $command "groups"]} { virtual:cmd:groups $client $parameters }
+		if {[string equal -nocase $command "globalset"]} { virtual:cmd:globalset $client $parameters }
 	}
 
 	if {[string equal -nocase $command "who"]} { virtual:cmd:who $client $parameters }
@@ -231,7 +231,7 @@ proc virtual:cmd:resetpass {client parameters} {
 }
 
 proc virtual:vdeluser {caller user} {
-	global vsbncdeluser
+	set vadmindeluser [bncgetglobaltag vadmindeluser]
 
 	if {[string equal -nocase $user $caller]} {
 		return -code error "You can't remove your own account."
@@ -253,7 +253,7 @@ proc virtual:vdeluser {caller user} {
 		}
 	}
 
-	if {!$vsbncdeluser && ![getbncuser $caller admin]} {
+	if {$vadmindeluser != "on" && ![getbncuser $caller admin]} {
 		return -code error "Operation not permitted."
 	}
 
@@ -579,7 +579,35 @@ proc virtual:cmd:groups {client parameters} {
 	}
 
 	bncreply "End of GROUPS."
-	haltoutput 
+	haltoutput
+}
+
+proc virtual:cmd:globalset {client parameters} {
+	set setting [string tolower [lindex $parameters 1]]
+	set value [string tolower [lindex $parameters 2]]
+	set vadmindeluser [bncgetglobaltag vadmindeluser]
+
+	if {$vadmindeluser == ""} {
+		set vadmindeluser "off"
+	}
+
+	switch $setting {
+		vadmindeluser {
+			if {$value == "on" || $value == "off" || $value == ""} {
+				bncsetglobaltag vadmindeluser $value
+				bncreply "Done."
+				haltoutput
+			} else {
+				bncreply "Invalid value. Valid settings for vadmindeluser are \"on\" and \"off\"."
+			}
+		}
+		"" {
+			internaltimer 0 0 bncreply "vadmindeluser - $vadmindeluser"
+		}
+		default {
+			return
+		}
+	}
 }
 
 # iface commands
@@ -855,4 +883,17 @@ proc iface-virtual:getgroupadmin {group} {
 
 if {[info commands "registerifacecmd"] != ""} {
 	registerifacecmd "virtual" "getgroupadmin" "iface-virtual:getgroupadmin" "access:admin"
+}
+
+proc iface-virtual:setvadmindeluser {value} {
+	if {$value == "on" || $value == "off" || $value == ""} {
+		bncsetglobaltag vadmindeluser $value
+		return ""
+	} else {
+		return -code error "vadmindeluser setting needs to be either \"on\" or \"off\""
+	}
+}
+
+if {[info commands "registerifacecmd"] != ""} {
+	registerifacecmd "virtual" "setvadmindeluser" "iface-virtual:setvadmindeluser" "access:admin"
 }
