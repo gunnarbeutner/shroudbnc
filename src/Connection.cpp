@@ -879,7 +879,10 @@ void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
 
 		if (Size != 0) {
 			m_BindAddr = (in_addr *)malloc(Size);
-			memcpy(m_BindAddr, Response->h_addr_list[0], Size);
+
+			if (!AllocFailed(m_BindAddr)) {
+				memcpy(m_BindAddr, Response->h_addr_list[0], Size);
+			}
 		}
 	}
 

@@ -347,6 +347,7 @@ AC_CONFIG_FILES([Makefile \
                  php/Makefile \
                  src/Makefile
                  third-party/Makefile \
+                 third-party/mmatch/Makefile \
                  third-party/md5/Makefile \
                  third-party/snprintf/Makefile])
 AC_OUTPUT

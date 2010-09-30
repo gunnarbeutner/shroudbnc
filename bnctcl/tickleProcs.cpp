@@ -108,7 +108,7 @@ const char *getctx(int ts) {
 	CUser *User;
 	time_t TS;
 
-	free(Context);
+	gfree(Context);
 
 	if (g_CurrentClient != NULL && ts) {
 		User = g_CurrentClient->GetOwner();
@@ -798,7 +798,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 	static char *Buffer = NULL;
 
 	if (Buffer != NULL) {
-		free(Buffer);
+		gfree(Buffer);
 		Buffer = NULL;
 	}
 
@@ -1696,7 +1696,7 @@ void control(int Socket, const char* Proc) {
 	}
 
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	free(Buf);
+	gfree(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket.";
@@ -1713,7 +1713,7 @@ int internalvalidsocket(int Socket) {
 	}
 
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	free(Buf);
+	gfree(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		return false;
@@ -1730,7 +1730,7 @@ void internalsocketwriteln(int Socket, const char* Line) {
 	}
 
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	free(Buf);
+	gfree(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1758,7 +1758,7 @@ const char *internalgetipforsocket(int Socket) {
 	}
 
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	free(Buf);
+	gfree(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1781,7 +1781,7 @@ void internalclosesocket(int Socket) {
 	}
 
 	CTclClientSocket* SockPtr = g_TclClientSockets->Get(Buf);
-	free(Buf);
+	gfree(Buf);
 
 	if (!SockPtr || !g_Bouncer->IsRegisteredSocket(SockPtr))
 		throw "Invalid socket pointer.";
@@ -1886,7 +1886,7 @@ char* chanbans(const char* Channel) {
 
 		char* List = Tcl_Merge(3, const_cast<char **>(ThisBan));
 
-		free(Timestamp);
+		gfree(Timestamp);
 
 		Blist = (char**)realloc(Blist, ++Bcount * sizeof(char*));
 
@@ -2048,8 +2048,8 @@ char *internaltimers(void) {
 
 		List[Count++] = Tcl_Merge(4, const_cast<char **>(Timer));
 
-		free(Temp1);
-		free(Temp2);
+		gfree(Temp1);
+		gfree(Temp2);
 	}
 
 	static char *Out = NULL;

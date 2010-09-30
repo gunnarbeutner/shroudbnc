@@ -106,6 +106,8 @@ typedef void X509_STORE_CTX;
 #	include <ares.h>
 #endif /* SWIG */
 
+#include <mmatch.h>
+
 #ifdef __cplusplus
 #	include "sbnc.h"
 #	include "Result.h"
@@ -136,7 +138,6 @@ typedef void X509_STORE_CTX;
 #	include "Nick.h"
 #	include "Keyring.h"
 #	include "IdentSupport.h"
-#	include "Match.h"
 #	include "TrafficStats.h"
 #	include "FloodControl.h"
 #	include "Listener.h"

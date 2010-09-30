@@ -6,7 +6,7 @@ if USE_BUILTIN_SNPRINTF
 BUILTIN_SNPRINTF=snprintf
 endif
 
-SUBDIRS=libltdl $(BUILTIN_CARES) md5 $(BUILTIN_SNPRINTF)
+SUBDIRS=libltdl $(BUILTIN_CARES) mmatch md5 $(BUILTIN_SNPRINTF)
 
 EXTRA_DIST=c-ares/configure.gnu
 

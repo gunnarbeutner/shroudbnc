@@ -1293,3 +1293,12 @@ lt_dlhandle sbncLoadLibrary(const char *Filename) {
 }
 #endif
 
+void gfree(void *ptr) {
+	/**
+	 * Win32 might have separate heaps for sbnc and its modules (depending
+	 * on how we link to the CRT) - so in order to free memory that was allocated
+	 * by sbnc (e.g. using asprintf) we need to export a function
+	 * that calls the appropriate version of free().
+	 */
+	free(ptr);
+}

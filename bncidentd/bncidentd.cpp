@@ -185,7 +185,7 @@ class CIdentModule : public CModuleImplementation {
 
 		g_Bouncer->Log("Created IPv4 identd listener.");
 
-#ifdef IPV6
+#ifdef HAVE_IPV6
 		m_ListenerV6 = new CIdentListener(AF_INET6);
 
 		if (!m_ListenerV6->IsValid()) {
@@ -207,11 +207,13 @@ class CIdentModule : public CModuleImplementation {
 			m_Listener->Destroy();
 		}
 
+#ifdef HAVE_IPV6
 		if (m_ListenerV6 != NULL) {
 			m_ListenerV6->Destroy();
 
 			g_Bouncer->Log("Destroying IPv4 identd-listener.");
 		}
+#endif
 
 		while ((SocketPv = g_Bouncer->GetSocketByClass("CIdentClient", 0)) != NULL) {
 			SocketPv->Events->Destroy();

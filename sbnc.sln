@@ -3,6 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sbnc", "sbnc.vcxproj", "{D5505A5E-A22F-4F1A-AE56-FFB46B0E6A85}"
 	ProjectSection(ProjectDependencies) = postProject
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8} = {2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}
 		{D018EA42-9195-4E9A-A84B-713E69C538E6} = {D018EA42-9195-4E9A-A84B-713E69C538E6}
 		{797C8CA7-8D7A-4C46-B845-68A3285CF9F6} = {797C8CA7-8D7A-4C46-B845-68A3285CF9F6}
 		{0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29} = {0B8AEDE4-EDF3-4608-8619-6D88D6A9DC29}
@@ -19,6 +20,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bncidentd", "bncidentd\bncidentd.vcxproj", "{51C360FF-63CC-4F1F-819F-02A8CE4A4E43}"
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "win32-setup", "pkg\win32\win32-setup.isproj", "{5421D3E8-B528-4546-A348-660B1D6F88C0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmatch", "third-party\mmatch\mmatch.vcxproj", "{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +102,16 @@ Global
 		{5421D3E8-B528-4546-A348-660B1D6F88C0}.Release|Win32.Build.0 = SingleImage
 		{5421D3E8-B528-4546-A348-660B1D6F88C0}.SingleImage|Win32.ActiveCfg = SingleImage
 		{5421D3E8-B528-4546-A348-660B1D6F88C0}.SingleImage|Win32.Build.0 = SingleImage
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.CD_ROM|Win32.ActiveCfg = Release|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.CD_ROM|Win32.Build.0 = Release|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.Debug|Win32.Build.0 = Debug|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.DVD-5|Win32.ActiveCfg = Debug|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.DVD-5|Win32.Build.0 = Debug|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.Release|Win32.ActiveCfg = Release|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.Release|Win32.Build.0 = Release|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.SingleImage|Win32.ActiveCfg = Release|Win32
+		{2EF7BA19-3475-440D-AFC9-42AE4B5C7DD8}.SingleImage|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
