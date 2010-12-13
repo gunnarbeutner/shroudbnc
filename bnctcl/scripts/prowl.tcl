@@ -52,7 +52,7 @@ proc push:servermsg {client params} {
 
 	set apikey [getbncuser $client tag prowl_apikey]
 
-	if {$apikey == "" || [getbncuser $client hasclients] ||
+	if {$apikey == "" || [getbncuser $client hasclient] ||
 			(![string equal -nocase [lindex $params 1] "notice"] &&
 			![string equal -nocase [lindex $params 1] "privmsg"])} {
 		return
