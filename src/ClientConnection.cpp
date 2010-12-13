@@ -1846,7 +1846,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 				return false;
 			}
-		} else if (strcasecmp(Command, "version") == 0) {
+		} else if (strcasecmp(Command, "version") == 0 && argc <= 2) {
 			ParseLine("SYNTH VERSION");
 
 			return false;
