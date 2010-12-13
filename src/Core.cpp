@@ -1247,6 +1247,10 @@ void CCore::WritePidFile(void) {
 	DWORD pid = GetCurrentProcessId();
 #endif
 
+	if (m_PidFile) {
+		fclose(m_PidFile);
+	}
+
 	m_PidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
 
 	SetPermissions(BuildPathConfig("sbnc.pid"), S_IRUSR | S_IWUSR);
