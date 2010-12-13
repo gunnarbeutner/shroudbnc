@@ -56,6 +56,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_Log = NULL;
 
+	m_PidFile = NULL;
+
 	WritePidFile();
 
 	m_Config = Config;
@@ -142,8 +144,6 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	m_LoadingModules = false;
 	m_LoadingListeners = false;
-
-	m_PidFile = NULL;
 
 	InitializeSocket();
 }
