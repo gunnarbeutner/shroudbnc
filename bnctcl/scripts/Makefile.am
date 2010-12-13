@@ -13,6 +13,7 @@ lock.tcl \
 misc.tcl \
 namespace.tcl \
 partyline.tcl \
+prowl.tcl \
 pushmode.tcl \
 qauth.tcl \
 sbnc.tcl.dist \
