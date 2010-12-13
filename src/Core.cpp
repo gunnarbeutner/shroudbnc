@@ -325,6 +325,8 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 		} else {
 			fprintf(stderr, "FAILED\n");
 		}
+
+		WritePidFile();
 #endif
 	}
 
