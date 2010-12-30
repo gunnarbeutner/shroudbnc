@@ -763,21 +763,21 @@ fi
 ##################
 _swigfound=no
 if [ "x$REQUIRE_SWIG" = "x1" ] ; then
-    for SWIG in swig ; do
+    for SWIG in swigx ; do
         $VERBOSE_ECHO "Checking for swig: $SWIG --version"
         $SWIG --version > /dev/null 2>&1
         if [ $? = 0 ] ; then
+            $ECHO "Found SWIG"
+            _swigfound=yes
             break
         fi
-        _swigfound=yes
-        $ECHO "Found SWIG"
-        break
     done
 fi
 
-if [ "x$_swigfound" = "no" ] ; then
+if [ "x$_swigfound" = "xno" ] ; then
     $ECHO
     $ECHO "ERROR: Unable to locate SWIG."
+    exit 1
 fi
 
 
