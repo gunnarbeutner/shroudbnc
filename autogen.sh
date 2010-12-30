@@ -89,7 +89,10 @@ fi
 if [ "x$LIBTOOL_VERSION" = "x" ] ; then
     LIBTOOL_VERSION=2.2.6
 fi
-
+# whether we need swig
+if [ "x$REQUIRE_SWIG" = "x" ] ; then
+    REQUIRE_SWIG=1
+fi
 
 ##################
 # ident function #
@@ -753,6 +756,28 @@ if [ "x$VERSION_ONLY" = "xyes" ] ; then
     $ECHO "---"
     $ECHO "Version requested.  No preparation or configuration will be performed."
     exit 0
+fi
+
+##################
+# check for swig #
+##################
+_swigfound=no
+if [ "x$REQUIRE_SWIG" = "x1" ] ; then
+    for SWIG in swig ; do
+        $VERBOSE_ECHO "Checking for swig: $SWIG --version"
+        $SWIG --version > /dev/null 2>&1
+        if [ $? = 0 ] ; then
+            break
+        fi
+        _swigfound=yes
+        $ECHO "Found SWIG"
+        break
+    done
+fi
+
+if [ "x$_swigfound" = "no" ] ; then
+    $ECHO
+    $ECHO "ERROR: Unable to locate SWIG."
 fi
 
 
