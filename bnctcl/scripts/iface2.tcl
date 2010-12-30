@@ -241,7 +241,7 @@ proc iface:evalline {line disconnectVar blockVar} {
 	upvar $disconnectVar disconnect
 	upvar $blockVar block
 
-	if {[string equal -nocase $line "RPC_IFACE"]} {
+	if {[string equal -nocase [lindex [split $line] 0] "RPC_IFACE"]} {
 		return "RPC_IFACE_OK"
 	}
 
