@@ -848,7 +848,7 @@ if {[info commands "registerifacecmd"] != ""} {
 }
 
 proc iface-virtual:vunadmin {username} {
-	virtual:vunadmin $username]
+	virtual:vunadmin $username
 
 	return ""
 }
