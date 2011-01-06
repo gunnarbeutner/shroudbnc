@@ -34,11 +34,14 @@ const char *sbncGetConfigPath(void) {
 	ConfigPath = (char *)malloc(MAXPATHLEN);
 
 	if (ConfigPath == NULL) {
-		fprintf(stderr, "Out of memory.\n");
+		perror("strdup failed");
+
+		exit(EXIT_FAILURE);
 	}
 
 	if (getcwd(ConfigPath, MAXPATHLEN) == NULL) {
-		fprintf(stderr, "Could not determine current working directory.\n");
+		perror("getcwd failed");
+
 		exit(EXIT_FAILURE);
 	}
 
@@ -126,7 +129,8 @@ const char *sbncGetExePath(void) {
 	ExePath = (char *)malloc(MAXPATHLEN);
 
 	if (ExePath == NULL) {
-		fprintf(stderr, "Out of memory.\n");
+		perror("strdup failed");
+
 		exit(EXIT_FAILURE);
 	}
 
@@ -150,7 +154,8 @@ const char *sbncGetModulePath(void) {
 	ModulePath = strdup(sbncBuildPath(RelativeModulePath, sbncGetExePath()));
 
 	if (ModulePath == NULL) {
-		fprintf(stderr, "Out of memory.\n");
+		perror("strdup failed");
+
 		exit(EXIT_FAILURE);
 	}
 
@@ -169,7 +174,8 @@ const char *sbncGetSharedPath(void) {
 	SharedPath = strdup(sbncBuildPath(RelativeSharedPath, sbncGetExePath()));
 
 	if (SharedPath == NULL) {
-		fprintf(stderr, "Out of memory.\n");
+		perror("strdup failed");
+
 		exit(EXIT_FAILURE);
 	}
 
@@ -241,7 +247,11 @@ char *sbncFindConfigDir(void) {
 	}
 
 	// legacy config location
-	asprintf(&ConfigPath, "%s/sbnc/sbnc.conf", HomeDir);
+	if (asprintf(&ConfigPath, "%s/sbnc/sbnc.conf", HomeDir) < 0) {
+		perror("asprintf failed");
+
+		exit(EXIT_FAILURE);
+	}
 
 	if (lstat(ConfigPath, &StatBuf) == 0) {
 		char *ConfigPath2;
@@ -289,6 +299,7 @@ int main(int argc, char **argv) {
 		if (strcmp(argv[i], "--config") == 0) {
 			if (i + 1 >= argc) {
 				fprintf(stderr, "Missing parameter for --config: You need to specify a config directory.");
+
 				return EXIT_FAILURE;
 			}
 
@@ -296,6 +307,7 @@ int main(int argc, char **argv) {
 
 			if (chdir(argv[i + 1]) < 0) {
 				fprintf(stderr, "Could not chdir() into config directory '%s': %s\n", argv[i + 1], strerror(errno));
+
 				return EXIT_FAILURE;
 			}
 
@@ -323,6 +335,7 @@ int main(int argc, char **argv) {
 		}
 
 		fprintf(stderr, "Unknown command-line option: '%s'\n", argv[i]);
+
 		return EXIT_FAILURE;
 	}
 
@@ -334,12 +347,14 @@ int main(int argc, char **argv) {
 		if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
 			free(ConfigDir);
 			fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
+
 			return EXIT_FAILURE;
 		}
 
 		if (chdir(ConfigDir) < 0) {
 			free(ConfigDir);
 			fprintf(stderr, "Could not chdir() into config directory (%s): %s\n", ConfigDir, strerror(errno));
+
 			return EXIT_FAILURE;
 		}
 
