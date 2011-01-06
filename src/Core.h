@@ -123,6 +123,7 @@ class SBNCAPI CCore {
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UpdateHosts(void);
+	void UnlockPidFile(void);
 	void WritePidFile(void);
 	bool MakeConfig(void);
 

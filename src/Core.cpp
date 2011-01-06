@@ -180,9 +180,7 @@ CCore::~CCore(void) {
 
 	g_Bouncer = NULL;
 
-	if (m_PidFile != NULL) {
-		fclose(m_PidFile);
-	}
+	UnlockPidFile();
 
 	UninitializeSocket();
 }
@@ -319,6 +317,8 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 	if (ShouldDaemonize) {
 #ifndef _WIN32
 		fprintf(stderr, "Daemonizing... ");
+
+		UnlockPidFile();
 
 		if (Daemonize()) {
 			fprintf(stderr, "DONE\n");
@@ -1236,6 +1236,18 @@ time_t CCore::GetStartup(void) const {
 }
 
 /**
+ * UnlockPidFile
+ *
+ * Closes the PID file, thereby releasing the lock we held on it.
+ */
+void CCore::UnlockPidFile(void) {
+	if (m_PidFile) {
+		fclose(m_PidFile);
+		m_PidFile = NULL;
+	}
+}
+
+/**
  * WritePidFile
  *
  * Updates the pid-file for the current bouncer instance.
@@ -1247,9 +1259,7 @@ void CCore::WritePidFile(void) {
 	DWORD pid = GetCurrentProcessId();
 #endif
 
-	if (m_PidFile) {
-		fclose(m_PidFile);
-	}
+	UnlockPidFile();
 
 	m_PidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
 
