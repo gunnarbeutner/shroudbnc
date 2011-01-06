@@ -763,3 +763,21 @@ void CChannel::PlayBacklog(CClientConnection *Client) {
 
 	Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** End of channel log.", m_Name);
 }
+
+/**
+ * EraseBacklog
+ *
+ * Clears the backlog.
+ */
+void CChannel::EraseBacklog(void) {
+	link_t<backlog_t> *Head;
+
+	while ((Head = m_Backlog.GetHead()) != NULL) {
+		free(Head->Value.Source);
+		free(Head->Value.Message);
+
+		m_Backlog.Remove(Head);
+	}
+
+	m_BacklogCount = 0;
+}

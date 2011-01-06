@@ -221,6 +221,8 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
 		AddCommand(&m_CommandList, "backlog", "User", "replays the channel log for the specified channel",
 			"Syntax: backlog <#channel>\nPlays the channel log for the specified channel.");
+		AddCommand(&m_CommandList, "erasebacklog", "User", "erases the backlog for the specified channel or all channels",
+			"Syntax: erasebacklog [#channel]\nErases the specified channel's backlog. Or all channels' backlogs if no channel is given.");
 		if (!GetOwner()->IsAdmin()) {
 			AddCommand(&m_CommandList, "disconnect", "User", "disconnects a user from the irc server",
 				"Syntax: disconnect\nDisconnects you from the irc server.");
@@ -1334,7 +1336,39 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 		SENDUSER("Done.");
 
-		return false;		
+		return false;
+	} else if (strcasecmp(Subcommand, "erasebacklog") == 0) {
+		CIRCConnection *IRC;
+
+		IRC = GetOwner()->GetIRCConnection();
+
+		if (IRC == NULL) {
+			SENDUSER("You need to be connected to an IRC server for this command to work.");
+
+			return false;
+		}
+
+		if (argc >= 2) {
+			CChannel *Channel = GetOwner()->GetIRCConnection()->GetChannel(argv[1]);
+
+			if (Channel == NULL) {
+				SENDUSER("You are not on the channel you specified.");
+
+				return false;
+			}
+
+			Channel->EraseBacklog();
+		} else {
+			int a = 0;
+
+			while (hash_t<CChannel *> *Chan = IRC->GetChannels()->Iterate(a++)) {
+				Chan->Value->EraseBacklog();
+			}
+		}
+
+		SENDUSER("Done.");
+
+		return false;
 	}
 
 	if (NoticeUser) {

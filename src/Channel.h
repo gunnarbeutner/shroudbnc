@@ -128,6 +128,7 @@ public:
 
 	void AddBacklogLine(const char *Source, const char *Message);
 	void PlayBacklog(CClientConnection *Client);
+	void EraseBacklog(void);
 };
 
 #endif /* CHANNEL_H */
