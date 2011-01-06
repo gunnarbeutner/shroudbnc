@@ -763,9 +763,9 @@ fi
 ##################
 _swigfound=no
 if [ "x$REQUIRE_SWIG" = "x1" ] ; then
-    for SWIG in swigx ; do
-        $VERBOSE_ECHO "Checking for swig: $SWIG --version"
-        $SWIG --version > /dev/null 2>&1
+    for SWIG in swig ; do
+        $VERBOSE_ECHO "Checking for swig: $SWIG -version"
+        $SWIG -version > /dev/null 2>&1
         if [ $? = 0 ] ; then
             $ECHO "Found SWIG"
             _swigfound=yes
