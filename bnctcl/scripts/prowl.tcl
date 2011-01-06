@@ -55,7 +55,7 @@ proc push:explainsettings {client} {
 	bncreply "prowl_excludechans - Exclude given list of channels from the prowl_highlight feature. Useful for big public channels with lots of spam. Accepts *wildcards*."
 	bncreply "prowl_online - Allows you to recieve push-notifications when online. Can be any of 'on', 'off' or a numerical value for number of minutes idle as a condition to trigger."
 	bncreply "prowl_ignore - List of *!*@hostmask to ignore for private message and highlight. Eg. *!*@operserv.quakenet.org"
-	bncreply "prowl_spam - Minumum amount of minutes since last push-notification to notify again."
+	bncreply "prowl_spam - Minimum amount of minutes since last push-notification before notifying again."
 }
 
 
