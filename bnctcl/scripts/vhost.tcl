@@ -62,13 +62,13 @@ proc vhost:getlimit {ip} {
 
 	if {$ip == ""} { set ip [vhost:getdefaultip] }
 
-	set res [lsearch -inline $vhosts "$ip *"]
+	set idx [lsearch $vhosts "$ip *"]
 
-	if {$res != ""} {
-		return [lindex $res 1]
-	} else {
+	if {$idx == -1} {
 		return 0
 	}
+
+	return [lindex [lindex $vhosts $idx] 1]
 }
 
 proc vhost:getdefaultip {} {
