@@ -204,12 +204,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: globalunset <option>\nRestores the default value of a global option.");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
-			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
-				"Syntax: hosts\nLists all hosts which are permitted to use this bouncer.");
-			AddCommand(&m_CommandList, "hostadd", "Admin", "adds a hostmask",
-				"Syntax: hostadd <host>\nAdds a host to the bouncer's hostlist. E.g. *.tiscali.de");
-			AddCommand(&m_CommandList, "hostdel", "Admin", "removes a hostmask",
-				"Syntax: hostdel <host>\nRemoves a host from the bouncer's hostlist.");
 			AddCommand(&m_CommandList, "addlistener", "Admin", "creates an additional listener",
 #ifdef USESSL
 				"Syntax: addlistener <port> [address] [ssl]\nCreates an additional listener which can be used by clients.");

@@ -127,8 +127,6 @@ class SBNCAPI CCore {
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
-	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
-
 	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
 
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
@@ -139,7 +137,6 @@ class SBNCAPI CCore {
 
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
-	void UpdateHosts(void);
 	void UnlockPidFile(void);
 	void WritePidFile(void);
 	bool MakeConfig(void);
