@@ -75,6 +75,19 @@ typedef enum sbnc_status_e {
 	Status_Shutdown
 } sbnc_status_t;
 
+ /*
+ * additionallistener_t
+ *
+ * An additional listener for client connections.
+ */
+typedef struct additionallistener_s {
+	unsigned int Port; /**< the port of the listener */
+	char *BindAddress; /**< the bind address, or NULL */
+	bool SSL; /**< whether this is an SSL listener */
+	CSocketEvents *Listener; /**< IPv4 listener object */
+	CSocketEvents *ListenerV6; /**< IPv6 listener object */
+} additionallistener_t;
+
 /**
  * CCore
  *
@@ -114,6 +127,10 @@ class SBNCAPI CCore {
 	SSL_CTX *m_SSLContext; /**< SSL context for client listeners */
 	SSL_CTX *m_SSLClientContext; /**< SSL context for IRC connections */
 
+	CVector<char *> m_HostAllows; /**< a list of hosts which are able to use this bouncer */
+
+	CVector<additionallistener_t> m_AdditionalListeners; /**< a list of additional listeners */
+
 	CVector<CUser *> m_AdminUsers; /**< cached list of admin users */
 
 	CVector<pollfd> m_PollFds; /**< pollfd structures */
@@ -129,6 +146,10 @@ class SBNCAPI CCore {
 
 	void InitializeSocket(void);
 	void UninitializeSocket(void);
+
+	void InitializeAdditionalListeners(void);
+	void UninitializeAdditionalListeners(void);
+	void UpdateAdditionalListeners(void);
 
 	bool Daemonize(void);
 public:
@@ -221,6 +242,10 @@ public:
 	void DeleteFakeClient(CFakeClient *FakeClient) const;
 
 	CVector<CUser *> *GetAdminUsers(void);
+
+	RESULT<bool> AddAdditionalListener(unsigned int Port, const char *BindAddress = NULL, bool SSL = false);
+	RESULT<bool> RemoveAdditionalListener(unsigned int Port);
+	CVector<additionallistener_t> *GetAdditionalListeners(void);
 
 	CClientListener *GetMainListener(void) const;
 	CClientListener *GetMainListenerV6(void) const;

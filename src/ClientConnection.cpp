@@ -204,6 +204,23 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				"Syntax: globalunset <option>\nRestores the default value of a global option.");
 			AddCommand(&m_CommandList, "die", "Admin", "terminates the bouncer",
 				"Syntax: die\nTerminates the bouncer.");
+			AddCommand(&m_CommandList, "hosts", "Admin", "lists all hostmasks, which are permitted to use this bouncer",
+				"Syntax: hosts\nLists all hosts which are permitted to use this bouncer.");
+			AddCommand(&m_CommandList, "hostadd", "Admin", "adds a hostmask",
+				"Syntax: hostadd <host>\nAdds a host to the bouncer's hostlist. E.g. *.tiscali.de");
+			AddCommand(&m_CommandList, "hostdel", "Admin", "removes a hostmask",
+				"Syntax: hostdel <host>\nRemoves a host from the bouncer's hostlist.");
+			AddCommand(&m_CommandList, "addlistener", "Admin", "creates an additional listener",
+#ifdef USESSL
+				"Syntax: addlistener <port> [address] [ssl]\nCreates an additional listener which can be used by clients.");
+#else
+				"Syntax: addlistener <port> [address]\nCreates an additional listener which can be used by clients.");
+#endif
+
+			AddCommand(&m_CommandList, "dellistener", "Admin", "removes a listener",
+				"Syntax: dellistener <port>\nRemoves a listener.");
+			AddCommand(&m_CommandList, "listeners", "Admin", "lists all listeners",
+				"Syntax: listeners\nLists all listeners.");
 		}
 
 		AddCommand(&m_CommandList, "read", "User", "plays your message log",
@@ -1139,6 +1156,127 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		free(Keys);
 
 		SENDUSER("End of USERS.");
+
+		return false;
+	} else if (strcasecmp(Subcommand, "addlistener") == 0 && GetOwner()->IsAdmin()) {
+		if (argc < 2) {
+#ifdef USESSL
+			SENDUSER("Syntax: addlistener <port> [address] [ssl]");
+#else
+			SENDUSER("Syntax: addlistener <port> [address]");
+#endif
+
+			return false;
+		}
+
+		unsigned int Port = atoi(argv[1]);
+
+		if (Port <= 1024 || Port >= 65534) {
+			SENDUSER("You did not specify a valid port.");
+
+			return false;
+		}
+
+		const char *Address = NULL;
+
+		if (argc > 2) {
+			Address = argv[2];
+		}
+
+		bool SSL = false;
+
+#ifdef USESSL
+		if (argc > 3) {
+			if (atoi(argv[3]) != 0 || strcasecmp(argv[3], "ssl") == 0) {
+				SSL = true;
+			}
+		}
+#endif
+
+		RESULT<bool> Result = g_Bouncer->AddAdditionalListener(Port, Address, SSL);
+
+		if (IsError(Result)) {
+			SENDUSER(GETDESCRIPTION(Result));
+
+			return false;
+		}
+
+		SENDUSER("Done.");
+
+		return false;
+	} else if (strcasecmp(Subcommand, "dellistener") == 0 && GetOwner()->IsAdmin()) {
+		if (argc < 2) {
+			SENDUSER("Syntax: dellistener <port>");
+
+			return false;
+		}
+
+		RESULT<bool> Result = g_Bouncer->RemoveAdditionalListener(atoi(argv[1]));
+
+		if (Result) {
+			SENDUSER("Done.");
+		} else {
+			SENDUSER("There is no such listener.");
+		}
+
+		return false;
+	} else if (strcasecmp(Subcommand, "listeners") == 0 && GetOwner()->IsAdmin()) {
+		if (g_Bouncer->GetMainListener() != NULL) {
+			rc = asprintf(&Out, "Main listener: port %d", g_Bouncer->GetMainListener()->GetPort());
+		} else {
+			Out = strdup("Main listener: none");
+			rc = (Out == NULL) ? -1 : 0;
+		}
+
+		if (!RcFailed(rc)) {
+			SENDUSER(Out);
+			free(Out);
+		}
+
+#ifdef USESSL
+		if (g_Bouncer->GetMainSSLListener() != NULL) {
+			rc = asprintf(&Out, "Main SSL listener: port %d", g_Bouncer->GetMainSSLListener()->GetPort());
+		} else {
+			Out = strdup("Main SSL listener: none");
+			rc = (Out == NULL) ? -1 : 0;
+		}
+
+		if (!RcFailed(rc)) {
+			SENDUSER(Out);
+			free(Out);
+		}
+#endif
+
+		SENDUSER("---");
+		SENDUSER("Additional listeners:");
+
+		CVector<additionallistener_t> *Listeners = g_Bouncer->GetAdditionalListeners();
+
+		for (int i = 0; i < Listeners->GetLength(); i++) {
+#ifdef USESSL
+			if ((*Listeners)[i].SSL) {
+				if ((*Listeners)[i].BindAddress != NULL) {
+					rc = asprintf(&Out, "Port: %d (SSL, bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
+				} else {
+					rc = asprintf(&Out, "Port: %d (SSL)", (*Listeners)[i].Port);
+				}
+			} else {
+#endif
+				if ((*Listeners)[i].BindAddress != NULL) {
+					rc = asprintf(&Out, "Port: %d (bound to %s)", (*Listeners)[i].Port, (*Listeners)[i].BindAddress);
+				} else {
+					rc = asprintf(&Out, "Port: %d", (*Listeners)[i].Port);
+				}
+#ifdef USESSL
+			}
+#endif
+			if (!RcFailed(rc)) {
+				SENDUSER(Out);
+				free(Out);
+			}
+		}
+
+		SENDUSER("End of LISTENERS.");
 
 		return false;
 	} else if (strcasecmp(Subcommand, "read") == 0) {
