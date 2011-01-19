@@ -37,7 +37,7 @@ proc lock:command {client params} {
 			}
 
 			internaltimer 0 0 bncreply "globallocks - $reply"
-		} else {
+		} elseif {[string tolower [lindex $params 1]] == "globallocks"} {
 			set reply [lock:setgloballocks [lrange $params 2 end]]
 
 			if {[lindex $reply 0] != ""} {
