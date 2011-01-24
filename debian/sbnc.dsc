@@ -1,5 +1,5 @@
 Format: 1.0
-Source: sbnc-1.3
+Source: sbnc-1.3beta4
 Version: 1.3-3
 Binary: sbnc
 Maintainer: Gunnar Beutner <gunnar@beutner.name>
