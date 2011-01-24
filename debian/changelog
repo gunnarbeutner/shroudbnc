@@ -1,3 +1,15 @@
+sbnc (1.3-3) lucid; urgency=low
+
+  * Updated for beta 4
+
+ -- Gunnar Beutner <gunnar@beutner.name>  Mon, 24 Jan 2011 21:41:03 +0200
+
+sbnc (1.3-2) lucid; urgency=low
+
+  * Updated for beta 3
+
+ -- Gunnar Beutner <gunnar@beutner.name>  Tue, 07 Sep 2010 20:10:54 +0200
+
 sbnc (1.3-1) lucid; urgency=low
 
   * Initial version
