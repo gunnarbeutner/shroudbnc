@@ -60,6 +60,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %{_sharedir}/sbnc/scripts/misc.tcl
 %{_sharedir}/sbnc/scripts/namespace.tcl
 %{_sharedir}/sbnc/scripts/partyline.tcl
+%{_sharedir}/sbnc/scripts/prowl.tcl
 %{_sharedir}/sbnc/scripts/pushmode.tcl
 %{_sharedir}/sbnc/scripts/qauth.tcl
 %{_sharedir}/sbnc/scripts/sbnc.tcl.dist
