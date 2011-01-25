@@ -1,10 +1,10 @@
 Summary: a modular IRC proxy written in C++/TCL
 Name: sbnc
-Version: 1.3
+Version: 1.3beta4
 Release: 2
 License: GPL
 Group: Productivity/Networking/IRC
-Source: https://sourceforge.net/projects/sbnc/files/1.3/sbnc-1.3beta3.tar.gz
+Source: https://sourceforge.net/projects/sbnc/files/1.3/sbnc-1.3beta4.tar.gz
 URL: http://www.shroudbnc.info/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
@@ -60,6 +60,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %{_sharedir}/sbnc/scripts/misc.tcl
 %{_sharedir}/sbnc/scripts/namespace.tcl
 %{_sharedir}/sbnc/scripts/partyline.tcl
+%{_sharedir}/sbnc/scripts/prowl.tcl
 %{_sharedir}/sbnc/scripts/pushmode.tcl
 %{_sharedir}/sbnc/scripts/qauth.tcl
 %{_sharedir}/sbnc/scripts/sbnc.tcl.dist
