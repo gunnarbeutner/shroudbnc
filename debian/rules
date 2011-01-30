@@ -8,9 +8,4 @@ override_dh_auto_configure:
 	dh_auto_configure -- --enable-tcl --enable-ssl --enable-ipv6 --disable-identd
 
 override_dh_auto_install:
-	# OBS: The DESTDIR Has To Be Exactly  /usr/src/packages/BUILD/debian/<nameOfPackage>
-	if [ -d /usr/src/packages/BUILD ]; then					\
-		dh_auto_install --destdir=/usr/src/packages/BUILD/debian/sbnc;	\
-	else									\
-		dh_auto_install;							\
-	fi
+	dh_auto_install
