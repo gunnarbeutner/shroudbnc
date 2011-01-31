@@ -67,6 +67,7 @@ CUser::CUser(const char *Name) {
 
 	m_ReconnectTime = 0;
 	m_LastReconnect = 0;
+	m_NextProtocolFamily = AF_UNSPEC;
 
 	rc = asprintf(&Out, "users/%s.log", Name);
 
@@ -117,8 +118,6 @@ CUser::CUser(const char *Name) {
 	if (IsAdmin()) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
 	}
-
-	m_NextProtocolFamily = AF_INET6;
 }
 
 /**
