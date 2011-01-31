@@ -818,7 +818,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 		if (m_IRC->GetState() == State_Connecting) {
 			if (m_NextProtocolFamily == AF_INET) {
-				m_NextProtocolFamily = AF_INET6;
+				m_NextProtocolFamily = AF_UNSPEC;
 			} else {
 				m_NextProtocolFamily = AF_INET;
 			}
