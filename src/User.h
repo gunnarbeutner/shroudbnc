@@ -148,7 +148,7 @@ class SBNCAPI CUser {
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
-	bool m_NetworkUnreachable; /**< whether the last connection error was 'network unreachable' */
+	bool m_NextProtocolFamily; /**< which protocol family to try next */
 
 	bool PersistCertificates(void);
 
@@ -289,8 +289,7 @@ public:
 	void SetChannelSortMode(const char *Mode);
 	const char *GetChannelSortMode(void) const;
 
-	void SetNetworkUnreachable(bool Value);
-	bool GetNetworkUnreachable(void) const;
+	void SwitchProtocolFamily(void);
 
 	void SetAutoBacklog(const char *Value);
 	const char *GetAutoBacklog(void);

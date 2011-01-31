@@ -118,7 +118,7 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->GetAdminUsers()->Insert(this);
 	}
 
-	m_NetworkUnreachable = false;
+	m_NextProtocolFamily = AF_INET6;
 }
 
 /**
@@ -644,9 +644,7 @@ void CUser::Reconnect(void) {
 		g_Bouncer->SetIdent(m_Name);
 	}
 
-	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), m_NetworkUnreachable ? AF_INET : AF_UNSPEC);
-
-	m_NetworkUnreachable = false;
+	CIRCConnection *Connection = new CIRCConnection(Server, Port, this, BindIp, GetSSL(), m_NextProtocolFamily);
 
 	if (AllocFailed(Connection)) {
 		return;
@@ -820,7 +818,11 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 		WasNull = false;
 
 		if (m_IRC->GetState() == State_Connecting) {
-			SetNetworkUnreachable(true);
+			if (m_NextProtocolFamily == AF_INET) {
+				m_NextProtocolFamily = AF_INET6;
+			} else {
+				m_NextProtocolFamily = AF_INET;
+			}
 		}
 
 		m_IRC->SetOwner(NULL);
@@ -2049,14 +2051,6 @@ void CUser::SetChannelSortMode(const char *Mode) {
 
 const char *CUser::GetChannelSortMode(void) const {
 	return CacheGetString(m_ConfigCache, channelsort);
-}
-
-void CUser::SetNetworkUnreachable(bool Value) {
-	m_NetworkUnreachable = Value;
-}
-
-bool CUser::GetNetworkUnreachable(void) const {
-	return m_NetworkUnreachable;
 }
 
 void CUser::SetAutoBacklog(const char *Value) {
