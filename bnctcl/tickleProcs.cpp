@@ -1239,6 +1239,11 @@ int internalgetchanidle(const char* Nick, const char* Channel) {
 }
 
 int ticklerand(int limit) {
+	if (limit == 0) {
+		/* not entirely correct, but certainly better than crashing */
+		return 0;
+	}
+
 	return rand() % limit;
 }
 
