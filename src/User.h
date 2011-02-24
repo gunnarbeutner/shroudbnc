@@ -148,7 +148,7 @@ class SBNCAPI CUser {
 
 	CVector<X509 *> m_ClientCertificates; /**< the client certificates for the user */
 
-	bool m_NextProtocolFamily; /**< which protocol family to try next */
+	int m_NextProtocolFamily; /**< which protocol family to try next */
 
 	bool PersistCertificates(void);
 
