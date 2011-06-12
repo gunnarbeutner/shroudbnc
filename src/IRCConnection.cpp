@@ -742,7 +742,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		m_Site = strdup(argv[3]);
 
 		if (AllocFailed(m_Site)) {}
-	} else if (argc > 3 && hashRaw == hashPong && m_Server != NULL && strcasecmp(argv[3], m_Server) == 0 && m_EatPong) {
+	} else if (argc > 3 && hashRaw == hashPong && m_Server != NULL && strcasecmp(argv[2], m_Server) == 0 && m_EatPong) {
 		m_EatPong = false;
 
 		return false;
