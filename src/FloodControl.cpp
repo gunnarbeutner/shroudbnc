@@ -19,45 +19,15 @@
 
 #include "StdAfx.h"
 
-bool FloodTimer(time_t Now, void *Null);
-
-/**
- * penalty_t
- *
- * A "penalty" for client commands.
- */
-typedef struct penalty_s {
-	const char *Command;
-	int Amplifier;
-} penalty_t;
-
-/**
- * Penalties
- *
- * Some pre-defined penalties for various client commands.
- */
-static penalty_t Penalties[] = {
-	{ "MODE", 2 },
-	{ "KICK", 2 },
-	{ "WHO", 2 },
-	{ NULL, 0 }
-};
-
-CTimer *g_FloodTimer = NULL;
-
 /**
  * CFloodControl
  *
  * Constructs a new flood control object.
  */
 CFloodControl::CFloodControl(void) {
-	m_Bytes = 0;
-	m_Control = true;
-	m_LastCommand = 0;
-
-	if (g_FloodTimer == NULL) {
-		g_FloodTimer = new CTimer(300, true, FloodTimer, NULL);
-	}
+	m_BytesSent = 0;
+	m_Enabled = true;
+	m_Plugged = false;
 }
 
 /**
@@ -78,27 +48,6 @@ void CFloodControl::AttachInputQueue(CQueue *Queue, int Priority) {
 }
 
 /**
- * ScheduleItem
- *
- * Re-schedules when the next item can be retrieved using DequeueItem().
- */
-void CFloodControl::ScheduleItem(void) {
-	size_t Delay, Bytes;
-
-	Bytes = GetBytes() - FLOODBYTES;
-
-	if (Bytes > 0) {
-		Delay = (Bytes / FLOODFADEOUT) + 1;
-	} else {
-		Delay = 0;
-	}
-
-	if (Delay > 0 && GetRealLength() > 0) {
-		g_FloodTimer->Reschedule(g_CurrentTime + Delay);
-	}
-}
-
-/**
  * DequeueItem
  *
  * Removes the next item from the queue and returns it.
@@ -109,9 +58,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 	int LowestPriority = 100;
 	irc_queue_t *ThatQueue = NULL;
 
-	if (m_Control && (GetBytes() > FLOODBYTES)) {
-		ScheduleItem();
-
+	if (m_Enabled && m_Plugged) {
 		RETURN(char *, NULL);
 	}
 
@@ -134,22 +81,21 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		THROWRESULT(char *, PeekItem);
 	}
 
-
 	if (Peek) {
 		RETURN(char *, const_cast<char *>((const char *)PeekItem));
+	}
+
+	if (m_Enabled && m_BytesSent + strlen(PeekItem) + 2 + strlen(FLOODMSG) + 2 > FLOODBYTES) {
+		Plug();
+
+		RETURN(char *, strdup(FLOODMSG));
 	}
 
 	RESULT<char *> Item = ThatQueue->Queue->DequeueItem();
 
 	THROWIFERROR(char *, Item);
 
-	if (m_Control) {
-		m_Bytes = GetBytes() + max((size_t)130, strlen(Item) * CalculatePenaltyAmplifier(Item));
-
-		ScheduleItem();
-	}
-
-	m_LastCommand = g_CurrentTime;
+	m_BytesSent += strlen(Item) + 2;
 
 	RETURN(char *, Item);
 }
@@ -158,27 +104,13 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
  * GetQueueSize
  *
  * Returns 1 if there is at least one item in the queue, which
- * could immediately retrieved using DequeueItem().
+ * could be immediately retrieved using DequeueItem().
  */
 int CFloodControl::GetQueueSize(void) {
-	if (DequeueItem(true) != NULL) {
-		return 1;
-	} else {
+	if (m_Plugged)
 		return 0;
-	}
-}
-
-/**
- * GetBytes
- *
- * Returns the number of bytes which have been recently sent.
- */
-int CFloodControl::GetBytes(void) const {
-	if ((size_t)((g_CurrentTime - m_LastCommand) * FLOODFADEOUT) > m_Bytes) {
-		return 0;
-	} else {
-		return m_Bytes - (size_t)(g_CurrentTime - m_LastCommand) * FLOODFADEOUT;
-	}
+	else
+		return (GetRealLength() > 0);
 }
 
 /**
@@ -208,12 +140,31 @@ void CFloodControl::Clear(void) {
 }
 
 /**
+ * Plug
+ *
+ * Plugs the queue (i.e. stops processing items).
+ */
+void CFloodControl::Plug(void) {
+	m_Plugged = true;
+}
+
+/**
+ * Unplug
+ *
+ * Unplugs the queue (i.e. enables processing items).
+ */
+void CFloodControl::Unplug(void) {
+	m_BytesSent = 0;
+	m_Plugged = false;
+}
+
+/**
  * Enable
  *
  * Enabled the flood control object.
  */
 void CFloodControl::Enable(void) {
-	m_Control = true;
+	m_Enabled = true;
 }
 
 /**
@@ -222,59 +173,5 @@ void CFloodControl::Enable(void) {
  * Disabled the flood control object.
  */
 void CFloodControl::Disable(void) {
-	m_Control = false;
-}
-
-/**
- * CalculatePenaltyAmplifier
- *
- * Returns the penalty amplifier for a line.
- *
- * @param Line the line
- */
-int CFloodControl::CalculatePenaltyAmplifier(const char *Line) {
-	const char *Space = strchr(Line, ' ');
-	char Command[32];
-	int i;
-	penalty_t Penalty;
-
-	if (Space != NULL) {
-		strmcpy(Command, Line, min(sizeof(Command), (size_t)(Space - Line + 1)));
-	} else {
-		strmcpy(Command, Line, sizeof(Command));
-	}
-
-	i = 0;
-
-	while (true) {
-		Penalty = Penalties[i++];
-
-		if (Penalty.Command == NULL) {
-			break;
-		}
-
-		if (strcasecmp(Penalty.Command, Command) == 0) {
-			return Penalty.Amplifier;
-		}
-
-	}
-
-	return 1;
-}
-
-/**
- * FloodTimer
- *
- * Controls the output of the CFloodControl class.
- *
- * @param Now the them when the timer should have been executed
- * @param Null a NULL pointer
- */
-bool FloodTimer(time_t Now, void *Null) {
-	if (Now < g_CurrentTime) {
-		// the timer was executed too late, force re-evaluation
-		g_FloodTimer->Reschedule(g_CurrentTime + 1);
-	}
-
-	return true;
+	m_Enabled = false;
 }

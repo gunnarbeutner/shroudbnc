@@ -746,6 +746,10 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		m_EatPong = false;
 
 		return false;
+	} else if (argc > 3 && iRaw == 421) {
+		m_FloodControl->Unplug();
+
+		return false;
 	}
 
 	if (GetOwner() != NULL) {

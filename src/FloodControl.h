@@ -20,8 +20,8 @@
 #ifndef FLOODCONTROL_H
 #define FLOODCONTROL_H
 
-#define FLOODBYTES 450
-#define FLOODFADEOUT 65
+#define FLOODMSG "SBNCFLOODCHECK"
+#define FLOODBYTES 1024
 
 /**
  * irc_queue_t
@@ -41,11 +41,9 @@ typedef struct queue_s {
 class SBNCAPI CFloodControl {
 	CVector<irc_queue_t> m_Queues; /**< a list of queues which have been
 								attached to this object */
-	size_t m_Bytes; /**< the number of bytes which have recently been sent */
-	bool m_Control; /**< determines whether this object is delaying the output */
-	time_t m_LastCommand; /**< a TS when the last command was sent */
-
-	static int CalculatePenaltyAmplifier(const char *Line);
+	size_t m_BytesSent; /**< the number of bytes which have recently been sent */
+	bool m_Enabled; /**< determines whether this object is delaying the output */
+	bool m_Plugged; /**< determines whether the queue is plugged */
 
 	void ScheduleItem(void);
 public:
@@ -60,6 +58,9 @@ public:
 
 	void AttachInputQueue(CQueue *Queue, int Priority);
 	int GetRealLength(void) const;
+
+	void Plug(void);
+	void Unplug(void);
 
 	void Enable(void);
 	void Disable(void);
