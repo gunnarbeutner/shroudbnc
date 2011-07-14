@@ -263,7 +263,11 @@ char *sbncFindConfigDir(void) {
 		return ConfigPath2;
 	}
 
-	asprintf(&ConfigPath, "%s/.sbnc", HomeDir);
+	if (asprintf(&ConfigPath, "%s/.sbnc", HomeDir) < 0) {
+		perror("asprintf failed");
+
+		exit(EXIT_FAILURE);
+	}
 #else
     TCHAR AppDataLocation[MAX_PATH];
     SHGetSpecialFolderPath(NULL, AppDataLocation, CSIDL_APPDATA, FALSE);
