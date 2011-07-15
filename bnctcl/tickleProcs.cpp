@@ -1063,11 +1063,11 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetSuspendReason(Value);
 	else if (strcasecmp(Type, "ident") == 0)
 		Context->SetIdent(Value);
-	else if (strcmp(Type, "lean") == 0)
+	else if (strcasecmp(Type, "lean") == 0)
 		Context->SetLeanMode(atoi(Value));
-	else if (strcmp(Type, "channelsort") == 0)
+	else if (strcasecmp(Type, "channelsort") == 0)
 		Context->SetChannelSortMode(Value);
-	else if (strcmp(Type, "autobacklog") == 0)
+	else if (strcasecmp(Type, "autobacklog") == 0)
 		Context->SetAutoBacklog(Value);
 	else if (strcasecmp(Type, "sysnotices") == 0)
 		Context->SetSystemNotices(Value);
