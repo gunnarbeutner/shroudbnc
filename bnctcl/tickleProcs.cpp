@@ -1962,7 +1962,7 @@ bool TclTimerProc(time_t Now, void* RawCookie) {
 
 		free(Cookie->proc);
 		free(Cookie->param);
-		free(Cookie);
+		delete Cookie;
 	}
 
 	return true;
@@ -1987,7 +1987,7 @@ int internaltimer(int Interval, bool Repeat, const char* Proc, const char* Param
 		n = &g_Timers[g_TimerCount - 1];
 	}
 	
-	*n = (tcltimer_t*)malloc(sizeof(tcltimer_t));
+	*n = new tcltimer_t;;
 
 	tcltimer_t* p = *n;
 
@@ -2013,7 +2013,7 @@ int internalkilltimer(const char* Proc, const char* Parameter) {
 			g_Timers[i]->timer->Destroy();
 			free(g_Timers[i]->proc);
 			free(g_Timers[i]->param);
-			free(g_Timers[i]);
+			delete g_Timers[i];
 
 			g_Timers[i] = NULL;
 
@@ -2337,8 +2337,8 @@ void setchannelsortvalue(int Value) {
 	g_ChannelSortValue = Value;
 }
 
-void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
-	tcldnsquery_t Cookie = *(tcldnsquery_t *)CookiePtr;
+void TclDnsLookupCallback(void *CookieRaw, hostent *Response) {
+	tcldnsquery_t *Cookie = (tcldnsquery_t *)CookieRaw;
 	const char *ip, *host, *code;
 	int objc = 5;
 	Tcl_Obj* objv[5];
@@ -2346,30 +2346,30 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 	if (Response == NULL) {
 		code = "0";
  
-		if (Cookie.reverse) {
-			ip = Cookie.host;
-			host = Cookie.host;
+		if (Cookie->reverse) {
+			ip = Cookie->host;
+			host = Cookie->host;
 		} else {
-			if (Cookie.ipv6) {
+			if (Cookie->ipv6) {
 				ip = "::0";
 			} else {
 				ip = "0.0.0.0";
 			}
  
-			host = Cookie.host;
+			host = Cookie->host;
 		}
 	} else {
 		code = "1";
  
-		if (Cookie.reverse) {
-			ip = Cookie.host;
+		if (Cookie->reverse) {
+			ip = Cookie->host;
 			host = Response->h_name;
 		} else {
 			const sockaddr *sin;
  
 			sin = HostEntToSockAddr(Response);
  
-			host = Cookie.host;
+			host = Cookie->host;
  
 			if (sin != NULL) {
 				ip = IpToString(const_cast<sockaddr *>(sin));
@@ -2379,7 +2379,7 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 		}
 	}
  
-	objv[0] = Tcl_NewStringObj(Cookie.proc, -1);
+	objv[0] = Tcl_NewStringObj(Cookie->proc, -1);
 	Tcl_IncrRefCount(objv[0]);
  
 	objv[1] = Tcl_NewStringObj(ip, -1);
@@ -2391,8 +2391,8 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 	objv[3] = Tcl_NewStringObj(code, -1);
 	Tcl_IncrRefCount(objv[3]);
  
-	if (Cookie.param) {
-		objv[4] = Tcl_NewStringObj(Cookie.param, -1);
+	if (Cookie->param) {
+		objv[4] = Tcl_NewStringObj(Cookie->param, -1);
 		Tcl_IncrRefCount(objv[4]);
 	} else {
 		objc--;
@@ -2400,7 +2400,7 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
  
 	Tcl_EvalObjv(g_Interp, objc, objv, TCL_EVAL_GLOBAL);
  
-	if (Cookie.param) {
+	if (Cookie->param) {
 		Tcl_DecrRefCount(objv[4]);
 	}
  
@@ -2409,10 +2409,10 @@ void TclDnsLookupCallback(void *CookiePtr, hostent *Response) {
 	Tcl_DecrRefCount(objv[1]);
 	Tcl_DecrRefCount(objv[0]);
  
-	free(Cookie.proc);
-	free(Cookie.param);
-	free(Cookie.host);
-	free(CookiePtr);
+	free(Cookie->proc);
+	free(Cookie->param);
+	free(Cookie->host);
+	delete Cookie;
 }
  
 int internaldnslookup(const char *host, const char *tclproc, int reverse, int ipv6, const char *param) {
@@ -2422,7 +2422,7 @@ int internaldnslookup(const char *host, const char *tclproc, int reverse, int ip
 		return 1;
 	}
  
-	Cookie = (tcldnsquery_t *)malloc(sizeof(tcldnsquery_t));
+	Cookie = new tcldnsquery_t;
  
 	if (Cookie == NULL) {
 		return 1;

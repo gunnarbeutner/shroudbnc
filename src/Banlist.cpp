@@ -29,6 +29,7 @@
 void DestroyBan(ban_t *Ban) {
 	free(Ban->Mask);
 	free(Ban->Nick);
+	delete Ban;
 }
 
 /**
@@ -58,10 +59,10 @@ RESULT<bool> CBanlist::SetBan(const char *Mask, const char *Nick, time_t Timesta
 		THROW(bool, Generic_QuotaExceeded, "Too many bans.");
 	}
 
-	Ban = (ban_t *)malloc(sizeof(ban_t));
+	Ban = new ban_t;
 
 	if (AllocFailed(Ban)) {
-		THROW(bool, Generic_OutOfMemory, "malloc() failed.");
+		THROW(bool, Generic_OutOfMemory, "new operator failed.");
 	}
 
 	Ban->Mask = strdup(Mask);

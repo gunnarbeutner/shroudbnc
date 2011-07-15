@@ -740,7 +740,7 @@ static void DestroyCommandT(command_t *Command) {
 	free(Command->Category);
 	free(Command->Description);
 	free(Command->HelpText);
-	free(Command);
+	delete Command;
 }
 
 /**
@@ -771,7 +771,7 @@ void AddCommand(commandlist_t *Commands, const char *Name, const char *Category,
 		(*Commands)->RegisterValueDestructor(DestroyCommandT);
 	}
 
-	Command = (command_t *)malloc(sizeof(command_t));
+	Command = new command_t;
 
 	if (AllocFailed(Command)) {
 		return;

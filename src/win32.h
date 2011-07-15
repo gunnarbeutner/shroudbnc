@@ -95,7 +95,7 @@ typedef int socklen_t;
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-    SBNCAPI int asprintf  (char **ptr, const char *fmt, /*args*/ ...);
+    SBNCAPI int asprintf(char **ptr, const char *fmt, /*args*/ ...);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
