@@ -2539,6 +2539,9 @@ void CClientConnection::SetQuitReason(const char *Reason) {
 	if (Reason != NULL) {
 		m_QuitReason = strdup(Reason);
 
+		StrTrim(m_QuitReason, '\r');
+		StrTrim(m_QuitReason, '\n');
+
 		if (AllocFailed(m_QuitReason)) {
 			return;
 		}

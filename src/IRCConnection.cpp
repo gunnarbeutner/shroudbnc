@@ -678,7 +678,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 					return false;
 				}
 
-				StrTrim(Nick);
+				StrTrim(Nick, ' ');
 
 				while (IsNickPrefix(*Nick)) {
 					Nick++;

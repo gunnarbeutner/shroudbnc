@@ -89,7 +89,7 @@ SBNCAPI int CmpCommandT(const void *pA, const void *pB);
 extern const char *g_ErrorFile;
 extern unsigned int g_ErrorLine;
 
-void StrTrim(char *String);
+void StrTrim(char *String, char Character);
 
 char *strmcpy(char *Destination, const char *Source, size_t Size);
 char *strmcat(char *Destination, const char *Source, size_t Size);

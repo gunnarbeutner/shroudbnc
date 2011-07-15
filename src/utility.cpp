@@ -903,17 +903,17 @@ int CompareAddress(const sockaddr *pA, const sockaddr *pB) {
 /**
  * StrTrim
  *
- * Removes leading and trailing spaces from a string.
+ * Removes the specified char from the start and end of the string.
  *
  * @param String the string
  */
-void StrTrim(char *String) {
+void StrTrim(char *String, char Character) {
 	size_t Length = strlen(String);
 	size_t Offset = 0, i;
 
-	// remove leading spaces
+	// remove leading chars
 	for (i = 0; i < Length; i++) {
-		if (String[i] == ' ') {
+		if (String[i] == Character) {
 			Offset++;
 		} else {
 			break;
@@ -926,8 +926,8 @@ void StrTrim(char *String) {
 		}
 	}
 
-	// remove trailing spaces
-	while (String[strlen(String) - 1] == ' ') {
+	// remove trailing chars
+	while (String[strlen(String) - 1] == Character) {
 		String[strlen(String) - 1] = '\0';
 	}
 }
