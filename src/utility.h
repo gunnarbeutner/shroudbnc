@@ -95,11 +95,11 @@ char *strmcpy(char *Destination, const char *Source, size_t Size);
 char *strmcat(char *Destination, const char *Source, size_t Size);
 
 #ifdef HAVE_IPV6
-#define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
-#define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
+#	define SOCKADDR_LEN(Family) ((Family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6))
+#	define INADDR_LEN(Family) ((Family == AF_INET) ? sizeof(in_addr) : sizeof(in6_addr))
 #else /* HAVE_IPV6 */
-#define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
-#define INADDR_LEN(Family) (sizeof(in_addr))
+#	define SOCKADDR_LEN(Family) (sizeof(sockaddr_in))
+#	define INADDR_LEN(Family) (sizeof(in_addr))
 #endif /* HAVE_IPV6 */
 
 SBNCAPI const char *IpToString(sockaddr *Address);
