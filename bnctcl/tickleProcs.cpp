@@ -1001,12 +1001,14 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return List;
 	} else if (strcasecmp(Type, "autobacklog") == 0) {
 		return Context->GetAutoBacklog();
+	} else if (strcasecmp(Type, "sysnotices") == 0) {
+		return Context->GetSystemNotices() ? "1" : "0";
 	} else {
 		throw "Type should be one of: server port serverpass client clientcount "
 			"realname nick awaynick away awaymessage uptime lock admin hasserver "
 			"hasclient vhost channels tag delayjoin seen quitasaway automodes "
 			"dropmodes suspendreason ssl sslclient realserver ident tags localip "
-			"lean memory memorylimit channelsort sessions autobacklog";
+			"lean memory memorylimit channelsort sessions autobacklog sysnotices";
 	}
 }
 
@@ -1067,11 +1069,13 @@ int setbncuser(const char* User, const char* Type, const char* Value, const char
 		Context->SetChannelSortMode(Value);
 	else if (strcmp(Type, "autobacklog") == 0)
 		Context->SetAutoBacklog(Value);
+	else if (strcasecmp(Type, "sysnotices") == 0)
+		Context->SetSystemNotices(Value);
 	else
 		throw "Type should be one of: server port serverpass realname nick awaynick "
 			"away awaymessage lock admin channels tag vhost delayjoin password "
 			"quitasaway automodes dropmodes suspendreason ident lean channelsort "
-			"autobacklog";
+			"autobacklog sysnotices";
 
 	return 1;
 }
