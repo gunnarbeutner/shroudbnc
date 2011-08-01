@@ -2155,6 +2155,7 @@ void CCore::UpdateAdditionalListeners(void) {
 
 		m_Config->WriteString(Out, Value);
 
+		free(Value);
 		free(Out);
 	}
 

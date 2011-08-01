@@ -1858,7 +1858,7 @@ bool CUser::SetTagString(const char *Tag, const char *Value) {
 
 	ReturnValue = m_Config->WriteString(Setting, Value);
 
-	Modules = g_Bouncer->GetModules();
+	free(Setting);
 
 	return ReturnValue;
 }
