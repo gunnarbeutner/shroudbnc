@@ -1279,7 +1279,7 @@ int floodcontrol(const char* Function) {
 	int Result;
 
 	if (strcasecmp(Function, "bytes") == 0)
-		Result = FloodControl->GetBytes();
+		Result = 0; /* not supported anymore */
 	else if (strcasecmp(Function, "items") == 0)
 		Result = FloodControl->GetQueueSize();
 	else if (strcasecmp(Function, "on") == 0) {
