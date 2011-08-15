@@ -4069,6 +4069,7 @@
 		<row><td>_E58F97131FDE4C7999E94529DEB333FC.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_EB7F7805A0C741FEBB04BEEFE63E4738.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Debug\sbnc.exe</td><td>0</td></row>
 		<row><td>_EBD43C9C782F4C179F7E4E3472AEB6AB.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
+		<row><td>_ECE2619FF3C24D02A5B43FD394C67642.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\bin\sbnc.exe</td><td>0</td></row>
 		<row><td>_F07952182633480EBA6AB88E8A6BFF47.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_F1950E4365EF4086976720EEE63172AE.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
 		<row><td>_F303C394E1E54BB1A2ED817851336F8A.exe</td><td/><td>C:\Users\Gunnar\Documents\Visual Studio 2010\Projects\sbnc-dev\Release\sbnc.exe</td><td>0</td></row>
@@ -4580,7 +4581,7 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<row><td>PROGMSG_IIS_ROLLBACKVROOTS</td><td>##IDS_PROGMSG_IIS_ROLLBACKVROOTS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{D6C82A50-8BF0-42DA-B1A3-1B4AD83BF4C2}</td><td/></row>
-		<row><td>ProductName</td><td>shroudBNC 1.3 Beta 4</td><td/></row>
+		<row><td>ProductName</td><td>shroudBNC 1.3 Beta 6</td><td/></row>
 		<row><td>ProductVersion</td><td>1.3</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
