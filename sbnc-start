@@ -2,4 +2,108 @@
 # This script is responsible for passing the correct config directory
 # to the sbnc executable when installed in a user's home directory
 # rather than globally (e.g. in /usr/local).
-cd `dirname $0` && exec bin/sbnc --config `pwd` "$@"
+
+# Warn the user about some 1.1/1.2 scripts which have to be removed
+# from the config dir in order for 1.3 to work properly.
+OLDSCRIPTS=$(cat <<SCRIPTS
+account.tcl 42c64365e7a164070d5654ccbb64377b 1.1
+awaymessage.tcl 9cc28da74c1f3e5b73c6cd684db8fe61 1.1
+bind.tcl c0eb82d9f886d422bbf13eb8d660901c 1.1
+botnet.tcl 0fd6e1b9096ffdaa399659e2ab04e7ec 1.1
+channel.tcl 87de5bf170cefd81dba5dd7d05eb291b 1.1
+contact.tcl adf2977bfa33e4d9a8129460d943fb5b 1.1
+fakemode.tcl c0c91760e0fd8108fb1056432485b78a 1.1
+iface.tcl 03a98b36f77da663e50921dcea89894d 1.1
+lock.tcl fd6e6ff9437c26c5dc429b9e73ac82a5 1.1
+misc.tcl bedf2fe3e8d34aa15fc3cf3228e8e953 1.1
+partyline.tcl fb3c437f759abfcb021beacf07ed995d 1.1
+pushmode.tcl 0e7b6b680d63d3aae41eef7b290092eb 1.1
+qauth.tcl 728851409f6baaf894b0503cbae6992c 1.1
+socket.tcl 06d84ff03f6581ebf8a46471004a52b9 1.1
+stubs.tcl bffdbb8eda083a06297308d15b4e4f14 1.1
+tcl.tcl 01a1a39e27cc66555e8958258f80b646 1.1
+timers.tcl d80a5d60ba1ae485b958ac2b17ba5b03 1.1
+usys.tcl 8e32a7ea0becf75ef0ffe45c598e110d 1.1
+variables.tcl c2cd17aee479dfc267376c174aeb4729 1.1
+vhost.tcl 276fbbea203e4f4f55b0a41e02e14f51 1.1
+virtual.tcl 5d697fb4df8b401085c8a54d4c6c4301 1.1
+account.tcl 51d55e5427612d3003a0d92a1caafc64 1.2
+alltools.tcl b426fd0c8281717d10e71e057e2e659e 1.1/1.2
+bind.tcl 4ed0c2f48f49882d8fd068cd9b46103b 1.2
+botnet.tcl b3bcb817b725510d906c7c99a4fd2464 1.2
+channel.tcl 6200b6e92e0bf2eed909ea0e2ea89a94 1.2
+contact.tcl 8c017097c0c7dc38304c7e2854f9296d 1.2
+defaultserver.tcl cb00265535da979ddbe0bf98a7ff1ea6 1.2
+highlight.tcl 1b3725fdb5f3b278bbcc4fc88b3b9a66 1.1/1.2
+iface2.tcl 642d06d9e3bccaeef2d04b7fa6e6a81f 1.2
+ifacecmds.tcl 54e589e85c286218c721b9106889e5f7 1.2
+iface.tcl f10e75e2c75a86d23d606375dd5f84cc 1.2
+itype.tcl 91399dc4516fb458575de460dad7b65a 1.2
+lock.tcl 83015a2863f61a201b69542cb676539e 1.2
+misc.tcl 1075df27e53cd15c010f2168b15c2240 1.2
+namespace.tcl d08ad86f98a9346fd0bb2a32c0e74553 1.1/1.2
+partyline.tcl 7ea59fd5915450fa326cfcf973777846 1.2
+pushmode.tcl dd788021ee9a821e5d3de47e9b652f35 1.2
+qauth.tcl a4c149ab35b4e6eba48140f0d889af59 1.2
+socket.tcl 2593fd099d0743b9cd38c30701778f38 1.2
+stubs.tcl f75183275ca16c5b7507072197f10143 1.2
+tcl.tcl 75d52ee9b1aeab487c6ee2e445e09fcf 1.2
+telnetclient.tcl d366ee8e42a97d256a37f50b9bb75574 1.2
+telnet.tcl 5c2404e9ef83b666b9dfb03443a35def 1.2
+timers.tcl 1ff4c355350dfd5dd673072f0398f303 1.2
+usys.tcl 3705971a96cdaf77ec9ea6528536885a 1.2
+variables.tcl 3f87da16ec3dcbceb0b3679fa94152c6 1.2
+version.tcl 9efac435e62efc1e437de71486eb320b 1.1/1.2
+vhost.tcl a498594e0560c6729cdfa138db6a1e45 1.2
+virtual.tcl 463f17b016fa06050e01b5de7acdb107 1.2
+SCRIPTS
+)
+
+cd `dirname $0` || exit 1
+
+FOUNDOLDSCRIPT=0
+
+IFS='
+'
+
+for SCRIPTINFO in $OLDSCRIPTS; do
+	SCRIPT=$(echo $SCRIPTINFO | cut -f1 -d' ')
+	OLDHASH=$(echo $SCRIPTINFO | cut -f2 -d' ')
+	VERSION=$(echo $SCRIPTINFO | cut -f3 -d' ')
+
+	if [ ! -f scripts/$SCRIPT ]; then
+		continue
+	fi
+
+	NEWHASH=$(md5sum scripts/$SCRIPT | cut -f1 -d' ')
+
+	if [ "x$OLDHASH" = "x$NEWHASH" ]; then
+		if [ $FOUNDOLDSCRIPT -eq 0 ]; then
+			echo "The default location for shroudBNC's built-in TCL scripts has changed in version 1.3. Older"
+			echo "versions of shroudBNC kept both built-in as well as user scripts in the 'scripts' directory."
+			echo "Starting with version 1.3 the built-in scripts are now in share/sbnc/scripts and should not"
+			echo "be modified. This change was necessary to support installing shroudBNC in a read-only"
+			echo "location (e.g. /usr). It is NOT necessary to update your sbnc.tcl file. Please refer to"
+			echo "the INSTALL file for more details."
+			echo ""
+			echo "shroudBNC has detected old versions of some built-in scripts in your configuration directory:"
+			echo ""
+		fi
+
+		FOUNDOLDSCRIPT=1
+		echo "* scripts/$SCRIPT (version $VERSION)"
+	fi
+done
+
+if [ $FOUNDOLDSCRIPT -ne 0 ]; then
+	echo ""
+	echo "shroudBNC cannot start while these files are present. Please either rename or remove them and make sure"
+	echo "that there aren't any other built-in scripts from previous versions in case you edited any of them."
+	echo "This check only reports unmodified script files."
+	echo ""
+	echo "shroudBNC was NOT started."
+
+	exit 1
+fi
+
+#exec bin/sbnc --config `pwd` "$@"

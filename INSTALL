@@ -17,6 +17,10 @@ If you are planning to install shroudBNC as root you will need to manually speci
 
 # ./configure --prefix=/usr/local
 
+Note: While loading TCL scripts shroudBNC will fall back to trying the $PREFIX/share/sbnc directory
+when a script isn't available in the user's configuration directory. Therefore it is NOT necessary
+to use absolute paths in the sbnc.tcl configuration file.
+
 The configure script will tell you which features have been enabled (e.g. SSL, TCL). In case any
 of the required libraries are missing you can now fix these errors and re-run the configure script.
 
