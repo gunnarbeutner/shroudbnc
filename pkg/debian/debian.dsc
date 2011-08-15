@@ -6,4 +6,4 @@ Maintainer: Gunnar Beutner <gunnar@beutner.name>
 Architecture: any
 Build-Depends: debhelper (>= 4.1.16), automake, autotools-dev, libc-ares-dev, libltdl3-dev, libssl-dev, tcl8.5-dev
 Files:
- 9fe874eaaf8ed00b972fbc4f13c045b8 1572424 sbnc-1.3beta6.tar.gz
+ c34bbec5c924567c46c69ac7b849df22 1579896 sbnc-1.3beta6.tar.gz
