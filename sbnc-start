@@ -106,4 +106,4 @@ if [ $FOUNDOLDSCRIPT -ne 0 ]; then
 	exit 1
 fi
 
-#exec bin/sbnc --config `pwd` "$@"
+exec bin/sbnc --config `pwd` "$@"
