@@ -402,6 +402,53 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		free(m_Server);
 		m_Server = strdup(Reply);
+
+		const CVector<CModule *> *Modules = g_Bouncer->GetModules();
+
+		for (int i = 0; i < Modules->GetLength(); i++) {
+			(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
+		}
+
+		if (Client != NULL) {
+			if (strcmp(m_CurrentNick, Client->GetNick()) != 0) {
+				Client->ChangeNick(m_CurrentNick);
+			}
+		}
+
+		GetOwner()->Log("You were successfully connected to an IRC server.");
+		g_Bouncer->Log("User %s connected to an IRC server.",
+			GetOwner()->GetUsername());
+
+		int DelayJoin = GetOwner()->GetDelayJoin();
+
+		if (DelayJoin == 1) {
+			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
+		} else if (DelayJoin == 0) {
+			JoinChannels();
+		}
+
+		if (Client == NULL) {
+			bool AppendTS = (GetOwner()->GetConfig()->ReadInteger("user.ts") != 0);
+			const char *AwayReason = GetOwner()->GetAwayText();
+
+			if (AwayReason != NULL) {
+				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
+			}
+		}
+
+		const char *AutoModes = GetOwner()->GetAutoModes();
+		const char *DropModes = GetOwner()->GetDropModes();
+
+		if (AutoModes != NULL) {
+			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
+		}
+
+		if (DropModes != NULL && Client == NULL) {
+			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
+		}
+
+		m_State = State_Connected;
+
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
 			free(m_CurrentNick);
@@ -439,57 +486,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		free(Nick);
 
 		return bRet;
-	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
-		int DelayJoin = GetOwner()->GetDelayJoin();
-		if (m_State != State_Connected) {
-			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
-
-			for (int i = 0; i < Modules->GetLength(); i++) {
-				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
-			}
-
-			const char *ClientNick;
-
-			if (Client != NULL) {
-				ClientNick = Client->GetNick();
-
-				if (strcmp(m_CurrentNick, ClientNick) != 0) {
-					Client->ChangeNick(m_CurrentNick);
-				}
-			}
-
-			GetOwner()->Log("You were successfully connected to an IRC server.");
-			g_Bouncer->Log("User %s connected to an IRC server.",
-				GetOwner()->GetUsername());
-		}
-
-		if (DelayJoin == 1) {
-			m_DelayJoinTimer = g_Bouncer->CreateTimer(5, false, DelayJoinTimer, this);
-		} else if (DelayJoin == 0) {
-			JoinChannels();
-		}
-
-		if (Client == NULL) {
-			bool AppendTS = (GetOwner()->GetConfig()->ReadInteger("user.ts") != 0);
-			const char *AwayReason = GetOwner()->GetAwayText();
-
-			if (AwayReason != NULL) {
-				WriteLine(AppendTS ? "AWAY :%s (Away since the dawn of time)" : "AWAY :%s", AwayReason);
-			}
-		}
-
-		const char *AutoModes = GetOwner()->GetAutoModes();
-		const char *DropModes = GetOwner()->GetDropModes();
-
-		if (AutoModes != NULL) {
-			WriteLine("MODE %s +%s", GetCurrentNick(), AutoModes);
-		}
-
-		if (DropModes != NULL && Client == NULL) {
-			WriteLine("MODE %s -%s", GetCurrentNick(), DropModes);
-		}
-
-		m_State = State_Connected;
 	} else if (argc > 1 && strcasecmp(Reply, "ERROR") == 0) {
 		if (strstr(Raw, "throttle") != NULL) {
 			GetOwner()->ScheduleReconnect(120);
