@@ -597,8 +597,6 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 				}
 			}
 
-			const char *AutoBacklog = GetOwner()->GetAutoBacklog();
-
 			rc = asprintf(&Out, "autobacklog - %s", GetOwner()->GetAutoBacklog() ? GetOwner()->GetAutoBacklog() : "Off");
 			if (!RcFailed(rc)) {
 				SENDUSER(Out);
