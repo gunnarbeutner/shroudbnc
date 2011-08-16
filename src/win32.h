@@ -23,7 +23,11 @@
 // win32 specific header
 
 #define WIN32_LEAN_AND_MEAN 1
+
+#define _WIN32_WINNT_WINXP 0x501
 #define _WIN32_WINNT _WIN32_WINNT_WINXP
+
+#define NTDDI_WINXP 0x05010000
 #define NTDDI_VERSION NTDDI_WINXP
 
 #ifndef SWIG
@@ -31,7 +35,7 @@
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
 #	include <shlwapi.h>
-#   include <shlobj.h>
+#	include <shlobj.h>
 #	include <direct.h>
 #	include <io.h>
 #else /* SWIG */
