@@ -1,7 +1,7 @@
 shroudBNC PHP scripts
 ---------------------
 
-These scripts provide a way of communicating with the iface2 component of shroudBNC 1.2
+These scripts provide a way of communicating with the iface2 component of shroudBNC 1.2 (and newer).
 
 Included files:
 

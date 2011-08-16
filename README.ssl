@@ -12,37 +12,41 @@ using packet sniffers might not be so obvious for (wired) LAN/WAN connections it
 when considering wireless connections, e.g. on a campus, where every other WLAN user can tap into
 your data transfers.
 
-Compiling sBNC with support for SSL
------------------------------------
+Compiling shroudBNC with support for SSL
+----------------------------------------
 
 The "configure" script detects whether you have the necessary openssl libraries/headers and
 enables SSL support if possible.
 
-How to set up sBNC for SSL
---------------------------
+How to set up shroudBNC for SSL
+-------------------------------
 
-sBNC supports two kinds of listeners: unencrypted and encrypted ones. During startup two
+shroudBNC supports two kinds of listeners: unencrypted and encrypted ones. During startup two
 configuration settings are read to determine whether the user wants unencrypted, encrypted
 listeners or both:
 
 system.port - sets the port for the unencrypted listener
 system.sslport - sets the port for the ssl-enabled listener
 
-If neither of those settings are used, sBNC falls back to creating an unencrypted listener on
-port 9000.
+If neither of those settings are used, shroudBNC falls back to creating an unencrypted listener
+on port 9000.
 
 You can remove the "system.port" setting from your configuration file if you just want an
 encrypted listener.
 
 These settings can be set in the bouncer's main configuration file: sbnc.conf
 
-Once you've enabled SSL sBNC expects to find the following files in your bouncer's directory:
+Once you've enabled SSL shroudBNC expects to find the following files in your bouncer's directory:
 
 sbnc.crt - the public part of the server's key
 sbnc.key - the private part of the server's key
 
 The "openssl" utility can be used to create certificates. You can also use "make sslcert", which
 will generate an SSL certificate for you and install it in the appropriate directory.
+
+Please note that you will need to run shroudBNC in the foreground (i.e. using the --foreground
+parameter) if your private key has a passphrase. It is therefore recommended to remove the passphrase
+(after verifying that the file permissions are sufficiently secure).
 
 Client Certificates
 -------------------
@@ -54,7 +58,7 @@ When you want to set the public key you are going to use for your bouncer accoun
 to log in using your client certificate AND your password (obviously because the bouncer
 doesn't know your public key yet).
 
-Once you're logged in you can use /sbnc savecert to tell sBNC that the client certificate you
+Once you're logged in you can use /sbnc savecert to tell shroudBNC that the client certificate you
 are currently using is to be trusted for public key authentication.
 
 Use /sbnc showcert to check that the certificate was saved correctly. You should now be able to
@@ -62,4 +66,4 @@ log in using this client certificate.
 
 (You can also set your public key by putting a x509 certificate into your users/ directory. The
 file's name should be <username>.crt, where <username> is your username. However this requires
-a restart as sBNC only reads the certificate files during startup.)
+a restart as shroudBNC only reads the certificate files during startup.)

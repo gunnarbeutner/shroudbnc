@@ -3,9 +3,9 @@ Installing shroudBNC
 
 First of all make sure that you have the following libraries (and development files) installed:
 
-- openssl (if you're going to use ssl-encrypted connections; README.ssl
+- OpenSSL (if you're going to use SSL-encrypted connections; README.ssl
            contains more details about how to use SSL)
-- tcl     (if you're going to use the tcl module, version 8.4 or later, earlier
+- TCL     (if you're going to use the tcl module, version 8.4 or later, earlier
            versions have not been tested)
 
 In order to compile and install shroudBNC you will have to use the 'configure'
@@ -79,8 +79,8 @@ Configuration directory: /usr/home/gunnar/sbnc
 Daemonizing... DONE
 [gunnar@hermes ~/sbnc]$
 
-You might want to edit the sbnc.tcl if you plan to use the TCL module. Load
-any scripts you want. You will have to rehash the tcl module after every
-change you make to sbnc.tcl or any other .tcl script which you have loaded:
+You might want to edit the sbnc.tcl config file if you plan to use the TCL module. Load
+any scripts you want. You will have to rehash the tcl module after every change you make
+to sbnc.tcl or any other .tcl script which you have loaded:
 
 /sbnc tcl rehash (while you're connected to the bouncer using an IRC client)

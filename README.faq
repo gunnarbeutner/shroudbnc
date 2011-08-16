@@ -2,7 +2,7 @@ shroudBNC: Frequently Asked Questions
 -------------------------------------
 
 Q: When logging in I get the error "Unknown user or wrong password.". What is happening?
-A: Either the password is wrong or your username is incorrect. It might also be possible that you set up host masks (i.e. limited access to the bouncer to a few known hosts) and your host is not matched by any of those patterns.
+A: Either the password is wrong or your username is incorrect. Check your "sbnc.log" log file for details.
 
 You will also get that error when you tried to log in with a wrong password for a couple of times because shroudBNC temporarily blocks
 logins from your IP address (for about 10 minutes).

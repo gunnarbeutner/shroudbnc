@@ -18,7 +18,6 @@ system.motd			| <empty>		| the bouncer's motd (see /sbnc help motd)
 system.sendq			| 10240			| the sendq size (in kB)
 system.dontmatchuser		| 0			| whether to check the username if the user's ssl certificate already unambiguously matches a user
 system.users			| <empty>		| list of usernames
-system.hosts.host<Nr>		| N/A			| list of hostnames which have access to the bouncer
 system.modules.mod<Nr>		| N/A			| list of module filenames
 
 User configuration files

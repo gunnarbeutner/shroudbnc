@@ -145,22 +145,22 @@ impulse <Impulse>
 
 bncversion
 
-  Description: Returns the version of sBNC, e.g. 0.9 0090000.
+  Description: Returns the version of shroudBNC, e.g. 0.9 0090000.
   Returns: A string identifying the current version.
 
 bncnumversion
 
-  Description: Returns the version of sBNC, e.g. 0090000
+  Description: Returns the version of shroudBNC, e.g. 0090000
   Returns: A string identifying the current version.
 
 bncuptime
 
-  Description: Returns the timestamp of the time when sBNC was started.
+  Description: Returns the timestamp of the time when shroudBNC was started.
   Returns: A UNIX timestamp.
 
 bnccommand <Command> <Parameters>
 
-  Description: Executes a module-specific command. This is used to communicate with other sBNC modules.
+  Description: Executes a module-specific command. This is used to communicate with other shroudBNC modules.
   Returns: The return value is module specific. If no module processed the command an empty string is returned.
 
 bncmodules

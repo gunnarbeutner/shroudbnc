@@ -21,7 +21,7 @@ username:password).
 Once you're connected you should type /msg -sBNC help to get a list of available commands.
 
 shroudBNC supports oidentd in order to provide unique idents for each bouncer
-user. You will need to enable ident-spoofing for the unix account you're using
+user. You will need to enable ident-spoofing for the Unix account you're using
 to run shroudBNC if you want each user to have their own ident. Read oidentd's
 manual or http://wiki.shroudbnc.info/en/oidentd for more details.
 

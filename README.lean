@@ -1,7 +1,7 @@
 shroudBNC setting: "user.lean"
 ------------------------------
 
-If you're going to use an sBNC instance for a lot of users (>500) you might
+If you're going to use an shroudBNC instance for a lot of users (>500) you might
 want to consider using "lean" mode in order to improve performance.
 
 When enabled the parser does not parse/process certain messages which are
