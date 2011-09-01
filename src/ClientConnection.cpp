@@ -229,7 +229,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 			"Syntax: jump\nReconnects to the irc server.");
 		AddCommand(&m_CommandList, "partall", "User", "parts all channels and tells shroudBNC not to rejoin them when you reconnect to a server",
 			"Syntax: partall\nParts all channels and tells shroudBNC not to rejoin any channels when you reconnect to a"
-			" server.\nThis might be useful if you get disconnected due to an \"Max sendq exceeded\" error.");
+			" server.\nThis might be useful if you get disconnected due to a \"Max sendq exceeded\" error.");
 		AddCommand(&m_CommandList, "backlog", "User", "replays the channel log for the specified channel",
 			"Syntax: backlog <#channel>\nPlays the channel log for the specified channel.");
 		AddCommand(&m_CommandList, "erasebacklog", "User", "erases the backlog for the specified channel or all channels",
