@@ -1899,7 +1899,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 							}
 						}
 
-						if (a) {
+						if (Nicks[0] != '\0') {
 							WriteLine(":%s 353 %s = %s :%s", IRC->GetServer(), IRC->GetCurrentNick(), argv[2], Nicks);
 						}
 
