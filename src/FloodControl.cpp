@@ -85,7 +85,7 @@ RESULT<char *> CFloodControl::DequeueItem(bool Peek) {
 		RETURN(char *, const_cast<char *>((const char *)PeekItem));
 	}
 
-	if (m_Enabled && m_BytesSent + strlen(PeekItem) + 2 + strlen(FLOODMSG) + 2 > FLOODBYTES) {
+	if (m_Enabled && m_BytesSent > 0 && m_BytesSent + strlen(PeekItem) + 2 + strlen(FLOODMSG) + 2 > FLOODBYTES) {
 		Plug();
 
 		RETURN(char *, strdup(FLOODMSG));
