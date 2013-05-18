@@ -27,129 +27,92 @@ foreach user [split $::account354] {
 
 internaltimer 180 1 auth:pulse 180
 internaltimer 240 1 auth:pulse 240
+internaltimer 5 1 auth:processqueue
 
 proc auth:connect {type} {
 	namespace eval [getns] {
 		if {![info exists inwho]} { set inwho 0 }
-		if {![info exists accounttimer]} { set accounttimer 0 }
-		if {![info exists accountwait]} { set accountwait 0 }
-		if {![info exists authchans]} { set authchans {} }
+		if {![info exists authqueue]} { set authqueue {} }
 	}
 
 	upvar [getns]::inwho inwho
-	upvar [getns]::accounttimer accounttimer
-	upvar [getns]::accountwait accountwait
-	upvar [getns]::authchans authchans
+	upvar [getns]::authqueue authqueue
 
 	set inwho 0
-	set authchans [list]
-	set accounttimer 0
-	set accountwait 0
+	set authqueue [list]
 
 	internalkilltimer auth:jointimer [getctx]
 }
 
 proc auth:join {nick host hand chan} {
 	namespace eval [getns] {
-		if {![info exists inwho]} { set inwho 0 }
 		if {![info exists whonicks]} { set whonicks {} }
-		if {![info exists accounttimer]} { set accounttimer 0 }
-		if {![info exists accountwait]} { set accountwait 0 }
 	}
-
-	upvar [getns]::inwho inwho
-	upvar [getns]::accounttimer accounttimer
-	upvar [getns]::accountwait accountwait
 
 	if {[isbotnick $nick]} {
-		auth:enqueuewho $chan
+		auth:enqueue $chan
 	} else {
-		set account [getchanlogin $nick]
-
-		if {$account == ""} {
-			if {$accounttimer != 0} {
-				incr accountwait
-
-				if {$accountwait > 2} {
-					return
-				}
-			}
-
-			internalkilltimer auth:jointimer [getctx]
-			internaltimer 3 0 auth:jointimer [getctx]
-
-			set accounttimer 1
-		} else {
-			bncsettag $chan $nick account $account
-
-			sbnc:callbinds "account" - $chan "$chan $host" $nick $host $hand $chan
-		}
+		auth:enqueue $nick
 	}
+
+	internalkilltimer auth:jointimer [getctx]
+	internaltimer 3 0 auth:jointimer [getctx]
 }
 
-proc auth:enqueuewho {names} {
+proc auth:enqueue {names {now 0}} {
 	namespace eval [getns] {
-		if {![info exists authchans]} { set authchans [list] }
-		if {![info exists inwho]} { set inwho 0 }
+		if {![info exists authqueue]} { set authqueue [list] }
 	}
 
-	upvar [getns]::authchans authchans
-	upvar [getns]::inwho inwho
+	upvar [getns]::authqueue authqueue
 
-	set current [list]
-	set outnames [list]
-
-	foreach cur $authchans {
-		foreach item [split $cur ","] {
-			lappend current [string tolower $item]
-		}
-	}
-
-	set allowedchans [split [string tolower [getbncuser [getctx] tag whochans]] ","]
-
-	foreach name [split $names ","] {
+	foreach name $names {
 		set name [string tolower $name]
 
-		if {[llength $allowedchans] == 0 || ([string first [string index $name 0] [getisupport CHANTYPES]] == -1 || [lsearch -exact $allowedchans $name] != -1)} {
-			if {[lsearch -exact $current $name] == -1} {
-				lappend outnames $name
+		if {[lsearch -exact $authqueue $name] == -1} {
+			if {$now} {
+				set authqueue [linsert $authqueue 0 $name]
+			} else {
+				lappend authqueue $name
 			}
 		}
 	}
 
-	if {[llength $outnames] == 0} { return }
-
-	if {$inwho} {
-		lappend authchans [join $outnames ","]
-	} else {
-		set inwho 1
-		puthelp "WHO [join $outnames ","] n%nat,23"
+	if {$now} {
+		auth:processqueue
 	}
 }
 
-proc auth:dequeuewho {} {
-	namespace eval [getns] {
-		if {![info exists authchans]} { set authchans [list] }
-	}
+proc auth:processqueue {} {
+	global account354
 
-	upvar [getns]::authchans authchans
+	foreach user [split $account354] {
+		if {![bncvaliduser $user]} {
+			continue
+		}
 
-	set chan [lindex $authchans 0]
-	set authchans [lrange $authchans 1 end]
+		setctx $user
 
-	if {$chan == ""} { return }
+		namespace eval [getns] {
+			if {![info exists authqueue]} { set authqueue [list] }
+			if {![info exists inwho]} { set inwho 0 }
+		}
 
-	set result [list]
+		upvar [getns]::authqueue authqueue
+		upvar [getns]::inwho inwho
 
-	foreach item [split $chan] {
-		set account [getchanlogin $item]
+		if {$inwho} {
+			continue
+		}
 
-		if {$account != "" && $account != 0} {
-			lappend result $item
+		set names [lrange $authqueue 0 9]
+		set authqueue [lrange $authqueue 10 end]
+
+		if {[llength $names] > 0} {
+			set inwho 1
+			puthelp "WHO [join $names ","] n%nat,23"
 		}
 	}
-
-	return $result
 }
 
 proc auth:raw315 {source raw text} {
@@ -161,14 +124,6 @@ proc auth:raw315 {source raw text} {
 
 	if {$inwho} {
 		haltoutput
-	}
-
-	set chan [auth:dequeuewho]
-
-	if {$chan != ""} {
-		puthelp "WHO $chan n%nat,23"
-		set inwho 1
-	} else {
 		set inwho 0
 	}
 }
@@ -197,43 +152,9 @@ proc auth:raw354 {source raw text} {
 	}
 }
 
-# it's possible that the same nick gets /who'd twice (during the same call of auth:jointimer). fix?
 proc auth:jointimer {context} {
 	setctx $context
-
-	namespace eval [getns] {
-		if {![info exists accounttimer]} { set accounttimer 0 }
-		if {![info exists accountwait]} { set accountwait 0 }
-		if {![info exists inwho]} { set inwho 0 }
-	}
-
-	upvar [getns]::accounttimer accounttimer
-	upvar [getns]::accountwait accountwait
-	upvar [getns]::inwho inwho
-
-	set accounttimer 0
-	set accountwait 0
-
-	set nicks ""
-	foreach chan [internalchannels] {
-		foreach nick [internalchanlist $chan] {
-			if {[bncgettag $chan $nick account] == ""} {
-				lappend nicks $nick
-			}
-
-			set l [join [sbnc:uniq $nicks] ","]
-
-			if {[string length $l] > 350} {
-				auth:enqueuewho $l
-				set nicks [list]
-
-			}
-		}
-	}
-
-	if {$nicks != ""} {
-		auth:enqueuewho [join [sbnc:uniq $nicks] ","]
-	}
+	auth:processqueue
 }
 
 proc auth:pulse {reason} {
@@ -246,21 +167,10 @@ proc auth:pulse {reason} {
 
 		setctx $user
 
-		set nicks ""
-		set allowedchans [split [string tolower [getbncuser [getctx] tag whochans]] ","]
-
-		namespace eval [getns] {
-			if {![info exists inwho]} { set inwho 0 }
-		}
-
-		upvar [getns]::inwho inwho
 
 		foreach chan [internalchannels] {
-			if {$allowedchans != "" && [lsearch -exact $allowedchans [string tolower $chan]] == -1} {
-				continue
-			}
-
 			set count 0
+			set nicks [list]
 
 			foreach nick [internalchanlist $chan] {
 				set account [bncgettag $chan $nick account]
@@ -271,7 +181,7 @@ proc auth:pulse {reason} {
 			}
 
 			if {$count > 100 || ($count > 20 && $count > [llength [internalchanlist $chan]] * 3 / 4)} {
-				auth:enqueuewho $chan
+				auth:enqueue $chan
 				continue
 			}
 
@@ -281,16 +191,9 @@ proc auth:pulse {reason} {
 				if {($reason == 180 && $account == "") || ($account == 0 && $reason == 240)} {
 					lappend nicks $nick
 				}
-
-				if {[string length [join [sbnc:uniq $nicks] ","]] > 350} {
-					auth:enqueuewho [join [sbnc:uniq $nicks] ","]
-					set nicks [list]
-				}
 			}
-		}
 
-		if {$nicks != ""} {
-			auth:enqueuewho [join [sbnc:uniq $nicks] ","]
+			auth:enqueue $nicks
 		}
 	}
 }
