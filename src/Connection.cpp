@@ -740,10 +740,10 @@ int CConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 void CConnection::AsyncConnect(void) {
 	if (m_HostAddr != NULL && (m_BindAddr != NULL || m_BindIpCache == NULL)) {
 		sockaddr *Remote = NULL, *Bind = NULL;
+		sockaddr_in RemoteV4, BindV4;
+		sockaddr_in6 RemoteV6, BindV6;
 
 		if (m_Family == AF_INET) {
-			sockaddr_in RemoteV4, BindV4;
-
 			memset(&RemoteV4, 0, sizeof(RemoteV4));
 			RemoteV4.sin_family = m_Family;
 			RemoteV4.sin_port = htons(m_PortCache);
@@ -761,8 +761,6 @@ void CConnection::AsyncConnect(void) {
 			}
 #ifdef HAVE_IPV6
 		} else if (m_Family == AF_INET6) {
-			sockaddr_in6 RemoteV6, BindV6;
-
 			memset(&RemoteV6, 0, sizeof(RemoteV6));
 			RemoteV6.sin6_family = m_Family;
 			RemoteV6.sin6_port = htons(m_PortCache);
