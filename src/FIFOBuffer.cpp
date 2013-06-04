@@ -174,7 +174,7 @@ RESULT<bool> CFIFOBuffer::Write(const char *Data, size_t Size) {
 	}
 
 	m_Buffer = tempBuffer;
-	memcpy(m_Buffer + m_Offset + m_BufferSize, Data, Size);
+	memcpy(m_Buffer + m_BufferSize, Data, Size);
 	m_BufferSize += Size;
 
 	RETURN(bool, true);
@@ -198,8 +198,8 @@ RESULT<bool> CFIFOBuffer::WriteUnformattedLine(const char *Line) {
 	}
 
 	m_Buffer = tempBuffer;
-	memcpy(m_Buffer + m_Offset + m_BufferSize, Line, Length);
-	memcpy(m_Buffer + m_Offset + m_BufferSize + Length, "\r\n", 2);
+	memcpy(m_Buffer + m_BufferSize, Line, Length);
+	memcpy(m_Buffer + m_BufferSize + Length, "\r\n", 2);
 	m_BufferSize += Length + 2;
 
 	RETURN(bool, true);
