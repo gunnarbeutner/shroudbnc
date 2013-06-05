@@ -675,7 +675,7 @@ const char *GenerateSalt(void) {
 
 	for (unsigned int i = 0; i < sizeof(Salt) - 1; i++) {
 		do {
-			Salt[i] = 0x21 + rand() % (0xFF - 0x21);
+			Salt[i] = '0' + rand() % ('^' - '0');
 		} while (Salt[i] == '$');
 	}
 
