@@ -1992,7 +1992,7 @@ const char *CUser::SimulateWithResult(const char *Command) {
 }
 
 bool GlobalUserReconnectTimer(time_t Now, void *Null) {
-	int i = 0;
+	int i = rand() % g_Bouncer->GetUsers()->GetLength();
 
 	while (hash_t<CUser *> *UserHash = g_Bouncer->GetUsers()->Iterate(i++)) {
 		if (UserHash->Value->ShouldReconnect() && g_Bouncer->GetStatus() == Status_Running) {
