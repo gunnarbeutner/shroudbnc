@@ -73,43 +73,22 @@ public:
 			CUser *User = UserHash->Value;
 			CIRCConnection *IRC = User->GetIRCConnection();
 
-			if (IRC == NULL) {
+			if (!IRC || IRC->GetState() == State_Connected) {
 				continue;
 			}
 
-			sockaddr *LocalAddress = IRC->GetLocalAddress();
-			sockaddr *RemoteAddress = IRC->GetRemoteAddress();
+			Ident = User->GetIdent();
 
-			if (LocalAddress == NULL || RemoteAddress == NULL || LocalAddress->sa_family != RemoteAddress->sa_family) {
-				continue;
+			if (Ident == NULL) {
+				Ident = UserHash->Name;
 			}
 
-			if (LocalAddress->sa_family == AF_INET) {
-				LPort = htons(((sockaddr_in *)LocalAddress)->sin_port);
-			} else {
-				LPort = htons(((sockaddr_in6 *)LocalAddress)->sin6_port);
-			}
+			// 113 , 3559 : USERID : UNIX : shroud
+			WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, Ident);
 
-			if (RemoteAddress->sa_family == AF_INET) {
-				RPort = htons(((sockaddr_in *)RemoteAddress)->sin_port);
-			} else {
-				RPort = htons(((sockaddr_in6 *)RemoteAddress)->sin6_port);
-			}
+			g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
 
-			if (LPort == LocalPort && RPort == RemotePort) {
-				Ident = UserHash->Value->GetIdent();
-
-				if (Ident == NULL) {
-					Ident = UserHash->Name;
-				}
-
-				// 113 , 3559 : USERID : UNIX : shroud
-				WriteLine("%d , %d : USERID : UNIX : %s", LocalPort, RemotePort, Ident);
-
-				g_Bouncer->Log("Answered ident-request for %s", User->GetUsername());
-
-				return;
-			}
+			return;
 		}
 
 		FILE *IdentFile = fopen("ident", "r");
