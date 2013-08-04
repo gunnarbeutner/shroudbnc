@@ -87,7 +87,7 @@ proc auth:processqueue {} {
 	global account354
 
 	foreach user [split $account354] {
-		if {![bncvaliduser $user]} {
+		if {![bncvaliduser $user] || ![getbncuser $user hasserver]} {
 			continue
 		}
 
@@ -161,7 +161,7 @@ proc auth:pulse {reason} {
 	global account354
 
 	foreach user [split $account354] {
-		if {![bncvaliduser $user]} {
+		if {![bncvaliduser $user] || ![getbncuser $user hasserver]} {
 			continue
 		}
 
