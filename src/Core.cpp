@@ -2093,6 +2093,8 @@ void CCore::InitializeAdditionalListeners(void) {
 
 				AddAdditionalListener(Port, Address, SSL);
 			}
+
+			ArgFree(ListenerToks);
 		} else {
 			break;
 		}
