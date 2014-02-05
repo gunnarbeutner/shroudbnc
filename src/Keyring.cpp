@@ -125,6 +125,8 @@ bool CKeyring::RemoveRedundantKeys(void) {
 		}
 
 		if (Count >= g_Bouncer->GetResourceLimit("keys")) {
+			free(Keys);
+
 			return false;
 		}
 	}
