@@ -1130,6 +1130,8 @@ RESULT<bool> CCore::RemoveUser(const char *Username, bool RemoveConfig) {
 
 	if (IsError(Result)) {
 		free(UsernameCopy);
+		free(ConfigCopy);
+		free(LogCopy);
 
 		THROWRESULT(bool, Result);
 	}
