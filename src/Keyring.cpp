@@ -98,11 +98,11 @@ bool CKeyring::RemoveRedundantKeys(void) {
 	const char *Channel, *Key;
 	char **Keys;
 
-	Keys = m_Config->GetInnerHashtable()->GetSortedKeys();
-
 	if (GetUser()->GetIRCConnection() == NULL) {
 		return false;
 	}
+
+	Keys = m_Config->GetInnerHashtable()->GetSortedKeys();
 
 	i = 0;
 	while ((Key = Keys[i++]) != NULL) {
