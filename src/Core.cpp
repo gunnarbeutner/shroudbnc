@@ -2350,7 +2350,7 @@ bool CCore::Daemonize(void) {
 	}
 
 	fd = open("/dev/null", O_RDWR);
-	if (fd) {
+	if (fd >= 0) {
 		if (fd != 0) {
 			dup2(fd, 0);
 		}
