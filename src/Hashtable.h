@@ -450,7 +450,9 @@ public:
 
 		assert(Count == m_LengthCache);
 
-		qsort(Keys, Count, sizeof(Keys[0]), CmpStringCase);
+		if (Count > 0) {
+			qsort(Keys, Count, sizeof(Keys[0]), CmpStringCase);
+		}
 
 		Keys = (char **)realloc(Keys, ++Count * sizeof(char *));
 
