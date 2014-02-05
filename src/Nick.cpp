@@ -76,7 +76,7 @@ bool CNick::SetNick(const char *Nick) {
 
 	NewNick = strdup(Nick);
 
-	if (AllocFailed(m_Nick)) {
+	if (AllocFailed(NewNick)) {
 		return false;
 	}
 
