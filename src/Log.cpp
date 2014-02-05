@@ -215,6 +215,9 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	if (rc < 0) {
 		perror("asprintf() failed");
 
+		if (!m_KeepOpen)
+			fclose(LogFile);
+
 		return;
 	}
 
