@@ -822,12 +822,12 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 		return false;
 	} else if (strcasecmp(Subcommand, "adduser") == 0 && GetOwner()->IsAdmin()) {
 		const char *Password;
+		char RandomPassword[10];
 
 		if (argc < 2) {
 			SENDUSER("Syntax: ADDUSER username [password]");
 			return false;
 		} else if (argc < 3) {
-			char RandomPassword[10];
 			const char RandomPasswordChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 			RandomPassword[9] = '\0';
