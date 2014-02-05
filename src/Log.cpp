@@ -177,6 +177,10 @@ void CLog::WriteUnformattedLine(const char *Line) {
 
 	SetPermissions(m_Filename, S_IRUSR | S_IWUSR);
 
+	if (m_KeepOpen) {
+		m_File = LogFile;
+	}
+
 	Now = *localtime(&g_CurrentTime);
 
 #ifdef _WIN32
@@ -222,8 +226,6 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	if (!m_KeepOpen) {
 		fclose(LogFile);
 	} else {
-		m_File = LogFile;
-
 		fflush(m_File);
 	}
 }
