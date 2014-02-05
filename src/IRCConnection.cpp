@@ -669,6 +669,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				char *BaseNick = Nick;
 
 				if (AllocFailed(Nick)) {
+					ArgFreeArray(nickv);
 					ArgFree(nicks);
 
 					return false;
