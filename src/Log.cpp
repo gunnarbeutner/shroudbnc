@@ -192,6 +192,9 @@ void CLog::WriteUnformattedLine(const char *Line) {
 	dupLine = strdup(Line);
 
 	if (AllocFailed(dupLine)) {
+		if (!m_KeepOpen)
+			fclose(LogFile);
+
 		return;
 	}
 
