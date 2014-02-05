@@ -208,18 +208,14 @@ const char *sbncBuildPath(const char *Filename, const char *ExePath) {
 
 	free(Path);
 
-	Len = strlen(ExePath) + 1 + strlen(Filename) + 1;
-	Path = (char *)malloc(Len);
-	strncpy(Path, ExePath, Len);
-#ifdef _WIN32
-	strncat(Path, "\\", Len);
-#else
-	strncat(Path, "/", Len);
-#endif
-	strncat(Path, Filename, Len);
+	asprintf(&Path, "%s/%s", ExePath, Filename);
+
+	if (AllocFailed(Path)) {
+		return NULL;
+	}
 
 #ifdef _WIN32
-	for (unsigned int i = 0; i < strlen(Path); i++) {
+	for (unsigned int i = 0; Path[i] != '\0'; i++) {
 		if (Path[i] == '/') {
 			Path[i] = '\\';
 		}
