@@ -226,8 +226,6 @@ public:
 	 * Sets a new internal list by copying the items from another list.
 	 */
 	RESULT<bool> SetList(Type *List, int Count) {
-		free(m_List);
-
 		Clear();
 
 		m_List = (Type *)malloc(sizeof(Type) * Count);
