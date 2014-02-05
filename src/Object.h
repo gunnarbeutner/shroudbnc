@@ -150,7 +150,6 @@ public:
 			SetUser(User);
 		} else {
 			SetOwnerBase(dynamic_cast<CObjectBase *>(Owner));
-			User = GetUser();
 		}
 	}
 };

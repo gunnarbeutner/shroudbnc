@@ -82,8 +82,6 @@ private:
 	bool ParseLineArgV(int argc, const char **argv);
 	bool ProcessBncCommand(const char *Subcommand, int argc, const char **argv, bool NoticeUser);
 
-	CClientConnection();
-
 public:
 #ifndef SWIG
 	CClientConnection(SOCKET Socket, bool SSL = false);

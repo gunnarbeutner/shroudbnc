@@ -72,26 +72,6 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 }
 
 /**
- * CClientConnection
- *
- * Constructs a new client connection object. This constructor should
- * only be used by ThawObject().
- */
-CClientConnection::CClientConnection() : CConnection(INVALID_SOCKET, false, Role_Server) {
-	m_Nick = NULL;
-	m_Password = NULL;
-	m_Username = NULL;
-	m_PeerName = NULL;
-//	m_PreviousNick = NULL;
-	m_ClientLookup = NULL;
-	m_AuthTimer = NULL;
-	m_CommandList = NULL;
-	m_NamesXSupport = false;
-	m_QuitReason = NULL;
-	m_PingTimer = new CTimer(45, true, ClientPingTimer, this); 
-}
-
-/**
  * ~CClientConnection
  *
  * Destructs a client connection object.
@@ -2225,8 +2205,6 @@ void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
 	free(m_PeerName);
 
 	m_PeerName = strdup(PeerName);
-
-	Remote = GetRemoteAddress();
 
 	ProcessBuffer();
 }
