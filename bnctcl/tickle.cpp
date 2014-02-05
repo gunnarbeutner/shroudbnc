@@ -345,6 +345,8 @@ class CTclSupport : public CModuleImplementation {
 
 					token = strtok(NULL, "\n");
 				}
+
+				free(Dup);
 			} else {
 					if (NoticeUser)
 						Client->RealNotice("<no error>");
