@@ -196,7 +196,7 @@ public:
 			free(List->Values);
 		}
 
-		memset(m_Buckets, 0, sizeof(m_Buckets));
+		memset(m_Buckets, 0, sizeof(hashlist_t<Type>) * m_BucketCount);
 
 		m_LengthCache = 0;
 	}
