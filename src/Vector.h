@@ -21,7 +21,6 @@
 #define VECTOR_H
 
 typedef enum vector_error_e {
-	Vector_ReadOnly,
 	Vector_PreAllocated,
 	Vector_ItemNotFound
 } vector_error_t;
@@ -34,7 +33,6 @@ typedef enum vector_error_e {
 template <typename Type>
 class CVector {
 private:
-	bool m_ReadOnly; /**< indicates whether the list is read-only */
 	mutable Type *m_List; /**< the actual list */
 	int m_Count; /**< the number of items in the list */
 	int m_AllocCount; /**< the number of allocated items */
@@ -50,7 +48,6 @@ public:
 		m_List = NULL;
 		m_Count = 0;
 		m_AllocCount = 0;
-		m_ReadOnly = false;
 	}
 
 	/**
@@ -97,10 +94,6 @@ public:
 	RESULT<bool> Insert(Type Item) {
 		Type *NewList;
 
-		if (m_ReadOnly) {
-			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
-		}
-
 		if (m_AllocCount == 0) {
 			NewList = (Type *)realloc(m_List, sizeof(Type) * ++m_Count);
 
@@ -133,10 +126,6 @@ public:
 	 */
 	RESULT<bool> Remove(int Index) {
 		Type *NewList;
-
-		if (m_ReadOnly) {
-			THROW(bool, Vector_ReadOnly, "Vector is read-only.");
-		}
 
 		if (m_AllocCount != 0) {
 			THROW(bool, Vector_PreAllocated, "Vector is pre-allocated.");
@@ -236,7 +225,6 @@ public:
 
 		memcpy(m_List, List, sizeof(Type) * Count);
 		m_Count = Count;
-		m_ReadOnly = false;
 
 		RETURN(bool, true);
 	}
