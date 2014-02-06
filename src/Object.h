@@ -139,7 +139,7 @@ public:
 	 */
 	void SetOwner(OwnerType *Owner) {
 		if (typeid(Owner) == typeid(CUser *)) {
-			SetUser((CUser *)OwnerUser);
+			SetUser((CUser *)Owner);
 		} else {
 			SetOwnerBase(dynamic_cast<CObjectBase *>(Owner));
 		}
