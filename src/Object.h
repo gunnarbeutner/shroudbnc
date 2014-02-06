@@ -138,16 +138,8 @@ public:
 	 * @param Owner the new owner
 	 */
 	void SetOwner(OwnerType *Owner) {
-		CUser *User;
-
-		if (GetOwnerBase() != NULL) {
-			User = GetUser();
-		}
-
 		if (typeid(Owner) == typeid(CUser *)) {
-			User = (CUser *)Owner;
-
-			SetUser(User);
+			SetUser((CUser *)OwnerUser);
 		} else {
 			SetOwnerBase(dynamic_cast<CObjectBase *>(Owner));
 		}
