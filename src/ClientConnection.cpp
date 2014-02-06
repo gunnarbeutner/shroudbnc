@@ -311,7 +311,7 @@ bool CClientConnection::ProcessBncCommand(const char *Subcommand, int argc, cons
 
 			if (Command == NULL) {
 				SENDUSER("There is no such command.");
-			} else if (Command && Command->HelpText == NULL) {
+			} else if (Command->HelpText == NULL) {
 				SENDUSER("No help is available for this command.");
 			} else {
 				char *Help = strdup(Command->HelpText);
