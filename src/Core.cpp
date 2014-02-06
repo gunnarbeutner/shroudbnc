@@ -63,6 +63,7 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_Config = Config;
 
 	m_SSLContext = NULL;
+	m_SSLClientContext = NULL;
 
 	m_Status = Status_Running; 
 
