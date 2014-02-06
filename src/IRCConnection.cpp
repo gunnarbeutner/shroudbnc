@@ -555,7 +555,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 
 		if (Channel != NULL) {
 			Channel->ParseModeChange(argv[0], argv[3], argc - 4, &argv[4]);
-		} else if (strcmp(m_CurrentNick, argv[2]) == 0) {
+		} else if (m_CurrentNick && strcmp(m_CurrentNick, argv[2]) == 0) {
 			bool Flip = true, WasNull;
 			const char *Modes = argv[3];
 			size_t Length = strlen(Modes) + 1;
