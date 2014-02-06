@@ -100,7 +100,7 @@ class CTclSupport : public CModuleImplementation {
 		struct stat statbuf;
 
 		if (stat(ConfigFile, &statbuf) < 0) {
-			FILE *ConfigFd = ConfigFd = fopen(ConfigFile, "wb");
+			FILE *ConfigFd = fopen(ConfigFile, "wb");
 
 			if (ConfigFd == NULL) {
 				g_Bouncer->Log("Could not create 'sbnc.tcl' file.");
