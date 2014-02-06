@@ -431,15 +431,19 @@ public:
 	 * will eventually have to be passed to free().
 	 */
 	char **GetSortedKeys(void) const {
-		char **Keys = NULL;
+		char **NewKeys, **Keys = NULL;
 		int Count = 0;
 
 		for (int i = 0; i < m_BucketCount; i++) {
-			Keys = (char **)realloc(Keys, (Count + m_Buckets[i].Count) * sizeof(char *));
+			NewKeys = (char **)realloc(Keys, (Count + m_Buckets[i].Count) * sizeof(char *));
 
-			if (Count + m_Buckets[i].Count > 0 && Keys == NULL) {
+			if (Count + m_Buckets[i].Count > 0 && NewKeys == NULL) {
+				free(Keys);
+
 				return NULL;
 			}
+
+			Keys = NewKeys;
 
 			for (int a = 0; a < m_Buckets[i].Count; a++) {
 				Keys[Count + a] = m_Buckets[i].Keys[a];
