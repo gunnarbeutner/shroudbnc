@@ -367,6 +367,8 @@ SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp)
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp && *BindIp) {
+		memset(&sloc, 0, sizeof(sloc));
+
 		sloc.sin_family = AF_INET;
 		sloc.sin_port = 0;
 
@@ -385,6 +387,7 @@ SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp)
 		bind(Socket, (sockaddr *)&sloc, sizeof(sloc));
 	}
 
+	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(Port);
 
