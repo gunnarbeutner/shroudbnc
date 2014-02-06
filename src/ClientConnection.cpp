@@ -1818,6 +1818,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 					if (Chan && Chan->HasNames() != 0) {
 						char *Nicks = (char *)malloc(1);
+
+						if (Nicks == NULL) {
+							Kill("CClientConnection::ParseLineArgV: malloc() failed. Please reconnect.");
+
+							return false;
+						}
+
 						Nicks[0] = '\0';
 
 						const CHashtable<CNick *, false> *H = Chan->GetNames();
@@ -1848,7 +1855,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 								continue;
 							}
 
-							Size = (Nicks ? strlen(Nicks) : 0) + strlen(outPref) + strlen(Nick) + 2;
+							Size = strlen(Nicks) + strlen(outPref) + strlen(Nick) + 2;
 							Nicks = (char *)realloc(Nicks, Size);
 
 							if (Nicks == NULL) {
@@ -1918,6 +1925,13 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					}
 
 					char *Feats = (char *)malloc(1);
+
+					if (Feats == NULL) {
+						Kill("CClientConnection::ParseLineArgV: malloc() failed. Please reconnect.");
+
+						return false;
+					}
+
 					Feats[0] = '\0';
 
 					int a = 0, i = 0;
@@ -1927,7 +1941,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						char *Name = Feat->Name;
 						char *Value = Feat->Value;
 
-						Size = (Feats ? strlen(Feats) : 0) + strlen(Name) + 1 + strlen(Value) + 2;
+						Size = strlen(Feats) + strlen(Name) + 1 + strlen(Value) + 2;
 						Feats = (char *)realloc(Feats, Size);
 
 						if (Feats == NULL) {
@@ -1943,7 +1957,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 						strmcat(Feats, Name, Size);
 
-						if (Value != NULL && Value[0] != '\0') {
+						if (Value[0] != '\0') {
 							strmcat(Feats, "=", Size);
 							strmcat(Feats, Value, Size);
 						}

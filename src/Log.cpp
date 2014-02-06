@@ -115,7 +115,7 @@ void CLog::PlayToUser(CClientConnection *Client, LogType Type) const {
 					Server = "bouncer.shroudbnc.info";
 				}
 
-				if (Client != NULL) {
+				if (Nick != NULL) {
 					Client->WriteLine(":%s 372 %s :%s", Server, Nick, Line);
 				}
 			}
@@ -125,7 +125,7 @@ void CLog::PlayToUser(CClientConnection *Client, LogType Type) const {
 		m_File = NULL;
 	}
 
-	if (Type == Log_Motd && Client != NULL && Nick != NULL && Server != NULL) {
+	if (Type == Log_Motd && Nick != NULL && Server != NULL) {
 		Client->WriteLine(":%s 376 %s :End of /MOTD command.", Server, Nick);
 	}
 }
