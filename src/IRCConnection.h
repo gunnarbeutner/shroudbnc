@@ -112,7 +112,7 @@ private:
 public:
 #ifndef SWIG
 	CIRCConnection(const char *Host, unsigned int Port, CUser *Owner, const char *BindIp, bool SSL = false, int Family = AF_INET);
-	virtual ~CIRCConnection();
+	virtual ~CIRCConnection(void);
 #endif /* SWIG */
 
 	CChannel *GetChannel(const char *Name);

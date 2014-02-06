@@ -31,7 +31,7 @@ private:
 	unsigned int m_Outbound; /**< amount of outbound traffic in bytes */
 public:
 #ifndef SWIG
-	CTrafficStats();
+	CTrafficStats(void);
 #endif /* SWIG */
 
 	void AddInbound(unsigned int Bytes);

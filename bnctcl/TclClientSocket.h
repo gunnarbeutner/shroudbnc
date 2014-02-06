@@ -20,7 +20,7 @@
 class CTclClientSocket : public CConnection {
 public:
 	CTclClientSocket(SOCKET Socket, bool SSL = false, connection_role_e Role = Role_Server);
-	virtual ~CTclClientSocket();
+	virtual ~CTclClientSocket(void);
 
 	virtual int Read(bool DontProcess);
 	virtual void Destroy(void);

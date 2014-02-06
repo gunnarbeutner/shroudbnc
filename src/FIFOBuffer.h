@@ -37,8 +37,8 @@ class SBNCAPI CFIFOBuffer {
 	inline void Optimize(void);
 public:
 #ifndef SWIG
-	CFIFOBuffer();
-	virtual ~CFIFOBuffer();
+	CFIFOBuffer(void);
+	virtual ~CFIFOBuffer(void);
 #endif /* SWIG */
 
 	size_t GetSize(void) const;
