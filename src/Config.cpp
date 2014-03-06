@@ -37,7 +37,7 @@ CConfig::CConfig(const char *Filename, CUser *Owner) {
 	m_Settings.RegisterValueDestructor(FreeString);
 
 	if (Filename != NULL) {
-		m_Filename = strdup(Filename);
+		m_Filename = strdup(g_Bouncer->BuildPathConfig(Filename));
 
 		if (AllocFailed(m_Filename)) {
 			g_Bouncer->Fatal();

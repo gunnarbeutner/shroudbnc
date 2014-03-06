@@ -19,9 +19,12 @@
 
 bool sbncIsAbsolutePath(const char *Path);
 void sbncPathCanonicalize(char *NewPath, const char *Path);
-const char *sbncBuildPath(const char *Filename, const char *BasePath);
+const char *sbncBuildPath(const char *Filename, const char *RelativeTo = NULL);
 
 const char *sbncGetConfigPath(void);
+const char *sbncGetLogPath(void);
+const char *sbncGetDataPath(void);
+const char *sbncGetPidPath(void);
 const char *sbncGetModulePath(void);
 const char *sbncGetSharedPath(void);
 const char *sbncGetExePath(void);

@@ -53,7 +53,7 @@ CUser::CUser(const char *Name) {
 		g_Bouncer->Fatal();
 	}
 
-	m_Config = g_Bouncer->CreateConfigObject(Out, this);
+	m_Config = new CConfig(Out, this);
 
 	free(Out);
 

@@ -30,7 +30,7 @@
  */
 CLog::CLog(const char *Filename, bool KeepOpen) {
 	if (Filename != NULL) {
-		m_Filename = strdup(Filename);
+		m_Filename = strdup(g_Bouncer->BuildPathLog(Filename));
 
 		if (AllocFailed(m_Filename)) {}
 	} else {

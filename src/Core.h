@@ -226,6 +226,8 @@ public:
 	const char *GetTagName(int Index) const;
 
 	const char *BuildPathConfig(const char *Filename) const;
+	const char *BuildPathLog(const char *Filename) const;
+	const char *BuildPathData(const char *Filename) const;
 	const char *BuildPathExe(const char *Filename) const;
 	const char *BuildPathModule(const char *Filename) const;
 	const char *BuildPathShared(const char *Filename) const;
@@ -265,8 +267,6 @@ public:
 	void SetDontMatchUser(bool Value);
 
 	CACHE(System) *GetConfigCache(void);
-
-	CConfig *CreateConfigObject(const char *Filename, CUser *User);
 };
 
 #ifndef SWIG

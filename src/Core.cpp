@@ -69,8 +69,8 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 
 	CacheInitialize(m_ConfigCache, Config, "system.");
 
-	char *SourcePath = strdup(BuildPathConfig("sbnc.log"));
-	rename(SourcePath, BuildPathConfig("sbnc.log.old"));
+	char *SourcePath = strdup(BuildPathLog("sbnc.log"));
+	rename(SourcePath, BuildPathLog("sbnc.log.old"));
 	free(SourcePath);
 
 	m_PollFds.Preallocate(SFD_SETSIZE);
@@ -1268,9 +1268,9 @@ void CCore::WritePidFile(void) {
 
 	UnlockPidFile();
 
-	m_PidFile = fopen(BuildPathConfig("sbnc.pid"), "w");
+	m_PidFile = fopen(sbncGetPidPath(), "w");
 
-	SetPermissions(BuildPathConfig("sbnc.pid"), S_IRUSR | S_IWUSR);
+	SetPermissions(BuildPathData("sbnc.pid"), S_IRUSR | S_IWUSR);
 
 	if (m_PidFile) {
 #ifndef _WIN32
@@ -1671,6 +1671,12 @@ bool CCore::MakeConfig(void) {
 	mkdir(BuildPathConfig("users"));
 	SetPermissions(BuildPathConfig("users"), S_IRUSR | S_IWUSR | S_IXUSR);
 
+	mkdir(BuildPathLog("users"));
+	SetPermissions(BuildPathLog("users"), S_IRUSR | S_IWUSR | S_IXUSR);
+
+	mkdir(BuildPathData("users"));
+	SetPermissions(BuildPathData("users"), S_IRUSR | S_IWUSR | S_IXUSR);
+
 	MainConfig = new CConfig("sbnc.conf", NULL);
 
 	MainConfig->WriteInteger("system.port", Port);
@@ -1845,6 +1851,28 @@ const char *CCore::GetTagName(int Index) const {
  */
 const char *CCore::BuildPathConfig(const char *Filename) const {
 	return sbncBuildPath(Filename, sbncGetConfigPath());
+}
+
+/**
+ * BuildPathLog
+ *
+ * Builds a path which is relative to the log directory.
+ *
+ * @param Filename the filename
+ */
+const char *CCore::BuildPathLog(const char *Filename) const {
+	return sbncBuildPath(Filename, sbncGetLogPath());
+}
+
+/**
+ * BuildPathConfig
+ *
+ * Builds a path which is relative to the config directory.
+ *
+ * @param Filename the filename
+ */
+const char *CCore::BuildPathData(const char *Filename) const {
+        return sbncBuildPath(Filename, sbncGetDataPath());
 }
 
 /**
@@ -2328,10 +2356,6 @@ void CCore::SetDontMatchUser(bool Value) {
 
 CACHE(System) *CCore::GetConfigCache(void) {
 	return &m_ConfigCache;
-}
-
-CConfig *CCore::CreateConfigObject(const char *Filename, CUser *User) {
-	return new CConfig(Filename, User);
 }
 
 bool CCore::Daemonize(void) {

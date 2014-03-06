@@ -23,29 +23,86 @@ CCore *g_Bouncer = NULL;
 
 static int g_ArgC;
 static char **g_ArgV;
+static char *g_ConfigPath, *g_LogPath, *g_DataPath, *g_PidPath;
 
-const char *sbncGetConfigPath(void) {
-	static char *ConfigPath;
+void sbncSetConfigPath(const char *path) {
+	if (g_ConfigPath != NULL)
+		free(g_ConfigPath);
 
-	if (ConfigPath != NULL) {
-		return ConfigPath;
-	}
+	path = sbncBuildPath(path);
 
-	ConfigPath = (char *)malloc(MAXPATHLEN);
+	g_ConfigPath = strdup(path);
 
-	if (ConfigPath == NULL) {
+	if (g_ConfigPath == NULL) {
 		perror("strdup failed");
 
 		exit(EXIT_FAILURE);
 	}
+}
 
-	if (getcwd(ConfigPath, MAXPATHLEN) == NULL) {
-		perror("getcwd failed");
+const char *sbncGetConfigPath(void) {
+	assert(g_ConfigPath);
+	return g_ConfigPath;
+}
+
+void sbncSetLogPath(const char *path) {
+	if (g_LogPath != NULL)
+		free(g_LogPath);
+
+	path = sbncBuildPath(path);
+
+	g_LogPath = strdup(path);
+
+	if (g_LogPath == NULL) {
+		perror("strdup failed");
 
 		exit(EXIT_FAILURE);
 	}
+}
 
-	return ConfigPath;
+const char *sbncGetLogPath(void) {
+	assert(g_LogPath);
+	return g_LogPath;
+}
+
+void sbncSetDataPath(const char *path) {
+	if (g_DataPath != NULL)
+		free(g_DataPath);
+
+	path = sbncBuildPath(path);
+
+	g_DataPath = strdup(path);
+
+	if (g_DataPath == NULL) {
+		perror("strdup failed");
+
+		exit(EXIT_FAILURE);
+	}
+}
+
+const char *sbncGetDataPath(void) {
+	assert(g_DataPath);
+	return g_DataPath;
+}
+
+void sbncSetPidPath(const char *path) {
+	if (g_PidPath != NULL)
+		free(g_PidPath);
+
+	path = sbncBuildPath(path);
+
+	g_PidPath = strdup(path);
+
+	if (g_PidPath == NULL) {
+		perror("strdup failed");
+
+		exit(EXIT_FAILURE);
+	}
+}
+
+const char *sbncGetPidPath(void) {
+	assert(g_PidPath);
+	return g_PidPath;
 }
 
 const char *sbncGetExePath(void) {
@@ -194,21 +251,28 @@ bool sbncIsAbsolutePath(const char *Path) {
 #endif
 }
 
-const char *sbncBuildPath(const char *Filename, const char *ExePath) {
+const char *sbncBuildPath(const char *Filename, const char *RelativeTo) {
 	static char *Path = NULL;
 	size_t Len;
-
-	if (ExePath == NULL) {
-		return Filename;
-	}
 
 	if (sbncIsAbsolutePath(Filename)) {
 		return Filename;
 	}
 
+	if (RelativeTo == NULL) {
+		char Cwd[MAXPATHLEN];
+
+		if (getcwd(Cwd, sizeof(Cwd)) == NULL) {
+			perror("getcwd() failed");
+			exit(EXIT_FAILURE);
+		}
+
+		RelativeTo = Cwd;
+	}
+
 	free(Path);
 
-	asprintf(&Path, "%s/%s", ExePath, Filename);
+	asprintf(&Path, "%s/%s", RelativeTo, Filename);
 
 	if (AllocFailed(Path)) {
 		return NULL;
@@ -265,10 +329,10 @@ char *sbncFindConfigDir(void) {
 		exit(EXIT_FAILURE);
 	}
 #else
-    TCHAR AppDataLocation[MAX_PATH];
-    SHGetSpecialFolderPath(NULL, AppDataLocation, CSIDL_APPDATA, FALSE);
+	TCHAR AppDataLocation[MAX_PATH];
+	SHGetSpecialFolderPath(NULL, AppDataLocation, CSIDL_APPDATA, FALSE);
 
-    asprintf(&ConfigPath, "%s\\shroudBNC", AppDataLocation);
+	asprintf(&ConfigPath, "%s\\shroudBNC", AppDataLocation);
 #endif
 
 	return ConfigPath;
@@ -284,7 +348,8 @@ int main(int argc, char **argv) {
 	char TclLibrary[512];
 #endif
 	CConfig *Config;
-	bool Daemonize, Usage, ExplicitConfigDirectory;
+	bool Daemonize, Usage;
+	char *ConfigDir = NULL, *LogDir = NULL, *DataDir = NULL, *PidPath = NULL;
 
 	g_ArgC = argc;
 	g_ArgV = argv;
@@ -293,23 +358,58 @@ int main(int argc, char **argv) {
 
 	Daemonize = true;
 	Usage = false;
-	ExplicitConfigDirectory = false;
 
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "--config") == 0) {
 			if (i + 1 >= argc) {
-				fprintf(stderr, "Missing parameter for --config: You need to specify a config directory.");
+				fprintf(stderr, "Missing parameter for --config: You need to specify the config directory.");
 
 				return EXIT_FAILURE;
 			}
 
-			ExplicitConfigDirectory = true;
+			ConfigDir = argv[i + 1];
 
-			if (chdir(argv[i + 1]) < 0) {
-				fprintf(stderr, "Could not chdir() into config directory '%s': %s\n", argv[i + 1], strerror(errno));
+			i++;
+
+			continue;
+		}
+
+		if (strcmp(argv[i], "--log") == 0) {
+			if (i + 1 >= argc) {
+				fprintf(stderr, "Missing parameter for --log: You need to specify the log directory.");
 
 				return EXIT_FAILURE;
 			}
+
+			LogDir = argv[i + 1];
+
+			i++;
+
+			continue;
+		}
+
+		if (strcmp(argv[i], "--data") == 0) {
+			if (i + 1 >= argc) {
+				fprintf(stderr, "Missing parameter for --log: You need to specify the log directory.");
+
+				return EXIT_FAILURE;
+			}
+
+			DataDir = argv[i + 1];
+
+			i++;
+
+			continue;
+		}
+
+		if (strcmp(argv[i], "--pid") == 0) {
+			if (i + 1 >= argc) {
+				fprintf(stderr, "Missing parameter for --pid: You need to specify the PID path.");
+
+				return EXIT_FAILURE;
+			}
+
+			PidPath = argv[i + 1];
 
 			i++;
 
@@ -339,32 +439,54 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	if (!ExplicitConfigDirectory) {
-		char *ConfigDir;
+	bool WasNull = false;
 
+	if (ConfigDir == NULL) {
+		WasNull = true;
 		ConfigDir = sbncFindConfigDir();
-
-		if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
-			fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
-			free(ConfigDir);
-
-			return EXIT_FAILURE;
-		}
-
-		if (chdir(ConfigDir) < 0) {
-			fprintf(stderr, "Could not chdir() into config directory (%s): %s\n", ConfigDir, strerror(errno));
-			free(ConfigDir);
-
-			return EXIT_FAILURE;
-		}
-
-		free(ConfigDir);
 	}
 
-	sbncGetConfigPath(); // first call sets config path to cwd
+	if (mkdir(ConfigDir) < 0 && errno != EEXIST) {
+		fprintf(stderr, "Config directory (%s) could not be created: %s\n", ConfigDir, strerror(errno));
+		free(ConfigDir);
+
+		return EXIT_FAILURE;
+	}
+
+	sbncSetConfigPath(ConfigDir);
+
+	if (LogDir)
+		sbncSetLogPath(LogDir);
+	else if (DataDir)
+		sbncSetLogPath(DataDir);
+	else
+		sbncSetLogPath(ConfigDir);
+
+	if (DataDir)
+		sbncSetDataPath(DataDir);
+	else
+		sbncSetDataPath(ConfigDir);
+
+	if (PidPath)
+		sbncSetPidPath(PidPath);
+	else
+		sbncSetPidPath(sbncBuildPath("sbnc.pid", sbncGetDataPath()));
+
+	if (WasNull)
+		free(ConfigDir);
+
+	if (chdir(sbncGetDataPath()) < 0) {
+		fprintf(stderr, "Could not chdir() into data directory (%s): %s\n", sbncGetDataPath(), strerror(errno));
+		free(ConfigDir);
+ 
+		return EXIT_FAILURE;
+	}
 
 	fprintf(stderr, "shroudBNC (version: " BNCVERSION ") - an object-oriented IRC bouncer\n");
 	fprintf(stderr, "Configuration directory: %s\n", sbncGetConfigPath());
+	fprintf(stderr, "Log directory: %s\n", sbncGetLogPath());
+	fprintf(stderr, "Data directory: %s\n", sbncGetDataPath());
+	fprintf(stderr, "PID path: %s\n", sbncGetPidPath());
 
 	if (Usage) {
 		fprintf(stderr, "\n");
@@ -374,6 +496,9 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "\t--help\t\t\tdisplay this help and exit\n");
 		fprintf(stderr, "\t--foreground\t\trun in the foreground\n");
 		fprintf(stderr, "\t--config <config dir>\tspecifies the location of the configuration directory.\n");
+		fprintf(stderr, "\t--data <data dir>\tspecifies the location of the data directory (defaults to the config directory).\n");
+		fprintf(stderr, "\t--log <log dir>\tspecifies the location of the log directory (defaults to the data directory if given, else the config directory).\n");
+		fprintf(stderr, "\t--pid <pid path>\tspecifies the location of the PID file (defaults to <data dir>/sbnc.pid).\n");
 
 		return 3;
 	}
