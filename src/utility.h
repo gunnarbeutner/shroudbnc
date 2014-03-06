@@ -66,7 +66,7 @@ const char *ArgGet2(const tokendata_t& Tokens, unsigned int Arg);
 unsigned int ArgCount2(const tokendata_t& Tokens);
 
 SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp = NULL);
-SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp);
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp, int *error);
 
 SOCKET CreateListener(unsigned int Port, const char *BindIp = NULL, int Family = AF_INET);
 

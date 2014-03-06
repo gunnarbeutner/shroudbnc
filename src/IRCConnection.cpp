@@ -1522,8 +1522,12 @@ void CIRCConnection::AsyncDnsFinished(hostent *Response) {
  * @param Response the reponse from the DNS server
  */
 void CIRCConnection::AsyncBindIpDnsFinished(hostent *Response) {
-	if (Response == NULL && GetOwner() != NULL) {
-		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for user %s failed.", GetOwner()->GetUsername());
+	if ((Response == NULL || Response->h_addr_list[0] == NULL) && GetOwner() != NULL) {
+		g_Bouncer->LogUser(GetOwner(), "DNS request (vhost) for user %s failed. Cancelling connection attempt.", GetOwner()->GetUsername());
+
+		m_LatchedDestruction = true;
+
+		return;
 	}
 
 	CConnection::AsyncBindIpDnsFinished(Response);

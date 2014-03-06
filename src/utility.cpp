@@ -426,11 +426,17 @@ SOCKET SocketAndConnect(const char *Host, unsigned int Port, const char *BindIp)
  * @param Host the host's ip address
  * @param BindIp the ip address which should be used for binding the socket
  */
-SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
+SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp, int *error) {
 	unsigned long lTrue = 1;
 	int Code, Size;
 
 	SOCKET Socket = socket(Host->sa_family, SOCK_STREAM, IPPROTO_TCP);
+
+#ifdef _WIN32
+	*error = WSAGetLastError();
+#else
+	*error = errno;
+#endif
 
 	if (Socket == INVALID_SOCKET) {
 		return INVALID_SOCKET;
@@ -439,7 +445,17 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	ioctlsocket(Socket, FIONBIO, &lTrue);
 
 	if (BindIp != NULL) {
-		bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family));
+		if (bind(Socket, (sockaddr *)BindIp, SOCKADDR_LEN(BindIp->sa_family)) != 0) {
+#ifdef _WIN32
+			*error = WSAGetLastError();
+#else
+			*error = errno;
+#endif
+
+			closesocket(Socket);
+
+			return INVALID_SOCKET;
+		}
 	}
 
 	Size = SOCKADDR_LEN(Host->sa_family);
@@ -447,14 +463,22 @@ SOCKET SocketAndConnectResolved(const sockaddr *Host, const sockaddr *BindIp) {
 	Code = connect(Socket, Host, Size);
 
 #ifdef _WIN32
-	if (Code != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+	*error = WSAGetLastError();
 #else
-	if (Code != 0 && errno != EINPROGRESS) {
+	*error = errno;
+#endif
+
+#ifdef _WIN32
+	if (Code != 0 && *error != WSAEWOULDBLOCK) {
+#else
+	if (Code != 0 && *error != EINPROGRESS) {
 #endif
 		closesocket(Socket);
 
 		return INVALID_SOCKET;
 	}
+
+	*error = 0;
 
 	return Socket;
 }

@@ -783,16 +783,13 @@ void CConnection::AsyncConnect(void) {
 			return;
 		}
 
-		m_Socket = SocketAndConnectResolved(Remote, Bind);
+		int ErrorCode;
+		m_Socket = SocketAndConnectResolved(Remote, Bind, &ErrorCode);
 
 		free(m_HostAddr);
 		m_HostAddr = NULL;
 
 		if (m_Socket == INVALID_SOCKET) {
-			int ErrorCode;
-
-			ErrorCode = errno;
-
 #ifndef _WIN32
 			if (ErrorCode == 0) {
 				ErrorCode = -1;
@@ -816,43 +813,33 @@ void CConnection::AsyncConnect(void) {
  * @param Response the response
  */
 void CConnection::AsyncDnsFinished(hostent *Response) {
-	if (Response == NULL) {
+	if (Response == NULL || Response->h_addr_list[0] == NULL) {
 		// we cannot destroy the object here as there might still be the other
 		// dns query (bind ip) in the queue which would get destroyed in the
 		// destructor; this causes a crash in the StartMainLoop() function
 		m_LatchedDestruction = true;
-	} else {
-		int Size;
 
-		m_Family = Response->h_addrtype;
+		return;
+	 }
 
-		if (Response->h_addrtype == AF_INET) {
-			Size = sizeof(in_addr);
-		} else if (Response->h_addrtype == AF_INET6) {
-			Size = sizeof(in6_addr);
-		} else {
-			m_LatchedDestruction = true;
+	int Size = INADDR_LEN(Response->h_addrtype);
 
-			return;
-		}
+	m_HostAddr = malloc(Size);
 
-		m_HostAddr = (in_addr *)malloc(Size);
-
-		if (AllocFailed(m_HostAddr)) {
-			m_LatchedDestruction = true;
-
-			return;
-		}
-
-		memcpy(m_HostAddr, Response->h_addr_list[0], Size);
-
-		 if (m_BindIpCache != NULL) {
-			m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
-			m_BindDnsQuery->GetHostByName(m_BindIpCache, Response->h_addrtype);
-		}
-
-		AsyncConnect();
+	if (AllocFailed(m_HostAddr)) {
+		m_LatchedDestruction = true;
+		return;
 	}
+
+	m_Family = Response->h_addrtype;
+	memcpy(m_HostAddr, Response->h_addr_list[0], Size);
+
+	 if (m_BindIpCache != NULL) {
+		m_BindDnsQuery = new CDnsQuery(this, USE_DNSEVENTPROXY(CConnection, AsyncBindIpDnsFinished));
+		m_BindDnsQuery->GetHostByName(m_BindIpCache, Response->h_addrtype);
+	}
+
+	AsyncConnect();
 }
 
 /**
@@ -864,23 +851,13 @@ void CConnection::AsyncDnsFinished(hostent *Response) {
  */
 
 void CConnection::AsyncBindIpDnsFinished(hostent *Response) {
-	if (Response != NULL) {
-		int Size;
+	if (Response != NULL && Response->h_addr_list[0] != NULL) {
+		int Size = INADDR_LEN(Response->h_addrtype);
 
-		if (Response->h_addrtype == AF_INET) {
-			Size = sizeof(in_addr);
-		} else if (Response->h_addrtype == AF_INET6) {
-			Size = sizeof(in6_addr);
-		} else {
-			Size = 0;
-		}
+		m_BindAddr = malloc(Size);
 
-		if (Size != 0) {
-			m_BindAddr = (in_addr *)malloc(Size);
-
-			if (!AllocFailed(m_BindAddr)) {
-				memcpy(m_BindAddr, Response->h_addr_list[0], Size);
-			}
+		if (!AllocFailed(m_BindAddr)) {
+			memcpy(m_BindAddr, Response->h_addr_list[0], Size);
 		}
 	}
 

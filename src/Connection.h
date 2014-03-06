@@ -67,6 +67,8 @@ protected:
 	CFIFOBuffer *m_SendQ; /**< send queue */
 	CFIFOBuffer *m_RecvQ; /**< receive queue */
 
+	bool m_LatchedDestruction; /**< should the connection object be destroyed? */
+
 public:
 	virtual void AsyncDnsFinished(hostent *Response);
 	virtual void AsyncBindIpDnsFinished(hostent *Response);
@@ -77,7 +79,6 @@ private:
 	unsigned int m_PortCache; /**< the port or -1 if the cache is invalided */
 	char *m_BindIpCache; /**< the bind address */
 
-	bool m_LatchedDestruction; /**< should the connection object be destroyed? */
 	CTrafficStats *m_Traffic; /**< the traffic statistics for this connection */
 
 	void *m_BindAddr; /**< the bind address (an in_addr or in_addr6) */
