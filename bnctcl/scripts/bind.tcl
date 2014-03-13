@@ -1,5 +1,5 @@
 # shroudBNC - an object-oriented framework for IRC
-# Copyright (C) 2005-2011 Gunnar Beutner
+# Copyright (C) 2005-2014 Gunnar Beutner
 #               2010 Sandro Hummel
 #
 # This program is free software; you can redistribute it and/or
