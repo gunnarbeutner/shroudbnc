@@ -1270,7 +1270,7 @@ void CCore::WritePidFile(void) {
 
 	m_PidFile = fopen(sbncGetPidPath(), "w");
 
-	SetPermissions(BuildPathData("sbnc.pid"), S_IRUSR | S_IWUSR);
+	SetPermissions(sbncGetPidPath(), S_IRUSR | S_IWUSR);
 
 	if (m_PidFile) {
 #ifndef _WIN32
@@ -1283,6 +1283,7 @@ void CCore::WritePidFile(void) {
 #endif
 
 		fprintf(m_PidFile, "%d", pid);
+		fflush(m_PidFile);
 	} else {
 		Log("Could not open 'sbnc.pid' file.");
 		Fatal();
