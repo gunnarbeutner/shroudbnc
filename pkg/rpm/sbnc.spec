@@ -1,10 +1,10 @@
 Summary: a modular IRC proxy written in C++/TCL
 Name: sbnc
-Version: 1.3beta8
+Version: 1.3.9
 Release: 2
 License: GPL
 Group: Productivity/Networking/IRC
-Source: http://shroudbnc.info/redmine/attachments/download/41/sbnc-1.3beta8.tar.gz
+Source: http://shroudbnc.info/redmine/attachments/download/42/sbnc-1.3.9.tar.gz
 URL: http://www.shroudbnc.info/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
