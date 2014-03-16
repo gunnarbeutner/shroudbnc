@@ -42,6 +42,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_AuthTimer = NULL;
 	m_PingTimer = NULL;
 	m_DestroyClientTimer = NULL;
+	m_CapabilitiesEnd = false;
+	m_Capabilities = new CHashtable<const char *, false>();
 
 	if (Client != INVALID_SOCKET) {
 		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - "
@@ -87,6 +89,7 @@ CClientConnection::~CClientConnection() {
 	delete m_AuthTimer;
 	delete m_PingTimer;
 	delete m_DestroyClientTimer;
+	delete m_Capabilities;
 }
 
 /**
@@ -1531,9 +1534,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			free(m_Nick);
 			m_Nick = strdup(Nick);
 
-			if (m_Username != NULL && m_Password != NULL) {
-				ValidateUser();
-			} else if (m_Username != NULL) {
+			ValidateUser();
+			
+			if (m_Username != NULL) {
 				WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a "
 					"password. Use /QUOTE PASS thepassword to supply a password now.");
 			}
@@ -1541,25 +1544,11 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			if (argc < 2) {
 				WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
 			} else {
-				const char *ColonPtr = strchr(argv[1], ':');
-
-				if (ColonPtr != NULL) {
-					free(m_Username);
-
-					m_Username = strdup(argv[1]);
-					m_Username[ColonPtr - argv[1]] = '\0';
-
-					free(m_Password);
-					m_Password = strdup(ColonPtr + 1);
-				} else{
-					free(m_Password);
-					m_Password = strdup(argv[1]);
-				}
+				free(m_Password);
+				m_Password = strdup(argv[1]);
 			}
 
-			if (m_Nick != NULL && m_Username != NULL && m_Password != NULL) {
-				ValidateUser();
-			}
+			ValidateUser();
 
 			return false;
 		} else if (strcasecmp(Command, "user") == 0 && argc > 1) {
@@ -1580,11 +1569,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			bool ValidSSLCert = false;
 
 			if (m_Nick != NULL && m_Username != NULL) {
-				if (m_Password != NULL || GetPeerCertificate() != NULL) {
-					ValidSSLCert = ValidateUser();
-				}
+				ValidSSLCert = ValidateUser();
 
-				if (m_Password == NULL && !ValidSSLCert) {
+				if (!ValidSSLCert) {
 					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires "
 						"a password. Use /QUOTE PASS thepassword to supply a password now.");
 				}
@@ -1594,6 +1581,96 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 		} else if (strcasecmp(Command, "quit") == 0) {
 			Kill("*** Thanks for flying with shroudBNC. :)");
 
+			return false;
+		} else if (strcasecmp(Command, "cap") == 0) {
+			if (argc > 1 && strcasecmp(argv[1], "ls") == 0) {
+				m_CapabilitiesEnd = true;
+				char caps[512];
+
+				caps[0] = '\0';
+				for (int i = 0; i < g_Bouncer->GetCapabilities()->GetLength(); i++) {
+					strcat(caps, g_Bouncer->GetCapabilities()->Get(i));
+					strcat(caps, " ");
+				}
+
+				WriteLine(":shroudbnc.info CAP * LS :%s", caps);
+			} else if (argc > 1 && strcasecmp(argv[1], "list") == 0) {
+				char caps[512];
+
+				caps[0] = '\0';
+				int i;
+				while (hash_t<const char *> *CapHash = m_Capabilities->Iterate(i++)) {
+					strcat(caps, CapHash->Value);
+					strcat(caps, " ");
+				}
+
+				WriteLine(":shroudbnc.info CAP * LIST :%s", caps);
+			} else if (argc > 1 && strcasecmp(argv[1], "clear") == 0) {
+				char caps[512];
+
+				caps[0] = '\0';
+				int i;
+				while (hash_t<const char *> *CapHash = m_Capabilities->Iterate(i++)) {
+					strcat(caps, CapHash->Value);
+					strcat(caps, " ");
+				}
+
+				m_Capabilities->Clear();
+
+				WriteLine(":shroudbnc.info CAP * ACK :%s", caps);
+			} else if (argc > 1 && strcasecmp(argv[1], "end") == 0) {
+				m_CapabilitiesEnd = false;
+				ValidateUser();
+			} else if (argc > 2 && strcasecmp(argv[1], "req") == 0) {
+				char *capsdup = strdup(argv[2]);
+				StrTrim(capsdup, ' ');
+
+				const char *caps;
+				const char **capsv;
+
+				caps = ArgTokenize(capsdup);
+				free(capsdup);
+				capsv = ArgToArray(caps);
+				int count = ArgCount(caps);
+
+				bool invalid = false;
+
+				for (int a = 0; a < count; a++) {
+					bool found = false;
+
+					for (int i = 0; i < g_Bouncer->GetCapabilities()->GetLength(); i++) {
+						if (strcasecmp(g_Bouncer->GetCapabilities()->Get(i), capsv[a]) == 0) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						invalid = true;
+						break;
+					}
+				}
+
+				if (invalid) {
+					WriteLine(":shroudbnc.info CAP * NAK :%s", argv[2]);
+				} else {
+					for (int a = 0; a < count; a++) {
+						for (int i = 0; i < g_Bouncer->GetCapabilities()->GetLength(); i++) {
+							const char *cap = g_Bouncer->GetCapabilities()->Get(i);
+							if (strcasecmp(cap, capsv[a]) == 0) {
+								m_Capabilities->Add(cap, cap);
+								break;
+							}
+						}
+					}
+
+					WriteLine(":shroudbnc.info CAP * ACK :%s", argv[2]);
+				}
+
+				ArgFreeArray(capsv);
+				ArgFree(caps);
+			}
+			
 			return false;
 		}
 	}
@@ -2094,10 +2171,28 @@ bool CClientConnection::ValidateUser(void) {
 	bool Blocked = true, Valid = false;
 	sockaddr *Remote;
 
+	if (m_CapabilitiesEnd || m_Username == NULL || m_Password == NULL) {
+		return false;
+	}
+
 	Remote = GetRemoteAddress();
 
 	if (Remote == NULL) {
 		return false;
+	}
+
+	const char *ColonPtr = strchr(m_Password, ':');
+
+	if (ColonPtr != NULL) {
+		char *password = m_Password;
+
+		free(m_Username);
+		m_Username = strdup(m_Password);
+		m_Username[ColonPtr - m_Password] = '\0';
+
+		m_Password = strdup(ColonPtr + 1);
+
+		free(password);
 	}
 
 #ifdef HAVE_LIBSSL
@@ -2600,3 +2695,12 @@ bool ClientPingTimer(time_t Now, void *ClientConnection) {
 
 	return true;
 }
+
+CHashtable<const char *, false> *CClientConnection::GetCapabilities(void) {
+	return m_Capabilities;
+}
+
+bool CClientConnection::HasCapability(const char *cap) const {
+	return m_Capabilities->Get(cap) != NULL;
+}
+

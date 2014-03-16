@@ -350,7 +350,7 @@ void CUser::Attach(CClientConnection *Client) {
 					free(Out);
 				}
 
-				if (GetAutoBacklog() != NULL && strcasecmp(GetAutoBacklog(), "off") != 0) {
+				if (Client->HasCapability("znc.in/server-time-iso") || (GetAutoBacklog() != NULL && strcasecmp(GetAutoBacklog(), "off") != 0)) {
 					Channels[i]->PlayBacklog(Client);
 				}
 			}

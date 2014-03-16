@@ -746,22 +746,31 @@ void CChannel::AddBacklogLine(const char *Source, const char *Message) {
 void CChannel::PlayBacklog(CClientConnection *Client) {
 	char strMessageTime[100];
 	tm MessageTm;
+	bool tscap = Client->HasCapability("znc.in/server-time-iso");
 
-	Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** Start of channel log.", m_Name);
+	if (!tscap)
+		Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** Start of channel log.", m_Name);
 
 	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
-		MessageTm = *localtime(&(BacklogCursor->Time));
+		if (!tscap) {
+			MessageTm = *localtime(&(BacklogCursor->Time));
 
 #ifdef _WIN32
-		strftime(strMessageTime, sizeof(strMessageTime), "%#c" , &MessageTm);
+			strftime(strMessageTime, sizeof(strMessageTime), "%#c" , &MessageTm);
 #else
-		strftime(strMessageTime, sizeof(strMessageTime), "%a %B %d %Y %H:%M:%S" , &MessageTm);
+			strftime(strMessageTime, sizeof(strMessageTime), "%a %B %d %Y %H:%M:%S" , &MessageTm);
 #endif
 
-		Client->WriteLine(":%s PRIVMSG %s :(%s) %s", BacklogCursor->Source, m_Name, strMessageTime, BacklogCursor->Message);
+			Client->WriteLine(":%s PRIVMSG %s :(%s) %s", BacklogCursor->Source, m_Name, strMessageTime, BacklogCursor->Message);
+		} else {
+			MessageTm = *gmtime(&(BacklogCursor->Time));
+			strftime(strMessageTime, sizeof(strMessageTime), "%Y-%m-%dT%H:%M:%S", &MessageTm);
+			Client->WriteLine("@time=%s.0Z :%s PRIVMSG %s :%s", strMessageTime, BacklogCursor->Source, m_Name, BacklogCursor->Message);
+		}
 	}
 
-	Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** End of channel log.", m_Name);
+	if (!tscap)
+		Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** End of channel log.", m_Name);
 }
 
 /**

@@ -135,6 +135,8 @@ class SBNCAPI CCore {
 
 	sbnc_status_t m_Status; /**< shroudBNC's current status */
 
+	CVector<const char *> *m_Capabilities;
+
 	void UpdateModuleConfig(void);
 	void UpdateUserConfig(void);
 	void UnlockPidFile(void);
@@ -267,6 +269,8 @@ public:
 	void SetDontMatchUser(bool Value);
 
 	CACHE(System) *GetConfigCache(void);
+
+	CVector<const char *> *GetCapabilities(void);
 };
 
 #ifndef SWIG

@@ -60,6 +60,8 @@ private:
 	CTimer* m_PingTimer; /**< timer for sending regular PINGs to the client */
 	time_t m_LastResponse; /**< last response from the client */
 	CTimer* m_DestroyClientTimer; /**< used by Hijack() to destroy the client connection */
+	bool m_CapabilitiesEnd; /**< whether the client has issues the CAP LS command */
+	CHashtable<const char *, false> *m_Capabilities; /**< IRCv3 capabilities */
 
 #ifndef SWIG
 	friend bool ClientAuthTimer(time_t Now, void *Client);
@@ -111,6 +113,9 @@ public:
 	virtual const char *GetQuitReason(void) const;
 
 	virtual void WriteUnformattedLine(const char *Line);
+
+	virtual CHashtable<const char *, false> *GetCapabilities(void);
+	virtual bool HasCapability(const char *cap) const;
 };
 
 #ifdef SBNC

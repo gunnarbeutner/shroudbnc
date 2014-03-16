@@ -147,6 +147,10 @@ CCore::CCore(CConfig *Config, int argc, char **argv) {
 	m_LoadingListeners = false;
 
 	InitializeSocket();
+
+	m_Capabilities = new CVector<const char *>();
+	m_Capabilities->Insert("multi-prefix");
+	m_Capabilities->Insert("znc.in/server-time-iso");
 }
 
 /**
@@ -2422,4 +2426,8 @@ void CCore::UninitializeSocket(void) {
 #ifdef _WIN32
 	WSACleanup();
 #endif /* _WIN32 */
+}
+
+CVector<const char *> *CCore::GetCapabilities(void) {
+	return m_Capabilities;
 }
