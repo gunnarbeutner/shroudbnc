@@ -2109,7 +2109,7 @@ bool CClientConnection::ValidateUser(void) {
 	if (IsSSL() && (PeerCert = (X509 *)GetPeerCertificate()) != NULL) {
 		int i = 0;
 
-		if (!CacheGetInteger(*g_Bouncer->GetConfigCache(), dontmatchuser)) {
+		if (!g_Bouncer->GetDontMatchUser()) {
 			CUser *User = g_Bouncer->GetUser(m_Username);
 
 			if (User != NULL && User->FindClientCertificate(PeerCert)) {
