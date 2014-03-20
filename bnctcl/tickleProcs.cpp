@@ -818,6 +818,13 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 			return IRC->GetServer();
 		else
 			return NULL;
+	} else if (strcasecmp(Type, "network") == 0) {
+		IRC = Context->GetIRCConnection();
+
+		if (IRC)
+			return IRC->GetISupport("NETWORK");
+		else
+			return NULL;
 	} else if (strcasecmp(Type, "port") == 0) {
 		int rc = asprintf(&Buffer, "%d", Context->GetPort());
 
@@ -1014,7 +1021,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		throw "Type should be one of: server port serverpass client clientcount "
 			"realname nick realnick awaynick away awaymessage uptime lock admin hasserver "
 			"hasclient vhost channels tag delayjoin seen quitasaway automodes "
-			"dropmodes suspendreason ssl sslclient realserver ident tags localip "
+			"dropmodes suspendreason ssl sslclient realserver network ident tags localip "
 			"lean memory memorylimit channelsort sessions autobacklog sysnotices";
 	}
 }
