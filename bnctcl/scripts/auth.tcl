@@ -1,4 +1,5 @@
 # Copyright (C) 2010 Sandro Hummel
+# Copyright (C) 2012-2014 Arne Jensen
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -67,6 +68,17 @@ proc auth:logon {client} {
 					timer 2 [list internalunbind server auth:server NOTICE $client]
 				}
 			}			
+		}
+		"staynet" {
+			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} {
+				if {![llength $::qauth_supported_algorithms]} {
+					putquick "PRIVMSG Q@CServe.staynet.org :AUTH $authuser $authpass"
+				} else {
+					internalbind server auth:server NOTICE $client
+					putquick "PRIVMSG Q@CServe.staynet.org :CHALLENGE"
+					timer 2 [list internalunbind server auth:server NOTICE $client]
+				}
+			}
 		}
 		"gamesurge" {
 			if {$authuser != "" && $authpass != "" && [string equal -nocase $auth "on"]} { 
@@ -139,6 +151,42 @@ proc auth:server {client params} {
 				putquick "PRIVMSG Q@CServe.QuakeNet.Org :CHALLENGEAUTH $authuser $response HMAC-MD5"
 			} else {
 				putquick "PRIVMSG Q@CServe.QuakeNet.Org :AUTH $authuser $authpass"
+			}
+		}
+	}
+	#
+	# StayNet
+	#
+	if {[string equal -nocase $host "Q!TheQBot@CServe.staynet.org"]} {
+		if {[string match -nocase "You are now logged in as*" $msg]} {
+			bncjoinchans $client
+			if {![getbncuser $client hasclient]} {
+				putlog "Successfully Authed to Q"
+			}
+			internalunbind server auth:server NOTICE $client
+		}
+		if {[string match -nocase "*CHALLENGE*" $msg]} {
+			set challenge [lindex [split $msg " "] 1]
+			set authuser [getbncuser $client tag authuser]
+			set authuserlower [string tolower [string map -nocase {"[" "{" "]" "}" "|" "\\"} [getbncuser $client tag authuser]]]
+			set authpass [string range [getbncuser $client tag authpass] 0 9]
+			if {[string match -nocase "*HMAC-SHA-256*" $msg] && [lsearch $::qauth_supported_algorithms sha256] > "-1"} {
+				set authpass [string tolower [::sha2::sha256 -hex $authpass]]
+				set response [string tolower [::sha2::sha256 -hex "${authuserlower}:${authpass}"]]
+				set response [string tolower [::sha2::hmac -hex -key $response $challenge]]
+				putquick "PRIVMSG Q@CServe.staynet.org :CHALLENGEAUTH $authuser $response HMAC-SHA-256"
+			} elseif {[string match -nocase "*HMAC-SHA-1*" $msg] && [lsearch $::qauth_supported_algorithms sha1] > "-1"} {
+				set authpass [string tolower [::sha1::sha1 -hex $authpass]]
+				set response [string tolower [::sha1::sha1 -hex "${authuserlower}:${authpass}"]]
+				set response [string tolower [::sha1::hmac -hex -key $response $challenge]]
+				putquick "PRIVMSG Q@CServe.staynet.org :CHALLENGEAUTH $authuser $response HMAC-SHA-1"
+			} elseif {[string match -nocase "*HMAC-MD5*" $msg] && [lsearch $::qauth_supported_algorithms md5] > "-1"} {
+				set authpass [string tolower [::md5::md5 -hex $authpass]]
+				set response [string tolower [::md5::md5 -hex "${authuserlower}:${authpass}"]]
+				set response [string tolower [::md5::hmac -hex -key $response $challenge]]
+				putquick "PRIVMSG Q@CServe.staynet.org :CHALLENGEAUTH $authuser $response HMAC-MD5"
+			} else {
+				putquick "PRIVMSG Q@CServe.staynet.org :AUTH $authuser $authpass"
 			}
 		}
 	}
