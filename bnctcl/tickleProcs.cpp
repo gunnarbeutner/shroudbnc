@@ -830,7 +830,14 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetRealname();
 	else if (strcasecmp(Type, "nick") == 0)
 		return Context->GetNick();
-	else if (strcasecmp(Type, "awaynick") == 0)
+	else if (strcasecmp(Type, "realnick") == 0) {
+		IRC = Context->GetIRCConnection();
+
+		if (IRC)
+			return IRC->GetCurrentNick();
+		else
+			return NULL;
+	} else if (strcasecmp(Type, "awaynick") == 0)
 		return Context->GetAwayNick();
 	else if (strcasecmp(Type, "away") == 0)
 		return Context->GetAwayText();
@@ -1005,7 +1012,7 @@ const char* getbncuser(const char* User, const char* Type, const char* Parameter
 		return Context->GetSystemNotices() ? "1" : "0";
 	} else {
 		throw "Type should be one of: server port serverpass client clientcount "
-			"realname nick awaynick away awaymessage uptime lock admin hasserver "
+			"realname nick realnick awaynick away awaymessage uptime lock admin hasserver "
 			"hasclient vhost channels tag delayjoin seen quitasaway automodes "
 			"dropmodes suspendreason ssl sslclient realserver ident tags localip "
 			"lean memory memorylimit channelsort sessions autobacklog sysnotices";
