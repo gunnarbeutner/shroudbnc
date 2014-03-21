@@ -62,6 +62,7 @@ private:
 #endif /* SWIG */
 
 	connection_state_e m_State; /**< the current status of the IRC connection */
+	bool m_SeenMotd; /* whether we've seen the motd */
 
 	char *m_CurrentNick; /**< the current nick for this IRC connection */
 	char *m_Site; /**< the ident\@host of this IRC connection */

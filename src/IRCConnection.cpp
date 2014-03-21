@@ -47,6 +47,7 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned int Port, CUser *Owner
 	m_LastResponse = g_LastReconnect;
 
 	m_State = State_Connecting;
+	m_SeenMotd = false;
 
 	m_CurrentNick = NULL;
 	m_Server = NULL;
@@ -403,12 +404,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		free(m_Server);
 		m_Server = strdup(Reply);
 
-		const CVector<CModule *> *Modules = g_Bouncer->GetModules();
-
-		for (int i = 0; i < Modules->GetLength(); i++) {
-			(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
-		}
-
 		if (Client != NULL) {
 			if (strcmp(m_CurrentNick, Client->GetNick()) != 0) {
 				Client->ChangeNick(m_CurrentNick);
@@ -448,7 +443,15 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 		}
 
 		m_State = State_Connected;
+	} else if (argc > 1 && (iRaw == 422 || iRaw == 376)) {
+		if (!m_SeenMotd) {
+			m_SeenMotd = true;
+			const CVector<CModule *> *Modules = g_Bouncer->GetModules();
 
+			for (int i = 0; i < Modules->GetLength(); i++) {
+				(*Modules)[i]->ServerLogon(GetOwner()->GetUsername());
+			}
+		}
 	} else if (argc > 2 && hashRaw == hashNick) {
 		if (b_Me) {
 			free(m_CurrentNick);
