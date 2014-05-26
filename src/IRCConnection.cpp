@@ -212,7 +212,6 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	// END of HASH values
 
 	if (argc > 6 && iRaw == 4) {
-		//demize
 		free(m_Server);
 		m_Server = strdup(argv[3]);
 
