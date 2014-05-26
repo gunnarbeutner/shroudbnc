@@ -71,8 +71,10 @@ private:
 
 	CHashtable<CChannel *, false> *m_Channels; /**< the channels this IRC user is on */
 
-	char *m_ServerVersion; /**< the version from the 351 reply */
+	char *m_ServerVersion; /**< the version from the 004 reply */
 	char *m_ServerFeat; /**< the server features from the 351 reply */
+	char *m_ChanModes; /**< the channel modes from the 004 reply */
+	char *m_UserModes; /**< the user modes from the 004 reply */
 
 	CHashtable<char *, false> *m_ISupport; /**< the key/value pairs from the 005 replies */
 	
@@ -125,6 +127,8 @@ public:
 
 	const char *GetServerVersion(void) const;
 	const char *GetServerFeat(void) const;
+	const char *GetServerUserModes(void) const;
+	const char *GetServerChanModes(void) const;
 
 	CQueue *GetQueueHigh(void);
 	CQueue *GetQueueMiddle(void);

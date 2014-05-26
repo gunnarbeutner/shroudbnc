@@ -211,7 +211,19 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 	static CHashCompare hashPong("PONG");
 	// END of HASH values
 
-	if (argc > 3 && iRaw == 433) {
+	if (argc > 6 && iRaw == 4) {
+		free(m_Server);
+		m_Server = strdup(argv[3]);
+
+                free(m_ServerVersion);
+                m_ServerVersion = strdup(argv[4]);
+
+		free(m_UserModes);
+		m_UserModes = strdup(argv[5]);
+
+		free(m_ChanModes);
+		m_ChanModes = strdup(argv[6]);
+	} else if (argc > 3 && iRaw == 433) {
 		bool ReturnValue = ModuleEvent(argc, argv);
 
 		if (ReturnValue) {
@@ -1158,6 +1170,14 @@ const char *CIRCConnection::GetServerVersion(void) const {
  */
 const char *CIRCConnection::GetServerFeat(void) const {
 	return m_ServerFeat;
+}
+
+const char *CIRCConnection::GetServerChanModes(void) const {
+	return m_ChanModes;
+}
+
+const char *CIRCConnection::GetServerUserModes(void) const {
+	return m_UserModes;
 }
 
 /**
