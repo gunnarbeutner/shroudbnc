@@ -268,6 +268,8 @@ void CUser::Attach(CClientConnection *Client) {
 			Client->ChangeNick(IrcNick);
 
 			Client->WriteLine(":%s 001 %s :Welcome to the Internet Relay Network %s", m_IRC->GetServer(), IrcNick, IrcNick);
+                        Client->WriteLine(":%s 002 %s :Your host is %s, running %s", m_IRC->GetServer(), IrcNick, m_IRC->GetServer(), m_IRC->GetServerVersion());
+                        Client->WriteLine(":%s 004 %s %s %s %s %s", m_IRC->GetServer(), IrcNick, m_IRC->GetServer(), m_IRC->GetServerVersion(), m_IRC->GetServerUserModes(), m_IRC->GetServerChanModes());
 
 			if (Motd->IsEmpty()) {
 				Client->WriteLine(":%s 422 %s :MOTD File is missing", m_IRC->GetServer(), IrcNick);
