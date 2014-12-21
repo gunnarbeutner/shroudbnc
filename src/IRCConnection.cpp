@@ -53,6 +53,8 @@ CIRCConnection::CIRCConnection(const char *Host, unsigned int Port, CUser *Owner
 	m_Server = NULL;
 	m_ServerVersion = NULL;
 	m_ServerFeat = NULL;
+	m_ServerChanModes = NULL;
+	m_ServerUserModes = NULL;
 	m_Site = NULL;
 	m_Usermodes = NULL;
 	m_EatPong = false;
@@ -144,6 +146,8 @@ CIRCConnection::~CIRCConnection(void) {
 	free(m_Server);
 	free(m_ServerVersion);
 	free(m_ServerFeat);
+	free(m_ServerChanModes);
+	free(m_ServerUserModes);
 
 	delete m_ISupport;
 
@@ -218,11 +222,11 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
                 free(m_ServerVersion);
                 m_ServerVersion = strdup(argv[4]);
 
-		free(m_UserModes);
-		m_UserModes = strdup(argv[5]);
+		free(m_ServerUserModes);
+		m_ServerUserModes = strdup(argv[5]);
 
-		free(m_ChanModes);
-		m_ChanModes = strdup(argv[6]);
+		free(m_ServerChanModes);
+		m_ServerChanModes = strdup(argv[6]);
 	} else if (argc > 3 && iRaw == 433) {
 		bool ReturnValue = ModuleEvent(argc, argv);
 
@@ -1173,11 +1177,11 @@ const char *CIRCConnection::GetServerFeat(void) const {
 }
 
 const char *CIRCConnection::GetServerChanModes(void) const {
-	return m_ChanModes;
+	return m_ServerChanModes;
 }
 
 const char *CIRCConnection::GetServerUserModes(void) const {
-	return m_UserModes;
+	return m_ServerUserModes;
 }
 
 /**

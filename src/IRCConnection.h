@@ -73,8 +73,8 @@ private:
 
 	char *m_ServerVersion; /**< the version from the 004 reply */
 	char *m_ServerFeat; /**< the server features from the 351 reply */
-	char *m_ChanModes; /**< the channel modes from the 004 reply */
-	char *m_UserModes; /**< the user modes from the 004 reply */
+	char *m_ServerChanModes; /**< the channel modes from the 004 reply */
+	char *m_ServerUserModes; /**< the user modes from the 004 reply */
 
 	CHashtable<char *, false> *m_ISupport; /**< the key/value pairs from the 005 replies */
 	
