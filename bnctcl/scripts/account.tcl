@@ -50,9 +50,9 @@ proc auth:join {nick host hand chan} {
 	}
 
 	if {[isbotnick $nick]} {
-		auth:enqueue $chan
+		auth:enqueue [list $chan]
 	} else {
-		auth:enqueue $nick
+		auth:enqueue [list $nick]
 	}
 
 	internalkilltimer auth:jointimer [getctx]
@@ -181,7 +181,7 @@ proc auth:pulse {reason} {
 			}
 
 			if {$count > 100 || ($count > 20 && $count > [llength [internalchanlist $chan]] * 3 / 4)} {
-				auth:enqueue $chan
+				auth:enqueue [list $chan]
 				continue
 			}
 
