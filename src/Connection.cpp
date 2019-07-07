@@ -591,7 +591,7 @@ bool CConnection::HasQueuedData(void) const {
 			return true;
 		}
 
-		if (SSL_state(m_SSL) != SSL_ST_OK) {
+		if (SSL_get_state(m_SSL) != TLS_ST_OK) {
 			return false;
 		}
 	}

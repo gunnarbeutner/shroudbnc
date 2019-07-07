@@ -341,7 +341,7 @@ bool CIRCConnection::ParseLineArgV(int argc, const char **argv) {
 				return false;
 			}
 
-			Channel->AddUser(Nick, '\0');
+			Channel->AddUser(Nick, "");
 			free(Nick);
 		}
 
@@ -1519,7 +1519,15 @@ const char *CIRCConnection::GetSite(void) {
 int CIRCConnection::SSLVerify(int PreVerifyOk, X509_STORE_CTX *Context) const {
 #ifdef HAVE_LIBSSL
 	if (GetOwner()->GetClientConnectionMultiplexer() != NULL) {
-		GetOwner()->GetClientConnectionMultiplexer()->Privmsg(Context->cert->name);
+		X509* cert = X509_STORE_CTX_get0_cert(Context);
+		if (cert != NULL) {
+			char* str;
+			char buf[256];
+			str = X509_NAME_oneline(X509_get_subject_name(cert), buf, 256);
+			if (str != NULL) {
+				GetOwner()->GetClientConnectionMultiplexer()->Privmsg(str);
+			}
+		}
 	}
 #endif
 
