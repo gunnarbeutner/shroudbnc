@@ -749,7 +749,7 @@ void CChannel::PlayBacklog(CClientConnection *Client) {
 	bool tscap = Client->HasCapability("znc.in/server-time-iso");
 
 	if (!tscap)
-		Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** Start of channel log.", m_Name);
+		Client->WriteLine(":-sBNC!bouncer@sbnc.beutner.name PRIVMSG %s :** Start of channel log.", m_Name);
 
 	for (CListCursor<backlog_t> BacklogCursor(&m_Backlog); BacklogCursor.IsValid(); BacklogCursor.Proceed()) {
 		if (!tscap) {
@@ -770,7 +770,7 @@ void CChannel::PlayBacklog(CClientConnection *Client) {
 	}
 
 	if (!tscap)
-		Client->WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :** End of channel log.", m_Name);
+		Client->WriteLine(":-sBNC!bouncer@sbnc.beutner.name PRIVMSG %s :** End of channel log.", m_Name);
 }
 
 /**

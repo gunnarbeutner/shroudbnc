@@ -62,11 +62,11 @@ proc putkick {channel nicks {reason ""}} {
 }
 
 proc bncnotc {text} {
-	putclient ":-sBNC!core@shroudbnc.info PRIVMSG $::botnick :$text"
+	putclient ":-sBNC!core@sbnc.beutner.name PRIVMSG $::botnick :$text"
 }
 
 proc bncrnotc {text} {
-	putclient ":-sBNC!core@shroudbnc.info NOTICE $::botnick :$text"
+	putclient ":-sBNC!core@sbnc.beutner.name NOTICE $::botnick :$text"
 }
 
 proc getchanidle {nick chan} {

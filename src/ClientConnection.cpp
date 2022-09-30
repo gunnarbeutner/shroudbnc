@@ -46,8 +46,8 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 	m_Capabilities = new CHashtable<const char *, false>();
 
 	if (Client != INVALID_SOCKET) {
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** shroudBNC %s - "
-			"Copyright (C) 2005-2014 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
+		WriteLine(":sbnc.beutner.name NOTICE AUTH :*** shroudBNC %s - "
+			"Copyright (C) 2005-2022 Gunnar Beutner", g_Bouncer->GetBouncerVersion());
 
 		m_ClientLookup = new CDnsQuery(this, USE_DNSEVENTPROXY(CClientConnection, AsyncDnsFinishedClient));
 
@@ -59,7 +59,7 @@ CClientConnection::CClientConnection(SOCKET Client, bool SSL) : CConnection(Clie
 			return;
 		}
 
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** Doing reverse DNS lookup on %s...", IpToString(Remote));
+		WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Doing reverse DNS lookup on %s...", IpToString(Remote));
 
 		m_ClientLookup->GetHostByAddr(Remote);
 	}
@@ -1537,12 +1537,12 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			ValidateUser();
 			
 			if (m_Username != NULL) {
-				WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires a "
+				WriteUnformattedLine(":sbnc.beutner.name NOTICE AUTH :*** This server requires a "
 					"password. Use /QUOTE PASS thepassword to supply a password now.");
 			}
 		} else if (strcasecmp(Command, "pass") == 0) {
 			if (argc < 2) {
-				WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
+				WriteLine(":sbnc.beutner.name 461 %s :Not enough parameters", m_Nick);
 			} else {
 				free(m_Password);
 				m_Password = strdup(argv[1]);
@@ -1553,10 +1553,10 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			return false;
 		} else if (strcasecmp(Command, "user") == 0 && argc > 1) {
 			if (m_Username && m_Nick) {
-				WriteLine(":shroudbnc.info 462 %s :You may not reregister", m_Nick);
+				WriteLine(":sbnc.beutner.name 462 %s :You may not reregister", m_Nick);
 			} else {
 				if (!argv[1]) {
-					WriteLine(":shroudbnc.info 461 %s :Not enough parameters", m_Nick);
+					WriteLine(":sbnc.beutner.name 461 %s :Not enough parameters", m_Nick);
 				} else {
 					const char *Username = argv[1];
 
@@ -1572,7 +1572,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				ValidSSLCert = ValidateUser();
 
 				if (!ValidSSLCert) {
-					WriteUnformattedLine(":shroudbnc.info NOTICE AUTH :*** This server requires "
+					WriteUnformattedLine(":sbnc.beutner.name NOTICE AUTH :*** This server requires "
 						"a password. Use /QUOTE PASS thepassword to supply a password now.");
 				}
 			}
@@ -1593,7 +1593,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					strcat(caps, " ");
 				}
 
-				WriteLine(":shroudbnc.info CAP * LS :%s", caps);
+				WriteLine(":sbnc.beutner.name CAP * LS :%s", caps);
 			} else if (argc > 1 && strcasecmp(argv[1], "list") == 0) {
 				char caps[512];
 
@@ -1604,7 +1604,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 					strcat(caps, " ");
 				}
 
-				WriteLine(":shroudbnc.info CAP * LIST :%s", caps);
+				WriteLine(":sbnc.beutner.name CAP * LIST :%s", caps);
 			} else if (argc > 1 && strcasecmp(argv[1], "clear") == 0) {
 				char caps[512];
 
@@ -1617,7 +1617,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 
 				m_Capabilities->Clear();
 
-				WriteLine(":shroudbnc.info CAP * ACK :%s", caps);
+				WriteLine(":sbnc.beutner.name CAP * ACK :%s", caps);
 			} else if (argc > 1 && strcasecmp(argv[1], "end") == 0) {
 				m_CapabilitiesEnd = false;
 				ValidateUser();
@@ -1652,7 +1652,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				}
 
 				if (invalid) {
-					WriteLine(":shroudbnc.info CAP * NAK :%s", argv[2]);
+					WriteLine(":sbnc.beutner.name CAP * NAK :%s", argv[2]);
 				} else {
 					for (int a = 0; a < count; a++) {
 						for (int i = 0; i < g_Bouncer->GetCapabilities()->GetLength(); i++) {
@@ -1664,7 +1664,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						}
 					}
 
-					WriteLine(":shroudbnc.info CAP * ACK :%s", argv[2]);
+					WriteLine(":sbnc.beutner.name CAP * ACK :%s", argv[2]);
 				}
 
 				ArgFreeArray(capsv);
@@ -1721,9 +1721,9 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 				const char *Nick = argv[1];
 
 				if (strcasecmp("-sbnc", Nick) == 0) {
-					WriteLine(":shroudbnc.info 311 %s -sBNC core shroudbnc.info * :shroudBNC", m_Nick);
-					WriteLine(":shroudbnc.info 312 %s -sBNC shroudbnc.info :shroudBNC IRC Proxy", m_Nick);
-					WriteLine(":shroudbnc.info 318 %s -sBNC :End of /WHOIS list.", m_Nick);
+					WriteLine(":sbnc.beutner.name 311 %s -sBNC core sbnc.beutner.name * :shroudBNC", m_Nick);
+					WriteLine(":sbnc.beutner.name 312 %s -sBNC sbnc.beutner.name :shroudBNC IRC Proxy", m_Nick);
+					WriteLine(":sbnc.beutner.name 318 %s -sBNC :End of /WHOIS list.", m_Nick);
 
 					return false;
 				}
@@ -1823,7 +1823,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 			}
 		} else if (argc > 1 && strcasecmp(Command, "ping") == 0) {
 			if (GetOwner()->GetIRCConnection() == NULL) {
-				WriteLine(":shroudbnc.info PONG :%s", argv[1]);
+				WriteLine(":sbnc.beutner.name PONG :%s", argv[1]);
 
 				return false;
 			}
@@ -2097,7 +2097,7 @@ bool CClientConnection::ParseLineArgV(int argc, const char **argv) {
 						Server = IRC->GetServer();
 						Nick = IRC->GetCurrentNick();
 					} else {
-						Server = "shroudbnc.info";
+						Server = "sbnc.beutner.name";
 						Nick = GetNick();
 					}
 
@@ -2342,7 +2342,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 	Remote = GetRemoteAddress();
 
 	if (Response == NULL) {
-		WriteLine(":shroudbnc.info NOTICE AUTH :*** Reverse DNS query failed. Using IP address as your hostname.");
+		WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Reverse DNS query failed. Using IP address as your hostname.");
 
 		if (Remote != NULL) {
 			SetPeerName(IpToString(Remote), true);
@@ -2353,8 +2353,8 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 		if (m_PeerNameTemp == NULL) {
 			m_PeerNameTemp = strdup(Response->h_name);
 
-			WriteLine(":shroudbnc.info NOTICE AUTH :*** Reverse DNS reply received (%s).", Response->h_name);
-			WriteLine(":shroudbnc.info NOTICE AUTH :*** Doing forward DNS lookup...");
+			WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Reverse DNS reply received (%s).", Response->h_name);
+			WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Doing forward DNS lookup...");
 			m_ClientLookup->GetHostByName(Response->h_name, Response->h_addrtype);
 		} else {
 			sockaddr *saddr = NULL;
@@ -2383,7 +2383,7 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 				if (CompareAddress(saddr, Remote) == 0) {
 					SetPeerName(m_PeerNameTemp, false);
 
-					WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received (%s).", m_PeerNameTemp);
+					WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Forward DNS reply received (%s).", m_PeerNameTemp);
 
 					free(m_PeerNameTemp);
 
@@ -2394,12 +2394,12 @@ void CClientConnection::AsyncDnsFinishedClient(hostent *Response) {
 			}
 
 			if (saddr != NULL) {
-				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received (%s).", IpToString(saddr));
+				WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Forward DNS reply received (%s).", IpToString(saddr));
 			} else {
-				WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward DNS reply received.");
+				WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Forward DNS reply received.");
 			}
 
-			WriteLine(":shroudbnc.info NOTICE AUTH :*** Forward and reverse DNS replies do not match. Using IP address instead.");
+			WriteLine(":sbnc.beutner.name NOTICE AUTH :*** Forward and reverse DNS replies do not match. Using IP address instead.");
 
 			if (Remote != NULL) {
 				SetPeerName(IpToString(Remote), true);
@@ -2472,7 +2472,7 @@ void CClientConnection::Kill(const char *ErrorMessage) {
 		SetOwner(NULL);
 	}
 
-	WriteLine(":shroudbnc.info NOTICE AUTH :%s", ErrorMessage);
+	WriteLine(":sbnc.beutner.name NOTICE AUTH :%s", ErrorMessage);
 
 	CConnection::Kill(ErrorMessage);
 }
@@ -2600,7 +2600,7 @@ void CClientConnection::Privmsg(const char *Text) {
 	Nick = GetOwner()->GetNick();
 
 	if (Nick != NULL) {
-		WriteLine(":-sBNC!bouncer@shroudbnc.info PRIVMSG %s :%s", Nick, Text);
+		WriteLine(":-sBNC!bouncer@sbnc.beutner.name PRIVMSG %s :%s", Nick, Text);
 	}
 }
 
@@ -2614,7 +2614,7 @@ void CClientConnection::RealNotice(const char *Text) {
 	Nick = GetOwner()->GetNick();
 
 	if (Nick != NULL) {
-		WriteLine(":-sBNC!bouncer@shroudbnc.info NOTICE %s :%s", Nick, Text);
+		WriteLine(":-sBNC!bouncer@sbnc.beutner.name NOTICE %s :%s", Nick, Text);
 	}
 }
 

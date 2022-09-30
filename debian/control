@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Gunnar Beutner <gunnar@beutner.name>
 Build-Depends: debhelper (>= 7), automake, autotools-dev, libc-ares-dev, libltdl3-dev, libssl-dev, tcl8.5-dev
-Homepage: http://www.shroudbnc.info/
+Homepage: https://github.com/gunnarbeutner/shroudbnc
 
 Package: sbnc
 Architecture: any

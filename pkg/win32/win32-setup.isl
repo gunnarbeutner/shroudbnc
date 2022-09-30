@@ -3920,9 +3920,9 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-199301740</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-199301740</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>-199299692</td></row>
-		<row><td>ID_STRING2</td><td>1033</td><td>http://www.shroudbnc.info/</td><td>0</td><td/><td>-199318092</td></row>
+		<row><td>ID_STRING2</td><td>1033</td><td>https://github.com/gunnarbeutner/shroudbnc</td><td>0</td><td/><td>-199318092</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Gunnar Beutner</td><td>0</td><td/><td>-199334476</td></row>
-		<row><td>ID_STRING4</td><td>1033</td><td>http://www.shroudbnc.info/Support.aspx</td><td>0</td><td/><td>-199301612</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>https://github.com/gunnarbeutner/shroudbnc</td><td>0</td><td/><td>-199301612</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614388655</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>SHROUD~1|shroudBNC</td><td>0</td><td/><td>614341583</td></row>
 		<row><td>ID_STRING9</td><td>1033</td><td>Uninstall</td><td>0</td><td/><td>614345679</td></row>

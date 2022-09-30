@@ -360,12 +360,12 @@ void CUser::Attach(CClientConnection *Client) {
 			free(Channels);
 		}
 	} else {
-		Client->WriteLine(":shroudbnc.info 001 %s :Welcome to the Internet Relay Network %s", Client->GetNick(), Client->GetNick());
+		Client->WriteLine(":sbnc.beutner.name 001 %s :Welcome to the Internet Relay Network %s", Client->GetNick(), Client->GetNick());
 
 		if (!Motd->IsEmpty()) {
 			Motd->PlayToUser(Client, Log_Motd);
 		} else {
-			Client->WriteLine(":shroudbnc.info 422 %s :MOTD File is missing", Client->GetNick());
+			Client->WriteLine(":sbnc.beutner.name 422 %s :MOTD File is missing", Client->GetNick());
 		}
 
 		if (IsQuitted() != 2) {
@@ -850,7 +850,7 @@ void CUser::SetIRCConnection(CIRCConnection *IRC) {
 
 			i = 0;
 			while ((ChannelHash = Channels->Iterate(i++)) != NULL) {
-				Client->WriteLine(":shroudbnc.info KICK %s %s :Disconnected from the IRC server.", ChannelHash->Name, GetNick());
+				Client->WriteLine(":sbnc.beutner.name KICK %s %s :Disconnected from the IRC server.", ChannelHash->Name, GetNick());
 			}
 		}
 

@@ -112,7 +112,7 @@ void CLog::PlayToUser(CClientConnection *Client, LogType Type) const {
 					Server = IRC->GetServer();
 				} else {
 					Nick = Client->GetNick();
-					Server = "bouncer.shroudbnc.info";
+					Server = "sbnc.beutner.name";
 				}
 
 				if (Nick != NULL) {

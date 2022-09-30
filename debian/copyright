@@ -1,7 +1,7 @@
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
 Name: shroudBNC
 Maintainer: Gunnar Beutner <gunnar@beutner.name>
-Source: http://www.shroudbnc.info/
+Source: https://github.com/gunnarbeutner/shroudbnc
 
 Files: *
 Copyright: Copyright (C) 2005-2014 Gunnar Beutner <gunnar@beutner.name>
