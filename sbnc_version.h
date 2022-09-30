@@ -17,4 +17,4 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. *
  *******************************************************************************/
 
-#define SBNC_VERSION "1.3.9"
+#define SBNC_VERSION "1.3.10"
