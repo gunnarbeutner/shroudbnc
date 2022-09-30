@@ -289,7 +289,7 @@ void CCore::StartMainLoop(bool ShouldDaemonize) {
 		SSL_CTX_set_verify(m_SSLContext, SSL_VERIFY_PEER, SSLVerifyCertificate);
 	}
 
-	if (!SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPathConfig("sbnc.crt"))) {
+	if (m_SSLContext && !SSL_CTX_use_certificate_chain_file(m_SSLContext, BuildPathConfig("sbnc.crt"))) {
 		if (SSLPort != 0) {
 			Log("Could not load public key (sbnc.crt).");
 			ERR_print_errors_fp(stdout);
