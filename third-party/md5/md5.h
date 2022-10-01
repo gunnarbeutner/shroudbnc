@@ -39,13 +39,3 @@ void MD5Init(sMD5_CTX *);
 void MD5Update(sMD5_CTX *, unsigned char *, unsigned int);
 void MD5Final(unsigned char [16], sMD5_CTX *);
 
-typedef struct {
-  uint64_t state[4];
-  uint64_t count[2];
-  unsigned char buffer[64];
-} broken_sMD5_CTX;
-
-void broken_MD5Init(broken_sMD5_CTX *);
-void broken_MD5Update(broken_sMD5_CTX *, unsigned char *, unsigned int);
-void broken_MD5Final(unsigned char [16], broken_sMD5_CTX *);
-

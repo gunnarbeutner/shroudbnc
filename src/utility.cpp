@@ -622,15 +622,13 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp, int Family) {
  *
  * @param String the string which should be hashed
  * @param Salt the salt value
- * @param BrokenAlgo whether to use the broken algorithm
  */
-const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
+const char *UtilMd5(const char *String, const char *Salt) {
 #ifdef HAVE_LIBSSL
 	MD5_CTX context;
 #else /* HAVE_LIBSSL */
 	sMD5_CTX context;
 #endif /* HAVE_LIBSSL */
-	broken_sMD5_CTX broken_context;
 	unsigned char digest[16];
 	char *StringAndSalt, *StringPtr;
 	static char *SaltAndResult = NULL;
@@ -648,21 +646,15 @@ const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo) {
 		g_Bouncer->Fatal();
 	}
 
-	if (!BrokenAlgo) {
 #ifdef HAVE_LIBSSL
-		MD5_Init(&context);
-		MD5_Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
-		MD5_Final(digest, &context);
+	MD5_Init(&context);
+	MD5_Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
+	MD5_Final(digest, &context);
 #else /* HAVE_LIBSSL */
-		MD5Init(&context);
-		MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
-		MD5Final(digest, &context);
+	MD5Init(&context);
+	MD5Update(&context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
+	MD5Final(digest, &context);
 #endif /* HAVE_LIBSSL */
-	} else {
-		broken_MD5Init(&broken_context);
-		broken_MD5Update(&broken_context, (unsigned char *)StringAndSalt, strlen(StringAndSalt));
-		broken_MD5Final(digest, &broken_context);
-	}
 
 	free(StringAndSalt);
 

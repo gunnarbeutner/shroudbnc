@@ -418,7 +418,6 @@ void CUser::Attach(CClientConnection *Client) {
  * @param Password a password
  */
 bool CUser::CheckPassword(const char *Password) {
-	const char *OriginalPassword = Password;
 	const char *RealPass = CacheGetString(m_ConfigCache, password);
 
 	if (RealPass == NULL || Password == NULL || strlen(Password) == 0) {
@@ -429,23 +428,7 @@ bool CUser::CheckPassword(const char *Password) {
 		Password = UtilMd5(Password, SaltFromHash(RealPass));
 	}
 
-	if (strcmp(RealPass, Password) == 0) {
-		return true;
-	} else {
-		if (g_Bouncer->GetMD5()) {
-			Password = UtilMd5(OriginalPassword, SaltFromHash(RealPass), true);
-
-			if (strcmp(RealPass, Password) == 0) {
-				SetPassword(OriginalPassword);
-
-				g_Bouncer->Log("Updated broken password for user '%s'.", m_Name);
-
-				return true;
-			}
-		}
-
-		return false;
-	}
+	return (strcmp(RealPass, Password) == 0);
 }
 
 /**

@@ -72,7 +72,7 @@ SOCKET CreateListener(unsigned int Port, const char *BindIp = NULL, int Family =
 
 char *NickFromHostmask(const char *Hostmask);
 
-const char *UtilMd5(const char *String, const char *Salt, bool BrokenAlgo = false);
+const char *UtilMd5(const char *String, const char *Salt);
 const char *GenerateSalt(void);
 const char *SaltFromHash(const char *Hash);
 

@@ -66,7 +66,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="broken_md5c.c" />
     <ClCompile Include="md5c.c" />
   </ItemGroup>
   <ItemGroup>
