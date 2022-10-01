@@ -43,6 +43,10 @@ stamp-h1
 stamp-h2
 config/
 
+confdefs.h
+conftest.c
+conftest.err
+
 aclocal.m4
 m4/argz.m4
 m4/libtool.m4
