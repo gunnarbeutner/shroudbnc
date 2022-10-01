@@ -180,13 +180,12 @@ public:
 	 * @param PeerAddress the remote address of the client
 	 */
 	virtual void Accept(SOCKET Client, const sockaddr *PeerAddress) {
-		CClientConnection *ClientObject;
 		unsigned long lTrue = 1;
 
 		ioctlsocket(Client, FIONBIO, &lTrue);
 
 		// destruction is controlled by the main loop
-		ClientObject = new CClientConnection(Client, m_SSL);
+		new CClientConnection(Client, m_SSL);
 	}
 
 	/**

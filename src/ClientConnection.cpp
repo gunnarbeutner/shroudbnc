@@ -2309,8 +2309,6 @@ void CClientConnection::Destroy(void) {
  *						up the remote user's hostname
  */
 void CClientConnection::SetPeerName(const char *PeerName, bool LookupFailure) {
-	sockaddr *Remote;
-
 	free(m_PeerName);
 
 	m_PeerName = strdup(PeerName);

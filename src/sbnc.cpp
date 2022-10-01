@@ -253,7 +253,6 @@ bool sbncIsAbsolutePath(const char *Path) {
 
 const char *sbncBuildPath(const char *Filename, const char *RelativeTo) {
 	static char *Path = NULL;
-	size_t Len;
 
 	if (sbncIsAbsolutePath(Filename)) {
 		return Filename;

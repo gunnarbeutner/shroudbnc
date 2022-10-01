@@ -884,11 +884,10 @@ SOCKET CCore::CreateListener(unsigned int Port, const char *BindIp, int Family) 
  */
 void CCore::Log(const char *Format, ...) {
 	char *Out;
-	int Ret;
 	va_list marker;
 
 	va_start(marker, Format);
-	Ret = vasprintf(&Out, Format, marker);
+	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
 	if (AllocFailed(Out)) {
@@ -923,12 +922,11 @@ void CCore::Log(const char *Format, ...) {
  */
 void CCore::LogUser(CUser *User, const char *Format, ...) {
 	char *Out;
-	int Ret;
 	va_list marker;
 	bool DoneUser = false;
 
 	va_start(marker, Format);
-	Ret = vasprintf(&Out, Format, marker);
+	vasprintf(&Out, Format, marker);
 	va_end(marker);
 
 	if (AllocFailed(Out)) {

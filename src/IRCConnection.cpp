@@ -888,10 +888,8 @@ const char *CIRCConnection::GetCurrentNick(void) const {
  */
 CChannel *CIRCConnection::AddChannel(const char *Channel) {
 	CChannel *ChannelObj;
-	bool LimitExceeded = false;
 
 	if (g_Bouncer->GetResourceLimit("channels") < m_Channels->GetLength()) {
-		LimitExceeded = true;
 		ChannelObj = NULL;
 	} else {
 		ChannelObj = new CChannel(Channel, this);
