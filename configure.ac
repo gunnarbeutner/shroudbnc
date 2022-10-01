@@ -6,7 +6,7 @@ AC_INIT([shroudBNC], [1.3], [gunnar@beutner.name])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
 
-AM_INIT_AUTOMAKE([shroudBNC], [$PACKAGE_VERSION])
+AM_INIT_AUTOMAKE([foreign])
 AM_CONFIG_HEADER([config.h])
 
 dnl SED is mandatory for configure process and libtool.
